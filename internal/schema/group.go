@@ -1,0 +1,18 @@
+package schema
+
+import "github.com/ppacher/system-conf/conf"
+
+// GroupSpec defines the properties of a group.
+var GroupSpec = []conf.OptionSpec{
+	{
+		Name:        "Name",
+		Description: "Name of the group.",
+		Default:     "%N",
+		Type:        conf.StringType,
+	},
+	{
+		Name:        "Description",
+		Description: "An optional description for the group.",
+		Type:        conf.StringType,
+	},
+}
