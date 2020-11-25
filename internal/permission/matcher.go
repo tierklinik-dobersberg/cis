@@ -23,34 +23,37 @@ func NewMatcher(resolver *Resolver) *Matcher {
 // request is permitted or not. In case of an error, false and the error is
 // returned.
 func (match *Matcher) Decide(ctx context.Context, req *Request) (bool, error) {
+	l := logger.From(ctx).WithFields(req.AsFields())
+
 	permissions, err := match.resolver.ResolveUserPermissions(ctx, req.User)
 	if err != nil {
 		return false, err
 	}
 
 	for _, permSet := range permissions {
+		var allowedDescr string
 		isAllowed := false
 		for _, perm := range permSet {
-
-			logger.From(ctx).WithFields(req.AsFields()).Infof("testing %s", perm.String())
-
 			if match.IsApplicable(ctx, req, &perm) {
 				if strings.ToLower(perm.Effect) == "allow" {
 					isAllowed = true
+					allowedDescr = perm.Description
 				} else {
 					// default is deny and that's stronger than
 					// allow so we can abort and return immediately.
+					l.Infof("denied by %q", perm.Description)
 					return false, nil
 				}
 			}
 		}
 
 		if isAllowed {
+			l.Infof("allowed by %q", allowedDescr)
 			return true, nil
 		}
 	}
 
-	logger.From(ctx).WithFields(req.AsFields()).Info("No permission matched")
+	l.Infof("denied by default (no matching permissions)")
 	return false, nil
 }
 
