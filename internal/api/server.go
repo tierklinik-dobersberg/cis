@@ -17,8 +17,9 @@ import (
 // Server provides the API access to the userhub.
 type Server struct {
 	engine *gin.Engine
-	db     identitydb.Database
 	cfg    *loader.Config
+
+	db identitydb.Database
 }
 
 // New returns a new API server.
@@ -37,6 +38,8 @@ func New(cfg *loader.Config, db identitydb.Database) (*Server, error) {
 		if username != "" {
 			status = http.StatusOK
 
+			// try to get the user from the database, if that fails
+			// the auth-request fails as well.
 			u, err := srv.db.GetUser(ctx.Request.Context(), username)
 			if err != nil {
 				logger.From(ctx.Request.Context()).Infof("valid session for deleted user %s", user)
@@ -46,22 +49,19 @@ func New(cfg *loader.Config, db identitydb.Database) (*Server, error) {
 				user = &u
 			}
 		} else if header := ctx.Request.Header.Get("Authorization"); header != "" {
+			// There's no session cookie available, check if the user
+			// is trying basic-auth.
 			status, user = srv.verifyBasicAuth(ctx.Request.Context(), header)
 			sessionExpiry = 0
 		}
 
+		// on success, add user details as headers and
+		// make sure there's a valid session cookie.
 		if user != nil && status == http.StatusOK {
-			ctx.Header("Remote-User", user.Name)
-			ctx.Header("Remote-User-FullName", user.Fullname)
+			addRemoteUserHeaders(*user, ctx.Writer)
 
-			for _, mail := range user.Mail {
-				ctx.Writer.Header().Add("Remote-User-Mail", mail)
-			}
-
-			for _, phone := range user.PhoneNumber {
-				ctx.Writer.Header().Add("Remote-User-Phone", phone)
-			}
-
+			// make sure we have a sessions that valid and if it's going to
+			// expire soon renew it now.
 			if sessionExpiry < time.Minute*5 {
 				cookie := srv.createSessionCookie(
 					user.Name,
@@ -87,19 +87,25 @@ func New(cfg *loader.Config, db identitydb.Database) (*Server, error) {
 }
 
 func (srv *Server) verifyBasicAuth(ctx context.Context, header string) (int, *v1alpha.User) {
+	// We only support "Basic" auth so error out immediately for any
+	// other technique.
 	if !strings.HasPrefix(header, "Basic ") {
 		return http.StatusBadRequest, nil
 	}
 
+	// get the base64 encoded user:password string
 	blob, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(header, "Basic "))
 	if err != nil {
 		return http.StatusBadRequest, nil
 	}
 
+	// split user and passwort apart
 	parts := strings.SplitN(string(blob), ":", 2)
 	if len(parts) != 2 {
 		return http.StatusBadRequest, nil
 	}
+
+	// and finally try to authenticate the user.
 	if srv.db.Authenticate(ctx, parts[0], parts[1]) {
 		user, err := srv.db.GetUser(ctx, parts[0])
 		if err != nil {
@@ -114,4 +120,21 @@ func (srv *Server) verifyBasicAuth(ctx context.Context, header string) (int, *v1
 // ServeHTTP implements http.Handler
 func (srv *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	srv.engine.ServeHTTP(w, req)
+}
+
+func addRemoteUserHeaders(u v1alpha.User, w http.ResponseWriter) {
+	w.Header().Set("Remote-User", u.Name)
+	w.Header().Set("Remote-FullName", u.Fullname)
+
+	for _, mail := range u.Mail {
+		w.Header().Add("Remote-Mail", mail)
+	}
+
+	for _, phone := range u.PhoneNumber {
+		w.Header().Add("Remote-Phone", phone)
+	}
+
+	for _, group := range u.GroupNames {
+		w.Header().Add("Remote-Group", group)
+	}
 }

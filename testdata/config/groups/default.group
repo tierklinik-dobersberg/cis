@@ -1,0 +1,4 @@
+[Group]
+Name=default-group
+Description=Default User Group
+Members=testuser

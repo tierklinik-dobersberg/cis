@@ -34,13 +34,11 @@ var UserSpec = []conf.OptionSpec{
 	{
 		Name:        "PasswordHash",
 		Type:        conf.StringType,
-		Required:    true,
 		Description: "The value of the user password following PasswordAlgo",
 	},
 	{
 		Name:        "PasswordAlgo",
 		Type:        conf.StringType,
-		Required:    true,
 		Description: "The algorithm used to create PasswordHash.",
 	},
 }

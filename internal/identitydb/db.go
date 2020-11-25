@@ -79,6 +79,10 @@ func (db *identDB) Authenticate(ctx context.Context, name, password string) bool
 		return false
 	}
 
+	if u.passwordAlgo == "" {
+		return false
+	}
+
 	match, err := passwd.Compare(u.passwordAlgo, u.passwordHash, password)
 	if err != nil {
 		logger.From(ctx).Errorf("failed to compare password for user %s: %s", name, err)
@@ -176,13 +180,20 @@ func buildUser(f *conf.File) (*user, error) {
 	}
 
 	u.passwordAlgo, err = sec.GetString("PasswordAlgo")
-	if err != nil {
+	if err != nil && !conf.IsNotSet(err) {
 		return nil, fmt.Errorf("user.PasswordAlgo: %w", err)
 	}
 
 	u.passwordHash, err = sec.GetString("PasswordHash")
-	if err != nil {
+	if err != nil && !conf.IsNotSet(err) {
 		return nil, fmt.Errorf("user.PasswordHash: %w", err)
+	}
+
+	alogIsSet := u.passwordAlgo != ""
+	hashIsSet := u.passwordHash != ""
+
+	if alogIsSet != hashIsSet {
+		return nil, fmt.Errorf("user.PasswordHash and user.PasswordAlgo must both be set or empty")
 	}
 
 	u.Fullname, err = sec.GetString("Fullname")
