@@ -35,6 +35,14 @@ type Database interface {
 	// GetGroup returns the group object for the groub identified by
 	// it's name.
 	GetGroup(ctx context.Context, name string) (v1alpha.Group, error)
+
+	// GetUserPermissions returns a slice of permissions directly attached to
+	// the user identified by name.
+	GetUserPermissions(ctx context.Context, name string) ([]v1alpha.Permission, error)
+
+	// GetGroupPermissions returns a slice of permissions directly attached to
+	// the group identified by name.
+	GetGroupPermissions(ctx context.Context, name string) ([]v1alpha.Permission, error)
 }
 
 // The actual in-memory implementation for identDB.
@@ -101,6 +109,38 @@ func (db *identDB) GetGroup(ctx context.Context, name string) (v1alpha.Group, er
 	}
 
 	return g.Group, nil
+}
+
+func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]v1alpha.Permission, error) {
+	db.rw.RLock()
+	defer db.rw.RUnlock()
+
+	u, ok := db.users[strings.ToLower(name)]
+	if !ok {
+		return nil, ErrNotFound
+	}
+
+	perms := make([]v1alpha.Permission, len(u.permissions))
+	for idx, p := range u.permissions {
+		perms[idx] = *p.Permission
+	}
+	return perms, nil
+}
+
+func (db *identDB) GetGroupPermissions(ctx context.Context, name string) ([]v1alpha.Permission, error) {
+	db.rw.RLock()
+	defer db.rw.RUnlock()
+
+	g, ok := db.groups[strings.ToLower(name)]
+	if !ok {
+		return nil, ErrNotFound
+	}
+
+	perms := make([]v1alpha.Permission, len(g.permissions))
+	for idx, p := range g.permissions {
+		perms[idx] = *p.Permission
+	}
+	return perms, nil
 }
 
 func (db *identDB) reload() error {
