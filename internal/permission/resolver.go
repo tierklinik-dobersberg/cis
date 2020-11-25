@@ -23,7 +23,7 @@ func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string) ([
 	var permissions [][]v1alpha.Permission
 
 	// start with user permissions
-	directUserPermissions, errr := res.db.GetUserPermissions(ctx, user)
+	directUserPermissions, err := res.db.GetUserPermissions(ctx, user)
 	if err != nil {
 		return nil, err
 	}
