@@ -7,9 +7,23 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/userhub/internal/crypt"
 )
+
+func (srv *Server) logUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user, expiresIn := srv.checkSessionCookie(c.Request)
+
+		if user != "" {
+			c.Set("session:user", user)
+			c.Set("session:ttl", expiresIn.String())
+		}
+
+		c.Next()
+	}
+}
 
 func (srv *Server) createSessionCookie(userName string, ttl time.Duration, secure bool) *http.Cookie {
 	expires := time.Now().Add(ttl)

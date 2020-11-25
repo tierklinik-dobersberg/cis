@@ -12,7 +12,7 @@ require (
 	github.com/ory/graceful v0.1.1
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/ppacher/system-conf v0.3.0
-	github.com/tierklinik-dobersberg/logger v0.0.0-20201123150930-1384c3a3f8a6
+	github.com/tierklinik-dobersberg/logger v0.0.0-20201125075214-e4c452ee3c58
 	github.com/ugorji/go v1.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9

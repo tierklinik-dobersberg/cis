@@ -7,7 +7,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/userhub/internal/loader"
 	"github.com/tierklinik-dobersberg/userhub/internal/passwd"
@@ -22,17 +21,6 @@ var (
 	// of a specific kind are found in file.
 	ErrInvalidSectionCount = errors.New("unexpected number of sections")
 )
-
-type user struct {
-	v1alpha.User
-
-	passwordHash string
-	passwordAlgo string
-}
-
-type group struct {
-	v1alpha.Group
-}
 
 // Database describes the interface exposed by the identity database.
 type Database interface {
@@ -162,71 +150,4 @@ func (db *identDB) reload() error {
 	}
 
 	return nil
-}
-
-func buildUser(f *conf.File) (*user, error) {
-	u := new(user)
-
-	secs := f.GetAll("user")
-	if len(secs) == 0 || len(secs) > 1 {
-		return nil, ErrInvalidSectionCount
-	}
-	sec := secs[0]
-
-	var err error
-	u.Name, err = sec.GetString("Name")
-	if err != nil {
-		return nil, fmt.Errorf("user.Name: %w", err)
-	}
-
-	u.passwordAlgo, err = sec.GetString("PasswordAlgo")
-	if err != nil && !conf.IsNotSet(err) {
-		return nil, fmt.Errorf("user.PasswordAlgo: %w", err)
-	}
-
-	u.passwordHash, err = sec.GetString("PasswordHash")
-	if err != nil && !conf.IsNotSet(err) {
-		return nil, fmt.Errorf("user.PasswordHash: %w", err)
-	}
-
-	alogIsSet := u.passwordAlgo != ""
-	hashIsSet := u.passwordHash != ""
-
-	if alogIsSet != hashIsSet {
-		return nil, fmt.Errorf("user.PasswordHash and user.PasswordAlgo must both be set or empty")
-	}
-
-	u.Fullname, err = sec.GetString("Fullname")
-	if err != nil && !conf.IsNotSet(err) {
-		return nil, fmt.Errorf("user.Fullname: %w", err)
-	}
-
-	u.Mail = sec.GetStringSlice("Mail")
-	u.PhoneNumber = sec.GetStringSlice("PhoneNumber")
-	u.GroupNames = sec.GetStringSlice("MemberOf")
-
-	return u, nil
-}
-
-func buildGroup(f *conf.File) (*group, error) {
-	g := new(group)
-
-	secs := f.GetAll("Group")
-	if len(secs) == 0 || len(secs) > 1 {
-		return nil, ErrInvalidSectionCount
-	}
-	sec := secs[0]
-
-	var err error
-	g.Name, err = sec.GetString("Name")
-	if err != nil {
-		return nil, fmt.Errorf("group.Name: %w", err)
-	}
-
-	g.Description, err = sec.GetString("Description")
-	if err != nil && !conf.IsNotSet(err) {
-		return nil, fmt.Errorf("group.Description: %w", err)
-	}
-
-	return g, nil
 }

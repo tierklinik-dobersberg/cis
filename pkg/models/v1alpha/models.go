@@ -15,3 +15,12 @@ type Group struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
+
+// Permission describes a permission.
+type Permission struct {
+	Description string   `json:"description"`
+	Resources   []string `json:"resources"`
+	Effect      string   `json:"effect"`
+	Domains     []string `json:"domain"`
+	Subjects    []string `json:"subjects"`
+}

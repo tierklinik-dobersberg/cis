@@ -1,5 +1,6 @@
 [User]
 Name=test
+FullName=Max Musterfrau
 PasswordAlgo=plain
 PasswordHash=password
 Mail=test@example.at

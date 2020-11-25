@@ -1,6 +1,7 @@
 package accesslog
 
 import (
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -22,9 +23,6 @@ func New(log logger.Logger) gin.HandlerFunc {
 
 		end := time.Now()
 		latency := end.Sub(start)
-		if newConfig.UTC {
-			end = end.UTC()
-		}
 
 		msg := "Request"
 		if len(c.Errors) > 0 {
@@ -32,12 +30,28 @@ func New(log logger.Logger) gin.HandlerFunc {
 		}
 
 		fields := logger.Fields{
-			"status":     c.Writer.Status(),
-			"method":     c.Request.Method,
-			"path":       path,
-			"ip":         c.ClientIP(),
-			"latency":    latency,
-			"user-agent": c.Request.UserAgent(),
+			"http:status":      c.Writer.Status(),
+			"http:method":      c.Request.Method,
+			"http:path":        path,
+			"http:ip":          c.ClientIP(),
+			"http:latency":     latency.String(),
+			"http:latency-raw": latency,
+			"http:user-agent":  c.Request.UserAgent(),
+		}
+
+		// merge existing fields in the request context
+		existingFields := logger.ContextFields(c.Request.Context())
+		for k, v := range existingFields {
+			fields[k] = v
+		}
+
+		// merge fields from the gin.Context
+		for k, v := range c.Keys {
+			// gin keys prefixed with underscore are marked
+			// as private.
+			if !strings.HasPrefix(k, "_") {
+				fields[k] = v
+			}
 		}
 
 		log.WithFields(fields).Info(msg)

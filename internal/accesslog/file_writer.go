@@ -15,7 +15,7 @@ type FileWriter struct {
 
 // Write is called for each log message and implements logger.Adapter.
 func (fl *FileWriter) Write(clock time.Time, severtiy logger.Severity, msg string, fields logger.Fields) {
-	f, err := os.OpenFile(fl.Path, os.O_CREATE|os.O_APPEND|os.O_WRONLY)
+	f, err := os.OpenFile(fl.Path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		// Create a new StdlibAdapter and write a warning message there
 		// so there's at least a chance of a user noticing the file-log

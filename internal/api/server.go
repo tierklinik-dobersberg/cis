@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/logger"
+	"github.com/tierklinik-dobersberg/userhub/internal/accesslog"
 	"github.com/tierklinik-dobersberg/userhub/internal/identitydb"
 	"github.com/tierklinik-dobersberg/userhub/internal/loader"
 	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
@@ -30,16 +31,8 @@ func New(cfg *loader.Config, db identitydb.Database) (*Server, error) {
 		cfg:    cfg,
 	}
 
-	accessLogger := logger.DefaultLogger()
-	if cfg.AccessLogFile != "" {
-		accessLogger = logger.New(&accesslog.FileWriter{
-			Path: cfg.AccessLogFile,
-			ErrorAdapter: logger.DefaultAdapter(),
-		})
-	}
-
-	srv.engine.Use(accesslog.New(accessLogger))
-	
+	srv.engine.Use(srv.logUser())
+	srv.engine.Use(accessLogger(cfg))
 
 	srv.engine.GET("api/verify", func(ctx *gin.Context) {
 		var status int = http.StatusForbidden
@@ -131,6 +124,22 @@ func (srv *Server) verifyBasicAuth(ctx context.Context, header string) (int, *v1
 // ServeHTTP implements http.Handler
 func (srv *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	srv.engine.ServeHTTP(w, req)
+}
+
+func accessLogger(cfg *loader.Config) gin.HandlerFunc {
+	accessLogger := logger.DefaultLogger()
+	if cfg.AccessLogFile != "" {
+		adapter := logger.MultiAdapter(
+			logger.DefaultAdapter(),
+			&accesslog.FileWriter{
+				Path:         cfg.AccessLogFile,
+				ErrorAdapter: logger.DefaultAdapter(),
+			},
+		)
+		accessLogger = logger.New(adapter)
+	}
+
+	return accesslog.New(accessLogger)
 }
 
 func addRemoteUserHeaders(u v1alpha.User, w http.ResponseWriter) {
