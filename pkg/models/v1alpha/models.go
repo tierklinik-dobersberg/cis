@@ -22,5 +22,4 @@ type Permission struct {
 	Resources   []string `json:"resources"`
 	Effect      string   `json:"effect"`
 	Domains     []string `json:"domain"`
-	Subjects    []string `json:"subjects"`
 }

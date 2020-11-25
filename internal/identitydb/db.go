@@ -122,7 +122,7 @@ func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]v1alp
 
 	perms := make([]v1alpha.Permission, len(u.permissions))
 	for idx, p := range u.permissions {
-		perms[idx] = *p.Permission
+		perms[idx] = p.Permission
 	}
 	return perms, nil
 }
@@ -138,7 +138,7 @@ func (db *identDB) GetGroupPermissions(ctx context.Context, name string) ([]v1al
 
 	perms := make([]v1alpha.Permission, len(g.permissions))
 	for idx, p := range g.permissions {
-		perms[idx] = *p.Permission
+		perms[idx] = p.Permission
 	}
 	return perms, nil
 }

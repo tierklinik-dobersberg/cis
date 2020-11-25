@@ -8,3 +8,8 @@ Mail=test@example.com
 PhoneNumber=+43123456678
 PhoneNumber=+2812345
 MemberOf=default-group
+
+[Permission]
+Domain=secure.example.com
+Resources=/resource/foo.*
+Effect=allow

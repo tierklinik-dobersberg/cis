@@ -8,7 +8,7 @@ import (
 )
 
 type permission struct {
-	*v1alpha.Permission
+	v1alpha.Permission
 }
 
 func buildPermission(sec conf.Section) (*permission, error) {
@@ -26,7 +26,6 @@ func buildPermission(sec conf.Section) (*permission, error) {
 	}
 
 	p.Resources = sec.GetStringSlice("Resources")
-	p.Subjects = sec.GetStringSlice("Subjects")
 	p.Domains = sec.GetStringSlice("Domains")
 
 	return p, nil

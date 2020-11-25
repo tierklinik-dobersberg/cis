@@ -21,7 +21,6 @@ func TestMatcher_IsApplicable(t *testing.T) {
 				Scheme:   "https",
 			},
 			v1alpha.Permission{
-				Subjects:  []string{"admin"},
 				Domains:   []string{".*"},
 				Resources: []string{"foo$"},
 			},

@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/base64"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -12,13 +13,15 @@ import (
 	"github.com/tierklinik-dobersberg/userhub/internal/accesslog"
 	"github.com/tierklinik-dobersberg/userhub/internal/identitydb"
 	"github.com/tierklinik-dobersberg/userhub/internal/loader"
+	"github.com/tierklinik-dobersberg/userhub/internal/permission"
 	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
 )
 
 // Server provides the API access to the userhub.
 type Server struct {
-	engine *gin.Engine
-	cfg    *loader.Config
+	engine  *gin.Engine
+	cfg     *loader.Config
+	matcher *permission.Matcher
 
 	db identitydb.Database
 }
@@ -26,9 +29,10 @@ type Server struct {
 // New returns a new API server.
 func New(cfg *loader.Config, db identitydb.Database) (*Server, error) {
 	srv := &Server{
-		engine: gin.Default(),
-		db:     db,
-		cfg:    cfg,
+		engine:  gin.Default(),
+		db:      db,
+		matcher: permission.NewMatcher(permission.NewResolver(db)),
+		cfg:     cfg,
 	}
 
 	srv.engine.Use(srv.logUser())
@@ -62,9 +66,32 @@ func New(cfg *loader.Config, db identitydb.Database) (*Server, error) {
 		// on success, add user details as headers and
 		// make sure there's a valid session cookie.
 		if user != nil && status == http.StatusOK {
+			ctx.Set("session:user", user.Name)
+
+			req, err := NewPermissionRequest(ctx)
+			if err != nil {
+				log.Printf("%+v", ctx.Request.Header)
+				logger.From(ctx.Request.Context()).Infof("failed to create permission request: %s", err)
+				ctx.Status(http.StatusBadRequest)
+				return
+			}
+
+			allowed, err := srv.matcher.Decide(ctx.Request.Context(), req)
+			if err != nil {
+				logger.From(ctx.Request.Context()).WithFields(req.AsFields()).Infof("failed to decide on permission request: %s", err)
+				ctx.Status(http.StatusBadRequest)
+				return
+			}
+
+			if !allowed {
+				logger.From(ctx.Request.Context()).WithFields(req.AsFields()).Info("access denied")
+				ctx.Status(http.StatusForbidden)
+				return
+			}
+
 			addRemoteUserHeaders(*user, ctx.Writer)
 
-			// make sure we have a sessions that valid and if it's going to
+			// make sure we have a valid session and if it's going to
 			// expire soon renew it now.
 			if sessionExpiry < time.Minute*5 {
 				cookie := srv.createSessionCookie(

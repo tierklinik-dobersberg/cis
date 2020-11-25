@@ -26,10 +26,4 @@ var PermissionSpec = []conf.OptionSpec{
 		Required:    true,
 		Description: "One ore more domains the permission applies to",
 	},
-	{
-		Name:        "Subject",
-		Type:        conf.StringSliceType,
-		Required:    true,
-		Description: "One or more subjects or expressions (usernames, groupnames, ...)",
-	},
 }
