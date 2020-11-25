@@ -18,9 +18,9 @@ type Request struct {
 // AsFields returns a logger.Fields map that represents the request.
 func (req *Request) AsFields() logger.Fields {
 	return logger.Fields{
-		"user":     req.User,
-		"domain":   req.Domain,
-		"resource": req.Resource,
-		"scheme":   req.Scheme,
+		"request:user":     req.User,
+		"request:domain":   req.Domain,
+		"request:resource": req.Resource,
+		"request:scheme":   req.Scheme,
 	}
 }

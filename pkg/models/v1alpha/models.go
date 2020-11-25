@@ -1,5 +1,7 @@
 package v1alpha
 
+import "fmt"
+
 // User describes the user object.
 type User struct {
 	Name        string   `json:"name"`
@@ -22,4 +24,8 @@ type Permission struct {
 	Resources   []string `json:"resources"`
 	Effect      string   `json:"effect"`
 	Domains     []string `json:"domain"`
+}
+
+func (perm *Permission) String() string {
+	return fmt.Sprintf("%q: (%s resources=%v domains=%v)", perm.Description, perm.Effect, perm.Resources, perm.Domains)
 }

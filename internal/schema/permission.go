@@ -9,7 +9,7 @@ var PermissionSpec = []conf.OptionSpec{
 		Type:        conf.StringType,
 	},
 	{
-		Name:        "Resources",
+		Name:        "Resource",
 		Type:        conf.StringSliceType,
 		Default:     "(.*)",
 		Description: "One or more resource paths that are either allowed or denied.",

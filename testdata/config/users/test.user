@@ -11,5 +11,5 @@ MemberOf=default-group
 
 [Permission]
 Domain=secure.example.com
-Resources=/resource/foo.*
+Resource=/resource/foo.*
 Effect=allow

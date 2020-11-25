@@ -9,6 +9,7 @@ import (
 	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
 )
 
+// Matcher is used to decide on permission requests.
 type Matcher struct {
 	resolver *Resolver
 }
@@ -18,6 +19,9 @@ func NewMatcher(resolver *Resolver) *Matcher {
 	return &Matcher{resolver}
 }
 
+// Decide decides on the permission request and returns wether or not the
+// request is permitted or not. In case of an error, false and the error is
+// returned.
 func (match *Matcher) Decide(ctx context.Context, req *Request) (bool, error) {
 	permissions, err := match.resolver.ResolveUserPermissions(ctx, req.User)
 	if err != nil {
@@ -27,7 +31,10 @@ func (match *Matcher) Decide(ctx context.Context, req *Request) (bool, error) {
 	for _, permSet := range permissions {
 		isAllowed := false
 		for _, perm := range permSet {
-			if match.IsApplicable(req, &perm) {
+
+			logger.From(ctx).WithFields(req.AsFields()).Infof("testing %s", perm.String())
+
+			if match.IsApplicable(ctx, req, &perm) {
 				if strings.ToLower(perm.Effect) == "allow" {
 					isAllowed = true
 				} else {
@@ -49,22 +56,23 @@ func (match *Matcher) Decide(ctx context.Context, req *Request) (bool, error) {
 
 // IsApplicable returns true if perm is applicable to be used for a
 // decision on req.
-func (match *Matcher) IsApplicable(req *Request, perm *v1alpha.Permission) bool {
-	if !MatchNeedle(req.Domain, perm.Domains) {
+func (match *Matcher) IsApplicable(ctx context.Context, req *Request, perm *v1alpha.Permission) bool {
+	if len(perm.Domains) > 0 && !MatchNeedle(ctx, req.Domain, perm.Domains) {
 		return false
 	}
-	if !MatchNeedle(req.Resource, perm.Resources) {
+	if len(perm.Resources) > 0 && !MatchNeedle(ctx, req.Resource, perm.Resources) {
 		return false
 	}
 	return true
 }
 
-func MatchNeedle(needle string, haystack []string) bool {
+// MatchNeedle checks if needle matches any of the regular expressions in haystack.
+func MatchNeedle(ctx context.Context, needle string, haystack []string) bool {
 	// TODO(ppacher): add LRU cache
 	for _, hay := range haystack {
 		re, err := regexp.Compile(hay)
 		if err != nil {
-			logger.DefaultLogger().Errorf("failed to compile regexp %q: %s", hay, err)
+			logger.From(ctx).Errorf("failed to compile regexp %q: %s", hay, err)
 			continue
 		}
 
@@ -72,5 +80,6 @@ func MatchNeedle(needle string, haystack []string) bool {
 			return true
 		}
 	}
+
 	return false
 }

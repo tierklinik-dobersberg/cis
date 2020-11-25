@@ -25,8 +25,8 @@ func buildPermission(sec conf.Section) (*permission, error) {
 		return nil, fmt.Errorf("Permission.Effect: %w", err)
 	}
 
-	p.Resources = sec.GetStringSlice("Resources")
-	p.Domains = sec.GetStringSlice("Domains")
+	p.Resources = sec.GetStringSlice("Resource")
+	p.Domains = sec.GetStringSlice("Domain")
 
 	return p, nil
 }

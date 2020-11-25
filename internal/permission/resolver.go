@@ -3,10 +3,14 @@ package permission
 import (
 	"context"
 
+	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/userhub/internal/identitydb"
 	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
 )
 
+// Resolver is used for resolving user and group
+// permissions including direct and inherited
+// permission sets.
 type Resolver struct {
 	db identitydb.Database
 }
@@ -21,6 +25,8 @@ func NewResolver(db identitydb.Database) *Resolver {
 // Permissions in the same slice have the same priority.
 func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string) ([][]v1alpha.Permission, error) {
 	var permissions [][]v1alpha.Permission
+	countDirect := 0
+	countIndirect := 0
 
 	// start with user permissions
 	directUserPermissions, err := res.db.GetUserPermissions(ctx, user)
@@ -28,6 +34,7 @@ func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string) ([
 		return nil, err
 	}
 	permissions = append(permissions, directUserPermissions)
+	countDirect += len(directUserPermissions)
 
 	// get the user object
 	userObj, err := res.db.GetUser(ctx, user)
@@ -43,12 +50,20 @@ func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string) ([
 			return nil, err
 		}
 
+		countIndirect += len(grpPerms)
 		groupPermissions = append(groupPermissions, grpPerms...)
 	}
 
 	if len(groupPermissions) > 0 {
 		permissions = append(permissions, groupPermissions)
 	}
+
+	logger.From(ctx).WithFields(logger.Fields{
+		"total":     countIndirect + countDirect,
+		"direct":    countDirect,
+		"inherited": countIndirect,
+		"user":      user,
+	}).Infof("resolved permissions for user")
 
 	return permissions, nil
 }
