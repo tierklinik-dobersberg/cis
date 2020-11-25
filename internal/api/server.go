@@ -30,6 +30,17 @@ func New(cfg *loader.Config, db identitydb.Database) (*Server, error) {
 		cfg:    cfg,
 	}
 
+	accessLogger := logger.DefaultLogger()
+	if cfg.AccessLogFile != "" {
+		accessLogger = logger.New(&accesslog.FileWriter{
+			Path: cfg.AccessLogFile,
+			ErrorAdapter: logger.DefaultAdapter(),
+		})
+	}
+
+	srv.engine.Use(accesslog.New(accessLogger))
+	
+
 	srv.engine.GET("api/verify", func(ctx *gin.Context) {
 		var status int = http.StatusForbidden
 		var user *v1alpha.User

@@ -23,6 +23,7 @@ type Config struct {
 	CookieName      string
 	CookieDomain    string
 	InsecureCookies bool
+	AccessLogFile   string
 	Listeners       []Listener
 }
 
@@ -89,6 +90,11 @@ func buildConfig(f *conf.File) (*Config, error) {
 	cfg.InsecureCookies, err = global.GetBool("InsecureCookies")
 	if err != nil {
 		return nil, fmt.Errorf("Global.InsecureCookies: %w", err)
+	}
+
+	cfg.AccessLogFile, err = global.GetString("AccessLogFile")
+	if err != nil && !conf.IsNotSet(err) {
+		return nil, fmt.Errorf("Global.AccessLogFile: %w", err)
 	}
 
 	listeners := f.GetAll("listener")

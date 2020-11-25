@@ -28,6 +28,11 @@ var GlobalConfigSpec = []conf.OptionSpec{
 		Description: "Wether or not the session cookie should be HTTPS only",
 		Type:        conf.BoolType,
 	},
+	{
+		Name:        "AccessLogFile",
+		Description: "Path to access lo file",
+		Type:        conf.StringType,
+	},
 }
 
 // ListenerSpec defines the available configuration values for the
