@@ -10,6 +10,7 @@ import (
 type User struct {
 	v1alpha.User
 
+	AvatarFile   string
 	PasswordHash string
 	PasswordAlgo string
 }
@@ -53,6 +54,11 @@ var UserSpec = []conf.OptionSpec{
 		Type:        conf.StringType,
 		Description: "The algorithm used to create PasswordHash.",
 	},
+	{
+		Name:        "AvatarFile",
+		Type:        conf.StringType,
+		Description: "Path to the avatar file name. Relative to AvatarDirectory.",
+	},
 }
 
 // BuildUser builds a user model form the specified section.
@@ -85,6 +91,11 @@ func BuildUser(sec conf.Section) (User, error) {
 	u.Fullname, err = getOptionalString(sec, "Fullname")
 	if err != nil {
 		return u, fmt.Errorf("user.Fullname: %w", err)
+	}
+
+	u.AvatarFile, err = getOptionalString(sec, "AvatarFile")
+	if err != nil {
+		return u, fmt.Errorf("user.AvatarFile: %w", err)
 	}
 
 	u.Mail = sec.GetStringSlice("Mail")

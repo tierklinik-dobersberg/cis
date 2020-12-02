@@ -13,6 +13,7 @@ type GlobalConfig struct {
 	CookieDomain    string
 	InsecureCookies bool
 	AccessLogFile   string
+	AvatarDirectory string
 }
 
 // GlobalConfigSpec defines the available configuration values for the
@@ -44,6 +45,11 @@ var GlobalConfigSpec = []conf.OptionSpec{
 	{
 		Name:        "AccessLogFile",
 		Description: "Path to access lo file",
+		Type:        conf.StringType,
+	},
+	{
+		Name:        "AvatarDirectory",
+		Description: "Path to avatar storage directory",
 		Type:        conf.StringType,
 	},
 }
@@ -80,6 +86,11 @@ func BuildGlobalConfig(sec conf.Section) (GlobalConfig, error) {
 	cfg.AccessLogFile, err = getOptionalString(sec, "AccessLogFile")
 	if err != nil {
 		return cfg, fmt.Errorf("AccessLogFile: %w", err)
+	}
+
+	cfg.AvatarDirectory, err = getOptionalString(sec, "AvatarDirectory")
+	if err != nil {
+		return cfg, fmt.Errorf("AvatarDirectory: %w", err)
 	}
 
 	return cfg, nil
