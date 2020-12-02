@@ -35,6 +35,7 @@ func New(cfg *loader.Config, ldr *loader.Loader, db identitydb.Database) (*Serve
 	srv.engine.Use(accessLogger(cfg))
 
 	srv.engine.GET("api/verify", srv.verifyEndpoint)
+	srv.engine.GET("api/login", srv.loginEndpoint)
 
 	grp := srv.engine.Group("api/profile", srv.requireUser())
 	{
