@@ -78,11 +78,11 @@ func (db *identDB) Authenticate(ctx context.Context, name, password string) bool
 		return false
 	}
 
-	if u.passwordAlgo == "" {
+	if u.PasswordAlgo == "" {
 		return false
 	}
 
-	match, err := passwd.Compare(u.passwordAlgo, u.passwordHash, password)
+	match, err := passwd.Compare(u.PasswordAlgo, u.PasswordHash, password)
 	if err != nil {
 		logger.From(ctx).Errorf("failed to compare password for user %s: %s", name, err)
 	}

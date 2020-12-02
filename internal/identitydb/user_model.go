@@ -10,9 +10,6 @@ import (
 type user struct {
 	schema.User
 
-	passwordHash string
-	passwordAlgo string
-
 	permissions []*schema.Permission
 }
 
