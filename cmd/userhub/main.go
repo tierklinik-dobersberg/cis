@@ -36,7 +36,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	db, err := identitydb.New(ldr)
+	db, err := identitydb.New(ldr, cfg.UserProperties)
 	if err != nil {
 		log.Errorf("failed to prepare database: %s", err)
 		os.Exit(1)

@@ -1,6 +1,7 @@
 package permission_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/tierklinik-dobersberg/userhub/internal/permission"
@@ -31,7 +32,7 @@ func TestMatcher_IsApplicable(t *testing.T) {
 	for _, tc := range cases {
 		m := new(permission.Matcher)
 
-		result := m.IsApplicable(&tc.r, &tc.p)
+		result := m.IsApplicable(context.TODO(), &tc.r, &tc.p)
 		if result != tc.a {
 			t.Fail()
 		}

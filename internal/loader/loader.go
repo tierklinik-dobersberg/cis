@@ -9,6 +9,7 @@ import (
 
 // Loader loads user and group definitions from the file system.
 type Loader struct {
+	cfg         *Config
 	searchRoots []string
 }
 
@@ -21,9 +22,9 @@ func New(paths ...string) *Loader {
 }
 
 // LoadUsers loads all users specified inside the search roots.
-func (ldr *Loader) LoadUsers() ([]*conf.File, error) {
+func (ldr *Loader) LoadUsers(userPropertySpecs []conf.OptionSpec) ([]*conf.File, error) {
 	return ldr.loadFiles("users", ".user", map[string][]conf.OptionSpec{
-		"user":       schema.UserSpec,
+		"user":       append(schema.UserSpec, userPropertySpecs...),
 		"permission": schema.PermissionSpec,
 	})
 }

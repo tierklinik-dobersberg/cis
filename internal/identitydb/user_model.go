@@ -2,6 +2,7 @@ package identitydb
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
@@ -16,7 +17,7 @@ type user struct {
 	permissions []*permission
 }
 
-func buildUser(f *conf.File) (*user, error) {
+func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec) (*user, error) {
 	u := new(user)
 
 	secs := f.GetAll("user")
@@ -57,6 +58,7 @@ func buildUser(f *conf.File) (*user, error) {
 	u.PhoneNumber = sec.GetStringSlice("PhoneNumber")
 	u.GroupNames = sec.GetStringSlice("MemberOf")
 
+	// Build permissions
 	for _, psec := range f.GetAll("permission") {
 		p, err := buildPermission(psec)
 		if err != nil {
@@ -64,6 +66,36 @@ func buildUser(f *conf.File) (*user, error) {
 		}
 
 		u.permissions = append(u.permissions, p)
+	}
+
+	// Build custom user properties
+	// We do not perform any validation here as sec.Options
+	// is expected to have been validated already using Validate()
+	// and Prepare.
+	if len(userPropertySpecs) > 0 {
+		u.Properties = make(map[string]interface{})
+	L:
+		for _, spec := range userPropertySpecs {
+			if spec.Type.IsSliceType() {
+				// collect all values
+				var values []interface{}
+				for _, opt := range sec.Options {
+					if strings.ToLower(opt.Name) == strings.ToLower(spec.Name) {
+						values = append(values, opt.Value)
+					}
+				}
+				u.Properties[spec.Name] = values
+
+			} else {
+				// find the first value and continue with the property specs
+				for _, opt := range sec.Options {
+					if strings.ToLower(opt.Name) == strings.ToLower(spec.Name) {
+						u.Properties[spec.Name] = opt.Value
+						continue L
+					}
+				}
+			}
+		}
 	}
 
 	return u, nil

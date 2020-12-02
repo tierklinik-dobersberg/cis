@@ -24,6 +24,7 @@ type Config struct {
 	CookieDomain    string
 	InsecureCookies bool
 	AccessLogFile   string
+	UserProperties  []conf.OptionSpec
 	Listeners       []Listener
 }
 
@@ -47,8 +48,9 @@ func (ldr *Loader) LoadGlobalConfig() (*Config, error) {
 		}
 
 		if err := conf.ValidateFile(file, map[string][]conf.OptionSpec{
-			"global":   schema.GlobalConfigSpec,
-			"listener": schema.ListenerSpec,
+			"global":       schema.GlobalConfigSpec,
+			"listener":     schema.ListenerSpec,
+			"userproperty": schema.UserSchemaExtension,
 		}); err != nil {
 			return nil, err
 		}
@@ -97,12 +99,14 @@ func buildConfig(f *conf.File) (*Config, error) {
 		return nil, fmt.Errorf("Global.AccessLogFile: %w", err)
 	}
 
+	// build all specified listeners
+
 	listeners := f.GetAll("listener")
 
 	for idx, lsec := range listeners {
 		listener, err := buildListener(lsec)
 		if err != nil {
-			return nil, fmt.Errorf("Listener %d: %w", idx, err)
+			return nil, fmt.Errorf("Listener #%d: %w", idx, err)
 		}
 
 		cfg.Listeners = append(cfg.Listeners, listener)
@@ -116,7 +120,53 @@ func buildConfig(f *conf.File) (*Config, error) {
 		}
 	}
 
+	// get additional user propertie specs
+	userProps := f.GetAll("userproperty")
+	for idx, uprop := range userProps {
+		spec, err := buildUserProperty(uprop)
+		if err != nil {
+			return nil, fmt.Errorf("UserProperty #%d: %w", idx, err)
+		}
+
+		cfg.UserProperties = append(cfg.UserProperties, spec)
+	}
+
 	return cfg, nil
+}
+
+func buildUserProperty(sec conf.Section) (c conf.OptionSpec, err error) {
+	c.Name, err = sec.GetString("Name")
+	if err != nil {
+		return c, fmt.Errorf("Name: %w", err)
+	}
+
+	c.Description, err = sec.GetString("Description")
+	if err != nil && !conf.IsNotSet(err) {
+		return c, fmt.Errorf("Description: %w", err)
+	}
+
+	typeStr, err := sec.GetString("Type")
+	if err != nil {
+		return c, fmt.Errorf("Type: %w", err)
+	}
+
+	optType := conf.TypeFromString(typeStr)
+	if optType == nil {
+		return c, fmt.Errorf("Type: unknown type %s", typeStr)
+	}
+	c.Type = *optType
+
+	c.Required, err = sec.GetBool("Required")
+	if err != nil && !conf.IsNotSet(err) {
+		return c, fmt.Errorf("Required: %w", err)
+	}
+
+	c.Default, err = sec.GetString("Default")
+	if err != nil && !conf.IsNotSet(err) {
+		return c, fmt.Errorf("Default: %w", err)
+	}
+
+	return c, nil
 }
 
 func buildListener(sec conf.Section) (Listener, error) {

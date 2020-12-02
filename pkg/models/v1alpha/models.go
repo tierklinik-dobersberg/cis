@@ -4,11 +4,12 @@ import "fmt"
 
 // User describes the user object.
 type User struct {
-	Name        string   `json:"name"`
-	Fullname    string   `json:"fullname"`
-	Mail        []string `json:"mail"`
-	PhoneNumber []string `json:"phoneNumbers"`
-	GroupNames  []string `json:"groups"`
+	Name        string                 `json:"name"`
+	Fullname    string                 `json:"fullname"`
+	Mail        []string               `json:"mail"`
+	PhoneNumber []string               `json:"phoneNumbers"`
+	GroupNames  []string               `json:"groups"`
+	Properties  map[string]interface{} `json:"properties"`
 }
 
 // Group describes a group object. For security and privacy

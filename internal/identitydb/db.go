@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/userhub/internal/loader"
 	"github.com/tierklinik-dobersberg/userhub/internal/passwd"
@@ -47,16 +48,18 @@ type Database interface {
 
 // The actual in-memory implementation for identDB.
 type identDB struct {
-	ldr    *loader.Loader
-	rw     sync.RWMutex
-	users  map[string]*user
-	groups map[string]*group
+	ldr               *loader.Loader
+	userPropertySpecs []conf.OptionSpec
+	rw                sync.RWMutex
+	users             map[string]*user
+	groups            map[string]*group
 }
 
 // New returns a new database that uses ldr.
-func New(ldr *loader.Loader) (Database, error) {
+func New(ldr *loader.Loader, specs []conf.OptionSpec) (Database, error) {
 	db := &identDB{
-		ldr: ldr,
+		ldr:               ldr,
+		userPropertySpecs: specs,
 	}
 
 	if err := db.reload(); err != nil {
@@ -150,7 +153,7 @@ func (db *identDB) reload() error {
 	db.users = make(map[string]*user, len(db.users))
 	db.groups = make(map[string]*group, len(db.groups))
 
-	userFiles, err := db.ldr.LoadUsers()
+	userFiles, err := db.ldr.LoadUsers(db.userPropertySpecs)
 	if err != nil {
 		return err
 	}
@@ -162,7 +165,7 @@ func (db *identDB) reload() error {
 
 	// build the user map
 	for _, f := range userFiles {
-		u, err := buildUser(f)
+		u, err := buildUser(f, db.userPropertySpecs)
 		if err != nil {
 			return fmt.Errorf("%s: %w", f.Path, err)
 		}
