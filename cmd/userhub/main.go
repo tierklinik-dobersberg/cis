@@ -10,6 +10,7 @@ import (
 	"github.com/tierklinik-dobersberg/userhub/internal/api"
 	"github.com/tierklinik-dobersberg/userhub/internal/identitydb"
 	"github.com/tierklinik-dobersberg/userhub/internal/loader"
+	"github.com/tierklinik-dobersberg/userhub/internal/schema"
 	"github.com/tierklinik-dobersberg/userhub/internal/serviceenv"
 	"golang.org/x/sync/errgroup"
 )
@@ -88,7 +89,7 @@ func main() {
 	log.Infof("Shutdown complete, good bye")
 }
 
-func prepareListener(listener loader.Listener, handler http.Handler) (graceful.StartFunc, graceful.ShutdownFunc) {
+func prepareListener(listener schema.Listener, handler http.Handler) (graceful.StartFunc, graceful.ShutdownFunc) {
 	server := graceful.WithDefaults(&http.Server{
 		Addr:    listener.Address,
 		Handler: handler,

@@ -99,7 +99,7 @@ func (db *identDB) GetUser(ctx context.Context, name string) (v1alpha.User, erro
 		return v1alpha.User{}, ErrNotFound
 	}
 
-	return u.User, nil
+	return u.User.User, nil
 }
 
 func (db *identDB) GetGroup(ctx context.Context, name string) (v1alpha.Group, error) {
@@ -111,7 +111,7 @@ func (db *identDB) GetGroup(ctx context.Context, name string) (v1alpha.Group, er
 		return v1alpha.Group{}, ErrNotFound
 	}
 
-	return g.Group, nil
+	return g.Group.Group, nil
 }
 
 func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]v1alpha.Permission, error) {

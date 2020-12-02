@@ -1,66 +1,39 @@
 package identitydb
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
+	"github.com/tierklinik-dobersberg/userhub/internal/schema"
 )
 
 type user struct {
-	v1alpha.User
+	schema.User
 
 	passwordHash string
 	passwordAlgo string
 
-	permissions []*permission
+	permissions []*schema.Permission
 }
 
 func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec) (*user, error) {
-	u := new(user)
-
 	secs := f.GetAll("user")
 	if len(secs) == 0 || len(secs) > 1 {
 		return nil, ErrInvalidSectionCount
 	}
-	sec := secs[0]
 
-	var err error
-	u.Name, err = sec.GetString("Name")
+	usr, err := schema.BuildUser(secs[0])
 	if err != nil {
-		return nil, fmt.Errorf("user.Name: %w", err)
+		return nil, err
 	}
 
-	u.passwordAlgo, err = getOptionalString(sec, "PasswordAlgo")
-	if err != nil {
-		return nil, fmt.Errorf("user.PasswordAlgo: %w", err)
+	u := &user{
+		User: usr,
 	}
-
-	u.passwordHash, err = getOptionalString(sec, "PasswordHash")
-	if err != nil {
-		return nil, fmt.Errorf("user.PasswordHash: %w", err)
-	}
-
-	alogIsSet := u.passwordAlgo != ""
-	hashIsSet := u.passwordHash != ""
-
-	if alogIsSet != hashIsSet {
-		return nil, fmt.Errorf("user.PasswordHash and user.PasswordAlgo must both be set or empty")
-	}
-
-	u.Fullname, err = getOptionalString(sec, "Fullname")
-	if err != nil {
-		return nil, fmt.Errorf("user.Fullname: %w", err)
-	}
-
-	u.Mail = sec.GetStringSlice("Mail")
-	u.PhoneNumber = sec.GetStringSlice("PhoneNumber")
-	u.GroupNames = sec.GetStringSlice("MemberOf")
 
 	// Build permissions
 	for _, psec := range f.GetAll("permission") {
-		p, err := buildPermission(psec)
+		p, err := schema.BuildPermission(psec)
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +52,7 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec) (*user, error)
 			if spec.Type.IsSliceType() {
 				// collect all values
 				var values []interface{}
-				for _, opt := range sec.Options {
+				for _, opt := range secs[0].Options {
 					if strings.ToLower(opt.Name) == strings.ToLower(spec.Name) {
 						values = append(values, opt.Value)
 					}
@@ -88,7 +61,7 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec) (*user, error)
 
 			} else {
 				// find the first value and continue with the property specs
-				for _, opt := range sec.Options {
+				for _, opt := range secs[0].Options {
 					if strings.ToLower(opt.Name) == strings.ToLower(spec.Name) {
 						u.Properties[spec.Name] = opt.Value
 						continue L

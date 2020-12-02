@@ -1,6 +1,19 @@
 package schema
 
-import "github.com/ppacher/system-conf/conf"
+import (
+	"fmt"
+
+	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/userhub/internal/crypt"
+)
+
+type GlobalConfig struct {
+	Secret          string
+	CookieName      string
+	CookieDomain    string
+	InsecureCookies bool
+	AccessLogFile   string
+}
 
 // GlobalConfigSpec defines the available configuration values for the
 // [Global] configuration section.
@@ -35,55 +48,39 @@ var GlobalConfigSpec = []conf.OptionSpec{
 	},
 }
 
-// ListenerSpec defines the available configuration values for the
-// [Listener] sections.
-var ListenerSpec = []conf.OptionSpec{
-	{
-		Name:        "Address",
-		Required:    true,
-		Description: "Address to listen on in the format of <ip/hostname>:<port>.",
-		Type:        conf.StringType,
-	},
-	{
-		Name:        "CertificateFile",
-		Description: "Path to the TLS certificate file (PEM format)",
-		Type:        conf.StringType,
-	},
-	{
-		Name:        "PrivateKeyFile",
-		Description: "Path to the TLS private key file (PEM format)",
-		Type:        conf.StringType,
-	},
-}
+// BuildGlobalConfig builds a global configuration from the specified
+// section.
+func BuildGlobalConfig(sec conf.Section) (GlobalConfig, error) {
+	cfg := GlobalConfig{}
 
-// UserSchemaExtension describes the opions available when defining
-// new user properties.
-var UserSchemaExtension = []conf.OptionSpec{
-	{
-		Name:        "Name",
-		Description: "The name of the property",
-		Required:    true,
-		Type:        conf.StringType,
-	},
-	{
-		Name:        "Description",
-		Description: "An optional description of the property",
-		Type:        conf.StringType,
-	},
-	{
-		Name:        "Type",
-		Description: "The string representation of a supported type",
-		Required:    true,
-		Type:        conf.StringType,
-	},
-	{
-		Name:        "Required",
-		Description: "Wether or not this property is required",
-		Type:        conf.BoolType,
-	},
-	{
-		Name:        "Default",
-		Description: "An optional default value (string form)",
-		Type:        conf.StringType,
-	},
+	var err error
+	cfg.CookieName, err = sec.GetString("CookieName")
+	if err != nil {
+		return cfg, fmt.Errorf("CookieName: %w", err)
+	}
+
+	cfg.Secret, err = sec.GetString("Secret")
+	if conf.IsNotSet(err) {
+		cfg.Secret, err = crypt.Nonce(32)
+	}
+	if err != nil {
+		return cfg, fmt.Errorf("Secret: %w", err)
+	}
+
+	cfg.CookieDomain, err = sec.GetString("CookieDomain")
+	if err != nil {
+		return cfg, fmt.Errorf("CookieDomain: %w", err)
+	}
+
+	cfg.InsecureCookies, err = sec.GetBool("InsecureCookies")
+	if err != nil {
+		return cfg, fmt.Errorf("InsecureCookies: %w", err)
+	}
+
+	cfg.AccessLogFile, err = getOptionalString(sec, "AccessLogFile")
+	if err != nil {
+		return cfg, fmt.Errorf("AccessLogFile: %w", err)
+	}
+
+	return cfg, nil
 }
