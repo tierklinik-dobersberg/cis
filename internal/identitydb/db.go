@@ -11,7 +11,7 @@ import (
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/userhub/internal/loader"
 	"github.com/tierklinik-dobersberg/userhub/internal/passwd"
-	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
+	"github.com/tierklinik-dobersberg/userhub/internal/schema"
 )
 
 var (
@@ -31,19 +31,19 @@ type Database interface {
 
 	// GetUser returns the user object for the user identified by
 	// it's name.
-	GetUser(ctx context.Context, name string) (v1alpha.User, error)
+	GetUser(ctx context.Context, name string) (schema.User, error)
 
 	// GetGroup returns the group object for the groub identified by
 	// it's name.
-	GetGroup(ctx context.Context, name string) (v1alpha.Group, error)
+	GetGroup(ctx context.Context, name string) (schema.Group, error)
 
 	// GetUserPermissions returns a slice of permissions directly attached to
 	// the user identified by name.
-	GetUserPermissions(ctx context.Context, name string) ([]v1alpha.Permission, error)
+	GetUserPermissions(ctx context.Context, name string) ([]schema.Permission, error)
 
 	// GetGroupPermissions returns a slice of permissions directly attached to
 	// the group identified by name.
-	GetGroupPermissions(ctx context.Context, name string) ([]v1alpha.Permission, error)
+	GetGroupPermissions(ctx context.Context, name string) ([]schema.Permission, error)
 }
 
 // The actual in-memory implementation for identDB.
@@ -90,31 +90,31 @@ func (db *identDB) Authenticate(ctx context.Context, name, password string) bool
 	return match
 }
 
-func (db *identDB) GetUser(ctx context.Context, name string) (v1alpha.User, error) {
+func (db *identDB) GetUser(ctx context.Context, name string) (schema.User, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
 	u, ok := db.users[strings.ToLower(name)]
 	if !ok {
-		return v1alpha.User{}, ErrNotFound
+		return schema.User{}, ErrNotFound
 	}
 
-	return u.User.User, nil
+	return u.User, nil
 }
 
-func (db *identDB) GetGroup(ctx context.Context, name string) (v1alpha.Group, error) {
+func (db *identDB) GetGroup(ctx context.Context, name string) (schema.Group, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
 	g, ok := db.groups[strings.ToLower(name)]
 	if !ok {
-		return v1alpha.Group{}, ErrNotFound
+		return schema.Group{}, ErrNotFound
 	}
 
-	return g.Group.Group, nil
+	return g.Group, nil
 }
 
-func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]v1alpha.Permission, error) {
+func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]schema.Permission, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
@@ -123,14 +123,14 @@ func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]v1alp
 		return nil, ErrNotFound
 	}
 
-	perms := make([]v1alpha.Permission, len(u.permissions))
+	perms := make([]schema.Permission, len(u.permissions))
 	for idx, p := range u.permissions {
-		perms[idx] = p.Permission
+		perms[idx] = *p
 	}
 	return perms, nil
 }
 
-func (db *identDB) GetGroupPermissions(ctx context.Context, name string) ([]v1alpha.Permission, error) {
+func (db *identDB) GetGroupPermissions(ctx context.Context, name string) ([]schema.Permission, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
@@ -139,9 +139,9 @@ func (db *identDB) GetGroupPermissions(ctx context.Context, name string) ([]v1al
 		return nil, ErrNotFound
 	}
 
-	perms := make([]v1alpha.Permission, len(g.permissions))
+	perms := make([]schema.Permission, len(g.permissions))
 	for idx, p := range g.permissions {
-		perms[idx] = p.Permission
+		perms[idx] = *p
 	}
 	return perms, nil
 }

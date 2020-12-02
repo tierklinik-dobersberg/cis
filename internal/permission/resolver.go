@@ -5,7 +5,7 @@ import (
 
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/userhub/internal/identitydb"
-	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
+	"github.com/tierklinik-dobersberg/userhub/internal/schema"
 )
 
 // Resolver is used for resolving user and group
@@ -23,8 +23,8 @@ func NewResolver(db identitydb.Database) *Resolver {
 // ResolveUserPermissions resolves all permissions that apply to a user.
 // Permissions are returned in slices ordered as they should be evaluated.
 // Permissions in the same slice have the same priority.
-func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string) ([][]v1alpha.Permission, error) {
-	var permissions [][]v1alpha.Permission
+func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string) ([][]schema.Permission, error) {
+	var permissions [][]schema.Permission
 	countDirect := 0
 	countIndirect := 0
 
@@ -43,7 +43,7 @@ func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string) ([
 	}
 
 	// collect permissions of direct groups
-	var groupPermissions []v1alpha.Permission
+	var groupPermissions []schema.Permission
 	for _, groupName := range userObj.GroupNames {
 		grpPerms, err := res.db.GetGroupPermissions(ctx, groupName)
 		if err != nil {

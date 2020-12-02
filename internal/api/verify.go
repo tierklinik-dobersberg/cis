@@ -29,7 +29,7 @@ func (srv *Server) verifyEndpoint(ctx *gin.Context) {
 			sessionExpiry = 0
 			status = http.StatusForbidden
 		} else {
-			user = &u
+			user = &u.User
 		}
 	} else if header := ctx.Request.Header.Get("Authorization"); header != "" {
 		// There's no session cookie available, check if the user
@@ -115,7 +115,7 @@ func (srv *Server) verifyBasicAuth(ctx context.Context, header string) (int, *v1
 			return http.StatusBadRequest, nil
 		}
 
-		return http.StatusOK, &user
+		return http.StatusOK, &user.User
 	}
 	return http.StatusForbidden, nil
 }

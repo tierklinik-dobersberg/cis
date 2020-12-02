@@ -16,13 +16,26 @@ func (srv *Server) logUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, expiresIn := srv.checkSessionCookie(c.Request)
 
-		if user != "" {
+		if user != "" && expiresIn > 0 {
 			c.Set("session:user", user)
 			c.Set("session:ttl", expiresIn.String())
 		}
 
 		c.Next()
 	}
+}
+
+func (srv *Server) getUser(c *gin.Context) string {
+	val, ok := c.Get("session:user")
+	if !ok {
+		return ""
+	}
+
+	u, ok := val.(string)
+	if !ok {
+		return ""
+	}
+	return u
 }
 
 func (srv *Server) createSessionCookie(userName string, ttl time.Duration, secure bool) *http.Cookie {

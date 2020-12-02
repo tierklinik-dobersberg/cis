@@ -9,7 +9,6 @@ import (
 
 // Loader loads user and group definitions from the file system.
 type Loader struct {
-	cfg         *Config
 	searchRoots []string
 }
 

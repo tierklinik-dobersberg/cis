@@ -5,13 +5,14 @@ import (
 	"testing"
 
 	"github.com/tierklinik-dobersberg/userhub/internal/permission"
+	"github.com/tierklinik-dobersberg/userhub/internal/schema"
 	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
 )
 
 func TestMatcher_IsApplicable(t *testing.T) {
 	cases := []struct {
 		r permission.Request
-		p v1alpha.Permission
+		p schema.Permission
 		a bool
 	}{
 		{
@@ -21,9 +22,11 @@ func TestMatcher_IsApplicable(t *testing.T) {
 				Resource: "/foo",
 				Scheme:   "https",
 			},
-			v1alpha.Permission{
-				Domains:   []string{".*"},
-				Resources: []string{"foo$"},
+			schema.Permission{
+				Permission: v1alpha.Permission{
+					Domains:   []string{".*"},
+					Resources: []string{"foo$"},
+				},
 			},
 			true,
 		},

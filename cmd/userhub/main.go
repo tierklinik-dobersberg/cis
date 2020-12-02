@@ -43,7 +43,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	srv, err := api.New(cfg, db)
+	srv, err := api.New(cfg, ldr, db)
 	if err != nil {
 		log.Errorf("failed to prepare server: %s", err)
 		os.Exit(1)

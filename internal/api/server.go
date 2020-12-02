@@ -15,16 +15,18 @@ import (
 type Server struct {
 	engine  *gin.Engine
 	cfg     *loader.Config
+	ldr     *loader.Loader
 	matcher *permission.Matcher
 
 	db identitydb.Database
 }
 
 // New returns a new API server.
-func New(cfg *loader.Config, db identitydb.Database) (*Server, error) {
+func New(cfg *loader.Config, ldr *loader.Loader, db identitydb.Database) (*Server, error) {
 	srv := &Server{
 		engine:  gin.Default(),
 		db:      db,
+		ldr:     ldr,
 		matcher: permission.NewMatcher(permission.NewResolver(db)),
 		cfg:     cfg,
 	}
@@ -33,6 +35,13 @@ func New(cfg *loader.Config, db identitydb.Database) (*Server, error) {
 	srv.engine.Use(accessLogger(cfg))
 
 	srv.engine.GET("api/verify", srv.verifyEndpoint)
+
+	grp := srv.engine.Group("api/profile", srv.requireUser())
+	{
+		grp.GET("", srv.profileEndpoint)
+	}
+
+	srv.engine.GET("api/avatar/:userName", srv.requireUser(), srv.avatarEndpoint)
 
 	return srv, nil
 }
