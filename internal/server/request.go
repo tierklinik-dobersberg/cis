@@ -1,4 +1,4 @@
-package api
+package server
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/userhub/internal/permission"
 )
-
 
 // NewPermissionRequest returns a new permission request for c by either parsing
 // the X-Original-URL header or by using a combination of X-Forwarded-Proto,

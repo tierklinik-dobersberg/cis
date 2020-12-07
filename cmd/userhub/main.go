@@ -7,10 +7,10 @@ import (
 
 	"github.com/ory/graceful"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/userhub/internal/api"
 	"github.com/tierklinik-dobersberg/userhub/internal/identitydb"
 	"github.com/tierklinik-dobersberg/userhub/internal/loader"
 	"github.com/tierklinik-dobersberg/userhub/internal/schema"
+	"github.com/tierklinik-dobersberg/userhub/internal/server"
 	"github.com/tierklinik-dobersberg/userhub/internal/serviceenv"
 	"golang.org/x/sync/errgroup"
 )
@@ -43,7 +43,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	srv, err := api.New(cfg, ldr, db)
+	srv, err := server.New(cfg, ldr, db)
 	if err != nil {
 		log.Errorf("failed to prepare server: %s", err)
 		os.Exit(1)
