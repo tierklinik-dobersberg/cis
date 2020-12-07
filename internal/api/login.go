@@ -7,83 +7,86 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/userhub/internal/server"
 	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
 )
 
-func (srv *Server) loginEndpoint(c *gin.Context) {
-	var status int
-	var user *v1alpha.User
+func LoginEndpoint(srv *server.Server, grp gin.IRouter) {
+	grp.POST("v1/login", func(c *gin.Context) {
+		var status int
+		var user *v1alpha.User
 
-	authHeader := c.Request.Header.Get("Authorization")
-	contentType := c.Request.Header.Get("Content-Type")
+		authHeader := c.Request.Header.Get("Authorization")
+		contentType := c.Request.Header.Get("Content-Type")
 
-	if authHeader != "" {
-		// There's no session cookie available, check if the user
-		// is trying basic-auth.
-		status, user = srv.verifyBasicAuth(c.Request.Context(), authHeader)
+		if authHeader != "" {
+			// There's no session cookie available, check if the user
+			// is trying basic-auth.
+			status, user = verifyBasicAuth(c.Request.Context(), srv.DB, authHeader)
 
-		if status != http.StatusOK {
-			c.AbortWithStatus(status)
+			if status != http.StatusOK {
+				c.AbortWithStatus(status)
+				return
+			}
+		} else {
+			var username string
+			var password string
+
+			if strings.Contains(contentType, "application/json") {
+				var req struct {
+					Username string `json:"username"`
+					Password string `json:"password"`
+				}
+
+				if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
+					c.Status(http.StatusBadRequest)
+					return
+				}
+
+				username = req.Username
+				password = req.Password
+			} else if strings.Contains(contentType, "x-www-form-urlencoded") ||
+				strings.Contains(contentType, "multipart/form-data") {
+
+				username = c.Request.FormValue("username")
+				password = c.Request.FormValue("password")
+			}
+
+			if username != "" && password != "" {
+				success := srv.DB.Authenticate(c.Request.Context(), username, password)
+
+				if !success {
+					c.AbortWithStatus(http.StatusUnauthorized)
+					return
+				}
+
+				u, err := srv.DB.GetUser(c.Request.Context(), username)
+
+				if err != nil {
+					c.AbortWithError(http.StatusInternalServerError, err)
+					return
+				}
+
+				user = &u.User
+			}
+		}
+
+		if user == nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
-	} else {
-		var username string
-		var password string
 
-		if strings.Contains(contentType, "application/json") {
-			var req struct {
-				Username string `json:"username"`
-				Password string `json:"password"`
-			}
+		cookie := srv.CreateSessionCookie(user.Name, time.Hour, !srv.Config.InsecureCookies)
+		http.SetCookie(c.Writer, cookie)
 
-			if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
-				c.Status(http.StatusBadRequest)
-				return
-			}
-
-			username = req.Username
-			password = req.Password
-		} else if strings.Contains(contentType, "x-www-form-urlencoded") ||
-			strings.Contains(contentType, "multipart/form-data") {
-
-			username = c.Request.FormValue("username")
-			password = c.Request.FormValue("password")
+		rd := c.Query("redirect")
+		if rd == "" {
+			c.Status(http.StatusOK)
+			return
 		}
 
-		if username != "" && password != "" {
-			success := srv.db.Authenticate(c.Request.Context(), username, password)
+		// TODO(ppacher): verify rd is inside protected domain
 
-			if !success {
-				c.AbortWithStatus(http.StatusUnauthorized)
-				return
-			}
-
-			u, err := srv.db.GetUser(c.Request.Context(), username)
-
-			if err != nil {
-				c.AbortWithError(http.StatusInternalServerError, err)
-				return
-			}
-
-			user = &u.User
-		}
-	}
-
-	if user == nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-
-	cookie := srv.createSessionCookie(user.Name, time.Hour, !srv.cfg.InsecureCookies)
-	http.SetCookie(c.Writer, cookie)
-
-	rd := c.Query("redirect")
-	if rd == "" {
-		c.Status(http.StatusOK)
-		return
-	}
-
-	// TODO(ppacher): verify rd is inside protected domain
-
-	c.Redirect(http.StatusOK, rd)
+		c.Redirect(http.StatusOK, rd)
+	})
 }

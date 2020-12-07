@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (srv *Server) requireUser() gin.HandlerFunc {
+func (srv *Server) RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user := srv.SessionUser(c)
 		if user == "" {

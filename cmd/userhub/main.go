@@ -52,6 +52,7 @@ func main() {
 
 	apiGroup := srv.Group("/api")
 	{
+		api.LoginEndpoint(srv, apiGroup)
 		api.VerifyEndpoint(srv, apiGroup)
 		api.ProfileEndpoint(srv, apiGroup)
 		api.AvatarEndpoint(srv, apiGroup)

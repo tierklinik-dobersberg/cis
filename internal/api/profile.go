@@ -11,15 +11,19 @@ import (
 //
 // GET /api/v1/profile
 func ProfileEndpoint(srv *server.Server, grp gin.IRouter) {
-	grp.GET("v1/profile", func(c *gin.Context) {
-		userName := srv.SessionUser(c)
+	grp.GET(
+		"v1/profile",
+		srv.RequireAuth(),
+		func(c *gin.Context) {
+			userName := srv.SessionUser(c)
 
-		user, err := srv.DB.GetUser(c.Request.Context(), userName)
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
+			user, err := srv.DB.GetUser(c.Request.Context(), userName)
+			if err != nil {
+				c.AbortWithError(http.StatusInternalServerError, err)
+				return
+			}
 
-		c.JSON(http.StatusOK, user.User)
-	})
+			c.JSON(http.StatusOK, user.User)
+		},
+	)
 }
