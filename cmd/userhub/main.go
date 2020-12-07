@@ -7,6 +7,7 @@ import (
 
 	"github.com/ory/graceful"
 	"github.com/tierklinik-dobersberg/logger"
+	"github.com/tierklinik-dobersberg/userhub/internal/api"
 	"github.com/tierklinik-dobersberg/userhub/internal/identitydb"
 	"github.com/tierklinik-dobersberg/userhub/internal/loader"
 	"github.com/tierklinik-dobersberg/userhub/internal/schema"
@@ -47,6 +48,11 @@ func main() {
 	if err != nil {
 		log.Errorf("failed to prepare server: %s", err)
 		os.Exit(1)
+	}
+
+	apiGroup := srv.Group("/api")
+	{
+		api.VerifyEndpoint(srv, apiGroup)
 	}
 
 	var starter []graceful.StartFunc

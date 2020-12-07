@@ -13,7 +13,7 @@ import (
 
 // Server provides the API access to the userhub.
 type Server struct {
-	engine *gin.Engine
+	*gin.Engine
 
 	Config  *loader.Config
 	Loader  *loader.Loader
@@ -24,31 +24,29 @@ type Server struct {
 // New returns a new API server.
 func New(cfg *loader.Config, ldr *loader.Loader, db identitydb.Database) (*Server, error) {
 	srv := &Server{
-		engine:  gin.Default(),
+		Engine:  gin.Default(),
 		DB:      db,
 		Loader:  ldr,
 		Matcher: permission.NewMatcher(permission.NewResolver(db)),
 		Config:  cfg,
 	}
 
-	srv.engine.Use(srv.logUser())
-	srv.engine.Use(accessLogger(cfg))
+	srv.Engine.Use(srv.logUser())
+	srv.Engine.Use(accessLogger(cfg))
 
-	srv.engine.GET("api/verify", srv.verifyEndpoint)
-
-	grp := srv.engine.Group("api/profile", srv.requireUser())
+	grp := srv.Engine.Group("api/profile", srv.requireUser())
 	{
 		grp.GET("", srv.profileEndpoint)
 	}
 
-	srv.engine.GET("api/avatar/:userName", srv.requireUser(), srv.avatarEndpoint)
+	srv.Engine.GET("api/avatar/:userName", srv.requireUser(), srv.avatarEndpoint)
 
 	return srv, nil
 }
 
 // ServeHTTP implements http.Handler
 func (srv *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	srv.engine.ServeHTTP(w, req)
+	srv.Engine.ServeHTTP(w, req)
 }
 
 func accessLogger(cfg *loader.Config) gin.HandlerFunc {

@@ -14,7 +14,7 @@ import (
 
 func (srv *Server) logUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user, expiresIn := srv.checkSessionCookie(c.Request)
+		user, expiresIn := srv.CheckSession(c.Request)
 
 		if user != "" && expiresIn > 0 {
 			c.Set("session:user", user)
@@ -38,7 +38,7 @@ func (srv *Server) getUser(c *gin.Context) string {
 	return u
 }
 
-func (srv *Server) createSessionCookie(userName string, ttl time.Duration, secure bool) *http.Cookie {
+func (srv *Server) CreateSessionCookie(userName string, ttl time.Duration, secure bool) *http.Cookie {
 	expires := time.Now().Add(ttl)
 	expiresUnix := expires.Unix()
 	signature := crypt.Signature(srv.Config.Secret, srv.Config.CookieDomain, userName, fmt.Sprintf("%d", expiresUnix))
@@ -56,7 +56,7 @@ func (srv *Server) createSessionCookie(userName string, ttl time.Duration, secur
 	}
 }
 
-func (srv *Server) clearSessionCookie() *http.Cookie {
+func (srv *Server) ClearSessionCookie() *http.Cookie {
 	return &http.Cookie{
 		Name:     srv.Config.CookieName,
 		Value:    "",
@@ -68,7 +68,7 @@ func (srv *Server) clearSessionCookie() *http.Cookie {
 	}
 }
 
-func (srv *Server) checkSessionCookie(r *http.Request) (userName string, expiresIn time.Duration) {
+func (srv *Server) CheckSession(r *http.Request) (userName string, expiresIn time.Duration) {
 	log := logger.From(r.Context())
 
 	var sessionCookie *http.Cookie
