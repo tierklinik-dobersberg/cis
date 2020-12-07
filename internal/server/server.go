@@ -34,13 +34,6 @@ func New(cfg *loader.Config, ldr *loader.Loader, db identitydb.Database) (*Serve
 	srv.Engine.Use(srv.logUser())
 	srv.Engine.Use(accessLogger(cfg))
 
-	grp := srv.Engine.Group("api/profile", srv.requireUser())
-	{
-		grp.GET("", srv.profileEndpoint)
-	}
-
-	srv.Engine.GET("api/avatar/:userName", srv.requireUser(), srv.avatarEndpoint)
-
 	return srv, nil
 }
 

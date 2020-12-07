@@ -25,7 +25,7 @@ func (srv *Server) logUser() gin.HandlerFunc {
 	}
 }
 
-func (srv *Server) getUser(c *gin.Context) string {
+func (srv *Server) SessionUser(c *gin.Context) string {
 	val, ok := c.Get("session:user")
 	if !ok {
 		return ""

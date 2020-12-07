@@ -53,6 +53,8 @@ func main() {
 	apiGroup := srv.Group("/api")
 	{
 		api.VerifyEndpoint(srv, apiGroup)
+		api.ProfileEndpoint(srv, apiGroup)
+		api.AvatarEndpoint(srv, apiGroup)
 	}
 
 	var starter []graceful.StartFunc
