@@ -13,22 +13,22 @@ import (
 
 // Server provides the API access to the userhub.
 type Server struct {
-	engine  *gin.Engine
-	cfg     *loader.Config
-	ldr     *loader.Loader
-	matcher *permission.Matcher
+	engine *gin.Engine
 
-	db identitydb.Database
+	Config  *loader.Config
+	Loader  *loader.Loader
+	Matcher *permission.Matcher
+	DB      identitydb.Database
 }
 
 // New returns a new API server.
 func New(cfg *loader.Config, ldr *loader.Loader, db identitydb.Database) (*Server, error) {
 	srv := &Server{
 		engine:  gin.Default(),
-		db:      db,
-		ldr:     ldr,
-		matcher: permission.NewMatcher(permission.NewResolver(db)),
-		cfg:     cfg,
+		DB:      db,
+		Loader:  ldr,
+		Matcher: permission.NewMatcher(permission.NewResolver(db)),
+		Config:  cfg,
 	}
 
 	srv.engine.Use(srv.logUser())

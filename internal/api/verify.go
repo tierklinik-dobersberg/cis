@@ -23,7 +23,7 @@ func (srv *Server) verifyEndpoint(ctx *gin.Context) {
 
 		// try to get the user from the database, if that fails
 		// the auth-request fails as well.
-		u, err := srv.db.GetUser(ctx.Request.Context(), username)
+		u, err := srv.DB.GetUser(ctx.Request.Context(), username)
 		if err != nil {
 			logger.From(ctx.Request.Context()).Infof("valid session for deleted user %s", user)
 			sessionExpiry = 0
@@ -51,7 +51,7 @@ func (srv *Server) verifyEndpoint(ctx *gin.Context) {
 			return
 		}
 
-		allowed, err := srv.matcher.Decide(ctx.Request.Context(), req)
+		allowed, err := srv.Matcher.Decide(ctx.Request.Context(), req)
 		if err != nil {
 			logger.From(ctx.Request.Context()).WithFields(req.AsFields()).Infof("failed to decide on permission request: %s", err)
 			ctx.Status(http.StatusBadRequest)
@@ -72,7 +72,7 @@ func (srv *Server) verifyEndpoint(ctx *gin.Context) {
 			cookie := srv.createSessionCookie(
 				user.Name,
 				time.Hour,
-				!srv.cfg.InsecureCookies,
+				!srv.Config.InsecureCookies,
 			)
 			http.SetCookie(ctx.Writer, cookie)
 		}
@@ -109,8 +109,8 @@ func (srv *Server) verifyBasicAuth(ctx context.Context, header string) (int, *v1
 	}
 
 	// and finally try to authenticate the user.
-	if srv.db.Authenticate(ctx, parts[0], parts[1]) {
-		user, err := srv.db.GetUser(ctx, parts[0])
+	if srv.DB.Authenticate(ctx, parts[0], parts[1]) {
+		user, err := srv.DB.GetUser(ctx, parts[0])
 		if err != nil {
 			return http.StatusBadRequest, nil
 		}

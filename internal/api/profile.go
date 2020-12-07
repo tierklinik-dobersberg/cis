@@ -22,7 +22,7 @@ func (srv *Server) requireUser() gin.HandlerFunc {
 func (srv *Server) profileEndpoint(c *gin.Context) {
 	userName := srv.getUser(c)
 
-	user, err := srv.db.GetUser(c.Request.Context(), userName)
+	user, err := srv.DB.GetUser(c.Request.Context(), userName)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return

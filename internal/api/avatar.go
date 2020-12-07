@@ -17,7 +17,7 @@ func (srv *Server) avatarEndpoint(c *gin.Context) {
 		return
 	}
 
-	user, err := srv.db.GetUser(c.Request.Context(), userName)
+	user, err := srv.DB.GetUser(c.Request.Context(), userName)
 	if err != nil {
 		logger.From(c.Request.Context()).Errorf("failed to get user %s: %s", userName, err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -29,7 +29,7 @@ func (srv *Server) avatarEndpoint(c *gin.Context) {
 		avatarFile = strings.ToLower(user.Name) + ".png"
 	}
 
-	f, err := srv.ldr.LoadAvatar(srv.cfg.AvatarDirectory, avatarFile)
+	f, err := srv.Loader.LoadAvatar(srv.Config.AvatarDirectory, avatarFile)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
