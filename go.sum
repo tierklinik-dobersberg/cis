@@ -72,6 +72,12 @@ github.com/tierklinik-dobersberg/logger v0.0.0-20201123150930-1384c3a3f8a6 h1:yn
 github.com/tierklinik-dobersberg/logger v0.0.0-20201123150930-1384c3a3f8a6/go.mod h1:5xiqHfUncsmSw5X/nkWI39Xw1GP3Km3CDNPq5lU68HE=
 github.com/tierklinik-dobersberg/logger v0.0.0-20201125075214-e4c452ee3c58 h1:R0KjAXr81S4ZPRHQ0JUxS/yj3XW+dd8edPTp4lh9lK8=
 github.com/tierklinik-dobersberg/logger v0.0.0-20201125075214-e4c452ee3c58/go.mod h1:5xiqHfUncsmSw5X/nkWI39Xw1GP3Km3CDNPq5lU68HE=
+github.com/tierklinik-dobersberg/logger v0.0.0-20201125171257-d519c7625406 h1:1Rmwc3Eeu8vfk/saEsH2aU7DUOvnAvl1M8Me/wSGPGA=
+github.com/tierklinik-dobersberg/logger v0.0.0-20201125171257-d519c7625406/go.mod h1:5xiqHfUncsmSw5X/nkWI39Xw1GP3Km3CDNPq5lU68HE=
+github.com/tierklinik-dobersberg/service v0.0.0-20201209214755-cebf824ccc87 h1:txcQUPqwss/fTHchmRjffztR2h8u9QrEzI1A24b3vfc=
+github.com/tierklinik-dobersberg/service v0.0.0-20201209214755-cebf824ccc87/go.mod h1:PVI7hzh2Fx32TQiCQYgqU8Zh9a3bGzXijnHR2eceyg4=
+github.com/tierklinik-dobersberg/service v0.0.0-20201209215058-8e2301f0f22a h1:zf9sStZb+oclHShSad7BAlgTbpnazqwqQlkuIsLjnT8=
+github.com/tierklinik-dobersberg/service v0.0.0-20201209215058-8e2301f0f22a/go.mod h1:PVI7hzh2Fx32TQiCQYgqU8Zh9a3bGzXijnHR2eceyg4=
 github.com/ugorji/go v1.1.7 h1:/68gy2h+1mWMrwZFeD1kQialdSzAb432dtpeJ42ovdo=
 github.com/ugorji/go v1.1.7/go.mod h1:kZn38zHttfInRq0xu/PH0az30d+z6vm202qpg1oXVMw=
 github.com/ugorji/go v1.2.0 h1:6eXlzYLLwZwXroJx9NyqbYcbv/d93twiOzQLDewE6qM=
