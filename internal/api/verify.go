@@ -10,26 +10,31 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/logger"
+	"github.com/tierklinik-dobersberg/userhub/internal/app"
 	"github.com/tierklinik-dobersberg/userhub/internal/identitydb"
-	"github.com/tierklinik-dobersberg/userhub/internal/server"
 	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
 )
 
 // VerifyEndpoint verifies a permission request.
 //
 // GET /api/v1/verify
-func VerifyEndpoint(srv *server.Server, grp gin.IRouter) {
+func VerifyEndpoint(grp gin.IRouter) {
 	grp.GET("v1/verify", func(ctx *gin.Context) {
 		var status int = http.StatusForbidden
 		var user *v1alpha.User
 
-		username, sessionExpiry := srv.CheckSession(ctx.Request)
+		appCtx := app.From(ctx)
+		if appCtx == nil {
+			return
+		}
+
+		username, sessionExpiry := app.CheckSession(appCtx, ctx.Request)
 		if username != "" {
 			status = http.StatusOK
 
 			// try to get the user from the database, if that fails
 			// the auth-request fails as well.
-			u, err := srv.DB.GetUser(ctx.Request.Context(), username)
+			u, err := appCtx.DB.GetUser(ctx.Request.Context(), username)
 			if err != nil {
 				logger.From(ctx.Request.Context()).Infof("valid session for deleted user %s", user)
 				sessionExpiry = 0
@@ -40,7 +45,7 @@ func VerifyEndpoint(srv *server.Server, grp gin.IRouter) {
 		} else if header := ctx.Request.Header.Get("Authorization"); header != "" {
 			// There's no session cookie available, check if the user
 			// is trying basic-auth.
-			status, user = verifyBasicAuth(ctx.Request.Context(), srv.DB, header)
+			status, user = verifyBasicAuth(ctx.Request.Context(), appCtx.DB, header)
 			sessionExpiry = 0
 		}
 
@@ -57,7 +62,7 @@ func VerifyEndpoint(srv *server.Server, grp gin.IRouter) {
 				return
 			}
 
-			allowed, err := srv.Matcher.Decide(ctx.Request.Context(), req)
+			allowed, err := appCtx.Matcher.Decide(ctx.Request.Context(), req)
 			if err != nil {
 				logger.From(ctx.Request.Context()).WithFields(req.AsFields()).Infof("failed to decide on permission request: %s", err)
 				ctx.Status(http.StatusBadRequest)
@@ -75,10 +80,10 @@ func VerifyEndpoint(srv *server.Server, grp gin.IRouter) {
 			// make sure we have a valid session and if it's going to
 			// expire soon renew it now.
 			if sessionExpiry < time.Minute*5 {
-				cookie := srv.CreateSessionCookie(
+				cookie := app.CreateSessionCookie(
+					appCtx,
 					user.Name,
 					time.Hour,
-					!srv.Config.InsecureCookies,
 				)
 				http.SetCookie(ctx.Writer, cookie)
 			}
@@ -90,7 +95,7 @@ func VerifyEndpoint(srv *server.Server, grp gin.IRouter) {
 
 		http.SetCookie(
 			ctx.Writer,
-			srv.ClearSessionCookie(),
+			app.ClearSessionCookie(appCtx),
 		)
 		ctx.Status(status)
 	})

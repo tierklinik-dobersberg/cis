@@ -8,22 +8,29 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/userhub/internal/server"
+	"github.com/tierklinik-dobersberg/userhub/internal/app"
 )
 
+// AvatarEndpoint serves the user avatar as an image.
+//
 // GET /api/v1/avatar/{userName}
-func AvatarEndpoint(srv *server.Server, grp gin.IRouter) {
+func AvatarEndpoint(grp gin.IRouter) {
 	grp.GET(
 		"v1/avatar/:userName",
-		srv.RequireAuth(),
+		app.RequireSession(),
 		func(c *gin.Context) {
+			appCtx := app.From(c)
+			if appCtx == nil {
+				return
+			}
+
 			userName := c.Param("userName")
 			if userName == "" {
 				c.AbortWithStatus(http.StatusBadRequest)
 				return
 			}
 
-			user, err := srv.DB.GetUser(c.Request.Context(), userName)
+			user, err := appCtx.DB.GetUser(c.Request.Context(), userName)
 			if err != nil {
 				logger.From(c.Request.Context()).Errorf("failed to get user %s: %s", userName, err)
 				c.AbortWithStatus(http.StatusInternalServerError)
@@ -35,7 +42,7 @@ func AvatarEndpoint(srv *server.Server, grp gin.IRouter) {
 				avatarFile = strings.ToLower(user.Name) + ".png"
 			}
 
-			f, err := srv.Loader.LoadAvatar(srv.Config.AvatarDirectory, avatarFile)
+			f, err := appCtx.Loader.LoadAvatar(appCtx.Config.AvatarDirectory, avatarFile)
 			if err != nil {
 				c.AbortWithError(http.StatusInternalServerError, err)
 				return

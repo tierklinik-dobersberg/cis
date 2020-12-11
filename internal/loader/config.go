@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/userhub/internal/schema"
 )
 
@@ -14,7 +15,7 @@ type Config struct {
 	schema.GlobalConfig
 
 	UserProperties []conf.OptionSpec
-	Listeners      []schema.Listener
+	Listeners      []conf.Section
 }
 
 // LoadGlobalConfig loads and parses the global configuration file.
@@ -36,9 +37,9 @@ func (ldr *Loader) LoadGlobalConfig() (*Config, error) {
 			return nil, err
 		}
 
-		if err := conf.ValidateFile(file, map[string][]conf.OptionSpec{
+		if err := conf.ValidateFile(file, conf.FileSpec{
 			"global":       schema.GlobalConfigSpec,
-			"listener":     schema.ListenerSpec,
+			"listener":     server.ListenerSpec,
 			"userproperty": schema.UserSchemaExtension,
 		}); err != nil {
 			return nil, err
@@ -65,25 +66,7 @@ func buildConfig(f *conf.File) (*Config, error) {
 	}
 
 	// build all specified listeners
-
-	listeners := f.GetAll("listener")
-
-	for idx, lsec := range listeners {
-		listener, err := schema.BuildListener(lsec)
-		if err != nil {
-			return nil, fmt.Errorf("Listener #%d: %w", idx, err)
-		}
-
-		cfg.Listeners = append(cfg.Listeners, listener)
-	}
-
-	if len(cfg.Listeners) == 0 {
-		cfg.Listeners = []schema.Listener{
-			{
-				Address: "localhost:3000",
-			},
-		}
-	}
+	cfg.Listeners = f.GetAll("listener")
 
 	// get additional user propertie specs
 	userProps := f.GetAll("userproperty")

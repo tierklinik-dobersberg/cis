@@ -22,7 +22,7 @@ func New(paths ...string) *Loader {
 
 // LoadUsers loads all users specified inside the search roots.
 func (ldr *Loader) LoadUsers(userPropertySpecs []conf.OptionSpec) ([]*conf.File, error) {
-	return ldr.loadFiles("users", ".user", map[string][]conf.OptionSpec{
+	return ldr.loadFiles("users", ".user", conf.FileSpec{
 		"user":       append(schema.UserSpec, userPropertySpecs...),
 		"permission": schema.PermissionSpec,
 	})
@@ -30,13 +30,13 @@ func (ldr *Loader) LoadUsers(userPropertySpecs []conf.OptionSpec) ([]*conf.File,
 
 // LoadGroups loads all groups specified inside the search roots.
 func (ldr *Loader) LoadGroups() ([]*conf.File, error) {
-	return ldr.loadFiles("groups", ".group", map[string][]conf.OptionSpec{
+	return ldr.loadFiles("groups", ".group", conf.FileSpec{
 		"group":      schema.GroupSpec,
 		"permission": schema.PermissionSpec,
 	})
 }
 
-func (ldr *Loader) loadFiles(dir, ext string, spec map[string][]conf.OptionSpec) ([]*conf.File, error) {
+func (ldr *Loader) loadFiles(dir, ext string, spec conf.FileSpec) ([]*conf.File, error) {
 	names := make(map[string]struct{})
 	files := make([]*conf.File, 0)
 

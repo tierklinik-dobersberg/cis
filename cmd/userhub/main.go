@@ -1,19 +1,17 @@
 package main
 
 import (
-	"context"
-	"net/http"
 	"os"
 
 	"github.com/ory/graceful"
 	"github.com/tierklinik-dobersberg/logger"
+	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/service/svcenv"
 	"github.com/tierklinik-dobersberg/userhub/internal/api"
+	"github.com/tierklinik-dobersberg/userhub/internal/app"
 	"github.com/tierklinik-dobersberg/userhub/internal/identitydb"
 	"github.com/tierklinik-dobersberg/userhub/internal/loader"
-	"github.com/tierklinik-dobersberg/userhub/internal/schema"
-	"github.com/tierklinik-dobersberg/userhub/internal/server"
-	"golang.org/x/sync/errgroup"
+	"github.com/tierklinik-dobersberg/userhub/internal/permission"
 )
 
 func main() {
@@ -44,73 +42,32 @@ func main() {
 		os.Exit(1)
 	}
 
-	srv, err := server.New(cfg, ldr, db)
+	matcher := permission.NewMatcher(permission.NewResolver(db))
+
+	appCtx := app.NewApp(cfg, ldr, matcher, db)
+
+	srv, err := server.New(
+		cfg.AccessLogFile,
+		cfg.Listeners,
+		app.ServerOption(appCtx),
+	)
 	if err != nil {
 		log.Errorf("failed to prepare server: %s", err)
 		os.Exit(1)
 	}
 
-	apiGroup := srv.Group("/api")
+	apiGroup := srv.Group("/api/")
 	{
-		api.LoginEndpoint(srv, apiGroup)
-		api.VerifyEndpoint(srv, apiGroup)
-		api.ProfileEndpoint(srv, apiGroup)
-		api.AvatarEndpoint(srv, apiGroup)
+		api.LoginEndpoint(apiGroup)
+		api.VerifyEndpoint(apiGroup)
+		api.ProfileEndpoint(apiGroup)
+		api.AvatarEndpoint(apiGroup)
 	}
 
-	var starter []graceful.StartFunc
-	var stopper []graceful.ShutdownFunc
-
-	for _, listen := range cfg.Listeners {
-		start, stop := prepareListener(listen, srv)
-		starter = append(starter, start)
-		stopper = append(stopper, stop)
-	}
-
-	start := func() error {
-		for _, fn := range starter {
-			if err := fn(); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}
-
-	stop := func(ctx context.Context) error {
-		log.Infof("Shutting down ...")
-		grp := new(errgroup.Group)
-
-		for _, fn := range stopper {
-			grp.Go(func() error {
-				return fn(ctx)
-			})
-		}
-
-		return grp.Wait()
-	}
-
-	if err := graceful.Graceful(start, stop); err != nil {
-		log.Errorf("failed to stop server: %s", err)
-		os.Exit(1)
+	if err := graceful.Graceful(srv.Run, srv.Shutdown); err != nil {
+		log.Errorf("Failed to start/stop http server: %s", err)
+		return
 	}
 
 	log.Infof("Shutdown complete, good bye")
-}
-
-func prepareListener(listener schema.Listener, handler http.Handler) (graceful.StartFunc, graceful.ShutdownFunc) {
-	server := graceful.WithDefaults(&http.Server{
-		Addr:    listener.Address,
-		Handler: handler,
-	})
-
-	startFunc := server.ListenAndServe
-
-	if listener.TLSCertFile != "" && listener.TLSKeyFile != "" {
-		startFunc = func() error {
-			return server.ListenAndServeTLS(listener.TLSCertFile, listener.TLSKeyFile)
-		}
-	}
-
-	return startFunc, server.Shutdown
 }

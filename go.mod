@@ -16,8 +16,12 @@ require (
 	github.com/tierklinik-dobersberg/service v0.0.0-20201209215058-8e2301f0f22a
 	github.com/ugorji/go v1.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392
-	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
+	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
+
+replace github.com/tierklinik-dobersberg/service => ../service
+
+replace github.com/ppacher/system-conf => ../system-conf

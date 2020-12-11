@@ -7,14 +7,23 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/userhub/internal/server"
+	"github.com/tierklinik-dobersberg/userhub/internal/app"
 	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
 )
 
-func LoginEndpoint(srv *server.Server, grp gin.IRouter) {
+// LoginEndpoint allows to user to log-in and create a
+// session cookie.
+//
+// POST /api/v1/login
+func LoginEndpoint(grp gin.IRouter) {
 	grp.POST("v1/login", func(c *gin.Context) {
 		var status int
 		var user *v1alpha.User
+
+		appCtx := app.From(c)
+		if appCtx == nil {
+			return
+		}
 
 		authHeader := c.Request.Header.Get("Authorization")
 		contentType := c.Request.Header.Get("Content-Type")
@@ -22,7 +31,7 @@ func LoginEndpoint(srv *server.Server, grp gin.IRouter) {
 		if authHeader != "" {
 			// There's no session cookie available, check if the user
 			// is trying basic-auth.
-			status, user = verifyBasicAuth(c.Request.Context(), srv.DB, authHeader)
+			status, user = verifyBasicAuth(c.Request.Context(), appCtx.DB, authHeader)
 
 			if status != http.StatusOK {
 				c.AbortWithStatus(status)
@@ -53,14 +62,14 @@ func LoginEndpoint(srv *server.Server, grp gin.IRouter) {
 			}
 
 			if username != "" && password != "" {
-				success := srv.DB.Authenticate(c.Request.Context(), username, password)
+				success := appCtx.DB.Authenticate(c.Request.Context(), username, password)
 
 				if !success {
 					c.AbortWithStatus(http.StatusUnauthorized)
 					return
 				}
 
-				u, err := srv.DB.GetUser(c.Request.Context(), username)
+				u, err := appCtx.DB.GetUser(c.Request.Context(), username)
 
 				if err != nil {
 					c.AbortWithError(http.StatusInternalServerError, err)
@@ -76,7 +85,7 @@ func LoginEndpoint(srv *server.Server, grp gin.IRouter) {
 			return
 		}
 
-		cookie := srv.CreateSessionCookie(user.Name, time.Hour, !srv.Config.InsecureCookies)
+		cookie := app.CreateSessionCookie(appCtx, user.Name, time.Hour)
 		http.SetCookie(c.Writer, cookie)
 
 		rd := c.Query("redirect")
