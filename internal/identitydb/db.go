@@ -70,21 +70,25 @@ func New(ldr *loader.Loader, specs []conf.OptionSpec) (Database, error) {
 }
 
 func (db *identDB) Authenticate(ctx context.Context, name, password string) bool {
+	log := logger.From(ctx)
+
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
 	u, ok := db.users[strings.ToLower(name)]
 	if !ok {
+		log.Infof("identity: user with name %q does not exist", name)
 		return false
 	}
 
 	if u.PasswordAlgo == "" {
+		log.Infof("identity: user with name %q does not have a password", name)
 		return false
 	}
 
 	match, err := passwd.Compare(u.PasswordAlgo, u.PasswordHash, password)
 	if err != nil {
-		logger.From(ctx).Errorf("failed to compare password for user %s: %s", name, err)
+		log.Errorf("identity: failed to validate password for user %q: %s", name, err)
 	}
 
 	return match
@@ -123,8 +127,8 @@ func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]schem
 		return nil, ErrNotFound
 	}
 
-	perms := make([]schema.Permission, len(u.permissions))
-	for idx, p := range u.permissions {
+	perms := make([]schema.Permission, len(u.Permissions))
+	for idx, p := range u.Permissions {
 		perms[idx] = *p
 	}
 	return perms, nil
@@ -139,8 +143,8 @@ func (db *identDB) GetGroupPermissions(ctx context.Context, name string) ([]sche
 		return nil, ErrNotFound
 	}
 
-	perms := make([]schema.Permission, len(g.permissions))
-	for idx, p := range g.permissions {
+	perms := make([]schema.Permission, len(g.Permissions))
+	for idx, p := range g.Permissions {
 		perms[idx] = *p
 	}
 	return perms, nil
@@ -175,7 +179,7 @@ func (db *identDB) reload() error {
 
 	// build the group map
 	for _, f := range groupsFiles {
-		g, err := buildGroup(f)
+		g, err := decodeGroup(f)
 		if err != nil {
 			return fmt.Errorf("%s: %w", f.Path, err)
 		}
@@ -191,6 +195,8 @@ func (db *identDB) reload() error {
 			}
 		}
 	}
+
+	logger.DefaultLogger().Infof("identity: loaded %d users and %d groups", len(db.users), len(db.groups))
 
 	return nil
 }

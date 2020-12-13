@@ -48,15 +48,15 @@ func main() {
 
 	srv, err := server.New(
 		cfg.AccessLogFile,
-		cfg.Listeners,
 		app.ServerOption(appCtx),
+		server.WithListener(cfg.Listeners...),
 	)
 	if err != nil {
 		log.Errorf("failed to prepare server: %s", err)
 		os.Exit(1)
 	}
 
-	apiGroup := srv.Group("/api/")
+	apiGroup := srv.Group("/api/", app.ExtractSessionUser())
 	{
 		api.LoginEndpoint(apiGroup)
 		api.VerifyEndpoint(apiGroup)

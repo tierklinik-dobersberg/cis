@@ -1,8 +1,6 @@
 package schema
 
 import (
-	"fmt"
-
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
 )
@@ -59,48 +57,4 @@ var UserSpec = []conf.OptionSpec{
 		Type:        conf.StringType,
 		Description: "Path to the avatar file name. Relative to AvatarDirectory.",
 	},
-}
-
-// BuildUser builds a user model form the specified section.
-func BuildUser(sec conf.Section) (User, error) {
-	var u User
-	var err error
-
-	u.Name, err = sec.GetString("Name")
-	if err != nil {
-		return u, fmt.Errorf("user.Name: %w", err)
-	}
-
-	u.PasswordAlgo, err = getOptionalString(sec, "PasswordAlgo")
-	if err != nil {
-		return u, fmt.Errorf("user.PasswordAlgo: %w", err)
-	}
-
-	u.PasswordHash, err = getOptionalString(sec, "PasswordHash")
-	if err != nil {
-		return u, fmt.Errorf("user.PasswordHash: %w", err)
-	}
-
-	alogIsSet := u.PasswordAlgo != ""
-	hashIsSet := u.PasswordHash != ""
-
-	if alogIsSet != hashIsSet {
-		return u, fmt.Errorf("user.PasswordHash and user.PasswordAlgo must both be set or empty")
-	}
-
-	u.Fullname, err = getOptionalString(sec, "Fullname")
-	if err != nil {
-		return u, fmt.Errorf("user.Fullname: %w", err)
-	}
-
-	u.AvatarFile, err = getOptionalString(sec, "AvatarFile")
-	if err != nil {
-		return u, fmt.Errorf("user.AvatarFile: %w", err)
-	}
-
-	u.Mail = sec.GetStringSlice("Mail")
-	u.PhoneNumber = sec.GetStringSlice("PhoneNumber")
-	u.GroupNames = sec.GetStringSlice("MemberOf")
-
-	return u, nil
 }

@@ -1,10 +1,7 @@
 package schema
 
 import (
-	"fmt"
-
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/userhub/internal/crypt"
 )
 
 type GlobalConfig struct {
@@ -52,46 +49,4 @@ var GlobalConfigSpec = []conf.OptionSpec{
 		Description: "Path to avatar storage directory",
 		Type:        conf.StringType,
 	},
-}
-
-// BuildGlobalConfig builds a global configuration from the specified
-// section.
-func BuildGlobalConfig(sec conf.Section) (GlobalConfig, error) {
-	cfg := GlobalConfig{}
-
-	var err error
-	cfg.CookieName, err = sec.GetString("CookieName")
-	if err != nil {
-		return cfg, fmt.Errorf("CookieName: %w", err)
-	}
-
-	cfg.Secret, err = sec.GetString("Secret")
-	if conf.IsNotSet(err) {
-		cfg.Secret, err = crypt.Nonce(32)
-	}
-	if err != nil {
-		return cfg, fmt.Errorf("Secret: %w", err)
-	}
-
-	cfg.CookieDomain, err = sec.GetString("CookieDomain")
-	if err != nil {
-		return cfg, fmt.Errorf("CookieDomain: %w", err)
-	}
-
-	cfg.InsecureCookies, err = sec.GetBool("InsecureCookies")
-	if err != nil {
-		return cfg, fmt.Errorf("InsecureCookies: %w", err)
-	}
-
-	cfg.AccessLogFile, err = getOptionalString(sec, "AccessLogFile")
-	if err != nil {
-		return cfg, fmt.Errorf("AccessLogFile: %w", err)
-	}
-
-	cfg.AvatarDirectory, err = getOptionalString(sec, "AvatarDirectory")
-	if err != nil {
-		return cfg, fmt.Errorf("AvatarDirectory: %w", err)
-	}
-
-	return cfg, nil
 }

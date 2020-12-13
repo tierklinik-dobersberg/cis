@@ -6,34 +6,22 @@ import (
 )
 
 type group struct {
-	schema.Group
+	schema.Group `section:"Group"`
 
-	permissions []*schema.Permission
+	Permissions []*schema.Permission `section:"Permission"`
 }
 
-func buildGroup(f *conf.File) (*group, error) {
-	secs := f.GetAll("Group")
-	if len(secs) == 0 || len(secs) > 1 {
-		return nil, ErrInvalidSectionCount
+func decodeGroup(f *conf.File) (*group, error) {
+	spec := conf.FileSpec{
+		"Group":      schema.GroupSpec,
+		"Permission": schema.PermissionSpec,
 	}
 
-	grp, err := schema.BuildGroup(secs[0])
-	if err != nil {
+	var grp group
+
+	if err := spec.Decode(f, &grp); err != nil {
 		return nil, err
 	}
 
-	g := &group{
-		Group: grp,
-	}
-
-	for _, psec := range f.GetAll("permission") {
-		p, err := schema.BuildPermission(psec)
-		if err != nil {
-			return nil, err
-		}
-
-		g.permissions = append(g.permissions, p)
-	}
-
-	return g, nil
+	return &grp, nil
 }

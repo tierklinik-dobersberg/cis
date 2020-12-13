@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"encoding/base64"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -19,63 +18,65 @@ import (
 //
 // GET /api/v1/verify
 func VerifyEndpoint(grp gin.IRouter) {
-	grp.GET("v1/verify", func(ctx *gin.Context) {
-		var status int = http.StatusForbidden
-		var user *v1alpha.User
+	grp.GET("v1/verify", func(c *gin.Context) {
+		var (
+			user   *v1alpha.User = nil
+			status int           = http.StatusForbidden
+			log                  = logger.From(c.Request.Context())
+		)
 
-		appCtx := app.From(ctx)
+		appCtx := app.From(c)
 		if appCtx == nil {
 			return
 		}
 
-		username, sessionExpiry := app.CheckSession(appCtx, ctx.Request)
+		username, sessionExpiry := app.CheckSession(appCtx, c.Request)
 		if username != "" {
 			status = http.StatusOK
 
 			// try to get the user from the database, if that fails
 			// the auth-request fails as well.
-			u, err := appCtx.DB.GetUser(ctx.Request.Context(), username)
+			u, err := appCtx.DB.GetUser(c.Request.Context(), username)
 			if err != nil {
-				logger.From(ctx.Request.Context()).Infof("valid session for deleted user %s", user)
+				log.Infof("valid session for deleted user %s", user)
 				sessionExpiry = 0
 				status = http.StatusForbidden
 			} else {
 				user = &u.User
 			}
-		} else if header := ctx.Request.Header.Get("Authorization"); header != "" {
+		} else if header := c.Request.Header.Get("Authorization"); header != "" {
 			// There's no session cookie available, check if the user
 			// is trying basic-auth.
-			status, user = verifyBasicAuth(ctx.Request.Context(), appCtx.DB, header)
+			status, user = verifyBasicAuth(c.Request.Context(), appCtx.DB, header)
 			sessionExpiry = 0
 		}
 
 		// on success, add user details as headers and
 		// make sure there's a valid session cookie.
 		if user != nil && status == http.StatusOK {
-			ctx.Set("session:user", user.Name)
+			c.Set("session:user", user.Name)
 
-			req, err := NewPermissionRequest(ctx)
+			req, err := NewPermissionRequest(c)
 			if err != nil {
-				log.Printf("%+v", ctx.Request.Header)
-				logger.From(ctx.Request.Context()).Infof("failed to create permission request: %s", err)
-				ctx.Status(http.StatusBadRequest)
+				logger.From(c.Request.Context()).Infof("failed to create permission request: %s", err)
+				c.Status(http.StatusBadRequest)
 				return
 			}
 
-			allowed, err := appCtx.Matcher.Decide(ctx.Request.Context(), req)
+			allowed, err := appCtx.Matcher.Decide(c.Request.Context(), req)
 			if err != nil {
-				logger.From(ctx.Request.Context()).WithFields(req.AsFields()).Infof("failed to decide on permission request: %s", err)
-				ctx.Status(http.StatusBadRequest)
+				logger.From(c.Request.Context()).WithFields(req.AsFields()).Infof("failed to decide on permission request: %s", err)
+				c.Status(http.StatusBadRequest)
 				return
 			}
 
 			if !allowed {
-				logger.From(ctx.Request.Context()).WithFields(req.AsFields()).Info("access denied")
-				ctx.Status(http.StatusForbidden)
+				logger.From(c.Request.Context()).WithFields(req.AsFields()).Info("access denied")
+				c.Status(http.StatusForbidden)
 				return
 			}
 
-			addRemoteUserHeaders(*user, ctx.Writer)
+			addRemoteUserHeaders(*user, c.Writer)
 
 			// make sure we have a valid session and if it's going to
 			// expire soon renew it now.
@@ -85,51 +86,59 @@ func VerifyEndpoint(grp gin.IRouter) {
 					user.Name,
 					time.Hour,
 				)
-				http.SetCookie(ctx.Writer, cookie)
+				http.SetCookie(c.Writer, cookie)
 			}
 
-			ctx.Status(status)
+			c.Status(status)
 
 			return
 		}
 
 		http.SetCookie(
-			ctx.Writer,
+			c.Writer,
 			app.ClearSessionCookie(appCtx),
 		)
-		ctx.Status(status)
+		c.Status(status)
 	})
 }
 
 func verifyBasicAuth(ctx context.Context, db identitydb.Database, header string) (int, *v1alpha.User) {
+	log := logger.From(ctx)
+
 	// We only support "Basic" auth so error out immediately for any
 	// other technique.
 	if !strings.HasPrefix(header, "Basic ") {
+		log.Infof("basic-auth: invalid 'Authorization' header: Only 'Basic' auth is supported. ")
 		return http.StatusBadRequest, nil
 	}
 
 	// get the base64 encoded user:password string
 	blob, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(header, "Basic "))
 	if err != nil {
+		log.Infof("basic-auth: invalid 'Authorization' header: invalid base64 encoded value")
 		return http.StatusBadRequest, nil
 	}
 
 	// split user and passwort apart
 	parts := strings.SplitN(string(blob), ":", 2)
 	if len(parts) != 2 {
+		log.Infof("basic-auth: invalid 'Authorization' header: unexpcted number of parts")
 		return http.StatusBadRequest, nil
 	}
+
+	log.Infof("basic-auth: trying to authenticating user %s", parts[0])
 
 	// and finally try to authenticate the user.
 	if db.Authenticate(ctx, parts[0], parts[1]) {
 		user, err := db.GetUser(ctx, parts[0])
 		if err != nil {
+			log.Errorf("basic-auth: failed to retrieve user object for authenticated session %s", parts[0])
 			return http.StatusBadRequest, nil
 		}
 
 		return http.StatusOK, &user.User
 	}
-	return http.StatusForbidden, nil
+	return http.StatusUnauthorized, nil
 }
 
 func addRemoteUserHeaders(u v1alpha.User, w http.ResponseWriter) {

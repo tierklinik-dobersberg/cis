@@ -19,15 +19,13 @@ import (
 func ExtractSessionUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		app := From(c)
-		if app == nil {
-			return
-		}
+		if app != nil {
+			user, expiresIn := CheckSession(app, c.Request)
 
-		user, expiresIn := CheckSession(app, c.Request)
-
-		if user != "" && expiresIn > 0 {
-			c.Set("session:user", user)
-			c.Set("session:ttl", expiresIn.String())
+			if user != "" && expiresIn > 0 {
+				c.Set("session:user", user)
+				c.Set("session:ttl", expiresIn.String())
+			}
 		}
 
 		c.Next()

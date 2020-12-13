@@ -8,8 +8,8 @@ type User struct {
 	Fullname    string                 `json:"fullname"`
 	Mail        []string               `json:"mail"`
 	PhoneNumber []string               `json:"phoneNumbers"`
-	GroupNames  []string               `json:"groups"`
-	Properties  map[string]interface{} `json:"properties"`
+	GroupNames  []string               `json:"groups" option:"MemberOf"`
+	Properties  map[string]interface{} `json:"properties" option:"-"`
 }
 
 // Group describes a group object. For security and privacy
@@ -22,9 +22,9 @@ type Group struct {
 // Permission describes a permission.
 type Permission struct {
 	Description string   `json:"description"`
-	Resources   []string `json:"resources"`
+	Resources   []string `json:"resources" option:"Resource"`
 	Effect      string   `json:"effect"`
-	Domains     []string `json:"domain"`
+	Domains     []string `json:"domain" option:"Domain"`
 }
 
 func (perm *Permission) String() string {
