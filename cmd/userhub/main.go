@@ -3,71 +3,64 @@ package main
 import (
 	"os"
 
-	"github.com/ory/graceful"
+	"github.com/gin-gonic/gin"
+	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/server"
-	"github.com/tierklinik-dobersberg/service/svcenv"
+	"github.com/tierklinik-dobersberg/service/service"
 	"github.com/tierklinik-dobersberg/userhub/internal/api"
 	"github.com/tierklinik-dobersberg/userhub/internal/app"
 	"github.com/tierklinik-dobersberg/userhub/internal/identitydb"
 	"github.com/tierklinik-dobersberg/userhub/internal/loader"
 	"github.com/tierklinik-dobersberg/userhub/internal/permission"
+	"github.com/tierklinik-dobersberg/userhub/internal/schema"
 )
 
 func main() {
-	// We log to stdout and let systemd handle the rest.
-	logger.SetDefaultAdapter(new(logger.StdlibAdapter))
+	var cfg app.Config
+	instance, err := service.Boot(service.Config{
+		ConfigFileName: "userhub.conf",
+		ConfigFileSpec: conf.FileSpec{
+			"global":       schema.GlobalConfigSpec,
+			"listener":     server.ListenerSpec,
+			"userproperty": schema.UserSchemaExtension,
+		},
+		ConfigTarget: &cfg,
+		RouteSetupFunc: func(grp gin.IRouter) error {
+			apiGroup := grp.Group("/api/", app.ExtractSessionUser())
+			{
+				api.LoginEndpoint(apiGroup)
+				api.VerifyEndpoint(apiGroup)
+				api.ProfileEndpoint(apiGroup)
+				api.AvatarEndpoint(apiGroup)
+			}
 
-	log := logger.DefaultLogger()
-
-	env := svcenv.Env()
-
-	log.WithFields(logger.Fields{
-		"ConfigurationDirectory": env.ConfigurationDirectory,
-		"StateDirectory":         env.StateDirectory,
-		"RuntimeDirectory":       env.RuntimeDirectory,
-	}).Info("Service Environment")
-
-	ldr := loader.New(env.ConfigurationDirectory)
-
-	cfg, err := ldr.LoadGlobalConfig()
+			return nil
+		},
+	})
 	if err != nil {
-		log.Errorf("failec to load global confug: %s", err)
+		logger.Errorf("failed to boot service: %s", err)
 		os.Exit(1)
 	}
 
+	ldr := loader.New(instance.ConfigurationDirectory)
+
 	db, err := identitydb.New(ldr, cfg.UserProperties)
 	if err != nil {
-		log.Errorf("failed to prepare database: %s", err)
+		logger.Errorf("failed to prepare database: %s", err)
 		os.Exit(1)
 	}
 
 	matcher := permission.NewMatcher(permission.NewResolver(db))
 
-	appCtx := app.NewApp(cfg, ldr, matcher, db)
+	// Create a new application context and make sure it's added
+	// to each incoming HTTP Request.
+	appCtx := app.NewApp(&cfg, ldr, matcher, db)
+	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 
-	srv, err := server.New(
-		cfg.AccessLogFile,
-		app.ServerOption(appCtx),
-		server.WithListener(cfg.Listeners...),
-	)
-	if err != nil {
-		log.Errorf("failed to prepare server: %s", err)
+	// run the server.
+	if err := instance.Serve(); err != nil {
+		logger.Errorf("failed to serve: %s", err)
 		os.Exit(1)
 	}
-
-	apiGroup := srv.Group("/api/", app.ExtractSessionUser())
-	{
-		api.LoginEndpoint(apiGroup)
-		api.VerifyEndpoint(apiGroup)
-		api.ProfileEndpoint(apiGroup)
-		api.AvatarEndpoint(apiGroup)
-	}
-
-	if err := graceful.Graceful(srv.Run, srv.Shutdown); err != nil {
-		log.Errorf("Failed to start/stop http server: %s", err)
-		return
-	}
-
-	log.Infof("Shutdown complete, good bye")
 }

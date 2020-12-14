@@ -18,7 +18,7 @@ const appContextKey = contextKey("app:context")
 
 // App holds dependencies for userhub API request handlers.
 type App struct {
-	Config  *loader.Config
+	Config  *Config
 	Loader  *loader.Loader
 	Matcher *permission.Matcher
 	DB      identitydb.Database
@@ -29,7 +29,7 @@ func (app *App) String() string {
 }
 
 // NewApp context creates a new application context.
-func NewApp(cfg *loader.Config, ldr *loader.Loader, matcher *permission.Matcher, db identitydb.Database) *App {
+func NewApp(cfg *Config, ldr *loader.Loader, matcher *permission.Matcher, db identitydb.Database) *App {
 	return &App{
 		Config:  cfg,
 		Loader:  ldr,
@@ -47,13 +47,19 @@ func With(ctx context.Context, app *App) context.Context {
 // each request. Useful if used together with From() in
 // request handlers.
 func ServerOption(app *App) server.Option {
-	return server.WithPreHandler(func(req *http.Request) *http.Request {
+	return server.WithPreHandler(AddToRequest(app))
+}
+
+// AddToRequest returns a (service/server).PreHandlerFunc that
+// adds app to each incoming HTTP request.
+func AddToRequest(app *App) server.PreHandlerFunc {
+	return func(req *http.Request) *http.Request {
 		ctx := req.Context()
 
 		return req.WithContext(
 			With(ctx, app),
 		)
-	})
+	}
 }
 
 // From returns the App associated with c.

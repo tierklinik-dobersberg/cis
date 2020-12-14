@@ -1,8 +1,6 @@
 package schema
 
 import (
-	"fmt"
-
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
 )
@@ -35,25 +33,4 @@ var PermissionSpec = []conf.OptionSpec{
 		Required:    true,
 		Description: "One ore more domains the permission applies to",
 	},
-}
-
-// BuildPermission builds a permission Object from the given section.
-func BuildPermission(sec conf.Section) (*Permission, error) {
-	p := new(Permission)
-
-	var err error
-	p.Description, err = getOptionalString(sec, "Description")
-	if err != nil {
-		return nil, fmt.Errorf("Permission.Description: %w", err)
-	}
-
-	p.Effect, err = sec.GetString("Effect")
-	if err != nil {
-		return nil, fmt.Errorf("Permission.Effect: %w", err)
-	}
-
-	p.Resources = sec.GetStringSlice("Resource")
-	p.Domains = sec.GetStringSlice("Domain")
-
-	return p, nil
 }
