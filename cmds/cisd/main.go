@@ -22,7 +22,8 @@ func main() {
 	instance, err := service.Boot(service.Config{
 		ConfigFileName: "cis.conf",
 		ConfigFileSpec: conf.FileSpec{
-			"global":       schema.GlobalConfigSpec,
+			"global":       schema.ConfigSpec,
+			"identity":     schema.IdentityConfigSpec,
 			"listener":     server.ListenerSpec,
 			"userproperty": schema.UserSchemaExtension,
 		},

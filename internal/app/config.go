@@ -7,7 +7,9 @@ import (
 )
 
 type Config struct {
-	schema.GlobalConfig `section:"Global,required"`
-	UserProperties      []conf.OptionSpec `section:"UserProperty"`
-	Listeners           []server.Listener `section:"Listener"`
+	schema.IdentityConfig `section:"Identity,required"`
+	schema.Config         `section:"Global,required"`
+
+	UserProperties []conf.OptionSpec `section:"UserProperty"`
+	Listeners      []server.Listener `section:"Listener"`
 }
