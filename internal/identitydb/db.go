@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/loader"
 	"github.com/tierklinik-dobersberg/cis/internal/passwd"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/logger"
@@ -48,7 +48,7 @@ type Database interface {
 
 // The actual in-memory implementation for identDB.
 type identDB struct {
-	ldr               *loader.Loader
+	dir               string
 	userPropertySpecs []conf.OptionSpec
 	rw                sync.RWMutex
 	users             map[string]*user
@@ -56,13 +56,12 @@ type identDB struct {
 }
 
 // New returns a new database that uses ldr.
-func New(ldr *loader.Loader, specs []conf.OptionSpec) (Database, error) {
+func New(ctx context.Context, dir string, userProperties []conf.OptionSpec) (Database, error) {
 	db := &identDB{
-		ldr:               ldr,
-		userPropertySpecs: specs,
+		userPropertySpecs: userProperties,
 	}
 
-	if err := db.reload(); err != nil {
+	if err := db.reload(ctx); err != nil {
 		return nil, err
 	}
 
@@ -150,41 +149,24 @@ func (db *identDB) GetGroupPermissions(ctx context.Context, name string) ([]sche
 	return perms, nil
 }
 
-func (db *identDB) reload() error {
+func (db *identDB) reload(ctx context.Context) error {
 	db.rw.Lock()
 	defer db.rw.Unlock()
 
+	// clear the current user and group maps
 	db.users = make(map[string]*user, len(db.users))
 	db.groups = make(map[string]*group, len(db.groups))
 
-	userFiles, err := db.ldr.LoadUsers(db.userPropertySpecs)
-	if err != nil {
-		return err
+	identityDir := filepath.Join(db.dir, "identity")
+
+	// load all users files
+	if err := db.loadUsers(identityDir); err != nil {
+		return fmt.Errorf("loading users: %w", err)
 	}
 
-	groupsFiles, err := db.ldr.LoadGroups()
-	if err != nil {
-		return err
-	}
-
-	// build the user map
-	for _, f := range userFiles {
-		u, err := buildUser(f, db.userPropertySpecs)
-		if err != nil {
-			return fmt.Errorf("%s: %w", f.Path, err)
-		}
-
-		db.users[strings.ToLower(u.Name)] = u
-	}
-
-	// build the group map
-	for _, f := range groupsFiles {
-		g, err := decodeGroup(f)
-		if err != nil {
-			return fmt.Errorf("%s: %w", f.Path, err)
-		}
-
-		db.groups[strings.ToLower(g.Name)] = g
+	// load all groups files
+	if err := db.loadGroups(identityDir); err != nil {
+		return fmt.Errorf("loading groups: %w", err)
 	}
 
 	// check all user.MemberOf groups actually exist
@@ -196,7 +178,7 @@ func (db *identDB) reload() error {
 		}
 	}
 
-	logger.DefaultLogger().Infof("identity: loaded %d users and %d groups", len(db.users), len(db.groups))
+	logger.Infof(ctx, "identity: loaded %d users and %d groups", len(db.users), len(db.groups))
 
 	return nil
 }

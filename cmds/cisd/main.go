@@ -46,7 +46,7 @@ func main() {
 
 	ldr := loader.New(instance.ConfigurationDirectory)
 
-	db, err := identitydb.New(ldr, cfg.UserProperties)
+	db, err := identitydb.New(ctx, instance.ConfigurationDirectory, cfg.UserProperties)
 	if err != nil {
 		logger.Fatalf(ctx, "failed to prepare database: %s", err)
 	}

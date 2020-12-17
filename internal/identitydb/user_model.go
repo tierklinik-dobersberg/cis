@@ -1,7 +1,11 @@
 package identitydb
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/loader"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/service/utils"
 )
@@ -10,6 +14,28 @@ type user struct {
 	schema.User `section:"User"`
 
 	Permissions []*schema.Permission `section:"Permission"`
+}
+
+func (db *identDB) loadUsers(identityDir string) error {
+	userFiles, err := loader.LoadFiles(identityDir, ".user", conf.FileSpec{
+		"User":       append(schema.UserSpec, db.userPropertySpecs...),
+		"Permission": schema.PermissionSpec,
+	})
+	if err != nil {
+		return err
+	}
+
+	// build the user map
+	for _, f := range userFiles {
+		u, err := buildUser(f, db.userPropertySpecs)
+		if err != nil {
+			return fmt.Errorf("%s: %w", f.Path, err)
+		}
+
+		db.users[strings.ToLower(u.Name)] = u
+	}
+
+	return nil
 }
 
 func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec) (*user, error) {
