@@ -2,8 +2,8 @@ package identitydb
 
 import (
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/service/utils"
-	"github.com/tierklinik-dobersberg/userhub/internal/schema"
 )
 
 type user struct {

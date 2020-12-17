@@ -1,25 +1,27 @@
 package main
 
 import (
-	"os"
+	"context"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/api"
+	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/loader"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/service/service"
-	"github.com/tierklinik-dobersberg/userhub/internal/api"
-	"github.com/tierklinik-dobersberg/userhub/internal/app"
-	"github.com/tierklinik-dobersberg/userhub/internal/identitydb"
-	"github.com/tierklinik-dobersberg/userhub/internal/loader"
-	"github.com/tierklinik-dobersberg/userhub/internal/permission"
-	"github.com/tierklinik-dobersberg/userhub/internal/schema"
 )
 
 func main() {
 	var cfg app.Config
+	ctx := context.Background()
+
 	instance, err := service.Boot(service.Config{
-		ConfigFileName: "userhub.conf",
+		ConfigFileName: "cis.conf",
 		ConfigFileSpec: conf.FileSpec{
 			"global":       schema.GlobalConfigSpec,
 			"listener":     server.ListenerSpec,
@@ -39,16 +41,14 @@ func main() {
 		},
 	})
 	if err != nil {
-		logger.Errorf("failed to boot service: %s", err)
-		os.Exit(1)
+		logger.Fatalf(ctx, "failed to boot service: %s", err)
 	}
 
 	ldr := loader.New(instance.ConfigurationDirectory)
 
 	db, err := identitydb.New(ldr, cfg.UserProperties)
 	if err != nil {
-		logger.Errorf("failed to prepare database: %s", err)
-		os.Exit(1)
+		logger.Fatalf(ctx, "failed to prepare database: %s", err)
 	}
 
 	matcher := permission.NewMatcher(permission.NewResolver(db))
@@ -60,7 +60,6 @@ func main() {
 
 	// run the server.
 	if err := instance.Serve(); err != nil {
-		logger.Errorf("failed to serve: %s", err)
-		os.Exit(1)
+		logger.Fatalf(ctx, "failed to serve: %s", err)
 	}
 }

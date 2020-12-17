@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/userhub/internal/schema"
+	"github.com/tierklinik-dobersberg/cis/internal/schema"
 )
 
 // Loader loads user and group definitions from the file system.

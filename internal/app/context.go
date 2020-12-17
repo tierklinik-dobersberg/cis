@@ -6,17 +6,17 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/cis/internal/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/loader"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/service/server"
-	"github.com/tierklinik-dobersberg/userhub/internal/identitydb"
-	"github.com/tierklinik-dobersberg/userhub/internal/loader"
-	"github.com/tierklinik-dobersberg/userhub/internal/permission"
 )
 
 type contextKey string
 
 const appContextKey = contextKey("app:context")
 
-// App holds dependencies for userhub API request handlers.
+// App holds dependencies for cis API request handlers.
 type App struct {
 	Config  *Config
 	Loader  *loader.Loader

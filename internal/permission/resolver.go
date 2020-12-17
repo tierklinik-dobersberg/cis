@@ -3,9 +3,9 @@ package permission
 import (
 	"context"
 
+	"github.com/tierklinik-dobersberg/cis/internal/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/userhub/internal/identitydb"
-	"github.com/tierklinik-dobersberg/userhub/internal/schema"
 )
 
 // Resolver is used for resolving user and group

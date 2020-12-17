@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/identitydb"
+	"github.com/tierklinik-dobersberg/cis/pkg/models/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/userhub/internal/app"
-	"github.com/tierklinik-dobersberg/userhub/internal/identitydb"
-	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
 )
 
 // VerifyEndpoint verifies a permission request.

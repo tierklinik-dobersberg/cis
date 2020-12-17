@@ -8,10 +8,10 @@ import (
 	"sync"
 
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/loader"
+	"github.com/tierklinik-dobersberg/cis/internal/passwd"
+	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/userhub/internal/loader"
-	"github.com/tierklinik-dobersberg/userhub/internal/passwd"
-	"github.com/tierklinik-dobersberg/userhub/internal/schema"
 )
 
 var (

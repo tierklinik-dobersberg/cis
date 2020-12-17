@@ -23,7 +23,7 @@ var GlobalConfigSpec = []conf.OptionSpec{
 	},
 	{
 		Name:        "CookieName",
-		Default:     "userhub",
+		Default:     "cis",
 		Description: "Name of the session cookie",
 		Type:        conf.StringType,
 	},

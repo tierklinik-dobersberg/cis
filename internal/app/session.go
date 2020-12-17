@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/cis/internal/crypt"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/server"
-	"github.com/tierklinik-dobersberg/userhub/internal/crypt"
 )
 
 // ExtractSessionUser extracts the userName of the a HTTP request

@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/tierklinik-dobersberg/userhub/internal/permission"
-	"github.com/tierklinik-dobersberg/userhub/internal/schema"
-	"github.com/tierklinik-dobersberg/userhub/pkg/models/v1alpha"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	"github.com/tierklinik-dobersberg/cis/internal/schema"
+	"github.com/tierklinik-dobersberg/cis/pkg/models/v1alpha"
 )
 
 func TestMatcher_IsApplicable(t *testing.T) {

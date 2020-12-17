@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/userhub/internal/app"
 )
 
 // AvatarEndpoint serves the user avatar as an image.

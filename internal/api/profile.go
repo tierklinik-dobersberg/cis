@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/userhub/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/app"
 )
 
 // ProfileEndpoint serves the user profile of the user

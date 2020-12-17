@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/userhub/internal/schema"
 )
 
 // Matcher is used to decide on permission requests.

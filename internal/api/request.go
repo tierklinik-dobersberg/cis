@@ -5,8 +5,8 @@ import (
 	"net/url"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/userhub/internal/permission"
 )
 
 // NewPermissionRequest returns a new permission request for c by either parsing

@@ -12,7 +12,7 @@ import (
 )
 
 func runService(ctx context.Context) (*exec.Cmd, error) {
-	cmd := exec.CommandContext(ctx, "go", "run", "cmd/userhub/main.go")
+	cmd := exec.CommandContext(ctx, "go", "run", "cmd/cis/main.go")
 
 	cmd.Env = append(os.Environ(), []string{
 		fmt.Sprintf("CONFIGURATION_DIRECTORY=%s", "./testdata/config"),

@@ -1,4 +1,4 @@
-module github.com/tierklinik-dobersberg/userhub
+module github.com/tierklinik-dobersberg/cis
 
 go 1.14
 
@@ -25,3 +25,5 @@ require (
 replace github.com/tierklinik-dobersberg/service => ../service
 
 replace github.com/ppacher/system-conf => ../system-conf
+
+replace github.com/tierklinik-dobersberg/logger => ../logger
