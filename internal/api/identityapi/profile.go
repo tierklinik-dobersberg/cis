@@ -1,4 +1,4 @@
-package api
+package identityapi
 
 import (
 	"net/http"

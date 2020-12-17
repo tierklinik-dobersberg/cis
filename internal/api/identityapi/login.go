@@ -1,4 +1,4 @@
-package api
+package identityapi
 
 import (
 	"encoding/json"

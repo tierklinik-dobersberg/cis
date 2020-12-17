@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/api"
+	"github.com/tierklinik-dobersberg/cis/internal/api/identityapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -30,10 +30,10 @@ func main() {
 		RouteSetupFunc: func(grp gin.IRouter) error {
 			apiGroup := grp.Group("/api/", app.ExtractSessionUser())
 			{
-				api.LoginEndpoint(apiGroup)
-				api.VerifyEndpoint(apiGroup)
-				api.ProfileEndpoint(apiGroup)
-				api.AvatarEndpoint(apiGroup)
+				identityapi.LoginEndpoint(apiGroup)
+				identityapi.VerifyEndpoint(apiGroup)
+				identityapi.ProfileEndpoint(apiGroup)
+				identityapi.AvatarEndpoint(apiGroup)
 			}
 
 			return nil
