@@ -2,7 +2,7 @@ package schema
 
 import (
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/pkg/models/v1alpha"
+	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
 
 type Group struct {

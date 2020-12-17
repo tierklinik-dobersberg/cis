@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/identitydb"
-	"github.com/tierklinik-dobersberg/cis/pkg/models/v1alpha"
+	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
