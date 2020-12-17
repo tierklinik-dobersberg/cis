@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/cis/internal/crypt"
+	"github.com/tierklinik-dobersberg/cis/internal/utils"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/server"
 )
@@ -64,7 +64,7 @@ func SessionUser(c *gin.Context) string {
 func CreateSessionCookie(app *App, userName string, ttl time.Duration) *http.Cookie {
 	expires := time.Now().Add(ttl)
 	expiresUnix := expires.Unix()
-	signature := crypt.Signature(app.Config.Secret, app.Config.CookieDomain, userName, fmt.Sprintf("%d", expiresUnix))
+	signature := utils.Signature(app.Config.Secret, app.Config.CookieDomain, userName, fmt.Sprintf("%d", expiresUnix))
 
 	value := fmt.Sprintf("%s:%s:%d", signature, userName, expiresUnix)
 
@@ -122,7 +122,7 @@ func CheckSession(app *App, r *http.Request) (userName string, expiresIn time.Du
 	userName = parts[1]
 	expiresStr := parts[2]
 
-	validSig := crypt.VerifySignature(sig, app.Config.Secret, app.Config.CookieDomain, userName, expiresStr)
+	validSig := utils.VerifySignature(sig, app.Config.Secret, app.Config.CookieDomain, userName, expiresStr)
 	if !validSig {
 		// TODO(ppacher): block the requestor IP as it's obviously tempering
 		// with our session cookies?

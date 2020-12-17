@@ -5,9 +5,8 @@ import (
 	"strings"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/loader"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
-	"github.com/tierklinik-dobersberg/service/utils"
+	"github.com/tierklinik-dobersberg/cis/internal/utils"
 )
 
 type user struct {
@@ -17,7 +16,7 @@ type user struct {
 }
 
 func (db *identDB) loadUsers(identityDir string) error {
-	userFiles, err := loader.LoadFiles(identityDir, ".user", conf.FileSpec{
+	userFiles, err := utils.LoadFiles(identityDir, ".user", conf.FileSpec{
 		"User":       append(schema.UserSpec, db.userPropertySpecs...),
 		"Permission": schema.PermissionSpec,
 	})
@@ -61,8 +60,6 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec) (*user, error)
 			u.Properties[spec.Name] = sec.GetAs(spec.Name, spec.Type)
 		}
 	}
-
-	utils.Dump(u)
 
 	return &u, nil
 }

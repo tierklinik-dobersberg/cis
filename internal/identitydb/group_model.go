@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/loader"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
+	"github.com/tierklinik-dobersberg/cis/internal/utils"
 )
 
 type group struct {
@@ -16,7 +16,7 @@ type group struct {
 }
 
 func (db *identDB) loadGroups(identityDir string) error {
-	groupsFiles, err := loader.LoadFiles(identityDir, ".group", conf.FileSpec{
+	groupsFiles, err := utils.LoadFiles(identityDir, ".group", conf.FileSpec{
 		"Group":      schema.GroupSpec,
 		"Permission": schema.PermissionSpec,
 	})
