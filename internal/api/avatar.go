@@ -1,8 +1,11 @@
 package api
 
 import (
+	"context"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -42,7 +45,7 @@ func AvatarEndpoint(grp gin.IRouter) {
 				avatarFile = strings.ToLower(user.Name) + ".png"
 			}
 
-			f, err := appCtx.Loader.LoadAvatar(appCtx.Config.AvatarDirectory, avatarFile)
+			f, err := loadAvatar(c.Request.Context(), appCtx.Config.AvatarDirectory, avatarFile)
 			if err != nil {
 				c.AbortWithError(http.StatusInternalServerError, err)
 				return
@@ -55,4 +58,17 @@ func AvatarEndpoint(grp gin.IRouter) {
 			http.ServeContent(c.Writer, c.Request, userName, time.Now(), f)
 		},
 	)
+}
+
+func loadAvatar(ctx context.Context, path string, fileName string) (io.ReadSeeker, error) {
+	filePath := filepath.Clean(filepath.Join(path, fileName))
+
+	logger.Infof(ctx, "Loading avatar from %s", filePath)
+
+	f, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return f, nil
 }

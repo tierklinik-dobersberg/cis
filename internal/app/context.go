@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/identitydb"
-	"github.com/tierklinik-dobersberg/cis/internal/loader"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/service/server"
 )
@@ -19,7 +18,6 @@ const appContextKey = contextKey("app:context")
 // App holds dependencies for cis API request handlers.
 type App struct {
 	Config  *Config
-	Loader  *loader.Loader
 	Matcher *permission.Matcher
 	DB      identitydb.Database
 }
@@ -29,10 +27,9 @@ func (app *App) String() string {
 }
 
 // NewApp context creates a new application context.
-func NewApp(cfg *Config, ldr *loader.Loader, matcher *permission.Matcher, db identitydb.Database) *App {
+func NewApp(cfg *Config, matcher *permission.Matcher, db identitydb.Database) *App {
 	return &App{
 		Config:  cfg,
-		Loader:  ldr,
 		Matcher: matcher,
 		DB:      db,
 	}

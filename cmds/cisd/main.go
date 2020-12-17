@@ -8,7 +8,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/identitydb"
-	"github.com/tierklinik-dobersberg/cis/internal/loader"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/logger"
@@ -44,8 +43,6 @@ func main() {
 		logger.Fatalf(ctx, "failed to boot service: %s", err)
 	}
 
-	ldr := loader.New(instance.ConfigurationDirectory)
-
 	db, err := identitydb.New(ctx, instance.ConfigurationDirectory, cfg.UserProperties)
 	if err != nil {
 		logger.Fatalf(ctx, "failed to prepare database: %s", err)
@@ -55,7 +52,7 @@ func main() {
 
 	// Create a new application context and make sure it's added
 	// to each incoming HTTP Request.
-	appCtx := app.NewApp(&cfg, ldr, matcher, db)
+	appCtx := app.NewApp(&cfg, matcher, db)
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 
 	// run the server.
