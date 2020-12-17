@@ -3,6 +3,7 @@ package passwd
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 )
@@ -44,7 +45,7 @@ func Compare(ctx context.Context, algo, username, hash string, plaintext string)
 
 	fn, ok := supportedAlgo[strings.ToLower(algo)]
 	if !ok {
-		return false, ErrUnknownAlgo
+		return false, fmt.Errorf("%s: %w", algo, ErrUnknownAlgo)
 	}
 
 	return fn(ctx, username, hash, plaintext)

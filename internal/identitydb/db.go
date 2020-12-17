@@ -58,6 +58,7 @@ type identDB struct {
 // New returns a new database that uses ldr.
 func New(ctx context.Context, dir string, userProperties []conf.OptionSpec) (Database, error) {
 	db := &identDB{
+		dir:               dir,
 		userPropertySpecs: userProperties,
 	}
 
@@ -85,7 +86,7 @@ func (db *identDB) Authenticate(ctx context.Context, name, password string) bool
 		return false
 	}
 
-	match, err := passwd.Compare(ctx, u.Name, u.PasswordAlgo, u.PasswordHash, password)
+	match, err := passwd.Compare(ctx, u.PasswordAlgo, u.Name, u.PasswordHash, password)
 	if err != nil {
 		log.Errorf("identity: failed to validate password for user %q: %s", name, err)
 	}

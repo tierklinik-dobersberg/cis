@@ -6,8 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-
-	"github.com/tierklinik-dobersberg/logger"
 )
 
 // Nonce returns a random nonce of the given size
@@ -35,6 +33,5 @@ func Signature(secret string, parts ...string) string {
 // parts with secret.
 func VerifySignature(signature, secret string, parts ...string) bool {
 	expectedSig := Signature(secret, parts...)
-	logger.DefaultLogger().Infof("comparing %s == %s", signature, expectedSig)
 	return signature == expectedSig
 }
