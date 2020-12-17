@@ -1,6 +1,7 @@
 package passwd
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"sync"
@@ -13,7 +14,7 @@ var (
 )
 
 // CompareFunc returns true uf the plaintext matches the hash.
-type CompareFunc func(hash, plaintext string) (bool, error)
+type CompareFunc func(ctx context.Context, username, hash, plaintext string) (bool, error)
 
 var (
 	lock          sync.RWMutex
@@ -37,7 +38,7 @@ func Register(algo string, fn CompareFunc) {
 }
 
 // Compare checks if plaintext matches hash using algo.
-func Compare(algo, hash string, plaintext string) (bool, error) {
+func Compare(ctx context.Context, algo, username, hash string, plaintext string) (bool, error) {
 	lock.RLock()
 	defer lock.RUnlock()
 
@@ -46,5 +47,5 @@ func Compare(algo, hash string, plaintext string) (bool, error) {
 		return false, ErrUnknownAlgo
 	}
 
-	return fn(hash, plaintext)
+	return fn(ctx, username, hash, plaintext)
 }

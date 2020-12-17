@@ -85,7 +85,7 @@ func (db *identDB) Authenticate(ctx context.Context, name, password string) bool
 		return false
 	}
 
-	match, err := passwd.Compare(u.PasswordAlgo, u.PasswordHash, password)
+	match, err := passwd.Compare(ctx, u.Name, u.PasswordAlgo, u.PasswordHash, password)
 	if err != nil {
 		log.Errorf("identity: failed to validate password for user %q: %s", name, err)
 	}

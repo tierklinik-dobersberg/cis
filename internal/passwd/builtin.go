@@ -1,6 +1,7 @@
 package passwd
 
 import (
+	"context"
 	"crypto/subtle"
 	"errors"
 
@@ -8,11 +9,11 @@ import (
 )
 
 func init() {
-	Register("plain", func(hash, plaintext string) (bool, error) {
+	Register("plain", func(_ context.Context, _, hash, plaintext string) (bool, error) {
 		return subtle.ConstantTimeCompare([]byte(hash), []byte(plaintext)) == 1, nil
 	})
 
-	Register("bcrypt", func(hash, plaintext string) (bool, error) {
+	Register("bcrypt", func(_ context.Context, _, hash, plaintext string) (bool, error) {
 		err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(plaintext))
 
 		if err == nil {
