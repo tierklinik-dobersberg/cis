@@ -15,8 +15,6 @@ import (
 )
 
 // AvatarEndpoint serves the user avatar as an image.
-//
-// GET /api/v1/avatar/{userName}
 func AvatarEndpoint(grp gin.IRouter) {
 	grp.GET(
 		"v1/avatar/:userName",

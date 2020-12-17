@@ -9,8 +9,6 @@ import (
 
 // ProfileEndpoint serves the user profile of the user
 // currently logged in.
-//
-// GET /api/v1/profile
 func ProfileEndpoint(grp gin.IRouter) {
 	grp.GET(
 		"v1/profile",

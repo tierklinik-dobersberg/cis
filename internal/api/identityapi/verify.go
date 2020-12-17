@@ -15,8 +15,6 @@ import (
 )
 
 // VerifyEndpoint verifies a permission request.
-//
-// GET /api/v1/verify
 func VerifyEndpoint(grp gin.IRouter) {
 	grp.GET("v1/verify", func(c *gin.Context) {
 		var (

@@ -14,8 +14,6 @@ import (
 
 // LoginEndpoint allows to user to log-in and create a
 // session cookie.
-//
-// POST /api/v1/login
 func LoginEndpoint(grp gin.IRouter) {
 	grp.POST("v1/login", func(c *gin.Context) {
 		var (

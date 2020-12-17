@@ -28,12 +28,9 @@ func main() {
 		},
 		ConfigTarget: &cfg,
 		RouteSetupFunc: func(grp gin.IRouter) error {
-			apiGroup := grp.Group("/api/", app.ExtractSessionUser())
+			apis := grp.Group("/api/", app.ExtractSessionUser())
 			{
-				identityapi.LoginEndpoint(apiGroup)
-				identityapi.VerifyEndpoint(apiGroup)
-				identityapi.ProfileEndpoint(apiGroup)
-				identityapi.AvatarEndpoint(apiGroup)
+				identityapi.Setup(apis.Group("identity"))
 			}
 
 			return nil
