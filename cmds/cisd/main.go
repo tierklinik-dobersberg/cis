@@ -21,13 +21,17 @@ func main() {
 	var cfg app.Config
 	ctx := context.Background()
 
+	globalConf := conf.SectionSpec{}
+
+	globalConf = append(globalConf, schema.ConfigSpec...)
+	globalConf = append(globalConf, schema.DatabaseSpec...)
+	globalConf = append(globalConf, schema.IdentityConfigSpec...)
+
 	instance, err := service.Boot(service.Config{
 		ConfigFileName: "cis.conf",
 		ConfigFileSpec: conf.FileSpec{
-			"global":       schema.ConfigSpec,
-			"database":     schema.DatabaseSpec,
-			"vetinf":       schema.VetInfSpec,
-			"identity":     schema.IdentityConfigSpec,
+			"global":       globalConf,
+			"import":       schema.VetInfSpec,
 			"listener":     server.ListenerSpec,
 			"userproperty": schema.UserSchemaExtension,
 		},

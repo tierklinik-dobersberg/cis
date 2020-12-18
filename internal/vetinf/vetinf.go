@@ -22,16 +22,16 @@ type Exporter struct {
 
 // NewExporter creates a new exporter for vetinf.
 func NewExporter(cfg schema.VetInf) (*Exporter, error) {
-	stat, err := os.Stat(cfg.Directory)
+	stat, err := os.Stat(cfg.VetInfDirectory)
 	if err != nil {
 		return nil, err
 	}
 
 	if !stat.IsDir() {
-		return nil, fmt.Errorf("%q is not a directory", cfg.Directory)
+		return nil, fmt.Errorf("%q is not a directory", cfg.VetInfDirectory)
 	}
 
-	infdat := vetinf.OpenReadonlyFs(cfg.Directory, afero.NewOsFs())
+	infdat := vetinf.OpenReadonlyFs(cfg.VetInfDirectory, afero.NewOsFs())
 
 	return &Exporter{
 		db:  infdat,
@@ -45,7 +45,7 @@ func NewExporter(cfg schema.VetInf) (*Exporter, error) {
 func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *customerdb.Customer, int, error) {
 	log := logger.From(ctx)
 
-	customerDB, err := e.db.CustomerDB(e.cfg.Encoding)
+	customerDB, err := e.db.CustomerDB(e.cfg.VetInfEncoding)
 	if err != nil {
 		return nil, 0, err
 	}

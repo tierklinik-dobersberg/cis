@@ -16,7 +16,7 @@ type IdentityConfig struct {
 var IdentityConfigSpec = []conf.OptionSpec{
 	{
 		Name:        "CookieName",
-		Default:     "cis",
+		Default:     "cis-session",
 		Description: "Name of the session cookie",
 		Type:        conf.StringType,
 	},

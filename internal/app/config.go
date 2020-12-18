@@ -7,10 +7,10 @@ import (
 )
 
 type Config struct {
-	schema.IdentityConfig `section:"Identity,required"`
-	schema.Config         `section:"Global,required"`
-	schema.DatabaseConfig `section:"Database"`
-	schema.VetInf         `section:"Vetinf"`
+	schema.IdentityConfig `section:"Global"`
+	schema.Config         `section:"Global"`
+	schema.DatabaseConfig `section:"Global"`
+	schema.VetInf         `section:"Import"`
 
 	UserProperties []conf.OptionSpec `section:"UserProperty"`
 	Listeners      []server.Listener `section:"Listener"`
