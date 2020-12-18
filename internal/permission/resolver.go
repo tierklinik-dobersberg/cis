@@ -3,7 +3,7 @@ package permission
 import (
 	"context"
 
-	"github.com/tierklinik-dobersberg/cis/internal/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/logger"
 )

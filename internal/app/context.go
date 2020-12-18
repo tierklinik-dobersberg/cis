@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/cis/internal/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/service/server"
 )
