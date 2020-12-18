@@ -5,8 +5,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/api/customerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/identityapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
@@ -23,6 +25,8 @@ func main() {
 		ConfigFileName: "cis.conf",
 		ConfigFileSpec: conf.FileSpec{
 			"global":       schema.ConfigSpec,
+			"database":     schema.DatabaseSpec,
+			"vetinf":       schema.VetInfSpec,
 			"identity":     schema.IdentityConfigSpec,
 			"listener":     server.ListenerSpec,
 			"userproperty": schema.UserSchemaExtension,
@@ -32,6 +36,7 @@ func main() {
 			apis := grp.Group("/api/", app.ExtractSessionUser())
 			{
 				identityapi.Setup(apis.Group("identity"))
+				customerapi.Setup(apis.Group("customer"))
 			}
 
 			return nil
@@ -41,16 +46,21 @@ func main() {
 		logger.Fatalf(ctx, "failed to boot service: %s", err)
 	}
 
-	db, err := identitydb.New(ctx, instance.ConfigurationDirectory, cfg.UserProperties)
+	customers, err := customerdb.New(ctx, cfg.DatabaseURI, cfg.DatabaseName)
+	if err != nil {
+		logger.Fatalf(ctx, "%s", err.Error())
+	}
+
+	identities, err := identitydb.New(ctx, instance.ConfigurationDirectory, cfg.UserProperties)
 	if err != nil {
 		logger.Fatalf(ctx, "failed to prepare database: %s", err)
 	}
 
-	matcher := permission.NewMatcher(permission.NewResolver(db))
+	matcher := permission.NewMatcher(permission.NewResolver(identities))
 
 	// Create a new application context and make sure it's added
 	// to each incoming HTTP Request.
-	appCtx := app.NewApp(&cfg, matcher, db)
+	appCtx := app.NewApp(&cfg, matcher, identities, customers)
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 
 	// run the server.

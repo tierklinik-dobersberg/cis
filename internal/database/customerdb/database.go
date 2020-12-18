@@ -1,0 +1,168 @@
+package customerdb
+
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	"github.com/tierklinik-dobersberg/logger"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+// Constants for the different MongoDB collections
+// required and managed by this package.
+const (
+	CustomerCollection = "customers"
+)
+
+// Database encapsulates access to the MongoDB database.
+type Database interface {
+	// CreateCustomer creates a new customer.
+	CreateCustomer(ctx context.Context, cu *Customer) error
+
+	// UpdateCustomer updates an existing customer
+	UpdateCustomer(ctx context.Context, cu *Customer) error
+
+	// CustomerByCID returns the customer by it's customer-id
+	CustomerByCID(ctx context.Context, cid int) (*Customer, error)
+
+	// FilterCustomer filters all customers according to filter.
+	FilterCustomer(ctx context.Context, filter bson.M) ([]*Customer, error)
+
+	// SearchCustomerByName searches for all customers that matches
+	// name.
+	SearchCustomerByName(ctx context.Context, name string) ([]*Customer, error)
+}
+
+type database struct {
+	cli       *mongo.Client
+	customers *mongo.Collection
+}
+
+// New connects to the MongoDB server at URL and returns
+// a new database interface.
+func New(ctx context.Context, url, dbName string) (Database, error) {
+	clientConfig := options.Client().ApplyURI(url)
+	client, err := mongo.NewClient(clientConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	// Try to connect
+	if err := client.Connect(ctx); err != nil {
+		return nil, err
+	}
+
+	if err := client.Ping(ctx, nil); err != nil {
+		defer client.Disconnect(ctx)
+		return nil, err
+	}
+
+	db := &database{
+		cli:       client,
+		customers: client.Database(dbName).Collection(CustomerCollection),
+	}
+
+	return db, nil
+}
+
+func (db *database) CreateCustomer(ctx context.Context, cu *Customer) error {
+	if !cu.ID.IsZero() {
+		return fmt.Errorf("customer %d already has an object ID: %s", cu.CustomerID, cu.ID.Hex())
+	}
+
+	result, err := db.customers.InsertOne(ctx, cu)
+	if err != nil {
+		return err
+	}
+
+	// result.InsertedID should be a primitiv.ObjectID if generated
+	// by the driver. This check is only to ensure we don't panic
+	if id, ok := result.InsertedID.(primitive.ObjectID); ok {
+		cu.ID = id
+	} else {
+		logger.From(ctx).Errorf("invalid type in result.InsertedID, expected primitv.ObjectID but got %T", result.InsertedID)
+	}
+
+	return nil
+}
+
+func (db *database) UpdateCustomer(ctx context.Context, cu *Customer) error {
+	if cu.ID.IsZero() {
+		return fmt.Errorf("Cannot update customer without object ID")
+	}
+
+	result, err := db.customers.UpdateOne(ctx, bson.M{"_id": cu.ID}, bson.M{
+		"$set": cu,
+	})
+	if err != nil {
+		return err
+	}
+
+	if result.ModifiedCount != 1 && result.MatchedCount != 1 {
+		return fmt.Errorf("Expected to update one customer but matched %d and modified %d", result.MatchedCount, result.ModifiedCount)
+	}
+
+	return nil
+}
+
+func (db *database) CustomerByCID(ctx context.Context, cid int) (*Customer, error) {
+	filter := bson.M{
+		"cid": cid,
+	}
+
+	return db.findSingleCustomer(ctx, filter)
+}
+
+func (db *database) SearchCustomerByName(ctx context.Context, name string) ([]*Customer, error) {
+	return db.findCustomers(ctx, bson.M{
+		"$text": bson.M{
+			"$search":        name,
+			"$caseSensitive": true,
+		},
+	})
+}
+
+func (db *database) FilterCustomer(ctx context.Context, filter bson.M) ([]*Customer, error) {
+	return db.findCustomers(ctx, filter)
+}
+
+func (db *database) findCustomers(ctx context.Context, filter interface{}) ([]*Customer, error) {
+	result, err := db.customers.Find(ctx, filter)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	var customers []*Customer
+
+	if err := result.All(ctx, &customers); err != nil {
+		return nil, err
+	}
+
+	return customers, nil
+}
+
+func (db *database) findSingleCustomer(ctx context.Context, filter interface{}) (*Customer, error) {
+	result := db.customers.FindOne(ctx, filter)
+	if err := result.Err(); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, ErrNotFound
+		}
+
+		return nil, err
+	}
+
+	var cu Customer
+	if err := result.Decode(&cu); err != nil {
+		return nil, err
+	}
+
+	return &cu, nil
+}

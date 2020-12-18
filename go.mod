@@ -11,10 +11,14 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/ory/graceful v0.1.1
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/ppacher/system-conf v0.3.0
-	github.com/tierklinik-dobersberg/logger v0.0.0-20201125171257-d519c7625406
-	github.com/tierklinik-dobersberg/service v0.0.0-20201209215058-8e2301f0f22a
+	github.com/ppacher/system-conf v0.3.1-0.20201214101325-a552940fdf74
+	github.com/spf13/afero v1.5.1
+	github.com/tierklinik-dobersberg/custer v0.0.0-20201216194107-95159f737840
+	github.com/tierklinik-dobersberg/go-vetinf v0.0.0-20201216183112-749c6b48b1d6
+	github.com/tierklinik-dobersberg/logger v0.0.0-20201214100914-9fd1564ce006
+	github.com/tierklinik-dobersberg/service v0.0.0-20201214192541-9c61693ef3dc
 	github.com/ugorji/go v1.2.0 // indirect
+	go.mongodb.org/mongo-driver v1.4.4
 	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
@@ -27,3 +31,7 @@ replace github.com/tierklinik-dobersberg/service => ../service
 replace github.com/ppacher/system-conf => ../system-conf
 
 replace github.com/tierklinik-dobersberg/logger => ../logger
+
+replace github.com/tierklinik-dobersberg/go-vetinf => ../go-vetinf
+
+replace github.com/tierklinik-dobersberg/go-dbf => ../go-dbf

@@ -21,7 +21,7 @@ func ProfileEndpoint(grp gin.IRouter) {
 
 			userName := app.SessionUser(c)
 
-			user, err := appCtx.DB.GetUser(c.Request.Context(), userName)
+			user, err := appCtx.Identities.GetUser(c.Request.Context(), userName)
 			if err != nil {
 				c.AbortWithError(http.StatusInternalServerError, err)
 				return

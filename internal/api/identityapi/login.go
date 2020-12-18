@@ -35,7 +35,7 @@ func LoginEndpoint(grp gin.IRouter) {
 			// There's no session cookie available, check if the user
 			// is trying basic-auth.
 			log.Infof("Performing authentication against 'Authorization' header.")
-			status, user = verifyBasicAuth(c.Request.Context(), appCtx.DB, authHeader)
+			status, user = verifyBasicAuth(c.Request.Context(), appCtx.Identities, authHeader)
 
 			if status != http.StatusOK {
 				log.Infof("Basic authentication failed.")
@@ -72,7 +72,7 @@ func LoginEndpoint(grp gin.IRouter) {
 			}
 
 			if username != "" && password != "" {
-				success := appCtx.DB.Authenticate(c.Request.Context(), username, password)
+				success := appCtx.Identities.Authenticate(c.Request.Context(), username, password)
 
 				if !success {
 					log.Infof("Failed to authenticate %q", username)
@@ -80,7 +80,7 @@ func LoginEndpoint(grp gin.IRouter) {
 					return
 				}
 
-				u, err := appCtx.DB.GetUser(c.Request.Context(), username)
+				u, err := appCtx.Identities.GetUser(c.Request.Context(), username)
 
 				if err != nil {
 					log.Infof("Failed to retrieve authenticated user %q", username)

@@ -34,7 +34,7 @@ func VerifyEndpoint(grp gin.IRouter) {
 
 			// try to get the user from the database, if that fails
 			// the auth-request fails as well.
-			u, err := appCtx.DB.GetUser(c.Request.Context(), username)
+			u, err := appCtx.Identities.GetUser(c.Request.Context(), username)
 			if err != nil {
 				log.Infof("valid session for deleted user %s", user)
 				sessionExpiry = 0
@@ -45,7 +45,7 @@ func VerifyEndpoint(grp gin.IRouter) {
 		} else if header := c.Request.Header.Get("Authorization"); header != "" {
 			// There's no session cookie available, check if the user
 			// is trying basic-auth.
-			status, user = verifyBasicAuth(c.Request.Context(), appCtx.DB, header)
+			status, user = verifyBasicAuth(c.Request.Context(), appCtx.Identities, header)
 			sessionExpiry = 0
 		}
 

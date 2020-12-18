@@ -31,7 +31,7 @@ func AvatarEndpoint(grp gin.IRouter) {
 				return
 			}
 
-			user, err := appCtx.DB.GetUser(c.Request.Context(), userName)
+			user, err := appCtx.Identities.GetUser(c.Request.Context(), userName)
 			if err != nil {
 				logger.From(c.Request.Context()).Errorf("failed to get user %s: %s", userName, err)
 				c.AbortWithStatus(http.StatusInternalServerError)
