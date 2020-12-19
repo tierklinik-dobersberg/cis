@@ -10,16 +10,17 @@ import (
 
 // Customer defines the customer record.
 type Customer struct {
-	ID         primitive.ObjectID `bson:"_id,omitempty"`
-	CustomerID int                `bson:"cid,omitempty"`
-	Group      string             `bson:"group,omitempty"`
-	Name       string             `bson:"name,omitempty"`
-	Firstname  string             `bson:"firstname,omitempty"`
-	Title      string             `bson:"title,omitempty"`
-	Street     string             `bson:"street,omitempty"`
-	CityCode   int                `bson:"cityCode,omitempty"`
-	City       string             `bson:"city,omitempty"`
-	Phone      string             `bson:"phone,omitempty"`
+	ID            primitive.ObjectID `bson:"_id,omitempty"`
+	CustomerID    int                `bson:"cid,omitempty"`
+	Group         string             `bson:"group,omitempty"`
+	Name          string             `bson:"name,omitempty"`
+	Firstname     string             `bson:"firstname,omitempty"`
+	Title         string             `bson:"title,omitempty"`
+	Street        string             `bson:"street,omitempty"`
+	CityCode      int                `bson:"cityCode,omitempty"`
+	City          string             `bson:"city,omitempty"`
+	Phone         string             `bson:"phone,omitempty"`
+	NameMetaphone string             `bson:"nameMetaphone,omitempty"`
 }
 
 // Hash returns a hash of the customer

@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ppacher/system-conf/conf"
+	"github.com/spf13/cobra"
 	"github.com/tierklinik-dobersberg/cis/internal/api/customerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/identityapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
@@ -18,8 +19,30 @@ import (
 )
 
 func main() {
+	cmd := getRootCommand()
+
+	if err := cmd.Execute(); err != nil {
+		logger.Fatalf(context.Background(), err.Error())
+	}
+}
+
+func getRootCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use: "cisd",
+		Run: func(_ *cobra.Command, _ []string) {
+			runMain()
+		},
+	}
+
+	cmd.AddCommand(
+		getImportCommand(),
+	)
+
+	return cmd
+}
+
+func getApp(ctx context.Context) *app.App {
 	var cfg app.Config
-	ctx := context.Background()
 
 	globalConf := conf.SectionSpec{}
 
@@ -64,11 +87,18 @@ func main() {
 
 	// Create a new application context and make sure it's added
 	// to each incoming HTTP Request.
-	appCtx := app.NewApp(&cfg, matcher, identities, customers)
+	appCtx := app.NewApp(instance, &cfg, matcher, identities, customers)
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 
+	return appCtx
+}
+
+func runMain() {
+	ctx := context.Background()
+	app := getApp(ctx)
+
 	// run the server.
-	if err := instance.Serve(); err != nil {
+	if err := app.Instance.Serve(); err != nil {
 		logger.Fatalf(ctx, "failed to serve: %s", err)
 	}
 }

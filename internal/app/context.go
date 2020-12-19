@@ -10,6 +10,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/service/server"
+	"github.com/tierklinik-dobersberg/service/service"
 )
 
 type contextKey string
@@ -18,6 +19,7 @@ const appContextKey = contextKey("app:context")
 
 // App holds dependencies for cis API request handlers.
 type App struct {
+	Instance   *service.Instance
 	Config     *Config
 	Matcher    *permission.Matcher
 	Identities identitydb.Database
@@ -29,8 +31,9 @@ func (app *App) String() string {
 }
 
 // NewApp context creates a new application context.
-func NewApp(cfg *Config, matcher *permission.Matcher, identities identitydb.Database, customers customerdb.Database) *App {
+func NewApp(inst *service.Instance, cfg *Config, matcher *permission.Matcher, identities identitydb.Database, customers customerdb.Database) *App {
 	return &App{
+		Instance:   inst,
 		Config:     cfg,
 		Matcher:    matcher,
 		Identities: identities,

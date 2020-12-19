@@ -4,7 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
+	"strings"
 
+	"github.com/antzucaro/matchr"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -31,6 +34,9 @@ type Database interface {
 
 	// FilterCustomer filters all customers according to filter.
 	FilterCustomer(ctx context.Context, filter bson.M) ([]*Customer, error)
+
+	// FuzzySearchName searches for a customer by name usign fuzzy-search
+	FuzzySearchName(ctx context.Context, name string) ([]*Customer, error)
 
 	// SearchCustomerByName searches for all customers that matches
 	// name.
@@ -66,13 +72,38 @@ func New(ctx context.Context, url, dbName string) (Database, error) {
 		customers: client.Database(dbName).Collection(CustomerCollection),
 	}
 
+	// prepare collections and indexes.
+	if err := db.setup(ctx); err != nil {
+		return nil, err
+	}
+
 	return db, nil
+}
+
+func (db *database) setup(ctx context.Context) error {
+	// Create a text index for $text search support.
+	ind, err := db.customers.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.M{
+			"nameMetaphone": "text",
+		},
+	})
+
+	if err != nil {
+		return fmt.Errorf("creating index for nameMetaphone: %w", err)
+	}
+
+	logger.Infof(ctx, "Created index %s", ind)
+
+	return nil
 }
 
 func (db *database) CreateCustomer(ctx context.Context, cu *Customer) error {
 	if !cu.ID.IsZero() {
 		return fmt.Errorf("customer %d already has an object ID: %s", cu.CustomerID, cu.ID.Hex())
 	}
+
+	metaphone1, metaphone2 := matchr.DoubleMetaphone(cu.Name)
+	cu.NameMetaphone = metaphone1 + " " + metaphone2
 
 	result, err := db.customers.InsertOne(ctx, cu)
 	if err != nil {
@@ -95,6 +126,9 @@ func (db *database) UpdateCustomer(ctx context.Context, cu *Customer) error {
 		return fmt.Errorf("Cannot update customer without object ID")
 	}
 
+	metaphone1, metaphone2 := matchr.DoubleMetaphone(cu.Name)
+	cu.NameMetaphone = metaphone1 + " " + metaphone2
+
 	result, err := db.customers.UpdateOne(ctx, bson.M{"_id": cu.ID}, bson.M{
 		"$set": cu,
 	})
@@ -107,6 +141,39 @@ func (db *database) UpdateCustomer(ctx context.Context, cu *Customer) error {
 	}
 
 	return nil
+}
+
+func (db *database) FuzzySearchName(ctx context.Context, name string) ([]*Customer, error) {
+	m1, m2 := matchr.DoubleMetaphone(name)
+	customers, err := db.findCustomers(ctx, bson.M{
+		"$text": bson.M{
+			"$search":   m1 + " " + m2,
+			"$language": "de",
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	nameLower := strings.ToLower(name)
+	distances := make([]fuzzyDistance, len(customers))
+	for idx, cu := range customers {
+		distances[idx] = fuzzyDistance{
+			Customer: cu,
+			Distance: matchr.DamerauLevenshtein(strings.ToLower(cu.Name), nameLower),
+		}
+	}
+
+	sort.Sort(distanceSort(distances))
+
+	result := make([]*Customer, len(distances))
+
+	for idx, item := range distances {
+		result[idx] = item.Customer
+	}
+
+	return result, nil
 }
 
 func (db *database) CustomerByCID(ctx context.Context, cid int) (*Customer, error) {
@@ -166,3 +233,16 @@ func (db *database) findSingleCustomer(ctx context.Context, filter interface{}) 
 
 	return &cu, nil
 }
+
+type fuzzyDistance struct {
+	Customer *Customer
+	Distance int
+}
+
+type distanceSort []fuzzyDistance
+
+func (d distanceSort) Len() int { return len(d) }
+func (d distanceSort) Less(i, j int) bool {
+	return d[i].Distance < d[j].Distance
+}
+func (d distanceSort) Swap(i, j int) { d[i], d[j] = d[j], d[i] }
