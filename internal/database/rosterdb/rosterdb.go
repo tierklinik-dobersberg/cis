@@ -117,13 +117,11 @@ func (db *database) Create(ctx context.Context, month time.Month, year int, days
 }
 
 func (db *database) Update(ctx context.Context, roster *v1alpha.DutyRoster) error {
-	if roster == nil || roster.ID.IsZero() {
+	if roster == nil {
 		return fmt.Errorf("invalid roster")
 	}
 
-	result, err := db.rosters.UpdateOne(ctx, bson.M{"_id": roster.ID}, bson.M{
-		"$set": roster,
-	})
+	result, err := db.rosters.ReplaceOne(ctx, bson.M{"year": roster.Year, "month": roster.Month}, roster)
 	if err != nil {
 		return err
 	}

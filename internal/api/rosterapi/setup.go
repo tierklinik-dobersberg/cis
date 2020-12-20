@@ -6,4 +6,7 @@ import "github.com/gin-gonic/gin"
 func Setup(grp gin.IRouter) {
 	// GET /api/dutyroster/v1/:year/:month
 	GetRosterEndpoint(grp)
+
+	// PUT /api/dutyroster/v1/:year/:month
+	CreateEndpoint(grp)
 }

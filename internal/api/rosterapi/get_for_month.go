@@ -3,9 +3,6 @@ package rosterapi
 import (
 	"errors"
 	"net/http"
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
@@ -20,28 +17,12 @@ func GetRosterEndpoint(grp gin.IRouter) {
 			return
 		}
 
-		yearStr := c.Param("year")
-		monthStr := c.Param("month")
-		monthStr = strings.TrimPrefix(monthStr, "0")
-
-		year, err := strconv.ParseInt(yearStr, 10, 64)
-		if err != nil {
-			server.AbortRequest(c, http.StatusBadRequest, err)
+		month, year, ok := getYearAndMonth(c)
+		if !ok {
 			return
 		}
 
-		month, err := strconv.ParseInt(monthStr, 10, 64)
-		if err != nil {
-			server.AbortRequest(c, http.StatusBadRequest, err)
-			return
-		}
-
-		if month < 1 || month > 10 {
-			server.AbortRequest(c, http.StatusBadRequest, errors.New("invalid month"))
-			return
-		}
-
-		roster, err := app.DutyRosters.ForMonth(c.Request.Context(), time.Month(month), int(year))
+		roster, err := app.DutyRosters.ForMonth(c.Request.Context(), month, year)
 		if err != nil {
 			if errors.Is(err, rosterdb.ErrNotFound) {
 				server.AbortRequest(c, http.StatusNotFound, err)
