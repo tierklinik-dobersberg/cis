@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tierklinik-dobersberg/cis/internal/api/customerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/identityapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
@@ -67,6 +68,7 @@ func getApp(ctx context.Context) *app.App {
 			{
 				identityapi.Setup(apis.Group("identity"))
 				customerapi.Setup(apis.Group("customer"))
+				rosterapi.Setup(apis.Group("dutyroster"))
 			}
 
 			return nil
