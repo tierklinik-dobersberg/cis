@@ -15,11 +15,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Constants for the different MongoDB collections
-// required and managed by this package.
-const (
-	CustomerCollection = "customers"
-)
+// CustomerCollection is the MongoDB collection name
+// that holds all customers.
+const CustomerCollection = "customers"
 
 // Database encapsulates access to the MongoDB database.
 type Database interface {
@@ -62,8 +60,18 @@ func New(ctx context.Context, url, dbName string) (Database, error) {
 		return nil, err
 	}
 
-	if err := client.Ping(ctx, nil); err != nil {
+	db, err := NewWithClient(ctx, dbName, client)
+	if err != nil {
 		defer client.Disconnect(ctx)
+		return nil, err
+	}
+
+	return db, nil
+}
+
+// NewWithClient is like New but uses an already existing mongodb client.
+func NewWithClient(ctx context.Context, dbName string, client *mongo.Client) (Database, error) {
+	if err := client.Ping(ctx, nil); err != nil {
 		return nil, err
 	}
 

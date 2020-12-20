@@ -11,11 +11,14 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/service/service"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
@@ -73,7 +76,9 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "failed to boot service: %s", err)
 	}
 
-	customers, err := customerdb.New(ctx, cfg.DatabaseURI, cfg.DatabaseName)
+	mongoClient := getMongoClient(ctx, cfg.DatabaseURI)
+
+	customers, err := customerdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
 		logger.Fatalf(ctx, "%s", err.Error())
 	}
@@ -83,14 +88,33 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "failed to prepare database: %s", err)
 	}
 
+	rosters, err := rosterdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
+	if err != nil {
+		logger.Fatalf(ctx, "%s", err.Error())
+	}
+
 	matcher := permission.NewMatcher(permission.NewResolver(identities))
 
 	// Create a new application context and make sure it's added
 	// to each incoming HTTP Request.
-	appCtx := app.NewApp(instance, &cfg, matcher, identities, customers)
+	appCtx := app.NewApp(instance, &cfg, matcher, identities, customers, rosters)
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 
 	return appCtx
+}
+
+func getMongoClient(ctx context.Context, uri string) *mongo.Client {
+	clientConfig := options.Client().ApplyURI(uri)
+	client, err := mongo.NewClient(clientConfig)
+	if err != nil {
+		logger.Fatalf(ctx, err.Error())
+	}
+
+	if err := client.Connect(ctx); err != nil {
+		logger.Fatalf(ctx, err.Error())
+	}
+
+	return client
 }
 
 func runMain() {

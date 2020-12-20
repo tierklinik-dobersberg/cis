@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/service/service"
@@ -19,11 +20,12 @@ const appContextKey = contextKey("app:context")
 
 // App holds dependencies for cis API request handlers.
 type App struct {
-	Instance   *service.Instance
-	Config     *Config
-	Matcher    *permission.Matcher
-	Identities identitydb.Database
-	Customers  customerdb.Database
+	Instance    *service.Instance
+	Config      *Config
+	Matcher     *permission.Matcher
+	DutyRosters rosterdb.Database
+	Identities  identitydb.Database
+	Customers   customerdb.Database
 }
 
 func (app *App) String() string {
@@ -31,13 +33,14 @@ func (app *App) String() string {
 }
 
 // NewApp context creates a new application context.
-func NewApp(inst *service.Instance, cfg *Config, matcher *permission.Matcher, identities identitydb.Database, customers customerdb.Database) *App {
+func NewApp(inst *service.Instance, cfg *Config, matcher *permission.Matcher, identities identitydb.Database, customers customerdb.Database, dutyRosters rosterdb.Database) *App {
 	return &App{
-		Instance:   inst,
-		Config:     cfg,
-		Matcher:    matcher,
-		Identities: identities,
-		Customers:  customers,
+		Instance:    inst,
+		Config:      cfg,
+		Matcher:     matcher,
+		Identities:  identities,
+		Customers:   customers,
+		DutyRosters: dutyRosters,
 	}
 }
 
