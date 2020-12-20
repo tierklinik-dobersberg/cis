@@ -9,8 +9,10 @@ import (
 	"github.com/tierklinik-dobersberg/service/server"
 )
 
-func FuzzySearchCustomerEndpoint(grp gin.IRouter) {
-	grp.GET("v1/customer", func(c *gin.Context) {
+// FuzzySearchEndpoint allows searching for customers using
+// a double metaphone driven search on the customers name.
+func FuzzySearchEndpoint(grp gin.IRouter) {
+	grp.GET("v1/", func(c *gin.Context) {
 		ac := app.From(c)
 		if ac == nil {
 			return

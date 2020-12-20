@@ -10,15 +10,15 @@ import (
 	"github.com/tierklinik-dobersberg/service/server"
 )
 
-// SearchCustomerEndpoint searches for one or more customers
+// ExtendedSearchEndpoint searches for one or more customers
 // that match a given criteria.
 //
 // WARNING: this endpoint gives direct FindMany access to the
 // mongodb collection! Make sure users are properly authenticated!
 //
 // POST /api/v1/customer/search
-func SearchCustomerEndpoint(grp gin.IRouter) {
-	grp.POST("v1/customer/search", func(c *gin.Context) {
+func ExtendedSearchEndpoint(grp gin.IRouter) {
+	grp.POST("v1/search", func(c *gin.Context) {
 		ac := app.From(c)
 		if ac == nil {
 			return

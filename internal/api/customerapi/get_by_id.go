@@ -11,12 +11,12 @@ import (
 	"github.com/tierklinik-dobersberg/service/server"
 )
 
-// GetCustomerEndpoint returns a JSON version of the customer
+// GetByIDEndpoint returns a JSON version of the customer
 // with the given :id.
 //
 // GET /api/v1/customer/:id
-func GetCustomerEndpoint(grp gin.IRouter) {
-	grp.GET("v1/customer/:id", func(c *gin.Context) {
+func GetByIDEndpoint(grp gin.IRouter) {
+	grp.GET("v1/:id", func(c *gin.Context) {
 		ac := app.From(c)
 		if ac == nil {
 			return
