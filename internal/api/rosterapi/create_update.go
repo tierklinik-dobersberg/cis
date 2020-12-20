@@ -12,7 +12,9 @@ import (
 	"github.com/tierklinik-dobersberg/service/server"
 )
 
-func CreateEndpoint(grp gin.IRouter) {
+// CreateOrUpdateEndpoint allows to either create a new or update
+// an existing roster.
+func CreateOrUpdateEndpoint(grp gin.IRouter) {
 	grp.PUT("v1/:year/:month", func(c *gin.Context) {
 		app := app.From(c)
 		if app == nil {
