@@ -127,4 +127,6 @@ func runMain() {
 	if err := app.Instance.Serve(); err != nil {
 		logger.Fatalf(ctx, "failed to serve: %s", err)
 	}
+
+	logger.Infof(ctx, "Service stopped successfully")
 }
