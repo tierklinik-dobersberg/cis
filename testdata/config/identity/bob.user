@@ -1,0 +1,8 @@
+[User]
+Name=bob
+Fullname=Bob Mustermann
+PasswordAlgo=
+PasswordHash=
+Mail=bob@example.com
+MemberOf=default-group
+GoogleCalendarID=primary

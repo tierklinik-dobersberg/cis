@@ -1,4 +1,4 @@
-package main
+package integration_test
 
 import (
 	"context"
@@ -42,13 +42,13 @@ func waitReachable(ctx context.Context) error {
 	}
 }
 
-func TestSomething(t *testing.T) {
-
-}
-
 func TestMain(m *testing.M) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	if err := runCompose(ctx, []string{"build"}); err != nil {
+		log.Fatal(err)
+	}
 
 	start := time.Now()
 	if err := runCompose(ctx, []string{"up", "-d"}); err != nil {

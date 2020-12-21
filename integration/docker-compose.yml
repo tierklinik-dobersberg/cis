@@ -18,6 +18,7 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
 
   cisd: 
+    image: tkd/cisd
     build: ../
     ports:
       - 3000:3000

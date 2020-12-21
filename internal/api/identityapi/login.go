@@ -10,6 +10,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
+	"github.com/tierklinik-dobersberg/service/server"
 )
 
 // LoginEndpoint allows to user to log-in and create a
@@ -57,7 +58,7 @@ func LoginEndpoint(grp gin.IRouter) {
 				}
 
 				if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
-					c.Status(http.StatusBadRequest)
+					server.AbortRequest(c, http.StatusBadRequest, err)
 					return
 				}
 
@@ -89,6 +90,29 @@ func LoginEndpoint(grp gin.IRouter) {
 				}
 
 				user = &u.User
+			}
+		}
+
+		if user == nil {
+			username, expiresIn := app.CheckSession(appCtx, c.Request)
+			// check if there's a valid session cookie
+			if username != "" {
+				u, err := appCtx.Identities.GetUser(c.Request.Context(), username)
+				if err != nil {
+					server.AbortRequest(c, http.StatusInternalServerError, err)
+					return
+				}
+
+				user = &u.User
+
+				// If the cookie is still valid just return immediately without
+				// creating a new session cookie.
+				// TODO(ppacher): make configurable
+				if expiresIn > 5*time.Minute {
+					log.Infof("Accepting request as cookie is still valid for %s", expiresIn)
+					c.Status(http.StatusOK)
+					return
+				}
 			}
 		}
 

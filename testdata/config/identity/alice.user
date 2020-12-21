@@ -1,10 +1,10 @@
 [User]
-Name=test
-FullName=Max Musterfrau
+Name=alice
+FullName=Alice Musterfrau
 PasswordAlgo=plain
 PasswordHash=password
-Mail=test@example.at
-Mail=test@example.com
+Mail=alice@example.at
+Mail=alice@example.com
 PhoneNumber=+43123456678
 PhoneNumber=+2812345
 MemberOf=default-group

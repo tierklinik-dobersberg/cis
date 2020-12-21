@@ -12,6 +12,7 @@ require (
 	github.com/ppacher/system-conf v0.4.0
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cobra v1.1.1
+	github.com/stretchr/testify v1.6.1
 	github.com/tierklinik-dobersberg/go-vetinf v0.1.0
 	github.com/tierklinik-dobersberg/logger v0.2.0
 	github.com/tierklinik-dobersberg/service v0.1.0
