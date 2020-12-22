@@ -12,7 +12,7 @@ import (
 type LoginTestSuite struct {
 	suite.Suite
 	cli *http.Client
-	jar *dummyCookieJar
+	jar http.CookieJar
 }
 
 func (suite *LoginTestSuite) SetupSuite() {

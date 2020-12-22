@@ -2,13 +2,26 @@ package integration_test
 
 import (
 	"context"
+	"flag"
 	"log"
 	"net/http"
+	"net/http/cookiejar"
 	"os"
 	"os/exec"
 	"strings"
 	"testing"
 	"time"
+)
+
+// Identities used for testing
+var (
+	AsAlice *http.Client
+)
+
+// Addional flags
+var (
+	buildFlag = flag.Bool("build", true, "Build cisd")
+	logFlag   = flag.String("log", "", "What to log from compose")
 )
 
 func runCompose(ctx context.Context, args []string) error {
@@ -43,11 +56,17 @@ func waitReachable(ctx context.Context) error {
 }
 
 func TestMain(m *testing.M) {
-	ctx, cancel := context.WithCancel(context.Background())
+	if !flag.Parsed() {
+		flag.Parse()
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	if err := runCompose(ctx, []string{"build"}); err != nil {
-		log.Fatal(err)
+	if *buildFlag {
+		if err := runCompose(ctx, []string{"build"}); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	start := time.Now()
@@ -55,11 +74,16 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	go func() {
-		if err := runCompose(context.Background(), []string{"logs", "-f", "cisd"}); err != nil {
-			log.Println(err.Error())
+	if *logFlag != "" {
+		if *logFlag == "all" {
+			*logFlag = ""
 		}
-	}()
+		go func() {
+			if err := runCompose(context.Background(), []string{"logs", "-f", *logFlag}); err != nil {
+				log.Println(err.Error())
+			}
+		}()
+	}
 
 	var code int
 	defer func() {
@@ -76,6 +100,18 @@ func TestMain(m *testing.M) {
 	}
 	log.Printf("service up and running after %s", time.Since(start))
 
+	// Create a HTTP client for alice and retrieve a session cookie for it.
+	jar, _ := cookiejar.New(nil)
+	AsAlice = &http.Client{
+		Jar: jar,
+	}
+	AsAlice.Post("http://localhost:3000/api/identity/v1/login", "application/json", strings.NewReader(`
+	{
+		"username": "alice",
+		"password": "password"
+	}`))
+
+	// Actually run the tests
 	code = m.Run()
 	cancel()
 
