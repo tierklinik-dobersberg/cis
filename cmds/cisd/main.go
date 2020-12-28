@@ -57,12 +57,11 @@ func getApp(ctx context.Context) *app.App {
 	instance, err := service.Boot(service.Config{
 		ConfigFileName: "cis.conf",
 		ConfigFileSpec: conf.FileSpec{
-			"global":             globalConf,
-			"import":             schema.VetInfSpec,
-			"listener":           server.ListenerSpec,
-			"userproperty":       schema.UserSchemaExtension,
-			"openinghour":        schema.OpeningHoursSpec,
-			"holidayopeninghour": schema.OpeningHoursSpec,
+			"global":       globalConf,
+			"import":       schema.VetInfSpec,
+			"listener":     server.ListenerSpec,
+			"userproperty": schema.UserSchemaExtension,
+			"openinghour":  schema.OpeningHoursSpec,
 		},
 		ConfigTarget: &cfg,
 		RouteSetupFunc: func(grp gin.IRouter) error {
