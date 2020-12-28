@@ -1,15 +1,14 @@
 package schema
 
 import (
-	"time"
-
 	"github.com/ppacher/system-conf/conf"
 )
 
 type Config struct {
-	Secret                 string
-	AccessLogFile          string
-	OpeningHourDatesFormat string
+	Secret            string
+	AccessLogFile     string
+	DefaultOpenBefore string
+	DefaultCloseAfter string
 }
 
 var ConfigSpec = conf.SectionSpec{
@@ -24,9 +23,13 @@ var ConfigSpec = conf.SectionSpec{
 		Type:        conf.StringType,
 	},
 	{
-		Name:        "OpeningHourDatesFormat",
+		Name:        "DefaultOpenBefore",
 		Type:        conf.StringType,
-		Description: "The format used for [OpeningHour] Dates= stanza.",
-		Default:     time.RFC3339,
+		Description: "Default value for OpenBefore= in [OpeningHour]",
+	},
+	{
+		Name:        "DefaultCloseAfter",
+		Type:        conf.StringType,
+		Description: "Default value for CloseAfter= in [OpeningHour]",
 	},
 }

@@ -14,7 +14,7 @@ type OpeningHours struct {
 	Days []string
 
 	// Dates is a list of dates on which this opening hours take effect.
-	// Should follow the ISO RFC3339 format
+	// Dates should have the format MM/DD and are year independent.
 	Dates []string
 
 	// OpenBefore describes the amount of time the entry door
@@ -42,14 +42,14 @@ var OpeningHoursSpec = conf.SectionSpec{
 		Type:        conf.StringSliceType,
 	},
 	{
-		Name:    "OpenBefore",
-		Type:    conf.StringType,
-		Default: "0m",
+		Name:        "OpenBefore",
+		Type:        conf.StringType,
+		Description: "Defines how long before the opening hour the entry door to should get unlocked.",
 	},
 	{
-		Name:    "CloseAfter",
-		Type:    conf.StringType,
-		Default: "0m",
+		Name:        "CloseAfter",
+		Type:        conf.StringType,
+		Description: "Defines how long after the opening hour the entry door should get locked.",
 	},
 	{
 		Name:        "TimeRanges",
