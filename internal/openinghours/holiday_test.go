@@ -2,6 +2,7 @@ package openinghours_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
@@ -21,4 +22,12 @@ func TestLoadHolidays(t *testing.T) {
 		Name:        "Christmas Day",
 		Type:        "Public",
 	})
+
+	isHoliday, err := cache.IsHoliday("AT", time.Date(2021, time.December, 25, 0, 0, 0, 0, time.Local))
+	assert.True(t, isHoliday)
+	assert.NoError(t, err)
+
+	isHoliday, err = cache.IsHoliday("AT", time.Date(2021, time.August, 13, 0, 0, 0, 0, time.Local))
+	assert.False(t, isHoliday)
+	assert.NoError(t, err)
 }

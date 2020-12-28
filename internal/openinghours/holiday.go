@@ -17,10 +17,15 @@ func apiURL(country string, year int) string {
 	return fmt.Sprintf(apiHostFormat, year, country)
 }
 
-// HolidayGetter returns a list of public holidays for the given
-// country and year.
+// HolidayGetter allows to retrieve holidays.
 type HolidayGetter interface {
+	// Get returns a list of public holidays for the given
+	// country and year.
 	Get(country string, year int) ([]PublicHoliday, error)
+
+	// IsHoliday returns true if d is a public holiday in
+	// country.
+	IsHoliday(country string, d time.Time) (bool, error)
 }
 
 // PublicHoliday represents a public holiday record returned by date.nager.at
@@ -34,6 +39,11 @@ type PublicHoliday struct {
 
 	// Type may be  Public, Bank, School, Authorities, Optional, Observance
 	Type string `json:"type"`
+}
+
+// Is checks if p is on d.
+func (p *PublicHoliday) Is(d time.Time) bool {
+	return fmt.Sprintf("%d-%02d-%02d", d.Year(), d.Month(), d.Day()) == p.Date
 }
 
 // LoadHolidays loads all public holidays for the given country and year
@@ -107,6 +117,22 @@ func (cache *HolidayCache) Get(country string, year int) ([]PublicHoliday, error
 		return nil, err
 	}
 	return e.PublicHolidays, nil
+}
+
+// IsHoliday returns true if d is a public holiday in country.
+func (cache *HolidayCache) IsHoliday(country string, d time.Time) (bool, error) {
+	holidays, err := cache.Get(country, d.Year())
+	if err != nil {
+		return false, err
+	}
+
+	for _, p := range holidays {
+		if p.Is(d) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 // load loads the public holidays for country and year and makes sure no more than one HTTP
