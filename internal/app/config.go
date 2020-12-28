@@ -12,7 +12,8 @@ type Config struct {
 	schema.DatabaseConfig `section:"Global"`
 	schema.VetInf         `section:"Import"`
 
-	OpeningHours   []schema.OpeningHours `section:"OpeningHour"`
-	UserProperties []conf.OptionSpec     `section:"UserProperty"`
-	Listeners      []server.Listener     `section:"Listener"`
+	HolidayOpeningHour schema.OpeningHours   `section:"HolidayOpeningHour"`
+	OpeningHours       []schema.OpeningHours `section:"OpeningHour"`
+	UserProperties     []conf.OptionSpec     `section:"UserProperty"`
+	Listeners          []server.Listener     `section:"Listener"`
 }
