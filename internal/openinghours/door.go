@@ -1,5 +1,7 @@
 package openinghours
 
+// TODO(ppacher): move all the parsing work away from this package to schema or utils.
+
 import (
 	"context"
 	"fmt"
@@ -57,6 +59,7 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 		country:             cfg.Country,
 		holidays:            holidays,
 		regularOpeningHours: make(map[time.Weekday][]OpeningHour),
+		dateSpecificHours:   make(map[string][]OpeningHour),
 	}
 
 	var (

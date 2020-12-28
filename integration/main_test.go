@@ -8,7 +8,9 @@ import (
 	"net/http/cookiejar"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 )
@@ -20,8 +22,9 @@ var (
 
 // Addional flags
 var (
-	buildFlag = flag.Bool("build", true, "Build cisd")
-	logFlag   = flag.String("log", "", "What to log from compose")
+	buildFlag   = flag.Bool("build", true, "Build cisd")
+	logFlag     = flag.String("log", "", "What to log from compose")
+	keepRunning = flag.Bool("keep", false, "keep everything running after the tests")
 )
 
 func runCompose(ctx context.Context, args []string) error {
@@ -113,6 +116,14 @@ func TestMain(m *testing.M) {
 
 	// Actually run the tests
 	code = m.Run()
+
+	if *keepRunning {
+		log.Println("waiting for interrupt")
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, syscall.SIGINT)
+		<-sig
+	}
+
 	cancel()
 
 	log.Printf("Test suites executed: %d", code)

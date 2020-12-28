@@ -9,6 +9,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
+	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/service/service"
@@ -26,6 +27,7 @@ type App struct {
 	DutyRosters rosterdb.Database
 	Identities  identitydb.Database
 	Customers   customerdb.Database
+	Door        *openinghours.DoorController
 }
 
 func (app *App) String() string {
@@ -33,7 +35,7 @@ func (app *App) String() string {
 }
 
 // NewApp context creates a new application context.
-func NewApp(inst *service.Instance, cfg *Config, matcher *permission.Matcher, identities identitydb.Database, customers customerdb.Database, dutyRosters rosterdb.Database) *App {
+func NewApp(inst *service.Instance, cfg *Config, matcher *permission.Matcher, identities identitydb.Database, customers customerdb.Database, dutyRosters rosterdb.Database, door *openinghours.DoorController) *App {
 	return &App{
 		Instance:    inst,
 		Config:      cfg,
@@ -41,6 +43,7 @@ func NewApp(inst *service.Instance, cfg *Config, matcher *permission.Matcher, id
 		Identities:  identities,
 		Customers:   customers,
 		DutyRosters: dutyRosters,
+		Door:        door,
 	}
 }
 

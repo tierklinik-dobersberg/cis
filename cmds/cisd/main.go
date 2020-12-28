@@ -7,12 +7,14 @@ import (
 	"github.com/ppacher/system-conf/conf"
 	"github.com/spf13/cobra"
 	"github.com/tierklinik-dobersberg/cis/internal/api/customerapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/doorapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/identityapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
+	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/logger"
@@ -70,6 +72,7 @@ func getApp(ctx context.Context) *app.App {
 				identityapi.Setup(apis.Group("identity"))
 				customerapi.Setup(apis.Group("customer"))
 				rosterapi.Setup(apis.Group("dutyroster"))
+				doorapi.Setup(apis.Group("door"))
 			}
 
 			return nil
@@ -98,9 +101,15 @@ func getApp(ctx context.Context) *app.App {
 
 	matcher := permission.NewMatcher(permission.NewResolver(identities))
 
+	holidayCache := openinghours.NewHolidayCache()
+	doorController, err := openinghours.NewDoorController(cfg.Config, cfg.OpeningHours, holidayCache)
+	if err != nil {
+		logger.Fatalf(ctx, "%s", err.Error())
+	}
+
 	// Create a new application context and make sure it's added
 	// to each incoming HTTP Request.
-	appCtx := app.NewApp(instance, &cfg, matcher, identities, customers, rosters)
+	appCtx := app.NewApp(instance, &cfg, matcher, identities, customers, rosters, doorController)
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 
 	return appCtx
