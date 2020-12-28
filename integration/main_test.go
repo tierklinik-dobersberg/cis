@@ -90,7 +90,7 @@ func TestMain(m *testing.M) {
 		os.Exit(code)
 	}()
 	defer func() {
-		if err := runCompose(context.Background(), []string{"down"}); err != nil {
+		if err := runCompose(context.Background(), []string{"down", "-v"}); err != nil {
 			log.Println(err.Error())
 		}
 	}()
