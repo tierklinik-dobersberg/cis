@@ -6,6 +6,7 @@ import (
 
 type Config struct {
 	Secret            string
+	Country           string
 	AccessLogFile     string
 	DefaultOpenBefore string
 	DefaultCloseAfter string
@@ -15,6 +16,12 @@ var ConfigSpec = conf.SectionSpec{
 	{
 		Name:        "Secret",
 		Description: "Secret used to sign various data like session cookies. If empty, a temporary secret is created.",
+		Type:        conf.StringType,
+	},
+	{
+		Name:        "Country",
+		Description: "The country cisd operates in",
+		Default:     "AT",
 		Type:        conf.StringType,
 	},
 	{

@@ -9,13 +9,13 @@ import (
 )
 
 type OpeningHours struct {
-	// Days is a list of days (Mo, Tue, ...) on which this opening
+	// OnWeekday is a list of days (Mo, Tue, ...) on which this opening
 	// hours take effect.
-	Days []string
+	OnWeekday []string
 
-	// Dates is a list of dates on which this opening hours take effect.
-	// Dates should have the format MM/DD and are year independent.
-	Dates []string
+	// UseAtDate is a list of dates on which this opening hours take effect.
+	// UseAtDate should have the format MM/DD and are year independent.
+	UseAtDate []string
 
 	// OpenBefore describes the amount of time the entry door
 	// should open before the specified time.
@@ -28,17 +28,20 @@ type OpeningHours struct {
 	// TimeRanges describe the opening hours on the specified days
 	// in the format of HH:MM - HH:MM
 	TimeRanges []string
+
+	// Holiday controls whether this setting is in effect on holidays.
+	Holiday string
 }
 
 var OpeningHoursSpec = conf.SectionSpec{
 	{
-		Name:        "Days",
+		Name:        "OnWeekday",
 		Description: "A list of days (Mo, Tue, Wed, Thu, Fri, Sat, Sun) at which this section takes effect",
 		Type:        conf.StringSliceType,
 	},
 	{
-		Name:        "Dates",
-		Description: "A list of dates at which this section takes effect. Format is defined by the DatesFormat= stanza in [Global]",
+		Name:        "UseAtDate",
+		Description: "A list of dates at which this section takes effect. Format is defined MM/DD",
 		Type:        conf.StringSliceType,
 	},
 	{
@@ -56,12 +59,17 @@ var OpeningHoursSpec = conf.SectionSpec{
 		Type:        conf.StringSliceType,
 		Description: "A list of office/opening hour time ranges (HH:MM - HH:MM).",
 	},
+	{
+		Name:        "Holiday",
+		Type:        conf.StringType,
+		Description: "Whether or not this opening hour counts on holidays. Possible values are 'yes' (normal and holidays), 'no' (normal only) or 'only' (holiday only).",
+	},
 }
 
 // Validate validates the opening hours defined in opt.
 func (opt *OpeningHours) Validate() error {
 	// validate all days
-	for _, day := range opt.Days {
+	for _, day := range opt.OnWeekday {
 		if err := ValidDay(day); err != nil {
 			return err
 		}
