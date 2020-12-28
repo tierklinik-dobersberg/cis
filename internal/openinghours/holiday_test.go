@@ -1,7 +1,6 @@
 package openinghours_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,7 +8,8 @@ import (
 )
 
 func TestLoadHolidays(t *testing.T) {
-	res, err := openinghours.LoadHolidays(context.TODO(), "AT", 2021)
+	cache := openinghours.NewHolidayCache()
+	res, err := cache.Get("AT", 2021)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	assert.Contains(t, res, openinghours.PublicHoliday{
