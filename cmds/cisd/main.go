@@ -61,6 +61,7 @@ func getApp(ctx context.Context) *app.App {
 			"import":       schema.VetInfSpec,
 			"listener":     server.ListenerSpec,
 			"userproperty": schema.UserSchemaExtension,
+			"openinghour":  schema.OpeningHoursSpec,
 		},
 		ConfigTarget: &cfg,
 		RouteSetupFunc: func(grp gin.IRouter) error {

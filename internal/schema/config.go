@@ -1,10 +1,15 @@
 package schema
 
-import "github.com/ppacher/system-conf/conf"
+import (
+	"time"
+
+	"github.com/ppacher/system-conf/conf"
+)
 
 type Config struct {
-	Secret        string
-	AccessLogFile string
+	Secret                 string
+	AccessLogFile          string
+	OpeningHourDatesFormat string
 }
 
 var ConfigSpec = conf.SectionSpec{
@@ -17,5 +22,11 @@ var ConfigSpec = conf.SectionSpec{
 		Name:        "AccessLogFile",
 		Description: "Path to access lo file",
 		Type:        conf.StringType,
+	},
+	{
+		Name:        "OpeningHourDatesFormat",
+		Type:        conf.StringType,
+		Description: "The format used for [OpeningHour] Dates= stanza.",
+		Default:     time.RFC3339,
 	},
 }
