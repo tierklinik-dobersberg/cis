@@ -8,6 +8,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 )
 
+// CurrentStateEndpoint returns the current state of the door
+// and when the next state change is expected.
 func CurrentStateEndpoint(grp gin.IRouter) {
 	grp.GET("v1/state", func(c *gin.Context) {
 		app := app.From(c)

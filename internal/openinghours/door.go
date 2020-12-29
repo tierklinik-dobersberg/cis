@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
@@ -29,7 +30,7 @@ type DoorController struct {
 	holidays HolidayGetter
 
 	// door is the actual interface to communicagte the door.
-	DoorInterfacer
+	door DoorInterfacer
 
 	// country is the country we are operating in and is required
 	// to retrieve the correct list of publich holidays.
@@ -47,6 +48,15 @@ type DoorController struct {
 	// holidayTimeRanges specifies the opening hours during
 	// public holidays.
 	holidayTimeRanges []OpeningHour
+
+	// stop is closed whne the scheduler should stop.
+	stop chan struct{}
+
+	// reset triggers a reset of the scheduler.
+	reset chan struct{}
+
+	// wg is used to wait for door controller operations to finish.
+	wg sync.WaitGroup
 }
 
 // NewDoorController returns a new door controller.
@@ -56,7 +66,9 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 		holidays:            holidays,
 		regularOpeningHours: make(map[time.Weekday][]OpeningHour),
 		dateSpecificHours:   make(map[string][]OpeningHour),
-		DoorInterfacer:      door,
+		door:                door,
+		stop:                make(chan struct{}),
+		reset:               make(chan struct{}),
 	}
 
 	var (
@@ -202,23 +214,112 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 	return dc, nil
 }
 
-func sortAndValidate(os []OpeningHour) error {
-	sort.Sort(OpeningHourSlice(os))
+// Lock implements DoorInterfacer.
+func (dc *DoorController) Lock(ctx context.Context) error {
+	dc.wg.Add(1)
+	defer dc.wg.Done()
+	return dc.door.Lock(ctx)
+}
 
-	// it's already guaranteed that each To is after the respective From
-	// value (see utils.ParseDayTime) and the slice is sorted by asc From
-	// time. Therefore, we only need to check if there's a To time that's
-	// after the From time of the next time range.
-	for i := 0; i < len(os)-1; i++ {
-		current := os[i]
-		next := os[i+1]
+// Unlock implements DoorInterfacer.
+func (dc *DoorController) Unlock(ctx context.Context) error {
+	dc.wg.Add(1)
+	defer dc.wg.Done()
+	return dc.door.Unlock(ctx)
+}
 
-		if current.EffectiveClose() >= next.EffectiveOpen() {
-			return fmt.Errorf("overlapping time frames %s and %s", current, next)
-		}
-	}
+// Open implements DoorInterfacer.
+func (dc *DoorController) Open(ctx context.Context) error {
+	dc.wg.Add(1)
+	defer dc.wg.Done()
+	return dc.door.Open(ctx)
+}
+
+// Start starts the scheduler for the door controller.
+func (dc *DoorController) Start() error {
+	dc.wg.Add(1)
+	go dc.scheduler()
 
 	return nil
+}
+
+// Stop requests the scheduler to stop and waits for all
+// operations to complete.
+func (dc *DoorController) Stop() error {
+	close(dc.stop)
+
+	dc.wg.Wait()
+
+	return nil
+}
+
+// Reset triggers a reset of the door scheduler.
+func (dc *DoorController) Reset(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case dc.reset <- struct{}{}:
+		return nil
+	}
+}
+
+// resetDoor resets the entry door by unlocking, locking and unlocking
+// it again. For whatever reason, this proved to work best when the door
+// does not behave as it should.
+func (dc *DoorController) resetDoor() {
+	dc.wg.Add(1)
+	defer dc.wg.Done()
+
+	ctx := context.Background()
+	dc.door.Unlock(ctx)
+	time.Sleep(time.Second * 2)
+	dc.door.Lock(ctx)
+	time.Sleep(time.Second * 2)
+	dc.door.Unlock(ctx)
+}
+
+func (dc *DoorController) scheduler() {
+	defer dc.wg.Done()
+	var lastState DoorState
+
+	// trigger immediately
+	var until time.Time = time.Now().Add(time.Second)
+
+	for {
+		select {
+		case <-dc.stop:
+			return
+		case <-dc.reset:
+			// reset the door state. it will unlock for a second or so.
+			dc.resetDoor()
+			// force applying the door state.
+			lastState = DoorState("")
+
+		case <-time.After(time.Until(until)):
+		}
+
+		ctx := context.Background()
+
+		state, until := dc.Current(ctx)
+		if until.IsZero() {
+			until = time.Now().Add(time.Minute * 5)
+		}
+
+		// only trigger when we need to change state.
+		if state != lastState {
+			switch state {
+			case Locked:
+				dc.Lock(ctx)
+			case Unlocked:
+				dc.Unlock(ctx)
+			default:
+				logger.Errorf(ctx, "invalid door state returned by Current(): %s", string(state))
+				continue
+			}
+
+			lastState = state
+		}
+	}
 }
 
 // Current returns the current door state.
@@ -330,4 +431,23 @@ func (dc *DoorController) findUpcomingFrames(ctx context.Context, t time.Time, l
 	// truncate the result to the exact size requested
 	// by the caller
 	return result[0:limit]
+}
+
+func sortAndValidate(os []OpeningHour) error {
+	sort.Sort(OpeningHourSlice(os))
+
+	// it's already guaranteed that each To is after the respective From
+	// value (see utils.ParseDayTime) and the slice is sorted by asc From
+	// time. Therefore, we only need to check if there's a To time that's
+	// after the From time of the next time range.
+	for i := 0; i < len(os)-1; i++ {
+		current := os[i]
+		next := os[i+1]
+
+		if current.EffectiveClose() >= next.EffectiveOpen() {
+			return fmt.Errorf("overlapping time frames %s and %s", current, next)
+		}
+	}
+
+	return nil
 }

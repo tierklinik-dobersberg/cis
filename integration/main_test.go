@@ -13,12 +13,16 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 // Identities used for testing
 var (
 	AsAlice *http.Client
 )
+
+var client mqtt.Client
 
 // Addional flags
 var (
@@ -102,6 +106,13 @@ func TestMain(m *testing.M) {
 		return
 	}
 	log.Printf("service up and running after %s", time.Since(start))
+
+	clientCfg := mqtt.NewClientOptions().AddBroker("tcp://localhost:1883").SetClientID("integration_test")
+	client = mqtt.NewClient(clientCfg)
+
+	if token := client.Connect(); token.Wait() && token.Error() != nil {
+		log.Fatalf("failed to connect to mosquitto: %s", token.Error())
+	}
 
 	// Create a HTTP client for alice and retrieve a session cookie for it.
 	jar, _ := cookiejar.New(nil)

@@ -8,11 +8,17 @@ import (
 	"testing"
 	"time"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/stretchr/testify/require"
-	"gotest.tools/assert"
+	"github.com/stretchr/testify/suite"
+	"golang.org/x/net/context"
 )
 
-func TestEntryDoorState(t *testing.T) {
+type DoorTestSuite struct {
+	suite.Suite
+}
+
+func (suite *DoorTestSuite) Test_Dates() {
 	cases := []struct {
 		Date   string
 		Time   string
@@ -71,11 +77,11 @@ func TestEntryDoorState(t *testing.T) {
 	}
 
 	for idx, c := range cases {
-		url := "http://localhost:3000/api/door/v1/test/" + c.Date + "/" + strings.ReplaceAll(c.Time, ":", "/")
 		msg := fmt.Sprintf("#%d date: %q time:%q expected: %v", idx, c.Date, c.Time, c.Locked)
+		url := "http://localhost:3000/api/door/v1/test/" + c.Date + "/" + strings.ReplaceAll(c.Time, ":", "/")
 
 		resp, err := http.Get(url)
-		require.NoError(t, err, msg)
+		require.NoError(suite.T(), err, msg)
 
 		var result struct {
 			State string    `json:"desiredState"`
@@ -84,12 +90,62 @@ func TestEntryDoorState(t *testing.T) {
 		defer resp.Body.Close()
 
 		err = json.NewDecoder(resp.Body).Decode(&result)
-		require.NoError(t, err, msg)
+		require.NoError(suite.T(), err, msg)
 
 		if c.Locked {
-			assert.Equal(t, "locked", result.State, msg+" until: "+result.Until.String())
+			suite.Equal("locked", result.State, msg+" until: "+result.Until.String())
 		} else {
-			assert.Equal(t, "unlocked", result.State, msg+" until: "+result.Until.String())
+			suite.Equal("unlocked", result.State, msg+" until: "+result.Until.String())
 		}
 	}
+}
+
+func (suite *DoorTestSuite) Test_Reset() {
+	topic := "cliny/rpc/service/door/#"
+
+	ch := make(chan string, 3)
+
+	handler := func(cli mqtt.Client, msg mqtt.Message) {
+		ch <- msg.Topic()
+		var result struct {
+			ReplyTo string `json:"replyTo"`
+		}
+
+		if err := json.Unmarshal(msg.Payload(), &result); err != nil {
+			suite.Fail("failed to decode MQTT payload: %s", err.Error())
+			return
+		}
+
+		// cisd should wait for the response so make sure we provide one
+		cli.Publish(result.ReplyTo, 0, false, "").Wait()
+	}
+
+	if token := client.Subscribe(topic, 0, handler); token.Wait() && token.Error() != nil {
+		suite.FailNow("failed to subscribe: %s", token.Error())
+		return
+	}
+
+	resp, err := http.Post("http://localhost:3000/api/door/v1/reset", "", nil)
+	require.NoError(suite.T(), err)
+	suite.Equal(http.StatusOK, resp.StatusCode)
+
+	receive := func() string {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+		defer cancel()
+
+		select {
+		case msg := <-ch:
+			return strings.TrimPrefix(msg, "cliny/rpc/service/door/")
+		case <-ctx.Done():
+			return ""
+		}
+	}
+
+	suite.Equal([]string{"unlock", "lock", "unlock"}, []string{
+		receive(), receive(), receive(),
+	})
+}
+
+func TestDoor(t *testing.T) {
+	suite.Run(t, new(DoorTestSuite))
 }

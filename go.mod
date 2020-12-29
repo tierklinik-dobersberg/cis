@@ -21,6 +21,7 @@ require (
 	github.com/vbauerster/mpb v3.4.0+incompatible
 	go.mongodb.org/mongo-driver v1.4.4
 	golang.org/x/crypto v0.0.0-20201217014255-9d1352758620
+	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf // indirect
 	gotest.tools v2.2.0+incompatible

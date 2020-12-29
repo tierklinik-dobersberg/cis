@@ -10,6 +10,8 @@ import (
 	"github.com/tierklinik-dobersberg/service/server"
 )
 
+// TestStateEndpoint allows to test the desired door state for any
+// point in time.
 func TestStateEndpoint(grp gin.IRouter) {
 	grp.GET("v1/test/:year/:month/:day/:hour/:minute", func(c *gin.Context) {
 		app := app.From(c)

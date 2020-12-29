@@ -145,9 +145,17 @@ func runMain() {
 	ctx := context.Background()
 	app := getApp(ctx)
 
+	if err := app.Door.Start(); err != nil {
+		logger.Fatalf(ctx, "failed to start door scheduler: %s", err)
+	}
+
 	// run the server.
 	if err := app.Instance.Serve(); err != nil {
 		logger.Fatalf(ctx, "failed to serve: %s", err)
+	}
+
+	if err := app.Door.Stop(); err != nil {
+		logger.Errorf(ctx, "failed to stop door scheduler: %s", err)
 	}
 
 	logger.Infof(ctx, "Service stopped successfully")
