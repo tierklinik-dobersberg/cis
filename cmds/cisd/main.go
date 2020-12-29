@@ -66,6 +66,7 @@ func getApp(ctx context.Context) *app.App {
 			"listener":     server.ListenerSpec,
 			"userproperty": schema.UserSchemaExtension,
 			"openinghour":  schema.OpeningHoursSpec,
+			"integration":  schema.IntegrationConfigSpec,
 		},
 		ConfigTarget: &cfg,
 		RouteSetupFunc: func(grp gin.IRouter) error {

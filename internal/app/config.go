@@ -13,6 +13,8 @@ type Config struct {
 	schema.MqttConfig     `section:"Global"`
 	schema.VetInf         `section:"Import"`
 
+	schema.IntegrationConfig `section:"Integration"`
+
 	OpeningHours   []schema.OpeningHours `section:"OpeningHour"`
 	UserProperties []conf.OptionSpec     `section:"UserProperty"`
 	Listeners      []server.Listener     `section:"Listener"`
