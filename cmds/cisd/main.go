@@ -42,6 +42,7 @@ func getRootCommand() *cobra.Command {
 
 	cmd.AddCommand(
 		getImportCommand(),
+		getDoorCommand(),
 	)
 
 	return cmd
