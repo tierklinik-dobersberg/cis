@@ -4,6 +4,8 @@ import (
 	"github.com/ppacher/system-conf/conf"
 )
 
+// Config groups global configuration values that are used by various subsystems
+// of cisd.
 type Config struct {
 	Secret            string
 	Country           string
@@ -12,6 +14,7 @@ type Config struct {
 	DefaultCloseAfter string
 }
 
+// ConfigSpec defines the different configuration stanzas for the Config struct.
 var ConfigSpec = conf.SectionSpec{
 	{
 		Name:        "Secret",

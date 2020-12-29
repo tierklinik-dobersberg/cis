@@ -10,6 +10,7 @@ type Config struct {
 	schema.IdentityConfig `section:"Global"`
 	schema.Config         `section:"Global"`
 	schema.DatabaseConfig `section:"Global"`
+	schema.MqttConfig     `section:"Global"`
 	schema.VetInf         `section:"Import"`
 
 	OpeningHours   []schema.OpeningHours `section:"OpeningHour"`

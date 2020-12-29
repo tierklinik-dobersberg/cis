@@ -4,6 +4,8 @@ import (
 	"github.com/ppacher/system-conf/conf"
 )
 
+// IdentityConfig groups configuration variables related to
+// identity handling and the api/identity endpoint.
 type IdentityConfig struct {
 	CookieName      string
 	CookieDomain    string

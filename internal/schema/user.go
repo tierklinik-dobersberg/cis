@@ -5,6 +5,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
 
+// User describes a single user definition.
 type User struct {
 	v1alpha.User
 

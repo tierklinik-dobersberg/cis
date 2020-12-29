@@ -5,6 +5,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
 
+// Group defines the structure of a user group
 type Group struct {
 	v1alpha.Group
 }

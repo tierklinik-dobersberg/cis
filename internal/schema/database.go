@@ -2,6 +2,8 @@ package schema
 
 import "github.com/ppacher/system-conf/conf"
 
+// DatabaseConfig groups configuration options for the mongodb
+// database.
 type DatabaseConfig struct {
 	// DatabaseURI holds the connection string to the MongoDB database.
 	DatabaseURI string

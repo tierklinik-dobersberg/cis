@@ -55,6 +55,7 @@ func getApp(ctx context.Context) *app.App {
 	globalConf = append(globalConf, schema.ConfigSpec...)
 	globalConf = append(globalConf, schema.DatabaseSpec...)
 	globalConf = append(globalConf, schema.IdentityConfigSpec...)
+	globalConf = append(globalConf, schema.MqttSpec...)
 
 	instance, err := service.Boot(service.Config{
 		ConfigFileName: "cis.conf",

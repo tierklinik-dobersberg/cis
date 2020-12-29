@@ -8,6 +8,7 @@ import (
 	"github.com/ppacher/system-conf/conf"
 )
 
+// OpeningHours is used to describe the opening and office hours.
 type OpeningHours struct {
 	// OnWeekday is a list of days (Mo, Tue, ...) on which this opening
 	// hours take effect.
@@ -33,6 +34,7 @@ type OpeningHours struct {
 	Holiday string
 }
 
+// OpeningHoursSpec describes the different configuratoin stanzas for the OpeningHours struct.
 var OpeningHoursSpec = conf.SectionSpec{
 	{
 		Name:        "OnWeekday",
