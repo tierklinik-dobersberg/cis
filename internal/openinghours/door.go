@@ -27,7 +27,13 @@ const (
 // DoorController interacts with the entry door controller via MQTT.
 type DoorController struct {
 	holidays HolidayGetter
-	country  string
+
+	// door is the actual interface to communicagte the door.
+	door DoorInterfacer
+
+	// country is the country we are operating in and is required
+	// to retrieve the correct list of publich holidays.
+	country string
 
 	// regularOpeningHours holds all regular opening hours.
 	regularOpeningHours map[time.Weekday][]OpeningHour
@@ -44,10 +50,11 @@ type DoorController struct {
 }
 
 // NewDoorController returns a new door controller.
-func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holidays HolidayGetter) (*DoorController, error) {
+func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holidays HolidayGetter, door DoorInterfacer) (*DoorController, error) {
 	dc := &DoorController{
 		country:             cfg.Country,
 		holidays:            holidays,
+		door:                door,
 		regularOpeningHours: make(map[time.Weekday][]OpeningHour),
 		dateSpecificHours:   make(map[string][]OpeningHour),
 	}

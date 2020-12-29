@@ -102,8 +102,9 @@ func getApp(ctx context.Context) *app.App {
 
 	matcher := permission.NewMatcher(permission.NewResolver(identities))
 
+	door := getDoorInterface(ctx, cfg.MqttConfig)
 	holidayCache := openinghours.NewHolidayCache()
-	doorController, err := openinghours.NewDoorController(cfg.Config, cfg.OpeningHours, holidayCache)
+	doorController, err := openinghours.NewDoorController(cfg.Config, cfg.OpeningHours, holidayCache, door)
 	if err != nil {
 		logger.Fatalf(ctx, "%s", err.Error())
 	}
@@ -114,6 +115,15 @@ func getApp(ctx context.Context) *app.App {
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 
 	return appCtx
+}
+
+func getDoorInterface(ctx context.Context, cfg schema.MqttConfig) openinghours.DoorInterfacer {
+	cli, err := openinghours.NewMqttDoor(cfg)
+	if err != nil {
+		logger.Fatalf(ctx, err.Error())
+	}
+
+	return cli
 }
 
 func getMongoClient(ctx context.Context, uri string) *mongo.Client {
