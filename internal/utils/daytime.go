@@ -21,6 +21,10 @@ func (dt DayTime) AsDuration() time.Duration {
 	return time.Duration(dt.AsMinutes()) * time.Minute
 }
 
+func (dt DayTime) String() string {
+	return fmt.Sprintf("%02d:%02d", dt[0], dt[1])
+}
+
 // ParseDayTime parses a HH:MM time specification.
 func ParseDayTime(str string) (DayTime, error) {
 	var dt DayTime
@@ -67,6 +71,10 @@ func ParseDayTime(str string) (DayTime, error) {
 type DayTimeRange struct {
 	From DayTime
 	To   DayTime
+}
+
+func (dtr *DayTimeRange) String() string {
+	return fmt.Sprintf("<%s - %s>", dtr.From.String(), dtr.To.String())
 }
 
 // FromTime returns the start time of the day-time range at t.

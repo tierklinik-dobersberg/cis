@@ -5,6 +5,7 @@ package openinghours
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -22,17 +23,6 @@ const (
 	Locked   = DoorState("locked")
 	Unlocked = DoorState("unlocked")
 )
-
-// OpeningHour describes a single bussiness-open time range
-// with an additional OpenBefore and CloseAfter threshold for the
-// entry door.
-type OpeningHour struct {
-	utils.DayTimeRange
-
-	Holiday    bool
-	OpenBefore time.Duration
-	CloseAfter time.Duration
-}
 
 // DoorController interacts with the entry door controller via MQTT.
 type DoorController struct {
@@ -185,20 +175,63 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 			dc.dateSpecificHours[d] = append(dc.dateSpecificHours[d], ranges...)
 		}
 	}
+
+	// finally, sort all opening hours and make sure we don't have overlapping ones
+
+	for k := range dc.regularOpeningHours {
+		if err := sortAndValidate(dc.regularOpeningHours[k]); err != nil {
+			return nil, err
+		}
+	}
+	for k := range dc.dateSpecificHours {
+		if err := sortAndValidate(dc.dateSpecificHours[k]); err != nil {
+			return nil, err
+		}
+	}
+	if err := sortAndValidate(dc.holidayTimeRanges); err != nil {
+		return nil, err
+	}
+
 	return dc, nil
 }
 
+func sortAndValidate(os []OpeningHour) error {
+	sort.Sort(OpeningHourSlice(os))
+
+	// it's already guaranteed that each To is after the respective From
+	// value (see utils.ParseDayTime) and the slice is sorted by asc From
+	// time. Therefore, we only need to check if there's a To time that's
+	// after the From time of the next time range.
+	for i := 0; i < len(os)-1; i++ {
+		current := os[i]
+		next := os[i+1]
+
+		if current.EffectiveClose() >= next.EffectiveOpen() {
+			return fmt.Errorf("overlapping time frames %s and %s", current, next)
+		}
+	}
+
+	return nil
+}
+
 // Current returns the current door state.
-func (dc *DoorController) Current(ctx context.Context) DoorState {
-	return dc.StateFor(ctx, time.Now())
+func (dc *DoorController) Current(ctx context.Context) (DoorState, time.Time) {
+	return dc.stateFor(ctx, time.Now())
 }
 
 // StateFor returns the desired door state for the time t.
-func (dc *DoorController) StateFor(ctx context.Context, t time.Time) DoorState {
+func (dc *DoorController) StateFor(ctx context.Context, t time.Time) (DoorState, time.Time) {
+	return dc.stateFor(ctx, t)
+}
+
+// TODO(ppacher): find out until when the returned door state is active.
+// See TODOs below.
+func (dc *DoorController) stateFor(ctx context.Context, t time.Time) (DoorState, time.Time) {
 	var ranges []OpeningHour
+	key := fmt.Sprintf("%02d/%02d", t.Month(), t.Day())
 
 	// First we check for date specific overwrites ...
-	ranges, ok := dc.dateSpecificHours[fmt.Sprintf("%02d/%02d", t.Month(), t.Day())]
+	ranges, ok := dc.dateSpecificHours[key]
 	if !ok {
 		isHoliday, err := dc.holidays.IsHoliday(dc.country, t)
 		if err != nil {
@@ -212,7 +245,8 @@ func (dc *DoorController) StateFor(ctx context.Context, t time.Time) DoorState {
 			// Finally use the regular opening hours
 			ranges, ok = dc.regularOpeningHours[t.Weekday()]
 			if !ok {
-				return Locked
+				// TODO(ppacher): find the next active slice on the next day
+				return Locked, time.Time{}
 			}
 		}
 	}
@@ -226,9 +260,10 @@ func (dc *DoorController) StateFor(ctx context.Context, t time.Time) DoorState {
 		timeRange.To = timeRange.To.Add(tr.CloseAfter)
 
 		if timeRange.Covers(t) {
-			return Unlocked
+			return Unlocked, timeRange.To
 		}
 	}
 
-	return Locked
+	// TODO(ppacher): find the next active slice on the next day
+	return Locked, time.Time{}
 }

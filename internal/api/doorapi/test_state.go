@@ -40,9 +40,10 @@ func TestStateEndpoint(grp gin.IRouter) {
 
 		date := time.Date(year, time.Month(month), day, hour, minute, 0, 0, time.Local)
 
-		result := app.Door.StateFor(c.Request.Context(), date)
+		result, until := app.Door.StateFor(c.Request.Context(), date)
 		c.JSON(http.StatusOK, gin.H{
 			"desiredState": string(result),
+			"until":        until.Format(time.RFC3339),
 		})
 	})
 }
