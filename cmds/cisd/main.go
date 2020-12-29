@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ppacher/system-conf/conf"
@@ -14,6 +16,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
+	"github.com/tierklinik-dobersberg/cis/internal/errorlog"
+	"github.com/tierklinik-dobersberg/cis/internal/integration/rocket"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
@@ -49,6 +53,10 @@ func getRootCommand() *cobra.Command {
 }
 
 func getApp(ctx context.Context) *app.App {
+	// prepare logging
+	logAdapter := errorlog.New(&logger.StdlibAdapter{})
+	logger.SetDefaultAdapter(logAdapter)
+
 	var cfg app.Config
 
 	globalConf := conf.SectionSpec{}
@@ -83,6 +91,41 @@ func getApp(ctx context.Context) *app.App {
 	})
 	if err != nil {
 		logger.Fatalf(ctx, "failed to boot service: %s", err)
+	}
+
+	// configure rocket.chat error log integration
+	if cfg.IntegrationConfig.RocketChatAddress != "" {
+		rocketClient, err := rocket.NewClient(cfg.IntegrationConfig.RocketChatAddress, nil)
+		if err != nil {
+			logger.Fatalf(ctx, "failed to configure rocketchat integration: %s", err)
+		}
+
+		logAdapter.AddErrorAdapter(logger.AdapterFunc(func(t time.Time, s logger.Severity, msg string, f logger.Fields) {
+			content := rocket.WebhookContent{
+				Text: msg,
+				Attachments: []rocket.Attachment{
+					{
+						Title: "Error",
+						Fields: []rocket.AttachmentField{
+							{
+								Title: "Time",
+								Value: t.String(),
+							},
+						},
+					},
+				},
+			}
+
+			for k, v := range f {
+				content.Attachments[0].Fields = append(content.Attachments[0].Fields, rocket.AttachmentField{
+					Title: k,
+					Value: fmt.Sprintf("%v", v),
+				})
+			}
+
+			// ignore the return code because there's nothing we can do ...
+			_ = rocketClient.Send(ctx, content)
+		}))
 	}
 
 	mongoClient := getMongoClient(ctx, cfg.DatabaseURI)
