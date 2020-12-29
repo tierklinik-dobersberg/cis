@@ -51,6 +51,11 @@ func TestStateEndpoint(grp gin.IRouter) {
 func getIntParam(name string, c *gin.Context) (int, bool) {
 	stringValue := c.Param(name)
 
+	// strip away the first leading zero if any
+	if stringValue[0] == '0' {
+		stringValue = stringValue[1:]
+	}
+
 	value, err := strconv.ParseInt(stringValue, 0, 64)
 	if err != nil {
 		server.AbortRequest(c, http.StatusBadRequest, err)
