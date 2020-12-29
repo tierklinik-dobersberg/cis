@@ -227,43 +227,100 @@ func (dc *DoorController) StateFor(ctx context.Context, t time.Time) (DoorState,
 // TODO(ppacher): find out until when the returned door state is active.
 // See TODOs below.
 func (dc *DoorController) stateFor(ctx context.Context, t time.Time) (DoorState, time.Time) {
-	var ranges []OpeningHour
+	// we need one frame because we might be in the middle
+	// of it or before it.
+	upcoming := dc.findUpcomingFrames(ctx, t, 1)
+	if len(upcoming) == 0 {
+		return Locked, time.Time{} // forever locked as there are no frames ...
+	}
+
+	f := upcoming[0]
+
+	// if we are t is covered by f than should be unlocked
+	// until the end of f.
+	if f.Covers(t) {
+		return Unlocked, f.To
+	}
+
+	// Otherwise there's no active frame so we are locked until
+	// f starts.
+	return Locked, f.From
+}
+
+func (dc *DoorController) getRangesForDay(ctx context.Context, t time.Time) []OpeningHour {
 	key := fmt.Sprintf("%02d/%02d", t.Month(), t.Day())
 
 	// First we check for date specific overwrites ...
 	ranges, ok := dc.dateSpecificHours[key]
-	if !ok {
-		isHoliday, err := dc.holidays.IsHoliday(dc.country, t)
-		if err != nil {
-			isHoliday = false
-			logger.Errorf(ctx, "failed to load holidays: %s", err.Error())
-		}
+	if ok {
+		return ranges
+	}
 
-		if isHoliday {
-			ranges = dc.holidayTimeRanges
-		} else {
-			// Finally use the regular opening hours
-			ranges, ok = dc.regularOpeningHours[t.Weekday()]
-			if !ok {
-				// TODO(ppacher): find the next active slice on the next day
-				return Locked, time.Time{}
+	// Check if we need to use holiday ranges ...
+	isHoliday, err := dc.holidays.IsHoliday(dc.country, t)
+	if err != nil {
+		isHoliday = false
+		logger.Errorf(ctx, "failed to load holidays: %s", err.Error())
+	}
+	if isHoliday {
+		return dc.holidayTimeRanges
+	}
+
+	// Finally use the regular opening hours
+	ranges, ok = dc.regularOpeningHours[t.Weekday()]
+	if ok {
+		return ranges
+	}
+
+	// There are no ranges for that day!
+	logger.Infof(ctx, "No opening hour ranges found for %s", t)
+	return nil
+}
+
+func (dc *DoorController) findUpcomingFrames(ctx context.Context, t time.Time, limit int) []utils.TimeRange {
+	var result []utils.TimeRange
+
+	// Nothing to search for if there aren't any regular opening hours.
+	// There could be some holiday-only or date-specific hours but that's rather a
+	// configuration issue.
+	if len(dc.regularOpeningHours) == 0 {
+		logger.Errorf(ctx, "no regular opening hours configured")
+		return nil
+	}
+
+	for len(result) < limit {
+		ranges := dc.getRangesForDay(ctx, t)
+
+		// Find the first frame that's after or covers t
+		var idx int
+		found := false
+		for idx = range ranges {
+			tr := ranges[idx].At(t)
+			tr.From = tr.From.Add(-ranges[idx].OpenBefore)
+			tr.To = tr.To.Add(ranges[idx].CloseAfter)
+
+			if tr.From.After(t) || tr.Covers(t) {
+				found = true
+				break
 			}
 		}
-	}
 
-	// check if t is inside an opening-hour time-range.
-	for _, tr := range ranges {
-		timeRange := tr.At(t)
-
-		// adjust the time range with the open-before and close-after thresholds.
-		timeRange.From = timeRange.From.Add(-1 * tr.OpenBefore)
-		timeRange.To = timeRange.To.Add(tr.CloseAfter)
-
-		if timeRange.Covers(t) {
-			return Unlocked, timeRange.To
+		if found {
+			// all frames following idx are up-coming.
+			for _, d := range ranges[idx:] {
+				tr := d.At(t)
+				tr.From = tr.From.Add(-d.OpenBefore)
+				tr.To = tr.To.Add(d.CloseAfter)
+				result = append(result, *tr)
+			}
 		}
+
+		// proceed to the next week day
+		t = t.Add(24 * time.Hour)
+		t = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 	}
 
-	// TODO(ppacher): find the next active slice on the next day
-	return Locked, time.Time{}
+	// truncate the result to the exact size requested
+	// by the caller
+	return result[0:limit]
 }
