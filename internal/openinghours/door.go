@@ -29,7 +29,7 @@ type DoorController struct {
 	holidays HolidayGetter
 
 	// door is the actual interface to communicagte the door.
-	door DoorInterfacer
+	DoorInterfacer
 
 	// country is the country we are operating in and is required
 	// to retrieve the correct list of publich holidays.
@@ -54,9 +54,9 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 	dc := &DoorController{
 		country:             cfg.Country,
 		holidays:            holidays,
-		door:                door,
 		regularOpeningHours: make(map[time.Weekday][]OpeningHour),
 		dateSpecificHours:   make(map[string][]OpeningHour),
+		DoorInterfacer:      door,
 	}
 
 	var (
