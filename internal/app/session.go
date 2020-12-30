@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -25,6 +26,8 @@ func ExtractSessionUser() gin.HandlerFunc {
 			if user != "" && expiresIn > 0 {
 				c.Set("session:user", user)
 				c.Set("session:ttl", expiresIn.String())
+
+				c.Request = c.Request.Clone(context.WithValue(c.Request.Context(), utils.ContextUserKey{}, user))
 			}
 		}
 

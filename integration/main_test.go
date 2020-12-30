@@ -83,13 +83,19 @@ func TestMain(m *testing.M) {
 
 	if *logFlag != "" {
 		if *logFlag == "all" {
-			*logFlag = ""
+			go func() {
+				if err := runCompose(context.Background(), []string{"logs", "-f"}); err != nil {
+					log.Println(err.Error())
+				}
+			}()
+		} else {
+			go func() {
+				if err := runCompose(context.Background(), []string{"logs", "-f", *logFlag}); err != nil {
+					log.Println(err.Error())
+				}
+			}()
+
 		}
-		go func() {
-			if err := runCompose(context.Background(), []string{"logs", "-f", *logFlag}); err != nil {
-				log.Println(err.Error())
-			}
-		}()
 	}
 
 	var code int

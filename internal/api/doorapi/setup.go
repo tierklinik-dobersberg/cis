@@ -12,4 +12,7 @@ func Setup(grp gin.IRouter) {
 
 	// POST /api/door/v1/reset
 	ResetDoorEndpoint(grp)
+
+	// POST /api/door/v1/overwrite
+	OverwriteEndpoint(grp)
 }

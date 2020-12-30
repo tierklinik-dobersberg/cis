@@ -4,6 +4,7 @@ package openinghours
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -25,6 +26,18 @@ const (
 	Unlocked = DoorState("unlocked")
 )
 
+// Reset types
+var (
+	resetSoft = (*struct{})(nil)
+	resetHard = &struct{}{}
+)
+
+type stateOverwrite struct {
+	state       DoorState
+	until       time.Time
+	sessionUser string
+}
+
 // DoorController interacts with the entry door controller via MQTT.
 type DoorController struct {
 	holidays HolidayGetter
@@ -33,7 +46,7 @@ type DoorController struct {
 	door DoorInterfacer
 
 	// country is the country we are operating in and is required
-	// to retrieve the correct list of publich holidays.
+	// to retrieve the correct list of public holidays.
 	country string
 
 	// regularOpeningHours holds all regular opening hours.
@@ -49,11 +62,21 @@ type DoorController struct {
 	// public holidays.
 	holidayTimeRanges []OpeningHour
 
+	// overwriteLock protects access to manualOverwrite.
+	overwriteLock sync.Mutex
+
+	// manualOverwrite is set when a user has manually overwritten
+	// the current state of the entry door.
+	manualOverwrite *stateOverwrite
+
 	// stop is closed whne the scheduler should stop.
 	stop chan struct{}
 
 	// reset triggers a reset of the scheduler.
-	reset chan struct{}
+	// A nil value means soft-reset while struct{}{}
+	// is interpreted as a hard-reset causing a unlock-lock-unlock
+	// sequence
+	reset chan *struct{}
 
 	// wg is used to wait for door controller operations to finish.
 	wg sync.WaitGroup
@@ -68,7 +91,7 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 		dateSpecificHours:   make(map[string][]OpeningHour),
 		door:                door,
 		stop:                make(chan struct{}),
-		reset:               make(chan struct{}),
+		reset:               make(chan *struct{}),
 	}
 
 	var (
@@ -214,6 +237,36 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 	return dc, nil
 }
 
+// Overwrite overwrites the current door state with state until untilTime.
+func (dc *DoorController) Overwrite(ctx context.Context, state DoorState, untilTime time.Time) error {
+	if err := isValidState(state); err != nil {
+		return err
+	}
+
+	dc.overwriteLock.Lock()
+	{
+		dc.manualOverwrite = &stateOverwrite{
+			state:       state,
+			sessionUser: utils.GetUser(ctx),
+			until:       untilTime,
+		}
+	}
+	dc.overwriteLock.Unlock()
+
+	// trigger a soft reset, unlocking above is REQUIRED
+	// to avoid deadlocking with getManualOverwrite() in
+	// scheduler() (which triggers immediately)
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-dc.stop:
+		return errors.New("stopped")
+	case dc.reset <- resetSoft:
+	}
+
+	return nil
+}
+
 // Lock implements DoorInterfacer.
 func (dc *DoorController) Lock(ctx context.Context) error {
 	dc.wg.Add(1)
@@ -258,7 +311,12 @@ func (dc *DoorController) Reset(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
-	case dc.reset <- struct{}{}:
+
+	case <-dc.stop:
+		return errors.New("stopped")
+
+	// trigger a hard-reset
+	case dc.reset <- resetHard:
 		return nil
 	}
 }
@@ -271,16 +329,29 @@ func (dc *DoorController) resetDoor() {
 	defer dc.wg.Done()
 
 	ctx := context.Background()
-	dc.door.Unlock(ctx)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
+	if err := dc.door.Unlock(ctx); err != nil {
+		logger.Errorf(ctx, "failed to unlock door: %s", err)
+	}
+
 	time.Sleep(time.Second * 2)
-	dc.door.Lock(ctx)
+	if err := dc.door.Lock(ctx); err != nil {
+		logger.Errorf(ctx, "failed to unlock door: %s", err)
+	}
+
 	time.Sleep(time.Second * 2)
-	dc.door.Unlock(ctx)
+	if err := dc.door.Unlock(ctx); err != nil {
+		logger.Errorf(ctx, "failed to unlock door: %s", err)
+	}
+
 }
 
 func (dc *DoorController) scheduler() {
 	defer dc.wg.Done()
 	var lastState DoorState
+	var state DoorState
 
 	// trigger immediately
 	var until time.Time = time.Now().Add(time.Second)
@@ -289,18 +360,19 @@ func (dc *DoorController) scheduler() {
 		select {
 		case <-dc.stop:
 			return
-		case <-dc.reset:
-			// reset the door state. it will unlock for a second or so.
-			dc.resetDoor()
+		case hard := <-dc.reset:
+			if hard != resetSoft {
+				// reset the door state. it will unlock for a second or so.
+				dc.resetDoor()
+			}
 			// force applying the door state.
 			lastState = DoorState("")
-
 		case <-time.After(time.Until(until)):
 		}
 
-		ctx := context.Background()
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
-		state, until := dc.Current(ctx)
+		state, until = dc.Current(ctx)
 		if until.IsZero() {
 			until = time.Now().Add(time.Minute * 5)
 		}
@@ -314,11 +386,13 @@ func (dc *DoorController) scheduler() {
 				dc.Unlock(ctx)
 			default:
 				logger.Errorf(ctx, "invalid door state returned by Current(): %s", string(state))
+				cancel()
 				continue
 			}
 
 			lastState = state
 		}
+		cancel()
 	}
 }
 
@@ -332,9 +406,14 @@ func (dc *DoorController) StateFor(ctx context.Context, t time.Time) (DoorState,
 	return dc.stateFor(ctx, t)
 }
 
-// TODO(ppacher): find out until when the returned door state is active.
-// See TODOs below.
 func (dc *DoorController) stateFor(ctx context.Context, t time.Time) (DoorState, time.Time) {
+	// if we have an active overwrite we need to return it
+	// together with it's end time.
+	if overwrite := dc.getManualOverwrite(); overwrite != nil && overwrite.until.After(t) {
+		logger.Infof(ctx, "using manual door overwrite %q by %q until %s", overwrite.state, overwrite.sessionUser, overwrite.until)
+		return overwrite.state, overwrite.until
+	}
+
 	// we need one frame because we might be in the middle
 	// of it or before it.
 	upcoming := dc.findUpcomingFrames(ctx, t, 1)
@@ -433,6 +512,13 @@ func (dc *DoorController) findUpcomingFrames(ctx context.Context, t time.Time, l
 	return result[0:limit]
 }
 
+func (dc *DoorController) getManualOverwrite() *stateOverwrite {
+	dc.overwriteLock.Lock()
+	defer dc.overwriteLock.Unlock()
+
+	return dc.manualOverwrite
+}
+
 func sortAndValidate(os []OpeningHour) error {
 	sort.Sort(OpeningHourSlice(os))
 
@@ -450,4 +536,13 @@ func sortAndValidate(os []OpeningHour) error {
 	}
 
 	return nil
+}
+
+func isValidState(state DoorState) error {
+	switch state {
+	case Locked, Unlocked:
+		return nil
+	}
+
+	return fmt.Errorf("invalid door state: %s", state)
 }
