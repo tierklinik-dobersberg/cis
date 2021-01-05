@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"time"
+
 	"github.com/ppacher/system-conf/conf"
 )
 
@@ -10,8 +12,8 @@ type Config struct {
 	Secret            string
 	Country           string
 	AccessLogFile     string
-	DefaultOpenBefore string
-	DefaultCloseAfter string
+	DefaultOpenBefore time.Duration
+	DefaultCloseAfter time.Duration
 }
 
 // ConfigSpec defines the different configuration stanzas for the Config struct.
@@ -34,12 +36,12 @@ var ConfigSpec = conf.SectionSpec{
 	},
 	{
 		Name:        "DefaultOpenBefore",
-		Type:        conf.StringType,
+		Type:        conf.DurationType,
 		Description: "Default value for OpenBefore= in [OpeningHour]",
 	},
 	{
 		Name:        "DefaultCloseAfter",
-		Type:        conf.StringType,
+		Type:        conf.DurationType,
 		Description: "Default value for CloseAfter= in [OpeningHour]",
 	},
 }

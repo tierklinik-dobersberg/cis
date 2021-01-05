@@ -11,7 +11,7 @@ require (
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/google/uuid v1.1.2
 	github.com/klauspost/compress v1.11.4 // indirect
-	github.com/ppacher/system-conf v0.4.0
+	github.com/ppacher/system-conf v0.5.0
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.6.1

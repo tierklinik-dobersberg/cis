@@ -20,11 +20,11 @@ type OpeningHours struct {
 
 	// OpenBefore describes the amount of time the entry door
 	// should open before the specified time.
-	OpenBefore string
+	OpenBefore time.Duration
 
 	// CloseAfter describes the amount of time the entry door
 	// should close after the specified time.
-	CloseAfter string
+	CloseAfter time.Duration
 
 	// TimeRanges describe the opening hours on the specified days
 	// in the format of HH:MM - HH:MM
@@ -48,12 +48,12 @@ var OpeningHoursSpec = conf.SectionSpec{
 	},
 	{
 		Name:        "OpenBefore",
-		Type:        conf.StringType,
+		Type:        conf.DurationType,
 		Description: "Defines how long before the opening hour the entry door to should get unlocked.",
 	},
 	{
 		Name:        "CloseAfter",
-		Type:        conf.StringType,
+		Type:        conf.DurationType,
 		Description: "Defines how long after the opening hour the entry door should get locked.",
 	},
 	{

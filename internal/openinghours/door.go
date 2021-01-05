@@ -94,52 +94,11 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 		reset:               make(chan *struct{}),
 	}
 
-	var (
-		defaultOpenBefore time.Duration
-		defaultCloseAfter time.Duration
-		err               error
-	)
-
-	if cfg.DefaultCloseAfter != "" {
-		defaultCloseAfter, err = time.ParseDuration(cfg.DefaultCloseAfter)
-		if err != nil {
-			return nil, fmt.Errorf("invalid setting for DefaultCloseAfter= stanza: %w", err)
-		}
-	}
-
-	if cfg.DefaultOpenBefore != "" {
-		defaultOpenBefore, err = time.ParseDuration(cfg.DefaultOpenBefore)
-		if err != nil {
-			return nil, fmt.Errorf("invalid setting for DefaultOpenBefore= stanza: %w", err)
-		}
-	}
-
 	for _, c := range timeRanges {
 		var (
-			days       []time.Weekday
-			dates      []string
-			openBefore time.Duration
-			closeAfter time.Duration
-			err        error
+			days  []time.Weekday
+			dates []string
 		)
-
-		if c.OpenBefore != "" {
-			openBefore, err = time.ParseDuration(c.OpenBefore)
-			if err != nil {
-				return nil, fmt.Errorf("invalid OpenBefore= stanza: %w", err)
-			}
-		} else {
-			openBefore = defaultOpenBefore
-		}
-
-		if c.CloseAfter != "" {
-			closeAfter, err = time.ParseDuration(c.CloseAfter)
-			if err != nil {
-				return nil, fmt.Errorf("invalid CloseAfter= stanza: %w", err)
-			}
-		} else {
-			closeAfter = defaultCloseAfter
-		}
 
 		for _, d := range c.OnWeekday {
 			if err := schema.ValidDay(d); err != nil {
@@ -184,6 +143,16 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 			tr, err := utils.ParseDayTimeRange(r)
 			if err != nil {
 				return nil, err
+			}
+
+			closeAfter := c.CloseAfter
+			if closeAfter == 0 {
+				closeAfter = cfg.DefaultCloseAfter
+			}
+
+			openBefore := c.OpenBefore
+			if openBefore == 0 {
+				openBefore = cfg.DefaultOpenBefore
 			}
 
 			ranges = append(ranges, OpeningHour{
