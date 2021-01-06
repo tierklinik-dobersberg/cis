@@ -12,7 +12,7 @@ type Permission struct {
 }
 
 // PermissionSpec describes the configuration stanzas for the Permission struct.
-var PermissionSpec = []conf.OptionSpec{
+var PermissionSpec = conf.SectionSpec{
 	{
 		Name:        "Description",
 		Description: "An optional description of the permission set",

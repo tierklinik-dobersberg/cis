@@ -17,7 +17,7 @@ type user struct {
 
 func (db *identDB) loadUsers(identityDir string) error {
 	userFiles, err := utils.LoadFiles(identityDir, ".user", conf.FileSpec{
-		"User":       append(schema.UserSpec, db.userPropertySpecs...),
+		"User":       conf.SectionSpec(append(schema.UserSpec, db.userPropertySpecs...)),
 		"Permission": schema.PermissionSpec,
 	})
 	if err != nil {
