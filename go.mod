@@ -17,7 +17,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/tierklinik-dobersberg/go-vetinf v0.1.0
 	github.com/tierklinik-dobersberg/logger v0.2.0
-	github.com/tierklinik-dobersberg/service v0.1.0
+	github.com/tierklinik-dobersberg/service v0.2.0
 	github.com/vbauerster/mpb v3.4.0+incompatible
 	go.mongodb.org/mongo-driver v1.4.4
 	golang.org/x/crypto v0.0.0-20201217014255-9d1352758620
