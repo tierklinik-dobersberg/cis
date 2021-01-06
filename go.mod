@@ -11,7 +11,7 @@ require (
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/google/uuid v1.1.2
 	github.com/klauspost/compress v1.11.4 // indirect
-	github.com/ppacher/system-conf v0.5.0
+	github.com/ppacher/system-conf v0.6.0
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.6.1
@@ -24,7 +24,6 @@ require (
 	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf // indirect
-	gotest.tools v2.2.0+incompatible
 )
 
 replace github.com/tierklinik-dobersberg/service => ../service
