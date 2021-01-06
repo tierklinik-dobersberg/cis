@@ -8,5 +8,5 @@ type Manager struct {
 
 	// users holds all conditions that must be fullfilled for a request
 	// to be granted a session token using automatic-login.
-	users map[string][]Condition
+	users map[string][]ConditionType
 }

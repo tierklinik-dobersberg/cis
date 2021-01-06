@@ -26,3 +26,5 @@ require (
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf // indirect
 	gotest.tools v2.2.0+incompatible
 )
+
+replace github.com/tierklinik-dobersberg/service => ../service
