@@ -52,6 +52,9 @@ type Registry struct {
 	providers map[string]*Type
 }
 
+// Compile time check
+var _ conf.OptionRegistry = new(Registry)
+
 // Register registers a new condition type at the registry.
 func (reg *Registry) Register(cond Type) error {
 	reg.rw.Lock()
@@ -66,6 +69,62 @@ func (reg *Registry) Register(cond Type) error {
 	reg.providers[lowerName] = &cond
 
 	return nil
+}
+
+// All returns all available conf.OptionSpecs and implements
+// conf.OptionRegistry.
+func (reg *Registry) All() []conf.OptionSpec {
+	result := make([]conf.OptionSpec, 0, len(reg.providers))
+
+	reg.rw.RLock()
+	defer reg.rw.RUnlock()
+
+	for _, t := range reg.providers {
+		optType := t.Type
+		if optType == nil {
+			optType = conf.StringSliceType
+		}
+
+		result = append(result, conf.OptionSpec{
+			Name:        "Condition" + t.Name,
+			Type:        optType,
+			Description: t.Description,
+		})
+	}
+
+	return result
+}
+
+// GetOption returns the conf.OptionSpec for the condition
+// identified by name. It implements conf.OptionRegistry.
+func (reg *Registry) GetOption(name string) (conf.OptionSpec, bool) {
+	reg.rw.RLock()
+	defer reg.rw.RUnlock()
+
+	lowerName := strings.ToLower(name)
+	for _, t := range reg.providers {
+		optName := "Condition" + t.Name
+		if strings.ToLower(optName) == lowerName {
+			optType := t.Type
+			if optType == nil {
+				optType = conf.StringSliceType
+			}
+			return conf.OptionSpec{
+				Name:        optName,
+				Type:        optType,
+				Description: t.Description,
+			}, true
+		}
+	}
+
+	return conf.OptionSpec{}, false
+}
+
+// HasOption returns true if the registry has an option with
+// name. It implements conf.OptionRegistry.
+func (reg *Registry) HasOption(name string) bool {
+	_, ok := reg.GetOption(name)
+	return ok
 }
 
 // DefaultRegistry is the registry used by the package level APIs.
