@@ -1,4 +1,4 @@
-package autologin
+package httpcond
 
 import (
 	"errors"
@@ -22,9 +22,9 @@ type Condition interface {
 	Match(req *http.Request) (bool, error)
 }
 
-// ConditionType describes a condition that must be fullfilled for a request
+// Type describes a condition that must be fullfilled for a request
 // to be granted an automatic session token.
-type ConditionType struct {
+type Type struct {
 	Name        string
 	Description string
 	// Type defaults to conf.StringSliceType.
@@ -32,28 +32,28 @@ type ConditionType struct {
 	Match MatchFunc
 }
 
-// ConditionInstance is the instance of a ConditionType bound
+// Instance is the instance of a ConditionType bound
 // to a value.
-type ConditionInstance struct {
-	*ConditionType
+type Instance struct {
+	*Type
 	Value string
 }
 
 // Match checks if req matches the condition represented by this instance.
 // It implements the Condition interface.
-func (instance *ConditionInstance) Match(req *http.Request) (bool, error) {
-	return instance.ConditionType.Match(req, instance.Value)
+func (instance *Instance) Match(req *http.Request) (bool, error) {
+	return instance.Type.Match(req, instance.Value)
 }
 
-// ConditionRegistry manages all available and supported conditions
+// Registry manages all available and supported conditions
 // and acts a a conf.OptionRegistry.
-type ConditionRegistry struct {
+type Registry struct {
 	rw        sync.RWMutex
-	providers map[string]*ConditionType
+	providers map[string]*Type
 }
 
 // Register registers a new condition type at the registry.
-func (reg *ConditionRegistry) Register(cond ConditionType) error {
+func (reg *Registry) Register(cond Type) error {
 	reg.rw.Lock()
 	defer reg.rw.Unlock()
 
@@ -69,11 +69,11 @@ func (reg *ConditionRegistry) Register(cond ConditionType) error {
 }
 
 // DefaultRegistry is the registry used by the package level APIs.
-var DefaultRegistry = &ConditionRegistry{
-	providers: make(map[string]*ConditionType),
+var DefaultRegistry = &Registry{
+	providers: make(map[string]*Type),
 }
 
 // Register registers a new condition type at the default registry.
-func Register(cond ConditionType) error {
+func Register(cond Type) error {
 	return DefaultRegistry.Register(cond)
 }

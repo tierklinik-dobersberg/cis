@@ -1,4 +1,4 @@
-package autologin
+package httpcond
 
 import "net/http"
 
@@ -7,6 +7,14 @@ import "net/http"
 type And struct {
 	Left  Condition
 	Right Condition
+}
+
+// NewAnd returns a new and condition.
+func NewAnd(left, right Condition) *And {
+	return &And{
+		Left:  left,
+		Right: right,
+	}
 }
 
 // Match implements Condition.
@@ -35,6 +43,14 @@ type Or struct {
 	Right Condition
 }
 
+// NewOr returns a new or condition.
+func NewOr(left, right Condition) *Or {
+	return &Or{
+		Left:  left,
+		Right: right,
+	}
+}
+
 // Match implements Condition.
 func (or *Or) Match(req *http.Request) (bool, error) {
 	ok, err := or.Left.Match(req)
@@ -57,6 +73,13 @@ func (or *Or) Match(req *http.Request) (bool, error) {
 // NOT on What.
 type Not struct {
 	What Condition
+}
+
+// NewNot returns a new not condition.
+func NewNot(c Condition) *Not {
+	return &Not{
+		What: c,
+	}
 }
 
 // Match implements Condition.

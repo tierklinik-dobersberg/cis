@@ -1,6 +1,9 @@
 package autologin
 
-import "github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
+import (
+	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
+)
 
 // Manager manages and grants automatic user logins.
 type Manager struct {
@@ -8,5 +11,5 @@ type Manager struct {
 
 	// users holds all conditions that must be fullfilled for a request
 	// to be granted a session token using automatic-login.
-	users map[string][]ConditionType
+	users map[string][]httpcond.Type
 }
