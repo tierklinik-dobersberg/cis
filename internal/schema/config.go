@@ -10,6 +10,7 @@ import (
 // of cisd.
 type Config struct {
 	Secret            string
+	Issuer            string
 	Country           string
 	AccessLogFile     string
 	DefaultOpenBefore time.Duration
@@ -20,8 +21,14 @@ type Config struct {
 var ConfigSpec = conf.SectionSpec{
 	{
 		Name:        "Secret",
-		Description: "Secret used to sign various data like session cookies. If empty, a temporary secret is created.",
+		Description: "Secret used to sign various data like session cookies and JWTs. If empty, a temporary secret is created.",
 		Type:        conf.StringType,
+	},
+	{
+		Name:        "Issuer",
+		Description: "The issuer value to use for JWT tokens",
+		Type:        conf.StringType,
+		Default:     "cisd",
 	},
 	{
 		Name:        "Country",

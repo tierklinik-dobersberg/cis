@@ -6,6 +6,7 @@ import (
 	"github.com/tierklinik-dobersberg/service/server"
 )
 
+// Config holds the complete cisd configuration.
 type Config struct {
 	schema.IdentityConfig `section:"Global"`
 	schema.Config         `section:"Global"`
