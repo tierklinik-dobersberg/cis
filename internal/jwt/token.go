@@ -86,13 +86,10 @@ func SignToken(method string, secret []byte, claims Claims) (string, error) {
 }
 
 // ParseAndVerify parses the JWT token and verifies it's signature.
-func ParseAndVerify(method string, secret []byte, token string) (*Claims, error) {
+func ParseAndVerify(secret []byte, token string) (*Claims, error) {
 	var c Claims
 
 	_, err := jwtlib.ParseWithClaims(token, &c, func(t *jwtlib.Token) (interface{}, error) {
-		if t.Method.Alg() != method {
-			return nil, fmt.Errorf("unexpected JWT token method: %s", t.Method.Alg())
-		}
 		return secret, nil
 	})
 	if err != nil {
