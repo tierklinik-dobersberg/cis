@@ -1,0 +1,9 @@
+[User]
+Name=guest
+FullName=guest user
+GoogleCalendarID=-
+
+[AutoLogin]
+# This allows each and every request to be authenticated
+# as guest.
+ConditionRequestFromCIDR=0.0.0.0/0

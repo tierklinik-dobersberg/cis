@@ -60,6 +60,15 @@ func (suite *LoginTestSuite) Test_3_AliceCookieValid() {
 	suite.Len(res.Cookies(), 0)
 }
 
+func (suite *LoginTestSuite) Test_4_Autologin() {
+	res, err := http.Get("http://localhost:3000/api/identity/v1/profile")
+	suite.NoError(err)
+	suite.Equal(http.StatusOK, res.StatusCode)
+
+	// We expect to receive a session cookie automatically
+	suite.Len(res.Cookies(), 1)
+}
+
 func TestLogin(t *testing.T) {
 	suite.Run(t, new(LoginTestSuite))
 }
