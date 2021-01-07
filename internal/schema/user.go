@@ -15,7 +15,7 @@ type User struct {
 }
 
 // UserSpec defines the schema of a user.
-var UserSpec = []conf.OptionSpec{
+var UserSpec = conf.SectionSpec{
 	{
 		Name:        "Name",
 		Type:        conf.StringType,

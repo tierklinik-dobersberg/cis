@@ -30,8 +30,14 @@ func (db *identDB) loadGroups(identityDir string) error {
 		if err != nil {
 			return fmt.Errorf("%s: %w", f.Path, err)
 		}
+		lowerName := strings.ToLower(g.Name)
 
-		db.groups[strings.ToLower(g.Name)] = g
+		// ensure there are not duplicates and add ot the
+		// group map.
+		if _, ok := db.groups[lowerName]; ok {
+			return fmt.Errorf("group with name %s already defined", lowerName)
+		}
+		db.groups[lowerName] = g
 	}
 	return nil
 }

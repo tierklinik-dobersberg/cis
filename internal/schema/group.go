@@ -11,7 +11,7 @@ type Group struct {
 }
 
 // GroupSpec defines the properties of a group.
-var GroupSpec = []conf.OptionSpec{
+var GroupSpec = conf.SectionSpec{
 	{
 		Name:        "Name",
 		Description: "Name of the group.",

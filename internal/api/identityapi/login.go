@@ -13,6 +13,18 @@ import (
 	"github.com/tierklinik-dobersberg/service/server"
 )
 
+func removeSetSessionCookie(appCtx *app.App, w http.ResponseWriter) {
+	const cookieHeader = "Set-Cookie"
+	existingCookies := w.Header().Values(cookieHeader)
+	w.Header().Del(cookieHeader)
+
+	for _, e := range existingCookies {
+		if !strings.Contains(e, appCtx.Config.CookieName) {
+			w.Header().Add(cookieHeader, e)
+		}
+	}
+}
+
 // LoginEndpoint allows to user to log-in and create a
 // session cookie.
 func LoginEndpoint(grp gin.IRouter) {
@@ -28,6 +40,13 @@ func LoginEndpoint(grp gin.IRouter) {
 		if appCtx == nil {
 			return
 		}
+
+		// Autologin may have assigned a new session cookie for the
+		// request. Make sure we clear that out for the login
+		// endpoint.
+		// TODO(ppacher): maybe make some endpoints skippable by the
+		// autologin manager?
+		removeSetSessionCookie(appCtx, c.Writer)
 
 		authHeader := c.Request.Header.Get("Authorization")
 		contentType := c.Request.Header.Get("Content-Type")

@@ -297,6 +297,11 @@ func (dc *DoorController) resetDoor() {
 	dc.wg.Add(1)
 	defer dc.wg.Done()
 
+	// remove any manual overwrite when we do a reset.
+	dc.overwriteLock.Lock()
+	dc.manualOverwrite = nil
+	dc.overwriteLock.Unlock()
+
 	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
@@ -331,6 +336,7 @@ func (dc *DoorController) scheduler() {
 			return
 		case hard := <-dc.reset:
 			if hard != resetSoft {
+
 				// reset the door state. it will unlock for a second or so.
 				dc.resetDoor()
 			}

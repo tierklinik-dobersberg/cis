@@ -16,36 +16,56 @@ type user struct {
 }
 
 func (db *identDB) loadUsers(identityDir string) error {
-	userFiles, err := utils.LoadFiles(identityDir, ".user", conf.FileSpec{
-		"User":       append(schema.UserSpec, db.userPropertySpecs...),
+	spec := conf.FileSpec{
+		"User":       conf.SectionSpec(append(schema.UserSpec, db.userPropertySpecs...)),
 		"Permission": schema.PermissionSpec,
-	})
+	}
+	if db.autologinConditions != nil {
+		spec["AutoLogin"] = db.autologinConditions
+	}
+
+	userFiles, err := utils.LoadFiles(identityDir, ".user", spec)
 	if err != nil {
 		return err
 	}
 
 	// build the user map
 	for _, f := range userFiles {
-		u, err := buildUser(f, db.userPropertySpecs)
+		u, autologin, err := buildUser(f, db.userPropertySpecs, db.autologinConditions)
 		if err != nil {
 			return fmt.Errorf("%s: %w", f.Path, err)
 		}
+		lowerName := strings.ToLower(u.Name)
 
-		db.users[strings.ToLower(u.Name)] = u
+		// ensure there are no duplicates and add to the user map.
+		if _, ok := db.users[lowerName]; ok {
+			return fmt.Errorf("user with name %s already defined", lowerName)
+		}
+		db.users[lowerName] = u
+
+		// if the user has an autologin section defined
+		// add it the the autologin map as well.
+		if autologin != nil && len(autologin.Options) > 0 {
+			db.autologin[lowerName] = *autologin
+		}
 	}
 
 	return nil
 }
 
-func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec) (*user, error) {
+func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, autologinConditions conf.OptionRegistry) (*user, *conf.Section, error) {
 	spec := conf.FileSpec{
 		"User":       schema.UserSpec,
 		"Permission": schema.PermissionSpec,
 	}
 
+	if autologinConditions != nil {
+		spec["AutoLogin"] = autologinConditions
+	}
+
 	var u user
 	if err := spec.Decode(f, &u); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Build custom user properties
@@ -61,5 +81,10 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec) (*user, error)
 		}
 	}
 
-	return &u, nil
+	var autologinSection *conf.Section
+	if autologinConditions != nil {
+		autologinSection = f.Get("AutoLogin")
+	}
+
+	return &u, autologinSection, nil
 }

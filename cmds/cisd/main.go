@@ -13,10 +13,12 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/identityapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/autologin"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/errorlog"
+	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
 	"github.com/tierklinik-dobersberg/cis/internal/integration/rocket"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -58,6 +60,7 @@ func getApp(ctx context.Context) *app.App {
 	logger.SetDefaultAdapter(logAdapter)
 
 	var cfg app.Config
+	var autoLoginManager *autologin.Manager
 
 	globalConf := conf.SectionSpec{}
 
@@ -78,7 +81,17 @@ func getApp(ctx context.Context) *app.App {
 		},
 		ConfigTarget: &cfg,
 		RouteSetupFunc: func(grp gin.IRouter) error {
-			apis := grp.Group("/api/", app.ExtractSessionUser())
+			apis := grp.Group(
+				"/api/",
+				app.ExtractSessionUser(),
+				func(c *gin.Context) {
+					if autoLoginManager != nil {
+						autoLoginManager.PerformAutologin(c)
+					}
+
+					c.Next()
+				},
+			)
 			{
 				identityapi.Setup(apis.Group("identity"))
 				customerapi.Setup(apis.Group("customer"))
@@ -135,7 +148,7 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "%s", err.Error())
 	}
 
-	identities, err := identitydb.New(ctx, instance.ConfigurationDirectory, cfg.UserProperties)
+	identities, err := identitydb.New(ctx, instance.ConfigurationDirectory, cfg.UserProperties, httpcond.DefaultRegistry)
 	if err != nil {
 		logger.Fatalf(ctx, "failed to prepare database: %s", err)
 	}
@@ -153,6 +166,8 @@ func getApp(ctx context.Context) *app.App {
 	if err != nil {
 		logger.Fatalf(ctx, "%s", err.Error())
 	}
+
+	autoLoginManager = autologin.NewManager(ctx, identities, httpcond.DefaultRegistry)
 
 	// Create a new application context and make sure it's added
 	// to each incoming HTTP Request.
