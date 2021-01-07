@@ -193,9 +193,9 @@ func (db *identDB) reload(ctx context.Context) error {
 
 	// check all user.Roles actually exist
 	for _, u := range db.users {
-		for _, grpName := range u.Roles {
-			if _, ok := db.roles[strings.ToLower(grpName)]; !ok {
-				return fmt.Errorf("%s: member of %s: %w", u.Name, grpName, ErrNotFound)
+		for _, roleNames := range u.Roles {
+			if _, ok := db.roles[strings.ToLower(roleNames)]; !ok {
+				return fmt.Errorf("%s: member of %s: %w", u.Name, roleNames, ErrNotFound)
 			}
 		}
 	}

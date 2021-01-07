@@ -6,6 +6,7 @@ require (
 	github.com/VividCortex/ewma v1.1.1 // indirect
 	github.com/antzucaro/matchr v0.0.0-20191224151129-ab6ba461ddec
 	github.com/aws/aws-sdk-go v1.36.12 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.3.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/golang/snappy v0.0.2 // indirect

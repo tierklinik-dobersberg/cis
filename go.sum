@@ -52,6 +52,7 @@ github.com/cpuguy83/go-md2man/v2 v2.0.0/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsr
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
 github.com/eclipse/paho.mqtt.golang v1.3.0 h1:MU79lqr3FKNKbSrGN7d7bNYqh8MwWW7Zcx0iG+VIw9I=
@@ -273,8 +274,6 @@ github.com/pkg/sftp v1.10.1/go.mod h1:lYOWFsE0bwd1+KfKJaKeuokY15vzFx25BLbzYYoAxZ
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
-github.com/ppacher/system-conf v0.4.0 h1:7wL/k+nCGuN5jfX6O6fx1ek452JjmJXs9SStef1nAHc=
-github.com/ppacher/system-conf v0.4.0/go.mod h1:UTcn/7lTkcZaCjXpWCz/d1iYG0nn5CnOryTImTlA/BY=
 github.com/ppacher/system-conf v0.6.0 h1:XKPxJ8cW3U1H+eObFLoMI640O3Z2GitZv4uzikAmNgA=
 github.com/ppacher/system-conf v0.6.0/go.mod h1:UTcn/7lTkcZaCjXpWCz/d1iYG0nn5CnOryTImTlA/BY=
 github.com/ppacher/system-conf v0.6.1 h1:ITqj/CBE7clFJPro2msquremhMn4PvY2GWnDjl/l0Qo=
@@ -339,7 +338,6 @@ github.com/tierklinik-dobersberg/go-vetinf v0.1.0 h1:mXjUzJ9PlSooPrYflG+FRTFdrPf
 github.com/tierklinik-dobersberg/go-vetinf v0.1.0/go.mod h1:eGt2HDnpDCGub7UKEK0Zi6FF8863+VuitlpSD2s0BWY=
 github.com/tierklinik-dobersberg/logger v0.2.0 h1:LyLxhM/o5+nTzDq1bzrrEWh7Q9+PVKEGDdf4NOtTnsk=
 github.com/tierklinik-dobersberg/logger v0.2.0/go.mod h1:5xiqHfUncsmSw5X/nkWI39Xw1GP3Km3CDNPq5lU68HE=
-github.com/tierklinik-dobersberg/service v0.2.0/go.mod h1:67V39jQ7rFi/yb77OFF5/h6/NXgm7Tegft5jcF3MeZ8=
 github.com/tierklinik-dobersberg/service v0.2.1 h1:k62uYzwezq10I1XUNGQYAANOCsvIolkzLooGz05N6I4=
 github.com/tierklinik-dobersberg/service v0.2.1/go.mod h1:GScDqGvBrH88tmgx9WHGiuuIWhILtp3okGL7g4YRfn8=
 github.com/tj/assert v0.0.0-20171129193455-018094318fb0/go.mod h1:mZ9/Rh9oLWpLLDRpvE+3b7gP/C2YyLFYxNmcLnPTMe0=
