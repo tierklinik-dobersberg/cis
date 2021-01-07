@@ -17,7 +17,7 @@ import (
 type MatchFunc func(req *http.Request, value string) (bool, error)
 
 // Condition descibes the interface that is used to evaluate if a
-// HTTP request should be granted an automatic session token.
+// HTTP request matches a condition.
 type Condition interface {
 	Match(req *http.Request) (bool, error)
 }
@@ -26,8 +26,7 @@ type Condition interface {
 // are used together.
 type ConcatFunc func(...Condition) Condition
 
-// Type describes a condition that must be fullfilled for a request
-// to be granted an automatic session token.
+// Type describes a condition that may be fullfilled by a HTTP request.
 type Type struct {
 	// Name holds the name of the condition. The name is also
 	// used to build the configuration stanza that is used for
