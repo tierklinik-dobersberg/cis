@@ -5,68 +5,58 @@ import "net/http"
 // And is a simple condition that represents a boolean
 // AND between Left and Right.
 type And struct {
-	Left  Condition
-	Right Condition
+	conds []Condition
 }
 
 // NewAnd returns a new and condition.
-func NewAnd(left, right Condition) *And {
+func NewAnd(conds ...Condition) Condition {
 	return &And{
-		Left:  left,
-		Right: right,
+		conds: conds,
 	}
 }
 
 // Match implements Condition.
 func (and *And) Match(req *http.Request) (bool, error) {
-	ok, err := and.Left.Match(req)
-	if err != nil {
-		return false, err
+	for _, cond := range and.conds {
+		ok, err := cond.Match(req)
+		if err != nil {
+			return false, err
+		}
+
+		if !ok {
+			return false, nil
+		}
 	}
 
-	if !ok {
-		return false, nil
-	}
-
-	ok, err = and.Right.Match(req)
-	if err != nil {
-		return false, err
-	}
-
-	return ok, nil
+	return true, nil
 }
 
 // Or is a simple condition that represents a boolean
 // OR between Left and Right
 type Or struct {
-	Left  Condition
-	Right Condition
+	conds []Condition
 }
 
 // NewOr returns a new or condition.
-func NewOr(left, right Condition) *Or {
+func NewOr(conds ...Condition) Condition {
 	return &Or{
-		Left:  left,
-		Right: right,
+		conds: conds,
 	}
 }
 
 // Match implements Condition.
 func (or *Or) Match(req *http.Request) (bool, error) {
-	ok, err := or.Left.Match(req)
-	if err != nil {
-		return false, err
-	}
-	if ok {
-		return true, nil
-	}
-
-	ok, err = or.Right.Match(req)
-	if err != nil {
-		return false, err
+	for _, cond := range or.conds {
+		ok, err := cond.Match(req)
+		if err != nil {
+			return false, err
+		}
+		if ok {
+			return true, nil
+		}
 	}
 
-	return ok, nil
+	return false, nil
 }
 
 // Not is a simple condition that represents a boolean

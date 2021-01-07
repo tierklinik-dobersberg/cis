@@ -14,6 +14,7 @@ func init() {
 		Name:        "RequestFromCIDR",
 		Description: "Matches requests that originate from the given CIDR addresses",
 		Type:        conf.StringSliceType,
+		ConcatFunc:  NewOr,
 		Match: func(req *http.Request, value string) (bool, error) {
 			_, network, err := net.ParseCIDR(value)
 			if err != nil {

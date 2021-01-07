@@ -22,14 +22,28 @@ type Condition interface {
 	Match(req *http.Request) (bool, error)
 }
 
+// ConcatFunc decides how multiple conditions (of the same type)
+// are used together.
+type ConcatFunc func(...Condition) Condition
+
 // Type describes a condition that must be fullfilled for a request
 // to be granted an automatic session token.
 type Type struct {
-	Name        string
+	// Name holds the name of the condition. The name is also
+	// used to build the configuration stanza that is used for
+	// this condition.
+	Name string
+	// Description is a description of the condition.
 	Description string
 	// Type defaults to conf.StringSliceType.
-	Type  conf.OptionType
+	Type conf.OptionType
+	// Match is called to evaluate the condition
+	// agianst a value.
 	Match MatchFunc
+	// ConcatFunc defines how multipel conditions of the same type
+	// are concatinated together. Only required if Type is a slice.
+	// Defaults to NewAnd
+	ConcatFunc ConcatFunc
 }
 
 // Instance is the instance of a ConditionType bound
@@ -59,6 +73,11 @@ var _ conf.OptionRegistry = new(Registry)
 func (reg *Registry) Register(cond Type) error {
 	reg.rw.Lock()
 	defer reg.rw.Unlock()
+
+	// default to AND for slice values.
+	if cond.Type.IsSliceType() && cond.ConcatFunc == nil {
+		cond.ConcatFunc = NewAnd
+	}
 
 	lowerName := strings.ToLower(cond.Name)
 
