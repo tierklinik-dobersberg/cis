@@ -8,13 +8,13 @@ type User struct {
 	Fullname    string                 `json:"fullname"`
 	Mail        []string               `json:"mail"`
 	PhoneNumber []string               `json:"phoneNumbers"`
-	GroupNames  []string               `json:"groups" option:"MemberOf"`
+	Roles       []string               `json:"roles" option:"Roles"`
 	Properties  map[string]interface{} `json:"properties" option:"-"`
 }
 
-// Group describes a group object. For security and privacy
+// Role describes a role object. For security and privacy
 // reasons the list of members is NOT exposed via the API.
-type Group struct {
+type Role struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }

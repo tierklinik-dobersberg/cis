@@ -5,22 +5,22 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
 
-// Group defines the structure of a user group
-type Group struct {
-	v1alpha.Group
+// Role defines the structure of a user role
+type Role struct {
+	v1alpha.Role
 }
 
-// GroupSpec defines the properties of a group.
-var GroupSpec = conf.SectionSpec{
+// RoleSpec defines the properties of a role.
+var RoleSpec = conf.SectionSpec{
 	{
 		Name:        "Name",
-		Description: "Name of the group.",
+		Description: "Name of the role.",
 		Default:     "%N",
 		Type:        conf.StringType,
 	},
 	{
 		Name:        "Description",
-		Description: "An optional description for the group.",
+		Description: "An optional description for the role.",
 		Type:        conf.StringType,
 	},
 }

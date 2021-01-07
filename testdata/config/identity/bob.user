@@ -4,5 +4,5 @@ Fullname=Bob Mustermann
 PasswordAlgo=
 PasswordHash=
 Mail=bob@example.com
-MemberOf=default-group
+Roles=default-role
 GoogleCalendarID=primary

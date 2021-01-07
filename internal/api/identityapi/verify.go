@@ -151,7 +151,7 @@ func addRemoteUserHeaders(u v1alpha.User, w http.ResponseWriter) {
 		w.Header().Add("Remote-Phone", phone)
 	}
 
-	for _, group := range u.GroupNames {
-		w.Header().Add("Remote-Group", group)
+	for _, role := range u.Roles {
+		w.Header().Add("Remote-Role", role)
 	}
 }

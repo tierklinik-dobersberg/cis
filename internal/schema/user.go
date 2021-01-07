@@ -39,9 +39,9 @@ var UserSpec = conf.SectionSpec{
 		Description: "A list of phone numbers for the user",
 	},
 	{
-		Name:        "MemberOf",
+		Name:        "Roles",
 		Type:        conf.StringSliceType,
-		Description: "List of group names the user is part of",
+		Description: "List of roles the user has",
 	},
 	{
 		Name:        "PasswordHash",

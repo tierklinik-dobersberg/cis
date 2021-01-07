@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	// ErrNotFound is returned when the requested user or group does not
+	// ErrNotFound is returned when the requested user or role does not
 	// exist.
 	ErrNotFound = errors.New("not found")
 	// ErrInvalidSectionCount indicates that eigher to much or to less sections
@@ -34,17 +34,17 @@ type Database interface {
 	// it's name.
 	GetUser(ctx context.Context, name string) (schema.User, error)
 
-	// GetGroup returns the group object for the groub identified by
+	// GetRole returns the role object for the role identified by
 	// it's name.
-	GetGroup(ctx context.Context, name string) (schema.Group, error)
+	GetRole(ctx context.Context, name string) (schema.Role, error)
 
 	// GetUserPermissions returns a slice of permissions directly attached to
 	// the user identified by name.
 	GetUserPermissions(ctx context.Context, name string) ([]schema.Permission, error)
 
-	// GetGroupPermissions returns a slice of permissions directly attached to
-	// the group identified by name.
-	GetGroupPermissions(ctx context.Context, name string) ([]schema.Permission, error)
+	// GetRolePermissions returns a slice of permissions directly attached to
+	// the role identified by name.
+	GetRolePermissions(ctx context.Context, name string) ([]schema.Permission, error)
 
 	// GetAutologinUsers returns a map that contains the autologin section for each
 	// user that has one defined.
@@ -58,7 +58,7 @@ type identDB struct {
 	rw                  sync.RWMutex
 	autologinConditions *httpcond.Registry
 	users               map[string]*user
-	groups              map[string]*group
+	roles               map[string]*role
 	autologin           map[string]conf.Section
 }
 
@@ -114,16 +114,16 @@ func (db *identDB) GetUser(ctx context.Context, name string) (schema.User, error
 	return u.User, nil
 }
 
-func (db *identDB) GetGroup(ctx context.Context, name string) (schema.Group, error) {
+func (db *identDB) GetRole(ctx context.Context, name string) (schema.Role, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
-	g, ok := db.groups[strings.ToLower(name)]
+	g, ok := db.roles[strings.ToLower(name)]
 	if !ok {
-		return schema.Group{}, ErrNotFound
+		return schema.Role{}, ErrNotFound
 	}
 
-	return g.Group, nil
+	return g.Role, nil
 }
 
 func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]schema.Permission, error) {
@@ -142,11 +142,11 @@ func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]schem
 	return perms, nil
 }
 
-func (db *identDB) GetGroupPermissions(ctx context.Context, name string) ([]schema.Permission, error) {
+func (db *identDB) GetRolePermissions(ctx context.Context, name string) ([]schema.Permission, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
-	g, ok := db.groups[strings.ToLower(name)]
+	g, ok := db.roles[strings.ToLower(name)]
 	if !ok {
 		return nil, ErrNotFound
 	}
@@ -174,9 +174,9 @@ func (db *identDB) reload(ctx context.Context) error {
 	db.rw.Lock()
 	defer db.rw.Unlock()
 
-	// clear the current user and group maps
+	// clear the current user and roles maps
 	db.users = make(map[string]*user, len(db.users))
-	db.groups = make(map[string]*group, len(db.groups))
+	db.roles = make(map[string]*role, len(db.roles))
 	db.autologin = make(map[string]conf.Section, len(db.autologin))
 
 	identityDir := filepath.Join(db.dir, "identity")
@@ -186,21 +186,21 @@ func (db *identDB) reload(ctx context.Context) error {
 		return fmt.Errorf("loading users: %w", err)
 	}
 
-	// load all groups files
-	if err := db.loadGroups(identityDir); err != nil {
-		return fmt.Errorf("loading groups: %w", err)
+	// load all roles files
+	if err := db.loadRoles(identityDir); err != nil {
+		return fmt.Errorf("loading roles: %w", err)
 	}
 
-	// check all user.MemberOf groups actually exist
+	// check all user.Roles actually exist
 	for _, u := range db.users {
-		for _, grpName := range u.GroupNames {
-			if _, ok := db.groups[strings.ToLower(grpName)]; !ok {
+		for _, grpName := range u.Roles {
+			if _, ok := db.roles[strings.ToLower(grpName)]; !ok {
 				return fmt.Errorf("%s: member of %s: %w", u.Name, grpName, ErrNotFound)
 			}
 		}
 	}
 
-	logger.Infof(ctx, "identity: loaded %d users and %d groups", len(db.users), len(db.groups))
+	logger.Infof(ctx, "identity: loaded %d users and %d roles", len(db.users), len(db.roles))
 
 	return nil
 }

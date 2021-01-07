@@ -8,7 +8,7 @@ import (
 	"github.com/tierklinik-dobersberg/logger"
 )
 
-// Resolver is used for resolving user and group
+// Resolver is used for resolving user and role
 // permissions including direct and inherited
 // permission sets.
 type Resolver struct {
@@ -42,20 +42,20 @@ func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string) ([
 		return nil, err
 	}
 
-	// collect permissions of direct groups
-	var groupPermissions []schema.Permission
-	for _, groupName := range userObj.GroupNames {
-		grpPerms, err := res.db.GetGroupPermissions(ctx, groupName)
+	// collect permissions of direct roles
+	var rolePermissions []schema.Permission
+	for _, roleName := range userObj.Roles {
+		rolePerms, err := res.db.GetRolePermissions(ctx, roleName)
 		if err != nil {
 			return nil, err
 		}
 
-		countIndirect += len(grpPerms)
-		groupPermissions = append(groupPermissions, grpPerms...)
+		countIndirect += len(rolePerms)
+		rolePermissions = append(rolePermissions, rolePerms...)
 	}
 
-	if len(groupPermissions) > 0 {
-		permissions = append(permissions, groupPermissions)
+	if len(rolePermissions) > 0 {
+		permissions = append(permissions, rolePermissions)
 	}
 
 	logger.From(ctx).WithFields(logger.Fields{

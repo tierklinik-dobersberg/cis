@@ -27,7 +27,7 @@ func (suite *ProfileTestSuite) Test_AliceProfileSuccess() {
 	suite.NoError(err)
 	suite.Equal(v1alpha.User{
 		Fullname:    "Alice Musterfrau",
-		GroupNames:  []string{"default-group"},
+		Roles:       []string{"default-role"},
 		Mail:        []string{"alice@example.at", "alice@example.com"},
 		Name:        "alice",
 		PhoneNumber: []string{"+4312345678", "+2812345"},

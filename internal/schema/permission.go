@@ -5,7 +5,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
 
-// Permission describes a permission of a user or group to perform
+// Permission describes a permission of a user or role to perform
 // a given action.
 type Permission struct {
 	v1alpha.Permission
