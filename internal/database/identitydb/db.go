@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
 	"github.com/tierklinik-dobersberg/cis/internal/passwd"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/logger"
@@ -44,22 +45,29 @@ type Database interface {
 	// GetGroupPermissions returns a slice of permissions directly attached to
 	// the group identified by name.
 	GetGroupPermissions(ctx context.Context, name string) ([]schema.Permission, error)
+
+	// GetAutologinUsers returns a map that contains the autologin section for each
+	// user that has one defined.
+	GetAutologinUsers(ctx context.Context) map[string]conf.Section
 }
 
 // The actual in-memory implementation for identDB.
 type identDB struct {
-	dir               string
-	userPropertySpecs []conf.OptionSpec
-	rw                sync.RWMutex
-	users             map[string]*user
-	groups            map[string]*group
+	dir                 string
+	userPropertySpecs   []conf.OptionSpec
+	rw                  sync.RWMutex
+	autologinConditions *httpcond.Registry
+	users               map[string]*user
+	groups              map[string]*group
+	autologin           map[string]conf.Section
 }
 
 // New returns a new database that uses ldr.
-func New(ctx context.Context, dir string, userProperties []conf.OptionSpec) (Database, error) {
+func New(ctx context.Context, dir string, userProperties []conf.OptionSpec, reg *httpcond.Registry) (Database, error) {
 	db := &identDB{
-		dir:               dir,
-		userPropertySpecs: userProperties,
+		dir:                 dir,
+		autologinConditions: reg,
+		userPropertySpecs:   userProperties,
 	}
 
 	if err := db.reload(ctx); err != nil {
@@ -148,6 +156,18 @@ func (db *identDB) GetGroupPermissions(ctx context.Context, name string) ([]sche
 		perms[idx] = *p
 	}
 	return perms, nil
+}
+
+func (db *identDB) GetAutologinUsers(_ context.Context) map[string]conf.Section {
+	db.rw.RLock()
+	defer db.rw.RUnlock()
+
+	// create a copy of the map
+	m := make(map[string]conf.Section, len(db.autologin))
+	for k, v := range db.autologin {
+		m[k] = v
+	}
+	return m
 }
 
 func (db *identDB) reload(ctx context.Context) error {

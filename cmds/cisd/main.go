@@ -17,6 +17,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/errorlog"
+	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
 	"github.com/tierklinik-dobersberg/cis/internal/integration/rocket"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -135,7 +136,7 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "%s", err.Error())
 	}
 
-	identities, err := identitydb.New(ctx, instance.ConfigurationDirectory, cfg.UserProperties)
+	identities, err := identitydb.New(ctx, instance.ConfigurationDirectory, cfg.UserProperties, httpcond.DefaultRegistry)
 	if err != nil {
 		logger.Fatalf(ctx, "failed to prepare database: %s", err)
 	}

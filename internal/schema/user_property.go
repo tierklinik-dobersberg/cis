@@ -6,7 +6,7 @@ import (
 
 // UserSchemaExtension describes the opions available when defining
 // new user properties.
-var UserSchemaExtension = []conf.OptionSpec{
+var UserSchemaExtension = conf.SectionSpec{
 	{
 		Name:        "Name",
 		Description: "The name of the property",
