@@ -67,13 +67,13 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 		autologin := mng.getUserLogin(c.Request)
 		if autologin != "" {
 			logger.From(c.Request.Context()).Infof("autologin granted for user %s", autologin)
-			sessionCookie := app.CreateSessionCookie(app.From(c), autologin, time.Minute)
+			sessionCookie := app.CreateSessionCookie(app.From(c), autologin, 5*time.Minute)
 			http.SetCookie(c.Writer, sessionCookie)
 
 			// make sure all following handlers see a valid
 			// session.
 			c.Set("session:user", autologin)
-			c.Set("session:ttl", time.Minute)
+			c.Set("session:ttl", 5*time.Minute)
 		}
 	}
 }
@@ -94,7 +94,7 @@ func (mng *Manager) buildConditions(ctx context.Context) {
 	}
 
 	mng.rw.Lock()
-	defer mng.rw.RUnlock()
+	defer mng.rw.Unlock()
 
 	mng.users = m
 }

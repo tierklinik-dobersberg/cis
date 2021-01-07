@@ -177,6 +177,7 @@ func (db *identDB) reload(ctx context.Context) error {
 	// clear the current user and group maps
 	db.users = make(map[string]*user, len(db.users))
 	db.groups = make(map[string]*group, len(db.groups))
+	db.autologin = make(map[string]conf.Section, len(db.autologin))
 
 	identityDir := filepath.Join(db.dir, "identity")
 

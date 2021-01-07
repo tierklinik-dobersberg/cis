@@ -36,11 +36,24 @@ func (suite *LoginTestSuite) Test_1_LoginBobFails() {
 }
 
 func (suite *LoginTestSuite) Test_2_LoginAliceSuccess() {
-	res, err := suite.cli.Post("http://localhost:3000/api/identity/v1/login", "application/json; charset=utf-8", strings.NewReader(`
+	req, err := http.NewRequest("POST", "http://localhost:3000/api/identity/v1/login", strings.NewReader(`
 	{
 		"username": "alice",
 		"password": "password"
 	}`))
+	if !suite.NoError(err) {
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json; chartset=utf8")
+
+	// This should trigger autologin of the guest user and tests TrustedProxies= and
+	// autologin using RequestFromCIDR=. It also ensures that the login endpoint
+	// clears the autologin session and only returns a cookie for alice.
+	// See the Autologin test below as well.
+	req.Header.Set("Forwarded", "by=test; for=10.0.0.100:3000; host=example.com")
+
+	res, err := suite.cli.Do(req)
 
 	if err != nil {
 		suite.FailNow(err.Error())
@@ -61,7 +74,14 @@ func (suite *LoginTestSuite) Test_3_AliceCookieValid() {
 }
 
 func (suite *LoginTestSuite) Test_4_Autologin() {
-	res, err := http.Get("http://localhost:3000/api/identity/v1/profile")
+	req, err := http.NewRequest("GET", "http://localhost:3000/api/identity/v1/profile", nil)
+	if !suite.NoError(err) {
+		return
+	}
+
+	req.Header.Set("Forwarded", "by=test; for=10.0.0.100:3000, for=10.8.0.1:2000; host=example.com")
+	res, err := http.DefaultClient.Do(req)
+
 	suite.NoError(err)
 	suite.Equal(http.StatusOK, res.StatusCode)
 

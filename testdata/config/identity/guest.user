@@ -4,6 +4,5 @@ FullName=guest user
 GoogleCalendarID=-
 
 [AutoLogin]
-# This allows each and every request to be authenticated
-# as guest.
-ConditionRequestFromCIDR=0.0.0.0/0
+ConditionRequestFromCIDR=10.0.0.1/24
+ConditionRequestFromCIDR=10.0.1.0/24
