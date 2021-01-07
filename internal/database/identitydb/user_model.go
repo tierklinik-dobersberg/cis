@@ -32,7 +32,7 @@ func (db *identDB) loadUsers(identityDir string) error {
 		}
 		lowerName := strings.ToLower(u.Name)
 
-		// ensure there are no duplicates and add to the user map
+		// ensure there are no duplicates and add to the user map.
 		if _, ok := db.users[lowerName]; ok {
 			return fmt.Errorf("user with name %s already defined", lowerName)
 		}
