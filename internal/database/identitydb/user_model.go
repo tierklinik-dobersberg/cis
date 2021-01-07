@@ -16,10 +16,15 @@ type user struct {
 }
 
 func (db *identDB) loadUsers(identityDir string) error {
-	userFiles, err := utils.LoadFiles(identityDir, ".user", conf.FileSpec{
+	spec := conf.FileSpec{
 		"User":       conf.SectionSpec(append(schema.UserSpec, db.userPropertySpecs...)),
 		"Permission": schema.PermissionSpec,
-	})
+	}
+	if db.autologinConditions != nil {
+		spec["AutoLogin"] = db.autologinConditions
+	}
+
+	userFiles, err := utils.LoadFiles(identityDir, ".user", spec)
 	if err != nil {
 		return err
 	}

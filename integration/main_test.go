@@ -8,9 +8,7 @@ import (
 	"net/http/cookiejar"
 	"os"
 	"os/exec"
-	"os/signal"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 
@@ -77,7 +75,7 @@ func TestMain(m *testing.M) {
 	}
 
 	start := time.Now()
-	if err := runCompose(ctx, []string{"up", "-d"}); err != nil {
+	if err := runCompose(context.Background(), []string{"up", "-d"}); err != nil {
 		log.Fatal(err)
 	}
 
@@ -102,11 +100,14 @@ func TestMain(m *testing.M) {
 	defer func() {
 		os.Exit(code)
 	}()
-	defer func() {
-		if err := runCompose(context.Background(), []string{"down", "-v"}); err != nil {
-			log.Println(err.Error())
-		}
-	}()
+
+	if !*keepRunning {
+		defer func() {
+			if err := runCompose(context.Background(), []string{"down", "-v"}); err != nil {
+				log.Println(err.Error())
+			}
+		}()
+	}
 
 	if err := waitReachable(ctx); err != nil {
 		return
@@ -133,13 +134,6 @@ func TestMain(m *testing.M) {
 
 	// Actually run the tests
 	code = m.Run()
-
-	if *keepRunning {
-		log.Println("waiting for interrupt")
-		sig := make(chan os.Signal, 1)
-		signal.Notify(sig, syscall.SIGINT)
-		<-sig
-	}
 
 	cancel()
 
