@@ -10,6 +10,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
+	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
@@ -40,7 +41,7 @@ func NewManager(ctx context.Context, identity identitydb.Database, reg *httpcond
 	return mng
 }
 
-func (mng *Manager) getUserLogin(r *http.Request) string {
+func (mng *Manager) getUserLogin(r *http.Request) (*schema.User, error) {
 	mng.rw.RLock()
 	defer mng.rw.RUnlock()
 
@@ -52,11 +53,16 @@ func (mng *Manager) getUserLogin(r *http.Request) string {
 		}
 
 		if matched {
-			return user
+			u, err := mng.identiy.GetUser(r.Context(), user)
+			if err != nil {
+				return nil, err
+			}
+
+			return &u, nil
 		}
 	}
 
-	return ""
+	return nil, nil
 }
 
 // PerformAutologin may add an autologin user session to c.
@@ -64,16 +70,27 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 	// never try to issue an automatic session
 	// token if there is a valid user session
 	if app.SessionUser(c) == "" {
-		autologin := mng.getUserLogin(c.Request)
-		if autologin != "" {
+		autologin, err := mng.getUserLogin(c.Request)
+		if err != nil {
+			logger.From(c.Request.Context()).Errorf("failed to perform autologin: %s", err.Error())
+			return
+		}
+
+		if autologin != nil {
+
 			logger.From(c.Request.Context()).Infof("autologin granted for user %s", autologin)
-			sessionCookie := app.CreateSessionCookie(app.From(c), autologin, 5*time.Minute)
+			sessionCookie, err := app.CreateSessionCookie(app.From(c), autologin.User, 5*time.Minute)
+			if err != nil {
+				logger.From(c.Request.Context()).Errorf("failed to create session token: %s", err)
+				return
+			}
 			http.SetCookie(c.Writer, sessionCookie)
 
 			// make sure all following handlers see a valid
 			// session.
-			c.Set("session:user", autologin)
+			c.Set("session:user", autologin.Name)
 			c.Set("session:ttl", 5*time.Minute)
+			c.Set("session:roles", autologin.Roles)
 		}
 	}
 }

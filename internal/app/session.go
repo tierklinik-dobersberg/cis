@@ -3,15 +3,13 @@ package app
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/cis/internal/jwt"
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
-	"github.com/tierklinik-dobersberg/logger"
+	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/service/server"
 )
 
@@ -21,13 +19,16 @@ func ExtractSessionUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		app := From(c)
 		if app != nil {
-			user, expiresIn := CheckSession(app, c.Request)
+			claims, expiresIn := CheckSession(app, c.Request)
 
-			if user != "" && expiresIn > 0 {
-				c.Set("session:user", user)
+			if claims != nil && expiresIn > 0 {
+				c.Set("session:user", claims.Subject)
 				c.Set("session:ttl", expiresIn.String())
+				if claims.AppMetadata != nil && claims.AppMetadata.Authorization != nil {
+					c.Set("session:roles", claims.AppMetadata.Authorization.Roles)
+				}
 
-				c.Request = c.Request.Clone(context.WithValue(c.Request.Context(), utils.ContextUserKey{}, user))
+				c.Request = c.Request.Clone(context.WithValue(c.Request.Context(), utils.ContextUserKey{}, claims))
 			}
 		}
 
@@ -63,23 +64,32 @@ func SessionUser(c *gin.Context) string {
 	return u
 }
 
-// CreateSessionCookie creates and returns a new session cookie for userName.
-func CreateSessionCookie(app *App, userName string, ttl time.Duration) *http.Cookie {
-	expires := time.Now().Add(ttl)
-	expiresUnix := expires.Unix()
-	signature := utils.Signature(app.Config.Secret, app.Config.CookieDomain, userName, fmt.Sprintf("%d", expiresUnix))
+// SessionRoles returns the roles assigned to a session.
+func SessionRoles(c *gin.Context) []string {
+	val, ok := c.Get("session:roles")
+	if !ok {
+		return nil
+	}
+	roles, _ := val.([]string)
+	return roles
+}
 
-	value := fmt.Sprintf("%s:%s:%d", signature, userName, expiresUnix)
+// CreateSessionCookie creates and returns a new session cookie for userName.
+func CreateSessionCookie(app *App, user v1alpha.User, ttl time.Duration) (*http.Cookie, error) {
+	token, err := app.CreateUserToken(user, ttl)
+	if err != nil {
+		return nil, err
+	}
 
 	return &http.Cookie{
 		Name:     app.Config.CookieName,
-		Value:    value,
+		Value:    token,
 		Path:     "/",
 		Domain:   app.Config.CookieDomain,
 		HttpOnly: true,
 		Secure:   !app.Config.InsecureCookies,
-		Expires:  expires,
-	}
+		Expires:  time.Now().Add(ttl),
+	}, nil
 }
 
 // ClearSessionCookie returns a cookie that can be used
@@ -98,55 +108,16 @@ func ClearSessionCookie(app *App) *http.Cookie {
 
 // CheckSession checks and validates the session cookie of r (if any).
 // It returns the associated username and the time-to-live.
-func CheckSession(app *App, r *http.Request) (userName string, expiresIn time.Duration) {
-	log := logger.From(r.Context())
-
-	var sessionCookie *http.Cookie
-
-	for _, ck := range r.Cookies() {
-		if ck.Name == app.Config.CookieName {
-			sessionCookie = ck
-			break
-		}
-	}
-
-	if sessionCookie == nil {
-		log.Info("no session cookie available")
-		return "", 0
-	}
-
-	parts := strings.Split(sessionCookie.Value, ":")
-	if len(parts) != 3 {
-		log.Infof("invalid session cookie: unexpected number of parts: %q", sessionCookie.Value)
-		return "", 0
-	}
-
-	sig := parts[0]
-	userName = parts[1]
-	expiresStr := parts[2]
-
-	validSig := utils.VerifySignature(sig, app.Config.Secret, app.Config.CookieDomain, userName, expiresStr)
-	if !validSig {
-		// TODO(ppacher): block the requestor IP as it's obviously tempering
-		// with our session cookies?
-		log.Info("session cookie has invalid signature for domain")
-		return "", 0
-	}
-
-	expiresUnix, err := strconv.ParseInt(expiresStr, 10, 64)
+func CheckSession(app *App, r *http.Request) (claims *jwt.Claims, expiresIn time.Duration) {
+	sessionCookie, err := r.Cookie(app.Config.CookieName)
 	if err != nil {
-		log.Infof("session has invalid expiration: %s", err)
-		return "", 0
+		return nil, 0
 	}
 
-	expires := time.Unix(expiresUnix, 0)
-
-	if expires.Before(time.Now()) {
-		log.Info("session cookie is expired")
-		return "", 0
+	claims, err = jwt.ParseAndVerify([]byte(app.Config.Secret), sessionCookie.Value)
+	if err != nil {
+		return nil, 0
 	}
 
-	log.Infof("valid session cookie for user %s, expires in %s", userName, expires.Sub(time.Now()))
-
-	return userName, expires.Sub(time.Now())
+	return claims, time.Now().Sub(time.Unix(claims.ExpiresAt, 0))
 }

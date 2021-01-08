@@ -28,13 +28,13 @@ func VerifyEndpoint(grp gin.IRouter) {
 			return
 		}
 
-		username, sessionExpiry := app.CheckSession(appCtx, c.Request)
-		if username != "" {
+		claims, sessionExpiry := app.CheckSession(appCtx, c.Request)
+		if claims != nil {
 			status = http.StatusOK
 
 			// try to get the user from the database, if that fails
 			// the auth-request fails as well.
-			u, err := appCtx.Identities.GetUser(c.Request.Context(), username)
+			u, err := appCtx.Identities.GetUser(c.Request.Context(), claims.Subject)
 			if err != nil {
 				log.Infof("valid session for deleted user %s", user)
 				sessionExpiry = 0
@@ -56,20 +56,20 @@ func VerifyEndpoint(grp gin.IRouter) {
 
 			req, err := NewPermissionRequest(c)
 			if err != nil {
-				logger.From(c.Request.Context()).Infof("failed to create permission request: %s", err)
+				log.Infof("failed to create permission request: %s", err)
 				c.Status(http.StatusBadRequest)
 				return
 			}
 
 			allowed, err := appCtx.Matcher.Decide(c.Request.Context(), req)
 			if err != nil {
-				logger.From(c.Request.Context()).WithFields(req.AsFields()).Infof("failed to decide on permission request: %s", err)
+				log.WithFields(req.AsFields()).Infof("failed to decide on permission request: %s", err)
 				c.Status(http.StatusBadRequest)
 				return
 			}
 
 			if !allowed {
-				logger.From(c.Request.Context()).WithFields(req.AsFields()).Info("access denied")
+				log.WithFields(req.AsFields()).Info("access denied")
 				c.Status(http.StatusForbidden)
 				return
 			}
@@ -79,11 +79,16 @@ func VerifyEndpoint(grp gin.IRouter) {
 			// make sure we have a valid session and if it's going to
 			// expire soon renew it now.
 			if sessionExpiry < time.Minute*5 {
-				cookie := app.CreateSessionCookie(
+				cookie, err := app.CreateSessionCookie(
 					appCtx,
-					user.Name,
+					*user,
 					time.Hour,
 				)
+				if err != nil {
+					c.AbortWithStatus(http.StatusInternalServerError)
+					log.Errorf("failed to create session token for %s: %s", user.Name, err)
+					return
+				}
 				http.SetCookie(c.Writer, cookie)
 			}
 

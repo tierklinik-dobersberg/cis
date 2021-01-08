@@ -113,10 +113,10 @@ func LoginEndpoint(grp gin.IRouter) {
 		}
 
 		if user == nil {
-			username, expiresIn := app.CheckSession(appCtx, c.Request)
+			claims, expiresIn := app.CheckSession(appCtx, c.Request)
 			// check if there's a valid session cookie
-			if username != "" {
-				u, err := appCtx.Identities.GetUser(c.Request.Context(), username)
+			if claims != nil {
+				u, err := appCtx.Identities.GetUser(c.Request.Context(), claims.Subject)
 				if err != nil {
 					server.AbortRequest(c, http.StatusInternalServerError, err)
 					return
@@ -140,7 +140,12 @@ func LoginEndpoint(grp gin.IRouter) {
 			return
 		}
 
-		cookie := app.CreateSessionCookie(appCtx, user.Name, time.Hour)
+		cookie, err := app.CreateSessionCookie(appCtx, *user, time.Hour)
+		if err != nil {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			log.Errorf("failed to create session token: %s for %s", user.Name, err)
+			return
+		}
 		http.SetCookie(c.Writer, cookie)
 
 		rd := c.Query("redirect")

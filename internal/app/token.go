@@ -9,7 +9,7 @@ import (
 
 // CreateUserToken creates a new signed JWT token issed for
 // user.
-func (app *App) CreateUserToken(user v1alpha.User) (string, error) {
+func (app *App) CreateUserToken(user v1alpha.User, ttl time.Duration) (string, error) {
 	var mail string
 	if len(user.Mail) > 0 {
 		mail = user.Mail[0]
@@ -19,7 +19,7 @@ func (app *App) CreateUserToken(user v1alpha.User) (string, error) {
 		Audience:  app.Config.Audience,
 		Issuer:    app.Config.Issuer,
 		IssuedAt:  time.Now().Unix(),
-		ExpiresAt: time.Now().Add(time.Hour).Unix(),
+		ExpiresAt: time.Now().Add(ttl).Unix(),
 		NotBefore: time.Now().Unix(),
 		AppMetadata: &jwt.AppMetadata{
 			Authorization: &jwt.Authorization{
