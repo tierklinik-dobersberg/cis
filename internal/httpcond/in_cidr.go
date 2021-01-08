@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	Register(Type{
+	MustRegister(Type{
 		Name:        "RequestFromCIDR",
 		Description: "Matches requests that originate from the given CIDR addresses",
 		Type:        conf.StringSliceType,

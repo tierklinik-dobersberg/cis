@@ -154,3 +154,10 @@ var DefaultRegistry = &Registry{
 func Register(cond Type) error {
 	return DefaultRegistry.Register(cond)
 }
+
+// MustRegister is like register but panics on error.
+func MustRegister(cond Type) {
+	if err := Register(cond); err != nil {
+		panic(err.Error())
+	}
+}
