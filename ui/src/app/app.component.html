@@ -1,0 +1,87 @@
+<nz-layout class="app-layout">
+  <nz-sider class="menu-sidebar" nzCollapsible nzWidth="274px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed"
+    [nzTrigger]="null">
+    <div class="sidebar-logo">
+      <a href="https://tierklinikdobersberg.at/" target="_blank">
+        <img src="assets/logo.png" alt="logo">
+        <h1>
+          <span style="color: #1080cf">Tierklinik</span> <span style="color: #15377e">Dobersberg</span>
+        </h1>
+      </a>
+    </div>
+    <ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="isCollapsed">
+      <li routerLink="/welcome" nzMatchRouter nz-menu-item>
+        <i nz-icon nzType="dashboard"></i>
+        <span>Dashboard</span>
+      </li>
+      <li nzMatchRouter nz-menu-item>
+        <i nz-icon nzType="calendar"></i>
+        <span>Kalendar</span>
+      </li>
+      <li nz-submenu nzOpen nzTitle="Behandlung" nzIcon="scan">
+        <ul>
+          <li nz-menu-item nzMatchRouter>
+            <i nz-icon>
+              <fa-icon icon="diagnoses"></fa-icon>
+            </i>
+            <a>Kunden</a>
+          </li>
+          <li nz-menu-item nzMatchRouter>
+            <i nz-icon>
+              <fa-icon icon="paw"></fa-icon>
+            </i>
+            <a>Röntgen</a>
+          </li>
+        </ul>
+      </li>
+      <li nz-submenu nzTitle="Tools" nzIcon="tool">
+        <ul>
+          <li nz-menu-item nzMatchRouter>
+            <i nz-icon>
+              <fa-icon icon="syringe"></fa-icon>
+            </i>
+            <a>Impferinnerung</a>
+          </li>
+          <li nz-menu-item nzMatchRouter>
+            <i nz-icon>
+              <fa-icon icon="phone-alt"></fa-icon>
+            </i>
+            <a>Telefonbuch</a>
+          </li>
+        </ul>
+      </li>
+      <li nz-submenu nzTitle="Mein Bereich" nzIcon="user">
+        <ul>
+          <li nz-menu-item nzMatchRouter>
+            <i nz-icon>
+              <fa-icon icon="clock"></fa-icon>
+            </i>
+            <span>Dienstplan</span>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nz-sider>
+  <nz-layout>
+    <nz-header>
+      <div class="app-header">
+        <span class="header-trigger" (click)="isCollapsed = !isCollapsed">
+          <i class="trigger" nz-icon [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'"></i>
+        </span>
+
+        <span class="header-trigger">
+          <nz-avatar nzSize="small" nzIcon="user"></nz-avatar>
+        </span>
+
+      </div>
+    </nz-header>
+    <nz-content>
+      <div class="inner-content">
+
+
+
+        <router-outlet></router-outlet>
+      </div>
+    </nz-content>
+  </nz-layout>
+</nz-layout>
