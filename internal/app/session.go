@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -109,15 +110,24 @@ func ClearSessionCookie(app *App) *http.Cookie {
 // CheckSession checks and validates the session cookie of r (if any).
 // It returns the associated username and the time-to-live.
 func CheckSession(app *App, r *http.Request) (claims *jwt.Claims, expiresIn time.Duration) {
+	var tokenValue string
 	sessionCookie, err := r.Cookie(app.Config.CookieName)
 	if err != nil {
+		if h := r.Header.Get("Authorization"); strings.HasPrefix(h, "Bearer ") {
+			tokenValue = strings.TrimPrefix(h, "Bearer ")
+		}
+	} else {
+		tokenValue = sessionCookie.Value
+	}
+
+	if tokenValue == "" {
 		return nil, 0
 	}
 
-	claims, err = jwt.ParseAndVerify([]byte(app.Config.Secret), sessionCookie.Value)
+	claims, err = jwt.ParseAndVerify([]byte(app.Config.Secret), tokenValue)
 	if err != nil {
 		return nil, 0
 	}
 
-	return claims, time.Now().Sub(time.Unix(claims.ExpiresAt, 0))
+	return claims, time.Unix(claims.ExpiresAt, 0).Sub(time.Now())
 }
