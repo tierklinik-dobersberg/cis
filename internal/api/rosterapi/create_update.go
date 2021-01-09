@@ -3,6 +3,7 @@ package rosterapi
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -35,6 +36,11 @@ func CreateOrUpdateEndpoint(grp gin.IRouter) {
 		var body v1alpha.DutyRoster
 		if err := json.NewDecoder(c.Request.Body).Decode(&body); err != nil {
 			server.AbortRequest(c, http.StatusBadRequest, err)
+			return
+		}
+
+		if body.Month != month || body.Year != year {
+			server.AbortRequest(c, http.StatusBadRequest, fmt.Errorf("invalid month or year in body"))
 			return
 		}
 

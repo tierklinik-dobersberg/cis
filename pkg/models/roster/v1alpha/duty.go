@@ -9,8 +9,6 @@ import (
 // Day describes the doctors on duty for a single
 // day.
 type Day struct {
-	Date string `bson:"date,omitempty" json:"date,omitempty"` // "YYYY/MM/DD"
-
 	// Forenoon is a list of usernames that are in duty before lunch.
 	Forenoon []string `bson:"forenoon,omitempty" json:"forenoon,omitempty"`
 
