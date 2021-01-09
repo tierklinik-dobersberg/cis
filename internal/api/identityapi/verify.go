@@ -43,7 +43,10 @@ func VerifyEndpoint(grp gin.IRouter) {
 				user = &u.User
 			}
 		} else if header := c.Request.Header.Get("Authorization"); header != "" {
-			// There's no session cookie available, check if the user
+			// TODO(ppacher): revisit if we still want to accept user/password
+			// as basic auth.
+
+			// There's no session cookie or authorization bearer available, check if the user
 			// is trying basic-auth.
 			status, user = verifyBasicAuth(c.Request.Context(), appCtx.Identities, header)
 			sessionExpiry = 0
