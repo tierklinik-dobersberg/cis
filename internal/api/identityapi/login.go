@@ -54,11 +54,11 @@ func LoginEndpoint(grp gin.IRouter) {
 		if authHeader != "" {
 			// There's no session cookie available, check if the user
 			// is trying basic-auth.
-			log.Infof("Performing authentication against 'Authorization' header.")
+			log.Infof("performing authentication against 'Authorization' header.")
 			status, user = verifyBasicAuth(c.Request.Context(), appCtx.Identities, authHeader)
 
 			if status != http.StatusOK {
-				log.Infof("Basic authentication failed.")
+				log.Infof("basic authentication failed.")
 				c.AbortWithStatus(status)
 				return
 			}
@@ -69,7 +69,7 @@ func LoginEndpoint(grp gin.IRouter) {
 			)
 
 			if strings.Contains(contentType, "application/json") {
-				log.Infof("Performing authentication from application/json payload.")
+				log.Infof("performing authentication from application/json payload.")
 
 				var req struct {
 					Username string `json:"username"`
@@ -86,7 +86,7 @@ func LoginEndpoint(grp gin.IRouter) {
 			} else if strings.Contains(contentType, "x-www-form-urlencoded") ||
 				strings.Contains(contentType, "multipart/form-data") {
 
-				log.Infof("Performing authentication from x-www-form-urlencoded or multipart/form-data payload.")
+				log.Infof("performing authentication from x-www-form-urlencoded or multipart/form-data payload.")
 				username = c.Request.FormValue("username")
 				password = c.Request.FormValue("password")
 			}
@@ -95,7 +95,7 @@ func LoginEndpoint(grp gin.IRouter) {
 				success := appCtx.Identities.Authenticate(c.Request.Context(), username, password)
 
 				if !success {
-					log.Infof("Failed to authenticate %q", username)
+					log.Infof("failed to authenticate %q", username)
 					c.AbortWithStatus(http.StatusUnauthorized)
 					return
 				}
@@ -103,7 +103,7 @@ func LoginEndpoint(grp gin.IRouter) {
 				u, err := appCtx.Identities.GetUser(c.Request.Context(), username)
 
 				if err != nil {
-					log.Infof("Failed to retrieve authenticated user %q", username)
+					log.Infof("failed to retrieve authenticated user %q", username)
 					c.AbortWithError(http.StatusInternalServerError, err)
 					return
 				}
@@ -124,15 +124,25 @@ func LoginEndpoint(grp gin.IRouter) {
 
 				user = &u.User
 
+				log = log.WithFields(logger.Fields{
+					"user": user.Name,
+				})
+
 				// If the cookie is still valid just return immediately without
 				// creating a new session cookie.
 				// TODO(ppacher): make configurable
 				if expiresIn > 5*time.Minute {
-					log.Infof("Accepting request as cookie is still valid for %s", expiresIn)
+					log.Infof("accepting request as cookie is still valid for %s", expiresIn)
 					c.Status(http.StatusOK)
 					return
 				}
+
+				log.Infof("session expiration in %s, auto-renewing token", expiresIn)
 			}
+		} else {
+			log = log.WithFields(logger.Fields{
+				"user": user.Name,
+			})
 		}
 
 		if user == nil {
