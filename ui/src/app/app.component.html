@@ -14,52 +14,55 @@
         <i nz-icon nzType="dashboard"></i>
         <span>Dashboard</span>
       </li>
-      <li nzMatchRouter nz-menu-item>
-        <i nz-icon nzType="calendar"></i>
-        <span>Kalendar</span>
-      </li>
-      <li nz-submenu nzOpen nzTitle="Behandlung" nzIcon="scan">
-        <ul>
-          <li nz-menu-item nzMatchRouter>
-            <i nz-icon>
-              <fa-icon icon="diagnoses"></fa-icon>
-            </i>
-            <a>Kunden</a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <i nz-icon>
-              <fa-icon icon="paw"></fa-icon>
-            </i>
-            <a>Röntgen</a>
-          </li>
-        </ul>
-      </li>
-      <li nz-submenu nzTitle="Tools" nzIcon="tool">
-        <ul>
-          <li nz-menu-item nzMatchRouter>
-            <i nz-icon>
-              <fa-icon icon="syringe"></fa-icon>
-            </i>
-            <a>Impferinnerung</a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <i nz-icon>
-              <fa-icon icon="phone-alt"></fa-icon>
-            </i>
-            <a>Telefonbuch</a>
-          </li>
-        </ul>
-      </li>
-      <li nz-submenu nzTitle="Mein Bereich" nzIcon="user">
-        <ul>
-          <li nz-menu-item nzMatchRouter>
-            <i nz-icon>
-              <fa-icon icon="clock"></fa-icon>
-            </i>
-            <span>Dienstplan</span>
-          </li>
-        </ul>
-      </li>
+
+      <ng-container *ngIf="isDevMode">
+        <li nzMatchRouter nz-menu-item>
+          <i nz-icon nzType="calendar"></i>
+          <span>Kalendar</span>
+        </li>
+        <li nz-submenu nzOpen nzTitle="Behandlung" nzIcon="scan">
+          <ul>
+            <li nz-menu-item nzMatchRouter>
+              <i nz-icon>
+                <fa-icon icon="diagnoses"></fa-icon>
+              </i>
+              <a>Kunden</a>
+            </li>
+            <li nz-menu-item nzMatchRouter>
+              <i nz-icon>
+                <fa-icon icon="paw"></fa-icon>
+              </i>
+              <a>Röntgen</a>
+            </li>
+          </ul>
+        </li>
+        <li nz-submenu nzTitle="Tools" nzIcon="tool">
+          <ul>
+            <li nz-menu-item nzMatchRouter>
+              <i nz-icon>
+                <fa-icon icon="syringe"></fa-icon>
+              </i>
+              <a>Impferinnerung</a>
+            </li>
+            <li nz-menu-item nzMatchRouter>
+              <i nz-icon>
+                <fa-icon icon="phone-alt"></fa-icon>
+              </i>
+              <a>Telefonbuch</a>
+            </li>
+          </ul>
+        </li>
+        <li nz-submenu nzTitle="Mein Bereich" nzIcon="user">
+          <ul>
+            <li nz-menu-item nzMatchRouter>
+              <i nz-icon>
+                <fa-icon icon="clock"></fa-icon>
+              </i>
+              <span>Dienstplan</span>
+            </li>
+          </ul>
+        </li>
+      </ng-container>
     </ul>
   </nz-sider>
   <nz-layout>

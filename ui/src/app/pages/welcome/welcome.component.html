@@ -1,12 +1,22 @@
 <div nz-row nzJustify="space-around">
 
   <div nz-col nzSpan="6">
-    <nz-card [nzActions]="[unlockAction, openAction]">
-      <nz-card-meta nzTitle="Eingangstür" nzDescription="Geöffnet bis 17:15" [nzAvatar]="avatarTemplate"></nz-card-meta>
+    <nz-card [nzActions]="doorActions">
+      <nz-card-meta nzTitle="Eingangstür" [nzDescription]="doorDescr" [nzAvatar]="avatarTemplate"></nz-card-meta>
     </nz-card>
 
+    <ng-template #doorDescr>
+      <span class="door-description">
+        <span>{{ doorState?.state === 'locked' ? 'Gesperret' : 'Geöffnet'}}</span>
+        <span>bis</span>
+        <span><u>{{stateUntilDay}}{{stateUntilTime}}</u></span>
+      </span>
+    </ng-template>
+
     <ng-template #avatarTemplate>
-      <fa-icon class="ant-avatar ant-avatar-lg ant-avatar-circle ant-avatar-icon" icon="door-open"></fa-icon>
+      <fa-icon class="door-avatar ant-avatar ant-avatar-lg ant-avatar-circle ant-avatar-icon"
+        [class]="'door-'+doorState?.state" [icon]="doorState?.state === 'unlocked' ? 'door-open' : 'door-closed'">
+      </fa-icon>
     </ng-template>
 
     <ng-template #openAction>
@@ -14,12 +24,58 @@
     </ng-template>
 
     <ng-template #unlockAction>
-      Entsperren
+      <span nz-dropdown [nzDropdownMenu]="unlockMenu">Entsprerren <i nz-icon nzType="down"></i></span>
+      <nz-dropdown-menu #unlockMenu="nzDropdownMenu">
+        <ul nz-menu>
+          <li nz-menu-item (click)="overwriteDoor('unlock', '10m')">
+            <a>10 min</a>
+          </li>
+          <li nz-menu-item (click)="overwriteDoor('unlock', '20m')">
+            <a>20 min</a>
+          </li>
+          <li nz-menu-item (click)="overwriteDoor('unlock', '30m')">
+            <a>30 min</a>
+          </li>
+          <li nz-menu-item (click)="overwriteDoor('unlock', '1h')">
+            <a>1h</a>
+          </li>
+          <li nz-menu-item (click)="overwriteDoor('unlock', '1h30m')">
+            <a>1h 30min</a>
+          </li>
+        </ul>
+      </nz-dropdown-menu>
+    </ng-template>
+
+    <ng-template #lockAction>
+      <span nz-dropdown [nzDropdownMenu]="lockMenu">Zusperren <i nz-icon nzType="down"></i></span>
+      <nz-dropdown-menu #lockMenu="nzDropdownMenu">
+        <ul nz-menu>
+          <li nz-menu-item (click)="overwriteDoor('lock', '10m')">
+            <a>10 min</a>
+          </li>
+          <li nz-menu-item (click)="overwriteDoor('lock', '20m')">
+            <a>20 min</a>
+          </li>
+          <li nz-menu-item (click)="overwriteDoor('lock', '30m')">
+            <a>30 min</a>
+          </li>
+          <li nz-menu-item (click)="overwriteDoor('lock', '1h')">
+            <a>1h</a>
+          </li>
+          <li nz-menu-item (click)="overwriteDoor('lock', '1h30m')">
+            <a>1h 30m</a>
+          </li>
+        </ul>
+      </nz-dropdown-menu>
+    </ng-template>
+
+    <ng-template #resetAction>
+      <span (click)="resetDoor()"> Reset </span>
     </ng-template>
   </div>
 
   <div nz-col nzSpan="18">
-    <div class="upcoming">
+    <div class="upcoming" *ngIf="isDevMode">
       <div class="stats-details">
         <nz-list nzSize="small">
           <nz-list-item>
@@ -62,9 +118,9 @@
   <!-- Placeholder -->
 </div>
 
-<h2>Terminvergabe</h2>
+<h2 *ngIf="isDevMode">Terminvergabe</h2>
 
-<div nz-row nzJustify="space-around">
+<div nz-row nzJustify="space-around" *ngIf="isDevMode">
   <div nz-col nzSpan="6">
     <nz-card [nzActions]="[todayAction, showCalendarAction]">
       <nz-calendar nzMode="month" [nzFullscreen]="false" [nzDateFullCell]="dateCellTpl">
@@ -78,7 +134,7 @@
   </div>
 
   <!-- Placeholder -->
-  <div nz-col nzSpan="18">
+  <div nz-col nzSpan="18" *ngIf="isDevMode">
     <div class="select-appointment">
       <h3><span>Termin am </span>Dienstag, 01.12.2020</h3>
 
