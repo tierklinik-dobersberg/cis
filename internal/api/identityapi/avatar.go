@@ -45,6 +45,11 @@ func AvatarEndpoint(grp gin.IRouter) {
 
 			f, err := loadAvatar(c.Request.Context(), appCtx.Config.AvatarDirectory, avatarFile)
 			if err != nil {
+				if os.IsNotExist(err) {
+					c.AbortWithStatus(http.StatusNotFound)
+					return
+				}
+
 				c.AbortWithError(http.StatusInternalServerError, err)
 				return
 			}

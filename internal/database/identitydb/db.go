@@ -30,6 +30,9 @@ type Database interface {
 	// password is correct. False otherwise.
 	Authenticate(ctx context.Context, name string, password string) bool
 
+	// ListAllUsers returns all users stored in the database.
+	ListAllUsers(ctx context.Context) ([]schema.User, error)
+
 	// GetUser returns the user object for the user identified by
 	// it's name.
 	GetUser(ctx context.Context, name string) (schema.User, error)
@@ -100,6 +103,18 @@ func (db *identDB) Authenticate(ctx context.Context, name, password string) bool
 	}
 
 	return match
+}
+
+func (db *identDB) ListAllUsers(ctx context.Context) ([]schema.User, error) {
+	db.rw.RLock()
+	defer db.rw.RUnlock()
+
+	users := make([]schema.User, 0, len(db.users))
+	for _, user := range db.users {
+		users = append(users, user.User)
+	}
+
+	return users, nil
 }
 
 func (db *identDB) GetUser(ctx context.Context, name string) (schema.User, error) {

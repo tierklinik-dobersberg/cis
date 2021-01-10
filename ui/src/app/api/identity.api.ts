@@ -48,6 +48,13 @@ export class IdentityAPI {
   }
 
   /**
+   * Returns all users stored at cisd.
+   */
+  listUsers(): Observable<Profile[]> {
+    return this.http.get<Profile[]>("/api/identity/v1/users")
+  }
+
+  /**
    * Check if the user has access to path.
    *
    * @param path The path to check.

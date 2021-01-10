@@ -15,4 +15,7 @@ func Setup(grp gin.IRouter) {
 
 	// GET v1/avatar/:user
 	AvatarEndpoint(grp)
+
+	// GET v1/users
+	ListAllUsersEndpoint(grp)
 }
