@@ -25,6 +25,7 @@ import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { DoorCardComponent } from './door-card';
 
 
 @NgModule({
@@ -51,7 +52,10 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
     NzToolTipModule,
     NzDropDownModule,
   ],
-  declarations: [WelcomeComponent],
+  declarations: [
+    WelcomeComponent,
+    DoorCardComponent,
+  ],
   exports: [WelcomeComponent]
 })
 export class WelcomeModule {
