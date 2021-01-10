@@ -41,13 +41,13 @@ export class DoorCardComponent implements OnInit, OnDestroy {
   ngOnInit() {
     const sub =
       combineLatest([
-        interval(5000),
+        interval(10000),
         this.triggerDoorReload,
       ])
         .pipe(
           startWith(0),
           mergeMap(() => this.doorapi.state()),
-          retryWhen(err => err.pipe(delay(5000))),
+          retryWhen(err => err.pipe(delay(10000))),
         )
         .subscribe(state => {
           this.updateDoorState(state);
@@ -57,7 +57,6 @@ export class DoorCardComponent implements OnInit, OnDestroy {
   }
 
   private updateDoorState(state: State) {
-    console.log(state);
     this.doorState = state;
 
     const now = new Date();
