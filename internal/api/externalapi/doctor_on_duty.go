@@ -11,7 +11,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
-	"github.com/tierklinik-dobersberg/cis/pkg/models/customer/v1alpha"
+	"github.com/tierklinik-dobersberg/cis/pkg/models/external/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/server"
 )
