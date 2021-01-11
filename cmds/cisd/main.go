@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tierklinik-dobersberg/cis/internal/api/customerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/doorapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/externalapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/identityapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
@@ -93,10 +94,17 @@ func getApp(ctx context.Context) *app.App {
 				},
 			)
 			{
+				// identityapi provides user and session endpoints
 				identityapi.Setup(apis.Group("identity"))
+				// customerapi provides customer database endpoints
 				customerapi.Setup(apis.Group("customer"))
+				// rosterapi provides access to the electronic duty roster
 				rosterapi.Setup(apis.Group("dutyroster"))
+				// doorapi provides access to the entry door controller.
 				doorapi.Setup(apis.Group("door"))
+				// externalapi provides specialized APIs for integration
+				// with external services (like the phone-system).
+				externalapi.Setup(apis.Group("external"))
 			}
 
 			return nil
