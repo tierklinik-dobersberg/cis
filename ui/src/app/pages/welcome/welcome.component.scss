@@ -9,6 +9,12 @@
   }
 }
 
+.top-row {
+  div[nz-col] {
+    min-height: 115px;
+  }
+}
+
 .select-appointment {
   border       : 1px solid #f0f0f0;
   border-radius: 2px;

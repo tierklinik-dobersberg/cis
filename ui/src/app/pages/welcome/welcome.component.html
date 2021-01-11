@@ -1,4 +1,4 @@
-<div nz-row nzJustify="space-around">
+<div nz-row nzJustify="space-around" class="top-row">
 
   <div nz-col nzSpan="6">
     <app-door-card></app-door-card>
@@ -7,6 +7,11 @@
 
   <div nz-col nzSpan="6">
     <app-emergency-card></app-emergency-card>
+  </div>
+
+
+  <div nz-col nzSpan="6">
+    <app-clock-card></app-clock-card>
   </div>
   <!-- Placeholder -->
 </div>
@@ -22,7 +27,6 @@
 
     <ng-template #todayAction>Heute</ng-template>
     <ng-template #showCalendarAction>Kalendar öffnen</ng-template>
-
     <ng-template #dateCellTpl let-date><span>{{ date | date:'d'}} </span></ng-template>
   </div>
 

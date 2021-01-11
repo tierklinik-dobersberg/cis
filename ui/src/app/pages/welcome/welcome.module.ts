@@ -28,7 +28,8 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { DoorCardComponent } from './door-card';
 import { EmergencyCardComponent } from './emergency-card';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-
+import { ClockCardComponent } from './clock-card';
+import { NzStatisticModule } from 'ng-zorro-antd/statistic';
 
 @NgModule({
   imports: [
@@ -54,10 +55,12 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     NzToolTipModule,
     NzDropDownModule,
     NzSpinModule,
+    NzStatisticModule
   ],
   declarations: [
     WelcomeComponent,
     DoorCardComponent,
+    ClockCardComponent,
     EmergencyCardComponent
   ],
   exports: [WelcomeComponent]
