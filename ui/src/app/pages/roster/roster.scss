@@ -2,3 +2,57 @@
     display: block;
     padding: 24px;
 }
+
+.toolbar {
+    width: 100%;
+    display: flex;
+
+    .actions {
+        flex-grow: 0;
+
+        button:not(:last-child) {
+            margin-right: 3px;
+        }
+    }
+
+    .alerts {
+        margin-right: 12px;
+        flex-grow: 1;
+    }
+    margin-bottom: 12px;
+}
+
+.ant-picker-calendar-date {
+    padding: 0 !important;
+}
+
+.warning-sign {
+    color: #f3ba00;
+    margin-right: 7px;
+}
+
+.other-month {
+    opacity: 0.2;
+}
+
+.selected-users {
+    color: black;
+    text-align: left;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+
+    li:not(:last-child) {
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    li {
+        height: 30px;
+
+        &:hover {
+            background: rgba(135, 136, 206, 0.2)
+        }
+    }
+}

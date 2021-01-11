@@ -10,7 +10,7 @@ export interface Day {
 }
 
 export interface Roster {
-  _id: string;
+  _id?: string;
   month: number;
   year: number;
   days: {
