@@ -40,6 +40,18 @@
     text-align: left;
 }
 
+span.title {
+    display: block;
+    color: gray;
+    padding-left: 12px;
+    font-size: 90%;
+    text-transform: uppercase;
+}
+
+nz-checkbox-wrapper {
+    margin-bottom: 12px;
+}
+
 ul {
     list-style: none;
     padding: 0;

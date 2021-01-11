@@ -17,8 +17,6 @@ export class RosterComponent implements OnInit, OnDestroy {
   saveLoading = false;
   selectedDate: Date;
   selectedDay: Day;
-  selectedSlice: keyof Day;
-  selectedDaySlice: { [key: string]: boolean } = {};
   usernames: string[] = [];
   userProfiles: { [key: string]: Profile } = {};
 
@@ -54,13 +52,8 @@ export class RosterComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  updateCell(date: Date, what: keyof Day) {
+  updateCell(date: Date) {
     this.selectedDay = this.getDay(date);
-    this.selectedSlice = what;
-
-    this.selectedDaySlice = {};
-    Object.keys(this.userProfiles).forEach(user => this.selectedDaySlice[user] = false);
-    this.getDay(date)[what].forEach(user => this.selectedDaySlice[user] = true);
   }
 
   saveRoster() {
@@ -91,8 +84,8 @@ export class RosterComponent implements OnInit, OnDestroy {
     this.editMode = !this.editMode;
   }
 
-  updateSelectedStaff(staff: string[]) {
-    this.selectedDay[this.selectedSlice] = staff;
+  updateSelectedStaff(staff: string[], what: keyof Day) {
+    this.selectedDay[what] = staff;
   }
 
   loadRoster(date: Date) {

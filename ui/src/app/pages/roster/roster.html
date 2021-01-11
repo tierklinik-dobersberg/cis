@@ -24,32 +24,54 @@
 
 <nz-calendar (nzPanelChange)="onPanelChange($event)" (nzSelectChange)="onDateSelected($event)">
   <ul *nzDateFullCell="let date" [class.other-month]="date.getMonth() != selectedDate.getMonth()"
+    (click)="updateCell(date)" nz-button nz-dropdown [nzClickHide]="false" [nzDropdownMenu]="userMenu" nzTrigger="click"
     class="selected-users">
+
     <span style="padding-right: 2px;">{{date.getDate()}}</span>
-    <li (click)="updateCell(date, 'forenoon')" nz-button nz-dropdown [nzClickHide]="false" [nzDropdownMenu]="userMenu"
-      nzTrigger="click">
+    <li>
       <span *ngFor="let user of getDay(date).forenoon"> {{ user.toLocaleUpperCase()[0] }} </span>
     </li>
 
-    <li (click)="updateCell(date, 'afternoon')" nz-button nz-dropdown [nzClickHide]="false" [nzDropdownMenu]="userMenu"
-      nzTrigger="click">
+    <li>
       <span *ngFor="let user of getDay(date).afternoon"> {{ user.toLocaleUpperCase()[0] }} </span>
     </li>
 
-    <li (click)="updateCell(date, 'emergency')" nz-button nz-dropdown [nzClickHide]="false" [nzDropdownMenu]="userMenu"
-      nzTrigger="click">
+    <li>
       <span *ngFor="let user of getDay(date).emergency"> {{ user.toLocaleUpperCase()[0] }} </span>
     </li>
   </ul>
 </nz-calendar>
 
 <nz-dropdown-menu #userMenu="nzDropdownMenu">
-  <nz-checkbox-wrapper style="width: 100%;" (nzOnChange)="updateSelectedStaff($event)">
-    <div nz-row nz-menu>
-      <div *ngFor="let user of usernames" nz-col nzSpan="8" nz-menu-item>
-        <label nz-checkbox [nzValue]="user"
-          [(ngModel)]="selectedDaySlice[user]">{{userProfiles[user]?.fullname}}</label>
+  <div nz-menu>
+    <span nz-menu-group class="title">Vormittag</span>
+    <nz-checkbox-wrapper style="width: 100%;" (nzOnChange)="updateSelectedStaff($event, 'forenoon')">
+      <div nz-row>
+        <div *ngFor="let user of usernames" nz-col nzSpan="8" nz-menu-item>
+          <label nz-checkbox [nzValue]="user"
+            [ngModel]="selectedDay?.forenoon?.includes(user)">{{userProfiles[user]?.fullname}}</label>
+        </div>
       </div>
-    </div>
-  </nz-checkbox-wrapper>
+    </nz-checkbox-wrapper>
+
+    <span nz-menu-group class="title">Nachmittag</span>
+    <nz-checkbox-wrapper style="width: 100%;" (nzOnChange)="updateSelectedStaff($event, 'afternoon')">
+      <div nz-row>
+        <div *ngFor="let user of usernames" nz-col nzSpan="8" nz-menu-item>
+          <label nz-checkbox [nzValue]="user"
+            [ngModel]="selectedDay?.afternoon?.includes(user)">{{userProfiles[user]?.fullname}}</label>
+        </div>
+      </div>
+    </nz-checkbox-wrapper>
+
+    <span nz-menu-group class="title">Nachtdienst</span>
+    <nz-checkbox-wrapper style="width: 100%;" (nzOnChange)="updateSelectedStaff($event, 'emergency')">
+      <div nz-row>
+        <div *ngFor="let user of usernames" nz-col nzSpan="8" nz-menu-item>
+          <label nz-checkbox [nzValue]="user"
+            [ngModel]="selectedDay?.emergency?.includes(user)">{{userProfiles[user]?.fullname}}</label>
+        </div>
+      </div>
+    </nz-checkbox-wrapper>
+  </div>
 </nz-dropdown-menu>
