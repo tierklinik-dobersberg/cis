@@ -70,8 +70,8 @@ func CurrentDoctorOnDutyEndpoint(grp gin.IRouter) {
 			}
 
 			doctorsOnDuty[idx] = v1alpha.DoctorOnDuty{
-				Username: u.Name,
-				Fullname: u.Fullname,
+				Username: user.Name,
+				FullName: user.Fullname,
 				Phone:    user.PhoneNumber[0],
 			}
 		}
