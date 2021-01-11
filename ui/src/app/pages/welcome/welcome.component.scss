@@ -1,7 +1,8 @@
 :host {
   &>.ant-row {
     margin-bottom: 24px;
-
+    padding-left: 24px;
+    padding-right: 24px;
     &>.ant-col {
       padding  : 4px;
       min-width: 20vw;
@@ -9,7 +10,9 @@
   }
 }
 
-.top-row {
+.ant-row.top-row {
+  padding: 48px;
+  background-color: #9a9a9a;
   div[nz-col] {
     min-height: 115px;
   }
