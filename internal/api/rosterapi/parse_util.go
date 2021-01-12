@@ -28,7 +28,7 @@ func getYearAndMonth(c *gin.Context) (time.Month, int, bool) {
 		return 0, 0, false
 	}
 
-	if month < 1 || month > 10 {
+	if month < 1 || month > 12 {
 		server.AbortRequest(c, http.StatusBadRequest, errors.New("invalid month"))
 		return 0, 0, false
 	}
