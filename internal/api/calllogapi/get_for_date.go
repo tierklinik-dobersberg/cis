@@ -38,7 +38,7 @@ func ForDateEndpoint(grp gin.IRouter) {
 			return
 		}
 
-		d, err := time.Parse("2006-01-02", fmt.Sprintf("%d-%d-%d", year, month, day))
+		d, err := time.Parse("2006-01-02", fmt.Sprintf("%04d-%02d-%02d", year, month, day))
 		if err != nil {
 			server.AbortRequest(c, http.StatusBadRequest, err)
 			return
