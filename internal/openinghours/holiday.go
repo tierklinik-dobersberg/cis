@@ -71,6 +71,8 @@ func LoadHolidays(ctx context.Context, country string, year int) ([]PublicHolida
 		return nil, err
 	}
 
+	logger.From(ctx).Infof("loaded holidays for %s in %d: %+v", country, year, result)
+
 	return result, nil
 }
 
