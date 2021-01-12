@@ -14,6 +14,9 @@ import { NzDropDownModule } from "ng-zorro-antd/dropdown";
 import { NzCheckboxModule } from "ng-zorro-antd/checkbox";
 import { FormsModule } from "@angular/forms";
 import { NzGridModule } from "ng-zorro-antd/grid";
+import { NzSelectModule } from "ng-zorro-antd/select";
+import { NzToolTipModule } from "ng-zorro-antd/tooltip";
+import { NzTagModule } from 'ng-zorro-antd/tag';
 
 @NgModule({
   imports: [
@@ -29,6 +32,10 @@ import { NzGridModule } from "ng-zorro-antd/grid";
     NzCheckboxModule,
     NzMessageServiceModule,
     NzGridModule,
+    NzAlertModule,
+    NzSelectModule,
+    NzToolTipModule,
+    NzTagModule,
     RosterRoutingModule,
   ],
   declarations: [

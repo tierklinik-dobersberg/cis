@@ -1,8 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
+import { Component, OnDestroy, OnInit, QueryList, TrackByFunction, ViewChildren } from '@angular/core';
 import { NzCalendarMode } from 'ng-zorro-antd/calendar';
+import { NzDropDownDirective } from 'ng-zorro-antd/dropdown';
 import { Subscription } from 'rxjs';
-import { delay, retryWhen } from 'rxjs/operators';
+import { delay, mergeMap, retryWhen } from 'rxjs/operators';
 import { Day, IdentityAPI, Profile, Roster, RosterAPI } from 'src/app/api';
 
 @Component({
@@ -16,9 +17,18 @@ export class RosterComponent implements OnInit, OnDestroy {
   editMode = false;
   saveLoading = false;
   selectedDate: Date;
-  selectedDay: Day;
+  menuVisible = false;
+
+  selectedDay: Day = {
+    afternoon: [],
+    forenoon: [],
+    emergency: [],
+  };
+
   usernames: string[] = [];
   userProfiles: { [key: string]: Profile } = {};
+
+  dropdownVisible: { [key: string]: boolean } = {};
 
   days: {
     [key: number]: Day;
@@ -72,8 +82,25 @@ export class RosterComponent implements OnInit, OnDestroy {
       })
   }
 
-  deleteRoster() {
+  get isDropDownVisible(): boolean {
+    if (Object.keys(this.dropdownVisible).some(key => !!this.dropdownVisible[key])) {
+      return true
+    }
 
+    return false;
+  }
+
+  getVisibleProp(date: string) {
+    if (this.dropdownVisible[date] === undefined) {
+      this.dropdownVisible[date] = false;
+    }
+
+    return this.dropdownVisible;
+  }
+
+  deleteRoster() {
+    this.rosterapi.delete(this.selectedDate.getFullYear(), this.selectedDate.getMonth() + 1)
+      .subscribe(() => this.loadRoster(), err => console.error(err))
   }
 
   toggleEdit() {
@@ -84,17 +111,16 @@ export class RosterComponent implements OnInit, OnDestroy {
     this.editMode = !this.editMode;
   }
 
-  updateSelectedStaff(staff: string[], what: keyof Day) {
-    this.selectedDay[what] = staff;
-  }
-
-  loadRoster(date: Date) {
+  loadRoster(date: Date = this.selectedDate) {
     const sub =
       this.rosterapi.forMonth(date.getFullYear(), date.getMonth() + 1)
         .subscribe(
           roster => {
+            this.dropdownVisible = {};
             this.showNoRosterAlert = false;
             this.days = roster.days;
+            this.editMode = false;
+            this.saveLoading = false;
           },
           err => {
             if (err instanceof HttpErrorResponse && err.status === 404) {
@@ -107,6 +133,10 @@ export class RosterComponent implements OnInit, OnDestroy {
         )
 
     this.subscriptions.add(sub);
+  }
+
+  closeDropdown() {
+    Object.keys(this.dropdownVisible).forEach(key => this.dropdownVisible[key] = false);
   }
 
   getDay(date: Date) {

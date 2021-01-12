@@ -1,7 +1,16 @@
 <div class="toolbar">
   <div class="alerts">
-    <nz-alert *ngIf="showNoRosterAlert" [nzMessage]="noRosterAlertTemplate" nzType="warning">
+    <nz-alert *ngIf="showNoRosterAlert && !editMode; else: dateHeader" [nzMessage]="noRosterAlertTemplate"
+      nzType="warning">
     </nz-alert>
+
+    <ng-template #dateHeader>
+      <h1>
+        {{ selectedDate.toLocaleString('default', { month: 'long' }) }} {{
+        selectedDate.getFullYear() }}
+        <nz-tag *ngIf="editMode" nzColor="geekblue">in Bearbeitung</nz-tag>
+      </h1>
+    </ng-template>
 
     <ng-template #noRosterAlertTemplate>
       <span>
@@ -12,11 +21,25 @@
   </div>
 
   <div class="actions">
-    <button nz-button nzType="primary" nzShape="circle" [nzLoading]="saveLoading" (click)="toggleEdit()">
-      <i nz-icon [nzType]="editMode ? 'save' : 'edit'" nzTheme="outline"></i>
+    <button nz-button nzType="primary" nzShape="circle" *ngIf="!editMode" (click)="toggleEdit()"
+      nzTooltipTitle="Dienstplan bearbeiten" nz-tooltip>
+      <i nz-icon nzType="edit" nzTheme="outline"></i>
     </button>
+
+    <button nz-button nzType="primary" nzShape="circle" *ngIf="editMode || saveLoading" [nzLoading]="saveLoading"
+      (click)="toggleEdit()" nzTooltipTitle="Dienstplan speicher" nz-tooltip>
+      <i nz-icon nzType="save" nzTheme="outline"></i>
+    </button>
+
+    <button nz-button *ngIf="editMode" nzType="default" nzShape="circle" [nzLoading]="false" nz-popconfirm
+      nzPopconfirmTitle="Änderungen verwerfen?" nzPopconfirmPlacement="bottom" (nzOnConfirm)="loadRoster()"
+      nzTooltipTitle="Änderunge verwerfen" nz-tooltip>
+      <i nz-icon nzType="close" nzTheme="outline"></i>
+    </button>
+
     <button nz-button nzType="danger" nzShape="circle" [nzLoading]="false" nz-popconfirm
-      nzPopconfirmTitle="Dienstplan sicher löschen?" nzPopconfirmPlacement="bottom" (nzOnConfirm)="deleteRoster()">
+      nzTooltipTitle="Dienstplan löschen" nz-tooltip nzPopconfirmTitle="Dienstplan sicher löschen?"
+      nzPopconfirmPlacement="bottom" (nzOnConfirm)="deleteRoster()">
       <i nz-icon nzType="delete" nzTheme="outline"></i>
     </button>
   </div>
@@ -24,54 +47,62 @@
 
 <nz-calendar (nzPanelChange)="onPanelChange($event)" (nzSelectChange)="onDateSelected($event)">
   <ul *nzDateFullCell="let date" [class.other-month]="date.getMonth() != selectedDate.getMonth()"
-    (click)="updateCell(date)" nz-button nz-dropdown [nzClickHide]="false" [nzDropdownMenu]="userMenu" nzTrigger="click"
-    class="selected-users">
+    (click)="updateCell(date)" nz-button nz-dropdown
+    [(nzVisible)]="getVisibleProp(date.toLocaleString())[date.toLocaleString()]" [nzClickHide]="false"
+    [nzDropdownMenu]="userMenu" nzTrigger="click" class="selected-users">
 
     <span style="padding-right: 2px;">{{date.getDate()}}</span>
     <li>
-      <span *ngFor="let user of getDay(date).forenoon"> {{ user.toLocaleUpperCase()[0] }} </span>
+      <span *ngFor="let user of getDay(date).forenoon" nz-tooltip [nzTooltipTitle]="userProfiles[user].fullname"> {{
+        userProfiles[user].fullname.slice(0, 2) }} </span>
     </li>
 
     <li>
-      <span *ngFor="let user of getDay(date).afternoon"> {{ user.toLocaleUpperCase()[0] }} </span>
+      <span *ngFor="let user of getDay(date).afternoon" nz-tooltip [nzTooltipTitle]="userProfiles[user].fullname"> {{
+        userProfiles[user].fullname.slice(0, 2) }} </span>
     </li>
 
     <li>
-      <span *ngFor="let user of getDay(date).emergency"> {{ user.toLocaleUpperCase()[0] }} </span>
+      <span *ngFor="let user of getDay(date).emergency" nz-tooltip [nzTooltipTitle]="userProfiles[user].fullname"> {{
+        userProfiles[user].fullname.slice(0, 2) }} </span>
     </li>
   </ul>
 </nz-calendar>
 
 <nz-dropdown-menu #userMenu="nzDropdownMenu">
-  <div nz-menu>
-    <span nz-menu-group class="title">Vormittag</span>
-    <nz-checkbox-wrapper style="width: 100%;" (nzOnChange)="updateSelectedStaff($event, 'forenoon')">
-      <div nz-row>
-        <div *ngFor="let user of usernames" nz-col nzSpan="8" nz-menu-item>
-          <label nz-checkbox [nzValue]="user"
-            [ngModel]="selectedDay?.forenoon?.includes(user)">{{userProfiles[user]?.fullname}}</label>
-        </div>
-      </div>
-    </nz-checkbox-wrapper>
+  <div nz-menu style="width: 25vw">
+    <ng-container *ngTemplateOutlet="userSelection; context: {$implicit: 'forenoon', title: 'Vormittag'}">
+    </ng-container>
+    <ng-container *ngTemplateOutlet="userSelection; context: {$implicit: 'afternoon', title: 'Nachmittag'}">
+    </ng-container>
+    <ng-container *ngTemplateOutlet="userSelection; context: {$implicit: 'emergency', title: 'Nachtdienst'}">
+    </ng-container>
 
-    <span nz-menu-group class="title">Nachmittag</span>
-    <nz-checkbox-wrapper style="width: 100%;" (nzOnChange)="updateSelectedStaff($event, 'afternoon')">
-      <div nz-row>
-        <div *ngFor="let user of usernames" nz-col nzSpan="8" nz-menu-item>
-          <label nz-checkbox [nzValue]="user"
-            [ngModel]="selectedDay?.afternoon?.includes(user)">{{userProfiles[user]?.fullname}}</label>
-        </div>
-      </div>
-    </nz-checkbox-wrapper>
+    <div class="selection-row" style="text-align: right; padding-top: 12px">
+      <button *ngIf="!editMode" nz-button nzSize="small" nzType="primary" (click)="toggleEdit()">
+        <i nz-icon nzType="edit" nzTheme="outline"></i>
+        Bearbeiten
+      </button>
 
-    <span nz-menu-group class="title">Nachtdienst</span>
-    <nz-checkbox-wrapper style="width: 100%;" (nzOnChange)="updateSelectedStaff($event, 'emergency')">
-      <div nz-row>
-        <div *ngFor="let user of usernames" nz-col nzSpan="8" nz-menu-item>
-          <label nz-checkbox [nzValue]="user"
-            [ngModel]="selectedDay?.emergency?.includes(user)">{{userProfiles[user]?.fullname}}</label>
+      <button nz-button nzSize="small" (click)="closeDropdown()" nzType="default">
+        <i nz-icon nzType="close" nzTheme="outline"></i>
+        Schließen
+      </button>
+    </div>
+
+
+    <ng-template #userSelection let-model let-title="title">
+      <div class="selection-row">
+        <span nz-menu-group class="title">{{title}}</span>
+        <nz-select *ngIf="editMode && isDropDownVisible" [(ngModel)]="selectedDay[model]" nzMode="multiple"
+          nzPlaceHolder="Bitte auswählen">
+          <nz-option *ngFor="let option of usernames" [nzLabel]="userProfiles[option].fullname" [nzValue]="option">
+          </nz-option>
+        </nz-select>
+        <div *ngIf="!editMode" class="selected-users">
+          <li><span *ngFor="let username of selectedDay[model]">{{userProfiles[username].fullname}}</span></li>
         </div>
       </div>
-    </nz-checkbox-wrapper>
+    </ng-template>
   </div>
 </nz-dropdown-menu>

@@ -35,6 +35,17 @@ export class RosterAPI {
   }
 
   /**
+   * Delete the duty roster for the given month in year.
+   * 
+   * @param year 
+   * @param month 
+   */
+  delete(year: number, month: number): Observable<void> {
+    return this.http.delete(`/api/dutyroster/v1/${year}/${month}`)
+      .pipe(map(() => { }))
+  }
+
+  /**
    * Creates a new duty roster.
    *
    * @param roster The new duty roster.
