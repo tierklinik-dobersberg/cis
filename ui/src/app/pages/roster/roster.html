@@ -51,7 +51,11 @@
     [(nzVisible)]="getVisibleProp(date.toLocaleString())[date.toLocaleString()]" [nzClickHide]="false"
     [nzDropdownMenu]="userMenu" nzTrigger="click" class="selected-users">
 
-    <span style="padding-right: 2px;">{{date.getDate()}}</span>
+    <span style="padding-right: 2px;">
+      {{date.getDate()}}
+      <nz-tag *ngIf="!!holidays[date.toDateString()]" nzColor="geekblue">{{holidays[date.toDateString()].localName}}
+      </nz-tag>
+    </span>
     <li>
       <span *ngFor="let user of getDay(date).forenoon" nz-tooltip [nzTooltipTitle]="userProfiles[user].fullname"> {{
         userProfiles[user].fullname.slice(0, 2) }} </span>

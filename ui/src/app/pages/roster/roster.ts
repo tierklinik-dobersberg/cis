@@ -35,7 +35,7 @@ export class RosterComponent implements OnInit, OnDestroy {
   } = {};
 
   holidays: {
-    [key: string]: Holiday;
+    [key: number]: Holiday;
   } = {};
 
   constructor(
@@ -127,10 +127,14 @@ export class RosterComponent implements OnInit, OnDestroy {
             this.dropdownVisible = {};
             this.showNoRosterAlert = false;
             this.days = roster.days;
+
             this.editMode = false;
             this.saveLoading = false;
           },
           err => {
+            this.editMode = false;
+            this.saveLoading = false;
+
             if (err instanceof HttpErrorResponse && err.status === 404) {
               this.showNoRosterAlert = true;
               this.days = {};
@@ -144,7 +148,9 @@ export class RosterComponent implements OnInit, OnDestroy {
     const sub2 =
       this.holidayapi.forMonth(year, month)
         .subscribe(holidays => {
-          holidays.forEach(day => this.holidays[day.date] = day);
+          holidays.forEach(day => {
+            this.holidays[new Date(day.date).toDateString()] = day;
+          });
           console.log(this.holidays);
         })
     this.subscriptions.add(sub2);
