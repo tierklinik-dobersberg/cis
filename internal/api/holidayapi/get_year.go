@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/service/server"
 )
 
@@ -28,6 +29,11 @@ func GetForYearEndpoint(grp gin.IRouter) {
 		if err != nil {
 			server.AbortRequest(c, http.StatusInternalServerError, err)
 			return
+		}
+
+		if holidays == nil {
+			// make sure we send an empty array.
+			holidays = make([]openinghours.PublicHoliday, 0)
 		}
 
 		c.JSON(http.StatusOK, holidays)

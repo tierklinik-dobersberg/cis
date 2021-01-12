@@ -40,7 +40,7 @@ func GetForMonthEndpoint(grp gin.IRouter) {
 		}
 
 		prefix := fmt.Sprintf("%d-%02d-", year, month)
-		var result []openinghours.PublicHoliday
+		result := make([]openinghours.PublicHoliday, 0)
 		for _, day := range holidays {
 			if strings.HasPrefix(day.Date, prefix) {
 				result = append(result, day)
