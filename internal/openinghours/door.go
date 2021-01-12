@@ -327,6 +327,11 @@ func (dc *DoorController) scheduler() {
 	var lastState DoorState
 	var state DoorState
 
+	const maxTriesLocked = 60
+	const maxTriesUnlocked = 20
+
+	retries := 0
+	maxTries := maxTriesLocked
 	// trigger immediately
 	var until time.Time = time.Now().Add(time.Second)
 
@@ -343,6 +348,10 @@ func (dc *DoorController) scheduler() {
 			// force applying the door state.
 			lastState = DoorState("")
 		case <-time.After(time.Until(until)):
+
+		// resend lock commands periodically as the door
+		// might be open and may thus miss commands.
+		case <-time.After(time.Minute):
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
@@ -352,8 +361,21 @@ func (dc *DoorController) scheduler() {
 			until = time.Now().Add(time.Minute * 5)
 		}
 
-		// only trigger when we need to change state.
 		if state != lastState {
+			retries = 0
+
+			switch state {
+			case Locked:
+				maxTries = maxTriesLocked
+			case Unlocked:
+				maxTries = maxTriesUnlocked
+			}
+		}
+
+		// only trigger when we need to change state.
+		if retries < maxTries {
+			retries++
+
 			switch state {
 			case Locked:
 				dc.Lock(ctx)
