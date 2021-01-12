@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
@@ -29,6 +30,7 @@ type App struct {
 	Customers   customerdb.Database
 	Door        *openinghours.DoorController
 	Holidays    openinghours.HolidayGetter
+	CallLogs    calllogdb.Database
 }
 
 func (app *App) String() string {
@@ -36,7 +38,16 @@ func (app *App) String() string {
 }
 
 // NewApp context creates a new application context.
-func NewApp(inst *service.Instance, cfg *Config, matcher *permission.Matcher, identities identitydb.Database, customers customerdb.Database, dutyRosters rosterdb.Database, door *openinghours.DoorController, holidays openinghours.HolidayGetter) *App {
+func NewApp(
+	inst *service.Instance,
+	cfg *Config,
+	matcher *permission.Matcher,
+	identities identitydb.Database,
+	customers customerdb.Database,
+	dutyRosters rosterdb.Database,
+	door *openinghours.DoorController,
+	holidays openinghours.HolidayGetter,
+	calllogs calllogdb.Database) *App {
 	return &App{
 		Instance:    inst,
 		Config:      cfg,
@@ -46,6 +57,7 @@ func NewApp(inst *service.Instance, cfg *Config, matcher *permission.Matcher, id
 		DutyRosters: dutyRosters,
 		Door:        door,
 		Holidays:    holidays,
+		CallLogs:    calllogs,
 	}
 }
 

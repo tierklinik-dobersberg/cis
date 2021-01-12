@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/spf13/cobra"
+	"github.com/tierklinik-dobersberg/cis/internal/api/calllogapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/customerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/doorapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/externalapi"
@@ -16,6 +17,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/autologin"
+	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
@@ -109,6 +111,8 @@ func getApp(ctx context.Context) *app.App {
 				// holidayapi provides access to all holidays in the
 				// configured countries.
 				holidayapi.Setup(apis.Group("holidays"))
+				// calllog allows to retrieve and query call log records
+				calllogapi.Setup(apis.Group("calllogs"))
 			}
 
 			return nil
@@ -153,6 +157,8 @@ func getApp(ctx context.Context) *app.App {
 		}))
 	}
 
+	// prepare databases
+	//
 	mongoClient := getMongoClient(ctx, cfg.DatabaseURI)
 
 	customers, err := customerdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
@@ -170,6 +176,11 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "%s", err.Error())
 	}
 
+	calllogs, err := calllogdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
+	if err != nil {
+		logger.Fatalf(ctx, "%s", err.Error())
+	}
+
 	matcher := permission.NewMatcher(permission.NewResolver(identities))
 
 	door := getDoorInterface(ctx, cfg.MqttConfig)
@@ -183,7 +194,17 @@ func getApp(ctx context.Context) *app.App {
 
 	// Create a new application context and make sure it's added
 	// to each incoming HTTP Request.
-	appCtx := app.NewApp(instance, &cfg, matcher, identities, customers, rosters, doorController, holidayCache)
+	appCtx := app.NewApp(
+		instance,
+		&cfg,
+		matcher,
+		identities,
+		customers,
+		rosters,
+		doorController,
+		holidayCache,
+		calllogs,
+	)
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 
 	return appCtx
