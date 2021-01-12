@@ -43,7 +43,7 @@ func NewWithClient(ctx context.Context, dbName string, cli *mongo.Client) (Datab
 func (db *database) setup(ctx context.Context) error {
 	ind, err := db.callogs.Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys: bson.M{
-			"dateStr": 1,
+			"datestr": 1,
 		},
 		Options: options.Index().SetSparse(false),
 	})
@@ -80,7 +80,7 @@ func (db *database) Create(ctx context.Context, d time.Time, caller string, inbo
 
 func (db *database) ForDate(ctx context.Context, d time.Time) ([]v1alpha.CallLog, error) {
 	key := d.Format("2006-01-02")
-	result, err := db.callogs.Find(ctx, bson.M{"dateStr": key})
+	result, err := db.callogs.Find(ctx, bson.M{"datestr": key})
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil

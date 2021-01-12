@@ -17,5 +17,5 @@ type CallLog struct {
 	Date time.Time `json:"date"`
 	// DateStr holds a string representation of the date in
 	// the format of YYYY-MM-DD for indexing.
-	DateStr string `json:"dateStr"`
+	DateStr string `json:"datestr"`
 }
