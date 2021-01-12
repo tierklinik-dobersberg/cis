@@ -22,6 +22,8 @@ func GetForMonthEndpoint(grp gin.IRouter) {
 			return
 		}
 
+		log := logger.From(c.Request.Context())
+
 		year, err := strconv.ParseInt(c.Param("year"), 10, 64)
 		if err != nil {
 			server.AbortRequest(c, 0, err)
@@ -39,6 +41,7 @@ func GetForMonthEndpoint(grp gin.IRouter) {
 			server.AbortRequest(c, http.StatusInternalServerError, err)
 			return
 		}
+		log.Infof("loading holidays for %d/%d: %+v", year, month, holidays)
 
 		prefix := fmt.Sprintf("%d-%02d-", year, month)
 		result := make([]openinghours.PublicHoliday, 0, len(holidays))
