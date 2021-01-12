@@ -1,6 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
 
 export interface Holiday {
     date: string;
@@ -21,13 +22,15 @@ export class HolidayAPI {
      * Returns all holidays for year.
      */
     forYear(year: number): Observable<Holiday[]> {
-        return this.http.get<Holiday[]>(`/api/v1/holidays/${year}`);
+        return this.http.get<Holiday[] | null>(`/api/holidays/v1/${year}`)
+            .pipe(map(res => res || []));
     }
 
     /**
      * Returns all holidays for month in year.
      */
     forMonth(year: number, month: number): Observable<Holiday[]> {
-        return this.http.get<Holiday[]>(`/api/v1/holidays/${year}/${month}`);
+        return this.http.get<Holiday[] | null>(`/api/holidays/v1/${year}/${month}`)
+            .pipe(map(res => res || []));
     }
 }

@@ -1,5 +1,5 @@
 import { registerLocaleData } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import de from '@angular/common/locales/de';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -17,6 +17,8 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { IconsProviderModule } from './icons-provider.module';
+import { AuthorizationInterceptor } from './api';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 
 
 registerLocaleData(de);
@@ -33,12 +35,16 @@ registerLocaleData(de);
     NzMenuModule,
     NzAvatarModule,
     NzGridModule,
+    NzDropDownModule,
     FormsModule,
     HttpClientModule,
     BrowserAnimationsModule,
     FontAwesomeModule
   ],
-  providers: [{ provide: NZ_I18N, useValue: de_DE }],
+  providers: [
+    { provide: NZ_I18N, useValue: de_DE },
+    { provide: HTTP_INTERCEPTORS, useExisting: AuthorizationInterceptor, multi: true }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {

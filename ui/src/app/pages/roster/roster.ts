@@ -2,9 +2,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, QueryList, TrackByFunction, ViewChildren } from '@angular/core';
 import { NzCalendarMode } from 'ng-zorro-antd/calendar';
 import { NzDropDownDirective } from 'ng-zorro-antd/dropdown';
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { delay, mergeMap, retryWhen } from 'rxjs/operators';
-import { Day, IdentityAPI, Profile, Roster, RosterAPI } from 'src/app/api';
+import { Day, Holiday, HolidayAPI, IdentityAPI, Profile, Roster, RosterAPI } from 'src/app/api';
 
 @Component({
   templateUrl: './roster.html',
@@ -34,8 +34,13 @@ export class RosterComponent implements OnInit, OnDestroy {
     [key: number]: Day;
   } = {};
 
+  holidays: {
+    [key: string]: Holiday;
+  } = {};
+
   constructor(
     private rosterapi: RosterAPI,
+    private holidayapi: HolidayAPI,
     private identityapi: IdentityAPI) {
     this.selectedDate = new Date();
   }
@@ -112,6 +117,9 @@ export class RosterComponent implements OnInit, OnDestroy {
   }
 
   loadRoster(date: Date = this.selectedDate) {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+
     const sub =
       this.rosterapi.forMonth(date.getFullYear(), date.getMonth() + 1)
         .subscribe(
@@ -131,8 +139,15 @@ export class RosterComponent implements OnInit, OnDestroy {
             }
           }
         )
-
     this.subscriptions.add(sub);
+
+    const sub2 =
+      this.holidayapi.forMonth(year, month)
+        .subscribe(holidays => {
+          holidays.forEach(day => this.holidays[day.date] = day);
+          console.log(this.holidays);
+        })
+    this.subscriptions.add(sub2);
   }
 
   closeDropdown() {

@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { faBowlingBall } from '@fortawesome/free-solid-svg-icons';
-import { Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { flatMap, map, mergeMap, tap } from 'rxjs/operators';
 
 export interface Profile {
@@ -19,9 +19,19 @@ export interface Profile {
   providedIn: 'root'
 })
 export class IdentityAPI {
+  private onLogin = new BehaviorSubject<Profile | null>(null);
   private avatarCache: { [key: string]: string } = {};
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    this.profile()
+      .subscribe(p => {
+        this.onLogin.next(p);
+      }, err => console.error(err))
+  }
+
+  get profileChange() {
+    return this.onLogin.asObservable();
+  }
 
   /**
    * Creates a new session for the given user.
@@ -29,7 +39,7 @@ export class IdentityAPI {
    * @param username The name of the user to login.
    * @param password The password of the user.
    */
-  login(username: string, password: string): Observable<void> {
+  login(username: string, password: string): Observable<Profile> {
     return this.http.post(`/api/identity/v1/login`, {
       username: username,
       password: password,
@@ -42,9 +52,28 @@ export class IdentityAPI {
           if (!resp.ok) {
             throw resp;
           }
+
           return undefined;
+        }),
+        mergeMap(() => this.profile()),
+        tap(profile => {
+          let last = this.onLogin.getValue();
+          if (!last || last.name !== profile.name) {
+            this.onLogin.next(profile);
+          }
         })
       )
+  }
+
+  /**
+   * Log out of the current session by clearing the session
+   * token.
+   */
+  logout(): Observable<void> {
+    return this.http.post<void>('/api/identity/v1/logout', null)
+      .pipe(
+        tap(() => this.onLogin.next(null))
+      );
   }
 
   /**

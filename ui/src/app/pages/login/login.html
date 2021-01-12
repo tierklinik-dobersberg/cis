@@ -1,0 +1,34 @@
+<div class="login-container">
+    <div class="login-image">
+        <img src="assets/logo-big.png" alt="logo">
+    </div>
+
+    <div class="login-form">
+        <form nz-form [formGroup]="validateForm" class="login-form" (ngSubmit)="submitForm()">
+            <nz-form-item>
+                <nz-form-control nzErrorTip="Bitte Benutzernamen eingeben.">
+                    <nz-input-group nzPrefixIcon="user">
+                        <input type="text" [(ngModel)]="username" nz-input formControlName="userName"
+                            placeholder="Benutzername" />
+                    </nz-input-group>
+                </nz-form-control>
+            </nz-form-item>
+            <nz-form-item>
+                <nz-form-control nzErrorTip="Bitte Passwort eingeben!">
+                    <nz-input-group nzPrefixIcon="lock">
+                        <input type="password" [(ngModel)]="password" nz-input formControlName="password"
+                            placeholder="Passwort" autocomplete="current-password" />
+                    </nz-input-group>
+                </nz-form-control>
+            </nz-form-item>
+            <div nz-row class="login-form-margin">
+                <div nz-col [nzSpan]="24">
+                    <label nz-checkbox formControlName="remember">
+                        <span>Angemeldet bleiben?</span>
+                    </label>
+                </div>
+            </div>
+            <button nz-button class="login-form-button login-form-margin" [nzType]="'primary'">Log in</button>
+        </form>
+    </div>
+</div>
