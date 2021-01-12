@@ -1,9 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, QueryList, TrackByFunction, ViewChildren } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NzCalendarMode } from 'ng-zorro-antd/calendar';
-import { NzDropDownDirective } from 'ng-zorro-antd/dropdown';
-import { forkJoin, Subscription } from 'rxjs';
-import { delay, mergeMap, retryWhen } from 'rxjs/operators';
+import { NzMessageService, NzMessageServiceModule } from 'ng-zorro-antd/message';
+import { Subscription } from 'rxjs';
+import { delay, retryWhen } from 'rxjs/operators';
 import { Day, Holiday, HolidayAPI, IdentityAPI, Profile, Roster, RosterAPI } from 'src/app/api';
 
 @Component({
@@ -41,6 +41,7 @@ export class RosterComponent implements OnInit, OnDestroy {
   constructor(
     private rosterapi: RosterAPI,
     private holidayapi: HolidayAPI,
+    private messageService: NzMessageService,
     private identityapi: IdentityAPI) {
     this.selectedDate = new Date();
   }
@@ -80,10 +81,29 @@ export class RosterComponent implements OnInit, OnDestroy {
     this.saveLoading = true;
     this.rosterapi.create(roster)
       .subscribe(() => {
+        this.showNoRosterAlert = false;
         this.saveLoading = false;
         this.editMode = false;
+
+        this.messageService.success("Dienstplan gespeichert")
       }, err => {
         this.saveLoading = false;
+        let msg = "";
+
+        if (typeof err == 'string') {
+          msg = err
+        } else if ('error' in err && typeof err.error === 'string') {
+          msg = err.error
+        } else if ('statusText' in err && typeof err.statusText === 'string') {
+          msg = err.statusText;
+        } else if ('message' in err && typeof err.message === 'string') {
+          msg = err.message;
+        }
+
+        if (msg !== "") {
+          msg = ': ' + msg
+        }
+        this.messageService.error("Dienstplan konnte nicht gespeichert werden" + msg)
       })
   }
 
@@ -105,7 +125,10 @@ export class RosterComponent implements OnInit, OnDestroy {
 
   deleteRoster() {
     this.rosterapi.delete(this.selectedDate.getFullYear(), this.selectedDate.getMonth() + 1)
-      .subscribe(() => this.loadRoster(), err => console.error(err))
+      .subscribe(() => {
+        this.loadRoster();
+        this.messageService.success("Dienstplan gelöscht.");
+      }, err => console.error(err))
   }
 
   toggleEdit() {

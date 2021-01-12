@@ -35,6 +35,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
     NzAlertModule,
     NzSelectModule,
     NzToolTipModule,
+    NzMessageServiceModule,
     NzTagModule,
     RosterRoutingModule,
   ],
