@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/tierklinik-dobersberg/logger"
 	"golang.org/x/sync/singleflight"
 )
 
@@ -21,11 +22,11 @@ func apiURL(country string, year int) string {
 type HolidayGetter interface {
 	// Get returns a list of public holidays for the given
 	// country and year.
-	Get(country string, year int) ([]PublicHoliday, error)
+	Get(ctx context.Context, country string, year int) ([]PublicHoliday, error)
 
 	// IsHoliday returns true if d is a public holiday in
 	// country.
-	IsHoliday(country string, d time.Time) (bool, error)
+	IsHoliday(ctx context.Context, country string, d time.Time) (bool, error)
 }
 
 // PublicHoliday represents a public holiday record returned by date.nager.at
@@ -97,13 +98,16 @@ func NewHolidayCache() *HolidayCache {
 // Get returns a list of public holidays for the given two-letter ISO country code
 // in the given year. If the holidays have already been loaded they are served from
 // cache.
-func (cache *HolidayCache) Get(country string, year int) ([]PublicHoliday, error) {
+func (cache *HolidayCache) Get(ctx context.Context, country string, year int) ([]PublicHoliday, error) {
+	log := logger.From(ctx)
 	cache.rw.RLock()
 
 	if entry, ok := cache.cache[fmt.Sprintf("%s-%d", country, year)]; ok {
 		defer cache.rw.RUnlock()
+		log.Infof("Using cache entry for holidays in %s at %d", country, year)
 
 		if entry.Loaded.Before(time.Now().Add(time.Hour * -24)) {
+			log.Infof("Re-fetching holidays for %s in %d", country, year)
 			go cache.load(country, year)
 		}
 
@@ -112,6 +116,7 @@ func (cache *HolidayCache) Get(country string, year int) ([]PublicHoliday, error
 
 	cache.rw.RUnlock()
 
+	log.Infof("Fetching holidays for %s in %d", country, year)
 	e, err := cache.load(country, year)
 	if err != nil {
 		return nil, err
@@ -120,8 +125,8 @@ func (cache *HolidayCache) Get(country string, year int) ([]PublicHoliday, error
 }
 
 // IsHoliday returns true if d is a public holiday in country.
-func (cache *HolidayCache) IsHoliday(country string, d time.Time) (bool, error) {
-	holidays, err := cache.Get(country, d.Year())
+func (cache *HolidayCache) IsHoliday(ctx context.Context, country string, d time.Time) (bool, error) {
+	holidays, err := cache.Get(ctx, country, d.Year())
 	if err != nil {
 		return false, err
 	}

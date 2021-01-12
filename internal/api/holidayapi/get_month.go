@@ -34,7 +34,7 @@ func GetForMonthEndpoint(grp gin.IRouter) {
 			return
 		}
 
-		holidays, err := app.Holidays.Get(app.Config.Country, int(year))
+		holidays, err := app.Holidays.Get(c.Request.Context(), app.Config.Country, int(year))
 		if err != nil {
 			server.AbortRequest(c, http.StatusInternalServerError, err)
 			return

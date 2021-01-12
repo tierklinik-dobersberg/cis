@@ -419,7 +419,7 @@ func (dc *DoorController) getRangesForDay(ctx context.Context, t time.Time) []Op
 	}
 
 	// Check if we need to use holiday ranges ...
-	isHoliday, err := dc.holidays.IsHoliday(dc.country, t)
+	isHoliday, err := dc.holidays.IsHoliday(ctx, dc.country, t)
 	if err != nil {
 		isHoliday = false
 		logger.Errorf(ctx, "failed to load holidays: %s", err.Error())

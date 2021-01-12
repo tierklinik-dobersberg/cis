@@ -1,6 +1,7 @@
 package openinghours_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -9,8 +10,10 @@ import (
 )
 
 func TestLoadHolidays(t *testing.T) {
+	ctx := context.Background()
+
 	cache := openinghours.NewHolidayCache()
-	res, err := cache.Get("AT", 2021)
+	res, err := cache.Get(ctx, "AT", 2021)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	assert.Contains(t, res, openinghours.PublicHoliday{
@@ -23,11 +26,11 @@ func TestLoadHolidays(t *testing.T) {
 		Type:        "Public",
 	})
 
-	isHoliday, err := cache.IsHoliday("AT", time.Date(2021, time.December, 25, 0, 0, 0, 0, time.Local))
+	isHoliday, err := cache.IsHoliday(ctx, "AT", time.Date(2021, time.December, 25, 0, 0, 0, 0, time.Local))
 	assert.True(t, isHoliday)
 	assert.NoError(t, err)
 
-	isHoliday, err = cache.IsHoliday("AT", time.Date(2021, time.August, 13, 0, 0, 0, 0, time.Local))
+	isHoliday, err = cache.IsHoliday(ctx, "AT", time.Date(2021, time.August, 13, 0, 0, 0, 0, time.Local))
 	assert.False(t, isHoliday)
 	assert.NoError(t, err)
 }
