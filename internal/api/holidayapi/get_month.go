@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
+	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/server"
 )
 
@@ -40,8 +41,9 @@ func GetForMonthEndpoint(grp gin.IRouter) {
 		}
 
 		prefix := fmt.Sprintf("%d-%02d-", year, month)
-		result := make([]openinghours.PublicHoliday, 0)
+		result := make([]openinghours.PublicHoliday, 0, len(holidays))
 		for _, day := range holidays {
+			logger.From(c.Request.Context()).Infof("checking %s against %s", day.Date, prefix)
 			if strings.HasPrefix(day.Date, prefix) {
 				result = append(result, day)
 			}
