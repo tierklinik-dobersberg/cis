@@ -3,6 +3,10 @@ import { interval, Subscription } from "rxjs";
 import { mergeMap, startWith } from "rxjs/operators";
 import { CallLog, CalllogAPI } from "src/app/api";
 
+interface LocalCallLog extends CallLog {
+    localDate: string;
+}
+
 @Component({
     templateUrl: './calllog.html',
     styleUrls: ['./calllog.scss'],
@@ -10,9 +14,9 @@ import { CallLog, CalllogAPI } from "src/app/api";
 export class CallLogComponent implements OnInit, OnDestroy {
     private subscriptions = Subscription.EMPTY;
 
-    logs: CallLog[] = [];
+    logs: LocalCallLog[] = [];
 
-    trackLog: TrackByFunction<CallLog> = (i: number, l: CallLog) => {
+    trackLog: TrackByFunction<CallLog> = (i: number, l: LocalCallLog) => {
         if (!!l) {
             return l._id!;
         }
@@ -39,7 +43,10 @@ export class CallLogComponent implements OnInit, OnDestroy {
                     })
                 )
                 .subscribe(logs => {
-                    this.logs = logs;
+                    this.logs = logs.map(l => ({
+                        ...l,
+                        localDate: new Date(l.date).toLocaleString(),
+                    }));
                 })
 
         this.subscriptions.add(sub);
