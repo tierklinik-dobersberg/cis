@@ -28,6 +28,7 @@ type App struct {
 	Identities  identitydb.Database
 	Customers   customerdb.Database
 	Door        *openinghours.DoorController
+	Holidays    openinghours.HolidayGetter
 }
 
 func (app *App) String() string {
@@ -35,7 +36,7 @@ func (app *App) String() string {
 }
 
 // NewApp context creates a new application context.
-func NewApp(inst *service.Instance, cfg *Config, matcher *permission.Matcher, identities identitydb.Database, customers customerdb.Database, dutyRosters rosterdb.Database, door *openinghours.DoorController) *App {
+func NewApp(inst *service.Instance, cfg *Config, matcher *permission.Matcher, identities identitydb.Database, customers customerdb.Database, dutyRosters rosterdb.Database, door *openinghours.DoorController, holidays openinghours.HolidayGetter) *App {
 	return &App{
 		Instance:    inst,
 		Config:      cfg,
@@ -44,6 +45,7 @@ func NewApp(inst *service.Instance, cfg *Config, matcher *permission.Matcher, id
 		Customers:   customers,
 		DutyRosters: dutyRosters,
 		Door:        door,
+		Holidays:    holidays,
 	}
 }
 

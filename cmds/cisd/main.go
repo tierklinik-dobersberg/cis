@@ -11,6 +11,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/customerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/doorapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/externalapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/holidayapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/identityapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
@@ -105,6 +106,9 @@ func getApp(ctx context.Context) *app.App {
 				// externalapi provides specialized APIs for integration
 				// with external services (like the phone-system).
 				externalapi.Setup(apis.Group("external"))
+				// holidayapi provides access to all holidays in the
+				// configured countries.
+				holidayapi.Setup(apis.Group("holidays"))
 			}
 
 			return nil
@@ -179,7 +183,7 @@ func getApp(ctx context.Context) *app.App {
 
 	// Create a new application context and make sure it's added
 	// to each incoming HTTP Request.
-	appCtx := app.NewApp(instance, &cfg, matcher, identities, customers, rosters, doorController)
+	appCtx := app.NewApp(instance, &cfg, matcher, identities, customers, rosters, doorController, holidayCache)
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 
 	return appCtx
