@@ -21,6 +21,11 @@
         <span>Dienstplan</span>
       </li>
 
+      <li routerLink="/calllogs" nzMatchRouter nz-menu-item>
+        <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
+        <span>Eingehende Anrufe</span>
+      </li>
+
       <ng-container *ngIf="isDevMode">
         <li nzMatchRouter nz-menu-item>
           <i nz-icon nzType="calendar"></i>

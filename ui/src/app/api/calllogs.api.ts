@@ -20,6 +20,6 @@ export class CalllogAPI {
      * Returns all calllog record recorded for the given date.
      */
     forDate(year: number, month: number, day: number): Observable<CallLog[]> {
-        return this.http.get<CallLog[]>(`api/callogs/v1/${year}/${month}/${day}`);
+        return this.http.get<CallLog[]>(`api/calllogs/v1/${year}/${month}/${day}`);
     }
 }
