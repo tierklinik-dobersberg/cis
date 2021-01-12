@@ -28,6 +28,9 @@ type Database interface {
 
 	// ForMonth returns the duty roster for the given month.
 	ForMonth(ctx context.Context, month time.Month, year int) (*v1alpha.DutyRoster, error)
+
+	// Delete deletes a roster.
+	Delete(ctx context.Context, month time.Month, year int) error
 }
 
 type database struct {
@@ -149,4 +152,19 @@ func (db *database) ForMonth(ctx context.Context, month time.Month, year int) (*
 	}
 
 	return result, nil
+}
+
+func (db *database) Delete(ctx context.Context, month time.Month, year int) error {
+	res, err := db.rosters.DeleteOne(ctx, bson.M{"month": month, "year": year})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return ErrNotFound
+		}
+		return err
+	}
+
+	if res.DeletedCount < 1 {
+		return ErrNotFound
+	}
+	return nil
 }
