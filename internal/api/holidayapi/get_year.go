@@ -15,7 +15,7 @@ import (
 func GetForYearEndpoint(grp gin.IRouter) {
 	grp.GET("v1/:year", func(c *gin.Context) {
 		app := app.From(c)
-		if app != nil {
+		if app == nil {
 			return
 		}
 
