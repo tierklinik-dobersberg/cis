@@ -17,6 +17,10 @@ nz-select {
     &:last-child {
         padding-bottom: 12px;
     }
+    
+    button:not(:last-child) {
+        margin-right: 4px;
+    }
 }
 
 .toolbar {
