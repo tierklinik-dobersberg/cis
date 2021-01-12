@@ -18,4 +18,7 @@ func Setup(grp gin.IRouter) {
 
 	// GET v1/users
 	ListAllUsersEndpoint(grp)
+
+	// POST v1/logout
+	LogoutEndpoint(grp)
 }
