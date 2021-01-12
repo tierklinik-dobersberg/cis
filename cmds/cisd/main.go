@@ -100,19 +100,19 @@ func getApp(ctx context.Context) *app.App {
 				// identityapi provides user and session endpoints
 				identityapi.Setup(apis.Group("identity"))
 				// customerapi provides customer database endpoints
-				customerapi.Setup(apis.Group("customer"))
+				customerapi.Setup(apis.Group("customer", app.RequireSession()))
 				// rosterapi provides access to the electronic duty roster
-				rosterapi.Setup(apis.Group("dutyroster"))
+				rosterapi.Setup(apis.Group("dutyroster", app.RequireSession()))
 				// doorapi provides access to the entry door controller.
-				doorapi.Setup(apis.Group("door"))
+				doorapi.Setup(apis.Group("door", app.RequireSession()))
 				// externalapi provides specialized APIs for integration
 				// with external services (like the phone-system).
-				externalapi.Setup(apis.Group("external"))
+				externalapi.Setup(apis.Group("external", app.RequireSession()))
 				// holidayapi provides access to all holidays in the
 				// configured countries.
-				holidayapi.Setup(apis.Group("holidays"))
+				holidayapi.Setup(apis.Group("holidays", app.RequireSession()))
 				// calllog allows to retrieve and query call log records
-				calllogapi.Setup(apis.Group("calllogs"))
+				calllogapi.Setup(apis.Group("calllogs", app.RequireSession()))
 			}
 
 			return nil
