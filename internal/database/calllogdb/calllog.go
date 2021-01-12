@@ -52,6 +52,18 @@ func (db *database) setup(ctx context.Context) error {
 	}
 
 	logger.Infof(ctx, "Created index %s", ind)
+
+	ind, err = db.callogs.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.M{
+			"caller": 1,
+		},
+		Options: options.Index().SetSparse(false),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create index")
+	}
+
+	logger.Infof(ctx, "Created index %s", ind)
 	return nil
 }
 
