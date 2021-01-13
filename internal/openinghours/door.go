@@ -40,6 +40,8 @@ type stateOverwrite struct {
 
 // DoorController interacts with the entry door controller via MQTT.
 type DoorController struct {
+	location *time.Location
+
 	holidays HolidayGetter
 
 	// door is the actual interface to communicagte the door.
@@ -84,7 +86,13 @@ type DoorController struct {
 
 // NewDoorController returns a new door controller.
 func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holidays HolidayGetter, door DoorInterfacer) (*DoorController, error) {
+	loc, err := time.LoadLocation(cfg.TimeZone)
+	if err != nil {
+		return nil, err
+	}
+
 	dc := &DoorController{
+		location:            loc,
 		country:             cfg.Country,
 		holidays:            holidays,
 		regularOpeningHours: make(map[time.Weekday][]OpeningHour),
@@ -395,11 +403,13 @@ func (dc *DoorController) scheduler() {
 
 // Current returns the current door state.
 func (dc *DoorController) Current(ctx context.Context) (DoorState, time.Time) {
-	return dc.stateFor(ctx, time.Now())
+	return dc.stateFor(ctx, time.Now().In(dc.location))
 }
 
 // StateFor returns the desired door state for the time t.
+// It makes sure t is in the correct location.
 func (dc *DoorController) StateFor(ctx context.Context, t time.Time) (DoorState, time.Time) {
+	t = t.In(dc.location)
 	return dc.stateFor(ctx, t)
 }
 

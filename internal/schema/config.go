@@ -15,6 +15,7 @@ type Config struct {
 	SigningMethod     string // TODO(ppacher): add support for asymetric crypto and key-rotation!
 	Country           string
 	AccessLogFile     string
+	TimeZone          string
 	DefaultOpenBefore time.Duration
 	DefaultCloseAfter time.Duration
 }
@@ -64,5 +65,11 @@ var ConfigSpec = conf.SectionSpec{
 		Name:        "DefaultCloseAfter",
 		Type:        conf.DurationType,
 		Description: "Default value for CloseAfter= in [OpeningHour]",
+	},
+	{
+		Name:        "TimeZone",
+		Type:        conf.StringType,
+		Description: "The time zone to use for dates and times in the configuration",
+		Default:     "UTC",
 	},
 }
