@@ -6,4 +6,4 @@ GoogleCalendarID=-
 [AutoLogin]
 ConditionRequestFromCIDR=10.0.0.1/24
 ConditionRequestFromCIDR=10.0.1.0/24
-ConditionRequestFromCIDR=172.0.0.0/8
+#ConditionRequestFromCIDR=172.0.0.0/8

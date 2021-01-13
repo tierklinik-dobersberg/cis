@@ -3,12 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/spf13/cobra"
 	"github.com/tierklinik-dobersberg/cis/internal/api/calllogapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/configapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/customerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/doorapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/externalapi"
@@ -30,6 +33,7 @@ import (
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/service/service"
+	"github.com/tierklinik-dobersberg/service/svcenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -67,7 +71,6 @@ func getApp(ctx context.Context) *app.App {
 	var autoLoginManager *autologin.Manager
 
 	globalConf := conf.SectionSpec{}
-
 	globalConf = append(globalConf, schema.ConfigSpec...)
 	globalConf = append(globalConf, schema.DatabaseSpec...)
 	globalConf = append(globalConf, schema.IdentityConfigSpec...)
@@ -113,6 +116,8 @@ func getApp(ctx context.Context) *app.App {
 				holidayapi.Setup(apis.Group("holidays", app.RequireSession()))
 				// calllog allows to retrieve and query call log records
 				calllogapi.Setup(apis.Group("calllogs", app.RequireSession()))
+				// configapi provides configuration specific endpoints.
+				configapi.Setup(apis.Group("config", app.RequireSession()))
 			}
 
 			return nil
@@ -122,7 +127,22 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "failed to boot service: %s", err)
 	}
 
+	//
+	// There might be a ui.conf file so try to load it.
+	//
+	uiConf := filepath.Join(svcenv.Env().ConfigurationDirectory, "ui.conf")
+	uiConfSpec := conf.FileSpec{
+		"UI":           schema.UISpec,
+		"ExternalLink": schema.ExternalLinkSpec,
+	}
+
+	if err := uiConfSpec.ParseFile(uiConf, &cfg.UI); err != nil && !os.IsNotExist(err) {
+		logger.Fatalf(ctx, "failed to load ui.conf: %s", err)
+	}
+
+	//
 	// configure rocket.chat error log integration
+	//
 	if cfg.IntegrationConfig.RocketChatAddress != "" {
 		rocketClient, err := rocket.NewClient(cfg.IntegrationConfig.RocketChatAddress, nil)
 		if err != nil {
@@ -157,6 +177,7 @@ func getApp(ctx context.Context) *app.App {
 		}))
 	}
 
+	//
 	// prepare databases
 	//
 	mongoClient := getMongoClient(ctx, cfg.DatabaseURI)
@@ -183,6 +204,9 @@ func getApp(ctx context.Context) *app.App {
 
 	matcher := permission.NewMatcher(permission.NewResolver(identities))
 
+	//
+	// prepare entry door controller
+	//
 	door := getDoorInterface(ctx, cfg.MqttConfig)
 	holidayCache := openinghours.NewHolidayCache()
 	doorController, err := openinghours.NewDoorController(cfg.Config, cfg.OpeningHours, holidayCache, door)
