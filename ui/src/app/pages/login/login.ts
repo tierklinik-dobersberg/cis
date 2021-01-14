@@ -1,10 +1,10 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { FormGroup, FormBuilder, Validators } from "@angular/forms";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { NzMessageService } from "ng-zorro-antd/message";
 import { Subscription } from "rxjs";
 import { mergeMap } from "rxjs/operators";
-import { IdentityAPI } from "src/app/api";
+import { IdentityAPI, Profile } from "src/app/api";
 
 @Component({
     templateUrl: './login.html',
@@ -16,6 +16,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     lastMessageID: string = '';
     username: string = '';
     password: string = '';
+    profile: Profile | null = null;
 
     validateForm!: FormGroup;
 
@@ -38,7 +39,13 @@ export class LoginComponent implements OnInit, OnDestroy {
                     profile => {
                         this.messageService.remove(this.lastMessageID);
                         this.lastMessageID = this.messageService.info(`Hallo, ${profile.fullname}`).messageId;
-                        this.router.navigate(['/']);
+                        let target = this.activatedRoute.snapshot.queryParamMap.get('rd') || '/'
+
+                        if (target.startsWith("http")) {
+                            window.location.href = target;
+                        } else {
+                            this.router.navigate([target]);
+                        }
                     },
                     err => {
                         this.messageService.remove(this.lastMessageID);
@@ -65,11 +72,28 @@ export class LoginComponent implements OnInit, OnDestroy {
         }
     }
 
+    continue() {
+        let target = this.activatedRoute.snapshot.queryParamMap.get('rd') || '/'
+
+        if (target.startsWith("http")) {
+            window.location.href = target;
+        } else {
+            this.router.navigate([target]);
+        }
+    }
+
+    logout() {
+        this.identityapi.logout()
+            .subscribe(() => this.router.navigate(['/', 'login']))
+    }
+
     constructor(
         private router: Router,
         private fb: FormBuilder,
         private messageService: NzMessageService,
-        private identityapi: IdentityAPI) { }
+        private identityapi: IdentityAPI,
+        private activatedRoute: ActivatedRoute,
+    ) { }
 
     ngOnInit(): void {
         this.validateForm = this.fb.group({
@@ -79,12 +103,12 @@ export class LoginComponent implements OnInit, OnDestroy {
         });
 
         this.subscriptions = new Subscription();
+
+        const sub = this.identityapi.profileChange.subscribe(profile => this.profile = profile);
+        this.subscriptions.add(sub);
     }
 
     ngOnDestroy() {
         this.subscriptions.unsubscribe();
-        if (this.lastMessageID != '') {
-            this.messageService.remove(this.lastMessageID);
-        }
     }
 }

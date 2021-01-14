@@ -3,6 +3,22 @@
         <img src="assets/logo-big.png" alt="logo">
     </div>
 
+    <div class="login-form" *ngIf="!!profile">
+        <div style="text-align: center; padding-top: 12px; padding-bottom: 12px">
+            <h1>Hallo {{ profile.fullname || profile.name }},</h1>
+            Du bist derzeit im CIS angemeldet. <br />
+            Möchtest du dich <a (click)="logout()" nz-button nzType="link">Abmelden</a> oder
+            <button (click)="continue()" nz-button style="margin-top: 12px; margin-bottom: 12px; width: 100%;"
+                nzType="primary">
+                Weiter als
+                &nbsp;
+                <u>{{(profile.fullname || profile.name)}}</u>
+            </button>
+        </div>
+        <hr color="#e0e0e0" />
+        <p>Du kannst dich auch als neuer Benutzer anmelden:</p>
+    </div>
+
     <div class="login-form">
         <form nz-form [formGroup]="validateForm" class="login-form" (ngSubmit)="submitForm()">
             <nz-form-item>

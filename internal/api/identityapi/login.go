@@ -166,6 +166,6 @@ func LoginEndpoint(grp gin.IRouter) {
 
 		// TODO(ppacher): verify rd is inside protected domain
 
-		c.Redirect(http.StatusOK, rd)
+		c.Redirect(http.StatusFound, rd)
 	})
 }

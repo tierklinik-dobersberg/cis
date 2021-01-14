@@ -19,6 +19,7 @@ import { AppComponent } from './app.component';
 import { IconsProviderModule } from './icons-provider.module';
 import { AuthorizationInterceptor } from './api';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { LoginModule } from './pages/login/login.module';
 
 
 registerLocaleData(de);
@@ -39,7 +40,8 @@ registerLocaleData(de);
     FormsModule,
     HttpClientModule,
     BrowserAnimationsModule,
-    FontAwesomeModule
+    FontAwesomeModule,
+    LoginModule,
   ],
   providers: [
     { provide: NZ_I18N, useValue: de_DE },

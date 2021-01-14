@@ -1,5 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { faBowlingBall } from '@fortawesome/free-solid-svg-icons';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { flatMap, map, mergeMap, tap } from 'rxjs/operators';
@@ -22,7 +23,10 @@ export class IdentityAPI {
   private onLogin = new BehaviorSubject<Profile | null>(null);
   private avatarCache: { [key: string]: string } = {};
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+  ) {
     this.profile()
       .subscribe(p => {
         this.onLogin.next(p);
@@ -39,8 +43,13 @@ export class IdentityAPI {
    * @param username The name of the user to login.
    * @param password The password of the user.
    */
-  login(username: string, password: string): Observable<Profile> {
-    return this.http.post(`/api/identity/v1/login`, {
+  login(username: string, password: string, rd: string = ''): Observable<Profile> {
+    let externalRd = '';
+    if (rd != '') {
+      externalRd = `?redirect=${rd}`
+    }
+
+    return this.http.post(`/api/identity/v1/login${externalRd}`, {
       username: username,
       password: password,
     }, {
