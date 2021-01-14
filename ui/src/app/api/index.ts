@@ -5,3 +5,4 @@ export * from './external.api';
 export * from './holiday.api';
 export * from './authorization';
 export * from './calllogs.api';
+export * from './config.api';

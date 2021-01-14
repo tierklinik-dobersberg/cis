@@ -19,4 +19,12 @@ type Config struct {
 	OpeningHours   []schema.OpeningHours `section:"OpeningHour"`
 	UserProperties []conf.OptionSpec     `section:"UserProperty"`
 	Listeners      []server.Listener     `section:"Listener"`
+
+	UI UIConfig `section:"-"`
+}
+
+type UIConfig struct {
+	schema.UI `section:"UI"`
+
+	ExternalLinks []schema.ExternalLink `section:"ExternalLink"`
 }
