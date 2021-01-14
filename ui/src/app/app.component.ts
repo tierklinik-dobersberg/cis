@@ -1,8 +1,20 @@
 import { Component, isDevMode, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, share } from 'rxjs/operators';
-import { IdentityAPI } from './api';
+import { ConfigAPI, IdentityAPI, UIConfig } from './api';
+
+interface MenuEntry {
+  Icon: string;
+  Link: string;
+  Text: string;
+  BlankTarget: boolean;
+}
+
+interface SubMenu {
+  Text: string;
+  Items: MenuEntry[];
+}
 
 @Component({
   selector: 'app-root',
@@ -15,6 +27,9 @@ export class AppComponent implements OnInit {
 
   userAvatar: string = '';
 
+  rootLinks: MenuEntry[] = []
+  subMenus: SubMenu[] = [];
+
   isLogin = this.router.events
     .pipe(
       filter(e => e instanceof NavigationEnd),
@@ -26,6 +41,7 @@ export class AppComponent implements OnInit {
     );
 
   constructor(private identity: IdentityAPI,
+    private configapi: ConfigAPI,
     private router: Router) { }
 
   logout() {
@@ -34,22 +50,46 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.configapi.change
+      .subscribe(cfg => this.applyConfig(cfg));
+
     this.identity.profileChange
       .pipe(
         mergeMap(p => {
-          if (!p) {
-            return of('');
-          }
-
           return this.identity.avatar(p.name)
         }),
-        catchError(err => {
-          return of('');
-        })
+        catchError(err => of('')),
       )
-      .subscribe(
-        icon => this.userAvatar = icon,
-        err => console.error(err),
-      )
+      .subscribe({
+        next: icon => {
+          this.userAvatar = icon;
+        },
+        error: console.error,
+      });
+  }
+
+  private applyConfig(cfg: UIConfig | null) {
+    let menus = new Map<string, SubMenu>();
+    this.rootLinks = [];
+
+    (cfg?.ExternalLinks || []).forEach(link => {
+      if (!link.ParentMenu) {
+        this.rootLinks.push(link)
+        return
+      }
+
+      let m = menus.get(link.ParentMenu);
+      if (!m) {
+        m = {
+          Text: link.ParentMenu,
+          Items: []
+        }
+        menus.set(link.ParentMenu, m)
+      }
+
+      m.Items.push(link)
+    })
+
+    this.subMenus = Array.from(menus.values());
   }
 }

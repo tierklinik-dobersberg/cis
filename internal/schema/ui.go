@@ -26,6 +26,7 @@ type ExternalLink struct {
 	Text         string
 	Icon         string
 	Link         string
+	BlankTarget  bool
 	RequiresRole []string
 }
 
@@ -36,7 +37,6 @@ var ExternalLinkSpec = conf.SectionSpec{
 		Name:        "ParentMenu",
 		Description: "The parent menu item",
 		Type:        conf.StringType,
-		Required:    true,
 	},
 	{
 		Name:        "Text",
@@ -59,5 +59,10 @@ var ExternalLinkSpec = conf.SectionSpec{
 		Name:        "RequiresRole",
 		Description: "The link requires one of the defined roles",
 		Type:        conf.StringSliceType,
+	},
+	{
+		Name:        "BlankTarget",
+		Description: "Open link in a blank target",
+		Type:        conf.BoolType,
 	},
 }

@@ -23,7 +23,22 @@
 
       <li routerLink="/calllogs" nzMatchRouter nz-menu-item>
         <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
-        <span>Eingehende Anrufe</span>
+        <span>Anruf Journal</span>
+      </li>
+
+      <li *ngFor="let menu of subMenus" nz-submenu [nzTitle]="menu.Text" nzIcon="link">
+        <a *ngFor="let item of menu.Items" nz-menu-item [attr.href]="item.Link"
+          [attr.target]="item.BlankTarget ? '_blank' : null">
+          <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
+          <span>{{item.Text}}</span>
+        </a>
+      </li>
+
+      <li *ngFor="let item of rootLinks">
+        <a nz-menu-item [attr.href]="item.Link" [attr.target]="item.BlankTarget ? '_blank' : null">
+          <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
+          <span>{{item.Text}}</span>
+        </a>
       </li>
 
       <ng-container *ngIf="isDevMode">
