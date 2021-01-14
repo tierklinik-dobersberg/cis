@@ -4,7 +4,7 @@
     </div>
 
     <div class="login-form" *ngIf="!!profile">
-        <div style="text-align: center; padding-top: 12px; padding-bottom: 12px">
+        <div class="center">
             <h1>Hallo {{ profile.fullname || profile.name }},</h1>
             Du bist derzeit im CIS angemeldet. <br />
             Möchtest du dich <a (click)="logout()" nz-button nzType="link">Abmelden</a> oder
@@ -37,7 +37,7 @@
                     </nz-input-group>
                 </nz-form-control>
             </nz-form-item>
-            <div nz-row class="login-form-margin">
+            <div nz-row>
                 <div nz-col [nzSpan]="24">
                     <label nz-checkbox formControlName="remember">
                         <span>Angemeldet bleiben?</span>
