@@ -1,7 +1,7 @@
 import { Component, isDevMode, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
-import { catchError, filter, map, mergeMap, share, tap } from 'rxjs/operators';
+import { catchError, filter, map, mergeMap, share } from 'rxjs/operators';
 import { ConfigAPI, IdentityAPI, Profile, UIConfig } from './api';
 
 interface MenuEntry {
@@ -32,9 +32,6 @@ export class AppComponent implements OnInit {
 
   isLogin = this.router.events
     .pipe(
-      tap((e) => {
-        console.log(e);
-      }),
       filter(e => e instanceof NavigationEnd),
       map(() => {
         const isLogin = this.router.url.startsWith("/login")
