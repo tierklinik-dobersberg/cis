@@ -1,7 +1,7 @@
-<nz-layout class="app-layout" *ngIf="!(isLogin | async)">
+<nz-layout class="app-layout">
 
-  <nz-sider class="menu-sidebar" nzCollapsible nzWidth="274px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed"
-    [nzTrigger]="null">
+  <nz-sider *ngIf="!(isLogin | async)" class="menu-sidebar" nzCollapsible nzWidth="274px" nzBreakpoint="md"
+    [(nzCollapsed)]="isCollapsed" [nzTrigger]="null">
     <div class="sidebar-logo">
       <a href="https://tierklinikdobersberg.at/" target="_blank">
         <img src="assets/logo.png" alt="logo">
@@ -34,14 +34,13 @@
         </a>
       </li>
 
-      <li *ngFor="let item of rootLinks">
-        <a nz-menu-item [attr.href]="item.Link" [attr.target]="item.BlankTarget ? '_blank' : null">
-          <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
-          <span>{{item.Text}}</span>
-        </a>
-      </li>
+      <a *ngFor="let item of rootLinks" nz-menu-item [attr.href]="item.Link"
+        [attr.target]="item.BlankTarget ? '_blank' : null">
+        <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
+        <span>{{item.Text}}</span>
+      </a>
 
-      <ng-container *ngIf="isDevMode">
+      <!--
         <li nzMatchRouter nz-menu-item>
           <i nz-icon nzType="calendar"></i>
           <span>Kalendar</span>
@@ -89,26 +88,41 @@
           </ul>
         </li>
       </ng-container>
+-->
     </ul>
   </nz-sider>
 
   <nz-layout>
-    <nz-header>
+    <nz-header *ngIf="!(isLogin | async)">
       <div class="app-header">
         <span class="header-trigger" (click)="isCollapsed = !isCollapsed">
           <i class="trigger" nz-icon [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'"></i>
         </span>
 
-        <span class="header-trigger" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click">
+        <a class="header-logo" href="https://tierklinikdobersberg.at/" target="_blank">
+          <img src="assets/logo.png" alt="logo">
+          <h2>
+            <span style="color: #1080cf">Tierklinik</span> <span style="color: #15377e">Dobersberg</span>
+          </h2>
+        </a>
+
+        <span class="current-user" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click">
           <nz-avatar nzSize="small" [nzIcon]="!!userAvatar ? '' : 'user'">
             <img *ngIf="!!userAvatar" [attr.src]="userAvatar">
           </nz-avatar>
+          <span class="username">{{ profile?.fullname || profile?.name }}</span>
         </span>
 
         <nz-dropdown-menu #userMenu="nzDropdownMenu">
           <ul nz-menu style="width: 200px">
-            <li nz-menu-item routerLink="/login">Benutzer wechseln</li>
-            <li nz-menu-item (click)="logout()">Logout</li>
+            <li nz-menu-item routerLink="/login">
+              <i nz-icon nzType="user-switch" nzTheme="outline"></i>
+              Benutzer wechseln
+            </li>
+            <li nz-menu-item (click)="logout()">
+              <i nz-icon nzType="logout" nzTheme="outline"></i>
+              Logout
+            </li>
           </ul>
         </nz-dropdown-menu>
 
@@ -121,7 +135,3 @@
     </nz-content>
   </nz-layout>
 </nz-layout>
-
-<div *ngIf="(isLogin | async)">
-  <router-outlet></router-outlet>
-</div>

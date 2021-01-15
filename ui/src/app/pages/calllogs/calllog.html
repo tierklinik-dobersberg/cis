@@ -1,27 +1,27 @@
-<div nz-row nzJustify="space-around" class="top-row">
+<div class="top-row">
 
-    <div nz-col nzSpan="6">
-        <nz-card>
-            <nz-statistic [nzValue]="logs.length" nzTitle="Anrufe Heute" [nzPrefix]="prefixTpl"></nz-statistic>
-            <ng-template #prefixTpl><i nz-icon nzType="phone" [nzRotate]="95"></i></ng-template>
-        </nz-card>
-    </div>
+  <div class="dash-card">
+    <nz-card>
+      <nz-statistic [nzValue]="logs.length" nzTitle="Anrufe Heute" [nzPrefix]="prefixTpl"></nz-statistic>
+      <ng-template #prefixTpl><i nz-icon nzType="phone" [nzRotate]="95"></i></ng-template>
+    </nz-card>
+  </div>
 
 </div>
 
 <nz-table #basicTable [nzData]="logs">
-    <thead>
-        <tr>
-            <th>Zeit</th>
-            <th>Anrufer</th>
-            <th>Eingehende Nummer</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let data of basicTable.data; trackBy: trackLog">
-            <td>{{data.localDate}}</td>
-            <td>{{data.caller}}</td>
-            <td>{{data.inboundNumber}}</td>
-        </tr>
-    </tbody>
+  <thead>
+    <tr>
+      <th>Zeit</th>
+      <th>Anrufer</th>
+      <th>Eingehende Nummer</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let data of basicTable.data; trackBy: trackLog">
+      <td>{{data.localDate}}</td>
+      <td>{{data.caller}}</td>
+      <td>{{data.inboundNumber}}</td>
+    </tr>
+  </tbody>
 </nz-table>

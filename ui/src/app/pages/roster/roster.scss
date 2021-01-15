@@ -1,131 +1,153 @@
+@import 'src/utils';
+
 :host {
-    display: block;
-    padding: 24px;
+  display: block;
+  padding: 24px;
 }
 
 nz-select {
-   width: 100%;
+  width: 100%;
 }
 
 .selection-row {
-    padding: {
-        top: 6px;
-        left: 12px;
-        right: 12px;
-    }
+  padding: {
+    top  : 6px;
+    left : 12px;
+    right: 12px;
+  }
 
-    &:last-child {
-        padding-bottom: 12px;
+  &:last-child {
+    padding-bottom: 12px;
+  }
+
+  button:not(:last-child) {
+    margin-right: 4px;
+  }
+}
+
+.holiday-tag {
+  .date {
+    font-weight: bold;
+  }
+
+  .name {
+    display: none;
+
+    @include for-tablet-landscape-up {
+      display: inline-block;
     }
-    
-    button:not(:last-child) {
-        margin-right: 4px;
-    }
+  }
 }
 
 .toolbar {
-    width: 100%;
-    display: flex;
-    position: sticky;
-    top: 0px;
-    z-index: 100;
-    background: white;
-    border-bottom: 1px solid #f0f0f0;
+  width        : 100%;
+  display      : flex;
+  position     : sticky;
+  top          : 0px;
+  z-index      : 100;
+  background   : white;
+  border-bottom: 1px solid #f0f0f0;
 
-    h1 {
-        margin-bottom: 0;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
+  h1 {
+    margin-bottom  : 0;
+    display        : flex;
+    align-items    : center;
+    justify-content: flex-start;
 
-        nz-tag {
-            margin-left: 0.5rem;
-        }
+    nz-tag {
+      margin-left: 0.5rem;
     }
+  }
 
-    .actions {
-        flex-grow: 0;
+  .actions {
+    flex-grow: 0;
 
-        button:not(:last-child) {
-            margin-right: 3px;
-        }
+    button:not(:last-child) {
+      margin-right: 3px;
     }
+  }
 
-    .alerts {
-        margin-right: 12px;
-        flex-grow: 1;
-    }
-    padding-top: 12px;
-    margin-bottom: 12px;
+  .alerts {
+    margin-right: 12px;
+    flex-grow   : 1;
+  }
+
+  padding-top  : 12px;
+  margin-bottom: 12px;
 }
 
 .ant-picker-calendar-date {
-    padding: 0 !important;
+  padding: 0 !important;
 }
 
 .warning-sign {
-    color: #f3ba00;
-    margin-right: 7px;
+  color       : #f3ba00;
+  margin-right: 7px;
 }
 
 .other-month {
-    opacity: 0.2;
+  opacity: 0.2;
+}
+
+ul.holiday {
+  background-color: #EEF2FF;
 }
 
 .selected-users {
-    color: black;
-    text-align: left;
+  color     : black;
+  text-align: left;
+  overflow  : hidden;
 
-    li {
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        overflow: hidden;
-        white-space: nowrap;
+  li {
+    display        : flex;
+    justify-content: flex-start;
+    align-items    : center;
+    overflow       : hidden;
+    white-space    : nowrap;
+  }
+
+  li>span {
+    padding: {
+      top   : 0px;
+      bottom: 0px;
+      left  : 6px;
+      right : 6px;
     }
 
-    li > span {
-        padding: {
-            top: 0px;
-            bottom: 0px;
-            left: 6px;
-            right: 6px;
-        }
+    border-radius: 2px;
+    border       : 1px solid #b0b0b0;
 
-        border-radius: 2px;
-        border: 1px solid #b0b0b0;
-
-        &:not(:last-child) {
-            margin-right: 3px;
-        }
+    &:not(:last-child) {
+      margin-right: 3px;
     }
+  }
 }
 
 span.title {
-    display: block;
-    color: gray;
-    padding-bottom: 3px;
-    font-size: 90%;
-    text-transform: uppercase;
+  display       : block;
+  color         : gray;
+  padding-bottom: 3px;
+  font-size     : 90%;
+  text-transform: uppercase;
 }
 
 nz-checkbox-wrapper {
-    margin-bottom: 12px;
+  margin-bottom: 12px;
 }
 
 ul {
-    list-style: none;
-    padding: 0;
+  list-style: none;
+  padding   : 0;
 
-    li:not(:last-child) {
-        border-bottom: 1px solid #f0f0f0;
+  li:not(:last-child) {
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  li {
+    height: 30px;
+
+    &:hover {
+      background: rgba(135, 136, 206, 0.1)
     }
-
-    li {
-        height: 30px;
-
-        &:hover {
-            background: rgba(135, 136, 206, 0.1)
-        }
-    }
+  }
 }

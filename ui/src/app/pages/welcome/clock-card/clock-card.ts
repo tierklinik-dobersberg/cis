@@ -1,29 +1,32 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { interval, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, startWith } from 'rxjs/operators';
 
 @Component({
-    selector: 'app-clock-card',
-    templateUrl: './clock-card.html',
-    styleUrls: ['./clock-card.scss'],
+  selector: 'app-clock-card',
+  templateUrl: './clock-card.html',
+  styleUrls: ['./clock-card.scss'],
 })
 export class ClockCardComponent implements OnInit, OnDestroy {
-    private subscriptions = Subscription.EMPTY;
-    clock: string = '';
+  private subscriptions = Subscription.EMPTY;
+  clock: string = '';
 
 
-    ngOnInit() {
-        this.subscriptions = new Subscription();
+  ngOnInit() {
+    this.subscriptions = new Subscription();
 
-        const sub =
-            interval(1000)
-                .pipe(map(() => new Date().toLocaleTimeString()))
-                .subscribe(val => this.clock = val);
+    const sub =
+      interval(1000)
+        .pipe(
+          startWith(() => -1),
+          map(() => new Date().toLocaleTimeString()),
+        )
+        .subscribe(val => this.clock = val);
 
-        this.subscriptions.add(sub);
-    }
+    this.subscriptions.add(sub);
+  }
 
-    ngOnDestroy() {
-        this.subscriptions.unsubscribe();
-    }
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
 }

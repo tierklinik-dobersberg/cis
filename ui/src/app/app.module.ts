@@ -8,7 +8,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { far } from '@fortawesome/free-regular-svg-icons';
 import { fas } from '@fortawesome/free-solid-svg-icons';
-import { de_DE, NZ_I18N } from 'ng-zorro-antd/i18n';
+import { de_DE, NZ_DATE_CONFIG, NZ_I18N } from 'ng-zorro-antd/i18n';
 import { NzIconService } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
@@ -20,6 +20,8 @@ import { IconsProviderModule } from './icons-provider.module';
 import { AuthorizationInterceptor } from './api';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { LoginModule } from './pages/login/login.module';
+import { WelcomeModule } from './pages/welcome/welcome.module';
+import { RouterModule } from '@angular/router';
 
 
 registerLocaleData(de);
@@ -42,10 +44,12 @@ registerLocaleData(de);
     BrowserAnimationsModule,
     FontAwesomeModule,
     LoginModule,
+    RouterModule,
   ],
   providers: [
     { provide: NZ_I18N, useValue: de_DE },
-    { provide: HTTP_INTERCEPTORS, useExisting: AuthorizationInterceptor, multi: true }
+    { provide: HTTP_INTERCEPTORS, useExisting: AuthorizationInterceptor, multi: true },
+    { provide: NZ_DATE_CONFIG, useValue: { firstDayOfWeek: 1 } }
   ],
   bootstrap: [AppComponent]
 })

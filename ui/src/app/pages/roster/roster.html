@@ -49,12 +49,20 @@
   <ul *nzDateFullCell="let date" [class.other-month]="date.getMonth() != selectedDate.getMonth()"
     (click)="updateCell(date)" nz-button nz-dropdown
     [(nzVisible)]="getVisibleProp(date.toLocaleString())[date.toLocaleString()]" [nzClickHide]="false"
-    [nzDropdownMenu]="userMenu" nzTrigger="click" class="selected-users">
+    [nzDropdownMenu]="userMenu" nzTrigger="click" class="selected-users"
+    [class.holiday]="!!holidays[date.toDateString()]">
 
     <span style="padding-right: 2px; overflow: hidden; white-space: nowrap;">
-      {{date.getDate()}}
-      <nz-tag *ngIf="!!holidays[date.toDateString()]" nzColor="geekblue">{{holidays[date.toDateString()].localName}}
+      <nz-tag *ngIf="!!holidays[date.toDateString()]; else: showDayTemplate" nzColor="geekblue" class="holiday-tag">
+        <span class="date">{{date.getDate()}}</span>
+        <span class="name">
+          &nbsp;{{holidays[date.toDateString()].localName}}
+        </span>
       </nz-tag>
+
+      <ng-template #showDayTemplate>
+        {{date.getDate()}}
+      </ng-template>
     </span>
     <li>
       <span *ngFor="let user of getDay(date).forenoon" nz-tooltip [nzTooltipTitle]="userProfiles[user].fullname"> {{

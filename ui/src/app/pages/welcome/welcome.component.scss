@@ -1,24 +1,67 @@
+@import '../../../utils';
+
 :host {
-  &>.ant-row {
-    margin-bottom: 24px;
-    padding-left: 24px;
-    padding-right: 24px;
-    &>.ant-col {
-      padding  : 4px;
-      min-width: 20vw;
+  background-color: #50566310;
+  display         : block;
+  min-height      : 100%;
+  display         : flex;
+  flex-direction  : column;
+  position        : relative;
+}
+
+.top-row {
+  display        : flex;
+  flex-direction : column;
+  justify-content: space-evenly;
+  flex-wrap      : wrap;
+  align-items    : center;
+  padding        : 12px;
+
+  @include for-tablet-landscape-up {
+    flex-direction: row;
+    padding       : 0;
+    padding-top   : 48px;
+    padding-bottom: 48px;
+  }
+
+  .dash-card {
+    box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
+    min-width : 350px;
+    width     : 100%;
+    height    : 145px;
+
+    &:not(:last-child) {
+      margin-bottom: 12px;
+    }
+
+
+    @include for-tablet-landscape-up {
+      width: 30%;
+
+      margin-bottom: 12px;
     }
   }
 }
 
-.ant-row.top-row {
-  padding: 48px;
-  background-color: #505663;
-  box-shadow: inset 0px -1px 4px 0px rgba(0, 21, 41, 0.08);
-  div[nz-col] {
-    min-height: 115px;
+.placeholder-img {
+  position  : absolute;
+  bottom    : 0vh;
+  opacity   : 0.2;
+  height    : 50vh;
+  min-height: 20vw;
+  align-self: center;
+}
+
+
+
+app-clock-card {
+  @include for-phone-only {
+    display: none;
   }
 }
 
+// TESTING
+//
 .select-appointment {
   border       : 1px solid #f0f0f0;
   border-radius: 2px;

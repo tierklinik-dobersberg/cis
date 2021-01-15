@@ -1,8 +1,8 @@
 import { Component, isDevMode, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
-import { catchError, filter, map, mergeMap, share } from 'rxjs/operators';
-import { ConfigAPI, IdentityAPI, UIConfig } from './api';
+import { catchError, filter, map, mergeMap, share, tap } from 'rxjs/operators';
+import { ConfigAPI, IdentityAPI, Profile, UIConfig } from './api';
 
 interface MenuEntry {
   Icon: string;
@@ -26,12 +26,15 @@ export class AppComponent implements OnInit {
   isDevMode = isDevMode();
 
   userAvatar: string = '';
-
+  profile: Profile | null = null;
   rootLinks: MenuEntry[] = []
   subMenus: SubMenu[] = [];
 
   isLogin = this.router.events
     .pipe(
+      tap((e) => {
+        console.log(e);
+      }),
       filter(e => e instanceof NavigationEnd),
       map(() => {
         const isLogin = this.router.url.startsWith("/login")
@@ -56,13 +59,25 @@ export class AppComponent implements OnInit {
     this.identity.profileChange
       .pipe(
         mergeMap(p => {
-          return this.identity.avatar(p.name)
+          if (p === null) {
+            return of({
+              profile: null,
+              avatar: '',
+            })
+          }
+          return forkJoin({
+            profile: of(p),
+            avatar: this.identity.avatar(p.name)
+              .pipe(
+                catchError(err => of('')),
+              )
+          })
         }),
-        catchError(err => of('')),
       )
       .subscribe({
-        next: icon => {
-          this.userAvatar = icon;
+        next: result => {
+          this.userAvatar = result.avatar;
+          this.profile = result.profile;
         },
         error: console.error,
       });

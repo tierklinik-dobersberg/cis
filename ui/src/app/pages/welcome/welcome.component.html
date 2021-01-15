@@ -1,22 +1,13 @@
-<div nz-row nzJustify="space-around" class="top-row">
-
-  <div nz-col nzSpan="6">
-    <app-door-card></app-door-card>
-  </div>
-
-
-  <div nz-col nzSpan="6">
-    <app-emergency-card></app-emergency-card>
-  </div>
-
-
-  <div nz-col nzSpan="6">
-    <app-clock-card></app-clock-card>
-  </div>
-  <!-- Placeholder -->
+<img class="placeholder-img" src="assets/vet.png">
+<div class="top-row">
+  <app-door-card class="dash-card"></app-door-card>
+  <app-emergency-card class="dash-card"></app-emergency-card>
+  <app-clock-card class="dash-card"></app-clock-card>
 </div>
 
-<h2 *ngIf="isDevMode" class="ant-row">Terminvergabe</h2>
+
+<!--
+  <h2 *ngIf="isDevMode" class="ant-row">Terminvergabe</h2>
 
 <div nz-row nzJustify="space-around" *ngIf="isDevMode">
   <div nz-col nzSpan="6">
@@ -30,7 +21,6 @@
     <ng-template #dateCellTpl let-date><span>{{ date | date:'d'}} </span></ng-template>
   </div>
 
-  <!-- Placeholder -->
   <div nz-col nzSpan="18" *ngIf="isDevMode">
     <div class="select-appointment">
       <h3><span>Termin am </span>Dienstag, 01.12.2020</h3>
@@ -173,3 +163,4 @@
     </div>
   </div>
 </div>
+-->
