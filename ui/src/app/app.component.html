@@ -109,7 +109,9 @@
         <span class="current-user" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click">
           <nz-avatar *ngIf="!userAvatar" nzIcon="user">
           </nz-avatar>
-          <img *ngIf="!!userAvatar" [attr.src]="userAvatar" class="ant-avatar ant-avatar-circle">
+          <span *ngIf="!!userAvatar" class="ant-avatar ant-avatar-circle">
+            <img [attr.src]="userAvatar">
+          </span>
           <span class="username">{{ profile?.fullname || profile?.name }}</span>
         </span>
 

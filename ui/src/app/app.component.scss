@@ -119,6 +119,14 @@ nz-header {
   z-index: 2;
 }
 
+span.ant-avatar {
+  overflow: hidden;
+
+  img {
+    width: 100%;
+  }
+}
+
 .app-header {
   position       : relative;
   height         : 64px;
