@@ -24,6 +24,7 @@
     "@fortawesome/free-brands-svg-icons": "^5.15.1",
     "@fortawesome/free-regular-svg-icons": "^5.15.1",
     "@fortawesome/free-solid-svg-icons": "^5.15.1",
+    "dwv": "^0.27.1",
     "ng-zorro-antd": "~10.1.2",
     "rxjs": "~6.6.0",
     "tslib": "^2.0.0",

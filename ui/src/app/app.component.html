@@ -26,6 +26,11 @@
         <span>Anruf Journal</span>
       </li>
 
+      <li routerLink="/xray" nzMatchRouter nz-menu-item>
+        <i nz-icon nzType="expand" nzTheme="outline" [nzRotate]="95"></i>
+        <span>Röntgen</span>
+      </li>
+
       <li *ngFor="let menu of subMenus" nz-submenu [nzTitle]="menu.Text" nzIcon="link">
         <a *ngFor="let item of menu.Items" nz-menu-item [attr.href]="item.Link"
           [attr.target]="item.BlankTarget ? '_blank' : null">
