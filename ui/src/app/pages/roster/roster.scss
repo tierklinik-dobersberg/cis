@@ -76,6 +76,17 @@ nz-select {
   margin-bottom: 12px;
 }
 
+.user-menu {
+  width: 25vw;
+  min-width: 450px;
+  overflow: auto;
+
+  @include for-phone-only {
+    width: auto;
+    min-width: auto;
+  }
+}
+
 .ant-picker-calendar-date {
   padding: 0 !important;
 }

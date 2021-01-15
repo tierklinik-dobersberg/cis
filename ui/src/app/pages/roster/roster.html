@@ -82,7 +82,7 @@
 </nz-calendar>
 
 <nz-dropdown-menu #userMenu="nzDropdownMenu">
-  <div nz-menu style="width: 25vw">
+  <div nz-menu class="user-menu">
     <ng-container *ngTemplateOutlet="userSelection; context: {$implicit: 'forenoon', title: 'Vormittag'}">
     </ng-container>
     <ng-container *ngTemplateOutlet="userSelection; context: {$implicit: 'afternoon', title: 'Nachmittag'}">
