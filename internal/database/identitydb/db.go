@@ -1,6 +1,7 @@
 package identitydb
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -8,11 +9,13 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/google/renameio"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
 	"github.com/tierklinik-dobersberg/cis/internal/passwd"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/logger"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -52,6 +55,9 @@ type Database interface {
 	// GetAutologinUsers returns a map that contains the autologin section for each
 	// user that has one defined.
 	GetAutologinUsers(ctx context.Context) map[string]conf.Section
+
+	// SetUserPassword updates the password of the given user.
+	SetUserPassword(ctx context.Context, user, password, algo string) error
 }
 
 // The actual in-memory implementation for identDB.
@@ -183,6 +189,56 @@ func (db *identDB) GetAutologinUsers(_ context.Context) map[string]conf.Section 
 		m[k] = v
 	}
 	return m
+}
+
+func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo string) error {
+	hash := ""
+	switch algo {
+	case "plain":
+		hash = password
+	case "bcrypt":
+		res, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+		hash = string(res)
+	default:
+		return fmt.Errorf("unsupported password algo: %s", algo)
+	}
+
+	db.rw.Lock()
+	defer db.rw.Unlock()
+
+	u, ok := db.users[user]
+	if !ok {
+		return ErrNotFound
+	}
+
+	// create a shallow copy of u
+	// so we don't modify u in place.
+	u = &(*u)
+
+	u.PasswordAlgo = algo
+	u.PasswordHash = hash
+
+	opts, err := conf.ConvertToFile(u, "")
+	if err != nil {
+		return err
+	}
+
+	buf := bytes.NewBuffer(nil)
+
+	if err := conf.WriteSectionsTo(opts.Sections, buf); err != nil {
+		return err
+	}
+
+	path := filepath.Join(db.dir, "identity", user+".user")
+	if err := renameio.WriteFile(path, buf.Bytes(), 0600); err != nil {
+		return nil
+	}
+
+	db.users[user] = u
+	return nil
 }
 
 func (db *identDB) reload(ctx context.Context) error {

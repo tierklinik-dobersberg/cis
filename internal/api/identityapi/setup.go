@@ -13,6 +13,12 @@ func Setup(grp gin.IRouter) {
 	// GET v1/profile
 	ProfileEndpoint(grp)
 
+	// PUT v1/profile/password
+	ChangePasswordEndpoint(grp)
+
+	// POST v1/password-check
+	PasswordStrengthEndpoint(grp)
+
 	// GET v1/avatar/:user
 	AvatarEndpoint(grp)
 

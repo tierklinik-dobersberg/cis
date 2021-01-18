@@ -10,9 +10,11 @@ require (
 	github.com/eclipse/paho.mqtt.golang v1.3.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/golang/snappy v0.0.2 // indirect
+	github.com/google/renameio v1.0.0
 	github.com/google/uuid v1.1.2
 	github.com/klauspost/compress v1.11.4 // indirect
-	github.com/ppacher/system-conf v0.6.1
+	github.com/nbutton23/zxcvbn-go v0.0.0-20201221231540-e56b841a3c88 // indirect
+	github.com/ppacher/system-conf v0.7.2
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.6.1
