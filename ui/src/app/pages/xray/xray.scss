@@ -2,6 +2,7 @@
 
 :host {
     display: block;
+    height: 100%;
     padding: 12px;
 
     @include for-tablet-landscape-up {
@@ -35,5 +36,13 @@ nz-list {
         img:not(:last-child) {
             margin-right: 10px;
         }
+
+        @include for-phone-only {
+            display: none;
+        }
     }
 }
+
+.infinite-container {
+        height: 100%;
+      }

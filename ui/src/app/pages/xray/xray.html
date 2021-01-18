@@ -1,35 +1,20 @@
-<nz-list nzSize="small">
-    <nz-list-item>
-        <nz-list-item-meta>
-            <nz-list-item-meta-title>
-                <a href="https://ng.ant.design">Titel</a>
-            </nz-list-item-meta-title>
-            <nz-list-item-meta-description>
-                Description
-            </nz-list-item-meta-description>
-        </nz-list-item-meta>
+<cdk-virtual-scroll-viewport itemSize="73" class="infinite-container">
+    <nz-list nzSize="small">
+        <nz-list-item *cdkVirtualFor="let study of ds; trackBy: trackBy">
+            <nz-list-item-meta>
+                <nz-list-item-meta-title>
+                    <a>{{ study | ohifOwnerName }}</a>
+                </nz-list-item-meta-title>
+                <nz-list-item-meta-description>
+                    {{ study.studyDate | dxrDate }} &nbsp;|&nbsp;
+                    {{ study.animalName }} &nbsp;-&nbsp; {{ study.animalRace !== 'unknown' ? study.animalRace : 'N/A' }}
+                </nz-list-item-meta-description>
+            </nz-list-item-meta>
 
-        <nz-list-item-extra>
-            <img width="70" alt="logo" src="https://gw.alipayobjects.com/zos/rmsportal/mqaQswcyDLcXyDKnZfES.png" />
-            <img width="70" alt="logo" src="https://gw.alipayobjects.com/zos/rmsportal/mqaQswcyDLcXyDKnZfES.png" />
-            <img width="70" alt="logo" src="https://gw.alipayobjects.com/zos/rmsportal/mqaQswcyDLcXyDKnZfES.png" />
-        </nz-list-item-extra>
-    </nz-list-item>
-
-    <nz-list-item>
-        <nz-list-item-meta>
-            <nz-list-item-meta-title>
-                <a href="https://ng.ant.design">Titel</a>
-            </nz-list-item-meta-title>
-            <nz-list-item-meta-description>
-                Description
-            </nz-list-item-meta-description>
-        </nz-list-item-meta>
-
-        <nz-list-item-extra>
-            <img width="70" alt="logo" src="https://gw.alipayobjects.com/zos/rmsportal/mqaQswcyDLcXyDKnZfES.png" />
-            <img width="70" alt="logo" src="https://gw.alipayobjects.com/zos/rmsportal/mqaQswcyDLcXyDKnZfES.png" />
-            <img width="70" alt="logo" src="https://gw.alipayobjects.com/zos/rmsportal/mqaQswcyDLcXyDKnZfES.png" />
-        </nz-list-item-extra>
-    </nz-list-item>
-</nz-list>
+            <nz-list-item-extra>
+                <img *ngFor="let preview of study.previews" (click)="openViewer(study, preview)" height="60" alt="logo"
+                    [attr.src]="preview.previewUrl" />
+            </nz-list-item-extra>
+        </nz-list-item>
+    </nz-list>
+</cdk-virtual-scroll-viewport>
