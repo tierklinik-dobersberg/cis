@@ -32,7 +32,7 @@ export class XRayComponent implements OnInit, OnDestroy {
     private nzMessage: NzMessageService) { }
 
   openViewer(study: Study, preview: InstancePreview) {
-
+    this.nzMessage.warning('Röntgen-Betrachter derzeit nicht verfügbar.')
   }
 
   ngOnInit() {
@@ -101,7 +101,7 @@ class StudyDataSource extends DataSource<StudyWithPreview> {
 
           study.seriesList.forEach(series => {
             series.instances.forEach(instance => {
-              const url = instance.url.replace('dicomweb://', '//').replace('/wado', '/api/dxray/v1/wado') + '&contentType=image/jpeg';
+              const url = instance.url.replace('dicomweb://', '//') + '&contentType=image/jpeg';
               urls.push({
                 instanceUid: instance.sopInstanceUid,
                 previewUrl: url,
