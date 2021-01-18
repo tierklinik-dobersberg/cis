@@ -243,8 +243,27 @@ func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo str
 		return err
 	}
 
-	buf := bytes.NewBuffer(nil)
+	// make sure we add all extra user-properties as well
+	// as ConvertToFile will skip them.
+	userSec := opts.Get("User")
+	if userSec == nil {
+		return fmt.Errorf("expected [User] section to exist")
+	}
+	for _, spec := range db.userPropertySpecs {
+		val, ok := u.Properties[spec.Name]
+		if !ok {
+			continue
+		}
 
+		valueOpts, err := conf.EncodeToOptions(spec.Name, val)
+		if err != nil {
+			return fmt.Errorf("failed to encode user property %s: %w", spec.Name, err)
+		}
+
+		userSec.Options = append(userSec.Options, valueOpts...)
+	}
+
+	buf := bytes.NewBuffer(nil)
 	if err := conf.WriteSectionsTo(opts.Sections, buf); err != nil {
 		return err
 	}

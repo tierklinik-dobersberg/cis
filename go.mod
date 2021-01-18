@@ -14,7 +14,7 @@ require (
 	github.com/google/uuid v1.1.2
 	github.com/klauspost/compress v1.11.4 // indirect
 	github.com/nbutton23/zxcvbn-go v0.0.0-20201221231540-e56b841a3c88 // indirect
-	github.com/ppacher/system-conf v0.7.2
+	github.com/ppacher/system-conf v0.7.3
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.6.1
