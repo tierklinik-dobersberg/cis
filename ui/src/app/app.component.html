@@ -26,7 +26,7 @@
         <span>Anruf Journal</span>
       </li>
 
-      <li routerLink="/xray" nzMatchRouter nz-menu-item>
+      <li *ngIf="isDevMode" routerLink="/xray" nzMatchRouter nz-menu-item>
         <i nz-icon nzType="expand" nzTheme="outline" [nzRotate]="95"></i>
         <span>Röntgen</span>
       </li>
@@ -122,6 +122,11 @@
 
         <nz-dropdown-menu #userMenu="nzDropdownMenu">
           <ul nz-menu style="width: 200px">
+            <li nz-menu-item routerLink="/profile">
+              <i nz-icon nzType="user" nzTheme="outline"></i>
+              Mein Profile
+            </li>
+
             <li nz-menu-item routerLink="/login">
               <i nz-icon nzType="user-switch" nzTheme="outline"></i>
               Benutzer wechseln

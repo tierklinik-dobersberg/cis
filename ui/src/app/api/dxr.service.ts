@@ -3,6 +3,39 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
+export interface Study {
+    studyInstanceUId?: string;
+    studyDate?: string;
+    studyTime?: string;
+    patientName?: string;
+    patientAge?: string;
+    patientBirthDate?: string;
+    patientId?: string;
+    patientSex?: string;
+    animalRace?: string;
+    animalName?: string;
+    seriesList?: Series[];
+}
+
+export interface Series {
+    seriesDescription?: string;
+    seriesInstanceUid?: string;
+    seriesBodyPart?: string;
+    seriesNumber?: string;
+    seriesDate?: string;
+    seriesTime?: string;
+    seriesModality?: string;
+    instances?: Instance[];
+}
+
+export interface Instance {
+    instanceNumber?: string;
+    sopInstanceUid?: string;
+    url?: string;
+
+    [key: string]: any;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -10,7 +43,7 @@ export class DxrService {
     private _studyCache: any | null = null;
     constructor(private http: HttpClient) { }
 
-    loadLastStudies(offset: number = 0, limit: number = 10): Observable<any[]> {
+    loadLastStudies(offset: number = 0, limit: number = 10): Observable<Study[]> {
         return this.http.get<any[]>(`/api/dxray/v1/list`, {
             params: {
                 offset: offset + '',

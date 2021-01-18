@@ -16,6 +16,12 @@ export interface Profile {
   };
 }
 
+export interface PasswordStrenght {
+  score: number;
+  crackTime: string;
+  entropy: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -72,6 +78,31 @@ export class IdentityAPI {
           }
         })
       )
+  }
+
+  /**
+   * Changes the password for the given user.
+   * 
+   * @param current The current user password
+   * @param newPwd The new user password
+   */
+  changePassword(current: string, newPwd: string): Observable<void> {
+    return this.http.put<void>(`/api/identity/v1/profile/password`, {
+      current: current,
+      newPassword: newPwd
+    });
+  }
+
+
+  /**
+   * Tests if a password is valid.
+   * 
+   * @param password The password to test
+   */
+  testPassword(password: string): Observable<PasswordStrenght> {
+    return this.http.post<PasswordStrenght>(`/api/identity/v1/password-check`, {
+      password: password
+    })
   }
 
   /**

@@ -9,6 +9,7 @@ const routes: Routes = [
   { path: 'login', children: LoginRoutes },
   { path: 'calllogs', loadChildren: () => import('./pages/calllogs/calllog.module').then(m => m.CallLogModule) },
   { path: 'xray', loadChildren: () => import('./pages/xray/xray.module').then(m => m.XRayModule) },
+  { path: 'profile', loadChildren: () => import('./pages/profile/profile.module').then(m => m.ProfileModule) },
 ];
 
 @NgModule({

@@ -1,0 +1,41 @@
+<div class="profile-container">
+    <div class="current-user">
+        <nz-avatar *ngIf="!userAvatar" nzIcon="user" [nzSize]="128">
+        </nz-avatar>
+        <span *ngIf="!!userAvatar" class="ant-avatar ant-avatar-circle">
+            <img [attr.src]="userAvatar">
+        </span>
+    </div>
+    <h1 class="username">
+        <span>
+            Hallo {{ profile?.fullname || profile?.name }},
+        </span>
+        <button nz-button nzType="primary" routerLink="change-password">Passwort ändern</button>
+    </h1>
+
+    <nz-descriptions nzBordered>
+        <nz-descriptions-item nzTitle="Benutzername" [nzSpan]="3">{{profile?.name || 'N/A'}}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Name" [nzSpan]="3">{{profile?.fullname || 'N/A'}}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="E-Mail" [nzSpan]="3">
+            <ul>
+                <li *ngFor="let mail of profile?.mail">{{mail}}</li>
+            </ul>
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Telefon" [nzSpan]="3">
+            <ul>
+                <li *ngFor="let phone of profile?.phoneNumbers">{{phone}}</li>
+            </ul>
+        </nz-descriptions-item>
+
+        <nz-descriptions-item nzTitle="Benutzerrollen" [nzSpan]="3">
+            <ul>
+                <li *ngFor="let role of profile?.roles">{{role}}</li>
+            </ul>
+        </nz-descriptions-item>
+
+
+        <nz-descriptions-item *ngFor="let prop of (profile?.properties | keyvalue)" [nzTitle]="prop.key" [nzSpan]="3">
+            {{prop.value || 'N/A'}}
+        </nz-descriptions-item>
+    </nz-descriptions>
+</div>
