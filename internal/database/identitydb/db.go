@@ -56,6 +56,10 @@ type Database interface {
 	// user that has one defined.
 	GetAutologinUsers(ctx context.Context) map[string]conf.Section
 
+	// GetAutologinRoles returns a map that contains the autologin section for
+	// each role that has one defined.
+	GetAutologinRoles(ctx context.Context) map[string]conf.Section
+
 	// SetUserPassword updates the password of the given user.
 	SetUserPassword(ctx context.Context, user, password, algo string) error
 }
@@ -68,7 +72,8 @@ type identDB struct {
 	autologinConditions *httpcond.Registry
 	users               map[string]*user
 	roles               map[string]*role
-	autologin           map[string]conf.Section
+	autologinUsers      map[string]conf.Section
+	autologinRoles      map[string]conf.Section
 }
 
 // New returns a new database that uses ldr.
@@ -184,8 +189,20 @@ func (db *identDB) GetAutologinUsers(_ context.Context) map[string]conf.Section 
 	defer db.rw.RUnlock()
 
 	// create a copy of the map
-	m := make(map[string]conf.Section, len(db.autologin))
-	for k, v := range db.autologin {
+	m := make(map[string]conf.Section, len(db.autologinUsers))
+	for k, v := range db.autologinUsers {
+		m[k] = v
+	}
+	return m
+}
+
+func (db *identDB) GetAutologinRoles(_ context.Context) map[string]conf.Section {
+	db.rw.RLock()
+	defer db.rw.RUnlock()
+
+	// create a copy of the map
+	m := make(map[string]conf.Section, len(db.autologinRoles))
+	for k, v := range db.autologinRoles {
 		m[k] = v
 	}
 	return m
@@ -248,7 +265,8 @@ func (db *identDB) reload(ctx context.Context) error {
 	// clear the current user and roles maps
 	db.users = make(map[string]*user, len(db.users))
 	db.roles = make(map[string]*role, len(db.roles))
-	db.autologin = make(map[string]conf.Section, len(db.autologin))
+	db.autologinUsers = make(map[string]conf.Section, len(db.autologinUsers))
+	db.autologinRoles = make(map[string]conf.Section, len(db.autologinRoles))
 
 	identityDir := filepath.Join(db.dir, "identity")
 

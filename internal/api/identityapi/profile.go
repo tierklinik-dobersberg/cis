@@ -27,6 +27,10 @@ func ProfileEndpoint(grp gin.IRouter) {
 				return
 			}
 
+			// the user/request might be granted roles by auto-assignment (see autologin)
+			// so make sure we send the complete set of availabe roles here,
+			user.User.Roles = app.SessionRoles(c)
+
 			c.JSON(http.StatusOK, user.User)
 		},
 	)

@@ -56,7 +56,12 @@ func VerifyEndpoint(grp gin.IRouter) {
 		// make sure there's a valid session cookie.
 		if user != nil && status == http.StatusOK {
 			c.Set("session:user", user.Name)
-
+			// TODO(ppacher): we do not yet support auto-assiged roles
+			// in permission checks.
+			//
+			// Use autologin.Manager.GetAutoAssignedRoles(c.Request) and
+			// add them to the permission request.
+			//
 			req, err := NewPermissionRequest(c)
 			if err != nil {
 				log.Infof("failed to create permission request: %s", err)

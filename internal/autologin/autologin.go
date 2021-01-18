@@ -26,6 +26,10 @@ type Manager struct {
 	// users holds all conditions that must be fullfilled for a request
 	// to be granted a session token using automatic-login.
 	users map[string]httpcond.Condition
+
+	// roleAssignment holds all conditions that must be fullfilled for a
+	// request to be granted an additional role.
+	roleAssignment map[string]httpcond.Condition
 }
 
 // NewManager returns a new autologin manager that uses reg
@@ -65,6 +69,29 @@ func (mng *Manager) getUserLogin(r *http.Request) (*schema.User, error) {
 	return nil, nil
 }
 
+// GetAutoAssignedRoles returns all roles that should be automatically assigned
+// to r.
+func (mng *Manager) GetAutoAssignedRoles(r *http.Request) ([]string, error) {
+	mng.rw.RLock()
+	defer mng.rw.RUnlock()
+
+	var roles []string
+
+	for role, cond := range mng.roleAssignment {
+		matched, err := cond.Match(r)
+		if err != nil {
+			logger.From(r.Context()).Errorf("failed to check for autoassignment of role %s: %s", role, err)
+			continue
+		}
+
+		if matched {
+			roles = append(roles, role)
+		}
+	}
+
+	return roles, nil
+}
+
 // PerformAutologin may add an autologin user session to c.
 func (mng *Manager) PerformAutologin(c *gin.Context) {
 	// never try to issue an automatic session
@@ -77,7 +104,6 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 		}
 
 		if autologin != nil {
-
 			logger.From(c.Request.Context()).Infof("autologin granted for user %s", autologin)
 			sessionCookie, err := app.CreateSessionCookie(app.From(c), autologin.User, 5*time.Minute)
 			if err != nil {
@@ -93,25 +119,69 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 			c.Set("session:roles", autologin.Roles)
 		}
 	}
+
+	// we only do role auto-assignment if there's a valid
+	// user session.
+	if app.SessionUser(c) == "" {
+		return
+	}
+
+	roles, err := mng.GetAutoAssignedRoles(c.Request)
+	if err != nil {
+		logger.From(c.Request.Context()).Errorf("failed to get auto-assign roles: %s", err)
+		return
+	}
+
+	var existingRoles []string
+	existingInterface, ok := c.Get("session:roles")
+	if ok {
+		existingRoles, ok = existingInterface.([]string)
+	}
+
+	lm := make(map[string]struct{}, len(existingRoles))
+	for _, role := range existingRoles {
+		lm[role] = struct{}{}
+	}
+
+	for _, role := range roles {
+		// enuser we don't have any duplicates in the result
+		if _, ok := lm[role]; ok {
+			continue
+		}
+
+		existingRoles = append(existingRoles, role)
+	}
+	c.Set("session:roles", existingRoles)
 }
 
 func (mng *Manager) buildConditions(ctx context.Context) {
 	users := mng.identiy.GetAutologinUsers(ctx)
-
-	m := make(map[string]httpcond.Condition, len(users))
-
+	userConditionMap := make(map[string]httpcond.Condition, len(users))
 	for user, section := range users {
 		cond, err := mng.conditionBuilder.Build(section)
 		if err != nil {
-			logger.From(ctx).Errorf("cannot build autologin conditions for %s: %s", user, err)
+			logger.From(ctx).Errorf("cannot build autologin conditions for user %s: %s", user, err)
 			continue
 		}
 
-		m[user] = cond
+		userConditionMap[user] = cond
+	}
+
+	roles := mng.identiy.GetAutologinRoles(ctx)
+	roleConditionMap := make(map[string]httpcond.Condition, len(roles))
+	for role, section := range roles {
+		cond, err := mng.conditionBuilder.Build(section)
+		if err != nil {
+			logger.From(ctx).Errorf("cannot build autoassign conditions for role %s: %s", role, err)
+			continue
+		}
+
+		roleConditionMap[role] = cond
 	}
 
 	mng.rw.Lock()
 	defer mng.rw.Unlock()
 
-	mng.users = m
+	mng.users = userConditionMap
+	mng.roleAssignment = roleConditionMap
 }

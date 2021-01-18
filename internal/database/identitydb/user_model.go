@@ -46,7 +46,7 @@ func (db *identDB) loadUsers(identityDir string) error {
 		// if the user has an autologin section defined
 		// add it the the autologin map as well.
 		if autologin != nil && len(autologin.Options) > 0 {
-			db.autologin[lowerName] = *autologin
+			db.autologinUsers[lowerName] = *autologin
 		}
 	}
 

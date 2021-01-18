@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
 )
@@ -16,17 +17,22 @@ type role struct {
 }
 
 func (db *identDB) loadRoles(identityDir string) error {
-	roleFiles, err := utils.LoadFiles(identityDir, ".role", conf.FileSpec{
+	spec := conf.FileSpec{
 		"Role":       schema.RoleSpec,
 		"Permission": schema.PermissionSpec,
-	})
+	}
+	if db.autologinConditions != nil {
+		spec["AutoAssign"] = db.autologinConditions
+	}
+
+	roleFiles, err := utils.LoadFiles(identityDir, ".role", spec)
 	if err != nil {
 		return err
 	}
 
 	// build the roles map
 	for _, f := range roleFiles {
-		g, err := decodeRole(f)
+		g, autoassign, err := decodeRole(f, db.autologinConditions)
 		if err != nil {
 			return fmt.Errorf("%s: %w", f.Path, err)
 		}
@@ -38,21 +44,36 @@ func (db *identDB) loadRoles(identityDir string) error {
 			return fmt.Errorf("role with name %s already defined", lowerName)
 		}
 		db.roles[lowerName] = g
+
+		// if the role has an autoassign section defined
+		// add it the the autologin map as well.
+		if autoassign != nil && len(autoassign.Options) > 0 {
+			db.autologinRoles[lowerName] = *autoassign
+		}
 	}
 	return nil
 }
 
-func decodeRole(f *conf.File) (*role, error) {
+func decodeRole(f *conf.File, cond *httpcond.Registry) (*role, *conf.Section, error) {
 	spec := conf.FileSpec{
 		"Role":       schema.RoleSpec,
 		"Permission": schema.PermissionSpec,
 	}
 
+	if cond != nil {
+		spec["AutoAssign"] = cond
+	}
+
 	var grp role
 
 	if err := spec.Decode(f, &grp); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return &grp, nil
+	var autoassignSection *conf.Section
+	if cond != nil {
+		autoassignSection = f.Get("AutoAssign")
+	}
+
+	return &grp, autoassignSection, nil
 }
