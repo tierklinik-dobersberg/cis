@@ -4,13 +4,13 @@ import (
 	"context"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
+	"github.com/tierklinik-dobersberg/cis/internal/session"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
@@ -94,35 +94,32 @@ func (mng *Manager) GetAutoAssignedRoles(r *http.Request) ([]string, error) {
 
 // PerformAutologin may add an autologin user session to c.
 func (mng *Manager) PerformAutologin(c *gin.Context) {
+	log := logger.From(c.Request.Context())
+
 	// never try to issue an automatic session
 	// token if there is a valid user session
-	if app.SessionUser(c) == "" {
+	if session.Get(c) == nil {
 		autologin, err := mng.getUserLogin(c.Request)
 		if err != nil {
-			logger.From(c.Request.Context()).Errorf("failed to perform autologin: %s", err.Error())
+			log.Errorf("failed to perform autologin: %s", err.Error())
 			return
 		}
 
 		if autologin != nil {
-			logger.From(c.Request.Context()).Infof("autologin granted for user %s", autologin)
-			sessionCookie, err := app.CreateSessionCookie(app.From(c), autologin.User, 5*time.Minute)
+			sess, err := session.Create(app.From(c), autologin.User, c.Writer)
 			if err != nil {
-				logger.From(c.Request.Context()).Errorf("failed to create session token: %s", err)
+				log.Errorf("failed to perform autologin: %s", err)
 				return
 			}
-			http.SetCookie(c.Writer, sessionCookie)
 
-			// make sure all following handlers see a valid
-			// session.
-			c.Set("session:user", autologin.Name)
-			c.Set("session:ttl", 5*time.Minute)
-			c.Set("session:roles", autologin.Roles)
+			session.Set(c, sess)
 		}
 	}
 
 	// we only do role auto-assignment if there's a valid
 	// user session.
-	if app.SessionUser(c) == "" {
+	sess := session.Get(c)
+	if sess == nil {
 		return
 	}
 
@@ -132,14 +129,8 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 		return
 	}
 
-	var existingRoles []string
-	existingInterface, ok := c.Get("session:roles")
-	if ok {
-		existingRoles, ok = existingInterface.([]string)
-	}
-
-	lm := make(map[string]struct{}, len(existingRoles))
-	for _, role := range existingRoles {
+	lm := make(map[string]struct{}, len(sess.Roles))
+	for _, role := range sess.Roles {
 		lm[role] = struct{}{}
 	}
 
@@ -149,9 +140,8 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 			continue
 		}
 
-		existingRoles = append(existingRoles, role)
+		sess.Roles = append(sess.Roles, role)
 	}
-	c.Set("session:roles", existingRoles)
 }
 
 func (mng *Manager) buildConditions(ctx context.Context) {

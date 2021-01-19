@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/session"
 )
 
 // LogoutEndpoint clears the session cookie. It does not invalidate
@@ -16,13 +17,16 @@ func LogoutEndpoint(grp gin.IRouter) {
 			return
 		}
 
-		if app.SessionUser(c) == "" {
+		if session.Get(c) == nil {
 			c.Status(http.StatusOK)
 			return
 		}
 
-		cookie := app.ClearSessionCookie(appCtx)
-		http.SetCookie(c.Writer, cookie)
+		// FIXME: clean sessions
+		/*
+			cookie := app.ClearSessionCookie(appCtx)
+			http.SetCookie(c.Writer, cookie)
+		*/
 
 		c.Status(http.StatusOK)
 	})

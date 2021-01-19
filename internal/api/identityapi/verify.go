@@ -5,11 +5,11 @@ import (
 	"encoding/base64"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/session"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -28,20 +28,10 @@ func VerifyEndpoint(grp gin.IRouter) {
 			return
 		}
 
-		claims, sessionExpiry := app.CheckSession(appCtx, c.Request)
-		if claims != nil {
+		sess := session.Get(c)
+		if sess != nil {
 			status = http.StatusOK
-
-			// try to get the user from the database, if that fails
-			// the auth-request fails as well.
-			u, err := appCtx.Identities.GetUser(c.Request.Context(), claims.Subject)
-			if err != nil {
-				log.Infof("valid session for deleted user %s", user)
-				sessionExpiry = 0
-				status = http.StatusForbidden
-			} else {
-				user = &u.User
-			}
+			user = &sess.User
 		} else if header := c.Request.Header.Get("Authorization"); header != "" {
 			// TODO(ppacher): revisit if we still want to accept user/password
 			// as basic auth.
@@ -49,7 +39,6 @@ func VerifyEndpoint(grp gin.IRouter) {
 			// There's no session cookie or authorization bearer available, check if the user
 			// is trying basic-auth.
 			status, user = verifyBasicAuth(c.Request.Context(), appCtx.Identities, header)
-			sessionExpiry = 0
 		}
 
 		// on success, add user details as headers and
@@ -84,31 +73,13 @@ func VerifyEndpoint(grp gin.IRouter) {
 
 			addRemoteUserHeaders(*user, c.Writer)
 
-			// make sure we have a valid session and if it's going to
-			// expire soon renew it now.
-			if sessionExpiry < time.Minute*5 {
-				cookie, err := app.CreateSessionCookie(
-					appCtx,
-					*user,
-					time.Hour,
-				)
-				if err != nil {
-					c.AbortWithStatus(http.StatusInternalServerError)
-					log.Errorf("failed to create session token for %s: %s", user.Name, err)
-					return
-				}
-				http.SetCookie(c.Writer, cookie)
-			}
-
 			c.Status(status)
 
 			return
 		}
 
-		http.SetCookie(
-			c.Writer,
-			app.ClearSessionCookie(appCtx),
-		)
+		// FIXME(ppacher): clear any active session cookie
+		// and use Clean-Site-Data
 		c.Status(status)
 	})
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/session"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/server"
@@ -19,7 +20,8 @@ func removeSetSessionCookie(appCtx *app.App, w http.ResponseWriter) {
 	w.Header().Del(cookieHeader)
 
 	for _, e := range existingCookies {
-		if !strings.Contains(e, appCtx.Config.CookieName) {
+		if !strings.Contains(e, appCtx.Config.AccessTokenCookie) &&
+			!strings.Contains(e, appCtx.Config.RefreshTokenCookie) {
 			w.Header().Add(cookieHeader, e)
 		}
 	}
@@ -113,16 +115,11 @@ func LoginEndpoint(grp gin.IRouter) {
 		}
 
 		if user == nil {
-			claims, expiresIn := app.CheckSession(appCtx, c.Request)
-			// check if there's a valid session cookie
-			if claims != nil {
-				u, err := appCtx.Identities.GetUser(c.Request.Context(), claims.Subject)
-				if err != nil {
-					server.AbortRequest(c, http.StatusInternalServerError, err)
-					return
-				}
+			sess := session.Get(c)
 
-				user = &u.User
+			// check if there's a valid session cookie
+			if sess != nil {
+				user = &sess.User
 
 				log = log.WithFields(logger.Fields{
 					"user": user.Name,
@@ -131,13 +128,13 @@ func LoginEndpoint(grp gin.IRouter) {
 				// If the cookie is still valid just return immediately without
 				// creating a new session cookie.
 				// TODO(ppacher): make configurable
-				if expiresIn > 5*time.Minute {
-					log.Infof("accepting request as cookie is still valid for %s", expiresIn)
+				if sess.AccessUntil != nil && sess.AccessUntil.Sub(time.Now()) > 5*time.Minute {
+					log.Infof("accepting request as cookie is still valid until %s", sess.AccessUntil)
 					c.Status(http.StatusOK)
 					return
 				}
 
-				log.Infof("session expiration in %s, auto-renewing token", expiresIn)
+				log.Infof("session expiration at %s, auto-renewing token", sess.AccessUntil)
 			}
 		} else {
 			log = log.WithFields(logger.Fields{
@@ -150,13 +147,11 @@ func LoginEndpoint(grp gin.IRouter) {
 			return
 		}
 
-		cookie, err := app.CreateSessionCookie(appCtx, *user, time.Hour)
+		sess, err := session.Create(appCtx, *user, c.Writer)
 		if err != nil {
 			c.AbortWithStatus(http.StatusInternalServerError)
-			log.Errorf("failed to create session token: %s for %s", user.Name, err)
-			return
 		}
-		http.SetCookie(c.Writer, cookie)
+		session.Set(c, sess)
 
 		rd := c.Query("redirect")
 		if rd == "" {
@@ -165,7 +160,6 @@ func LoginEndpoint(grp gin.IRouter) {
 		}
 
 		// TODO(ppacher): verify rd is inside protected domain
-
 		c.Redirect(http.StatusFound, rd)
 	})
 }

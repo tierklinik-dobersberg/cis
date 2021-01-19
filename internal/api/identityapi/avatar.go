@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/session"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
@@ -18,7 +19,7 @@ import (
 func AvatarEndpoint(grp gin.IRouter) {
 	grp.GET(
 		"v1/avatar/:userName",
-		app.RequireSession(),
+		session.Require(),
 		func(c *gin.Context) {
 			appCtx := app.From(c)
 			if appCtx == nil {

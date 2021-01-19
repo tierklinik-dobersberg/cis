@@ -1,25 +1,36 @@
 package schema
 
 import (
+	"time"
+
 	"github.com/ppacher/system-conf/conf"
 )
 
 // IdentityConfig groups configuration variables related to
 // identity handling and the api/identity endpoint.
 type IdentityConfig struct {
-	CookieName      string
-	CookieDomain    string
-	InsecureCookies bool
-	AvatarDirectory string
+	AccessTokenCookie  string
+	RefreshTokenCookie string
+	CookieDomain       string
+	AccessTokenTTL     time.Duration
+	RefreshTokenTTL    time.Duration
+	InsecureCookies    bool
+	AvatarDirectory    string
 }
 
 // IdentityConfigSpec defines the available configuration values for the
 // [Identity] configuration section.
 var IdentityConfigSpec = []conf.OptionSpec{
 	{
-		Name:        "CookieName",
+		Name:        "AccessTokenCookie",
 		Default:     "cis-session",
 		Description: "Name of the session cookie",
+		Type:        conf.StringType,
+	},
+	{
+		Name:        "RefreshTokenCookie",
+		Default:     "cis-refresh",
+		Description: "Name of the refresh token cookie",
 		Type:        conf.StringType,
 	},
 	{
@@ -38,5 +49,17 @@ var IdentityConfigSpec = []conf.OptionSpec{
 		Name:        "AvatarDirectory",
 		Description: "Path to avatar storage directory",
 		Type:        conf.StringType,
+	},
+	{
+		Name:        "AccessTokenTTL",
+		Description: "Duration an access token is considered valid",
+		Type:        conf.DurationType,
+		Default:     "1h",
+	},
+	{
+		Name:        "RefreshTokenTTL",
+		Description: "Duration a refresh token is considered valid",
+		Type:        conf.DurationType,
+		Default:     "24h",
 	},
 }

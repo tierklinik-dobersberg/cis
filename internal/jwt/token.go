@@ -5,11 +5,22 @@
 package jwt
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	jwtlib "github.com/dgrijalva/jwt-go"
+)
+
+// Scope defines the scope of a JWT token.
+type Scope string
+
+const (
+	// ScopeAccess is a full access token.
+	ScopeAccess = "access"
+
+	// ScopeRefresh is required to receive a new access token.
+	ScopeRefresh = "refresh"
 )
 
 var supportedMethods = map[string]struct{}{
@@ -41,6 +52,7 @@ type Claims struct {
 	NotBefore   int64        `json:"nbf,omitempty" xml:"nbf" yaml:"nbf,omitempty"`
 	Subject     string       `json:"sub,omitempty" xml:"sub" yaml:"sub,omitempty"`
 	Name        string       `json:"name,omitempty" xml:"name" yaml:"name,omitempty"`
+	Scopes      []Scope      `json:"scopes,omitempty" xml:"scopes" yaml:"scopes,omitempty"`
 	Email       string       `json:"email,omitempty" xml:"email" yaml:"email,omitempty"`
 	AppMetadata *AppMetadata `json:"app_metadata,omitempty" xml:"app_metadata" yaml:"app_metadata,omitempty"`
 }
@@ -50,11 +62,11 @@ type Claims struct {
 // used.
 func (u Claims) Valid() error {
 	if u.NotBefore > 0 && time.Now().Unix() < u.NotBefore {
-		return errors.New("token not yet valid")
+		return jwt.NewValidationError("Not yet valid", jwt.ValidationErrorNotValidYet)
 	}
 
 	if u.ExpiresAt > 0 && u.ExpiresAt < time.Now().Unix() {
-		return errors.New("token expired")
+		return jwt.NewValidationError("Expired", jwt.ValidationErrorExpired)
 	}
 
 	return nil

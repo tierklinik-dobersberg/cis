@@ -30,6 +30,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
+	"github.com/tierklinik-dobersberg/cis/internal/session"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/service/service"
@@ -90,7 +91,7 @@ func getApp(ctx context.Context) *app.App {
 		RouteSetupFunc: func(grp gin.IRouter) error {
 			apis := grp.Group(
 				"/api/",
-				app.ExtractSessionUser(),
+				session.Middleware(),
 				func(c *gin.Context) {
 					if autoLoginManager != nil {
 						autoLoginManager.PerformAutologin(c)
@@ -103,21 +104,21 @@ func getApp(ctx context.Context) *app.App {
 				// identityapi provides user and session endpoints
 				identityapi.Setup(apis.Group("identity"))
 				// customerapi provides customer database endpoints
-				customerapi.Setup(apis.Group("customer", app.RequireSession()))
+				customerapi.Setup(apis.Group("customer", session.Require()))
 				// rosterapi provides access to the electronic duty roster
-				rosterapi.Setup(apis.Group("dutyroster", app.RequireSession()))
+				rosterapi.Setup(apis.Group("dutyroster", session.Require()))
 				// doorapi provides access to the entry door controller.
-				doorapi.Setup(apis.Group("door", app.RequireSession()))
+				doorapi.Setup(apis.Group("door", session.Require()))
 				// externalapi provides specialized APIs for integration
 				// with external services (like the phone-system).
-				externalapi.Setup(apis.Group("external", app.RequireSession()))
+				externalapi.Setup(apis.Group("external", session.Require()))
 				// holidayapi provides access to all holidays in the
 				// configured countries.
-				holidayapi.Setup(apis.Group("holidays", app.RequireSession()))
+				holidayapi.Setup(apis.Group("holidays", session.Require()))
 				// calllog allows to retrieve and query call log records
-				calllogapi.Setup(apis.Group("calllogs", app.RequireSession()))
+				calllogapi.Setup(apis.Group("calllogs", session.Require()))
 				// configapi provides configuration specific endpoints.
-				configapi.Setup(apis.Group("config", app.RequireSession()))
+				configapi.Setup(apis.Group("config", session.Require()))
 			}
 
 			return nil
