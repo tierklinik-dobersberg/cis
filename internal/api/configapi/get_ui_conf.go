@@ -1,6 +1,7 @@
 package configapi
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -8,13 +9,9 @@ import (
 )
 
 // GetUIConfigEndpoint provides access to the UI configuration.
-func GetUIConfigEndpoint(grp gin.IRouter) {
-	grp.GET("v1/ui", func(c *gin.Context) {
-		app := app.From(c)
-		if app == nil {
-			return
-		}
-
+func GetUIConfigEndpoint(grp *app.Router) {
+	grp.GET("v1/ui", func(ctx context.Context, app *app.App, c *gin.Context) error {
 		c.JSON(http.StatusOK, app.Config.UI)
+		return nil
 	})
 }

@@ -1,56 +1,56 @@
 package doorapi
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/service/server"
+	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 )
 
 // TestStateEndpoint allows to test the desired door state for any
 // point in time.
-func TestStateEndpoint(grp gin.IRouter) {
-	grp.GET("v1/test/:year/:month/:day/:hour/:minute", func(c *gin.Context) {
-		app := app.From(c)
-		if app == nil {
-			return
-		}
+func TestStateEndpoint(grp *app.Router) {
+	grp.GET(
+		"v1/test/:year/:month/:day/:hour/:minute",
+		func(ctx context.Context, app *app.App, c *gin.Context) error {
+			year, err := getIntParam("year", c)
+			if err != nil {
+				return err
+			}
+			month, err := getIntParam("month", c)
+			if err != nil {
+				return err
+			}
+			day, err := getIntParam("day", c)
+			if err != nil {
+				return err
+			}
+			hour, err := getIntParam("hour", c)
+			if err != nil {
+				return err
+			}
+			minute, err := getIntParam("minute", c)
+			if err != nil {
+				return err
+			}
 
-		year, ok := getIntParam("year", c)
-		if !ok {
-			return
-		}
-		month, ok := getIntParam("month", c)
-		if !ok {
-			return
-		}
-		day, ok := getIntParam("day", c)
-		if !ok {
-			return
-		}
-		hour, ok := getIntParam("hour", c)
-		if !ok {
-			return
-		}
-		minute, ok := getIntParam("minute", c)
-		if !ok {
-			return
-		}
+			date := time.Date(year, time.Month(month), day, hour, minute, 0, 0, time.Local)
 
-		date := time.Date(year, time.Month(month), day, hour, minute, 0, 0, time.Local)
-
-		result, until := app.Door.StateFor(c.Request.Context(), date)
-		c.JSON(http.StatusOK, gin.H{
-			"desiredState": string(result),
-			"until":        until.Format(time.RFC3339),
-		})
-	})
+			result, until := app.Door.StateFor(ctx, date)
+			c.JSON(http.StatusOK, gin.H{
+				"desiredState": string(result),
+				"until":        until.Format(time.RFC3339),
+			})
+			return nil
+		},
+	)
 }
 
-func getIntParam(name string, c *gin.Context) (int, bool) {
+func getIntParam(name string, c *gin.Context) (int, error) {
 	stringValue := c.Param(name)
 
 	// strip away the first leading zero if any
@@ -60,9 +60,8 @@ func getIntParam(name string, c *gin.Context) (int, bool) {
 
 	value, err := strconv.ParseInt(stringValue, 0, 64)
 	if err != nil {
-		server.AbortRequest(c, http.StatusBadRequest, err)
-		return 0, false
+		return 0, httperr.BadRequest(err, "parameter "+name+" is invalid")
 	}
 
-	return int(value), true
+	return int(value), nil
 }

@@ -1,15 +1,20 @@
 package customerapi
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/cis/internal/app"
+)
 
 // Setup registers all API endpoints for the customer api.
 func Setup(grp gin.IRouter) {
+	router := app.NewRouter(grp)
+
 	// GET /api/customer/v1/:id
-	GetByIDEndpoint(grp)
+	GetByIDEndpoint(router)
 
 	// POST /api/customer/v1/search
-	ExtendedSearchEndpoint(grp)
+	ExtendedSearchEndpoint(router)
 
 	// GET /api/customer/v1?name=XXX
-	FuzzySearchEndpoint(grp)
+	FuzzySearchEndpoint(router)
 }
