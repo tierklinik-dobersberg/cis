@@ -1,12 +1,17 @@
 package externalapi
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/cis/internal/app"
+)
 
 // Setup configures all integrationapi endpoints.
 func Setup(grp gin.IRouter) {
+	router := app.NewRouter(grp)
+
 	// GET /api/external/v1/doctor-on-duty
-	CurrentDoctorOnDutyEndpoint(grp)
+	CurrentDoctorOnDutyEndpoint(router)
 
 	// POST /api/external/v1/calllog?ani=<ani>&did=<did>
-	RecordCallEndpoint(grp)
+	RecordCallEndpoint(router)
 }

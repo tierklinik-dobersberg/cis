@@ -17,14 +17,14 @@ func FuzzySearchEndpoint(grp *app.Router) {
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			name := c.Query("name")
 
-			customers, err := app.Customers.FuzzySearchName(c.Request.Context(), name)
+			customers, err := app.Customers.FuzzySearchName(ctx, name)
 			if err != nil {
 				return err
 			}
 
 			models := make([]*v1.Customer, len(customers))
 			for idx, cu := range customers {
-				m := CustomerModel(c.Request.Context(), cu)
+				m := CustomerModel(ctx, cu)
 				models[idx] = m
 			}
 

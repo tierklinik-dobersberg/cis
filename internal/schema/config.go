@@ -11,6 +11,7 @@ import (
 type Config struct {
 	Secret            string
 	Issuer            string
+	BaseURL           string
 	Audience          string
 	SigningMethod     string // TODO(ppacher): add support for asymetric crypto and key-rotation!
 	Country           string
@@ -25,6 +26,11 @@ var ConfigSpec = conf.SectionSpec{
 	{
 		Name:        "Secret",
 		Description: "Secret used to sign various data like session cookies and JWTs. If empty, a temporary secret is created.",
+		Type:        conf.StringType,
+	},
+	{
+		Name:        "BaseURL",
+		Description: "The base URL on which CIS is reachable. If empty, it defaults to the Host header of each HTTP request.",
 		Type:        conf.StringType,
 	},
 	{

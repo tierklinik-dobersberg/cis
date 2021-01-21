@@ -22,11 +22,7 @@ func LogoutEndpoint(grp gin.IRouter) {
 			return
 		}
 
-		// FIXME: clean sessions
-		/*
-			cookie := app.ClearSessionCookie(appCtx)
-			http.SetCookie(c.Writer, cookie)
-		*/
+		session.Delete(appCtx, c)
 
 		c.Status(http.StatusOK)
 	})

@@ -1,14 +1,17 @@
 package session
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/jwt"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 // Middleware extracts session data from incoming HTTP requests
@@ -19,6 +22,7 @@ func Middleware(c *gin.Context) {
 	if app == nil {
 		return
 	}
+	log := logger.From(c.Request.Context())
 
 	aborted := false
 	defer func() {
@@ -32,6 +36,7 @@ func Middleware(c *gin.Context) {
 	// everything here.
 	session := Get(c)
 	if session != nil {
+		log.Infof("session already loaded for this request")
 		return
 	}
 
@@ -40,19 +45,22 @@ func Middleware(c *gin.Context) {
 	accessToken, accessUser, err := getAccessToken(app, c)
 	if err != nil {
 		aborted = true
-		c.AbortWithStatus(http.StatusBadRequest)
+		httperr.Abort(c, err)
+		log.Infof("request denied as access token is invalid: %s", err)
 		return
 	}
 	refreshToken, refreshUser, err := getRefreshToken(app, c)
 	if err != nil {
 		aborted = true
-		c.AbortWithStatus(http.StatusBadRequest)
+		log.Infof("request denied as refresh token is invalid: %s", err)
+		httperr.Abort(c, err)
 		return
 	}
 
 	// if there's neither a refresh nor an access token we'll
 	// skip it.
 	if refreshToken == nil && accessToken == nil {
+		log.Info("unauthenticated request: no access or refresh token provided")
 		return
 	}
 
@@ -60,6 +68,7 @@ func Middleware(c *gin.Context) {
 	if accessUser != nil && refreshUser != nil && accessUser.Name != refreshUser.Name {
 		aborted = true
 		// TODO(ppacher): INCIDENT!
+		log.Infof("security alert: access and refresh token user differ: %s != %s", accessUser.Name, refreshUser.Name)
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
@@ -71,6 +80,7 @@ func Middleware(c *gin.Context) {
 	if user == nil {
 		aborted = true
 		c.AbortWithStatus(http.StatusInternalServerError)
+		log.Infof("request denied: failed to find user for token")
 		return
 	}
 
@@ -84,7 +94,6 @@ func Middleware(c *gin.Context) {
 	// expires-at must still be in the future, otherwise
 	// the tokens would not have been valid and we wouldn't
 	// get here anyway.
-
 	if accessToken != nil {
 		t := time.Unix(accessToken.ExpiresAt, 0)
 		session.AccessUntil = &t
@@ -94,27 +103,10 @@ func Middleware(c *gin.Context) {
 		session.RefreshUntil = &t
 	}
 
-	// if we have a valid refresh-scoped token we might
-	// just issue a new access token here
-	if session.RefreshUntil != nil {
-		if session.AccessUntil == nil || session.AccessUntil.Sub(time.Now()) < time.Minute*5 {
-			accessToken, _, err := GenerateAccessToken(app, *user)
-			if err != nil {
-				aborted = true
-				c.AbortWithStatus(http.StatusInternalServerError)
-				return
-			}
-
-			accessCookie := CreateCookie(app, app.Config.AccessTokenCookie, accessToken, app.Config.AccessTokenTTL)
-			session.AccessUntil = &accessCookie.Expires
-
-			http.SetCookie(c.Writer, accessCookie)
-		}
-	}
-
-	// if we don't have a valid access-scope now
-	// abort.
-	if session.AccessUntil == nil {
+	// if we don't have a valid access or refresh scope now
+	// return without setting a session on c.
+	if session.AccessUntil == nil && session.RefreshUntil == nil {
+		log.Infof("unauthenticated request: no valid access or refresh token found")
 		return
 	}
 
@@ -122,12 +114,46 @@ func Middleware(c *gin.Context) {
 	Set(c, session)
 }
 
+// IssueAccessToken creates a new access token for the active session.
+// The session must have a valid refresh token set.
+func IssueAccessToken(app *app.App, c *gin.Context) (string, error) {
+	sess := Get(c)
+	if sess == nil {
+		return "", httperr.New(http.StatusUnauthorized, errors.New("no session found"), nil)
+	}
+
+	if sess.RefreshUntil == nil || sess.RefreshUntil.Before(time.Now()) {
+		return "", httperr.New(http.StatusUnauthorized, errors.New("no or expired refresh token"), nil)
+	}
+
+	token, _, err := GenerateAccessToken(app, sess.User)
+	if err != nil {
+		return "", httperr.Wrap(err)
+	}
+
+	http.SetCookie(
+		c.Writer,
+		CreateCookie(
+			app,
+			app.Config.AccessTokenCookie,
+			token,
+			app.BasePath(),
+			app.Config.AccessTokenTTL,
+		),
+	)
+
+	return token, nil
+}
+
 // Require aborts an incoming http request if it does not have
 // a valid session token.
 func Require() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if Get(c) == nil {
-			c.AbortWithStatus(http.StatusUnauthorized)
+		sess := Get(c)
+		if sess == nil || sess.AccessUntil == nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"error": "no access token provided",
+			})
 			return
 		}
 

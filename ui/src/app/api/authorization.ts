@@ -15,13 +15,16 @@ export class AuthorizationInterceptor implements HttpInterceptor {
             .pipe(
                 catchError(err => {
                     if (req.url.startsWith('/api')) {
-                        if (err instanceof HttpErrorResponse && err.status === 401 && !req.url.includes("identity/v1/login")) {
-                            if (!this.router.url.startsWith('/login')) {
-                                this.router.navigate(['/', 'login'], {
-                                    queryParams: {
-                                        'rd': this.router.url
-                                    }
-                                });
+                        if (err instanceof HttpErrorResponse && err.status === 401) {
+                            if (!req.url.includes("identity/v1/login") && !req.url.includes("identity/v1/refresh")) {
+
+                                if (!this.router.url.startsWith('/login')) {
+                                    this.router.navigate(['/', 'login'], {
+                                        queryParams: {
+                                            'rd': this.router.url
+                                        }
+                                    });
+                                }
                             }
                         }
 

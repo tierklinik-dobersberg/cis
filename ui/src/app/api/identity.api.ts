@@ -16,6 +16,12 @@ export interface Profile {
   };
 }
 
+export type Token = string;
+
+interface TokenReponse {
+  token: Token;
+}
+
 export interface PasswordStrenght {
   score: number;
   crackTime: string;
@@ -78,6 +84,14 @@ export class IdentityAPI {
           }
         })
       )
+  }
+
+  /**
+   * Refresh tries to renew the access token.
+   */
+  refresh(): Observable<Token> {
+    return this.http.post<TokenReponse>(`/api/identity/v1/refresh`, null)
+      .pipe(map(r => r.token));
   }
 
   /**

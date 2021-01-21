@@ -57,7 +57,7 @@ func (err *Error) Error() string {
 		code = http.StatusInternalServerError
 	}
 
-	return fmt.Sprintf("%03d: %s", code, err.Error())
+	return fmt.Sprintf("%03d: %s", code, err.Err.Error())
 }
 
 // AbortRequest aborts the HTTP request in c using the

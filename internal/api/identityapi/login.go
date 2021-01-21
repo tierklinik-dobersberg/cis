@@ -147,7 +147,7 @@ func LoginEndpoint(grp gin.IRouter) {
 			return
 		}
 
-		sess, err := session.Create(appCtx, *user, c.Writer)
+		sess, accessToken, err := session.Create(appCtx, *user, c.Writer)
 		if err != nil {
 			c.AbortWithStatus(http.StatusInternalServerError)
 		}
@@ -155,7 +155,9 @@ func LoginEndpoint(grp gin.IRouter) {
 
 		rd := c.Query("redirect")
 		if rd == "" {
-			c.Status(http.StatusOK)
+			c.JSON(http.StatusOK, gin.H{
+				"token": accessToken,
+			})
 			return
 		}
 

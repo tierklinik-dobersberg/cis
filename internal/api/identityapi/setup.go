@@ -7,6 +7,9 @@ func Setup(grp gin.IRouter) {
 	// POST v1/login
 	LoginEndpoint(grp)
 
+	// POST v1/refresh
+	RefreshEndpoint(grp)
+
 	// GET v1/verify
 	VerifyEndpoint(grp)
 

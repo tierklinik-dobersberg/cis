@@ -1,6 +1,7 @@
 package externalapi
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -10,72 +11,69 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
+	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/external/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/service/server"
 )
 
 // CurrentDoctorOnDutyEndpoint provides a specialized endpoint
 // to receive information about the current doctor on duty
 // an any backups.
-func CurrentDoctorOnDutyEndpoint(grp gin.IRouter) {
-	grp.GET("v1/doctor-on-duty", func(c *gin.Context) {
-		app := app.From(c)
-		if app == nil {
-			return
-		}
+func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
+	grp.GET(
+		"v1/doctor-on-duty",
+		func(ctx context.Context, app *app.App, c *gin.Context) error {
+			log := logger.From(ctx)
 
-		log := logger.From(c.Request.Context())
+			now := time.Now()
+			key := fmt.Sprintf("%04d/%02d/%02d", now.Year(), int(now.Month()), now.Day())
 
-		now := time.Now()
-		roster, err := app.DutyRosters.ForMonth(c.Request.Context(), now.Month(), now.Year())
-		if err != nil {
-			if errors.Is(err, rosterdb.ErrNotFound) {
-				server.AbortRequest(c, http.StatusNotFound, err)
-				return
+			roster, err := app.DutyRosters.ForMonth(ctx, now.Month(), now.Year())
+			if err != nil {
+				if errors.Is(err, rosterdb.ErrNotFound) {
+					return httperr.NotFound("roster", key, err)
+				}
+
+				return httperr.InternalError(err)
 			}
 
-			server.AbortRequest(c, http.StatusInternalServerError, err)
-			return
-		}
-
-		day, ok := roster.Days[now.Day()]
-		if !ok {
-			server.AbortRequest(c, http.StatusNotFound, fmt.Errorf("no duty roster for %04d/%02d/%02d", now.Year(), int(now.Month()), now.Day()))
-			return
-		}
-
-		allUsers, err := app.Identities.ListAllUsers(c.Request.Context())
-		if err != nil {
-			server.AbortRequest(c, http.StatusInternalServerError, err)
-			return
-		}
-
-		lm := make(map[string]schema.User, len(allUsers))
-		for _, u := range allUsers {
-			lm[strings.ToLower(u.Name)] = u
-		}
-
-		doctorsOnDuty := make([]v1alpha.DoctorOnDuty, len(day.Emergency))
-		for idx, u := range day.Emergency {
-			user, ok := lm[u]
+			day, ok := roster.Days[now.Day()]
 			if !ok {
-				log.Errorf("unknown user %s configured as doctor-on-duty", u)
+				return httperr.NotFound("roster-day", key, nil)
 			}
 
-			if len(user.PhoneNumber) == 0 {
-				log.Errorf("user %s does not have a phone number registered, skipping to backup", user.Name)
-				continue
+			allUsers, err := app.Identities.ListAllUsers(ctx)
+			if err != nil {
+				return httperr.InternalError(err)
 			}
 
-			doctorsOnDuty[idx] = v1alpha.DoctorOnDuty{
-				Username: user.Name,
-				FullName: user.Fullname,
-				Phone:    user.PhoneNumber[0],
+			lm := make(map[string]schema.User, len(allUsers))
+			for _, u := range allUsers {
+				lm[strings.ToLower(u.Name)] = u
 			}
-		}
 
-		c.JSON(http.StatusOK, doctorsOnDuty)
-	})
+			doctorsOnDuty := make([]v1alpha.DoctorOnDuty, len(day.Emergency))
+			for idx, u := range day.Emergency {
+				user, ok := lm[u]
+				if !ok {
+					log.Errorf("unknown user %s configured as doctor-on-duty", u)
+				}
+
+				if len(user.PhoneNumber) == 0 {
+					log.Errorf("user %s does not have a phone number registered, skipping to backup", user.Name)
+					continue
+				}
+
+				doctorsOnDuty[idx] = v1alpha.DoctorOnDuty{
+					Username: user.Name,
+					FullName: user.Fullname,
+					Phone:    user.PhoneNumber[0],
+				}
+			}
+
+			c.JSON(http.StatusOK, doctorsOnDuty)
+			return nil
+		},
+	)
 }

@@ -56,21 +56,33 @@ func Get(c *gin.Context) *Session {
 // Create creates a new session for user. The caller
 // must ensure user is properly authenticated before
 // issueing a new access and refresh token to the user.
-func Create(app *app.App, user v1alpha.User, w http.ResponseWriter) (*Session, error) {
+func Create(app *app.App, user v1alpha.User, w http.ResponseWriter) (*Session, string, error) {
 	// Issue a new access token for user.
 	accessToken, _, err := GenerateAccessToken(app, user)
 	if err != nil {
-		return nil, fmt.Errorf("generating access token: %w", err)
+		return nil, "", fmt.Errorf("generating access token: %w", err)
 	}
-	accessCookie := CreateCookie(app, app.Config.AccessTokenCookie, accessToken, app.Config.AccessTokenTTL)
+	accessCookie := CreateCookie(
+		app,
+		app.Config.AccessTokenCookie,
+		accessToken,
+		app.BasePath(),
+		app.Config.AccessTokenTTL,
+	)
 	http.SetCookie(w, accessCookie)
 
 	// Issue a new refresh token for user.
 	refreshToken, _, err := GenerateRefreshToken(app, user)
 	if err != nil {
-		return nil, fmt.Errorf("generating refresh token: %w", err)
+		return nil, "", fmt.Errorf("generating refresh token: %w", err)
 	}
-	refreshCookie := CreateCookie(app, app.Config.RefreshTokenCookie, refreshToken, app.Config.RefreshTokenTTL)
+	refreshCookie := CreateCookie(
+		app,
+		app.Config.RefreshTokenCookie,
+		refreshToken,
+		app.EndpointPath("api/identity/v1/refresh"),
+		app.Config.RefreshTokenTTL,
+	)
 	http.SetCookie(w, refreshCookie)
 
 	return &Session{
@@ -78,15 +90,47 @@ func Create(app *app.App, user v1alpha.User, w http.ResponseWriter) (*Session, e
 		Roles:        user.Roles,
 		AccessUntil:  &accessCookie.Expires,
 		RefreshUntil: &refreshCookie.Expires,
-	}, nil
+	}, accessToken, nil
+}
+
+// Delete the session associated with c.
+func Delete(app *app.App, c *gin.Context) error {
+	ClearCookie(
+		app,
+		app.Config.AccessTokenCookie,
+		app.BasePath(),
+		c,
+	)
+	ClearCookie(
+		app,
+		app.Config.RefreshTokenCookie,
+		app.EndpointPath("api/identity/v1/refresh"),
+		c,
+	)
+
+	// TODO(ppacher): maybe switch to "cookies", "storage" in production
+	// rather than deleting cache and executionContext as well.
+	c.Header("Clear-Site-Data", "*")
+
+	return nil
+}
+
+// ClearCookie removes the cookie with the given name.
+func ClearCookie(app *app.App, cookieName, path string, c *gin.Context) {
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:   cookieName,
+		Path:   path,
+		Domain: app.Config.CookieDomain,
+		MaxAge: -1,
+	})
 }
 
 // CreateCookie wraps value in a http cookie with name.
-func CreateCookie(app *app.App, name, value string, ttl time.Duration) *http.Cookie {
+func CreateCookie(app *app.App, name, value, path string, ttl time.Duration) *http.Cookie {
 	return &http.Cookie{
 		Name:     name,
 		Value:    value,
-		Path:     "/",
+		Path:     path,
 		Domain:   app.Config.CookieDomain,
 		HttpOnly: true,
 		Secure:   !app.Config.InsecureCookies,

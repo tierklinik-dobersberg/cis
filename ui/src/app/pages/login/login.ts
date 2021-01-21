@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from "@angular/common/http";
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { FormGroup, FormBuilder, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -73,13 +74,28 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
 
     continue() {
-        let target = this.activatedRoute.snapshot.queryParamMap.get('rd') || '/'
+        // try to refresh the access token
+        this.identityapi.refresh()
+            .subscribe(
+                () => {
+                    let target = this.activatedRoute.snapshot.queryParamMap.get('rd') || '/'
 
-        if (target.startsWith("http")) {
-            window.location.href = target;
-        } else {
-            this.router.navigate([target]);
-        }
+                    if (target.startsWith("http")) {
+                        window.location.href = target;
+                    } else {
+                        this.router.navigate([target]);
+                    }
+                },
+                err => {
+                    this.profile = null;
+                    if (err instanceof HttpErrorResponse && err.status === 401) {
+                        this.lastMessageID = this.messageService.error("Aus Sicherheitsgründen musst du dich erneut anmelden.").messageId;
+                    } else {
+                        this.messageService.error("Failed to refresh session access token");
+                        console.error(err);
+                    }
+                }
+            )
     }
 
     logout() {

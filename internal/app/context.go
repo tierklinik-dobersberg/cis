@@ -3,7 +3,11 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
+	"net/url"
+	"path"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
@@ -12,6 +16,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/service/service"
 )
@@ -97,4 +102,43 @@ func From(c *gin.Context) *App {
 	}
 
 	return val
+}
+
+// BaseURL returns the base URL if the application as configured in
+// the BaseURL setting. If not configured the Host header of the HTTP
+// request is used.
+func (app *App) BaseURL(c *gin.Context) string {
+	url := app.Config.BaseURL
+	if url == "" {
+		url = fmt.Sprintf("%s//%s/", c.Request.URL.Scheme, c.Request.Host)
+	}
+
+	if !strings.HasSuffix(url, "/") {
+		url = url + "/"
+	}
+	return url
+}
+
+// BasePath returns the base path of the application.
+func (app *App) BasePath() string {
+	if app.Config.BaseURL == "" {
+		return "/"
+	}
+
+	u, err := url.Parse(app.Config.BaseURL)
+	if err != nil {
+		logger.DefaultLogger().Errorf("failed to parse BaseURl setting: %s", err)
+		return "/"
+	}
+
+	path := u.Path
+	if !strings.HasSuffix(path, "/") {
+		path = path + "/"
+	}
+	return path
+}
+
+// EndpointPath returns the absolute path to the endpoint.
+func (app *App) EndpointPath(relativePath string) string {
+	return path.Join(app.BasePath(), relativePath)
 }

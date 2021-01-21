@@ -106,7 +106,7 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 		}
 
 		if autologin != nil {
-			sess, err := session.Create(app.From(c), autologin.User, c.Writer)
+			sess, _, err := session.Create(app.From(c), autologin.User, c.Writer)
 			if err != nil {
 				log.Errorf("failed to perform autologin: %s", err)
 				return
