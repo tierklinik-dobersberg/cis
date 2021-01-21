@@ -1,5 +1,6 @@
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
 import { Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
+import { Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -24,15 +25,19 @@ export class XRayComponent implements OnInit, OnDestroy {
 
   offset = 0;
   studies: StudyWithPreview[] = [];
-  trackBy: TrackByFunction<Study> = (_, study) => study.studyInstanceUId;
+  trackBy: TrackByFunction<Study> = (_, study) => study.studyInstanceUid;
 
   ds = new StudyDataSource(this.dxrapi);
 
-  constructor(private dxrapi: DxrService,
-    private nzMessage: NzMessageService) { }
+  constructor(
+    private router: Router,
+    private dxrapi: DxrService,
+    private nzMessage: NzMessageService,
+  ) { }
 
   openViewer(study: Study, preview: InstancePreview) {
-    this.nzMessage.warning('Röntgen-Betrachter derzeit nicht verfügbar.')
+    //this.nzMessage.warning('Röntgen-Betrachter derzeit nicht verfügbar.')
+    this.router.navigate(['xray/viewer', study.studyInstanceUid, preview.seriesUid, preview.instanceUid])
   }
 
   ngOnInit() {

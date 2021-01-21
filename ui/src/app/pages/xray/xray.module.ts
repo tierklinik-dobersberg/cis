@@ -12,6 +12,7 @@ import { XRayRoutingModule } from "./xray-routing.module";
 import { NzMessageServiceModule } from "ng-zorro-antd/message";
 import { DxrDatePipe } from "./dxr-date.pipe";
 import { OhifOwnerNamePipe } from "./ohif-owner-name.pipe";
+import { ViewerComponent } from "./viewer";
 
 @NgModule({
     imports: [
@@ -33,6 +34,7 @@ import { OhifOwnerNamePipe } from "./ohif-owner-name.pipe";
     declarations: [
         XRayComponent,
         DxrDatePipe,
+        ViewerComponent,
         OhifOwnerNamePipe
     ]
 })

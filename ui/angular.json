@@ -28,6 +28,16 @@
               "src/assets",
               {
                 "glob": "**/*",
+                "input": "node_modules/dwv/decoders/",
+                "output": "assets"
+              },
+              {
+                "glob": "locales/**/*",
+                "input": "node_modules/dwv/",
+                "output": "assets"
+              },
+              {
+                "glob": "**/*",
                 "input": "./node_modules/@ant-design/icons-angular/src/inline-svg/",
                 "output": "/assets/"
               }

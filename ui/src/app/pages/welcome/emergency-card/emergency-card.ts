@@ -42,7 +42,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: doctors => {
                     this.firstLoad = false;
-                    this.onDuty = doctors;
+                    this.onDuty = doctors || [];
                     this.changeDetector.markForCheck();
                 },
             });

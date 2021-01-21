@@ -1,0 +1,122 @@
+.viewer {
+  transition-property: background-color;
+  transition-duration: 1s;
+  transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: white;
+
+  & > div {
+    flex-grow: 1;
+
+    .viewer-content {
+      height: 100%;
+      width: 100%;
+      display: flex;
+    }
+  }
+
+  .series-list {
+    display: none;
+  }
+
+  &.image-loaded .series-list {
+    display: block;
+    width: 100px;
+    border-left: 1px solid rgba(0, 0, 0, 0.5);
+  }
+
+  .tool-panel {
+    width: 100%;
+    flex-grow: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: row;
+
+    .toolbar-button {
+      transition-property: background-color;
+      transition-duration: 1s;
+      transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+      flex-direction: column;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+
+      padding: 7px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      margin: 3px;
+      border-radius: 3px;
+      outline: none;
+
+      ion-icon {
+        font-size: 150%;
+      }
+
+      &.selected {
+        box-shadow: inset 1px 1px 5px 1px rgba(0, 0, 0, 0.75);
+        background: rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+
+  #dwv {
+    height: 100%;
+    flex-grow: 1;
+    display: flex;
+  }
+
+  &.image-loaded {
+    background-color: #1f1f1f;
+  }
+
+  .image-loader {
+    position: absolute;
+    margin-top: 10%;
+    width: 100%;
+
+    & > div {
+      width: 80%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+}
+
+/* Layers */
+.layerContainer {
+  position: relative;
+  padding: 0;
+  margin: auto;
+  text-align: center;
+  height: 100%;
+  width: 100%;
+}
+
+.imageLayer {
+  position: absolute;
+  left: 0px;
+  height: 100%;
+  width: 100%;
+}
+
+.drawDiv {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* drag&drop */
+.dropBox {
+  border: 5px dashed black;
+  margin: auto;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.dropBox.hover {
+  border: 5px dashed black;
+}

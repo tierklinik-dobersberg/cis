@@ -4,7 +4,7 @@ import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 export interface Study {
-    studyInstanceUId?: string;
+    studyInstanceUid?: string;
     studyDate?: string;
     studyTime?: string;
     patientName?: string;

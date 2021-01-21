@@ -1,0 +1,38 @@
+<div class="viewer" [class.image-loaded]="loadProgress > 100">
+
+    <div class="tool-panel ion-hide-md-down">
+        <ng-container *ngFor="let tool of toolButtons">
+            <button type="button" class="toolbar-button ion-activatable" (click)="selectTool(tool)"
+                [class.selected]="selectedTool === tool.id">
+                {{tool.label}}
+            </button>
+        </ng-container>
+    </div>
+
+    <div>
+        <div *ngIf="loadProgress <= 100" class="image-loader">
+            <div class="ion-text-center">
+                {{ loadProgress }}
+            </div>
+        </div>
+        <div class="viewer-content">
+            <div id="dwv" name="dwv">
+                <div class="layerContainer">
+                    <canvas class="imageLayer">Only for HTML5 compatible browsers ...</canvas>
+                    <div class="drawDiv"></div>
+                </div>
+            </div>
+
+            <div class="series-list">
+                <ng-container *ngFor="let series of study?.seriesList">
+                    <ng-container *ngFor="let instance of series?.instances">
+                        <div
+                            [routerLink]="['/viewer', study?.studyInstanceUid, series?.seriesInstanceUid, instance?.sopInstanceUid]">
+                            <img [attr.src]="getUrl(instance.url)">
+                        </div>
+                    </ng-container>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>
