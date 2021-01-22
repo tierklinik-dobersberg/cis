@@ -27,6 +27,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/errorlog"
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/internal/integration/rocket"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -261,8 +262,19 @@ func getMongoClient(ctx context.Context, uri string) *mongo.Client {
 }
 
 func runMain() {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	app := getApp(ctx)
+
+	importManager, err := importer.New(ctx, app)
+	if err != nil {
+		logger.Fatalf(ctx, "failed to create importers: %s", err)
+	}
+
+	if err := importManager.Start(ctx); err != nil {
+		logger.Fatalf(ctx, "failed to start importers: %s", err)
+	}
 
 	if err := app.Door.Start(); err != nil {
 		logger.Fatalf(ctx, "failed to start door scheduler: %s", err)

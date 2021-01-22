@@ -48,5 +48,6 @@ services:
       - 3000:3000
     volumes:
       - ../:/project
+      - /home/ppc/mnt/Infdat:/mnt
     environment:
       CONFIGURATION_DIRECTORY: /project/testdata/config

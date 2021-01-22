@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
@@ -141,4 +142,14 @@ func (app *App) BasePath() string {
 // EndpointPath returns the absolute path to the endpoint.
 func (app *App) EndpointPath(relativePath string) string {
 	return path.Join(app.BasePath(), relativePath)
+}
+
+// Location returns the location CIS is running at.
+func (app *App) Location() *time.Location {
+	loc, err := time.LoadLocation(app.Config.TimeZone)
+	if err != nil {
+		return time.UTC
+	}
+
+	return loc
 }

@@ -5,8 +5,9 @@ import "github.com/ppacher/system-conf/conf"
 // VetInf describes the configuration required to import
 // data from a Vetinf installation.
 type VetInf struct {
-	VetInfDirectory string
-	VetInfEncoding  string
+	VetInfDirectory      string
+	VetInfEncoding       string
+	VetInfImportSchedule string
 }
 
 // VetInfSpec describes the allowed configuration directives for
@@ -23,5 +24,11 @@ var VetInfSpec = conf.SectionSpec{
 		Type:        conf.StringType,
 		Default:     "IBM852",
 		Description: "Text encoding of the Infdat DBase files",
+	},
+	{
+		Name:        "VetInfImportSchedule",
+		Type:        conf.StringType,
+		Default:     "@every 10m",
+		Description: "Schedule for the VetInf data import",
 	},
 }
