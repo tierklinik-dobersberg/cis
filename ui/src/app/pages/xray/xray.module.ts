@@ -13,6 +13,11 @@ import { NzMessageServiceModule } from "ng-zorro-antd/message";
 import { DxrDatePipe } from "./dxr-date.pipe";
 import { OhifOwnerNamePipe } from "./ohif-owner-name.pipe";
 import { ViewerComponent } from "./viewer";
+import { NzSpinModule } from "ng-zorro-antd/spin";
+import { LayoutModule } from "@angular/cdk/layout";
+import { NzToolTipModule } from "ng-zorro-antd/tooltip";
+import { NzRadioModule } from "ng-zorro-antd/radio";
+import { NzDropDownModule } from "ng-zorro-antd/dropdown";
 
 @NgModule({
     imports: [
@@ -25,6 +30,11 @@ import { ViewerComponent } from "./viewer";
         NzAvatarModule,
         NzMessageServiceModule,
         NzModalModule,
+        NzToolTipModule,
+        NzRadioModule,
+        NzSpinModule,
+        NzDropDownModule,
+        LayoutModule,
         CdkScrollableModule,
         ScrollingModule
     ],

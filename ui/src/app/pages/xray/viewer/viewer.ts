@@ -3,8 +3,9 @@ import { ActivatedRoute } from "@angular/router";
 import { Subscription } from "rxjs";
 import { DxrService, Series, Study } from "src/app/api";
 import { DwvService, Tool } from "./viewer.service";
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import * as dwv from 'dwv';
-import { flatMap, map, mergeMap, take } from "rxjs/operators";
+import { map, mergeMap, take } from "rxjs/operators";
 
 @Component({
     templateUrl: './viewer.html',
@@ -22,24 +23,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
     series: Series | null = null;
     loadProgress: number = 0;
     selectedTool: string = '';
-
-    readonly toolButtons: ReadonlyArray<Tool> = [
-        {
-            label: 'Zeichnen / Messen',
-            icon: 'create',
-            id: 'Draw',
-        },
-        {
-            label: 'Zoom/Move',
-            icon: 'move',
-            id: 'ZoomAndPan'
-        },
-        {
-            label: 'Window Level',
-            icon: 'switch',
-            id: 'WindowLevel'
-        }
-    ];
+    currentInstanceUid: string = '';
 
     constructor(
         private dwvService: DwvService,
@@ -47,35 +31,24 @@ export class ViewerComponent implements OnInit, OnDestroy {
         private activatedRoute: ActivatedRoute,
         private elementRef: ElementRef,
         private changeDetector: ChangeDetectorRef,
+        private breakpointObserver: BreakpointObserver,
     ) { }
 
     get element() {
         return this.elementRef;
     }
 
-    async selectTool(tool: Tool) {
-        /*
-        if (tool.id == 'Draw') {
-            const sheet = await this.actionController.create({
-                header: 'Form / Messung',
-                buttons: this.shapes,
-            });
+    rotate(amount: number) {
+        this.dwvApp.translate(amount, 0);
+    }
 
-            sheet.present()
-            const result = await sheet.onDidDismiss();
+    async selectTool(tool: string, shape?: string) {
+        this.selectedTool = tool;
+        this.dwvApp.setTool(tool)
 
-            if (result.role === 'backdrop') {
-                return;
-            }
-
-            this.selectedTool = tool.id;
-            this.dwvApp.onChangeTool({ currentTarget: { value: tool.id } })
-            this.dwvApp.onChangeShape({ currentTarget: { value: result.role } })
+        if (tool === 'Draw') {
+            this.dwvApp.setDrawShape(shape!)
         }
-
-        this.dwvApp.onChangeTool({ currentTarget: { value: tool.id } })
-        this.selectedTool = tool.id;
-        */
     }
 
     getImageUrl(wadoURI: string): string {
@@ -86,14 +59,29 @@ export class ViewerComponent implements OnInit, OnDestroy {
         this.subscriptions = new Subscription();
         this.id = this.dwvService.register(this);
 
+        this.breakpointObserver.observe('')
+
         this.dwvApp = new dwv.App();
         this.dwvApp.init({
             containerDivId: `dwv/${this.id}`,
-            tools: this.toolButtons.map(b => b.id),
-            //shapes: this.shapes.map(s => s.role),
-            isMobile: false,
+            tools: {
+                'Draw': {
+                    options: ['Rectangle', 'Ellipse', 'Ruler', 'Arrow', 'Protractor', 'FreeHand'],
+                    type: 'factory',
+                },
+                'WindowLevel': {},
+                'ZoomAndPan': {},
+                'Scroll': {},
+                'Floodfill': {},
+                'Livewire': {}
+            },
+            isMobile: this.breakpointObserver.isMatched('(max-width: 900)'),
             useWebWorkers: true,
         });
+
+        this.dwvApp.addEventListener('load-progress', event => {
+            this.displayProgress(event.total);
+        })
 
         this.dwvApp.addEventListener('load-end', event => {
             this.loadProgress = 101;
@@ -107,18 +95,22 @@ export class ViewerComponent implements OnInit, OnDestroy {
                             map(study => [params.get('seriesID'), params.get('instanceID'), study])
                         )
                 }),
-                take(1)
             )
             .subscribe({
-                next: ([seriesID, instanceID, response]) => {
+                next: ([seriesID, instanceID, response]: [string, string, { studies: Study[] }]) => {
                     const study = response.studies[0];
+                    this.loadProgress = 0;
 
                     this.study = study;
                     this.series = study.seriesList.find(s => s.seriesInstanceUid === seriesID);
+                    console.log(this.series);
 
+                    this.currentInstanceUid = instanceID;
 
                     const imageUrl = this.getImageUrl(this.series.instances.find(i => i.sopInstanceUid == instanceID).url);
                     this.dwvApp.loadURLs([imageUrl]);
+                    this.changeDetector.detectChanges();
+
                 },
                 error: err => console.error(err),
             });
@@ -140,7 +132,9 @@ export class ViewerComponent implements OnInit, OnDestroy {
     }
 
     displayProgress(percent: number) {
-
+        this.loadProgress = percent;
+        console.log(this.loadProgress);
+        this.changeDetector.detectChanges();
     }
 }
 

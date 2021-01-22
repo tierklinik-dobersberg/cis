@@ -1,38 +1,85 @@
 <div class="viewer" [class.image-loaded]="loadProgress > 100">
+    <div *ngIf="loadProgress <= 100" class="image-loader">
+        <nz-spin nzSimple></nz-spin>
 
-    <div class="tool-panel ion-hide-md-down">
-        <ng-container *ngFor="let tool of toolButtons">
-            <button type="button" class="toolbar-button ion-activatable" (click)="selectTool(tool)"
-                [class.selected]="selectedTool === tool.id">
-                {{tool.label}}
-            </button>
-        </ng-container>
+        <h3>Aufnahmen werden geladen ... {{ loadProgress }}</h3>
     </div>
+    <div class="viewer-main">
+        <div class="viewer-content" [style.visibility]="loadProgress <= 100 ? 'hidden' : 'visible'">
+            <div class="toolbar">
+                <nz-button-group>
+                    <button nz-button nzGhost nz-tooltip nzTooltipTitle="Rückgängig" nzTooltipPlacement="bottom">
+                        <i nz-icon nzType="undo" nzTheme="outline" (click)="dwvApp.undo()"></i>
+                    </button>
+                    <button nz-button nzGhost nz-tooltip nzTooltipTitle="Wiederherstellen" nzTooltipPlacement="bottom">
+                        <i nz-icon nzType="redo" nzTheme="outline" (click)="dwvApp.redo()"></i>
+                    </button>
+                </nz-button-group>
 
-    <div>
-        <div *ngIf="loadProgress <= 100" class="image-loader">
-            <div class="ion-text-center">
-                {{ loadProgress }}
+                <nz-button-group>
+                    <button [class.selected]="selectedTool === 'ZoomAndPan'" nz-button nzGhost
+                        (click)="selectTool('ZoomAndPan')">
+                        Zoom / Bewegen
+                    </button>
+                    <button [class.selected]="selectedTool === 'WindowLevel'" nz-button nzGhost
+                        (click)="selectTool('WindowLevel')">
+                        Belichtung / Kontrast
+                    </button>
+                    <button [class.selected]="selectedTool === 'Draw'" nz-button nzGhost nz-dropdown
+                        [nzDropdownMenu]="drawMenu">
+                        Zeichnen / Messen
+                        <i nz-icon nzType="down"></i>
+                    </button>
+
+                    <nz-dropdown-menu #drawMenu="nzDropdownMenu">
+                        <ul nz-menu>
+                            <li nz-menu-item (click)="selectTool('Draw', 'Ruler')">
+                                <a>Lineal</a>
+                            </li>
+                            <li nz-menu-item (click)="selectTool('Draw', 'Protractor')">
+                                <a>Winkelmesser</a>
+                            </li>
+                            <li nz-menu-item (click)="selectTool('Draw', 'Rectangle')">
+                                <a>Rechteck</a>
+                            </li>
+                            <li nz-menu-item (click)="selectTool('Draw', 'Arrow')">
+                                <a>Pfeil</a>
+                            </li>
+                            <li nz-menu-item (click)="selectTool('Draw', 'Ellipse')">
+                                <a>Ellipse</a>
+                            </li>
+                            <li nz-menu-item (click)="selectTool('Draw', 'Roi')">
+                                <a>Roi</a>
+                            </li>
+                            <li nz-menu-item (click)="selectTool('Draw', 'FreeHand')">
+                                <a>Frei</a>
+                            </li>
+                        </ul>
+                    </nz-dropdown-menu>
+                </nz-button-group>
             </div>
-        </div>
-        <div class="viewer-content">
             <div id="dwv" name="dwv">
                 <div class="layerContainer">
                     <canvas class="imageLayer">Only for HTML5 compatible browsers ...</canvas>
                     <div class="drawDiv"></div>
                 </div>
             </div>
+        </div>
 
-            <div class="series-list">
-                <ng-container *ngFor="let series of study?.seriesList">
-                    <ng-container *ngFor="let instance of series?.instances">
-                        <div
-                            [routerLink]="['/viewer', study?.studyInstanceUid, series?.seriesInstanceUid, instance?.sopInstanceUid]">
-                            <img [attr.src]="getUrl(instance.url)">
-                        </div>
-                    </ng-container>
+        <div class="series-list">
+            <ng-container *ngFor="let series of study?.seriesList">
+                <ng-container *ngFor="let instance of series?.instances">
+                    <div [class.current]="instance.sopInstanceUid === currentInstanceUid" nz-tooltip
+                        [nzTooltipTitle]="tooltipTemplate" nzTooltipPlacement="left"
+                        [routerLink]="['/xray/viewer', study?.studyInstanceUid, series?.seriesInstanceUid, instance?.sopInstanceUid]">
+                        <img [attr.src]="getUrl(instance.url)">
+                    </div>
+
+                    <ng-template #tooltipTemplate>
+                        {{ series.seriesDescription }}
+                    </ng-template>
                 </ng-container>
-            </div>
+            </ng-container>
         </div>
     </div>
 </div>

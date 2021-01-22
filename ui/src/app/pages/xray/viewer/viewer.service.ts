@@ -32,8 +32,6 @@ export class DwvService {
     }
 
     register(comp: ViewerComponent): string {
-        dwv.gui.displayProgress = comp.displayProgress.bind(comp);
-
         const id = `${this.getUniqueID()}`;
         this.renderers.set(id, comp)
         return id;
@@ -46,16 +44,10 @@ export class DwvService {
         }
 
         this.renderers.delete(id);
-
-        if (dwv.gui.displayProgress === val.displayProgress) {
-            dwv.gui.displayProgress = () => { };
-        }
     }
 
     private setup() {
         dwv.utils.decodeQuery = dwv.utils.decodeQuery;
-
-        dwv.gui.displayProgress = () => { };
 
         dwv.gui.base.getElement = (containerDivId: string, name: string) => {
             const id = containerDivId.split('/')[1];

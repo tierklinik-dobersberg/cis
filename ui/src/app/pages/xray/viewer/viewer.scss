@@ -1,67 +1,75 @@
 .viewer {
   transition-property: background-color;
-  transition-duration: 1s;
+  transition-duration: .5s;
   transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
   display: flex;
   flex-direction: column;
   height: 100%;
   background-color: white;
 
-  & > div {
+
+  .viewer-main {
+    height: 100%;
+    width: 100%;
+    display: flex;
     flex-grow: 1;
 
     .viewer-content {
-      height: 100%;
-      width: 100%;
-      display: flex;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    }
+  }
+
+  .toolbar {
+    width: 100%;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    button[nzGhost] {
+      //background-color: rgba(255, 255, 255, 0.25) !important;
+      border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+
+    button.selected {
+      color: #40a9ff;
+      border-color: #40a9ff;
+    }
+
+    nz-button-group:not(:last-child) {
+      margin-right: 24px;
     }
   }
 
   .series-list {
     display: none;
+    padding-top: 24;
+
+    img {
+      width: 100%;
+      opacity: 0.7;
+      cursor: pointer;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+
+    .current img {
+      border: 1px solid #60A5FA;
+      cursor: initial;
+      opacity: 1;
+    }
   }
 
   &.image-loaded .series-list {
     display: block;
-    width: 100px;
+    width: 96px;
     border-left: 1px solid rgba(0, 0, 0, 0.5);
-  }
-
-  .tool-panel {
-    width: 100%;
-    flex-grow: 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: row;
-
-    .toolbar-button {
-      transition-property: background-color;
-      transition-duration: 1s;
-      transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
-      flex-direction: column;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-      overflow: hidden;
-
-      padding: 7px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      margin: 3px;
-      border-radius: 3px;
-      outline: none;
-
-      ion-icon {
-        font-size: 150%;
-      }
-
-      &.selected {
-        box-shadow: inset 1px 1px 5px 1px rgba(0, 0, 0, 0.75);
-        background: rgba(0, 0, 0, 0.1);
-      }
-    }
   }
 
   #dwv {
@@ -75,14 +83,22 @@
   }
 
   .image-loader {
-    position: absolute;
-    margin-top: 10%;
-    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 48px;
 
-    & > div {
-      width: 80%;
-      margin-left: auto;
-      margin-right: auto;
+    h3 {
+      margin: 0;
+      padding: 0;
+    }
+
+    nz-spin {
+      margin-right: 12px;
     }
   }
 }

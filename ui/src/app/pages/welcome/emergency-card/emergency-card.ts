@@ -24,7 +24,6 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
     ngOnInit() {
         this.subscriptions = new Subscription();
 
-
         const sub = interval(20000)
             .pipe(
                 startWith(0),

@@ -6,6 +6,7 @@ import { NzMessageService } from "ng-zorro-antd/message";
 import { Subscription } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import { IdentityAPI, Profile } from "src/app/api";
+import { extractErrorMessage } from "src/app/utils";
 
 @Component({
     templateUrl: './login.html',
@@ -50,24 +51,8 @@ export class LoginComponent implements OnInit, OnDestroy {
                     },
                     err => {
                         this.messageService.remove(this.lastMessageID);
-
-                        let msg = "";
-
-                        if (typeof err == 'string') {
-                            msg = err
-                        } else if ('error' in err && typeof err.error === 'string') {
-                            msg = err.error
-                        } else if ('statusText' in err && typeof err.statusText === 'string') {
-                            msg = err.statusText;
-                        } else if ('message' in err && typeof err.message === 'string') {
-                            msg = err.message;
-                        }
-
-                        if (msg !== "") {
-                            msg = ': ' + msg
-                        }
-
-                        this.lastMessageID = this.messageService.error("Anmeldung fehlgeschlagen" + msg).messageId;
+                        const msg = extractErrorMessage(err, 'Anmeldung fehlgeschlagen');
+                        this.lastMessageID = this.messageService.error(msg).messageId;
                     }
                 )
         }
