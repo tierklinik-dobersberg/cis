@@ -10,6 +10,7 @@
         </h1>
       </a>
     </div>
+
     <ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="isCollapsed">
       <li routerLink="/welcome" nzMatchRouter nz-menu-item>
         <i nz-icon nzType="dashboard"></i>
@@ -44,6 +45,12 @@
         <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
         <span>{{item.Text}}</span>
       </a>
+
+      <li nz-submenu nzTitle="Administration" nzMatchRouter nzIcon="setting">
+        <ul>
+          <li nz-menu-item nzMatchRouter routerLink="/admin/customers">Kunden</li>
+        </ul>
+      </li>
 
       <!--
         <li nzMatchRouter nz-menu-item>

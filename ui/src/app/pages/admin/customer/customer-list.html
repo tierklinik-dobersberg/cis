@@ -1,0 +1,37 @@
+<div class="search">
+    <h2>Suche nach Nachnamen</h2>
+    <nz-input-group [nzSuffix]="suffixIconSearch">
+        <input type="text" nz-input placeholder="Nach Kundennamen suchen ..." [(ngModel)]="searchText"
+            (ngModelChange)="search($event)" />
+    </nz-input-group>
+    <ng-template #suffixIconSearch>
+        <i nz-icon nzType="search"></i>
+    </ng-template>
+
+</div>
+
+<cdk-virtual-scroll-viewport itemSize="73" class="infinite-container">
+    <nz-list-empty *ngIf="customers.length === 0" [nzNoResult]="emptyTemplate"></nz-list-empty>
+    <nz-list nzSize="small">
+        <ng-template #emptyTemplate>
+            <nz-empty></nz-empty>
+
+            <nz-spin *ngIf="searching" nzSimple></nz-spin>
+        </ng-template>
+
+        <nz-list-item *cdkVirtualFor="let customer of customers; trackBy: trackBy">
+            <nz-list-item-meta>
+                <nz-list-item-meta-title>
+                    <a>{{ customer.name }} {{ customer.firstname }} </a>
+                </nz-list-item-meta-title>
+                <nz-list-item-meta-description>
+                    <i nz-icon nzType="environment" nzTheme="outline"></i>
+                    {{ customer.cityCode }}&nbsp;{{ customer.city }} - {{ customer.street }} |
+                    <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
+                    {{ customer.phone ||
+                    'N/A' }}
+                </nz-list-item-meta-description>
+            </nz-list-item-meta>
+        </nz-list-item>
+    </nz-list>
+</cdk-virtual-scroll-viewport>

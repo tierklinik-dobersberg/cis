@@ -2,7 +2,7 @@
     <div *ngIf="loadProgress <= 100" class="image-loader">
         <nz-spin nzSimple></nz-spin>
 
-        <h3>Aufnahmen werden geladen ... {{ loadProgress }}</h3>
+        <h3>Aufnahmen werden geladen ...</h3>
     </div>
     <div class="viewer-main">
         <div class="viewer-content" [style.visibility]="loadProgress <= 100 ? 'hidden' : 'visible'">
