@@ -25,6 +25,7 @@ export class XRayComponent implements OnInit, OnDestroy {
 
   offset = 0;
   studies: StudyWithPreview[] = [];
+  searchText: string = '';
   trackBy: TrackByFunction<Study> = (_, study) => study.studyInstanceUid;
 
   ds = new StudyDataSource(this.dxrapi);
@@ -69,6 +70,23 @@ class StudyDataSource extends DataSource<StudyWithPreview> {
     return this.dataStream;
   }
 
+  search(text: string) {
+    console.log("search", text);
+
+    if (text === "") {
+      if (this.fetchedPages.has(0)) {
+        this.updateCurrentStudies(this.cachedData.slice(0, this.pageSize), 0);
+      }
+      this.fetchPage(0);
+      return
+    }
+
+    this.dxrservice.search(text)
+      .subscribe(result => {
+        this.updateCurrentStudies(result, -1);
+      })
+  }
+
   disconnect(): void {
     this.disconnect$.next();
     this.disconnect$.complete();
@@ -101,29 +119,36 @@ class StudyDataSource extends DataSource<StudyWithPreview> {
     this.dxrservice
       .loadLastStudies(page * this.pageSize, this.pageSize)
       .subscribe(studies => {
-        const result = studies.map(study => {
-          var urls: InstancePreview[] = [];
-
-          study.seriesList.forEach(series => {
-            series.instances.forEach(instance => {
-              const url = instance.url.replace('dicomweb://', '//') + '&contentType=image/jpeg';
-              urls.push({
-                instanceUid: instance.sopInstanceUid,
-                previewUrl: url,
-                seriesUid: series.seriesInstanceUid,
-              })
-            })
-          });
-
-
-          return {
-            ...study,
-            previews: urls,
-          }
-        });
-
-        this.cachedData.splice(page * this.pageSize, this.pageSize, ...result);
-        this.dataStream.next(this.cachedData);
+        this.updateCurrentStudies(studies, page);
       });
+  }
+
+  private updateCurrentStudies(studies: Study[], page = 0) {
+    const result = studies.map(study => {
+      var urls: InstancePreview[] = [];
+
+      (study.seriesList || []).forEach(series => {
+        series.instances.forEach(instance => {
+          const url = instance.url.replace('dicomweb://', '//') + '&contentType=image/jpeg';
+          urls.push({
+            instanceUid: instance.sopInstanceUid,
+            previewUrl: url,
+            seriesUid: series.seriesInstanceUid,
+          })
+        })
+      });
+
+      return {
+        ...study,
+        previews: urls,
+      }
+    });
+
+    if (page >= 0) {
+      this.cachedData.splice(page * this.pageSize, this.pageSize, ...result);
+      this.dataStream.next(this.cachedData);
+    } else {
+      this.dataStream.next(result);
+    }
   }
 }

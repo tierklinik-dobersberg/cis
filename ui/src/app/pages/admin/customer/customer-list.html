@@ -7,19 +7,18 @@
     <ng-template #suffixIconSearch>
         <i nz-icon nzType="search"></i>
     </ng-template>
-
 </div>
 
 <cdk-virtual-scroll-viewport itemSize="73" class="infinite-container">
     <nz-list-empty *ngIf="customers.length === 0" [nzNoResult]="emptyTemplate"></nz-list-empty>
+    <ng-template #emptyTemplate>
+        <nz-empty></nz-empty>
+        <nz-spin *ngIf="searching" nzSimple></nz-spin>
+    </ng-template>
     <nz-list nzSize="small">
-        <ng-template #emptyTemplate>
-            <nz-empty></nz-empty>
 
-            <nz-spin *ngIf="searching" nzSimple></nz-spin>
-        </ng-template>
-
-        <nz-list-item *cdkVirtualFor="let customer of customers; trackBy: trackBy">
+        <nz-list-item *cdkVirtualFor="let customer of customers; trackBy: trackBy"
+            [routerLink]="['view', customer.cid]">
             <nz-list-item-meta>
                 <nz-list-item-meta-title>
                     <a>{{ customer.name }} {{ customer.firstname }} </a>

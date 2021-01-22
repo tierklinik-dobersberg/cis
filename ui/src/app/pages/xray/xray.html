@@ -1,3 +1,13 @@
+<div class="search">
+    <nz-input-group [nzSuffix]="suffixIconSearch">
+        <input type="text" nz-input placeholder="Nach Kundennamen suchen ..." [(ngModel)]="searchText"
+            (ngModelChange)="ds.search($event)" />
+    </nz-input-group>
+    <ng-template #suffixIconSearch>
+        <i nz-icon nzType="search"></i>
+    </ng-template>
+</div>
+
 <cdk-virtual-scroll-viewport itemSize="73" class="infinite-container">
     <nz-list nzSize="small">
         <nz-list-item *cdkVirtualFor="let study of ds; trackBy: trackBy">

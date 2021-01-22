@@ -21,7 +21,7 @@ export interface Customer {
 export class CustomerAPI {
     constructor(private http: HttpClient) { }
 
-    byId(id: number): Observable<Customer> {
+    byId(id: number | string): Observable<Customer> {
         return this.http.get<Customer>(`/api/customer/v1/${id}`);
     }
 

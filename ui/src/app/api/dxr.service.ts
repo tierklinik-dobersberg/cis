@@ -61,7 +61,7 @@ export class DxrService {
             .pipe(tap(study => this._studyCache = study));
     }
 
-    search(searchTerm: string): Observable<any[]> {
+    search(searchTerm: string): Observable<Study[]> {
         return this.http.get<any[]>(`/api/dxray/v1/search`, {
             params: {
                 q: searchTerm,

@@ -92,7 +92,9 @@ export class ViewerComponent implements OnInit, OnDestroy {
                 mergeMap(params => {
                     return this.dxrService.loadStudy(params.get('studyID'))
                         .pipe(
-                            map(study => [params.get('seriesID'), params.get('instanceID'), study])
+                            map(study => {
+                                return [params.get('seriesID'), params.get('instanceID'), study]
+                            })
                         )
                 }),
             )
