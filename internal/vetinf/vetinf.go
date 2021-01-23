@@ -66,15 +66,15 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *customerdb.Cust
 			textparse.PhoneNumber(ctx, customer.CityCode, customer.Phone)
 
 			dbCustomer := &customerdb.Customer{
-				CustomerID: customer.ID,
-				City:       customer.City,
-				CityCode:   customer.CityCode,
-				Firstname:  customer.Firstname,
-				Group:      customer.Group,
-				Name:       customer.Name,
-				Phone:      customer.Phone,
-				Street:     customer.Street,
-				Title:      customer.Titel,
+				CustomerID:   customer.ID,
+				City:         customer.City,
+				CityCode:     customer.CityCode,
+				Firstname:    customer.Firstname,
+				Group:        customer.Group,
+				Name:         customer.Name,
+				PhoneNumbers: []string{customer.Phone},
+				Street:       customer.Street,
+				Title:        customer.Titel,
 			}
 
 			select {

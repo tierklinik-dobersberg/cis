@@ -90,17 +90,32 @@ func NewWithClient(ctx context.Context, dbName string, client *mongo.Client) (Da
 
 func (db *database) setup(ctx context.Context) error {
 	// Create a text index for $text search support.
-	ind, err := db.customers.Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.M{
-			"nameMetaphone": "text",
+	_, err := db.customers.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.M{
+				"nameMetaphone": "text",
+			},
+		},
+		{
+			Keys: bson.M{
+				"phoneNumbers": 1,
+			},
+		},
+		{
+			Keys: bson.M{
+				"mailAddresses": 1,
+			},
+		},
+		{
+			Keys: bson.M{
+				"cid": 1,
+			},
 		},
 	})
 
 	if err != nil {
 		return fmt.Errorf("creating index for nameMetaphone: %w", err)
 	}
-
-	logger.Infof(ctx, "Created index %s", ind)
 
 	return nil
 }

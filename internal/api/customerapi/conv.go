@@ -11,15 +11,16 @@ import (
 // it's API representation.
 func CustomerModel(ctx context.Context, cu *customerdb.Customer) *v1.Customer {
 	return &v1.Customer{
-		City:       cu.City,
-		CityCode:   cu.CityCode,
-		CustomerID: cu.CustomerID,
-		Firstname:  cu.Firstname,
-		Group:      cu.Group,
-		ID:         cu.ID.Hex(),
-		Name:       cu.Name,
-		Phone:      cu.Phone,
-		Street:     cu.Street,
-		Title:      cu.Title,
+		City:          cu.City,
+		CityCode:      cu.CityCode,
+		CustomerID:    cu.CustomerID,
+		Firstname:     cu.Firstname,
+		Group:         cu.Group,
+		ID:            cu.ID.Hex(),
+		Name:          cu.Name,
+		PhoneNumbers:  cu.PhoneNumbers,
+		MailAddresses: cu.MailAddresses,
+		Street:        cu.Street,
+		Title:         cu.Title,
 	}
 }

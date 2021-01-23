@@ -19,7 +19,8 @@ type Customer struct {
 	Street        string             `bson:"street,omitempty"`
 	CityCode      int                `bson:"cityCode,omitempty"`
 	City          string             `bson:"city,omitempty"`
-	Phone         string             `bson:"phone,omitempty"`
+	PhoneNumbers  []string           `bson:"phoneNumbers,omitempty"`
+	MailAddresses []string           `bson:"mailAddresses,omitempty"`
 	NameMetaphone string             `bson:"nameMetaphone,omitempty"`
 }
 
@@ -32,7 +33,12 @@ func (cu *Customer) Hash() string {
 	h.Write([]byte(cu.Firstname))
 	h.Write([]byte(cu.Group))
 	h.Write([]byte(cu.Name))
-	h.Write([]byte(cu.Phone))
+	for _, p := range cu.PhoneNumbers {
+		h.Write([]byte(p))
+	}
+	for _, m := range cu.MailAddresses {
+		h.Write([]byte(m))
+	}
 	h.Write([]byte(cu.Street))
 	h.Write([]byte(cu.Title))
 
