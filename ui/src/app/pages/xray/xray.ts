@@ -5,6 +5,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DxrService, Study } from 'src/app/api';
+import { splitCombinedCustomerAnimalIDs } from 'src/app/utils';
 
 interface InstancePreview {
   previewUrl: string;
@@ -12,8 +13,11 @@ interface InstancePreview {
   instanceUid: string;
 }
 
-interface StudyWithPreview extends Study {
+interface SutyWithMeta extends Study {
   previews: InstancePreview[];
+
+  vetinfCID: string;
+  vetinfAID: string;
 }
 
 @Component({
@@ -24,7 +28,7 @@ export class XRayComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
 
   offset = 0;
-  studies: StudyWithPreview[] = [];
+  studies: SutyWithMeta[] = [];
   searchText: string = '';
   trackBy: TrackByFunction<Study> = (_, study) => study.studyInstanceUid;
 
@@ -49,11 +53,11 @@ export class XRayComponent implements OnInit, OnDestroy {
   }
 }
 
-class StudyDataSource extends DataSource<StudyWithPreview> {
+class StudyDataSource extends DataSource<SutyWithMeta> {
   private pageSize = 20;
-  private cachedData: StudyWithPreview[] = [];
+  private cachedData: SutyWithMeta[] = [];
   private fetchedPages = new Set<number>();
-  private dataStream = new BehaviorSubject<StudyWithPreview[]>(this.cachedData);
+  private dataStream = new BehaviorSubject<SutyWithMeta[]>(this.cachedData);
   private complete$ = new Subject<void>();
   private disconnect$ = new Subject<void>();
 
@@ -65,7 +69,7 @@ class StudyDataSource extends DataSource<StudyWithPreview> {
     return this.complete$.asObservable();
   }
 
-  connect(collectionViewer: CollectionViewer): Observable<StudyWithPreview[]> {
+  connect(collectionViewer: CollectionViewer): Observable<SutyWithMeta[]> {
     this.setup(collectionViewer);
     return this.dataStream;
   }
@@ -140,9 +144,13 @@ class StudyDataSource extends DataSource<StudyWithPreview> {
         })
       });
 
+      const [cid, aid] = splitCombinedCustomerAnimalIDs(study.patientId);
+
       return {
         ...study,
         previews: urls,
+        vetinfCID: cid,
+        vetinfAID: aid,
       }
     });
 

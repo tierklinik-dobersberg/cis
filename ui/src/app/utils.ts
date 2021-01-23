@@ -18,3 +18,14 @@ export function extractErrorMessage(err: any, prefix: string = ''): string {
 
     return msg
 }
+
+export function splitCombinedCustomerAnimalIDs(str: string): [string, string] {
+    if (str.length <= 6) {
+        throw new Error(`Invalid combined Customer-Animal-ID`);
+    }
+
+    let animalID = str.slice(-6);
+    let customerID = str.slice(- str.length, -6)
+
+    return [customerID, animalID];
+}
