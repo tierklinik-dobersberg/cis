@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
@@ -106,10 +106,14 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 		}
 
 		if autologin != nil {
-			sess, _, err := session.Create(app.From(c), autologin.User, c.Writer)
-			if err != nil {
-				log.Errorf("failed to perform autologin: %s", err)
-				return
+			// DO NOT use session.Create() here as this would
+			// issue a real access token and REFRESH token to
+			// the client.
+			until := time.Now().Add(5 * time.Second)
+			sess := &session.Session{
+				User:        autologin.User,
+				Roles:       autologin.Roles,
+				AccessUntil: &until,
 			}
 
 			session.Set(c, sess)
