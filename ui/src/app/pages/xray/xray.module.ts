@@ -15,6 +15,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzRadioModule } from "ng-zorro-antd/radio";
 import { NzSpinModule } from "ng-zorro-antd/spin";
 import { NzToolTipModule } from "ng-zorro-antd/tooltip";
+import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { DxrDatePipe } from "./dxr-date.pipe";
 import { OhifOwnerNamePipe } from "./ohif-owner-name.pipe";
 import { ViewerComponent } from "./viewer";
@@ -37,6 +38,7 @@ import { XRayRoutingModule } from "./xray-routing.module";
         NzRadioModule,
         NzSpinModule,
         NzInputModule,
+        NzProgressModule,
         NzDropDownModule,
         LayoutModule,
         CdkScrollableModule,

@@ -37,7 +37,7 @@
         <span>Anruf Journal</span>
       </li>
 
-      <li nz-submenu nzTitle="Externe Resourcen" nzIcon="link">
+      <li nz-submenu nzTitle="Links" nzIcon="link">
         <ul>
           <li *ngFor="let menu of subMenus" nz-submenu [nzTitle]="menu.Text">
             <a *ngFor="let item of menu.Items" nz-menu-item [attr.href]="item.Link"

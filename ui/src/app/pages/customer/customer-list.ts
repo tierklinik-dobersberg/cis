@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, TrackByFunction } from "@angular/core";
 import { NzMessageService } from "ng-zorro-antd/message";
-import { Subscription } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { Customer, CustomerAPI } from "src/app/api/customer.api";
 import { extractErrorMessage } from "src/app/utils";
 
@@ -13,6 +13,7 @@ export class CustomerListComponent implements OnInit, OnDestroy {
 
     searchText = ''
     customers: Customer[] = [];
+    useAdvancedSearch: boolean = false;
     searching = false;
 
     trackBy: TrackByFunction<Customer> = (_: number, cust: Customer) => cust.cid;
@@ -31,21 +32,32 @@ export class CustomerListComponent implements OnInit, OnDestroy {
     }
 
     search(term: string) {
-        this.searching = true;
-        this.customerapi.search(term)
-            .subscribe(
-                result => {
-                    console.log(result);
-                    this.customers = result;
-                },
-                err => {
-                    const msg = extractErrorMessage(err, "Suche fehlgeschlagen")
-                    this.nzMessageService.error(msg);
+        let stream: Observable<Customer[]> = this.customerapi.search(term);
 
-                    this.customers = [];
-                },
-                () => {
-                    this.searching = false;
-                })
+        if (this.useAdvancedSearch) {
+            let payload: any;
+            try {
+                payload = JSON.parse(term)
+            } catch (err) {
+                return
+            }
+
+            stream = this.customerapi.extendedSearch(payload)
+        }
+
+        this.searching = true;
+        stream.subscribe(
+            result => {
+                this.customers = result || [];
+            },
+            err => {
+                const msg = extractErrorMessage(err, "Suche fehlgeschlagen")
+                this.nzMessageService.error(msg);
+
+                this.customers = [];
+            },
+            () => {
+                this.searching = false;
+            })
     }
 }

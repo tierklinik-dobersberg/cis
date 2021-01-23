@@ -1,11 +1,20 @@
 <div class="search">
-    <nz-input-group [nzSuffix]="suffixIconSearch">
+    <nz-input-group *ngIf="!useAdvancedSearch" [nzSuffix]="suffixIconSearch">
         <input type="text" nz-input placeholder="Nach Nachnamen suchen ..." [(ngModel)]="searchText"
             (ngModelChange)="search($event)" />
     </nz-input-group>
     <ng-template #suffixIconSearch>
         <i nz-icon nzType="search"></i>
     </ng-template>
+    <textarea *ngIf="useAdvancedSearch" nz-input placeholder="Expertenmodus" [nzAutosize]="{ minRows: 3, maxRows: 5 }"
+        [(ngModel)]="searchText" (ngModelChange)="search($event)"></textarea>
+
+    <div class="expert-results">
+        <label nz-checkbox [(ngModel)]="useAdvancedSearch">Expertenmodus</label>
+        <span>
+            {{ customers.length || 0 }} Ergebnisse
+        </span>
+    </div>
 </div>
 
 <cdk-virtual-scroll-viewport itemSize="73" class="infinite-container">

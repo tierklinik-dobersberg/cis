@@ -7,7 +7,12 @@
         <nz-descriptions-item nzTitle="Vorname" [nzSpan]="3">{{customer?.firstname || 'N/A'}}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="Titel" [nzSpan]="3">{{customer?.title || 'N/A'}}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="Gruppe" [nzSpan]="3">{{customer?.group || 'N/A'}}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Telefon" [nzSpan]="3">{{customer?.phone || 'N/A'}}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Telefon" [nzSpan]="3">
+            <li *ngFor="let phone of customer?.phoneNumbers">{{phone}}</li>
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="E-Mail" [nzSpan]="3">
+            <li *ngFor="let mail of customer?.mailAddresses">{{mail}}</li>
+        </nz-descriptions-item>
         <nz-descriptions-item nzTitle="Addresse" [nzSpan]="3">
             {{ customer?.street }}<br />
             {{ customer?.cityCode }}&nbsp;{{ customer?.city }}

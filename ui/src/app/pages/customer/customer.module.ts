@@ -3,6 +3,7 @@ import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { NzButtonModule } from "ng-zorro-antd/button";
+import { NzCheckboxModule } from "ng-zorro-antd/checkbox";
 import { NzDescriptionsModule } from "ng-zorro-antd/descriptions";
 import { NzEmptyModule } from "ng-zorro-antd/empty";
 import { NzGridModule } from "ng-zorro-antd/grid";
@@ -27,6 +28,7 @@ import { CustomerViewComponent } from "./customer-view";
         NzToolTipModule,
         NzMessageServiceModule,
         NzListModule,
+        NzCheckboxModule,
         NzIconModule,
         NzSpinModule,
         NzEmptyModule,

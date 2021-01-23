@@ -1,8 +1,10 @@
 <div class="viewer" [class.image-loaded]="loadProgress > 100">
     <div *ngIf="loadProgress <= 100" class="image-loader">
-        <nz-spin nzSimple></nz-spin>
-
-        <h3>Aufnahmen werden geladen ...</h3>
+        <img class="loading-image" src="/assets/xray.png">
+        <div class="text">
+            <h3>Aufnahmen von <strong>{{ study?.animalName }}</strong> werden geladen ...</h3>
+            <nz-progress nzStrokeLinecap="round" [nzPercent]="loadProgress"></nz-progress>
+        </div>
     </div>
     <div class="viewer-main">
         <div class="viewer-content" [style.visibility]="loadProgress <= 100 ? 'hidden' : 'visible'">

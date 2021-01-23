@@ -32,3 +32,11 @@ cdk-virtual-scroll-viewport {
 nz-empty {
   margin-top: 96px;
 }
+
+.expert-results {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  opacity: 0.5;
+}

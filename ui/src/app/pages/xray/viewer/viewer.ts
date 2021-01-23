@@ -54,7 +54,6 @@ export class ViewerComponent implements OnInit, OnDestroy {
     getImageUrl(wadoURI: string): string {
         return wadoURI.replace('dicomweb://', '//'); // + '&contentType=image/jpeg';
     }
-
     ngOnInit() {
         this.subscriptions = new Subscription();
         this.id = this.dwvService.register(this);
@@ -134,8 +133,8 @@ export class ViewerComponent implements OnInit, OnDestroy {
     }
 
     displayProgress(percent: number) {
+        console.log(percent);
         this.loadProgress = percent;
-        console.log(this.loadProgress);
         this.changeDetector.detectChanges();
     }
 }

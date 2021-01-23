@@ -12,7 +12,8 @@ export interface Customer {
     street: string;
     cityCode: number;
     city: string;
-    phone: string;
+    phoneNumbers: string[];
+    mailAddresses: string[];
 }
 
 @Injectable({
@@ -31,5 +32,9 @@ export class CustomerAPI {
                 name: name,
             },
         })
+    }
+
+    extendedSearch(query: any): Observable<Customer[]> {
+        return this.http.post<Customer[]>(`/api/customer/v1/search`, query);
     }
 }
