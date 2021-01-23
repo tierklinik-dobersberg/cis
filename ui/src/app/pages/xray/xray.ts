@@ -124,8 +124,10 @@ class StudyDataSource extends DataSource<StudyWithPreview> {
   }
 
   private updateCurrentStudies(studies: Study[], page = 0) {
+    console.log(studies);
     const result = studies.map(study => {
       var urls: InstancePreview[] = [];
+
 
       (study.seriesList || []).forEach(series => {
         series.instances.forEach(instance => {

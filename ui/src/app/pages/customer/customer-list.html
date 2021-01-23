@@ -1,7 +1,6 @@
 <div class="search">
-    <h2>Suche nach Nachnamen</h2>
     <nz-input-group [nzSuffix]="suffixIconSearch">
-        <input type="text" nz-input placeholder="Nach Kundennamen suchen ..." [(ngModel)]="searchText"
+        <input type="text" nz-input placeholder="Nach Nachnamen suchen ..." [(ngModel)]="searchText"
             (ngModelChange)="search($event)" />
     </nz-input-group>
     <ng-template #suffixIconSearch>

@@ -22,9 +22,9 @@
         <span>Dienstplan</span>
       </li>
 
-      <li routerLink="/calllogs" nzMatchRouter nz-menu-item>
-        <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
-        <span>Anruf Journal</span>
+      <li routerLink="/customer" nzMatchRouter nz-menu-item>
+        <i nz-icon nzType="team"></i>
+        <span>Kunden</span>
       </li>
 
       <li routerLink="/xray" nzMatchRouter nz-menu-item>
@@ -32,25 +32,36 @@
         <span>Röntgen</span>
       </li>
 
-      <li *ngFor="let menu of subMenus" nz-submenu [nzTitle]="menu.Text" nzIcon="link">
-        <a *ngFor="let item of menu.Items" nz-menu-item [attr.href]="item.Link"
-          [attr.target]="item.BlankTarget ? '_blank' : null">
-          <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
-          <span>{{item.Text}}</span>
-        </a>
+      <li routerLink="/calllogs" nzMatchRouter nz-menu-item>
+        <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
+        <span>Anruf Journal</span>
       </li>
 
-      <a *ngFor="let item of rootLinks" nz-menu-item [attr.href]="item.Link"
-        [attr.target]="item.BlankTarget ? '_blank' : null">
-        <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
-        <span>{{item.Text}}</span>
-      </a>
+      <li nz-submenu nzTitle="Externe Resourcen" nzIcon="link">
+        <ul>
+          <li *ngFor="let menu of subMenus" nz-submenu [nzTitle]="menu.Text">
+            <a *ngFor="let item of menu.Items" nz-menu-item [attr.href]="item.Link"
+              [attr.target]="item.BlankTarget ? '_blank' : null">
+              <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
+              <span>{{item.Text}}</span>
+            </a>
+          </li>
 
+          <a *ngFor="let item of rootLinks" nz-menu-item [attr.href]="item.Link"
+            [attr.target]="item.BlankTarget ? '_blank' : null">
+            <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
+            <span>{{item.Text}}</span>
+          </a>
+        </ul>
+      </li>
+
+      <!--
       <li nz-submenu nzTitle="Administration" nzMatchRouter nzIcon="setting">
         <ul>
           <li nz-menu-item nzMatchRouter routerLink="/admin/customers">Kunden</li>
         </ul>
       </li>
+    -->
 
       <!--
         <li nzMatchRouter nz-menu-item>
