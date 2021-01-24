@@ -44,16 +44,10 @@ func Middleware(c *gin.Context) {
 	//
 	accessToken, accessUser, err := getAccessToken(app, c)
 	if err != nil {
-		aborted = true
-		httperr.Abort(c, err)
-		log.Infof("request denied as access token is invalid: %s", err)
 		return
 	}
 	refreshToken, refreshUser, err := getRefreshToken(app, c)
 	if err != nil {
-		aborted = true
-		log.Infof("request denied as refresh token is invalid: %s", err)
-		httperr.Abort(c, err)
 		return
 	}
 
