@@ -22,6 +22,10 @@ type Customer struct {
 	PhoneNumbers  []string           `bson:"phoneNumbers,omitempty"`
 	MailAddresses []string           `bson:"mailAddresses,omitempty"`
 	NameMetaphone string             `bson:"nameMetaphone,omitempty"`
+
+	// Metadata holds additional metadata for the customer.
+	// It is not part of the hash calculation.
+	Metadata map[string]interface{} `bson:"metadata,omitempty"`
 }
 
 // Hash returns a hash of the customer

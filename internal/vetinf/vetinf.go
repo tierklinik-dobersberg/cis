@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
-	"github.com/tierklinik-dobersberg/cis/internal/textparse"
 	"github.com/tierklinik-dobersberg/go-vetinf/vetinf"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -63,18 +62,39 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *customerdb.Cust
 	go func() {
 		defer close(customers)
 		for customer := range dataCh {
-			textparse.PhoneNumber(ctx, customer.CityCode, customer.Phone)
+			//textparse.PhoneNumber(ctx, customer.Phone)
 
 			dbCustomer := &customerdb.Customer{
-				CustomerID:   customer.ID,
-				City:         customer.City,
-				CityCode:     customer.CityCode,
-				Firstname:    customer.Firstname,
-				Group:        customer.Group,
-				Name:         customer.Name,
-				PhoneNumbers: []string{customer.Phone},
-				Street:       customer.Street,
-				Title:        customer.Titel,
+				CustomerID: customer.ID,
+				City:       customer.City,
+				CityCode:   customer.CityCode,
+				Firstname:  customer.Firstname,
+				Group:      customer.Group,
+				Name:       customer.Name,
+				Street:     customer.Street,
+				Title:      customer.Titel,
+				Metadata: map[string]interface{}{
+					"rawVetInfRecord": customer,
+				},
+			}
+
+			// Add all possible phPropertiesone numbers
+			if customer.Phone != "" {
+				dbCustomer.PhoneNumbers = append(dbCustomer.PhoneNumbers, customer.Phone)
+			}
+			if customer.Phone2 != "" {
+				dbCustomer.PhoneNumbers = append(dbCustomer.PhoneNumbers, customer.Phone2)
+			}
+			if customer.MobilePhone1 != "" {
+				dbCustomer.PhoneNumbers = append(dbCustomer.PhoneNumbers, customer.MobilePhone1)
+			}
+			if customer.MobilePhone2 != "" {
+				dbCustomer.PhoneNumbers = append(dbCustomer.PhoneNumbers, customer.MobilePhone2)
+			}
+
+			// add all possible mail addresses
+			if customer.Mail != "" {
+				dbCustomer.MailAddresses = append(dbCustomer.MailAddresses, customer.Mail)
 			}
 
 			select {

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/robfig/cron/v3"
+	"github.com/tevino/abool"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -28,16 +29,24 @@ func (fn ImportFunc) Import() error {
 // Instance is a import handler instance that executes
 // at a certain schedule.
 type Instance struct {
-	ID       string
-	Schedule string
-	Handler  Handler
+	ID             string
+	Schedule       string
+	RunImmediately bool
+	Handler        Handler
 
 	log      logger.Logger
 	schedule cron.Schedule
+	running  *abool.AtomicBool
 }
 
 // Run implements cron.Job
 func (inst *Instance) Run() {
+	if !inst.running.SetToIf(false, true) {
+		inst.log.Infof("Import still running, skipping scheudle")
+		return
+	}
+	defer inst.running.UnSet()
+
 	inst.log.Info("Starting import")
 	start := time.Now()
 	defer func() {
@@ -51,7 +60,7 @@ func (inst *Instance) Run() {
 }
 
 // FactoryFunc creates a new import handler based on cfg.
-type FactoryFunc func(app *app.App) ([]Instance, error)
+type FactoryFunc func(app *app.App) ([]*Instance, error)
 
 // Factory creates a new import handler.
 type Factory struct {
@@ -75,8 +84,9 @@ func Register(factory Factory) {
 
 // Importer imports data from external systems
 type Importer struct {
-	handlers []Handler
-	cron     *cron.Cron
+	handlers  []Handler
+	cron      *cron.Cron
+	instances []*Instance
 }
 
 // New creates a new importer from cfg.
@@ -102,7 +112,7 @@ func (imp *Importer) setup(ctx context.Context, app *app.App) error {
 	factoriesLock.RLock()
 	defer factoriesLock.RUnlock()
 
-	var instances []Instance
+	var instances []*Instance
 	for _, fn := range factories {
 		log.Infof("creating importers for %s", fn.Name)
 		res, err := fn.Setup(app)
@@ -117,6 +127,8 @@ func (imp *Importer) setup(ctx context.Context, app *app.App) error {
 				"importer": fn.Name,
 				"id":       inst.ID,
 			})
+			inst.running = abool.New()
+
 			if err != nil {
 				return fmt.Errorf("invalid schedule %q: %w", inst.Schedule, err)
 			}
@@ -126,7 +138,8 @@ func (imp *Importer) setup(ctx context.Context, app *app.App) error {
 	}
 
 	for _, inst := range instances {
-		imp.cron.Schedule(inst.schedule, &inst)
+		imp.cron.Schedule(inst.schedule, inst)
+		imp.instances = append(imp.instances, inst)
 	}
 
 	log.Infof("created and scheduled %d importers", len(instances))
@@ -136,6 +149,13 @@ func (imp *Importer) setup(ctx context.Context, app *app.App) error {
 
 // Start starts the importer. It will run as long as ctx is not cancelled.
 func (imp *Importer) Start(ctx context.Context) error {
+	// kick of any instances that run immediately
+	for _, inst := range imp.instances {
+		if inst.RunImmediately {
+			go inst.Run()
+		}
+	}
+
 	imp.cron.Start()
 
 	go func() {

@@ -22,5 +22,6 @@ func CustomerModel(ctx context.Context, cu *customerdb.Customer) *v1.Customer {
 		MailAddresses: cu.MailAddresses,
 		Street:        cu.Street,
 		Title:         cu.Title,
+		Metadata:      cu.Metadata,
 	}
 }

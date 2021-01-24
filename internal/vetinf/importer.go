@@ -13,7 +13,7 @@ import (
 func init() {
 	importer.Register(importer.Factory{
 		Name: "vetinf",
-		Setup: func(app *app.App) ([]importer.Instance, error) {
+		Setup: func(app *app.App) ([]*importer.Instance, error) {
 			if app.Config.VetInf.VetInfDirectory == "" {
 				return nil, nil
 			}
@@ -23,10 +23,11 @@ func init() {
 				return nil, err
 			}
 
-			return []importer.Instance{
+			return []*importer.Instance{
 				{
-					ID:       "vetinf:" + app.Config.VetInfDirectory,
-					Schedule: app.Config.VetInfImportSchedule,
+					ID:             "vetinf:" + app.Config.VetInfDirectory,
+					Schedule:       app.Config.VetInfImportSchedule,
+					RunImmediately: true,
 					Handler: importer.ImportFunc(func() error {
 						ctx := context.Background()
 
@@ -35,19 +36,37 @@ func init() {
 							return err
 						}
 
+						countNew := 0
+						countUpdated := 0
+						countUnchanged := 0
+
 						for customer := range ch {
 							existing, err := app.Customers.CustomerByCID(ctx, customer.CustomerID)
 							if errors.Is(err, customerdb.ErrNotFound) {
 								err = app.Customers.CreateCustomer(ctx, customer)
+								if err == nil {
+									countNew++
+								}
 							} else if existing != nil && existing.Hash() != customer.Hash() {
 								customer.ID = existing.ID
 								err = app.Customers.UpdateCustomer(ctx, customer)
+								if err == nil {
+									countUpdated++
+								}
+							} else if existing != nil {
+								countUnchanged++
 							}
 
 							if err != nil {
 								logger.From(ctx).Errorf("failed to import customer %s: %s", customer.CustomerID, err)
 							}
 						}
+
+						logger.From(ctx).WithFields(logger.Fields{
+							"new":       countNew,
+							"updated":   countUpdated,
+							"unchanged": countUnchanged,
+						}).Infof("Import finished")
 
 						return nil
 					}),
