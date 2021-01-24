@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/nyaruka/phonenumbers"
 	"github.com/spf13/afero"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
@@ -15,12 +16,13 @@ import (
 // Exporter is capable of exporting and extracting
 // data of a VetInf installation.
 type Exporter struct {
-	cfg schema.VetInf
-	db  *vetinf.Infdat
+	cfg     schema.VetInf
+	db      *vetinf.Infdat
+	country string
 }
 
 // NewExporter creates a new exporter for vetinf.
-func NewExporter(cfg schema.VetInf) (*Exporter, error) {
+func NewExporter(cfg schema.VetInf, country string) (*Exporter, error) {
 	stat, err := os.Stat(cfg.VetInfDirectory)
 	if err != nil {
 		return nil, err
@@ -33,8 +35,9 @@ func NewExporter(cfg schema.VetInf) (*Exporter, error) {
 	infdat := vetinf.OpenReadonlyFs(cfg.VetInfDirectory, afero.NewOsFs())
 
 	return &Exporter{
-		db:  infdat,
-		cfg: cfg,
+		db:      infdat,
+		cfg:     cfg,
+		country: country,
 	}, nil
 }
 
@@ -78,18 +81,20 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *customerdb.Cust
 				},
 			}
 
+			key := fmt.Sprintf("[%s %s <cid:%d>]", dbCustomer.Name, dbCustomer.Firstname, dbCustomer.CustomerID)
+
 			// Add all possible phPropertiesone numbers
 			if customer.Phone != "" {
-				dbCustomer.PhoneNumbers = append(dbCustomer.PhoneNumbers, customer.Phone)
+				dbCustomer.PhoneNumbers = addNumber(key, dbCustomer.PhoneNumbers, customer.Phone, e.country)
 			}
 			if customer.Phone2 != "" {
-				dbCustomer.PhoneNumbers = append(dbCustomer.PhoneNumbers, customer.Phone2)
+				dbCustomer.PhoneNumbers = addNumber(key, dbCustomer.PhoneNumbers, customer.Phone2, e.country)
 			}
 			if customer.MobilePhone1 != "" {
-				dbCustomer.PhoneNumbers = append(dbCustomer.PhoneNumbers, customer.MobilePhone1)
+				dbCustomer.PhoneNumbers = addNumber(key, dbCustomer.PhoneNumbers, customer.MobilePhone1, e.country)
 			}
 			if customer.MobilePhone2 != "" {
-				dbCustomer.PhoneNumbers = append(dbCustomer.PhoneNumbers, customer.MobilePhone2)
+				dbCustomer.PhoneNumbers = addNumber(key, dbCustomer.PhoneNumbers, customer.MobilePhone2, e.country)
 			}
 
 			// add all possible mail addresses
@@ -106,4 +111,17 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *customerdb.Cust
 	}()
 
 	return customers, total, nil
+}
+
+func addNumber(id string, numbers []string, number, country string) []string {
+	p, err := phonenumbers.Parse(number, country)
+	if err != nil {
+		logger.DefaultLogger().Errorf("%s failed to parse phone number: %q in country %s: %s", id, number, country, err)
+		return numbers
+	}
+
+	return append(numbers, []string{
+		phonenumbers.Format(p, phonenumbers.NATIONAL),
+		phonenumbers.Format(p, phonenumbers.INTERNATIONAL),
+	}...)
 }

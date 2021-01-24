@@ -8,7 +8,7 @@ import (
 
 // PhoneNumber parses text as a phone number and tries to
 // support a very lazy format of writting telephone numbers.
-func PhoneNumber(ctx context.Context, cityCode int, text string) ([]string, error) {
+func PhoneNumber(ctx context.Context, text string) ([]string, error) {
 	allowedRunes := "1234567890+-/ "
 
 	if text == "" {
@@ -42,8 +42,6 @@ func PhoneNumber(ctx context.Context, cityCode int, text string) ([]string, erro
 	part = strings.ReplaceAll(part, "-", "")
 
 	parts := strings.Fields(part)
-
-	// check all parts for a reasonable length
 
 	return parts, nil
 }

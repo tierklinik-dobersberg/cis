@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 // Error represents an HTTP error.
@@ -104,12 +105,14 @@ func Middleware(c *gin.Context) {
 
 	// nothing to do if the status has already been written.
 	if c.Writer.Written() || c.Writer.Status() != 0 {
+		logger.From(c.Request.Context()).Infof("request already written: %d", c.Writer.Status())
 		return
 	}
 
 	// No error recorded and not status/content written,
 	// try to do it ourself.
 	if len(c.Errors) == 0 {
+		logger.From(c.Request.Context()).Infof("finishing request with 201 No Content")
 		c.Status(http.StatusNoContent)
 		return
 	}
