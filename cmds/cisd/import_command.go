@@ -42,7 +42,7 @@ func getVetinfImportCommand() *cobra.Command {
 
 			app := getApp(ctx)
 
-			exporter, err := vetinf.NewExporter(app.Config.VetInf)
+			exporter, err := vetinf.NewExporter(app.Config.VetInf, app.Config.Country)
 			if err != nil {
 				log.Fatal(err)
 			}
