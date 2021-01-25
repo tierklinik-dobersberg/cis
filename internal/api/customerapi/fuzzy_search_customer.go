@@ -2,6 +2,7 @@ package customerapi
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -37,7 +38,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				for _, phone := range phoneQueries {
 					number, err := phonenumbers.Parse(phone, app.Config.Country)
 					if err != nil {
-						return httperr.BadRequest(err, "Invalid phone number")
+						return httperr.BadRequest(err, fmt.Sprintf("Invalid phone number: %s", phone))
 					}
 					phoneNumbers = append(phoneNumbers, phonenumbers.Format(number, phonenumbers.NATIONAL))
 					phoneNumbers = append(phoneNumbers, phonenumbers.Format(number, phonenumbers.INTERNATIONAL))

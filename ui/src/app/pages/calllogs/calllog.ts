@@ -50,10 +50,12 @@ export class CallLogComponent implements OnInit, OnDestroy {
                         return forkJoin({
                             logs: of(logs),
                             numbers: this.customerapi.search({
-                                phone: logs.reduce((res: string[], l: CallLog) => {
-                                    res.push(l.caller);
-                                    return res;
-                                }, [] as string[]),
+                                phone: Array.from(
+                                    logs.reduce((res: Set<string>, l: CallLog) => {
+                                        res.add(l.caller);
+                                        return res;
+                                    }, new Set<string>())
+                                ),
                             })
                         })
                     })
@@ -61,8 +63,10 @@ export class CallLogComponent implements OnInit, OnDestroy {
                 .subscribe(logs => {
                     let lm = new Map<string, Customer>();
                     logs.numbers.forEach(cust => cust.phoneNumbers.forEach(number => {
-                        lm.set(number, cust)
+                        lm.set(number.replace(" ", ""), cust)
                     }))
+
+                    console.log(lm);
 
                     this.logs = logs.logs.map(l => {
                         const cust = lm.get(l.caller);
