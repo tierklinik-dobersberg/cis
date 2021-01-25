@@ -6,33 +6,32 @@
   display       : flex;
   flex-direction: column;
   position      : relative;
+  background-color: #50566310;
 }
 
 .top-row {
-  background-color: #50566310;
+  width: 100%;
   display         : flex;
   box-shadow      : inset 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
-  flex-direction  : column;
-  justify-content : space-evenly;
-  flex-wrap       : wrap;
-  align-items     : center;
-  padding         : 12px;
-
-  @include for-tablet-landscape-up {
-    flex-direction: row;
-    padding       : 0;
-    padding-top   : 48px;
-    padding-bottom: 48px;
-  }
+  padding         : 24px;
 
   .dash-card {
     box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
-    min-width : 350px;
-    width     : 100%;
-
-
-    @include for-tablet-landscape-up {
-      width: 30%;
-    }
+    background-color: white;
+    flex-grow: 1;
+    padding: 24px;
+    border-radius: 4px;
   }
+}
+
+.date-selection {
+  margin-bottom: 12px;
+
+  nz-date-picker {
+    margin-left: 12px;
+  }
+}
+
+.customer-link {
+  margin-right: 5px;
 }
