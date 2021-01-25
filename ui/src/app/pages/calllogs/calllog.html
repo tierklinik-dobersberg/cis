@@ -14,13 +14,19 @@
     <tr>
       <th>Zeit</th>
       <th>Anrufer</th>
-      <th>Eingehende Nummer</th>
+      <th>Kunde</th>
+      <th>Angerufene Nummer</th>
     </tr>
   </thead>
   <tbody>
     <tr *ngFor="let data of basicTable.data; trackBy: trackLog">
       <td>{{data.localDate}}</td>
       <td>{{data.caller}}</td>
+      <td>
+        <a *ngIf="!!data.customer" [routerLink]="['/customer/view', data.customer.cid]">
+          {{data.customer.name}}&nbsp;{{data.customer.firstname}}
+        </a>
+      </td>
       <td>{{data.inboundNumber}}</td>
     </tr>
   </tbody>

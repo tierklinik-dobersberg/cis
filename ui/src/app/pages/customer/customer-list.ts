@@ -33,7 +33,7 @@ export class CustomerListComponent implements OnInit, OnDestroy {
     }
 
     search(term: string) {
-        let stream: Observable<Customer[]> = this.customerapi.search(term);
+        let stream: Observable<Customer[]> = this.customerapi.searchName(term);
 
         if (this.useAdvancedSearch) {
             let payload: any;

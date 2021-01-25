@@ -1,4 +1,4 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
@@ -26,11 +26,17 @@ export class CustomerAPI {
         return this.http.get<Customer>(`/api/customer/v1/${id}`);
     }
 
-    search(name: string): Observable<Customer[]> {
+    searchName(name: string): Observable<Customer[]> {
         return this.http.get<Customer[]>(`/api/customer/v1/`, {
             params: {
                 name: name,
             },
+        })
+    }
+
+    search(params: { [key: string]: string | string[] }): Observable<Customer[]> {
+        return this.http.get<Customer[]>(`/api/customer/v1/`, {
+            params: params,
         })
     }
 

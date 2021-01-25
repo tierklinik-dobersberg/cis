@@ -1,10 +1,12 @@
 import { Component, OnDestroy, OnInit, TrackByFunction } from "@angular/core";
-import { interval, Subscription } from "rxjs";
+import { forkJoin, interval, of, Subscription } from "rxjs";
 import { mergeMap, startWith } from "rxjs/operators";
 import { CallLog, CalllogAPI } from "src/app/api";
+import { Customer, CustomerAPI } from "src/app/api/customer.api";
 
 interface LocalCallLog extends CallLog {
     localDate: string;
+    customer?: Customer;
 }
 
 @Component({
@@ -24,7 +26,10 @@ export class CallLogComponent implements OnInit, OnDestroy {
         return i;
     };
 
-    constructor(private calllogapi: CalllogAPI) { }
+    constructor(
+        private calllogapi: CalllogAPI,
+        private customerapi: CustomerAPI,
+    ) { }
 
     ngOnInit() {
         this.subscriptions = new Subscription();
@@ -40,13 +45,33 @@ export class CallLogComponent implements OnInit, OnDestroy {
                         const day = d.getDate();
 
                         return this.calllogapi.forDate(year, month, day);
+                    }),
+                    mergeMap(logs => {
+                        return forkJoin({
+                            logs: of(logs),
+                            numbers: this.customerapi.search({
+                                phone: logs.reduce((res: string[], l: CallLog) => {
+                                    res.push(l.caller);
+                                    return res;
+                                }, [] as string[]),
+                            })
+                        })
                     })
                 )
                 .subscribe(logs => {
-                    this.logs = logs.map(l => ({
-                        ...l,
-                        localDate: new Date(l.date).toLocaleString(),
-                    }));
+                    let lm = new Map<string, Customer>();
+                    logs.numbers.forEach(cust => cust.phoneNumbers.forEach(number => {
+                        lm.set(number, cust)
+                    }))
+
+                    this.logs = logs.logs.map(l => {
+                        const cust = lm.get(l.caller);
+                        return {
+                            ...l,
+                            localDate: new Date(l.date).toLocaleString(),
+                            customer: cust,
+                        };
+                    });
                 })
 
         this.subscriptions.add(sub);
