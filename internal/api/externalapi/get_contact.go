@@ -2,7 +2,6 @@ package externalapi
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/customer/v1alpha"
+	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -54,8 +54,13 @@ func GetContactEndpoint(grp *app.Router) {
 				return httperr.NotFound("customer", phone, nil)
 			}
 
+			/*
+				TODO(ppacher): re-enable the multiple-results case but make sure
+				we handle contact merging correctly before.
+			*/
 			if len(customers) > 1 {
-				return httperr.WithCode(http.StatusMultipleChoices, errors.New("to many matches for "+phone))
+				//return httperr.WithCode(http.StatusMultipleChoices, errors.New("to many matches for "+phone))
+				logger.Infof(ctx, "multiple (%d) results found for %s", len(customers), phone)
 			}
 
 			response := ContactResponse{
