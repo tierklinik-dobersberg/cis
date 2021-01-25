@@ -15,4 +15,5 @@ type Customer struct {
 	PhoneNumbers  []string               `json:"phoneNumbers,omitempty" bson:"phoneNumbers,omitempty"`
 	MailAddresses []string               `json:"mailAddresses,omitempty" bson:"mailAddresses,omitempty"`
 	Metadata      map[string]interface{} `json:"metadata,omitempty" bson:"metadata,omitempty"`
+	Source        string                 `json:"source,omitempty" bson:"source,omitempty"`
 }
