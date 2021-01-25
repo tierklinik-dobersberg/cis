@@ -36,11 +36,13 @@ func init() {
 					// apart and ignore one of them.
 					if strings.Contains(token, ":") {
 						parts := strings.SplitN(token, ":", 2)
+						logger.Infof(r.Context(), "Testing access token %q against %q", parts[0], value)
 						if parts[0] == value {
 							logger.Infof(r.Context(), "Accepting access token in user part")
 							return true, nil
 						}
 
+						logger.Infof(r.Context(), "Testing access token %q against %q", parts[1], value)
 						if parts[1] == value {
 							logger.Infof(r.Context(), "Accepting access token in password part")
 							return true, nil
@@ -60,6 +62,7 @@ func init() {
 				token = r.Form.Get("access_token")
 			}
 
+			logger.Infof(r.Context(), "Testing access token %q against %q", token, value)
 			return token == value, nil
 		},
 	})
