@@ -157,6 +157,11 @@ func Require() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sess := Get(c)
 		if sess == nil || sess.AccessUntil == nil {
+			if sess == nil {
+				logger.Infof(c.Request.Context(), "Request without a valid session, aborting")
+			} else {
+				logger.Infof(c.Request.Context(), "Request session without access scope, aborting")
+			}
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "no access token provided",
 			})

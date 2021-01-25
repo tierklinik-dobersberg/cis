@@ -45,6 +45,7 @@ func init() {
 				token = r.Form.Get("access_token")
 			}
 
+			logger.Infof(r.Context(), "Testing access token %q against %q", token, value)
 			return token == value, nil
 		},
 	})
