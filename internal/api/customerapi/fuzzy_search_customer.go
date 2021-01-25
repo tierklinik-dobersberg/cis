@@ -36,6 +36,9 @@ func FuzzySearchEndpoint(grp *app.Router) {
 			if phoneQueries, ok := c.GetQueryArray("phone"); ok && len(phoneQueries) > 0 {
 				phoneNumbers := []string{}
 				for _, phone := range phoneQueries {
+					if phone == "" {
+						continue
+					}
 					number, err := phonenumbers.Parse(phone, app.Config.Country)
 					if err != nil {
 						return httperr.BadRequest(err, fmt.Sprintf("Invalid phone number: %s", phone))

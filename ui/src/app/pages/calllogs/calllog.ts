@@ -65,7 +65,7 @@ export class CallLogComponent implements OnInit, OnDestroy {
                 )
                 .subscribe(logs => {
                     let lm = new Map<string, Customer>();
-                    logs.numbers.forEach(cust => cust.phoneNumbers.forEach(number => {
+                    logs.numbers?.forEach(cust => cust.phoneNumbers?.forEach(number => {
                         number = number.replace(" ", "")
                         if (number === "") {
                             return
