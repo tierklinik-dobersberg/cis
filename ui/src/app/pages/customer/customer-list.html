@@ -34,9 +34,11 @@
                 <nz-list-item-meta-description>
                     <i nz-icon nzType="environment" nzTheme="outline"></i>
                     {{ customer.cityCode }}&nbsp;{{ customer.city }} - {{ customer.street }} |
-                    <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
-                    {{ customer.phone ||
-                    'N/A' }}
+                    <a class="phonenumber" *ngIf="!!(customer.phoneNumbers || [])[0]"
+                        [attr.href]="'tel:' + (customer.phoneNumbers || [])[0]">
+                        <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
+                        {{(customer.phoneNumbers || [])[0]}}
+                    </a>
                 </nz-list-item-meta-description>
             </nz-list-item-meta>
         </nz-list-item>

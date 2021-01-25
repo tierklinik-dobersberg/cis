@@ -27,7 +27,7 @@ export class CustomerAPI {
     }
 
     search(name: string): Observable<Customer[]> {
-        return this.http.get<Customer[]>(`/api/customer/v1`, {
+        return this.http.get<Customer[]>(`/api/customer/v1/`, {
             params: {
                 name: name,
             },
@@ -35,6 +35,6 @@ export class CustomerAPI {
     }
 
     extendedSearch(query: any): Observable<Customer[]> {
-        return this.http.post<Customer[]>(`/api/customer/v1/search`, query);
+        return this.http.post<Customer[]>(`/api/customer/v1/search/`, query);
     }
 }
