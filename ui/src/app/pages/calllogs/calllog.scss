@@ -9,19 +9,17 @@
   background-color: #50566310;
 }
 
-.top-row {
-  width: 100%;
-  display         : flex;
-  box-shadow      : inset 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
-  padding         : 24px;
-
-  .dash-card {
-    box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
-    background-color: white;
-    flex-grow: 1;
-    padding: 24px;
-    border-radius: 4px;
+.dash-card {
+  box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
+  background-color: white;
+  flex-grow: 1;
+  padding: 24px;
+  margin: 24px;
+  &:not(:first-child) {
+    margin-top: 0px;
   }
+  
+  border-radius: 4px;
 }
 
 .date-selection {

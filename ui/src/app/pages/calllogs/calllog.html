@@ -1,17 +1,13 @@
-<div class="top-row">
-
-  <div class="dash-card">
-    <div class="date-selection">
-      <label>Anrufe anzeigen für </label>
-      <nz-date-picker [ngModel]="date" (ngModelChange)="onChange($event)"></nz-date-picker>
-    </div>
-    <nz-statistic [nzValue]="logs.length" nzTitle="Anrufe Heute" [nzPrefix]="prefixTpl"></nz-statistic>
-    <ng-template #prefixTpl><i nz-icon nzType="phone" [nzRotate]="95"></i></ng-template>
+<div class="dash-card">
+  <div class="date-selection">
+    <label>Anrufe anzeigen für </label>
+    <nz-date-picker [ngModel]="date" (ngModelChange)="onChange($event)"></nz-date-picker>
   </div>
-
+  <nz-statistic [nzValue]="logs.length" nzTitle="Anrufe Heute" [nzPrefix]="prefixTpl"></nz-statistic>
+  <ng-template #prefixTpl><i nz-icon nzType="phone" [nzRotate]="95"></i></ng-template>
 </div>
 
-<nz-table #basicTable [nzData]="logs">
+<nz-table #basicTable [nzData]="logs" class="dash-card">
   <thead>
     <tr>
       <th>Zeit</th>
