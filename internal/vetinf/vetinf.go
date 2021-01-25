@@ -76,6 +76,7 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *customerdb.Cust
 				Name:       customer.Name,
 				Street:     customer.Street,
 				Title:      customer.Titel,
+				Source:     "vetinf",
 				Metadata: map[string]interface{}{
 					"rawVetInfRecord": customer,
 				},
@@ -83,23 +84,30 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *customerdb.Cust
 
 			key := fmt.Sprintf("[%s %s <cid:%d>]", dbCustomer.Name, dbCustomer.Firstname, dbCustomer.CustomerID)
 
+			var hasInvalidPhone bool
+
 			// Add all possible phPropertiesone numbers
 			if customer.Phone != "" {
-				dbCustomer.PhoneNumbers = addNumber(key, dbCustomer.PhoneNumbers, customer.Phone, e.country)
+				dbCustomer.PhoneNumbers = addNumber(key, dbCustomer.PhoneNumbers, customer.Phone, e.country, &hasInvalidPhone)
 			}
 			if customer.Phone2 != "" {
-				dbCustomer.PhoneNumbers = addNumber(key, dbCustomer.PhoneNumbers, customer.Phone2, e.country)
+				dbCustomer.PhoneNumbers = addNumber(key, dbCustomer.PhoneNumbers, customer.Phone2, e.country, &hasInvalidPhone)
 			}
 			if customer.MobilePhone1 != "" {
-				dbCustomer.PhoneNumbers = addNumber(key, dbCustomer.PhoneNumbers, customer.MobilePhone1, e.country)
+				dbCustomer.PhoneNumbers = addNumber(key, dbCustomer.PhoneNumbers, customer.MobilePhone1, e.country, &hasInvalidPhone)
 			}
 			if customer.MobilePhone2 != "" {
-				dbCustomer.PhoneNumbers = addNumber(key, dbCustomer.PhoneNumbers, customer.MobilePhone2, e.country)
+				dbCustomer.PhoneNumbers = addNumber(key, dbCustomer.PhoneNumbers, customer.MobilePhone2, e.country, &hasInvalidPhone)
 			}
 
 			// add all possible mail addresses
 			if customer.Mail != "" {
 				dbCustomer.MailAddresses = append(dbCustomer.MailAddresses, customer.Mail)
+			}
+
+			if hasInvalidPhone {
+				logger.Infof(ctx, "customer %s has invalid phone numer", key)
+				dbCustomer.Metadata["vetinfInvalidPhone"] = true
 			}
 
 			select {
@@ -113,9 +121,10 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *customerdb.Cust
 	return customers, total, nil
 }
 
-func addNumber(id string, numbers []string, number, country string) []string {
+func addNumber(id string, numbers []string, number, country string, hasError *bool) []string {
 	p, err := phonenumbers.Parse(number, country)
 	if err != nil {
+		*hasError = true
 		logger.DefaultLogger().Errorf("%s failed to parse phone number: %q in country %s: %s", id, number, country, err)
 		return numbers
 	}

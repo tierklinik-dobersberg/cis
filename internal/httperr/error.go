@@ -58,7 +58,12 @@ func (err *Error) Error() string {
 		code = http.StatusInternalServerError
 	}
 
-	return fmt.Sprintf("%03d: %s", code, err.Err.Error())
+	errMsg := "<none>"
+	if err.Err != nil {
+		errMsg = err.Err.Error()
+	}
+
+	return fmt.Sprintf("%03d: %s", code, errMsg)
 }
 
 // AbortRequest aborts the HTTP request in c using the
@@ -74,7 +79,7 @@ func (err *Error) AbortRequest(c *gin.Context) {
 	var payload interface{}
 	if err.Context != nil {
 		payload = err.Context
-	} else {
+	} else if err.Err != nil {
 		payload = gin.H{
 			"error": err.Err.Error(),
 		}

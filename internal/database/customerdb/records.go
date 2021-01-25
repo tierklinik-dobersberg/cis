@@ -26,6 +26,7 @@ type Customer struct {
 	// Metadata holds additional metadata for the customer.
 	// It is not part of the hash calculation.
 	Metadata map[string]interface{} `bson:"metadata,omitempty"`
+	Source   string                 `bson:"customerSource,omitempty"`
 }
 
 // Hash returns a hash of the customer

@@ -11,6 +11,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	v1 "github.com/tierklinik-dobersberg/cis/pkg/models/customer/v1alpha"
+	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -21,6 +22,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 		"v1/",
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			filter := bson.M{}
+			singleResponse := c.Query("single") != ""
 
 			if name := c.Query("name"); name != "" {
 				m1, m2 := matchr.DoubleMetaphone(name)
@@ -61,9 +63,20 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				filter["mailAddresses"] = mail
 			}
 
+			logger.Infof(ctx, "%+v", filter)
+
 			customers, err := app.Customers.FilterCustomer(ctx, filter)
 			if err != nil {
 				return err
+			}
+
+			if singleResponse {
+				if len(customers) == 0 {
+					return httperr.NotFound("customer", "filter", nil)
+				}
+
+				c.JSON(http.StatusOK, CustomerModel(ctx, customers[0]))
+				return nil
 			}
 
 			models := make([]*v1.Customer, len(customers))

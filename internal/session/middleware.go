@@ -2,7 +2,9 @@ package session
 
 import (
 	"errors"
+	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"strings"
 	"time"
 
@@ -55,6 +57,16 @@ func Middleware(c *gin.Context) {
 	// skip it.
 	if refreshToken == nil && accessToken == nil {
 		log.Info("unauthenticated request: no access or refresh token provided")
+
+		reqBlob, err := httputil.DumpRequest(c.Request, true)
+		if err != nil {
+			log.Errorf("failed to dump request: %s", err)
+			return
+		}
+		if err := ioutil.WriteFile("/log/request.dump", reqBlob, 0700); err != nil {
+			log.Errorf("failed to dump request: %s", err)
+		}
+
 		return
 	}
 
