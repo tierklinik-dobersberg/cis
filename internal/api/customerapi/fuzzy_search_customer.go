@@ -32,17 +32,19 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				}
 			}
 
-			if phone := c.Query("phone"); phone != "" {
-				number, err := phonenumbers.Parse(phone, app.Config.Country)
-				if err != nil {
-					return httperr.BadRequest(err, "Invalid phone number")
+			if phoneQueries, ok := c.GetQueryArray("phone"); ok && len(phoneQueries) > 0 {
+				phoneNumbers := []string{}
+				for _, phone := range phoneQueries {
+					number, err := phonenumbers.Parse(phone, app.Config.Country)
+					if err != nil {
+						return httperr.BadRequest(err, "Invalid phone number")
+					}
+					phoneNumbers = append(phoneNumbers, phonenumbers.Format(number, phonenumbers.NATIONAL))
+					phoneNumbers = append(phoneNumbers, phonenumbers.Format(number, phonenumbers.INTERNATIONAL))
 				}
 
 				filter["phoneNumbers"] = bson.M{
-					"$in": []string{
-						phonenumbers.Format(number, phonenumbers.NATIONAL),
-						phonenumbers.Format(number, phonenumbers.INTERNATIONAL),
-					},
+					"$in": phoneNumbers,
 				}
 			}
 
