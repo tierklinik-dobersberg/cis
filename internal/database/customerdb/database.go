@@ -28,7 +28,7 @@ type Database interface {
 	UpdateCustomer(ctx context.Context, cu *Customer) error
 
 	// CustomerByCID returns the customer by it's customer-id
-	CustomerByCID(ctx context.Context, cid int) (*Customer, error)
+	CustomerByCID(ctx context.Context, source string, cid int) (*Customer, error)
 
 	// FilterCustomer filters all customers according to filter.
 	FilterCustomer(ctx context.Context, filter bson.M) ([]*Customer, error)
@@ -108,7 +108,8 @@ func (db *database) setup(ctx context.Context) error {
 		},
 		{
 			Keys: bson.M{
-				"cid": 1,
+				"cid":            1,
+				"customerSource": 1,
 			},
 		},
 	})
@@ -199,9 +200,10 @@ func (db *database) FuzzySearchName(ctx context.Context, name string) ([]*Custom
 	return result, nil
 }
 
-func (db *database) CustomerByCID(ctx context.Context, cid int) (*Customer, error) {
+func (db *database) CustomerByCID(ctx context.Context, source string, cid int) (*Customer, error) {
 	filter := bson.M{
-		"cid": cid,
+		"cid":            cid,
+		"customerSource": source,
 	}
 
 	return db.findSingleCustomer(ctx, filter)

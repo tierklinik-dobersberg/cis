@@ -41,7 +41,7 @@ func init() {
 						countUnchanged := 0
 
 						for customer := range ch {
-							existing, err := app.Customers.CustomerByCID(ctx, customer.CustomerID)
+							existing, err := app.Customers.CustomerByCID(ctx, "vetinf", customer.CustomerID)
 							if errors.Is(err, customerdb.ErrNotFound) {
 								err = app.Customers.CreateCustomer(ctx, customer)
 								if err == nil {
@@ -58,7 +58,7 @@ func init() {
 							}
 
 							if err != nil {
-								logger.From(ctx).Errorf("failed to import customer %s: %s", customer.CustomerID, err)
+								logger.Errorf(ctx, "failed to import customer %s: %s", customer.CustomerID, err)
 							}
 						}
 

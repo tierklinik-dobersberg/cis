@@ -16,14 +16,20 @@ import (
 // GET /api/v1/customer/:id
 func GetByIDEndpoint(grp *app.Router) {
 	grp.GET(
-		"v1/:id",
+		"v1/:source/:id",
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
+			source := c.Param("source")
+
+			if source != "vetinf" && source != "neumayr" {
+				return httperr.BadRequest(nil, "unknown source")
+			}
+
 			id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 			if err != nil {
 				return httperr.BadRequest(err, "invalid ID")
 			}
 
-			customer, err := app.Customers.CustomerByCID(ctx, int(id))
+			customer, err := app.Customers.CustomerByCID(ctx, source, int(id))
 			if err != nil {
 				return err
 			}

@@ -17,6 +17,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/externalapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/holidayapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/identityapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/importapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/autologin"
@@ -122,6 +123,8 @@ func getApp(ctx context.Context) *app.App {
 				calllogapi.Setup(apis.Group("calllogs", session.Require()))
 				// configapi provides configuration specific endpoints.
 				configapi.Setup(apis.Group("config", session.Require()))
+				// importapi provides import support for customer data
+				importapi.Setup(apis.Group("import", session.Require()))
 			}
 
 			return nil
