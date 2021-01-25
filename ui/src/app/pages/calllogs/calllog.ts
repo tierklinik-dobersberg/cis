@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, TrackByFunction } from "@angular/core";
-import { BehaviorSubject, forkJoin, interval, of, Subscription } from "rxjs";
+import { BehaviorSubject, combineLatest, forkJoin, interval, of, Subscription } from "rxjs";
 import { catchError, mergeMap, startWith } from "rxjs/operators";
 import { CallLog, CalllogAPI } from "src/app/api";
 import { Customer, CustomerAPI } from "src/app/api/customer.api";
@@ -44,7 +44,10 @@ export class CallLogComponent implements OnInit, OnDestroy {
         this.subscriptions = new Subscription();
 
         const sub =
-            interval(30000)
+            combineLatest([
+                interval(60000).pipe(startWith(-1)),
+                this._selectedDate,
+            ])
                 .pipe(
                     mergeMap(() => this._selectedDate),
                     mergeMap(d => {
