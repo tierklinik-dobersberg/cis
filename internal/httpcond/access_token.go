@@ -22,10 +22,11 @@ func init() {
 				case strings.HasPrefix(h, "Bearer "):
 					token = strings.TrimPrefix(h, "Bearer ")
 				case strings.HasPrefix(h, "Basic "):
-					tokenBlob, err := base64.RawStdEncoding.DecodeString(strings.TrimPrefix(h, "Basic "))
+					value := strings.TrimPrefix(h, "Basic ")
+					tokenBlob, err := base64.URLEncoding.DecodeString(value)
 					if err != nil {
 						// do not report this as an error here
-						logger.Infof(r.Context(), "Found Basic authorization header but failed to base64 decode it: %q: %s", h, err)
+						logger.Infof(r.Context(), "Found Basic authorization header but failed to base64 decode it: %q: %s", value, err)
 						return false, nil
 					}
 
