@@ -14,4 +14,7 @@ func Setup(grp gin.IRouter) {
 
 	// POST /api/external/v1/calllog?ani=<ani>&did=<did>
 	RecordCallEndpoint(router)
+
+	// GET /api/external/v1/contact?phone=<phone>
+	GetContactEndpoint(router)
 }
