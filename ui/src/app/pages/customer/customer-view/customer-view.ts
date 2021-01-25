@@ -35,6 +35,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
                 })
             )
             .subscribe(customer => {
+                console.log(customer);
                 this.customer = customer;
             })
         this.subscriptions.add(routerSub);

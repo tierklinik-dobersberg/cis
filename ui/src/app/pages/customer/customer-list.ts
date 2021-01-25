@@ -2,7 +2,8 @@ import { Component, OnDestroy, OnInit, TrackByFunction } from "@angular/core";
 import { NzMessageService } from "ng-zorro-antd/message";
 import { Observable, Subscription } from "rxjs";
 import { Customer, CustomerAPI } from "src/app/api/customer.api";
-import { extractErrorMessage } from "src/app/utils";
+import { extractErrorMessage, toMongoDBFilter } from "src/app/utils";
+import { parse as parseQuery } from 'search-query-parser';
 
 @Component({
     templateUrl: './customer-list.html',
@@ -43,6 +44,17 @@ export class CustomerListComponent implements OnInit, OnDestroy {
             }
 
             stream = this.customerapi.extendedSearch(payload)
+        } else {
+            let parsedQuery = parseQuery(term, {
+                keywords: ['name', 'firstname', 'phoneNumbers', 'city', 'cityCode', 'street', 'mailAddresses']
+            })
+            console.log(term, parsedQuery);
+
+            if (typeof parsedQuery !== 'string') {
+                let filter = toMongoDBFilter(parsedQuery)
+                console.log(filter);
+                stream = this.customerapi.extendedSearch(filter);
+            }
         }
 
         this.searching = true;
