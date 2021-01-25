@@ -38,6 +38,7 @@ func (cu *Customer) Hash() string {
 	h.Write([]byte(cu.Firstname))
 	h.Write([]byte(cu.Group))
 	h.Write([]byte(cu.Name))
+	h.Write([]byte(cu.Source))
 	for _, p := range cu.PhoneNumbers {
 		h.Write([]byte(p))
 	}
