@@ -11,6 +11,7 @@ const routes: Routes = [
   { path: 'xray', loadChildren: () => import('./pages/xray/xray.module').then(m => m.XRayModule) },
   { path: 'profile', loadChildren: () => import('./pages/profile/profile.module').then(m => m.ProfileModule) },
   { path: 'customer', loadChildren: () => import('./pages/customer/customer.module').then(m => m.CustomerModule) },
+  { path: 'admin', loadChildren: () => import('./pages/admin/admin.module').then(m => m.AdminModule) },
 ];
 
 @NgModule({

@@ -5,7 +5,7 @@ import { CustomerViewComponent } from "./customer-view";
 
 let routes: Routes = [
     { path: '', component: CustomerListComponent },
-    { path: 'view/:cid', component: CustomerViewComponent }
+    { path: 'view/:source/:cid', component: CustomerViewComponent }
 ]
 
 @NgModule({

@@ -26,7 +26,7 @@
     <nz-list nzSize="small">
 
         <nz-list-item *cdkVirtualFor="let customer of customers; trackBy: trackBy"
-            [routerLink]="['view', customer.cid]">
+            [routerLink]="['view', customer.source, customer.cid]">
             <nz-list-item-meta>
                 <nz-list-item-meta-title>
                     <a>{{ customer.name }} {{ customer.firstname }} </a>
@@ -39,6 +39,8 @@
                         <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
                         {{(customer.phoneNumbers || [])[0]}}
                     </a>
+
+                    <nz-tag [nzColor]="customer.tagColor">{{ customer.source }}</nz-tag>
                 </nz-list-item-meta-description>
             </nz-list-item-meta>
         </nz-list-item>

@@ -1,9 +1,10 @@
 import { Component, OnDestroy, OnInit, TrackByFunction } from "@angular/core";
 import { NzMessageService } from "ng-zorro-antd/message";
-import { Observable, Subscription } from "rxjs";
+import { from, Observable, Subscription } from "rxjs";
 import { Customer, CustomerAPI } from "src/app/api/customer.api";
 import { extractErrorMessage, toMongoDBFilter } from "src/app/utils";
 import { parse as parseQuery } from 'search-query-parser';
+import { ExtendedCustomer, customerTagColor } from './utils';
 
 @Component({
     templateUrl: './customer-list.html',
@@ -13,7 +14,7 @@ export class CustomerListComponent implements OnInit, OnDestroy {
     private subscriptions = Subscription.EMPTY;
 
     searchText = ''
-    customers: Customer[] = [];
+    customers: ExtendedCustomer[] = [];
     useAdvancedSearch: boolean = false;
     searching = false;
 
@@ -46,9 +47,8 @@ export class CustomerListComponent implements OnInit, OnDestroy {
             stream = this.customerapi.extendedSearch(payload)
         } else {
             let parsedQuery = parseQuery(term, {
-                keywords: ['name', 'firstname', 'phoneNumbers', 'city', 'cityCode', 'street', 'mailAddresses']
+                keywords: ['name', 'firstname', 'phoneNumbers', 'city', 'cityCode', 'street', 'mailAddresses', 'customerSource']
             })
-            console.log(term, parsedQuery);
 
             if (typeof parsedQuery !== 'string') {
                 let filter = toMongoDBFilter(parsedQuery)
@@ -60,7 +60,10 @@ export class CustomerListComponent implements OnInit, OnDestroy {
         this.searching = true;
         stream.subscribe(
             result => {
-                this.customers = result || [];
+                this.customers = (result || []).map(c => ({
+                    ...c,
+                    tagColor: customerTagColor(c),
+                }));
             },
             err => {
                 const msg = extractErrorMessage(err, "Suche fehlgeschlagen")

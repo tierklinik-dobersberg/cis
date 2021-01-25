@@ -5,6 +5,7 @@ import { of, Subscription } from "rxjs";
 import { catchError, mergeMap } from "rxjs/operators";
 import { Customer, CustomerAPI } from "src/app/api/customer.api";
 import { extractErrorMessage } from "src/app/utils";
+import { customerTagColor, ExtendedCustomer } from "../utils";
 
 @Component({
     templateUrl: './customer-view.html',
@@ -13,7 +14,7 @@ import { extractErrorMessage } from "src/app/utils";
 export class CustomerViewComponent implements OnInit, OnDestroy {
     private subscriptions = Subscription.EMPTY;
 
-    customer: Customer | null = null;
+    customer: ExtendedCustomer | null = null;
 
     constructor(
         private customerapi: CustomerAPI,
@@ -27,7 +28,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
         const routerSub = this.activatedRoute.paramMap
             .pipe(
                 mergeMap(params => {
-                    return this.customerapi.byId(params.get('cid'))
+                    return this.customerapi.byId(params.get('source'), params.get('cid'))
                 }),
                 catchError(err => {
                     this.nzMessageService.error(extractErrorMessage(err, 'Kunde konnte nicht geladen werden'))
@@ -35,8 +36,10 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
                 })
             )
             .subscribe(customer => {
-                console.log(customer);
-                this.customer = customer;
+                this.customer = {
+                    ...customer,
+                    tagColor: customerTagColor(customer),
+                };
             })
         this.subscriptions.add(routerSub);
     }

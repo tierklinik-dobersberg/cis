@@ -1,0 +1,12 @@
+<section>
+    <h1>Neumayr Kontakt Import</h1>
+
+    <label for="file">Zum Importieren die Datei <strong>Kontakt.mdb</strong> aus dem Neumayr Verzeichnis
+        auswählen:</label>
+    <input type="file" id="file" (change)="handleFileInput($event.target.files)">
+
+    <div class="actions">
+        <button nz-button nzType="primary" (click)="importNeumayrContacts()" [nzLoading]="importing">
+            {{ importing ? 'Importiere ... ' : 'Importieren' }}</button>
+    </div>
+</section>

@@ -23,7 +23,7 @@
       <td>{{data.localDate}}</td>
       <td>{{data.caller}}</td>
       <td>
-        <a *ngIf="!!data.customer" [routerLink]="['/customer/view', data.customer.cid]">
+        <a *ngIf="!!data.customer" [routerLink]="['/customer/view', data.customer.source, data.customer.cid]">
           {{data.customer.name}}&nbsp;{{data.customer.firstname}}
         </a>
       </td>

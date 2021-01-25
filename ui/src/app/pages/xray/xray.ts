@@ -132,7 +132,6 @@ class StudyDataSource extends DataSource<SutyWithMeta> {
     const result = studies.map(study => {
       var urls: InstancePreview[] = [];
 
-
       (study.seriesList || []).forEach(series => {
         series.instances.forEach(instance => {
           const url = instance.url.replace('dicomweb://', '//') + '&contentType=image/jpeg';

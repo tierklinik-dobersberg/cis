@@ -1,5 +1,11 @@
 <div class="customer">
-    <h1>Kunde: {{ customer?.name }}</h1>
+    <h1>
+        Kunde: {{ customer?.name }}
+    </h1>
+
+    <div class="tag-list">
+        <nz-tag [nzColor]="customer.tagColor">{{ customer.source }}</nz-tag>
+    </div>
 
     <nz-descriptions nzBordered>
         <nz-descriptions-item nzTitle="ID" [nzSpan]="3">{{customer?.cid || 'N/A'}}</nz-descriptions-item>

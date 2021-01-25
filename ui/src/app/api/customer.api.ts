@@ -14,6 +14,7 @@ export interface Customer {
     city: string;
     phoneNumbers: string[];
     mailAddresses: string[];
+    source: string;
 }
 
 @Injectable({
@@ -22,8 +23,8 @@ export interface Customer {
 export class CustomerAPI {
     constructor(private http: HttpClient) { }
 
-    byId(id: number | string): Observable<Customer> {
-        return this.http.get<Customer>(`/api/customer/v1/${id}`);
+    byId(source: string, id: number | string): Observable<Customer> {
+        return this.http.get<Customer>(`/api/customer/v1/${source}/${id}`);
     }
 
     searchName(name: string): Observable<Customer[]> {

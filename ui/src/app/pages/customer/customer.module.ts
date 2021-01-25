@@ -12,6 +12,7 @@ import { NzInputModule } from "ng-zorro-antd/input";
 import { NzListModule } from "ng-zorro-antd/list";
 import { NzMessageServiceModule } from "ng-zorro-antd/message";
 import { NzSpinModule } from "ng-zorro-antd/spin";
+import { NzTagModule } from "ng-zorro-antd/tag";
 import { NzToolTipModule } from "ng-zorro-antd/tooltip";
 import { CustomerListComponent } from "./customer-list";
 import { CustomerRoutingModule } from "./customer-routing.module";
@@ -31,6 +32,7 @@ import { CustomerViewComponent } from "./customer-view";
         NzCheckboxModule,
         NzIconModule,
         NzSpinModule,
+        NzTagModule,
         NzEmptyModule,
         NzGridModule,
         ScrollingModule,
