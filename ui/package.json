@@ -28,6 +28,7 @@
     "dwv": "^0.27.1",
     "ng-zorro-antd": "~10.1.2",
     "rxjs": "~6.6.0",
+    "search-query-parser": "^1.5.5",
     "tslib": "^2.0.0",
     "zone.js": "~0.10.2"
   },
