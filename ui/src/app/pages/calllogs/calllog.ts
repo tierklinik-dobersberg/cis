@@ -56,19 +56,29 @@ export class CallLogComponent implements OnInit, OnDestroy {
                     }),
                     mergeMap(logs => {
                         logs = logs || [];
-                        return forkJoin({
-                            logs: of(logs),
-                            numbers: this.customerapi.search({
-                                phone: Array.from(
-                                    logs.reduce((res: Set<string>, l: CallLog) => {
-                                        res.add(l.caller);
-                                        return res;
-                                    }, new Set<string>())
-                                ),
+                        let queryForNumbers = Array.from(
+                            logs.reduce((res: Set<string>, l: CallLog) => {
+                                res.add(l.caller);
+                                return res;
+                            }, new Set<string>())
+                        );
+
+                        // make sure we don't send a query if there aren't any
+                        // numbers we want to lookup as it would return all
+                        // customers stored in CIS.
+                        let numbersStream = of([]);
+                        if (queryForNumbers.length > 0) {
+                            numbersStream = this.customerapi.search({
+                                phone: queryForNumbers,
                             }).pipe(catchError(err => {
                                 console.log(err);
                                 return of([]);
-                            }))
+                            }));
+                        }
+
+                        return forkJoin({
+                            logs: of(logs),
+                            numbers: numbersStream,
                         })
                     })
                 )
