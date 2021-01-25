@@ -31,6 +31,21 @@ func init() {
 					}
 
 					token = string(tokenBlob)
+
+					// if the basic value contains a ":" we might need to split username / password
+					// apart and ignore one of them.
+					if strings.Contains(token, ":") {
+						parts := strings.SplitN(token, ":", 2)
+						if parts[0] == value {
+							logger.Infof(r.Context(), "Accepting access token in user part")
+							return true, nil
+						}
+
+						if parts[1] == value {
+							logger.Infof(r.Context(), "Accepting access token in password part")
+							return true, nil
+						}
+					}
 				default:
 					return false, nil
 				}
@@ -45,7 +60,6 @@ func init() {
 				token = r.Form.Get("access_token")
 			}
 
-			logger.Infof(r.Context(), "Testing access token %q against %q", token, value)
 			return token == value, nil
 		},
 	})
