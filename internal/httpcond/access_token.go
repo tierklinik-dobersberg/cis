@@ -1,10 +1,12 @@
 package httpcond
 
 import (
+	"encoding/base64"
 	"net/http"
 	"strings"
 
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 func init() {
@@ -16,10 +18,22 @@ func init() {
 		Match: func(r *http.Request, value string) (bool, error) {
 			var token string
 			if h := r.Header.Get("Authorization"); h != "" {
-				if !strings.HasPrefix(h, "Bearer ") {
+				switch {
+				case strings.HasPrefix(h, "Bearer "):
+					token = strings.TrimPrefix(h, "Bearer ")
+				case strings.HasPrefix(h, "Basic "):
+					tokenBlob, err := base64.RawStdEncoding.DecodeString(strings.TrimPrefix(h, "Basic "))
+					if err != nil {
+						// do not report this as an error here
+						logger.Infof(r.Context(), "Found Basic authorization header but failed to base64 decode it: %q: %s", h, err)
+						return false, nil
+					}
+
+					token = string(tokenBlob)
+				default:
 					return false, nil
 				}
-				token = strings.TrimPrefix(h, "Bearer ")
+
 			} else if h := r.URL.Query().Get("access_token"); h != "" {
 				token = h
 			} else if h := r.Header.Get("Content-Type"); strings.Contains(h, "application/x-www-form-urlencoded") {
