@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, TrackByFunction } from "@angular/core";
 import { forkJoin, interval, of, Subscription } from "rxjs";
-import { mergeMap, startWith } from "rxjs/operators";
+import { catchError, mergeMap, startWith } from "rxjs/operators";
 import { CallLog, CalllogAPI } from "src/app/api";
 import { Customer, CustomerAPI } from "src/app/api/customer.api";
 
@@ -56,14 +56,22 @@ export class CallLogComponent implements OnInit, OnDestroy {
                                         return res;
                                     }, new Set<string>())
                                 ),
-                            })
+                            }).pipe(catchError(err => {
+                                console.log(err);
+                                return of([]);
+                            }))
                         })
                     })
                 )
                 .subscribe(logs => {
                     let lm = new Map<string, Customer>();
                     logs.numbers.forEach(cust => cust.phoneNumbers.forEach(number => {
-                        lm.set(number.replace(" ", ""), cust)
+                        number = number.replace(" ", "")
+                        if (number === "") {
+                            return
+                        }
+
+                        lm.set(number, cust)
                     }))
 
                     console.log(lm);
