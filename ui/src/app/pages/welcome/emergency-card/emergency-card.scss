@@ -8,11 +8,51 @@ nz-card {
   border-top: 3px solid #93C5FD;
   position  : relative;
 
-  img {
+  img.card-image {
     position: absolute;
     top     : 15px;
     right   : 15px;
     opacity : 0.1;
     height  : 100px;
+  }
+}
+
+.header {
+  font-size: 80%;
+  margin-bottom: 6px;
+  display: block;
+  text-transform: uppercase;
+  color: gray;
+}
+
+.on-duty-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  .primary-on-duty {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+
+    .phone {
+      color: gray;
+      font-size: 95%;
+    }
+  }
+}
+
+span.ant-avatar {
+  overflow: hidden;
+  margin-right: 18px;
+  height: 64px;
+  width: 64px;
+  border: 1px solid lightgray;
+  box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
+
+  img {
+    width : 100%;
+    height: auto;
   }
 }
