@@ -1,4 +1,4 @@
-<div class="dash-card">
+<div class="dash-card selection-container">
   <div class="date-selection">
     <label>Anrufe anzeigen für </label>
     <nz-date-picker [ngModel]="date" (ngModelChange)="onChange($event)"></nz-date-picker>
@@ -7,7 +7,7 @@
   <ng-template #prefixTpl><i nz-icon nzType="phone" [nzRotate]="95"></i></ng-template>
 </div>
 
-<nz-table #basicTable [nzData]="logs" class="dash-card">
+<nz-table #basicTable [nzData]="logs" class="dash-card data-container">
   <thead>
     <tr>
       <th>Zeit</th>
