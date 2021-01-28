@@ -42,6 +42,13 @@ export class ConfigAPI {
           return of(null);
         }))
         .subscribe(cfg => {
+          // we need to update the IdentityAPI ourself
+          // as importing ConfigAPI there would cause a circular
+          // dependency.
+          this.identity.applyUIConfig(cfg);
+
+          // finally, notify all other subscribes of UI config
+          // changes.
           this.onChange.next(cfg);
         })
     });

@@ -1,9 +1,8 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
-import { faBowlingBall } from '@fortawesome/free-solid-svg-icons';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { flatMap, map, mergeMap, tap } from 'rxjs/operators';
+import { map, mergeMap, tap } from 'rxjs/operators';
+import { UIConfig } from './config.api';
 
 export interface Profile {
   name: string;
@@ -34,10 +33,15 @@ export interface PasswordStrenght {
 export class IdentityAPI {
   private onLogin = new BehaviorSubject<Profile | null>(null);
   private avatarCache: { [key: string]: string } = {};
+  private rolesToHide: Set<string> = new Set();
+
+  applyUIConfig(cfg: UIConfig) {
+    this.rolesToHide = new Set();
+    cfg?.HideUsersWithRole?.forEach(role => this.rolesToHide.add(role));
+  }
 
   constructor(
     private http: HttpClient,
-    private router: Router,
   ) {
     this.profile()
       .subscribe(p => {
@@ -133,8 +137,25 @@ export class IdentityAPI {
   /**
    * Returns all users stored at cisd.
    */
-  listUsers(): Observable<Profile[]> {
+  listUsers({ filter }: { filter: boolean } = { filter: true }): Observable<Profile[]> {
+    if (filter === undefined) {
+      filter = true;
+    }
+
     return this.http.get<Profile[]>("/api/identity/v1/users")
+      .pipe(
+        map(profiles => {
+          if (!filter) {
+            console.log(`no filtering`, profiles)
+            return profiles;
+          }
+          let result = profiles.filter(p => !p.roles || !p.roles.some(
+            role => this.rolesToHide.has(role)
+          ))
+
+          return result;
+        })
+      )
   }
 
   /**
