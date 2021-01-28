@@ -35,7 +35,6 @@ export class CallLogComponent implements OnInit, OnDestroy {
     ) { }
 
     onChange(date: Date) {
-        this.date = date;
         this._selectedDate.next(date);
     }
 
