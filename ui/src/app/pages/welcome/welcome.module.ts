@@ -30,6 +30,8 @@ import { EmergencyCardComponent } from './emergency-card';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { ClockCardComponent } from './clock-card';
 import { NzStatisticModule } from 'ng-zorro-antd/statistic';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { NzMessageServiceModule } from 'ng-zorro-antd/message';
 
 @NgModule({
   imports: [
@@ -47,10 +49,12 @@ import { NzStatisticModule } from 'ng-zorro-antd/statistic';
     NzFormModule,
     NzListModule,
     NzInputModule,
+    NzMessageServiceModule,
     NzTimePickerModule,
     NzButtonModule,
     NzResultModule,
     NzDividerModule,
+    NzPopconfirmModule,
     NzStepsModule,
     NzToolTipModule,
     NzDropDownModule,

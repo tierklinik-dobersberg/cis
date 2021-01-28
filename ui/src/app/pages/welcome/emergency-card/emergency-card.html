@@ -6,7 +6,29 @@
 </nz-card>
 
 <ng-template #titleTemplate>
-  <span class="header">Nachtdienst:<br /></span>
+  <span class="header">
+    Nachtdienst
+    <i nz-dropdown nzTrigger="click" [nzDropdownMenu]="menu" [nzClickHide]="false" nz-icon nzType="edit"
+      nzTheme="outline" [(nzVisible)]="dropDownVisible" style="cursor: pointer" nz-tooltip
+      nzTooltipTitle="Nachdienst ändern"></i>
+
+    <nz-dropdown-menu #menu="nzDropdownMenu">
+      <ul nz-menu>
+        <li nz-menu-group nzTitle="Wähle den neuen Nachtdienst aus:"></li>
+        <li nz-menu-item *ngFor="let user of allUsers" nz-popconfirm
+          nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{user.fullname || user.name}} ändern"
+          (nzOnConfirm)="changeOnDuty(user)">
+          <nz-avatar *ngIf="!user.avatar" nzIcon="user">
+          </nz-avatar>
+          <span *ngIf="!!user.avatar" class="ant-avatar ant-avatar-circle">
+            <img [attr.src]="user.avatar">
+          </span>
+          {{ user.fullname || user.name }}
+        </li>
+      </ul>
+    </nz-dropdown-menu>
+
+  </span>
   <div class="on-duty-container">
     <span *ngIf="!!userAvatar" class="ant-avatar ant-avatar-circle">
       <img [attr.src]="userAvatar">

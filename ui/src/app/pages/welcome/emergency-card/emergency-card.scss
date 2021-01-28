@@ -41,15 +41,18 @@ nz-card {
       font-size: 95%;
     }
   }
+
+  span.ant-avatar {
+    margin-right: 18px;
+    height: 64px;
+    width: 64px;
+    border: 1px solid lightgray;
+    box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
+  }
 }
 
 span.ant-avatar {
   overflow: hidden;
-  margin-right: 18px;
-  height: 64px;
-  width: 64px;
-  border: 1px solid lightgray;
-  box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
 
   img {
     width : 100%;

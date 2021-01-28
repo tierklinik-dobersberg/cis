@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { map, mergeMap, tap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
+import { catchError, combineAll, map, mergeAll, mergeMap, tap } from 'rxjs/operators';
 import { UIConfig } from './config.api';
 
 export interface Profile {
@@ -25,6 +25,10 @@ export interface PasswordStrenght {
   score: number;
   crackTime: string;
   entropy: number;
+}
+
+export interface ProfileWithAvatar extends Profile {
+  avatar?: string;
 }
 
 @Injectable({
@@ -137,7 +141,7 @@ export class IdentityAPI {
   /**
    * Returns all users stored at cisd.
    */
-  listUsers({ filter }: { filter: boolean } = { filter: true }): Observable<Profile[]> {
+  listUsers({ filter, includeAvatars }: { filter?: boolean, includeAvatars?: boolean } = { filter: true, includeAvatars: false }): Observable<ProfileWithAvatar[]> {
     if (filter === undefined) {
       filter = true;
     }
@@ -154,6 +158,26 @@ export class IdentityAPI {
           ))
 
           return result;
+        }),
+        mergeMap(profiles => {
+          if (!includeAvatars) {
+            return of(profiles);
+          }
+
+          return combineLatest(
+            profiles.map(p => {
+              return this.avatar(p.name)
+                .pipe(
+                  catchError(err => of(null)),
+                  map(avatar => {
+                    return {
+                      ...p,
+                      avatar: avatar,
+                    }
+                  })
+                )
+            })
+          )
         })
       )
   }
