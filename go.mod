@@ -15,7 +15,7 @@ require (
 	github.com/klauspost/compress v1.11.4 // indirect
 	github.com/nbutton23/zxcvbn-go v0.0.0-20201221231540-e56b841a3c88
 	github.com/nyaruka/phonenumbers v1.0.61
-	github.com/ppacher/system-conf v0.7.3
+	github.com/ppacher/system-conf v0.7.4
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cobra v1.1.1
