@@ -119,6 +119,26 @@ nz-header {
   z-index: 2;
 }
 
+.sidebar-container {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+
+  ul {
+    flex-grow: 1;
+  }
+
+}
+
+  .copyright {
+    color: white;
+    text-align: center;
+    display: block;
+    font-size: 95%;
+    opacity: 0.7;
+    margin-bottom: 12px;
+  }
+
 span.ant-avatar {
   overflow: hidden;
 

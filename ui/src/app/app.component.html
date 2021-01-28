@@ -2,66 +2,67 @@
 
   <nz-sider *ngIf="!(isLogin | async)" class="menu-sidebar" nzCollapsible nzWidth="274px" nzBreakpoint="md"
     [(nzCollapsed)]="isCollapsed" [nzTrigger]="null">
-    <div class="sidebar-logo">
-      <a href="https://tierklinikdobersberg.at/" target="_blank">
-        <img src="assets/logo.png" alt="logo">
-        <h1>
-          <span style="color: #1080cf">Tierklinik</span> <span style="color: #15377e">Dobersberg</span>
-        </h1>
-      </a>
-    </div>
+    <div class="sidebar-container">
+      <div class="sidebar-logo">
+        <a href="https://tierklinikdobersberg.at/" target="_blank">
+          <img src="assets/logo.png" alt="logo">
+          <h1>
+            <span style="color: #1080cf">Tierklinik</span> <span style="color: #15377e">Dobersberg</span>
+          </h1>
+        </a>
+      </div>
 
-    <ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="isCollapsed">
-      <li routerLink="/welcome" nzMatchRouter nz-menu-item>
-        <i nz-icon nzType="dashboard"></i>
-        <span>Dashboard</span>
-      </li>
+      <ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="isCollapsed">
+        <li routerLink="/welcome" nzMatchRouter nz-menu-item>
+          <i nz-icon nzType="dashboard"></i>
+          <span>Dashboard</span>
+        </li>
 
-      <li routerLink="/roster" nzMatchRouter nz-menu-item>
-        <i nz-icon nzType="clock-circle"></i>
-        <span>Dienstplan</span>
-      </li>
+        <li routerLink="/roster" nzMatchRouter nz-menu-item>
+          <i nz-icon nzType="clock-circle"></i>
+          <span>Dienstplan</span>
+        </li>
 
-      <li routerLink="/customer" nzMatchRouter nz-menu-item>
-        <i nz-icon nzType="team"></i>
-        <span>Kunden</span>
-      </li>
+        <li routerLink="/customer" nzMatchRouter nz-menu-item>
+          <i nz-icon nzType="team"></i>
+          <span>Kunden</span>
+        </li>
 
-      <li routerLink="/xray" nzMatchRouter nz-menu-item>
-        <i nz-icon nzType="expand" nzTheme="outline" [nzRotate]="95"></i>
-        <span>Röntgen</span>
-      </li>
+        <li routerLink="/xray" nzMatchRouter nz-menu-item>
+          <i nz-icon nzType="expand" nzTheme="outline" [nzRotate]="95"></i>
+          <span>Röntgen</span>
+        </li>
 
-      <li routerLink="/calllogs" nzMatchRouter nz-menu-item>
-        <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
-        <span>Anruf Journal</span>
-      </li>
+        <li routerLink="/calllogs" nzMatchRouter nz-menu-item>
+          <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
+          <span>Anruf Journal</span>
+        </li>
 
-      <li nz-submenu nzTitle="Links" nzIcon="link">
-        <ul>
-          <li *ngFor="let menu of subMenus" nz-submenu [nzTitle]="menu.Text">
-            <a *ngFor="let item of menu.Items" nz-menu-item [attr.href]="item.Link"
+        <li nz-submenu nzTitle="Links" nzIcon="link">
+          <ul>
+            <li *ngFor="let menu of subMenus" nz-submenu [nzTitle]="menu.Text">
+              <a *ngFor="let item of menu.Items" nz-menu-item [attr.href]="item.Link"
+                [attr.target]="item.BlankTarget ? '_blank' : null">
+                <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
+                <span>{{item.Text}}</span>
+              </a>
+            </li>
+
+            <a *ngFor="let item of rootLinks" nz-menu-item [attr.href]="item.Link"
               [attr.target]="item.BlankTarget ? '_blank' : null">
               <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
               <span>{{item.Text}}</span>
             </a>
-          </li>
+          </ul>
+        </li>
 
-          <a *ngFor="let item of rootLinks" nz-menu-item [attr.href]="item.Link"
-            [attr.target]="item.BlankTarget ? '_blank' : null">
-            <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
-            <span>{{item.Text}}</span>
-          </a>
-        </ul>
-      </li>
+        <li nz-submenu nzTitle="Administration" nzMatchRouter nzIcon="setting">
+          <ul>
+            <li nz-menu-item nzMatchRouter routerLink="/admin/import">Daten Import</li>
+          </ul>
+        </li>
 
-      <li nz-submenu nzTitle="Administration" nzMatchRouter nzIcon="setting">
-        <ul>
-          <li nz-menu-item nzMatchRouter routerLink="/admin/import">Daten Import</li>
-        </ul>
-      </li>
-
-      <!--
+        <!--
         <li nzMatchRouter nz-menu-item>
           <i nz-icon nzType="calendar"></i>
           <span>Kalendar</span>
@@ -110,7 +111,12 @@
         </li>
       </ng-container>
 -->
-    </ul>
+      </ul>
+      <span class="copyright">
+        <i nz-icon nzType="copyright" nzTheme="outline"></i>
+        Patrick Pacher 2021
+      </span>
+    </div>
   </nz-sider>
 
   <nz-layout>
