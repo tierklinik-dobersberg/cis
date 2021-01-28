@@ -5,6 +5,7 @@ import { NzMessageService, NzMessageServiceModule } from 'ng-zorro-antd/message'
 import { Subscription } from 'rxjs';
 import { delay, retryWhen } from 'rxjs/operators';
 import { Day, Holiday, HolidayAPI, IdentityAPI, Profile, Roster, RosterAPI } from 'src/app/api';
+import { getContrastFontColor } from 'src/app/utils';
 
 @Component({
   templateUrl: './roster.html',

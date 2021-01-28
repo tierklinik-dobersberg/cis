@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
 import { catchError, combineAll, map, mergeAll, mergeMap, tap } from 'rxjs/operators';
+import { getContrastFontColor } from '../utils';
 import { UIConfig } from './config.api';
 
 export interface Profile {
@@ -13,6 +14,7 @@ export interface Profile {
   properties: {
     [key: string]: any;
   };
+  color?: string;
 }
 
 export type Token = string;
@@ -29,6 +31,8 @@ export interface PasswordStrenght {
 
 export interface ProfileWithAvatar extends Profile {
   avatar?: string;
+  color: string | null;
+  fontColor: string | null;
 }
 
 @Injectable({
@@ -160,19 +164,21 @@ export class IdentityAPI {
           return result;
         }),
         mergeMap(profiles => {
-          if (!includeAvatars) {
-            return of(profiles);
-          }
 
           return combineLatest(
             profiles.map(p => {
-              return this.avatar(p.name)
+              let avatar = of(null);
+              if (includeAvatars) {
+                avatar = this.avatar(p.name).pipe(catchError(err => of(null)))
+              }
+              return avatar
                 .pipe(
-                  catchError(err => of(null)),
                   map(avatar => {
                     return {
                       ...p,
                       avatar: avatar,
+                      color: p.color || null,
+                      fontColor: !!p.color ? getContrastFontColor(p.color) : null,
                     }
                   })
                 )

@@ -6,3 +6,4 @@ PasswordHash=
 Mail=bob@example.com
 Roles=default-role
 GoogleCalendarID=primary
+Color=#ddb0b0

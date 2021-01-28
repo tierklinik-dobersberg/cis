@@ -64,20 +64,19 @@
         {{date.getDate()}}
       </ng-template>
     </span>
-    <li>
-      <span *ngFor="let user of getDay(date).forenoon" nz-tooltip [nzTooltipTitle]="userProfiles[user].fullname"> {{
-        userProfiles[user].fullname.slice(0, 2) }} </span>
-    </li>
 
-    <li>
-      <span *ngFor="let user of getDay(date).afternoon" nz-tooltip [nzTooltipTitle]="userProfiles[user].fullname"> {{
-        userProfiles[user].fullname.slice(0, 2) }} </span>
-    </li>
+    <ng-container *ngTemplateOutlet="userDutyTemplate; context: {$implicit: 'forenoon'}"></ng-container>
+    <ng-container *ngTemplateOutlet="userDutyTemplate; context: {$implicit: 'afternoon'}"></ng-container>
+    <ng-container *ngTemplateOutlet="userDutyTemplate; context: {$implicit: 'emergency'}"></ng-container>
 
-    <li>
-      <span *ngFor="let user of getDay(date).emergency" nz-tooltip [nzTooltipTitle]="userProfiles[user].fullname"> {{
-        userProfiles[user].fullname.slice(0, 2) }} </span>
-    </li>
+    <ng-template #userDutyTemplate let-property>
+      <li>
+        <span *ngFor="let user of getDay(date)[property]" nz-tooltip [nzTooltipTitle]="userProfiles[user].fullname"
+          [style.backgroundColor]="userProfiles[user].color" [style.color]="userProfiles[user].fontColor">
+          {{ userProfiles[user].fullname.slice(0, 2) }}
+        </span>
+      </li>
+    </ng-template>
   </ul>
 </nz-calendar>
 

@@ -9,6 +9,7 @@ PhoneNumber=+4312345678
 PhoneNumber=+2812345
 Roles=default-role
 GoogleCalendarID=primary
+Color=#1b7550b9
 
 [Permission]
 Domain=secure.example.com

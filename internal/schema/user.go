@@ -58,4 +58,9 @@ var UserSpec = conf.SectionSpec{
 		Type:        conf.StringType,
 		Description: "Path to the avatar file name. Relative to AvatarDirectory.",
 	},
+	{
+		Name:        "Color",
+		Type:        conf.StringType,
+		Description: "A Hex encoded color that should be used to represent the user in the UI. The color may container an alpha channel as well.",
+	},
 }

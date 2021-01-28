@@ -10,6 +10,7 @@ type User struct {
 	PhoneNumber []string               `json:"phoneNumbers"`
 	Roles       []string               `json:"roles" option:"Roles"`
 	Properties  map[string]interface{} `json:"properties" option:"-"`
+	Color       string                 `json:"color,omitempty"`
 }
 
 // Role describes a role object. For security and privacy
