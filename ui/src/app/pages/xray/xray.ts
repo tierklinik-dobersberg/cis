@@ -41,7 +41,6 @@ export class XRayComponent implements OnInit, OnDestroy {
   ) { }
 
   openViewer(study: Study, preview: InstancePreview) {
-    //this.nzMessage.warning('Röntgen-Betrachter derzeit nicht verfügbar.')
     this.router.navigate(['xray/viewer', study.studyInstanceUid, preview.seriesUid, preview.instanceUid])
   }
 
@@ -99,15 +98,19 @@ class StudyDataSource extends DataSource<SutyWithMeta> {
   private setup(collectionViewer: CollectionViewer): void {
     this.fetchPage(0);
 
-    collectionViewer.viewChange.pipe(takeUntil(this.complete$), takeUntil(this.disconnect$)).subscribe(range => {
-      if (this.cachedData.length >= 50) {
-        this.complete$.next();
-        this.complete$.complete();
-      } else {
-        const endPage = this.getPageForIndex(range.end);
-        this.fetchPage(endPage + 1);
-      }
-    });
+    collectionViewer.viewChange
+      .pipe(
+        takeUntil(this.complete$),
+        takeUntil(this.disconnect$)
+      ).subscribe(range => {
+        if (this.cachedData.length >= 50) {
+          this.complete$.next();
+          this.complete$.complete();
+        } else {
+          const endPage = this.getPageForIndex(range.end);
+          this.fetchPage(endPage + 1);
+        }
+      });
   }
 
   private getPageForIndex(index: number): number {
@@ -132,18 +135,31 @@ class StudyDataSource extends DataSource<SutyWithMeta> {
     const result = studies.map(study => {
       var urls: InstancePreview[] = [];
 
-      (study.seriesList || []).forEach(series => {
-        series.instances.forEach(instance => {
-          const url = instance.url.replace('dicomweb://', '//') + '&contentType=image/jpeg';
-          urls.push({
-            instanceUid: instance.sopInstanceUid,
-            previewUrl: url,
-            seriesUid: series.seriesInstanceUid,
-          })
-        })
-      });
+      if (!!study.seriesList) {
+        study.seriesList.forEach(series => {
+          if (!series.instances) {
+            return;
+          }
 
-      const [cid, aid] = splitCombinedCustomerAnimalIDs(study.patientId);
+          series.instances.forEach(instance => {
+            const url = instance.url.replace('dicomweb://', '//') + '&contentType=image/jpeg';
+            urls.push({
+              instanceUid: instance.sopInstanceUid,
+              previewUrl: url,
+              seriesUid: series.seriesInstanceUid,
+            })
+          })
+        });
+      }
+
+      let cid: string = '';
+      let aid: string = '';
+
+      try {
+        [cid, aid] = splitCombinedCustomerAnimalIDs(study.patientId);
+      } catch (err) {
+        console.error(err, study)
+      }
 
       return {
         ...study,

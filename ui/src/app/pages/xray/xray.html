@@ -13,7 +13,9 @@
         <nz-list-item *cdkVirtualFor="let study of ds; trackBy: trackBy">
             <nz-list-item-meta>
                 <nz-list-item-meta-title>
-                    <a [routerLink]="['/customer/view', 'vetinf', study.vetinfCID]">{{ study | ohifOwnerName }}</a>
+                    <a *ngIf="!!study.vetinfCID" [routerLink]="['/customer/view', 'vetinf', study.vetinfCID]">{{ study |
+                        ohifOwnerName }}</a>
+                    <span *ngIf="!study.vetinfCID">{{ study | ohifOwnerName }}</span>
                 </nz-list-item-meta-title>
                 <nz-list-item-meta-description>
                     {{ study.studyDate | dxrDate }} &nbsp;|&nbsp;

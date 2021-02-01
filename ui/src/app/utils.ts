@@ -52,6 +52,9 @@ export function extractErrorMessage(err: any, prefix: string = ''): string {
 }
 
 export function splitCombinedCustomerAnimalIDs(str: string): [string, string] {
+    if (!/^[0-9]*$/.test(str)) {
+        throw new Error(`Not a valid customer-animal-id`)
+    }
     if (str.length <= 6) {
         throw new Error(`Invalid combined Customer-Animal-ID`);
     }
