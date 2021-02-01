@@ -103,13 +103,11 @@ func Abort(c *gin.Context, err error) {
 	InternalError(err).AbortRequest(c)
 }
 
-// Middleware is a gin Middleware that responds to http
-// request with the last error set on c.
-func Middleware(c *gin.Context) {
-	c.Next()
+func MaybeAbort(c *gin.Context) {
+	logger.From(c.Request.Context()).Infof("request %s finished errors=%d", c.Request.URL, len(c.Errors))
 
 	// nothing to do if the status has already been written.
-	if c.Writer.Written() || c.Writer.Status() != 0 {
+	if c.Writer.Written() {
 		logger.From(c.Request.Context()).Infof("request already written: %d", c.Writer.Status())
 		return
 	}
@@ -125,5 +123,6 @@ func Middleware(c *gin.Context) {
 	// we only care about the very last error here.
 	// The error handling in gin is a bit weired IMHO.
 	lastErr := c.Errors.Last().Err
+	logger.From(c.Request.Context()).Infof("aborting request. last error reported was %s", lastErr)
 	Abort(c, lastErr)
 }
