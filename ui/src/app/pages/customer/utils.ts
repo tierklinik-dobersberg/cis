@@ -18,7 +18,11 @@ export interface ExtendedCustomer extends Customer {
     tagColor: string;
 }
 
-export function customerTagColor(val: Customer): string {
+export function customerTagColor(val?: Customer): string {
+    if (!val) {
+        return '';
+    }
+
     let hash = 0;
     let i = 0;
     let chr: number = 0;
