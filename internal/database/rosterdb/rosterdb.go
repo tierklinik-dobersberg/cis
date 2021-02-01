@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
@@ -142,7 +143,7 @@ func (db *database) ForMonth(ctx context.Context, month time.Month, year int) (*
 	res := db.rosters.FindOne(ctx, bson.M{"month": month, "year": year})
 	if err := res.Err(); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, ErrNotFound
+			return nil, httperr.NotFound("roster", fmt.Sprintf("%04d/%02d", year, month), ErrNotFound)
 		}
 		return nil, err
 	}
@@ -158,13 +159,13 @@ func (db *database) Delete(ctx context.Context, month time.Month, year int) erro
 	res, err := db.rosters.DeleteOne(ctx, bson.M{"month": month, "year": year})
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return ErrNotFound
+			return httperr.NotFound("roster", fmt.Sprintf("%04d/%02d", year, month), ErrNotFound)
 		}
 		return err
 	}
 
 	if res.DeletedCount < 1 {
-		return ErrNotFound
+		return httperr.NotFound("roster", fmt.Sprintf("%04d/%02d", year, month), ErrNotFound)
 	}
 	return nil
 }

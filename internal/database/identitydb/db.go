@@ -12,6 +12,7 @@ import (
 	"github.com/google/renameio"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
+	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/passwd"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/logger"
@@ -134,7 +135,7 @@ func (db *identDB) GetUser(ctx context.Context, name string) (schema.User, error
 
 	u, ok := db.users[strings.ToLower(name)]
 	if !ok {
-		return schema.User{}, ErrNotFound
+		return schema.User{}, httperr.NotFound("user", name, ErrNotFound)
 	}
 
 	return u.User, nil
@@ -146,7 +147,7 @@ func (db *identDB) GetRole(ctx context.Context, name string) (schema.Role, error
 
 	g, ok := db.roles[strings.ToLower(name)]
 	if !ok {
-		return schema.Role{}, ErrNotFound
+		return schema.Role{}, httperr.NotFound("role", name, ErrNotFound)
 	}
 
 	return g.Role, nil
@@ -158,7 +159,7 @@ func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]schem
 
 	u, ok := db.users[strings.ToLower(name)]
 	if !ok {
-		return nil, ErrNotFound
+		return nil, httperr.NotFound("user", name, ErrNotFound)
 	}
 
 	perms := make([]schema.Permission, len(u.Permissions))
@@ -174,7 +175,7 @@ func (db *identDB) GetRolePermissions(ctx context.Context, name string) ([]schem
 
 	g, ok := db.roles[strings.ToLower(name)]
 	if !ok {
-		return nil, ErrNotFound
+		return nil, httperr.NotFound("role", name, ErrNotFound)
 	}
 
 	perms := make([]schema.Permission, len(g.Permissions))
@@ -228,7 +229,7 @@ func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo str
 
 	u, ok := db.users[user]
 	if !ok {
-		return ErrNotFound
+		return httperr.NotFound("user", user, ErrNotFound)
 	}
 
 	// create a shallow copy of u

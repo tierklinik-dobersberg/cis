@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/antzucaro/matchr"
+	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -245,7 +246,7 @@ func (db *database) findSingleCustomer(ctx context.Context, filter interface{}) 
 	result := db.customers.FindOne(ctx, filter)
 	if err := result.Err(); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, ErrNotFound
+			return nil, httperr.NotFound("customer", fmt.Sprintf("%+v", filter), ErrNotFound)
 		}
 
 		return nil, err
