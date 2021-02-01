@@ -24,56 +24,72 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/doctor-on-duty",
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			log := logger.From(ctx)
+			d := time.Now()
+			if at := c.Query("at"); at != "" {
+				var err error
+				d, err = time.Parse(time.RFC3339, at)
+				if err != nil {
+					return httperr.BadRequest(err, "invalid time in query parameter `at`")
+				}
+			}
 
-			now := time.Now()
-			key := fmt.Sprintf("%04d/%02d/%02d", now.Year(), int(now.Month()), now.Day())
-
-			roster, err := app.DutyRosters.ForMonth(ctx, now.Month(), now.Year())
+			doctorsOnDuty, err := getDoctorOnDuty(ctx, app, d)
 			if err != nil {
-				if errors.Is(err, rosterdb.ErrNotFound) {
-					return httperr.NotFound("roster", key, err)
-				}
-
-				return httperr.InternalError(err)
-			}
-
-			day, ok := roster.Days[now.Day()]
-			if !ok {
-				return httperr.NotFound("roster-day", key, nil)
-			}
-
-			allUsers, err := app.Identities.ListAllUsers(ctx)
-			if err != nil {
-				return httperr.InternalError(err)
-			}
-
-			lm := make(map[string]schema.User, len(allUsers))
-			for _, u := range allUsers {
-				lm[strings.ToLower(u.Name)] = u
-			}
-
-			doctorsOnDuty := make([]v1alpha.DoctorOnDuty, len(day.Emergency))
-			for idx, u := range day.Emergency {
-				user, ok := lm[u]
-				if !ok {
-					log.Errorf("unknown user %s configured as doctor-on-duty", u)
-				}
-
-				if len(user.PhoneNumber) == 0 {
-					log.Errorf("user %s does not have a phone number registered, skipping to backup", user.Name)
-					continue
-				}
-
-				doctorsOnDuty[idx] = v1alpha.DoctorOnDuty{
-					Username: user.Name,
-					FullName: user.Fullname,
-					Phone:    user.PhoneNumber[0],
-				}
+				return err
 			}
 
 			c.JSON(http.StatusOK, doctorsOnDuty)
 			return nil
 		},
 	)
+}
+
+func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.DoctorOnDuty, error) {
+	log := logger.From(ctx)
+	key := fmt.Sprintf("%04d/%02d/%02d", t.Year(), int(t.Month()), t.Day())
+
+	roster, err := app.DutyRosters.ForMonth(ctx, t.Month(), t.Year())
+	if err != nil {
+		if errors.Is(err, rosterdb.ErrNotFound) {
+			return nil, httperr.NotFound("roster", key, err)
+		}
+
+		return nil, httperr.InternalError(err)
+	}
+
+	day, ok := roster.Days[t.Day()]
+	if !ok {
+		return nil, httperr.NotFound("roster-day", key, nil)
+	}
+
+	allUsers, err := app.Identities.ListAllUsers(ctx)
+	if err != nil {
+		return nil, httperr.InternalError(err)
+	}
+
+	lm := make(map[string]schema.User, len(allUsers))
+	for _, u := range allUsers {
+		lm[strings.ToLower(u.Name)] = u
+	}
+
+	doctorsOnDuty := make([]v1alpha.DoctorOnDuty, len(day.Emergency))
+	for idx, u := range day.Emergency {
+		user, ok := lm[u]
+		if !ok {
+			log.Errorf("unknown user %s configured as doctor-on-duty", u)
+		}
+
+		if len(user.PhoneNumber) == 0 {
+			log.Errorf("user %s does not have a phone number registered, skipping to backup", user.Name)
+			continue
+		}
+
+		doctorsOnDuty[idx] = v1alpha.DoctorOnDuty{
+			Username: user.Name,
+			FullName: user.Fullname,
+			Phone:    user.PhoneNumber[0],
+		}
+	}
+
+	return doctorsOnDuty, nil
 }
