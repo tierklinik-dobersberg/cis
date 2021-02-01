@@ -12,15 +12,39 @@
     <nz-list nzSize="small">
         <nz-list-item *cdkVirtualFor="let study of ds; trackBy: trackBy">
             <nz-list-item-meta>
+
                 <nz-list-item-meta-title>
-                    <a *ngIf="!!study.vetinfCID" [routerLink]="['/customer/view', 'vetinf', study.vetinfCID]">{{ study |
-                        ohifOwnerName }}</a>
+                    <a *ngIf="!!study.vetinfCID" [routerLink]="['/customer/view', 'vetinf', study.vetinfCID]" nz-popover
+                        [nzPopoverMouseEnterDelay]="0.5" (nzPopoverVisibleChange)="onPopoverChange($event, study)"
+                        [nzPopoverContent]="popoverTemplate">
+                        {{ study | ohifOwnerName }}</a>
                     <span *ngIf="!study.vetinfCID">{{ study | ohifOwnerName }}</span>
                 </nz-list-item-meta-title>
+
                 <nz-list-item-meta-description>
                     {{ study.studyDate | dxrDate }} &nbsp;|&nbsp;
                     {{ study.animalName }} &nbsp;-&nbsp; {{ study.animalRace !== 'unknown' ? study.animalRace : 'N/A' }}
                 </nz-list-item-meta-description>
+
+                <ng-template #popoverTemplate>
+                    <div class="contact-popover">
+                        <h3>{{ popOverCustomer?.name }}&nbsp;{{ popOverCustomer?.firstname }}</h3>
+
+                        <span class="contact-type">Telefon:</span>
+                        <a *ngFor="let phone of popOverCustomer?.distinctPhoneNumbers; let last=last"
+                            [attr.href]="'tel:' + phone">
+                            {{phone}} {{ !last ? ', ' : '' }}&nbsp;
+                        </a>
+                        <span *ngIf="!popOverCustomer?.distinctPhoneNumbers">N/A</span>
+
+                        <span class="contact-type">E-Mail:</span>
+                        <a *ngFor="let mail of popOverCustomer?.mailAddresses; let last=last"
+                            [attr.href]="'mailto:' + mail">
+                            {{mail}} {{ !last ? ', ' : '' }}&nbsp;
+                        </a>
+                        <span *ngIf="!popOverCustomer?.mailAddresses">N/A</span>
+                    </div>
+                </ng-template>
             </nz-list-item-meta>
 
             <nz-list-item-extra>

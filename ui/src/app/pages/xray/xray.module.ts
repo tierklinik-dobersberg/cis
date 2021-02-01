@@ -13,6 +13,7 @@ import { NzListModule } from "ng-zorro-antd/list";
 import { NzMessageServiceModule } from "ng-zorro-antd/message";
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzRadioModule } from "ng-zorro-antd/radio";
+import { NzPopoverModule } from 'ng-zorro-antd/popover';
 import { NzSpinModule } from "ng-zorro-antd/spin";
 import { NzToolTipModule } from "ng-zorro-antd/tooltip";
 import { NzProgressModule } from 'ng-zorro-antd/progress';
@@ -39,6 +40,7 @@ import { XRayRoutingModule } from "./xray-routing.module";
         NzSpinModule,
         NzInputModule,
         NzProgressModule,
+        NzPopoverModule,
         NzDropDownModule,
         LayoutModule,
         CdkScrollableModule,

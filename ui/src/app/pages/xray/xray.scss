@@ -71,3 +71,19 @@ nz-list {
         }
     }
 }
+
+.contact-popover {
+    padding: 6px;
+    min-width: 150px;
+    .contact-type {
+        font-size: 95%;
+        display: block;
+        color: gray;
+        text-transform: uppercase;
+        margin-bottom: 3px;
+
+        &:not(:first-child) {
+            margin-top: 6px;
+        }
+    }
+}

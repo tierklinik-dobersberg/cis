@@ -5,6 +5,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DxrService, Study } from 'src/app/api';
+import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { splitCombinedCustomerAnimalIDs } from 'src/app/utils';
 
 interface InstancePreview {
@@ -13,7 +14,7 @@ interface InstancePreview {
   instanceUid: string;
 }
 
-interface SutyWithMeta extends Study {
+interface StudyWithMeta extends Study {
   previews: InstancePreview[];
 
   vetinfCID: string;
@@ -28,8 +29,9 @@ export class XRayComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
 
   offset = 0;
-  studies: SutyWithMeta[] = [];
+  studies: StudyWithMeta[] = [];
   searchText: string = '';
+  popOverCustomer: Customer | null = null;
   trackBy: TrackByFunction<Study> = (_, study) => study.studyInstanceUid;
 
   ds = new StudyDataSource(this.dxrapi);
@@ -37,11 +39,39 @@ export class XRayComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private dxrapi: DxrService,
+    private customerapi: CustomerAPI,
     private nzMessage: NzMessageService,
   ) { }
 
   openViewer(study: Study, preview: InstancePreview) {
     this.router.navigate(['xray/viewer', study.studyInstanceUid, preview.seriesUid, preview.instanceUid])
+  }
+
+  /**
+   * Load the customer for the hovered study and shows it in
+   * the popover.
+   * 
+   * @param visible Wether or not the popover should be visible.
+   * @param study The study that was hovered.
+   */
+  onPopoverChange(visible: boolean, study: StudyWithMeta) {
+    if (!visible) {
+      return;
+    }
+
+    if (study.vetinfCID === '') {
+      this.popOverCustomer = null;
+      return;
+    }
+
+    this.customerapi.byId('vetinf', study.vetinfCID)
+      .subscribe(
+        customer => this.popOverCustomer = customer,
+        err => {
+          console.error(err);
+          this.popOverCustomer = null;
+        }
+      )
   }
 
   ngOnInit() {
@@ -52,11 +82,11 @@ export class XRayComponent implements OnInit, OnDestroy {
   }
 }
 
-class StudyDataSource extends DataSource<SutyWithMeta> {
+class StudyDataSource extends DataSource<StudyWithMeta> {
   private pageSize = 20;
-  private cachedData: SutyWithMeta[] = [];
+  private cachedData: StudyWithMeta[] = [];
   private fetchedPages = new Set<number>();
-  private dataStream = new BehaviorSubject<SutyWithMeta[]>(this.cachedData);
+  private dataStream = new BehaviorSubject<StudyWithMeta[]>(this.cachedData);
   private complete$ = new Subject<void>();
   private disconnect$ = new Subject<void>();
 
@@ -68,7 +98,7 @@ class StudyDataSource extends DataSource<SutyWithMeta> {
     return this.complete$.asObservable();
   }
 
-  connect(collectionViewer: CollectionViewer): Observable<SutyWithMeta[]> {
+  connect(collectionViewer: CollectionViewer): Observable<StudyWithMeta[]> {
     this.setup(collectionViewer);
     return this.dataStream;
   }
