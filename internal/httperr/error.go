@@ -103,7 +103,8 @@ func Abort(c *gin.Context, err error) {
 	InternalError(err).AbortRequest(c)
 }
 
-func MaybeAbort(c *gin.Context) {
+func Middleware(c *gin.Context) {
+	c.Next()
 	logger.From(c.Request.Context()).Infof("request %s finished errors=%d", c.Request.URL, len(c.Errors))
 
 	// nothing to do if the status has already been written.

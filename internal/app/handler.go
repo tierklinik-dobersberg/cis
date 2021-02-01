@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 )
 
 // HandlerFunc defines a cis HTTP handler func.
@@ -21,7 +20,7 @@ func WrapHandler(fn HandlerFunc) gin.HandlerFunc {
 		err := fn(c.Request.Context(), app, c)
 		if err != nil {
 			c.Error(err)
-			httperr.MaybeAbort(c)
+			//httperr.MaybeAbort(c)
 		}
 	}
 }
