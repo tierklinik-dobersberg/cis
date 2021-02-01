@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/pkg/models/calllog/v1alpha"
 )
 
 // ForDateEndpoint allows retrieving all calllogs for a given
@@ -39,6 +40,11 @@ func ForDateEndpoint(grp *app.Router) {
 		logs, err := app.CallLogs.ForDate(c.Request.Context(), d)
 		if err != nil {
 			return err
+		}
+
+		// make sure we reply with an empty array instead of "null"
+		if logs == nil {
+			logs = make([]v1alpha.CallLog, 0)
 		}
 
 		c.JSON(http.StatusOK, logs)
