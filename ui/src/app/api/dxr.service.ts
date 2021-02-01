@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 export interface Study {
     studyInstanceUid?: string;
@@ -49,7 +49,7 @@ export class DxrService {
                 offset: offset + '',
                 limit: limit + ''
             }
-        })
+        }).pipe(map(result => result || []))
     }
 
     loadStudy(id: string, refresh: boolean = false): Observable<any> {
@@ -66,7 +66,7 @@ export class DxrService {
             params: {
                 q: searchTerm,
             }
-        });
+        }).pipe(map(result => result || []))
     }
 
     getThumbnailUrl(wadoURI: string): string {

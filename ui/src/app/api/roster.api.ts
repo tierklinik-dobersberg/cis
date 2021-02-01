@@ -32,6 +32,20 @@ export class RosterAPI {
    */
   forMonth(year: number, month: number): Observable<Roster> {
     return this.http.get<Roster>(`/api/dutyroster/v1/${year}/${month}`)
+      .pipe(
+        map(result => {
+          Object.keys(result.days).forEach(dayKey => {
+            const day: Day = result.days[dayKey];
+
+            day.afternoon = day.afternoon || [];
+            day.forenoon = day.forenoon || [];
+            day.emergency = day.emergency || [];
+
+            result.days[dayKey] = day;
+          })
+          return result;
+        })
+      )
   }
 
   /**
