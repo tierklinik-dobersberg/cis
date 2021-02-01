@@ -441,7 +441,8 @@ func (dc *DoorController) stateFor(ctx context.Context, t time.Time) (DoorState,
 	return Locked, f.From
 }
 
-func (dc *DoorController) getRangesForDay(ctx context.Context, t time.Time) []OpeningHour {
+// OpeningFramesForDay returns a list of openinghours on the day specified by t.
+func (dc *DoorController) OpeningFramesForDay(ctx context.Context, t time.Time) []OpeningHour {
 	key := fmt.Sprintf("%02d/%02d", t.Month(), t.Day())
 
 	// First we check for date specific overwrites ...
@@ -483,7 +484,7 @@ func (dc *DoorController) findUpcomingFrames(ctx context.Context, t time.Time, l
 	}
 
 	for len(result) < limit {
-		ranges := dc.getRangesForDay(ctx, t)
+		ranges := dc.OpeningFramesForDay(ctx, t)
 
 		// Find the first frame that's after or covers t
 		var idx int
