@@ -1,11 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { StorageMap } from '@ngx-pwa/local-storage';
 import { NzCalendarMode } from 'ng-zorro-antd/calendar';
 import { NzMessageService, NzMessageServiceModule } from 'ng-zorro-antd/message';
+import { Observable, throwError } from 'rxjs';
 import { Subscription } from 'rxjs';
-import { delay, retryWhen } from 'rxjs/operators';
+import { catchError, delay, map, retryWhen } from 'rxjs/operators';
 import { Day, Holiday, HolidayAPI, IdentityAPI, Profile, Roster, RosterAPI } from 'src/app/api';
-import { getContrastFontColor } from 'src/app/utils';
+import { extractErrorMessage, getContrastFontColor } from 'src/app/utils';
 
 @Component({
   templateUrl: './roster.html',
@@ -14,27 +16,40 @@ import { getContrastFontColor } from 'src/app/utils';
 export class RosterComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
 
+  /** Whether or not we need to show the no-roster alert */
   showNoRosterAlert = false;
-  editMode = false;
-  saveLoading = false;
-  selectedDate: Date;
-  menuVisible = false;
 
+  /** Whether or not we are currently editing the roster */
+  editMode = false;
+
+  /** Whether or not a save-operation is currently in progress */
+  saveLoading = false;
+
+  /** The currently selected date (month/year) for which we show the roster */
+  selectedDate: Date;
+
+  /** The currently selected day for the day-edit-menu */
   selectedDay: Day = {
     afternoon: [],
     forenoon: [],
     emergency: [],
   };
 
+  /** All available user names */
   usernames: string[] = [];
+
+  /** All available user profiles */
   userProfiles: { [key: string]: Profile } = {};
 
+  /** Whether or not the day-edit-menu is visible or not. Index by day. */
   dropdownVisible: { [key: string]: boolean } = {};
 
+  /** The different days of the roster */
   days: {
     [key: number]: Day;
   } = {};
 
+  /** All available holidays index by key YYYY/MM/DD */
   holidays: {
     [key: number]: Holiday;
   } = {};
@@ -43,7 +58,9 @@ export class RosterComponent implements OnInit, OnDestroy {
     private rosterapi: RosterAPI,
     private holidayapi: HolidayAPI,
     private messageService: NzMessageService,
-    private identityapi: IdentityAPI) {
+    private identityapi: IdentityAPI,
+    private storage: StorageMap,
+  ) {
     this.selectedDate = new Date();
   }
 
@@ -69,10 +86,14 @@ export class RosterComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  updateCell(date: Date) {
+  /** Callback when the user clicks on a roster date- */
+  selectDate(date: Date) {
     this.selectedDay = this.getDay(date);
   }
 
+  /**
+   * Save the current roster.
+   */
   saveRoster() {
     let roster: Roster = {
       month: this.selectedDate.getMonth() + 1,
@@ -85,29 +106,17 @@ export class RosterComponent implements OnInit, OnDestroy {
         this.showNoRosterAlert = false;
         this.saveLoading = false;
         this.editMode = false;
-
         this.messageService.success("Dienstplan gespeichert")
+
+        // finally, discard any unsaved changes and reload
+        this.discardChanges();
       }, err => {
         this.saveLoading = false;
-        let msg = "";
-
-        if (typeof err == 'string') {
-          msg = err
-        } else if ('error' in err && typeof err.error === 'string') {
-          msg = err.error
-        } else if ('statusText' in err && typeof err.statusText === 'string') {
-          msg = err.statusText;
-        } else if ('message' in err && typeof err.message === 'string') {
-          msg = err.message;
-        }
-
-        if (msg !== "") {
-          msg = ': ' + msg
-        }
-        this.messageService.error("Dienstplan konnte nicht gespeichert werden" + msg)
+        this.messageService.error(extractErrorMessage(err, 'Dienstplan konnte nicht gespeicher werden'))
       })
   }
 
+  /** Whether or not the edit-day-menu is currently visible.  */
   get isDropDownVisible(): boolean {
     if (Object.keys(this.dropdownVisible).some(key => !!this.dropdownVisible[key])) {
       return true
@@ -116,6 +125,10 @@ export class RosterComponent implements OnInit, OnDestroy {
     return false;
   }
 
+  /**
+   * Returns (and maybe creates) the boolean that is used to
+   * trigger the day-edit-menu for the specific roster date.
+   */
   getVisibleProp(date: string) {
     if (this.dropdownVisible[date] === undefined) {
       this.dropdownVisible[date] = false;
@@ -124,6 +137,9 @@ export class RosterComponent implements OnInit, OnDestroy {
     return this.dropdownVisible;
   }
 
+  /**
+   * Delete the currenlty displayed roster.
+   */
   deleteRoster() {
     this.rosterapi.delete(this.selectedDate.getFullYear(), this.selectedDate.getMonth() + 1)
       .subscribe(() => {
@@ -132,6 +148,10 @@ export class RosterComponent implements OnInit, OnDestroy {
       }, err => console.error(err))
   }
 
+  /**
+   * Toggle edit mode. If we're currenlty editing the roster
+   * the roster will be saved and edit mode will stopped.
+   */
   toggleEdit() {
     if (this.editMode) {
       this.saveRoster()
@@ -140,19 +160,52 @@ export class RosterComponent implements OnInit, OnDestroy {
     this.editMode = !this.editMode;
   }
 
+  discardChanges() {
+    const key = `roster/${this.selectedDate.getFullYear()}/${this.selectedDate.getMonth() + 1}`;
+    this.storage.delete(key)
+      .subscribe(() => this.loadRoster());
+  }
+
+  /**
+   * Loads the roster for date.
+   */
   loadRoster(date: Date = this.selectedDate) {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
 
     const sub =
       this.rosterapi.forMonth(date.getFullYear(), date.getMonth() + 1)
+        .pipe(
+          map(roster => [roster, true] as [Roster, boolean]),
+          catchError(err => {
+            if (err instanceof HttpErrorResponse && err.status === 404) {
+              // if there's no roster for this month check if we have an
+              // "in-progress" version stored in the localStorage.
+              const key = `roster/${date.getFullYear()}/${date.getMonth() + 1}`;
+              return this.storage.get(key)
+                .pipe(
+                  map(r => {
+                    // if there's no roster for year/month in local-storage
+                    // re-throw the orignal error.
+                    if (!r) {
+                      throw err;
+                    }
+
+                    return [r, false];
+                  })
+                ) as Observable<[Roster, boolean]>
+            }
+
+            return throwError(err);
+          })
+        )
         .subscribe(
-          roster => {
+          ([roster, isSaved]) => {
             this.dropdownVisible = {};
             this.showNoRosterAlert = false;
             this.days = roster.days;
 
-            this.editMode = false;
+            this.editMode = !isSaved;
             this.saveLoading = false;
           },
           err => {
@@ -180,11 +233,43 @@ export class RosterComponent implements OnInit, OnDestroy {
     this.subscriptions.add(sub2);
   }
 
+  /** Closes all edit-day-menu dropdowns */
   closeDropdown() {
     Object.keys(this.dropdownVisible).forEach(key => this.dropdownVisible[key] = false);
   }
 
+  /**
+   * Callback when the roster got modified.
+   */
+  rosterChanged() {
+    let roster: Roster = {
+      month: this.selectedDate.getMonth() + 1,
+      year: this.selectedDate.getFullYear(),
+      days: this.days,
+    }
+
+    this.storage.set(`roster/${roster.year}/${roster.month}`, roster)
+      .subscribe();
+  }
+
+  /**
+   * Returns the Day object for date. If it does not yet exist
+   * it is created and stored in the days object.
+   * 
+   * @param date The date in question
+   */
   getDay(date: Date) {
+    // return an empty day if the request if for some day
+    // out of the currently selected month
+    // TODO(ppacher): fetch that month as well ....
+    if (this.selectedDate.getMonth() != date.getMonth()) {
+      return {
+        afternoon: [],
+        forenoon: [],
+        emergency: [],
+      }
+    }
+
     const day = date.getDate();
     let d = this.days[day];
     if (!d) {
@@ -199,6 +284,9 @@ export class RosterComponent implements OnInit, OnDestroy {
     return d
   }
 
+  /**
+   * Callback when the user selected a day in the roster
+   */
   onDateSelected(date: Date) {
     const changed = date.getMonth() != this.selectedDate.getMonth() || date.getFullYear() != this.selectedDate.getFullYear();
     this.selectedDate = date;
@@ -211,6 +299,11 @@ export class RosterComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Callback for changes in the date displayed.
+   * 
+   * @param param0 The event emitted
+   */
   onPanelChange({ date, mode }: { date: Date, mode: NzCalendarMode }) {
     if (mode === 'year') {
       return

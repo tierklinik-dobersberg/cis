@@ -17,6 +17,7 @@ import { NzGridModule } from "ng-zorro-antd/grid";
 import { NzSelectModule } from "ng-zorro-antd/select";
 import { NzToolTipModule } from "ng-zorro-antd/tooltip";
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { StorageModule } from '@ngx-pwa/local-storage';
 
 @NgModule({
   imports: [
@@ -38,6 +39,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
     NzMessageServiceModule,
     NzTagModule,
     RosterRoutingModule,
+    StorageModule,
   ],
   declarations: [
     RosterComponent,

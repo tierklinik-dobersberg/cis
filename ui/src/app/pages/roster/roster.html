@@ -32,12 +32,12 @@
     </button>
 
     <button nz-button *ngIf="editMode" nzType="default" nzShape="circle" [nzLoading]="false" nz-popconfirm
-      nzPopconfirmTitle="Änderungen verwerfen?" nzPopconfirmPlacement="bottom" (nzOnConfirm)="loadRoster()"
+      nzPopconfirmTitle="Änderungen verwerfen?" nzPopconfirmPlacement="bottom" (nzOnConfirm)="discardChanges()"
       nzTooltipTitle="Änderunge verwerfen" nz-tooltip>
       <i nz-icon nzType="close" nzTheme="outline"></i>
     </button>
 
-    <button nz-button nzType="danger" nzShape="circle" [nzLoading]="false" nz-popconfirm
+    <button nz-button nzType="danger" nzShape="circle" [nzLoading]="false" nz-popconfirm *ngIf="!editMode"
       nzTooltipTitle="Dienstplan löschen" nz-tooltip nzPopconfirmTitle="Dienstplan sicher löschen?"
       nzPopconfirmPlacement="bottom" (nzOnConfirm)="deleteRoster()">
       <i nz-icon nzType="delete" nzTheme="outline"></i>
@@ -47,7 +47,7 @@
 
 <nz-calendar (nzPanelChange)="onPanelChange($event)" (nzSelectChange)="onDateSelected($event)">
   <ul *nzDateFullCell="let date" [class.other-month]="date.getMonth() != selectedDate.getMonth()"
-    (click)="updateCell(date)" nz-button nz-dropdown
+    (click)="selectDate(date)" nz-button nz-dropdown
     [(nzVisible)]="getVisibleProp(date.toLocaleString())[date.toLocaleString()]" [nzClickHide]="false"
     [nzDropdownMenu]="userMenu" nzTrigger="click" class="selected-users"
     [class.holiday]="!!holidays[date.toDateString()]">
@@ -106,7 +106,7 @@
       <div class="selection-row">
         <span nz-menu-group class="title">{{title}}</span>
         <nz-select *ngIf="editMode && isDropDownVisible" [(ngModel)]="selectedDay[model]" nzMode="multiple"
-          nzPlaceHolder="Bitte auswählen">
+          (ngModelChange)="rosterChanged()" nzPlaceHolder="Bitte auswählen">
           <nz-option *ngFor="let option of usernames" [nzLabel]="userProfiles[option].fullname" [nzValue]="option">
           </nz-option>
         </nz-select>
