@@ -21,7 +21,14 @@ func (db *identDB) loadUsers(identityDir string) error {
 		"Permission": schema.PermissionSpec,
 	}
 	if db.autologinConditions != nil {
-		spec["AutoLogin"] = db.autologinConditions
+		spec["AutoLogin"] = newAutologinRegistry(db.autologinConditions, conf.SectionSpec{
+			{
+				Name:        "CreateSession",
+				Type:        conf.BoolType,
+				Description: "Whether or not a new session should be created or if only this request should be authorized",
+				Default:     "no",
+			},
+		})
 	}
 
 	userFiles, err := utils.LoadFiles(identityDir, ".user", spec)
