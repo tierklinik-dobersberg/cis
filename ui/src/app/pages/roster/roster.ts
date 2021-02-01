@@ -1,11 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { StorageMap } from '@ngx-pwa/local-storage';
 import { NzCalendarMode } from 'ng-zorro-antd/calendar';
 import { NzMessageService, NzMessageServiceModule } from 'ng-zorro-antd/message';
-import { Observable, throwError } from 'rxjs';
+import { Observable, Subject, throwError } from 'rxjs';
 import { Subscription } from 'rxjs';
-import { catchError, delay, map, retryWhen } from 'rxjs/operators';
+import { catchError, debounceTime, delay, map, retryWhen } from 'rxjs/operators';
 import { Day, Holiday, HolidayAPI, IdentityAPI, Profile, Roster, RosterAPI } from 'src/app/api';
 import { extractErrorMessage, getContrastFontColor } from 'src/app/utils';
 
@@ -54,12 +55,21 @@ export class RosterComponent implements OnInit, OnDestroy {
     [key: number]: Holiday;
   } = {};
 
+  /** The current user that should be highlighted */
+  highlightUser: string = '';
+
+  /** The user that should be highlighted if not overwritten by highlightUser */
+  defaultHightlightUser: string = '';
+
+  highlightUserSubject = new Subject<string>();
+
   constructor(
     private rosterapi: RosterAPI,
     private holidayapi: HolidayAPI,
     private messageService: NzMessageService,
     private identityapi: IdentityAPI,
     private storage: StorageMap,
+    private route: ActivatedRoute
   ) {
     this.selectedDate = new Date();
   }
@@ -79,6 +89,21 @@ export class RosterComponent implements OnInit, OnDestroy {
         )
     this.subscriptions.add(sub);
 
+    // Subscribe to changes to the "show" query parameter.
+    const routeSub = this.route.queryParamMap
+      .subscribe(params => {
+        this.defaultHightlightUser = params.get('show');
+        this.highlightUser = this.defaultHightlightUser;
+      });
+    this.subscriptions.add(routeSub);
+
+    const highlightSub = this.highlightUserSubject
+      .pipe(debounceTime(200))
+      .subscribe(user => {
+        this.highlightUser = user || this.defaultHightlightUser;
+      })
+    this.subscriptions.add(highlightSub);
+
     this.loadRoster(this.selectedDate);
   }
 
@@ -89,6 +114,20 @@ export class RosterComponent implements OnInit, OnDestroy {
   /** Callback when the user clicks on a roster date- */
   selectDate(date: Date) {
     this.selectedDay = this.getDay(date);
+  }
+
+  shouldHighlightDay(date: Date): boolean {
+    const day = this.getDay(date);
+    if (day.forenoon.some(user => user === this.highlightUser)) {
+      return true;
+    }
+    if (day.afternoon.some(user => user === this.highlightUser)) {
+      return true;
+    }
+    if (day.emergency.some(user => user === this.highlightUser)) {
+      return true;
+    }
+    return false;
   }
 
   /**

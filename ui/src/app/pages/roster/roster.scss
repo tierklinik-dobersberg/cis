@@ -104,6 +104,19 @@ ul.holiday {
   background-color: #EEF2FF;
 }
 
+ul {
+    transition: all .2s ease-in-out;
+}
+
+ul.highlight-active {
+    opacity: 0.35;
+
+    &.highlight-day {
+      opacity: 1;
+      background-color: rgba(238, 255, 0, 0.26);
+    }
+}
+
 .selected-users {
   color     : black;
   text-align: left;
@@ -127,6 +140,10 @@ ul.holiday {
 
     border-radius: 2px;
     border       : 1px solid #b0b0b0;
+
+    &.highlight-user {
+      font-weight: bold;
+    }
 
     &:not(:last-child) {
       margin-right: 3px;

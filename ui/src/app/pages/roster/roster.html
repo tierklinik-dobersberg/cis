@@ -50,7 +50,8 @@
     (click)="selectDate(date)" nz-button nz-dropdown
     [(nzVisible)]="getVisibleProp(date.toLocaleString())[date.toLocaleString()]" [nzClickHide]="false"
     [nzDropdownMenu]="userMenu" nzTrigger="click" class="selected-users"
-    [class.holiday]="!!holidays[date.toDateString()]">
+    [class.holiday]="!!holidays[date.toDateString()]" [class.highlight-active]="!!highlightUser"
+    [class.highlight-day]="shouldHighlightDay(date)">
 
     <span style="padding-right: 2px; overflow: hidden; white-space: nowrap;">
       <nz-tag *ngIf="!!holidays[date.toDateString()]; else: showDayTemplate" nzColor="geekblue" class="holiday-tag">
@@ -72,7 +73,9 @@
     <ng-template #userDutyTemplate let-property>
       <li>
         <span *ngFor="let user of getDay(date)[property]" nz-tooltip [nzTooltipTitle]="userProfiles[user].fullname"
-          [style.backgroundColor]="userProfiles[user].color" [style.color]="userProfiles[user].fontColor">
+          [class.highlight-user]="highlightUser === user" [style.backgroundColor]="userProfiles[user].color"
+          [style.color]="userProfiles[user].fontColor" (mouseenter)="highlightUserSubject.next(user)"
+          (mouseleave)="highlightUserSubject.next('')">
           {{ userProfiles[user].fullname.slice(0, 2) }}
         </span>
       </li>

@@ -148,6 +148,10 @@
               <i nz-icon nzType="user" nzTheme="outline"></i>
               Mein Profil
             </li>
+            <li nz-menu-item routerLink="/roster" [queryParams]="{show: profile?.name}">
+              <i nz-icon nzType="clock-circle" nzTheme="outline"></i>
+              Mein Dienstplan
+            </li>
 
             <li nz-menu-item routerLink="/login">
               <i nz-icon nzType="user-switch" nzTheme="outline"></i>
