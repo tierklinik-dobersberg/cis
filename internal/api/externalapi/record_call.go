@@ -18,7 +18,6 @@ func RecordCallEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/calllog",
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
-
 			caller := c.Query("ani")
 			did := c.Query("did")
 

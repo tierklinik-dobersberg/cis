@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
+	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
@@ -34,6 +35,7 @@ type App struct {
 	DutyRosters rosterdb.Database
 	Identities  identitydb.Database
 	Customers   customerdb.Database
+	Comments    commentdb.Database
 	Door        *openinghours.DoorController
 	Holidays    openinghours.HolidayGetter
 	CallLogs    calllogdb.Database
@@ -51,6 +53,7 @@ func NewApp(
 	identities identitydb.Database,
 	customers customerdb.Database,
 	dutyRosters rosterdb.Database,
+	comments commentdb.Database,
 	door *openinghours.DoorController,
 	holidays openinghours.HolidayGetter,
 	calllogs calllogdb.Database) *App {
@@ -61,6 +64,7 @@ func NewApp(
 		Identities:  identities,
 		Customers:   customers,
 		DutyRosters: dutyRosters,
+		Comments:    comments,
 		Door:        door,
 		Holidays:    holidays,
 		CallLogs:    calllogs,

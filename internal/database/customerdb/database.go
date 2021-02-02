@@ -116,7 +116,7 @@ func (db *database) setup(ctx context.Context) error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("creating index for nameMetaphone: %w", err)
+		return fmt.Errorf("creating indexes: %w", err)
 	}
 
 	return nil
