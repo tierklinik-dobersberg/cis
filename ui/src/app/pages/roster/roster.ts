@@ -227,7 +227,10 @@ export class RosterComponent implements OnInit, OnDestroy {
     const month = this.selectedDate.getMonth() + 1;
     this.commentapi.create(`roster:${year}-${month}`, this.newComment)
       .subscribe(
-        () => this.loadComments(),
+        () => {
+          this.newComment = '';
+          this.loadComments();
+        },
         err => {
           this.messageService.error(extractErrorMessage(err, 'Kommentieren fehlgeschlagen'))
         }
