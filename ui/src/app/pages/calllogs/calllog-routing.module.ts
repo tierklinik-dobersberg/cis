@@ -3,7 +3,7 @@ import { RouterModule, Routes } from "@angular/router";
 import { CallLogComponent } from "./calllog";
 
 const routes: Routes = [
-    { path: '', component: CallLogComponent }
+    { path: '', component: CallLogComponent },
 ]
 
 @NgModule({

@@ -1,0 +1,64 @@
+<nz-table #userTable class="dash-card" [nzData]="profiles">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <ng-container *ngIf="!layout.isPhone">
+                <th>Benutzername</th>
+                <th>Telefon</th>
+                <th>Mail</th>
+                <th>Farbe</th>
+            </ng-container>
+            <th *ngIf="layout.isPhone" nzWidth="40px"></th>
+        </tr>
+    </thead>
+    <tbody>
+        <ng-container *ngFor="let  data of userTable.data">
+            <tr>
+                <td>
+                    <nz-avatar *ngIf="!data.avatar" nzIcon="user">
+                    </nz-avatar>
+                    <span *ngIf="!!data.avatar" class="ant-avatar ant-avatar-circle">
+                        <img [attr.src]="data.avatar">
+                    </span>
+
+                    {{data.fullname}}
+                </td>
+                <ng-container *ngIf="!layout.isPhone">
+                    <td>{{data.name}}</td>
+                    <td>
+                        <li *ngFor="let phone of data.phoneNumbers">
+                            <a [attr.href]="'tel:' + phone">{{ phone }}</a>
+                        </li>
+                    </td>
+                    <td>
+                        <li *ngFor="let mail of data.mailAddresses">
+                            <a [attr.href]="'mailto:' + mail">{{ mail }}</a>
+                        </li>
+                    </td>
+                    <td>
+                        <span class="user-color" [style.backgroundColor]="data.color"
+                            [style.color]="data.fontColor">{{data.color}}</span>
+                    </td>
+                </ng-container>
+                <td *ngIf="layout.isPhone" [nzExpand]="expandSet.has(data.name)" nzWidth="40px"
+                    (nzExpandChange)="onExpandChange(data.name, $event)">
+                </td>
+            </tr>
+            <tr [nzExpand]="expandSet.has(data.name)">
+                <span class="user-color" [style.backgroundColor]="data.color"
+                    [style.color]="data.fontColor">{{data.color}}</span>
+
+                <h3>Telefon</h3>
+                <li *ngFor="let phone of data.phoneNumbers">
+                    <a [attr.href]="'tel:' + phone">{{ phone }}</a>
+                </li>
+
+                <h3>Mail</h3>
+                <li *ngFor="let mail of data.mailAddresses">
+                    <a [attr.href]="'mailto:' + mail">{{ mail }}</a>
+                </li>
+
+            </tr>
+        </ng-container>
+    </tbody>
+</nz-table>
