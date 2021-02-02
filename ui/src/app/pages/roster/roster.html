@@ -183,7 +183,7 @@
 </nz-dropdown-menu>
 
 <nz-drawer [nzClosable]="true" [nzVisible]="showComments" nzPlacement="right" (nzOnClose)="toggleComments()"
-  nzWidth="25vw">
+  [nzWidth]="layout.isPhone ? '100vw' : layout.isDesktopUp ? '25vw' : '50vw'">
   <div class="comment-container">
     <h2>Kommentare</h2>
 
