@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { StorageMap } from '@ngx-pwa/local-storage';
 import { NzCalendarMode } from 'ng-zorro-antd/calendar';
@@ -87,6 +87,7 @@ export class RosterComponent implements OnInit, OnDestroy {
     private identityapi: IdentityAPI,
     private storage: StorageMap,
     private route: ActivatedRoute,
+    private elementRef: ElementRef,
     public layout: LayoutService,
   ) {
     this.setSelectedDate(new Date());
@@ -131,6 +132,13 @@ export class RosterComponent implements OnInit, OnDestroy {
         this.readonly = true;
       } else {
         this.readonly = false;
+      }
+
+      if (this.layout.isPhone && !!window.requestAnimationFrame) {
+        window.requestAnimationFrame(() => {
+          const id = this.selectedDate.toDateString();
+          document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+        });
       }
     });
     this.subscriptions.add(layoutSub);
@@ -177,6 +185,27 @@ export class RosterComponent implements OnInit, OnDestroy {
       return true;
     }
     return false;
+  }
+
+  nextMonth() {
+    this.onPanelChange({
+      date: new Date(this.selectedDate.getFullYear(), this.selectedDate.getMonth() + 1, 1),
+      mode: 'month',
+    })
+  }
+
+  prevMonth() {
+    this.onPanelChange({
+      date: new Date(this.selectedDate.getFullYear(), this.selectedDate.getMonth() - 1, 1),
+      mode: 'month',
+    })
+  }
+
+  today() {
+    this.onPanelChange({
+      date: new Date(),
+      mode: 'month',
+    }, true)
   }
 
   /**
@@ -261,7 +290,7 @@ export class RosterComponent implements OnInit, OnDestroy {
   /**
    * Loads the roster for date.
    */
-  loadRoster(date: Date = this.selectedDate) {
+  loadRoster(date: Date = this.selectedDate, scrollTo = false) {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
 
@@ -299,6 +328,15 @@ export class RosterComponent implements OnInit, OnDestroy {
 
             this.editMode = !isSaved;
             this.saveLoading = false;
+
+            if (scrollTo) {
+              if (this.layout.isPhone && !!window.requestAnimationFrame) {
+                window.requestAnimationFrame(() => {
+                  const id = this.selectedDate.toDateString();
+                  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+                });
+              }
+            }
           },
           err => {
             this.editMode = false;
@@ -396,13 +434,13 @@ export class RosterComponent implements OnInit, OnDestroy {
    * 
    * @param param0 The event emitted
    */
-  onPanelChange({ date, mode }: { date: Date, mode: NzCalendarMode }) {
+  onPanelChange({ date, mode }: { date: Date, mode: NzCalendarMode }, scrollTo = false) {
     if (mode === 'year') {
       return
     }
     this.setSelectedDate(date);
 
-    this.loadRoster(date);
+    this.loadRoster(date, scrollTo);
   }
 
   /** Returns the number of days in month/year */

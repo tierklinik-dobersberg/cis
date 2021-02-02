@@ -69,6 +69,12 @@ nz-select {
     button:not(:last-child) {
       margin-right: 3px;
     }
+
+    nz-button-group {
+      button {
+        margin-right: 0px;
+      }
+    }
   }
 
   .alerts {
@@ -177,13 +183,13 @@ ul {
 
   li {
     height: 30px;
-
-    &:hover {
-      background: rgba(135, 136, 206, 0.1)
-    }
   }
 }
 
+nz-button-group {
+  margin-bottom: 8px;
+  margin-right: 8px;
+}
 
 .mobile-view {
   h3 {
@@ -195,6 +201,14 @@ ul {
 
     .selection-row {
       padding: 0;
+    }
+
+    &.highlight-active {
+      opacity: 0.35;
+    }
+
+    &.highlight-day {
+      opacity: 1;
     }
   }
 }

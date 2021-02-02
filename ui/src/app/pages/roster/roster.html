@@ -21,6 +21,23 @@
   </div>
 
   <div class="actions">
+    <ng-container *ngIf="layout.isPhone">
+      <nz-button-group>
+        <button nz-button (click)="today()">
+          <i nz-icon nzType="calendar" nzTheme="outline"></i>
+        </button>
+      </nz-button-group>
+
+      <nz-button-group>
+        <button nz-button (click)="prevMonth()" nzType="primary">
+          <i nz-icon nzType="left" nzTheme="outline"></i>
+        </button>
+        <button nz-button (click)="nextMonth()" nzType="primary">
+          <i nz-icon nzType="right" nzTheme="outline"></i>
+        </button>
+      </nz-button-group>
+    </ng-container>
+
     <button nz-button nzType="primary" nzShape="circle" *ngIf="!editMode && !readonly" (click)="toggleEdit()"
       nzTooltipTitle="Dienstplan bearbeiten" nz-tooltip>
       <i nz-icon nzType="edit" nzTheme="outline"></i>
@@ -85,29 +102,39 @@
 </nz-calendar>
 
 <div *ngIf="layout.isPhone" class="mobile-view">
-  <div class="day" *ngFor="let date of dates" [attr.id]="date.toDateString()">
+  <div class="day" *ngFor="let date of dates" [attr.id]="date.toDateString()" [class.highlight-active]="!!highlightUser"
+    [class.highlight-day]="shouldHighlightDay(date)">
     <h3>
       {{ weekdays[date.getDay()] }}, {{ date.toLocaleDateString() }}
     </h3>
     <div class="selection-row">
       <span class="title">Vormittag</span>
-      <ul class="selected-users">
-        <li><span *ngFor="let username of getDay(date).forenoon">{{userProfiles[username].fullname}}</span></li>
-      </ul>
+      <ng-container *ngTemplateOutlet="mobileUserDutyTemplate; context: {$implicit: getDay(date).forenoon}">
+      </ng-container>
     </div>
     <div class="selection-row">
       <span class="title">Nachmittag</span>
-      <ul class="selected-users">
-        <li><span *ngFor="let username of getDay(date).afternoon">{{userProfiles[username].fullname}}</span></li>
-      </ul>
+      <ng-container *ngTemplateOutlet="mobileUserDutyTemplate; context: {$implicit: getDay(date).afternoon}">
+      </ng-container>
     </div>
     <div class="selection-row">
       <span class="title">Nachtdienst</span>
-      <ul class="selected-users">
-        <li><span *ngFor="let username of getDay(date).emergency">{{userProfiles[username].fullname}}</span></li>
-      </ul>
+      <ng-container *ngTemplateOutlet="mobileUserDutyTemplate; context: {$implicit: getDay(date).emergency}">
+      </ng-container>
     </div>
   </div>
+
+  <ng-template #mobileUserDutyTemplate let-day>
+    <ul class="selected-users">
+      <li>
+        <span *ngFor="let user of day" [class.highlight-user]="highlightUser === user"
+          [style.backgroundColor]="userProfiles[user].color" [style.color]="userProfiles[user].fontColor"
+          (mouseenter)="highlightUserSubject.next(user)" (mouseleave)="highlightUserSubject.next('')">
+          {{userProfiles[user].fullname}}
+        </span>
+      </li>
+    </ul>
+  </ng-template>
 </div>
 
 <nz-dropdown-menu #userMenu="nzDropdownMenu">
