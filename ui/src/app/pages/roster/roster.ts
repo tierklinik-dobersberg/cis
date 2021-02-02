@@ -18,6 +18,16 @@ import { extractErrorMessage, getContrastFontColor } from 'src/app/utils';
 export class RosterComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
 
+  readonly weekdays = [
+    "Sonntag",
+    "Montag",
+    "Dienstag",
+    "Mittwoch",
+    "Donnerstag",
+    "Freitag",
+    "Samstag"
+  ];
+
   /** Whether or not the roster should be displayed as readonly  */
   readonly = false;
 
@@ -32,6 +42,9 @@ export class RosterComponent implements OnInit, OnDestroy {
 
   /** The currently selected date (month/year) for which we show the roster */
   selectedDate: Date;
+
+  /** Dates holds a list of dates for the given month. Only used on mobile. */
+  dates: Date[] = [];
 
   /** The currently selected day for the day-edit-menu */
   selectedDay: Day = {
@@ -76,7 +89,22 @@ export class RosterComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     public layout: LayoutService,
   ) {
-    this.selectedDate = new Date();
+    this.setSelectedDate(new Date());
+  }
+
+  setSelectedDate(d: Date) {
+    this.selectedDate = d;
+    this.dates = [];
+    const month = d.getMonth();
+    const year = d.getFullYear();
+    const daysInMonth = this.daysInMonth(month, year)
+    console.log(daysInMonth);
+
+    for (let i = 1; i <= daysInMonth; i++) {
+      this.dates.push(
+        new Date(year, month, i)
+      )
+    }
   }
 
   ngOnInit() {
@@ -124,7 +152,6 @@ export class RosterComponent implements OnInit, OnDestroy {
     this.subscriptions.add(highlightSub);
 
 
-
     // finally, load the current roster
     this.loadRoster(this.selectedDate);
   }
@@ -134,7 +161,7 @@ export class RosterComponent implements OnInit, OnDestroy {
   }
 
   /** Callback when the user clicks on a roster date- */
-  selectDate(date: Date) {
+  selectRosterDay(date: Date) {
     this.selectedDay = this.getDay(date);
   }
 
@@ -354,7 +381,7 @@ export class RosterComponent implements OnInit, OnDestroy {
    */
   onDateSelected(date: Date) {
     const changed = date.getMonth() != this.selectedDate.getMonth() || date.getFullYear() != this.selectedDate.getFullYear();
-    this.selectedDate = date;
+    this.setSelectedDate(date);
 
     if (changed) {
       this.onPanelChange({
@@ -373,8 +400,13 @@ export class RosterComponent implements OnInit, OnDestroy {
     if (mode === 'year') {
       return
     }
-    this.selectedDate = date;
+    this.setSelectedDate(date);
 
     this.loadRoster(date);
+  }
+
+  /** Returns the number of days in month/year */
+  daysInMonth(month: number, year: number): number {
+    return new Date(year, month + 1, 0).getDate();
   }
 }

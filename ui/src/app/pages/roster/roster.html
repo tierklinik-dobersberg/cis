@@ -45,9 +45,10 @@
   </div>
 </div>
 
-<nz-calendar (nzPanelChange)="onPanelChange($event)" (nzSelectChange)="onDateSelected($event)">
+<nz-calendar (nzPanelChange)="onPanelChange($event)" (nzSelectChange)="onDateSelected($event)"
+  *ngIf="layout.isTabletPortraitUp">
   <ul *nzDateFullCell="let date" [class.other-month]="date.getMonth() != selectedDate.getMonth()"
-    (click)="selectDate(date)" nz-button nz-dropdown
+    (click)="selectRosterDay(date)" nz-button nz-dropdown
     [(nzVisible)]="getVisibleProp(date.toLocaleString())[date.toLocaleString()]" [nzClickHide]="false"
     [nzDropdownMenu]="readonly ? null: userMenu" nzTrigger="click" class="selected-users"
     [class.holiday]="!!holidays[date.toDateString()]" [class.highlight-active]="!!highlightUser"
@@ -82,6 +83,32 @@
     </ng-template>
   </ul>
 </nz-calendar>
+
+<div *ngIf="layout.isPhone" class="mobile-view">
+  <div class="day" *ngFor="let date of dates" [attr.id]="date.toDateString()">
+    <h3>
+      {{ weekdays[date.getDay()] }}, {{ date.toLocaleDateString() }}
+    </h3>
+    <div class="selection-row">
+      <span class="title">Vormittag</span>
+      <ul class="selected-users">
+        <li><span *ngFor="let username of getDay(date).forenoon">{{userProfiles[username].fullname}}</span></li>
+      </ul>
+    </div>
+    <div class="selection-row">
+      <span class="title">Nachmittag</span>
+      <ul class="selected-users">
+        <li><span *ngFor="let username of getDay(date).afternoon">{{userProfiles[username].fullname}}</span></li>
+      </ul>
+    </div>
+    <div class="selection-row">
+      <span class="title">Nachtdienst</span>
+      <ul class="selected-users">
+        <li><span *ngFor="let username of getDay(date).emergency">{{userProfiles[username].fullname}}</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
 
 <nz-dropdown-menu #userMenu="nzDropdownMenu">
   <div nz-menu class="user-menu">

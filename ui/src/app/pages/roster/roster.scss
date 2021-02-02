@@ -48,6 +48,10 @@ nz-select {
   background   : white;
   border-bottom: 1px solid #f0f0f0;
 
+  @include for-phone-only {
+    position: relative;
+  }
+
   h1 {
     margin-bottom  : 0;
     display        : flex;
@@ -176,6 +180,21 @@ ul {
 
     &:hover {
       background: rgba(135, 136, 206, 0.1)
+    }
+  }
+}
+
+
+.mobile-view {
+  h3 {
+    text-align: center;
+  }
+  .day {
+    border-bottom: 1px solid lightgray;
+    padding-top: 12px;
+
+    .selection-row {
+      padding: 0;
     }
   }
 }
