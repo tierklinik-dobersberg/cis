@@ -7,10 +7,10 @@ import (
 	"net/http/httputil"
 	"time"
 
-	"github.com/apex/log"
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 // RecordCallEndpoint allows to record an incoming phone call in the calllog.
@@ -23,10 +23,10 @@ func RecordCallEndpoint(grp *app.Router) {
 
 			reqBlob, err := httputil.DumpRequest(c.Request, true)
 			if err != nil {
-				log.Errorf("failed to dump request: %s", err)
+				logger.Errorf(ctx, "failed to dump request: %s", err)
 			}
 			if err := ioutil.WriteFile("/log/record-call-request.dump", reqBlob, 0700); err != nil {
-				log.Errorf("failed to dump request: %s", err)
+				logger.Errorf(ctx, "failed to dump request: %s", err)
 			}
 
 			if err := app.CallLogs.Create(ctx, time.Now(), caller, did); err != nil {
