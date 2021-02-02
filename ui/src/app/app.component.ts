@@ -87,6 +87,8 @@ export class AppComponent implements OnInit {
         },
         error: console.error,
       });
+
+    this.isCollapsed = this.layout.isPhone;
   }
 
   private applyConfig(cfg: UIConfig | null) {
