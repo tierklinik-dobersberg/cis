@@ -1,6 +1,6 @@
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 import { map } from "rxjs/operators";
 
 
@@ -10,6 +10,12 @@ import { map } from "rxjs/operators";
 })
 export class LayoutService {
     breakpoints: Observable<{ [key: string]: boolean }>;
+
+    private _onUpdate = new BehaviorSubject<void>(undefined);
+
+    get change() {
+        return this._onUpdate.asObservable();
+    }
 
     isPhone = false;
     isTabletPortraitUp = false;
@@ -35,6 +41,8 @@ export class LayoutService {
             this.isTabletLandscapeUp = states['(min-width: 900px)']
             this.isDesktopUp = states['(min-width: 1200px)']
             this.isBigDesktopUp = states['(min-width: 1800px)']
+
+            this._onUpdate.next();
         });
     }
 }

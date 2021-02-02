@@ -8,6 +8,7 @@ import { Observable, Subject, throwError } from 'rxjs';
 import { Subscription } from 'rxjs';
 import { catchError, debounceTime, delay, map, retryWhen } from 'rxjs/operators';
 import { Day, Holiday, HolidayAPI, IdentityAPI, Profile, Roster, RosterAPI } from 'src/app/api';
+import { LayoutService } from 'src/app/layout.service';
 import { extractErrorMessage, getContrastFontColor } from 'src/app/utils';
 
 @Component({
@@ -16,6 +17,9 @@ import { extractErrorMessage, getContrastFontColor } from 'src/app/utils';
 })
 export class RosterComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
+
+  /** Whether or not the roster should be displayed as readonly  */
+  readonly = false;
 
   /** Whether or not we need to show the no-roster alert */
   showNoRosterAlert = false;
@@ -69,7 +73,8 @@ export class RosterComponent implements OnInit, OnDestroy {
     private messageService: NzMessageService,
     private identityapi: IdentityAPI,
     private storage: StorageMap,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    public layout: LayoutService,
   ) {
     this.selectedDate = new Date();
   }
@@ -77,6 +82,7 @@ export class RosterComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.subscriptions = new Subscription();
 
+    // Load all users and keep retrying until we got them.
     const sub =
       this.identityapi.listUsers()
         .pipe(retryWhen(err => err.pipe(delay(2000))))
@@ -89,6 +95,18 @@ export class RosterComponent implements OnInit, OnDestroy {
         )
     this.subscriptions.add(sub);
 
+    // The roster is always readonly on tablet-portrait and down
+    const layoutSub = this.layout.change.subscribe(() => {
+      // TODO(ppacher): once we have proper permission checks
+      // make sure to update this part as well.
+      if (this.layout.isPhone || (this.layout.isTabletPortraitUp && !this.layout.isTabletLandscapeUp)) {
+        this.readonly = true;
+      } else {
+        this.readonly = false;
+      }
+    });
+    this.subscriptions.add(layoutSub);
+
     // Subscribe to changes to the "show" query parameter.
     const routeSub = this.route.queryParamMap
       .subscribe(params => {
@@ -97,6 +115,7 @@ export class RosterComponent implements OnInit, OnDestroy {
       });
     this.subscriptions.add(routeSub);
 
+    // Subscribe to "on-hover" events pushed to hightlighUserSubject
     const highlightSub = this.highlightUserSubject
       .pipe(debounceTime(200))
       .subscribe(user => {
@@ -104,6 +123,9 @@ export class RosterComponent implements OnInit, OnDestroy {
       })
     this.subscriptions.add(highlightSub);
 
+
+
+    // finally, load the current roster
     this.loadRoster(this.selectedDate);
   }
 
@@ -192,6 +214,10 @@ export class RosterComponent implements OnInit, OnDestroy {
    * the roster will be saved and edit mode will stopped.
    */
   toggleEdit() {
+    if (this.readonly) {
+      return;
+    }
+
     if (this.editMode) {
       this.saveRoster()
       return;

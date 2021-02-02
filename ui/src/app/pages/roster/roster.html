@@ -21,13 +21,13 @@
   </div>
 
   <div class="actions">
-    <button nz-button nzType="primary" nzShape="circle" *ngIf="!editMode" (click)="toggleEdit()"
+    <button nz-button nzType="primary" nzShape="circle" *ngIf="!editMode && !readonly" (click)="toggleEdit()"
       nzTooltipTitle="Dienstplan bearbeiten" nz-tooltip>
       <i nz-icon nzType="edit" nzTheme="outline"></i>
     </button>
 
     <button nz-button nzType="primary" nzShape="circle" *ngIf="editMode || saveLoading" [nzLoading]="saveLoading"
-      (click)="toggleEdit()" nzTooltipTitle="Dienstplan speicher" nz-tooltip>
+      (click)="toggleEdit()" nzTooltipTitle="Dienstplan speichern" nz-tooltip>
       <i nz-icon nzType="save" nzTheme="outline"></i>
     </button>
 
@@ -37,7 +37,7 @@
       <i nz-icon nzType="close" nzTheme="outline"></i>
     </button>
 
-    <button nz-button nzType="danger" nzShape="circle" [nzLoading]="false" nz-popconfirm *ngIf="!editMode"
+    <button nz-button nzType="danger" nzShape="circle" [nzLoading]="false" nz-popconfirm *ngIf="!editMode && !readonly"
       nzTooltipTitle="Dienstplan löschen" nz-tooltip nzPopconfirmTitle="Dienstplan sicher löschen?"
       nzPopconfirmPlacement="bottom" (nzOnConfirm)="deleteRoster()">
       <i nz-icon nzType="delete" nzTheme="outline"></i>
@@ -49,7 +49,7 @@
   <ul *nzDateFullCell="let date" [class.other-month]="date.getMonth() != selectedDate.getMonth()"
     (click)="selectDate(date)" nz-button nz-dropdown
     [(nzVisible)]="getVisibleProp(date.toLocaleString())[date.toLocaleString()]" [nzClickHide]="false"
-    [nzDropdownMenu]="userMenu" nzTrigger="click" class="selected-users"
+    [nzDropdownMenu]="readonly ? null: userMenu" nzTrigger="click" class="selected-users"
     [class.holiday]="!!holidays[date.toDateString()]" [class.highlight-active]="!!highlightUser"
     [class.highlight-day]="shouldHighlightDay(date)">
 
@@ -93,7 +93,7 @@
     </ng-container>
 
     <div class="selection-row" style="text-align: right; padding-top: 12px">
-      <button *ngIf="!editMode" nz-button nzSize="small" nzType="primary" (click)="toggleEdit()">
+      <button *ngIf="!editMode && !readonly" nz-button nzSize="small" nzType="primary" (click)="toggleEdit()">
         <i nz-icon nzType="edit" nzTheme="outline"></i>
         Bearbeiten
       </button>
