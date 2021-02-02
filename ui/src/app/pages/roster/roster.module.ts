@@ -18,6 +18,9 @@ import { NzSelectModule } from "ng-zorro-antd/select";
 import { NzToolTipModule } from "ng-zorro-antd/tooltip";
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { StorageModule } from '@ngx-pwa/local-storage';
+import { NzDrawerModule } from "ng-zorro-antd/drawer";
+import { NzInputModule } from "ng-zorro-antd/input";
+import { NzAvatarModule } from "ng-zorro-antd/avatar";
 
 @NgModule({
   imports: [
@@ -33,11 +36,15 @@ import { StorageModule } from '@ngx-pwa/local-storage';
     NzCheckboxModule,
     NzMessageServiceModule,
     NzGridModule,
+    NzInputModule,
     NzAlertModule,
     NzSelectModule,
+    NzAvatarModule,
     NzToolTipModule,
     NzMessageServiceModule,
     NzTagModule,
+    NzDrawerModule,
+    NzBadgeModule,
     RosterRoutingModule,
     StorageModule,
   ],

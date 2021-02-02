@@ -212,3 +212,52 @@ nz-button-group {
     }
   }
 }
+
+.comment-container {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  padding-left: 24px;
+  padding-right: 24px;
+
+  .create-comment-container {
+    display: flex;
+    flex-direction: column;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    border-top: 1px solid #b0b0b0;
+    margin-top: 24px;
+
+    textarea {
+      margin-bottom: 12px;
+    }
+  }
+
+  .commenter-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  span.ant-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .comment-content {
+    padding-top: 6px;
+    margin-left: 52px;
+  }
+
+  .commenter {
+
+    flex-grow: 1;
+    padding-left: 12px;
+    display: flex;
+    flex-direction: column;
+    color: gray;
+
+    span:not(.username) {
+      font-size: 90%;
+    }
+  }
+}

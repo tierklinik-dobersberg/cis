@@ -36,6 +36,7 @@
           <i nz-icon nzType="right" nzTheme="outline"></i>
         </button>
       </nz-button-group>
+
     </ng-container>
 
     <button nz-button nzType="primary" nzShape="circle" *ngIf="!editMode && !readonly" (click)="toggleEdit()"
@@ -59,6 +60,12 @@
       nzPopconfirmPlacement="bottom" (nzOnConfirm)="deleteRoster()">
       <i nz-icon nzType="delete" nzTheme="outline"></i>
     </button>
+
+    <nz-badge [nzCount]="comments.length" style="margin-left: 12px">
+      <button nz-button nzType="text" (click)="toggleComments()">
+        <i nz-icon nzType="comment" nzTheme="outline"></i>
+      </button>
+    </nz-badge>
   </div>
 </div>
 
@@ -174,3 +181,35 @@
     </ng-template>
   </div>
 </nz-dropdown-menu>
+
+<nz-drawer [nzClosable]="true" [nzVisible]="showComments" nzPlacement="right" (nzOnClose)="toggleComments()"
+  nzWidth="25vw">
+  <div class="comment-container">
+    <h2>Kommentare</h2>
+
+    <div *ngFor="let comment of comments">
+      <div class="commenter-container">
+        <nz-avatar *ngIf="!comment.profile?.avatar" nzIcon="user">
+        </nz-avatar>
+        <span *ngIf="!!comment.profile?.avatar" class="ant-avatar ant-avatar-circle">
+          <img [attr.src]="comment.profile?.avatar">
+        </span>
+
+        <div class="commenter">
+          <span class="username">{{ comment.profile?.fullname || comment.profile?.name || 'Unbekannt' }}</span>
+          <span>{{ comment.edited ? 'bearbeitet am ' : 'erstellt am '}} {{ comment.date.toLocaleDateString() }}, {{
+            comment.date.toLocaleTimeString() }}</span>
+        </div>
+      </div>
+      <p class="comment-content">
+        {{comment.message}}
+      </p>
+    </div>
+
+    <div class="create-comment-container">
+      <h3>Erstelle einen neuen Kommentar:</h3>
+      <textarea nz-input [nzAutosize]="{ minRows: 3, maxRows: 5 }" [(ngModel)]="newComment"></textarea>
+      <button nz-button nzType="primary" (click)="createComment()">Kommentieren</button>
+    </div>
+  </div>
+</nz-drawer>

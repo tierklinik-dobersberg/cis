@@ -8,3 +8,4 @@ export * from './calllogs.api';
 export * from './config.api';
 export * from './dxr.service';
 export * from './import.api';
+export * from './comment.api';

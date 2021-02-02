@@ -11,6 +11,7 @@ import (
 	"github.com/ppacher/system-conf/conf"
 	"github.com/spf13/cobra"
 	"github.com/tierklinik-dobersberg/cis/internal/api/calllogapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/commentapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/configapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/customerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/doorapi"
@@ -22,6 +23,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/autologin"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
+	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
@@ -125,6 +127,8 @@ func getApp(ctx context.Context) *app.App {
 				configapi.Setup(apis.Group("config", session.Require()))
 				// importapi provides import support for customer data
 				importapi.Setup(apis.Group("import", session.Require()))
+				// commentapi manages the comment system from cis
+				commentapi.Setup(apis.Group("comments", session.Require()))
 			}
 
 			return nil
@@ -209,6 +213,11 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "%s", err.Error())
 	}
 
+	comments, err := commentdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
+	if err != nil {
+		logger.Fatalf(ctx, "%s", err.Error())
+	}
+
 	matcher := permission.NewMatcher(permission.NewResolver(identities))
 
 	//
@@ -232,6 +241,7 @@ func getApp(ctx context.Context) *app.App {
 		identities,
 		customers,
 		rosters,
+		comments,
 		doorController,
 		holidayCache,
 		calllogs,

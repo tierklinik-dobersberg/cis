@@ -7,9 +7,15 @@ import { NzMessageService, NzMessageServiceModule } from 'ng-zorro-antd/message'
 import { Observable, Subject, throwError } from 'rxjs';
 import { Subscription } from 'rxjs';
 import { catchError, debounceTime, delay, map, retryWhen } from 'rxjs/operators';
-import { Day, Holiday, HolidayAPI, IdentityAPI, Profile, Roster, RosterAPI } from 'src/app/api';
+import { CommentAPI, Day, Holiday, HolidayAPI, IdentityAPI, Profile, Roster, RosterAPI, Comment as BaseComment, ProfileWithAvatar } from 'src/app/api';
 import { LayoutService } from 'src/app/layout.service';
 import { extractErrorMessage, getContrastFontColor } from 'src/app/utils';
+
+interface Comment extends BaseComment {
+  date: Date;
+  edited?: boolean;
+  profile: ProfileWithAvatar;
+}
 
 @Component({
   templateUrl: './roster.html',
@@ -57,7 +63,7 @@ export class RosterComponent implements OnInit, OnDestroy {
   usernames: string[] = [];
 
   /** All available user profiles */
-  userProfiles: { [key: string]: Profile } = {};
+  userProfiles: { [key: string]: ProfileWithAvatar } = {};
 
   /** Whether or not the day-edit-menu is visible or not. Index by day. */
   dropdownVisible: { [key: string]: boolean } = {};
@@ -80,14 +86,23 @@ export class RosterComponent implements OnInit, OnDestroy {
 
   highlightUserSubject = new Subject<string>();
 
+  /** Whether or not the comment box is shown */
+  showComments = false;
+
+  /** All comments for the roster. */
+  comments: Comment[] = [];
+
+  /** two-way binded value for the create-comment textarea */
+  newComment = '';
+
   constructor(
     private rosterapi: RosterAPI,
     private holidayapi: HolidayAPI,
-    private messageService: NzMessageService,
     private identityapi: IdentityAPI,
+    private commentapi: CommentAPI,
+    private messageService: NzMessageService,
     private storage: StorageMap,
     private route: ActivatedRoute,
-    private elementRef: ElementRef,
     public layout: LayoutService,
   ) {
     this.setSelectedDate(new Date());
@@ -113,13 +128,16 @@ export class RosterComponent implements OnInit, OnDestroy {
 
     // Load all users and keep retrying until we got them.
     const sub =
-      this.identityapi.listUsers()
+      this.identityapi.listUsers({ includeAvatars: true })
         .pipe(retryWhen(err => err.pipe(delay(2000))))
         .subscribe(
           users => {
             this.userProfiles = {};
             users.forEach(user => this.userProfiles[user.name] = user);
             this.usernames = users.map(user => user.name);
+
+            // finally, load the current roster
+            this.loadRoster(this.selectedDate);
           }
         )
     this.subscriptions.add(sub);
@@ -158,10 +176,6 @@ export class RosterComponent implements OnInit, OnDestroy {
         this.highlightUser = user || this.defaultHightlightUser;
       })
     this.subscriptions.add(highlightSub);
-
-
-    // finally, load the current roster
-    this.loadRoster(this.selectedDate);
   }
 
   ngOnDestroy() {
@@ -206,6 +220,18 @@ export class RosterComponent implements OnInit, OnDestroy {
       date: new Date(),
       mode: 'month',
     }, true)
+  }
+
+  createComment() {
+    const year = this.selectedDate.getFullYear();
+    const month = this.selectedDate.getMonth() + 1;
+    this.commentapi.create(`roster:${year}-${month}`, this.newComment)
+      .subscribe(
+        () => this.loadComments(),
+        err => {
+          this.messageService.error(extractErrorMessage(err, 'Kommentieren fehlgeschlagen'))
+        }
+      )
   }
 
   /**
@@ -287,6 +313,10 @@ export class RosterComponent implements OnInit, OnDestroy {
       .subscribe(() => this.loadRoster());
   }
 
+  toggleComments() {
+    this.showComments = !this.showComments;
+  }
+
   /**
    * Loads the roster for date.
    */
@@ -358,9 +388,44 @@ export class RosterComponent implements OnInit, OnDestroy {
           holidays.forEach(day => {
             this.holidays[new Date(day.date).toDateString()] = day;
           });
-          console.log(this.holidays);
         })
     this.subscriptions.add(sub2);
+
+    this.loadComments(date);
+  }
+
+  private loadComments(date = this.selectedDate) {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+
+    const sub =
+      this.commentapi.list(`roster:${year}-${month}`)
+        .subscribe(
+          comments => {
+            console.log(comments);
+            this.comments = comments
+              .map(c => {
+                let date = new Date(c.createdAt);
+                let edited = false;
+                if (c.createdAt !== c.updatedAt) {
+                  edited = true;
+                  date = new Date(c.updatedAt);
+                }
+
+                return {
+                  ...c,
+                  date: date,
+                  edited: edited,
+                  profile: this.userProfiles[c.user],
+                }
+              })
+              .sort((a, b) => new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf())
+          },
+          err => {
+            console.error(err);
+          }
+        )
+    this.subscriptions.add(sub);
   }
 
   /** Closes all edit-day-menu dropdowns */

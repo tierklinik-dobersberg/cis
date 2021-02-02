@@ -20,7 +20,8 @@ export class WelcomeComponent implements OnInit, OnDestroy {
 
   constructor(
     private identityapi: IdentityAPI,
-    private rosterapi: RosterAPI) { }
+    private rosterapi: RosterAPI
+  ) { }
 
   ngOnInit() {
   }
