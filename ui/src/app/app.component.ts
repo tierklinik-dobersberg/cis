@@ -3,6 +3,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, share } from 'rxjs/operators';
 import { ConfigAPI, IdentityAPI, Profile, UIConfig } from './api';
+import { LayoutService } from './layout.service';
 
 interface MenuEntry {
   Icon: string;
@@ -29,6 +30,7 @@ export class AppComponent implements OnInit {
   profile: Profile | null = null;
   rootLinks: MenuEntry[] = []
   subMenus: SubMenu[] = [];
+  menuMode: 'inline' | 'vertical' = 'inline';
 
   isLogin = this.router.events
     .pipe(
@@ -40,13 +42,20 @@ export class AppComponent implements OnInit {
       share()
     );
 
-  constructor(private identity: IdentityAPI,
+  constructor(
+    private identity: IdentityAPI,
     private configapi: ConfigAPI,
-    private router: Router) { }
+    private router: Router,
+    public layout: LayoutService,
+  ) { }
 
   logout() {
     this.identity.logout()
       .subscribe(() => this.router.navigate(['/', 'login']))
+  }
+
+  toggleMenu() {
+    this.isCollapsed = !this.isCollapsed;
   }
 
   ngOnInit() {

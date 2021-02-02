@@ -58,8 +58,6 @@ export class ViewerComponent implements OnInit, OnDestroy {
         this.subscriptions = new Subscription();
         this.id = this.dwvService.register(this);
 
-        this.breakpointObserver.observe('')
-
         this.dwvApp = new dwv.App();
         this.dwvApp.init({
             containerDivId: `dwv/${this.id}`,

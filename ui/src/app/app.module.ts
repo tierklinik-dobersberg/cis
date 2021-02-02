@@ -13,6 +13,7 @@ import { NzIconService } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
+import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -20,8 +21,8 @@ import { IconsProviderModule } from './icons-provider.module';
 import { AuthorizationInterceptor } from './api';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { LoginModule } from './pages/login/login.module';
-import { WelcomeModule } from './pages/welcome/welcome.module';
 import { RouterModule } from '@angular/router';
+import { LayoutModule } from '@angular/cdk/layout';
 
 
 registerLocaleData(de);
@@ -38,6 +39,7 @@ registerLocaleData(de);
     NzMenuModule,
     NzAvatarModule,
     NzGridModule,
+    NzDrawerModule,
     NzDropDownModule,
     FormsModule,
     HttpClientModule,
@@ -45,6 +47,7 @@ registerLocaleData(de);
     FontAwesomeModule,
     LoginModule,
     RouterModule,
+    LayoutModule,
   ],
   providers: [
     { provide: NZ_I18N, useValue: de_DE },
