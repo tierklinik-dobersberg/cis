@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
@@ -76,7 +77,9 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 
 	// fetch all users so we can convert usernames to phone numbers,
 	// ...
-	allUsers, err := app.Identities.ListAllUsers(ctx)
+	allUsers, err := app.Identities.ListAllUsers(
+		identitydb.WithScope(ctx, identitydb.Public),
+	)
 	if err != nil {
 		return nil, httperr.InternalError(err)
 	}
@@ -102,9 +105,10 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 		}
 
 		doctorsOnDuty[idx] = v1alpha.DoctorOnDuty{
-			Username: user.Name,
-			FullName: user.Fullname,
-			Phone:    user.PhoneNumber[0],
+			Username:   user.Name,
+			FullName:   user.Fullname,
+			Phone:      user.PhoneNumber[0],
+			Properties: user.Properties,
 		}
 	}
 

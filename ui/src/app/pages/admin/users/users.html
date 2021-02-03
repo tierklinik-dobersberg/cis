@@ -64,7 +64,7 @@
                 </li>
 
                 <ng-container *ngFor="let prop of userProps">
-                    <h3> {{ prop.displayName || prop.name }} </h3>
+                    <h3>{{ prop.displayName || prop.name }}</h3>
                     <li>{{ data?.properties[prop.name] || 'N/A' }}</li>
                 </ng-container>
             </tr>
