@@ -169,9 +169,15 @@ func (db *database) ByID(ctx context.Context, id string) (*v1alpha.Comment, erro
 }
 
 func (db *database) ByKey(ctx context.Context, key string) ([]v1alpha.Comment, error) {
+	opts := options.Find()
+
+	opts.SetSort(bson.M{
+		"createdAt": 1,
+	})
+
 	results, err := db.comments.Find(ctx, bson.M{
 		"key": key,
-	})
+	}, opts)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, httperr.NotFound("comments", key, err)

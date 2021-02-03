@@ -92,7 +92,13 @@ func (db *database) Create(ctx context.Context, d time.Time, caller string, inbo
 
 func (db *database) ForDate(ctx context.Context, d time.Time) ([]v1alpha.CallLog, error) {
 	key := d.Format("2006-01-02")
-	result, err := db.callogs.Find(ctx, bson.M{"datestr": key})
+
+	opts := options.Find()
+	opts.SetSort(bson.M{
+		"date": -1,
+	})
+
+	result, err := db.callogs.Find(ctx, bson.M{"datestr": key}, opts)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
