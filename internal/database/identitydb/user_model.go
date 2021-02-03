@@ -1,12 +1,15 @@
 package identitydb
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	"github.com/nyaruka/phonenumbers"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 type user struct {
@@ -38,7 +41,7 @@ func (db *identDB) loadUsers(identityDir string) error {
 
 	// build the user map
 	for _, f := range userFiles {
-		u, autologin, err := buildUser(f, db.userPropertySpecs, db.autologinConditions)
+		u, autologin, err := buildUser(f, db.userPropertySpecs, db.autologinConditions, db.country)
 		if err != nil {
 			return fmt.Errorf("%s: %w", f.Path, err)
 		}
@@ -60,7 +63,7 @@ func (db *identDB) loadUsers(identityDir string) error {
 	return nil
 }
 
-func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, autologinConditions conf.OptionRegistry) (*user, *conf.Section, error) {
+func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, autologinConditions conf.OptionRegistry, country string) (*user, *conf.Section, error) {
 	spec := conf.FileSpec{
 		"User":       schema.UserSpec,
 		"Permission": schema.PermissionSpec,
@@ -73,6 +76,22 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, autologinCondi
 	var u user
 	if err := spec.Decode(f, &u); err != nil {
 		return nil, nil, err
+	}
+
+	// validate phone numbers and convert them to international
+	// format
+	for idx, phone := range u.PhoneNumber {
+		parsed, err := phonenumbers.Parse(phone, country)
+		if err != nil {
+			logger.Errorf(context.Background(), "Failed to parse phone number %s from user %s: %s", phone, u.Name, err)
+			continue
+		}
+
+		u.PhoneNumber[idx] = strings.ReplaceAll(
+			phonenumbers.Format(parsed, phonenumbers.INTERNATIONAL),
+			" ",
+			"",
+		)
 	}
 
 	// Build custom user properties

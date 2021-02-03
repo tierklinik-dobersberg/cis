@@ -68,6 +68,7 @@ type Database interface {
 // The actual in-memory implementation for identDB.
 type identDB struct {
 	dir                 string
+	country             string
 	userPropertySpecs   []conf.OptionSpec
 	rw                  sync.RWMutex
 	autologinConditions *httpcond.Registry
@@ -78,11 +79,12 @@ type identDB struct {
 }
 
 // New returns a new database that uses ldr.
-func New(ctx context.Context, dir string, userProperties []conf.OptionSpec, reg *httpcond.Registry) (Database, error) {
+func New(ctx context.Context, dir, country string, userProperties []conf.OptionSpec, reg *httpcond.Registry) (Database, error) {
 	db := &identDB{
 		dir:                 dir,
 		autologinConditions: reg,
 		userPropertySpecs:   userProperties,
+		country:             country,
 	}
 
 	if err := db.reload(ctx); err != nil {

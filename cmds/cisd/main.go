@@ -198,7 +198,7 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "%s", err.Error())
 	}
 
-	identities, err := identitydb.New(ctx, instance.ConfigurationDirectory, cfg.UserProperties, httpcond.DefaultRegistry)
+	identities, err := identitydb.New(ctx, instance.ConfigurationDirectory, cfg.Country, cfg.UserProperties, httpcond.DefaultRegistry)
 	if err != nil {
 		logger.Fatalf(ctx, "failed to prepare database: %s", err)
 	}
