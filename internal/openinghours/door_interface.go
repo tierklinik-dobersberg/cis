@@ -127,7 +127,7 @@ func (door *MqttDoor) sendCommand(ctx context.Context, command string) error {
 	}()
 
 	// send the actual command
-	if token := door.cli.Publish("cliny/rpc/service/door/"+command, 0, true, string(blob)); token.Wait() && token.Error() != nil {
+	if token := door.cli.Publish("cliny/rpc/service/door/"+command, 0, false, string(blob)); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
 
