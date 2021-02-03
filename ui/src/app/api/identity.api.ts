@@ -184,6 +184,19 @@ export class IdentityAPI {
                 )
             })
           )
+        }),
+        map(profiles => {
+          return profiles.sort((a, b) => {
+            if (a.fullname > b.fullname) {
+              return 1;
+            }
+
+            if (b.fullname < a.fullname) {
+              return -1;
+            }
+
+            return 0;
+          })
         })
       )
   }
