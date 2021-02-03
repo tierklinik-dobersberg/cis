@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { IdentityAPI, ProfileWithAvatar } from "src/app/api";
+import { filter } from "rxjs/operators";
+import { ConfigAPI, IdentityAPI, ProfileWithAvatar, UserProperty } from "src/app/api";
 import { LayoutService } from "src/app/layout.service";
 
 @Component({
@@ -8,6 +9,7 @@ import { LayoutService } from "src/app/layout.service";
 })
 export class UserListComponent implements OnInit, OnDestroy {
     expandSet = new Set<string>();
+    userProps: UserProperty[] = [];
 
     onExpandChange(id: string, checked: boolean): void {
         if (checked) {
@@ -21,10 +23,17 @@ export class UserListComponent implements OnInit, OnDestroy {
 
     constructor(
         private identityapi: IdentityAPI,
+        private configapi: ConfigAPI,
         public layout: LayoutService,
     ) { }
 
     ngOnInit() {
+        this.configapi.change
+            .pipe(filter(cfg => !!cfg))
+            .subscribe(cfg => {
+                this.userProps = (cfg.UserProperties || []).filter(prop => prop.visibility === 'public')
+            });
+
         this.identityapi.listUsers({ includeAvatars: true })
             .subscribe(profiles => this.profiles = profiles);
     }

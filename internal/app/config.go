@@ -1,7 +1,6 @@
 package app
 
 import (
-	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/service/server"
 )
@@ -16,13 +15,15 @@ type Config struct {
 
 	schema.IntegrationConfig `section:"Integration"`
 
-	OpeningHours   []schema.OpeningHours `section:"OpeningHour"`
-	UserProperties []conf.OptionSpec     `section:"UserProperty"`
-	Listeners      []server.Listener     `section:"Listener"`
+	OpeningHours   []schema.OpeningHours           `section:"OpeningHour"`
+	UserProperties []schema.UserPropertyDefinition `section:"UserProperty"`
+	Listeners      []server.Listener               `section:"Listener"`
 
 	UI UIConfig `section:"-"`
 }
 
+// UIConfig holds the configuration that is soley important for the
+// user interface.
 type UIConfig struct {
 	schema.UI `section:"UI"`
 

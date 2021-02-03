@@ -13,9 +13,20 @@ export interface ExternalLink {
   BlankTarget: boolean;
 }
 
+export interface UserProperty {
+  name: string;
+  description: string;
+  type: string;
+  required: boolean;
+  visibility: string;
+  default: string;
+  displayName?: string;
+}
+
 export interface UIConfig {
   HideUsersWithRole?: string[];
   ExternalLinks?: ExternalLink[];
+  UserProperties: UserProperty[];
 }
 
 @Injectable({
@@ -50,6 +61,7 @@ export class ConfigAPI {
           // finally, notify all other subscribes of UI config
           // changes.
           this.onChange.next(cfg);
+          console.log(cfg);
         })
     });
   }

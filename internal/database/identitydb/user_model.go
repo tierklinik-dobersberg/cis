@@ -19,8 +19,13 @@ type user struct {
 }
 
 func (db *identDB) loadUsers(identityDir string) error {
+	userPropertySpecs := make([]conf.OptionSpec, len(db.userPropertySpecs))
+	for idx, opt := range db.userPropertySpecs {
+		userPropertySpecs[idx] = opt.OptionSpec
+	}
+
 	spec := conf.FileSpec{
-		"User":       conf.SectionSpec(append(schema.UserSpec, db.userPropertySpecs...)),
+		"User":       conf.SectionSpec(append(schema.UserSpec, userPropertySpecs...)),
 		"Permission": schema.PermissionSpec,
 	}
 	if db.autologinConditions != nil {
@@ -41,7 +46,7 @@ func (db *identDB) loadUsers(identityDir string) error {
 
 	// build the user map
 	for _, f := range userFiles {
-		u, autologin, err := buildUser(f, db.userPropertySpecs, db.autologinConditions, db.country)
+		u, autologin, err := buildUser(f, userPropertySpecs, db.autologinConditions, db.country)
 		if err != nil {
 			return fmt.Errorf("%s: %w", f.Path, err)
 		}
@@ -103,7 +108,19 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, autologinCondi
 	if len(userPropertySpecs) > 0 {
 		u.Properties = make(map[string]interface{})
 		for _, spec := range userPropertySpecs {
-			u.Properties[spec.Name] = sec.GetAs(spec.Name, spec.Type)
+			hasValue := false
+
+			// TODO(ppacher): update sec.GetAs to return a boolean as well.
+			for _, opt := range sec.Options {
+				if strings.ToLower(opt.Name) == strings.ToLower(spec.Name) {
+					hasValue = true
+					break
+				}
+			}
+
+			if hasValue {
+				u.Properties[spec.Name] = sec.GetAs(spec.Name, spec.Type)
+			}
 		}
 	}
 

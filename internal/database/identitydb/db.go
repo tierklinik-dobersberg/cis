@@ -69,7 +69,7 @@ type Database interface {
 type identDB struct {
 	dir                 string
 	country             string
-	userPropertySpecs   []conf.OptionSpec
+	userPropertySpecs   []schema.UserPropertyDefinition
 	rw                  sync.RWMutex
 	autologinConditions *httpcond.Registry
 	users               map[string]*user
@@ -79,7 +79,7 @@ type identDB struct {
 }
 
 // New returns a new database that uses ldr.
-func New(ctx context.Context, dir, country string, userProperties []conf.OptionSpec, reg *httpcond.Registry) (Database, error) {
+func New(ctx context.Context, dir, country string, userProperties []schema.UserPropertyDefinition, reg *httpcond.Registry) (Database, error) {
 	db := &identDB{
 		dir:                 dir,
 		autologinConditions: reg,
@@ -125,7 +125,7 @@ func (db *identDB) ListAllUsers(ctx context.Context) ([]schema.User, error) {
 
 	users := make([]schema.User, 0, len(db.users))
 	for _, user := range db.users {
-		users = append(users, user.User)
+		users = append(users, db.applyPrivacy(ctx, user))
 	}
 
 	return users, nil
@@ -140,7 +140,7 @@ func (db *identDB) GetUser(ctx context.Context, name string) (schema.User, error
 		return schema.User{}, httperr.NotFound("user", name, ErrNotFound)
 	}
 
-	return u.User, nil
+	return db.applyPrivacy(ctx, u), nil
 }
 
 func (db *identDB) GetRole(ctx context.Context, name string) (schema.Role, error) {
@@ -278,6 +278,18 @@ func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo str
 
 	db.users[user] = u
 	return nil
+}
+
+func (db *identDB) applyPrivacy(ctx context.Context, u *user) schema.User {
+	schemaUser := u.User
+
+	schemaUser.Properties = FilterProperties(
+		GetScope(ctx),
+		db.userPropertySpecs,
+		schemaUser.Properties,
+	)
+
+	return schemaUser
 }
 
 func (db *identDB) reload(ctx context.Context) error {

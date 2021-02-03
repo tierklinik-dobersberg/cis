@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/jwt"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
@@ -197,7 +198,8 @@ func getAccessToken(app *app.App, c *gin.Context) (*jwt.Claims, *v1alpha.User, e
 	}
 
 	if hasScope(claims.Scopes, jwt.ScopeAccess) {
-		user, err := app.Identities.GetUser(c.Request.Context(), claims.Subject)
+		ctx := identitydb.WithScope(c.Request.Context(), identitydb.Internal)
+		user, err := app.Identities.GetUser(ctx, claims.Subject)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -221,7 +223,8 @@ func getRefreshToken(app *app.App, c *gin.Context) (*jwt.Claims, *v1alpha.User, 
 	}
 
 	if hasScope(claims.Scopes, jwt.ScopeRefresh) {
-		user, err := app.Identities.GetUser(c.Request.Context(), claims.Subject)
+		ctx := identitydb.WithScope(c.Request.Context(), identitydb.Internal)
+		user, err := app.Identities.GetUser(ctx, claims.Subject)
 		if err != nil {
 			return nil, nil, err
 		}

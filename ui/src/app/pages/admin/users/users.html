@@ -7,6 +7,9 @@
                 <th>Telefon</th>
                 <th>Mail</th>
                 <th>Farbe</th>
+
+                <th *ngFor="let prop of userProps">{{prop.displayName || prop.name}}</th>
+
             </ng-container>
             <th *ngIf="layout.isPhone" nzWidth="40px"></th>
         </tr>
@@ -39,6 +42,8 @@
                         <span class="user-color" [style.backgroundColor]="data.color"
                             [style.color]="data.fontColor">{{data.color}}</span>
                     </td>
+
+                    <td *ngFor="let prop of userProps">{{ data?.properties[prop.name] || 'N/A' }}</td>
                 </ng-container>
                 <td *ngIf="layout.isPhone" [nzExpand]="expandSet.has(data.name)" nzWidth="40px"
                     (nzExpandChange)="onExpandChange(data.name, $event)">
@@ -58,6 +63,8 @@
                     <a [attr.href]="'mailto:' + mail">{{ mail }}</a>
                 </li>
 
+                <span *ngFor="let prop of userProps">{{ prop.displayName || prop.name }}: {{ data?.properties[prop.name]
+                    || 'N/A' }}</span>
             </tr>
         </ng-container>
     </tbody>
