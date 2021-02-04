@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, Subscription, combineLatest, interval } from 'rxjs';
-import { startWith, mergeMap, retryWhen, delay } from 'rxjs/operators';
+import { startWith, mergeMap, retryWhen, delay, takeUntil, takeWhile, tap } from 'rxjs/operators';
 import { DoorAPI, State } from 'src/app/api';
 
 @Component({
@@ -9,7 +10,6 @@ import { DoorAPI, State } from 'src/app/api';
   styleUrls: ['./door-card.scss']
 })
 export class DoorCardComponent implements OnInit, OnDestroy {
-  constructor(private doorapi: DoorAPI) { }
 
   doorState: State;
   doorActions: TemplateRef<any>[] = [];
@@ -28,6 +28,11 @@ export class DoorCardComponent implements OnInit, OnDestroy {
 
   @ViewChild('resetAction', { read: TemplateRef, static: true })
   resetAction: TemplateRef<any>;
+
+  constructor(
+    private doorapi: DoorAPI,
+    private nzMessageService: NzMessageService,
+  ) { }
 
   overwriteDoor(state: 'lock' | 'unlock', duration: string) {
     this.doorapi.overwrite(state, duration)
@@ -82,11 +87,30 @@ export class DoorCardComponent implements OnInit, OnDestroy {
   }
 
   resetDoor() {
+    const resetMessageID = this.nzMessageService.loading("Tür wird zurückgesetzt", {
+      nzDuration: 0,
+    }).messageId;
+
+    let resetStarted = false;
     this.doorapi.reset()
-      .subscribe(state => {
-        this.updateDoorState(state);
-        this.triggerDoorReload.next();
-      }, err => console.log(err))
+      .pipe(
+        mergeMap(state => interval(1000)),
+        mergeMap(() => this.doorapi.state()),
+        tap(state => {
+          if (state.resetInProgress) {
+            resetStarted = true
+          }
+        }),
+        takeWhile(state => !resetStarted || state.resetInProgress)
+      )
+      .subscribe(
+        state => this.updateDoorState(state),
+        err => console.error(err),
+        () => {
+          this.nzMessageService.remove(resetMessageID);
+          this.nzMessageService.success("Tür wurde zurückgesetzt");
+        }
+      )
   }
 
   ngOnDestroy() {

@@ -18,11 +18,13 @@ interface RemoteTestResult {
 export interface State {
   state: DoorState;
   until: Date;
+  resetInProgress?: boolean;
 }
 
 interface RemoteState {
   state: DoorState;
-  until: string
+  until: string,
+  resetInProgress?: boolean;
 }
 
 @Injectable({
@@ -62,6 +64,7 @@ export class DoorAPI {
           return {
             state: resp.state,
             until: new Date(resp.until),
+            resetInProgress: resp.resetInProgress,
           }
         })
       )
