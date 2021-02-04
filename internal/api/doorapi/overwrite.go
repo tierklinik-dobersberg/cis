@@ -54,10 +54,11 @@ func OverwriteEndpoint(grp *app.Router) {
 				return err
 			}
 
-			current, next := app.Door.Current(ctx)
+			current, next, resetInProgress := app.Door.Current(ctx)
 			c.JSON(http.StatusOK, gin.H{
-				"state": current,
-				"until": next,
+				"state":           current,
+				"until":           next,
+				"resetInProgress": resetInProgress,
 			})
 			return nil
 		},

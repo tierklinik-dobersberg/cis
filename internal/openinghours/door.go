@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/tevino/abool"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
 	"github.com/tierklinik-dobersberg/logger"
@@ -80,6 +81,9 @@ type DoorController struct {
 	// sequence
 	reset chan *struct{}
 
+	// Whether or not a door reset is currently in progress.
+	resetInProgress *abool.AtomicBool
+
 	// wg is used to wait for door controller operations to finish.
 	wg sync.WaitGroup
 }
@@ -100,6 +104,7 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 		door:                door,
 		stop:                make(chan struct{}),
 		reset:               make(chan *struct{}),
+		resetInProgress:     abool.NewBool(false),
 	}
 
 	for _, c := range timeRanges {
@@ -305,6 +310,9 @@ func (dc *DoorController) resetDoor() {
 	dc.wg.Add(1)
 	defer dc.wg.Done()
 
+	dc.resetInProgress.Set()
+	defer dc.resetInProgress.UnSet()
+
 	// remove any manual overwrite when we do a reset.
 	dc.overwriteLock.Lock()
 	dc.manualOverwrite = nil
@@ -364,7 +372,15 @@ func (dc *DoorController) scheduler() {
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
-		state, until = dc.Current(ctx)
+		var resetInProgress bool
+		state, until, resetInProgress = dc.Current(ctx)
+
+		// a reset may never be in progress at this point (because only this loop
+		// executes a reset and it must have finished already)
+		if resetInProgress {
+			logger.Errorf(ctx, "BUG: a door reset is expected to be false")
+		}
+
 		if until.IsZero() {
 			until = time.Now().Add(time.Minute * 5)
 		}
@@ -402,8 +418,10 @@ func (dc *DoorController) scheduler() {
 }
 
 // Current returns the current door state.
-func (dc *DoorController) Current(ctx context.Context) (DoorState, time.Time) {
-	return dc.stateFor(ctx, time.Now().In(dc.location))
+func (dc *DoorController) Current(ctx context.Context) (DoorState, time.Time, bool) {
+	state, until := dc.stateFor(ctx, time.Now().In(dc.location))
+
+	return state, until, dc.resetInProgress.IsSet()
 }
 
 // StateFor returns the desired door state for the time t.

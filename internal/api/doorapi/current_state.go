@@ -15,10 +15,11 @@ func CurrentStateEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/state",
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			currentState, until := app.Door.Current(ctx)
+			currentState, until, resetInProgress := app.Door.Current(ctx)
 			c.JSON(http.StatusOK, gin.H{
-				"state": currentState,
-				"until": until.Format(time.RFC3339),
+				"state":           currentState,
+				"until":           until.Format(time.RFC3339),
+				"resetInProgress": resetInProgress,
 			})
 			return nil
 		},
