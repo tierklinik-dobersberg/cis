@@ -9,6 +9,9 @@ import (
 func Setup(grp gin.IRouter) {
 	router := app.NewRouter(grp)
 
-	// GET /api/calllogs/v1/:year/:month/:day
+	// GET /api/calllogs/v1/date/:year/:month/:day
 	ForDateEndpoint(router)
+
+	// GET /api/calllogs/v1/customer/:source/:id
+	ForCustomerEndpoint(router)
 }

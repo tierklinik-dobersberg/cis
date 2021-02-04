@@ -16,7 +16,7 @@ import (
 // ForDateEndpoint allows retrieving all calllogs for a given
 // date.
 func ForDateEndpoint(grp *app.Router) {
-	grp.GET("v1/:year/:month/:day", func(ctx context.Context, app *app.App, c *gin.Context) error {
+	grp.GET("v1/date/:year/:month/:day", func(ctx context.Context, app *app.App, c *gin.Context) error {
 		year, err := strconv.ParseInt(c.Param("year"), 10, 0)
 		if err != nil {
 			return err

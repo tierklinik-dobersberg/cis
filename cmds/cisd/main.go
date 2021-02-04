@@ -208,7 +208,7 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "%s", err.Error())
 	}
 
-	calllogs, err := calllogdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
+	calllogs, err := calllogdb.NewWithClient(ctx, cfg.DatabaseName, cfg.Country, mongoClient)
 	if err != nil {
 		logger.Fatalf(ctx, "%s", err.Error())
 	}

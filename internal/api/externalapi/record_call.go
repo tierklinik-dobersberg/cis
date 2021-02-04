@@ -2,16 +2,27 @@ package externalapi
 
 import (
 	"context"
-	"io/ioutil"
+	"encoding/json"
 	"net/http"
-	"net/http/httputil"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/pkg/models/calllog/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
 )
+
+type recordCallRequest struct {
+	Duration       string `json:"duration"`
+	Number         string `json:"number"`
+	Agent          string `json:"agent"`
+	CallType       string `json:"callType"`
+	DateTime       string `json:"dateTime"`
+	CustomerID     string `json:"cid"`
+	CustomerSource string `json:"source"`
+}
 
 // RecordCallEndpoint allows to record an incoming phone call in the calllog.
 func RecordCallEndpoint(grp *app.Router) {
@@ -21,17 +32,56 @@ func RecordCallEndpoint(grp *app.Router) {
 			caller := c.Query("ani")
 			did := c.Query("did")
 
-			reqBlob, err := httputil.DumpRequest(c.Request, true)
-			if err != nil {
-				logger.Errorf(ctx, "failed to dump request: %s", err)
-			}
-			if err := ioutil.WriteFile("/log/record-call-request.dump", reqBlob, 0700); err != nil {
-				logger.Errorf(ctx, "failed to dump request: %s", err)
+			// If we have a caller and did than this is an "unidentified" call record
+			// send by the callflow app.
+			if caller != "" && did != "" {
+				if err := app.CallLogs.CreateUnidentified(ctx, time.Now(), caller, did); err != nil {
+					return httperr.InternalError(err)
+				}
+			} else {
+				// otherwise, we should have a body containg a calllog record
+				// for an identified customer
+				var payload recordCallRequest
+				if err := json.NewDecoder(c.Request.Body).Decode(&payload); err != nil {
+					return httperr.BadRequest(err)
+				}
+
+				record := v1alpha.CallLog{
+					Caller:         payload.Number,
+					Agent:          payload.Agent,
+					CustomerID:     payload.CustomerID,
+					CustomerSource: payload.CustomerSource,
+				}
+
+				if payload.Duration != "" {
+					durationSeconds, err := strconv.ParseUint(payload.Duration, 10, 64)
+					if err != nil {
+						return httperr.BadRequest(err, "invalid duration")
+					}
+					record.DurationSeconds = durationSeconds
+				}
+
+				date, err := time.ParseInLocation("02.01.2006 15:04", payload.DateTime, app.Location())
+				if err != nil {
+					logger.Errorf(ctx, "failed to parse calllog dateTime %s: %s", payload.DateTime, err)
+					return httperr.BadRequest(err, "failed to parse dateTime")
+				}
+				record.Date = date
+
+				if err := app.CallLogs.RecordCustomerCall(ctx, record); err != nil {
+					return err
+				}
 			}
 
-			if err := app.CallLogs.Create(ctx, time.Now(), caller, did); err != nil {
-				return httperr.InternalError(err)
-			}
+			/*
+				reqBlob, err := httputil.DumpRequest(c.Request, true)
+				if err != nil {
+					logger.Errorf(ctx, "failed to dump request: %s", err)
+				}
+				if err := ioutil.WriteFile("/log/record-call-request.dump", reqBlob, 0700); err != nil {
+					logger.Errorf(ctx, "failed to dump request: %s", err)
+				}
+			*/
 
 			c.Status(http.StatusNoContent)
 			return nil
