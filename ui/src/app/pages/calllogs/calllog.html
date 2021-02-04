@@ -3,8 +3,15 @@
     <label>Anrufe anzeigen für </label>
     <nz-date-picker [nzAllowClear]="false" [(ngModel)]="date" (ngModelChange)="onChange($event)"></nz-date-picker>
   </div>
-  <nz-statistic [nzValue]="logs.length" nzTitle="Anrufe Heute" [nzPrefix]="prefixTpl"></nz-statistic>
-  <ng-template #prefixTpl><i nz-icon nzType="phone" [nzRotate]="95"></i></ng-template>
+
+  <div class="statistics">
+    <nz-statistic [nzValue]="logs.length" nzTitle="Anrufe Heute" [nzPrefix]="prefixTpl"></nz-statistic>
+    <ng-template #prefixTpl><i nz-icon nzType="phone" [nzRotate]="95"></i></ng-template>
+
+    <nz-statistic [nzValue]="totalCallTime | duration" nzTitle="Gesamte Anrufdauer" [nzPrefix]="prefixTplCallTime">
+    </nz-statistic>
+    <ng-template #prefixTplCallTime><i nz-icon nzType="clock-circle"></i></ng-template>
+  </div>
 </div>
 
 <nz-table #basicTable [nzData]="logs" class="dash-card data-container">
@@ -12,6 +19,9 @@
     <tr>
       <th>Zeit</th>
       <th>Kunde / Anrufer</th>
+      <th>Dauer</th>
+      <th>Agent</th>
+      <th>Type</th>
       <th>Angerufene Nummer</th>
     </tr>
   </thead>
@@ -28,6 +38,9 @@
           {{ data.caller }}
         </ng-template>
       </td>
+      <td>{{ (data.durationSeconds || 0) | duration }}</td>
+      <td>{{ data.agent }}</td>
+      <td>{{ data.callType || 'N/A' }}</td>
       <td>{{data.inboundNumber}}</td>
     </tr>
   </tbody>

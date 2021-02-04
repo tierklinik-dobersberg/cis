@@ -9,28 +9,30 @@ import { NzIconModule } from "ng-zorro-antd/icon";
 import { NzStatisticModule } from "ng-zorro-antd/statistic";
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzToolTipModule } from "ng-zorro-antd/tooltip";
+import { SharedModule } from "src/app/shared.module";
 import { CallLogComponent } from "./calllog";
 import { CallLogRoutingModule } from "./calllog-routing.module";
 
 @NgModule({
-    imports: [
-        CommonModule,
-        FormsModule,
-        NzGridModule,
-        NzCardModule,
-        NzButtonModule,
-        NzStatisticModule,
-        NzIconModule,
-        NzTableModule,
-        NzToolTipModule,
-        NzDatePickerModule,
-        CallLogRoutingModule,
-    ],
-    declarations: [
-        CallLogComponent,
-    ],
-    exports: [
-        CallLogComponent
-    ]
+  imports: [
+    CommonModule,
+    FormsModule,
+    NzGridModule,
+    NzCardModule,
+    NzButtonModule,
+    NzStatisticModule,
+    NzIconModule,
+    SharedModule,
+    NzTableModule,
+    NzToolTipModule,
+    NzDatePickerModule,
+    CallLogRoutingModule,
+  ],
+  declarations: [
+    CallLogComponent,
+  ],
+  exports: [
+    CallLogComponent
+  ]
 })
 export class CallLogModule { }

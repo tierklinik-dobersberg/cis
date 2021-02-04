@@ -46,6 +46,7 @@
         <th>Nummer</th>
         <th>Dauer</th>
         <th>Agent</th>
+        <th>Type</th>
         <th>Angerufene Nummer</th>
       </tr>
     </thead>
@@ -55,6 +56,7 @@
         <td>{{ data.caller }}</td>
         <td>{{ (data.durationSeconds || 0) | duration }}</td>
         <td>{{ data.agent }}</td>
+        <td>{{ data.callType || 'N/A' }}</td>
         <td>{{ data.inboundNumber }}</td>
       </tr>
     </tbody>

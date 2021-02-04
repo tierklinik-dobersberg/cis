@@ -10,6 +10,7 @@ export interface CallLog {
   date: string;
   datestr: string;
   durationSeconds?: number;
+  callType?: string;
   customerID?: string;
   customerSource?: string;
   agent?: string;
