@@ -1,27 +1,62 @@
 <div class="customer">
-    <h1>
-        Kunde: <u>{{ customer?.name }}&nbsp;{{ customer?.firstname }}</u>
-    </h1>
+  <h1>
+    Kunde: <u>{{ customer?.name }}&nbsp;{{ customer?.firstname }}</u>
+  </h1>
 
-    <div class="tag-list">
-        <nz-tag [nzColor]="customer?.tagColor">{{ customer?.source }}</nz-tag>
-    </div>
+  <div class="tag-list">
+    <nz-tag [nzColor]="customer?.tagColor">{{ customer?.source }}</nz-tag>
+  </div>
 
-    <nz-descriptions nzBordered>
-        <nz-descriptions-item nzTitle="ID" [nzSpan]="3">{{customer?.cid || 'N/A'}}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Name" [nzSpan]="3">{{customer?.name || 'N/A'}}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Vorname" [nzSpan]="3">{{customer?.firstname || 'N/A'}}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Titel" [nzSpan]="3">{{customer?.title || 'N/A'}}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Gruppe" [nzSpan]="3">{{customer?.group || 'N/A'}}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Telefon" [nzSpan]="3">
-            <li *ngFor="let phone of customer?.phoneNumbers">{{phone}}</li>
-        </nz-descriptions-item>
-        <nz-descriptions-item nzTitle="E-Mail" [nzSpan]="3">
-            <li *ngFor="let mail of customer?.mailAddresses">{{mail}}</li>
-        </nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Addresse" [nzSpan]="3">
-            {{ customer?.street }}<br />
-            {{ customer?.cityCode }}&nbsp;{{ customer?.city }}
-        </nz-descriptions-item>
-    </nz-descriptions>
+  <nz-descriptions nzBordered>
+    <nz-descriptions-item nzTitle="ID" [nzSpan]="3">{{customer?.cid || 'N/A'}}</nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Name" [nzSpan]="3">{{customer?.name || 'N/A'}}</nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Vorname" [nzSpan]="3">{{customer?.firstname || 'N/A'}}</nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Titel" [nzSpan]="3">{{customer?.title || 'N/A'}}</nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Gruppe" [nzSpan]="3">{{customer?.group || 'N/A'}}</nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Summe Telefonate" [nzSpan]="3">{{ (totalCallTime || 0) | duration}}
+    </nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Telefon" [nzSpan]="3">
+      <li *ngFor="let phone of customer?.phoneNumbers">{{phone}}</li>
+    </nz-descriptions-item>
+    <nz-descriptions-item nzTitle="E-Mail" [nzSpan]="3">
+      <li *ngFor="let mail of customer?.mailAddresses">{{mail}}</li>
+    </nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Addresse" [nzSpan]="3">
+      {{ customer?.street }}<br />
+      {{ customer?.cityCode }}&nbsp;{{ customer?.city }}
+    </nz-descriptions-item>
+  </nz-descriptions>
+</div>
+
+<div class="customer calllog-container">
+  <h2>Anruf Journal</h2>
+
+  <div class="chart-container">
+    <ngx-charts-line-chart [scheme]="colorScheme" [legend]="true" [showXAxisLabel]="true" [showYAxisLabel]="true"
+      [xAxis]="true" [yAxis]="true" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]="false"
+      [results]="callLogSeries" (select)="onSelect($event)" (activate)="onActivate($event)"
+      (deactivate)="onDeactivate($event)">
+    </ngx-charts-line-chart>
+  </div>
+
+  <nz-table #basicTable [nzData]="callrecords" [nzBordered]>
+    <thead>
+      <tr>
+        <th>Zeit</th>
+        <th>Nummer</th>
+        <th>Dauer</th>
+        <th>Agent</th>
+        <th>Angerufene Nummer</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let data of basicTable.data; trackBy: trackLog">
+        <td>{{ data.localDate }}</td>
+        <td>{{ data.caller }}</td>
+        <td>{{ (data.durationSeconds || 0) | duration }}</td>
+        <td>{{ data.agent }}</td>
+        <td>{{ data.inboundNumber }}</td>
+      </tr>
+    </tbody>
+  </nz-table>
 </div>

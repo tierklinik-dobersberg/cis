@@ -13,14 +13,23 @@
 
 
 .customer {
-  box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
-  width     : 100%;
-  padding: 24px;
+  box-shadow      : 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
+  width           : 100%;
+  padding         : 24px;
   background-color: white;
-  border-radius: 4px;
+  border-radius   : 4px;
 }
 
 .tag-list {
-  margin-bottom: 12px;
+  margin-bottom : 12px;
   text-transform: uppercase;
+}
+
+.calllog-container {
+  margin-top: 24px;
+}
+
+.chart-container {
+  height    : 20vh;
+  min-height: 100px;
 }
