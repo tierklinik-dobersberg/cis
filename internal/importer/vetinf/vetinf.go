@@ -125,7 +125,7 @@ func addNumber(id string, numbers []string, number, country string, hasError *bo
 	p, err := phonenumbers.Parse(number, country)
 	if err != nil {
 		*hasError = true
-		logger.DefaultLogger().Errorf("%s failed to parse phone number: %q in country %s: %s", id, number, country, err)
+		logger.DefaultLogger().Infof("%s failed to parse phone number: %q in country %s: %s", id, number, country, err)
 		return numbers
 	}
 
