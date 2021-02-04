@@ -51,6 +51,27 @@ func GetContactEndpoint(grp *app.Router) {
 			}
 
 			if len(customers) == 0 {
+				// If there's a UnknownContactName configured we do reply with a
+				// fake contact rather can sending NotFound.
+				if app.Config.UnknownContactName != "" {
+					contact := ContactResponse{
+						Customer: &v1alpha.Customer{
+							CustomerID: app.Config.UnknownContactID,
+							Source:     app.Config.UnknownContactSource,
+							Name:       app.Config.UnknownContactName,
+						},
+						Contact: map[string]interface{}{
+							"phone0": phone,
+						},
+					}
+					if contact.Name == "${caller}" {
+						contact.Name = phone
+					}
+
+					c.JSON(http.StatusOK, contact)
+					return nil
+				}
+
 				return httperr.NotFound("customer", phone, nil)
 			}
 
@@ -60,7 +81,7 @@ func GetContactEndpoint(grp *app.Router) {
 			*/
 			if len(customers) > 1 {
 				//return httperr.WithCode(http.StatusMultipleChoices, errors.New("to many matches for "+phone))
-				logger.Infof(ctx, "multiple (%d) results found for %s", len(customers), phone)
+				logger.Errorf(ctx, "multiple (%d) results found for %s", len(customers), phone)
 			}
 
 			response := ContactResponse{

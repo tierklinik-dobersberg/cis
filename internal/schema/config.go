@@ -9,14 +9,19 @@ import (
 // Config groups global configuration values that are used by various subsystems
 // of cisd.
 type Config struct {
-	Secret            string
-	Issuer            string
-	BaseURL           string
-	Audience          string
-	SigningMethod     string // TODO(ppacher): add support for asymetric crypto and key-rotation!
-	Country           string
-	AccessLogFile     string
-	TimeZone          string
+	Secret        string
+	Issuer        string
+	BaseURL       string
+	Audience      string
+	SigningMethod string // TODO(ppacher): add support for asymetric crypto and key-rotation!
+	Country       string
+	AccessLogFile string
+	TimeZone      string
+
+	UnknownContactName   string
+	UnknownContactSource string
+	UnknownContactID     int
+
 	DefaultOpenBefore time.Duration
 	DefaultCloseAfter time.Duration
 }
@@ -77,5 +82,22 @@ var ConfigSpec = conf.SectionSpec{
 		Type:        conf.StringType,
 		Description: "The time zone to use for dates and times in the configuration",
 		Default:     "UTC",
+	},
+	{
+		Name:        "UnknownContactName",
+		Description: "The name of the 'unknown' contact or the special value ${caller}",
+		Type:        conf.StringType,
+	},
+	{
+		Name:        "UnknownContactSource",
+		Description: "The 'customer-source' of the unknown contact",
+		Type:        conf.StringType,
+		Default:     "unknown",
+	},
+	{
+		Name:        "UnknownContactID",
+		Description: "The ID of the unknown contact",
+		Type:        conf.IntType,
+		Default:     "1",
 	},
 }
