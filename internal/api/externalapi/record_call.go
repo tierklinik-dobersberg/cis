@@ -51,6 +51,7 @@ func RecordCallEndpoint(grp *app.Router) {
 					Agent:          payload.Agent,
 					CustomerID:     payload.CustomerID,
 					CustomerSource: payload.CustomerSource,
+					CallType:       payload.CallType,
 				}
 
 				if payload.Duration != "" {

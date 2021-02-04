@@ -17,6 +17,8 @@ type CallLog struct {
 	Date time.Time `json:"date" bson:"date,omitempty"`
 	// DurationSeconds is the duration in seconds the call took.
 	DurationSeconds uint64 `json:"durationSeconds,omitempty" bson:"durationSeconds,omitempty"`
+	// The call type.
+	CallType string `json:"callType,omitempty" bson:"callType,omitempty"`
 	// DateStr holds a string representation of the date in
 	// the format of YYYY-MM-DD for indexing.
 	DateStr string `json:"datestr" bson:"datestr,omitempty"`
