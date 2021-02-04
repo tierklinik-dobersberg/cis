@@ -184,6 +184,7 @@ func (db *database) ByKey(ctx context.Context, key string) ([]v1alpha.Comment, e
 		}
 		return nil, err
 	}
+	defer results.Close(ctx)
 
 	var comments []v1alpha.Comment
 	if err := results.All(ctx, &comments); err != nil {

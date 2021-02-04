@@ -232,6 +232,7 @@ func (db *database) findCustomers(ctx context.Context, filter interface{}) ([]*C
 
 		return nil, err
 	}
+	defer result.Close(ctx)
 
 	var customers []*Customer
 
