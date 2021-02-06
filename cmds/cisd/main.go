@@ -32,6 +32,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/internal/integration/rocket"
+	"github.com/tierklinik-dobersberg/cis/internal/mailsync"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
@@ -218,6 +219,11 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "%s", err.Error())
 	}
 
+	mailsyncManager, err := mailsync.NewManagerWithClient(ctx, cfg.DatabaseName, mongoClient)
+	if err != nil {
+		logger.Fatalf(ctx, "%s", err.Error())
+	}
+
 	matcher := permission.NewMatcher(permission.NewResolver(identities))
 
 	//
@@ -242,6 +248,7 @@ func getApp(ctx context.Context) *app.App {
 		customers,
 		rosters,
 		comments,
+		mailsyncManager,
 		doorController,
 		holidayCache,
 		calllogs,

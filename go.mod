@@ -13,10 +13,13 @@ require (
 	github.com/google/renameio v1.0.0
 	github.com/google/uuid v1.1.2
 	github.com/klauspost/compress v1.11.4 // indirect
+	github.com/mxk/go-imap v0.0.0-20150429134902-531c36c3f12d // indirect
 	github.com/nbutton23/zxcvbn-go v0.0.0-20201221231540-e56b841a3c88
 	github.com/nyaruka/phonenumbers v1.0.61
+	github.com/paulrosania/go-charset v0.0.0-20190326053356-55c9d7a5834c // indirect
 	github.com/ppacher/system-conf v0.7.4
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/sloonz/go-qprintable v0.0.0-20160203160305-775b3a4592d5 // indirect
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.6.1
