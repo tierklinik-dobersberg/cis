@@ -79,6 +79,8 @@ func (sync *Syncer) Start() error {
 		return fmt.Errorf("already running")
 	}
 	sync.close = make(chan struct{})
+	closeCh := sync.close
+	defer sync.log.Infof("polling loop stopped")
 
 	sync.wg.Add(1)
 	go func() {
@@ -92,12 +94,13 @@ func (sync *Syncer) Start() error {
 
 		for {
 			sync.poll()
-			sync.log.Infof("waiting for %s next polling interval", sync.pollInterval)
+			sync.log.Infof("waiting %s until next polling schedule", sync.pollInterval)
 
 			select {
-			case <-sync.close:
+			case <-closeCh:
 				return
 			case <-time.After(sync.pollInterval):
+				sync.log.Infof("starting update", sync.pollInterval)
 			}
 		}
 	}()
@@ -114,6 +117,7 @@ func (sync *Syncer) poll() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	sync.log.Infof("connecting to IMAP server ...")
 	cli, err := mailbox.Connect(*sync.cfg)
 	if err != nil {
 		sync.log.Errorf("failed to connect: %w", err)
