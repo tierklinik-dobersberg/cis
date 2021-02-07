@@ -92,6 +92,7 @@ func (sync *Syncer) Start() error {
 
 		for {
 			sync.poll()
+			sync.log.Infof("waiting for %s next polling interval", sync.pollInterval)
 
 			select {
 			case <-sync.close:
