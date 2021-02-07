@@ -131,6 +131,7 @@ func (sync *Syncer) poll() {
 	seqset := new(imap.SeqSet)
 	seqset.AddRange(sync.state.LastUIDFetched, 0)
 
+	sync.log.Infof("Searching for new mails in %s", seqset.String())
 	mails, err := cli.FetchUIDs(ctx, seqset)
 	if err != nil {
 		sync.log.Errorf("failed to fetch mails: %s", err)

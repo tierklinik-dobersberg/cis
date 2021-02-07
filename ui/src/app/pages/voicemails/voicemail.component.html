@@ -19,7 +19,7 @@
             <td>
                 <a *ngIf="!!data.customer; else: numberTemplate"
                     [routerLink]="['/customer/view', data.customer.source, data.customer.id]">
-                    {{ data.customer.fullname }}
+                    {{ data.customer.name }}&nbsp;{{ data.customer.firstname }}
                 </a>
                 <ng-template #numberTemplate>
                     {{data.from}}
