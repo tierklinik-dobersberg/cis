@@ -41,7 +41,7 @@ func New(
 	country string,
 	mng *mailsync.Manager,
 ) (*Mailbox, error) {
-	syncer, err := mng.NewSyncer(ctx, cfg.Name, time.Minute, &cfg.Config)
+	syncer, err := mng.NewSyncer(ctx, cfg.Name, 3*time.Minute, &cfg.Config)
 	if err != nil {
 		return nil, err
 	}

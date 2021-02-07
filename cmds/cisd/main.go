@@ -241,7 +241,7 @@ func getApp(ctx context.Context) *app.App {
 	// setup voicemails
 	//
 	for _, vcfg := range cfg.VoiceMails {
-		box, err := voicemail.New(
+		_, err := voicemail.New(
 			ctx,
 			customers,
 			voicemails,
@@ -252,8 +252,6 @@ func getApp(ctx context.Context) *app.App {
 		if err != nil {
 			logger.Fatalf(ctx, "voicemail %s: %w", vcfg.Name, err)
 		}
-
-		defer box.Stop()
 	}
 
 	//
