@@ -2,7 +2,7 @@ import { Component, isDevMode, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, share } from 'rxjs/operators';
-import { ConfigAPI, IdentityAPI, Profile, UIConfig } from './api';
+import { ConfigAPI, IdentityAPI, Profile, UIConfig, VoiceMailAPI, VoiceMailRecording } from './api';
 import { LayoutService } from './layout.service';
 
 interface MenuEntry {
@@ -31,6 +31,7 @@ export class AppComponent implements OnInit {
   rootLinks: MenuEntry[] = []
   subMenus: SubMenu[] = [];
   menuMode: 'inline' | 'vertical' = 'inline';
+  mailboxes: string[] = [];
 
   isLogin = this.router.events
     .pipe(
@@ -47,7 +48,9 @@ export class AppComponent implements OnInit {
     private configapi: ConfigAPI,
     private router: Router,
     public layout: LayoutService,
-  ) { }
+    private voice: VoiceMailAPI,
+  ) {
+  }
 
   logout() {
     this.identity.logout()
@@ -114,5 +117,9 @@ export class AppComponent implements OnInit {
     })
 
     this.subMenus = Array.from(menus.values());
+    this.voice.listMailboxes().subscribe(mailboxes => {
+      console.log(mailboxes);
+      this.mailboxes = mailboxes;
+    })
   }
 }

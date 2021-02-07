@@ -43,6 +43,13 @@
       </ul>
     </li>
 
+    <li nz-submenu nzTitle="VoiceMails" nzMatchRouter nzIcon="customer-service">
+      <ul>
+        <li *ngFor="let mailbox of mailboxes" nz-menu-item nzMatchRouter [routerLink]="['/voicemail', mailbox]">{{
+          mailbox }}</li>
+      </ul>
+    </li>
+
     <li nz-submenu nzTitle="Administration" nzMatchRouter nzIcon="setting">
       <ul>
         <li nz-menu-item nzMatchRouter routerLink="/admin/users">Benutzer / Mitarbeiter</li>

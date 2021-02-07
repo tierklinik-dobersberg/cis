@@ -1,0 +1,35 @@
+<div class="dash-card selection-container">
+    <div class="date-selection">
+        <label>Anrufe anzeigen für </label>
+        <nz-date-picker [nzAllowClear]="false" [ngModel]="date" (ngModelChange)="onChange($event)"></nz-date-picker>
+    </div>
+</div>
+
+<nz-table #basicTable [nzData]="recordings" class="dash-card data-container">
+    <thead>
+        <tr>
+            <th>Zeit</th>
+            <th>Kunde / Anrufer</th>
+            <th>Aufnahme</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let data of basicTable.data; trackBy: trackRecording">
+            <td>{{data.localDate.toLocaleString()}}</td>
+            <td>
+                <a *ngIf="!!data.customer; else: numberTemplate"
+                    [routerLink]="['/customer/view', data.customer.source, data.customer.id]">
+                    {{ data.customer.fullname }}
+                </a>
+                <ng-template #numberTemplate>
+                    {{data.from}}
+                </ng-template>
+            </td>
+            <td>
+                <audio controls [attr.src]="data.url">
+                    HTML5 audio nicht unterstützt
+                </audio>
+            </td>
+        </tr>
+    </tbody>
+</nz-table>

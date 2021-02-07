@@ -12,6 +12,7 @@ const routes: Routes = [
   { path: 'profile', loadChildren: () => import('./pages/profile/profile.module').then(m => m.ProfileModule) },
   { path: 'customer', loadChildren: () => import('./pages/customer/customer.module').then(m => m.CustomerModule) },
   { path: 'admin', loadChildren: () => import('./pages/admin/admin.module').then(m => m.AdminModule) },
+  { path: 'voicemail', loadChildren: () => import('./pages/voicemails/voicemails.module').then(m => m.VoiceMailsModule) },
 ];
 
 @NgModule({
