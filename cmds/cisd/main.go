@@ -190,7 +190,7 @@ func getApp(ctx context.Context) *app.App {
 	}
 
 	//
-	// prepare databases
+	// prepare databases and everything that requires MongoDB
 	//
 	mongoClient := getMongoClient(ctx, cfg.DatabaseURI)
 
@@ -236,10 +236,15 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "%s", err.Error())
 	}
 
+	//
+	// Create the autologin manager
+	//
 	autoLoginManager = autologin.NewManager(ctx, identities, httpcond.DefaultRegistry)
 
+	//
 	// Create a new application context and make sure it's added
 	// to each incoming HTTP Request.
+	//
 	appCtx := app.NewApp(
 		instance,
 		&cfg,
