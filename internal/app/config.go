@@ -18,6 +18,7 @@ type Config struct {
 	OpeningHours   []schema.OpeningHours           `section:"OpeningHour"`
 	UserProperties []schema.UserPropertyDefinition `section:"UserProperty"`
 	Listeners      []server.Listener               `section:"Listener"`
+	VoiceMails     []schema.VoiceMail              `section:"VoiceMail"`
 
 	UI UIConfig `section:"-"`
 }

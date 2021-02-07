@@ -20,6 +20,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/identityapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/importapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/voicemailapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/autologin"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
@@ -27,6 +28,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
+	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/errorlog"
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
@@ -37,6 +39,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
+	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/service/service"
@@ -92,6 +95,7 @@ func getApp(ctx context.Context) *app.App {
 			"userproperty": schema.UserSchemaExtension,
 			"openinghour":  schema.OpeningHoursSpec,
 			"integration":  schema.IntegrationConfigSpec,
+			"voicemail":    schema.VoiceMailSpec,
 		},
 		ConfigTarget: &cfg,
 		RouteSetupFunc: func(grp gin.IRouter) error {
@@ -130,6 +134,8 @@ func getApp(ctx context.Context) *app.App {
 				importapi.Setup(apis.Group("import", session.Require()))
 				// commentapi manages the comment system from cis
 				commentapi.Setup(apis.Group("comments", session.Require()))
+				// voicemailapi allows access to voicemail mailboxes
+				voicemailapi.Setup(apis.Group("voicemail", session.Require()))
 			}
 
 			return nil
@@ -196,35 +202,59 @@ func getApp(ctx context.Context) *app.App {
 
 	customers, err := customerdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
-		logger.Fatalf(ctx, "%s", err.Error())
+		logger.Fatalf(ctx, "customerdb: %s", err.Error())
 	}
 
 	identities, err := identitydb.New(ctx, instance.ConfigurationDirectory, cfg.Country, cfg.UserProperties, httpcond.DefaultRegistry)
 	if err != nil {
-		logger.Fatalf(ctx, "failed to prepare database: %s", err)
+		logger.Fatalf(ctx, "identitydb: %s", err)
 	}
 
 	rosters, err := rosterdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
-		logger.Fatalf(ctx, "%s", err.Error())
+		logger.Fatalf(ctx, "rosterdb: %s", err.Error())
 	}
 
 	calllogs, err := calllogdb.NewWithClient(ctx, cfg.DatabaseName, cfg.Country, mongoClient)
 	if err != nil {
-		logger.Fatalf(ctx, "%s", err.Error())
+		logger.Fatalf(ctx, "callogdb: %s", err.Error())
 	}
 
 	comments, err := commentdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
-		logger.Fatalf(ctx, "%s", err.Error())
+		logger.Fatalf(ctx, "commentdb: %s", err.Error())
 	}
 
 	mailsyncManager, err := mailsync.NewManagerWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
-		logger.Fatalf(ctx, "%s", err.Error())
+		logger.Fatalf(ctx, "mailsync: %s", err.Error())
+	}
+
+	voicemails, err := voicemaildb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
+	if err != nil {
+		logger.Fatalf(ctx, "voicemaildb: %s", err)
 	}
 
 	matcher := permission.NewMatcher(permission.NewResolver(identities))
+
+	//
+	// setup voicemails
+	//
+	for _, vcfg := range cfg.VoiceMails {
+		box, err := voicemail.New(
+			ctx,
+			customers,
+			voicemails,
+			vcfg,
+			cfg.Country,
+			mailsyncManager,
+		)
+		if err != nil {
+			logger.Fatalf(ctx, "voicemail %s: %w", vcfg.Name, err)
+		}
+
+		defer box.Stop()
+	}
 
 	//
 	// prepare entry door controller
@@ -253,6 +283,7 @@ func getApp(ctx context.Context) *app.App {
 		customers,
 		rosters,
 		comments,
+		voicemails,
 		mailsyncManager,
 		doorController,
 		holidayCache,

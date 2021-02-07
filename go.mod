@@ -26,7 +26,7 @@ require (
 	github.com/tevino/abool v1.2.0
 	github.com/tierklinik-dobersberg/go-vetinf v0.1.1
 	github.com/tierklinik-dobersberg/logger v0.2.0
-	github.com/tierklinik-dobersberg/mailbox v0.0.1 // indirect
+	github.com/tierklinik-dobersberg/mailbox v0.0.3 // indirect
 	github.com/tierklinik-dobersberg/service v0.2.1
 	github.com/vbauerster/mpb v3.4.0+incompatible
 	go.mongodb.org/mongo-driver v1.4.4

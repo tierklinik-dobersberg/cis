@@ -16,6 +16,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
+	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/mailsync"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -37,6 +38,7 @@ type App struct {
 	Identities  identitydb.Database
 	Customers   customerdb.Database
 	Comments    commentdb.Database
+	VoiceMails  voicemaildb.Database
 	MailSync    *mailsync.Manager
 	Door        *openinghours.DoorController
 	Holidays    openinghours.HolidayGetter
@@ -56,6 +58,7 @@ func NewApp(
 	customers customerdb.Database,
 	dutyRosters rosterdb.Database,
 	comments commentdb.Database,
+	voicemail voicemaildb.Database,
 	manager *mailsync.Manager,
 	door *openinghours.DoorController,
 	holidays openinghours.HolidayGetter,
@@ -68,6 +71,7 @@ func NewApp(
 		Customers:   customers,
 		DutyRosters: dutyRosters,
 		Comments:    comments,
+		VoiceMails:  voicemail,
 		MailSync:    manager,
 		Door:        door,
 		Holidays:    holidays,

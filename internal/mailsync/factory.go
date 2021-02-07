@@ -44,6 +44,8 @@ func (mng *Manager) NewSyncer(ctx context.Context, name string, interval time.Du
 	}
 
 	var state State
+	state.Name = name
+
 	if result.Err() == nil {
 		if err := result.Decode(&state); err != nil {
 			return nil, fmt.Errorf("decoding state: %w", err)

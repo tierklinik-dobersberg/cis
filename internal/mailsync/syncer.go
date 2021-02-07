@@ -91,13 +91,13 @@ func (sync *Syncer) Start() error {
 		}()
 
 		for {
+			sync.poll()
+
 			select {
 			case <-sync.close:
 				return
 			case <-time.After(sync.pollInterval):
 			}
-
-			sync.poll()
 		}
 	}()
 
@@ -123,7 +123,7 @@ func (sync *Syncer) poll() {
 	if cli.IMAP.Mailbox.UIDValidity != sync.state.UIDValidity {
 		sync.log.Infof("mailbox UID validity changed from %d to %d", sync.state.UIDValidity, cli.IMAP.Mailbox.UIDValidity)
 		sync.state.LastUIDFetched = 0
-		sync.state.UIDValidity = 0
+		sync.state.UIDValidity = cli.IMAP.Mailbox.UIDValidity
 
 		// TODO(ppacher):
 	}

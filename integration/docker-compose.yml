@@ -51,3 +51,4 @@ services:
       - /home/ppc/mnt/Infdat:/mnt
     environment:
       CONFIGURATION_DIRECTORY: /project/testdata/config
+      STATE_DIRECTORY: /project/testdata/state
