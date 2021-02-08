@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { filter } from "rxjs/operators";
 import { ConfigAPI, IdentityAPI, ProfileWithAvatar, UserProperty } from "src/app/api";
 import { LayoutService } from "src/app/layout.service";
+import { HeaderTitleService } from "src/app/shared/header-title";
 
 @Component({
     templateUrl: './users.html',
@@ -22,12 +23,14 @@ export class UserListComponent implements OnInit, OnDestroy {
     profiles: ProfileWithAvatar[] = [];
 
     constructor(
+        private header: HeaderTitleService,
         private identityapi: IdentityAPI,
         private configapi: ConfigAPI,
         public layout: LayoutService,
     ) { }
 
     ngOnInit() {
+        this.header.set('Benutzer / Mitarbeiter')
         this.configapi.change
             .pipe(filter(cfg => !!cfg))
             .subscribe(cfg => {

@@ -5,6 +5,7 @@ import { catchError, mergeMap, startWith } from "rxjs/operators";
 import { VoiceMailAPI, VoiceMailRecording } from "src/app/api";
 import { Customer, CustomerAPI } from "src/app/api/customer.api";
 import { LayoutService } from "src/app/layout.service";
+import { HeaderTitleService } from "src/app/shared/header-title";
 import { VoiceMailsRoutingModule } from "./voicemails-routing.module";
 
 interface VoiceMailWithCustomer extends VoiceMailRecording {
@@ -26,6 +27,7 @@ export class VoiceMailComponent implements OnInit, OnDestroy {
     recordings: VoiceMailWithCustomer[] = [];
 
     constructor(
+        private header: HeaderTitleService,
         private voicemailsapi: VoiceMailAPI,
         private customersapi: CustomerAPI,
         private route: ActivatedRoute,
@@ -47,6 +49,7 @@ export class VoiceMailComponent implements OnInit, OnDestroy {
             ])
                 .pipe(
                     mergeMap(([_, params, date]) => {
+                        this.header.set(params.get("name"));
                         return this.voicemailsapi.forDate(date, params.get("name"))
                     }),
                     mergeMap(recordings => {

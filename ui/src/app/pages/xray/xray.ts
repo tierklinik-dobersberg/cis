@@ -6,6 +6,7 @@ import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DxrService, Study } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
+import { HeaderTitleService } from 'src/app/shared/header-title';
 import { splitCombinedCustomerAnimalIDs } from 'src/app/utils';
 
 interface InstancePreview {
@@ -37,6 +38,7 @@ export class XRayComponent implements OnInit, OnDestroy {
   ds = new StudyDataSource(this.dxrapi);
 
   constructor(
+    private header: HeaderTitleService,
     private router: Router,
     private dxrapi: DxrService,
     private customerapi: CustomerAPI,
@@ -75,6 +77,7 @@ export class XRayComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.header.set('Röntgen')
   }
 
   ngOnDestroy() {

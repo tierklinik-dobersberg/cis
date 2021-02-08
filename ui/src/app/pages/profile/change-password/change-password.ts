@@ -5,6 +5,7 @@ import { NzMessageService } from "ng-zorro-antd/message";
 import { forkJoin, of, Subject, Subscription } from "rxjs";
 import { catchError, debounceTime, mergeMap, switchMap } from "rxjs/operators";
 import { IdentityAPI, PasswordStrenght, Profile } from "src/app/api";
+import { HeaderTitleService } from "src/app/shared/header-title";
 
 interface TranslatedStrength extends PasswordStrenght {
     text: string;
@@ -73,12 +74,15 @@ export class ChangePasswordComponent implements OnInit, OnDestroy {
         this.checkPassword.next(value);
     }
 
-    constructor(private fb: FormBuilder,
+    constructor(
+        private header: HeaderTitleService,
+        private fb: FormBuilder,
         private identityapi: IdentityAPI,
         private router: Router,
         private messageService: NzMessageService) { }
 
     ngOnInit(): void {
+        this.header.set('Passwort ändern.')
         this.validateForm = this.fb.group({
             currentPassword: [null, [Validators.required]],
             password: [null, [Validators.required]],

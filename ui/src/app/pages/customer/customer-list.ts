@@ -5,6 +5,7 @@ import { Customer, CustomerAPI } from "src/app/api/customer.api";
 import { extractErrorMessage, toMongoDBFilter } from "src/app/utils";
 import { parse as parseQuery } from 'search-query-parser';
 import { ExtendedCustomer, customerTagColor } from './utils';
+import { HeaderTitleService } from "src/app/shared/header-title";
 
 @Component({
     templateUrl: './customer-list.html',
@@ -21,11 +22,13 @@ export class CustomerListComponent implements OnInit, OnDestroy {
     trackBy: TrackByFunction<Customer> = (_: number, cust: Customer) => cust.cid;
 
     constructor(
+        private header: HeaderTitleService,
         private customerapi: CustomerAPI,
         private nzMessageService: NzMessageService,
     ) { }
 
     ngOnInit() {
+        this.header.set('Kunden');
         this.subscriptions = new Subscription();
     }
 

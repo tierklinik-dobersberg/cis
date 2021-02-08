@@ -9,6 +9,7 @@ import { Subscription } from 'rxjs';
 import { catchError, debounceTime, delay, map, retryWhen } from 'rxjs/operators';
 import { CommentAPI, Day, Holiday, HolidayAPI, IdentityAPI, Profile, Roster, RosterAPI, Comment as BaseComment, ProfileWithAvatar } from 'src/app/api';
 import { LayoutService } from 'src/app/layout.service';
+import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, getContrastFontColor } from 'src/app/utils';
 
 interface Comment extends BaseComment {
@@ -96,6 +97,7 @@ export class RosterComponent implements OnInit, OnDestroy {
   newComment = '';
 
   constructor(
+    private header: HeaderTitleService,
     private rosterapi: RosterAPI,
     private holidayapi: HolidayAPI,
     private identityapi: IdentityAPI,
@@ -326,7 +328,7 @@ export class RosterComponent implements OnInit, OnDestroy {
   loadRoster(date: Date = this.selectedDate, scrollTo = false) {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
-
+    this.header.set(`Dienstplan:  ${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`)
     const sub =
       this.rosterapi.forMonth(date.getFullYear(), date.getMonth() + 1)
         .pipe(

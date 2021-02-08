@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { forkJoin, of, Subscription } from "rxjs";
 import { catchError, mergeMap } from "rxjs/operators";
 import { IdentityAPI, Profile } from "src/app/api";
+import { HeaderTitleService } from "src/app/shared/header-title";
 
 @Component({
     templateUrl: './profile.html',
@@ -14,9 +15,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     private subscriptions = Subscription.EMPTY;
 
-    constructor(private identityapi: IdentityAPI) { }
+    constructor(
+        private header: HeaderTitleService,
+        private identityapi: IdentityAPI
+    ) { }
 
     ngOnInit() {
+        this.header.set('Mein Profil')
+
         this.subscriptions = new Subscription();
 
         const profileSub = this.identityapi.profileChange

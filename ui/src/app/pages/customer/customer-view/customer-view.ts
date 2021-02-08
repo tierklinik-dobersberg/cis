@@ -6,6 +6,7 @@ import { forkJoin, of, Subscription } from "rxjs";
 import { catchError, mergeMap } from "rxjs/operators";
 import { CallLog, CalllogAPI } from "src/app/api";
 import { CustomerAPI } from "src/app/api/customer.api";
+import { HeaderTitleService } from "src/app/shared/header-title";
 import { extractErrorMessage } from "src/app/utils";
 import { customerTagColor, ExtendedCustomer } from "../utils";
 
@@ -24,6 +25,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
   customer: ExtendedCustomer | null = null;
 
   constructor(
+    private header: HeaderTitleService,
     private customerapi: CustomerAPI,
     private calllogapi: CalllogAPI,
     private activatedRoute: ActivatedRoute,
@@ -50,6 +52,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
       )
       .subscribe(result => {
         if (!result) {
+          this.header.set(`Kunde: N/A`);
           return;
         }
         this.callrecords = result.calllogs.map(l => ({
@@ -80,12 +83,12 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
             series: Array.from(sums.entries()).map(([name, value]) => ({ name, value }))
           },
         ]
-        console.log(this.callLogSeries);
 
         this.customer = {
           ...result.customer,
           tagColor: customerTagColor(result.customer),
         };
+        this.header.set(`Kunde: ${this.customer.name} ${this.customer.firstname}`);
       })
     this.subscriptions.add(routerSub);
   }

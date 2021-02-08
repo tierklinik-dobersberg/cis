@@ -2,6 +2,7 @@ import { Component, isDevMode, OnDestroy, OnInit, TemplateRef, ViewChild } from 
 import { BehaviorSubject, combineLatest, interval, Subscription } from 'rxjs';
 import { delay, mergeMap, repeatWhen, retryWhen, startWith } from 'rxjs/operators';
 import { DoorAPI, IdentityAPI, Roster, RosterAPI, State } from 'src/app/api';
+import { HeaderTitleService } from 'src/app/shared/header-title';
 
 interface Dummy {
   name: string;
@@ -19,11 +20,13 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   private allSub = new Subscription();
 
   constructor(
+    private header: HeaderTitleService,
     private identityapi: IdentityAPI,
     private rosterapi: RosterAPI
   ) { }
 
   ngOnInit() {
+    this.header.set('Dashboard')
   }
 
   ngOnDestroy() {

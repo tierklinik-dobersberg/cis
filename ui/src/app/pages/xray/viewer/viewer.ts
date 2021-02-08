@@ -6,6 +6,7 @@ import { DwvService, Tool } from "./viewer.service";
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import * as dwv from 'dwv';
 import { map, mergeMap, take } from "rxjs/operators";
+import { HeaderTitleService } from "src/app/shared/header-title";
 
 @Component({
     templateUrl: './viewer.html',
@@ -26,6 +27,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
     currentInstanceUid: string = '';
 
     constructor(
+        private header: HeaderTitleService,
         private dwvService: DwvService,
         private dxrService: DxrService,
         private activatedRoute: ActivatedRoute,
@@ -54,6 +56,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
     getImageUrl(wadoURI: string): string {
         return wadoURI.replace('dicomweb://', '//'); // + '&contentType=image/jpeg';
     }
+
     ngOnInit() {
         this.subscriptions = new Subscription();
         this.id = this.dwvService.register(this);
@@ -100,9 +103,9 @@ export class ViewerComponent implements OnInit, OnDestroy {
                     const study = response.studies[0];
                     this.loadProgress = 0;
 
+                    this.header.set(`Röntgen: ${study.patientName} - ${study.animalName}`)
                     this.study = study;
                     this.series = study.seriesList.find(s => s.seriesInstanceUid === seriesID);
-                    console.log(this.series);
 
                     this.currentInstanceUid = instanceID;
 

@@ -47,11 +47,24 @@
   h2 {
     font-size: 16px;
     margin   : 0;
+  font-family   : Roboto, Avenir, Helvetica Neue, Arial, Helvetica, sans-serif;
   }
 
   @include for-phone-only {
     display    : flex;
     align-items: center;
+  }
+}
+
+app-header-title-outlet {
+  display: block;
+
+  font-size: 20px;
+  font-weight: 300;
+  font-family   : Roboto, Avenir, Helvetica Neue, Arial, Helvetica, sans-serif;
+
+  @include for-phone-only {
+    display: none;
   }
 }
 

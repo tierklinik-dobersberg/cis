@@ -4,6 +4,7 @@ import { BehaviorSubject, combineLatest, forkJoin, interval, of, Subscription } 
 import { catchError, mergeMap, startWith } from "rxjs/operators";
 import { CallLog, CalllogAPI } from "src/app/api";
 import { Customer, CustomerAPI } from "src/app/api/customer.api";
+import { HeaderTitleService } from "src/app/shared/header-title";
 
 interface LocalCallLog extends CallLog {
   localDate: string;
@@ -32,6 +33,7 @@ export class CallLogComponent implements OnInit, OnDestroy {
   };
 
   constructor(
+    private header: HeaderTitleService,
     private calllogapi: CalllogAPI,
     private customerapi: CustomerAPI,
   ) { }
@@ -41,6 +43,7 @@ export class CallLogComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.header.set('Anruf Journal');
     this.date = new Date();
     this.subscriptions = new Subscription();
 

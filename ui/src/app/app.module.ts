@@ -24,6 +24,7 @@ import { LoginModule } from './pages/login/login.module';
 import { RouterModule } from '@angular/router';
 import { LayoutModule } from '@angular/cdk/layout';
 import { DurationPipe } from './shared/pipes';
+import { SharedModule } from './shared/shared.module';
 
 
 registerLocaleData(de);
@@ -41,6 +42,7 @@ registerLocaleData(de);
     NzAvatarModule,
     NzGridModule,
     NzDrawerModule,
+    SharedModule,
     NzDropDownModule,
     FormsModule,
     HttpClientModule,

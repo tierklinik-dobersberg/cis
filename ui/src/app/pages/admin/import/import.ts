@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { NzMessageService } from "ng-zorro-antd/message";
 import { ImportAPI } from "src/app/api";
+import { HeaderTitleService } from "src/app/shared/header-title";
 import { extractErrorMessage } from "src/app/utils";
 
 @Component({
@@ -12,6 +13,7 @@ export class ImportPageComponent implements OnInit, OnDestroy {
     importing = false;
 
     constructor(
+        private header: HeaderTitleService,
         private importapi: ImportAPI,
         private nzMessageService: NzMessageService,
     ) { }
@@ -32,7 +34,7 @@ export class ImportPageComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-
+        this.header.set('Daten Import')
     }
 
     ngOnDestroy() {
