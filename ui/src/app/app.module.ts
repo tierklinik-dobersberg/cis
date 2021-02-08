@@ -23,7 +23,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { LoginModule } from './pages/login/login.module';
 import { RouterModule } from '@angular/router';
 import { LayoutModule } from '@angular/cdk/layout';
-import { DurationPipe } from './pipes';
+import { DurationPipe } from './shared/pipes';
 
 
 registerLocaleData(de);

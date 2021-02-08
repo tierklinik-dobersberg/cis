@@ -16,7 +16,7 @@ import { NzMessageServiceModule } from "ng-zorro-antd/message";
 import { NzResultModule } from "ng-zorro-antd/result";
 import { NzTableModule } from "ng-zorro-antd/table";
 import { NzTimePickerModule } from "ng-zorro-antd/time-picker";
-import { SharedModule } from "src/app/shared.module";
+import { SharedModule } from "src/app/shared/shared.module";
 import { VoiceMailComponent } from "./voicemail.component";
 import { VoiceMailsRoutingModule } from "./voicemails-routing.module";
 

@@ -27,11 +27,13 @@
     "@fortawesome/free-solid-svg-icons": "^5.15.1",
     "@ngx-pwa/local-storage": "^11.1.0",
     "@swimlane/ngx-charts": "^17.0.0",
+    "classlist.js": "^1.1.20150312",
     "dwv": "^0.27.1",
     "ng-zorro-antd": "~10.1.2",
     "rxjs": "~6.6.0",
     "search-query-parser": "^1.5.5",
     "tslib": "^2.0.0",
+    "web-animations-js": "^2.3.2",
     "zone.js": "~0.10.2"
   },
   "devDependencies": {

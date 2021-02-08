@@ -16,7 +16,7 @@ import { NzTableModule } from "ng-zorro-antd/table";
 import { NzTagModule } from "ng-zorro-antd/tag";
 import { NzToolTipModule } from "ng-zorro-antd/tooltip";
 import { NgxChartsModule } from '@swimlane/ngx-charts';
-import { SharedModule } from "src/app/shared.module";
+import { SharedModule } from "src/app/shared/shared.module";
 import { CustomerListComponent } from "./customer-list";
 import { CustomerRoutingModule } from "./customer-routing.module";
 import { CustomerViewComponent } from "./customer-view";

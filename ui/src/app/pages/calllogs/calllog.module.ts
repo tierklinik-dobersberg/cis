@@ -9,7 +9,7 @@ import { NzIconModule } from "ng-zorro-antd/icon";
 import { NzStatisticModule } from "ng-zorro-antd/statistic";
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzToolTipModule } from "ng-zorro-antd/tooltip";
-import { SharedModule } from "src/app/shared.module";
+import { SharedModule } from "src/app/shared/shared.module";
 import { CallLogComponent } from "./calllog";
 import { CallLogRoutingModule } from "./calllog-routing.module";
 
