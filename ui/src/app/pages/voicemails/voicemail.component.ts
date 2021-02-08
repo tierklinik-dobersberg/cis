@@ -4,6 +4,7 @@ import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, Sub
 import { catchError, mergeMap, startWith } from "rxjs/operators";
 import { VoiceMailAPI, VoiceMailRecording } from "src/app/api";
 import { Customer, CustomerAPI } from "src/app/api/customer.api";
+import { LayoutService } from "src/app/layout.service";
 import { VoiceMailsRoutingModule } from "./voicemails-routing.module";
 
 interface VoiceMailWithCustomer extends VoiceMailRecording {
@@ -28,6 +29,7 @@ export class VoiceMailComponent implements OnInit, OnDestroy {
         private voicemailsapi: VoiceMailAPI,
         private customersapi: CustomerAPI,
         private route: ActivatedRoute,
+        public layout: LayoutService,
     ) { }
 
     onChange(date: Date) {

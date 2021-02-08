@@ -15,7 +15,7 @@
 .menu-sidebar {
   position  : relative;
   z-index   : 10;
-  min-height: 100vh;
+  min-height: 100%;
   box-shadow: 2px 0 6px rgba(0, 21, 41, .35);
   //display   : none;
 
@@ -175,12 +175,16 @@ span.ant-avatar {
   align-items    : center;
 }
 
+nz-layout {
+  background-color: white;
+}
+
 nz-content {
-  background: #fff;
+  background-color: #50566310;
 }
 
 .inner-content {
-  background: #fff;
+  display: block;
   box-shadow: inset 0px -1px 4px 0px rgba(0, 21, 41, 0.08);
   height    : 100%;
   overflow  : auto;

@@ -1,6 +1,6 @@
 <div class="dash-card selection-container">
     <div class="date-selection">
-        <label>Anrufe anzeigen für </label>
+        <label>Aufnahmen anzeigen für:</label>
         <nz-date-picker [nzAllowClear]="false" [ngModel]="date" (ngModelChange)="onChange($event)"></nz-date-picker>
     </div>
 </div>
@@ -10,23 +10,38 @@
         <tr>
             <th>Zeit</th>
             <th>Kunde / Anrufer</th>
-            <th>Aufnahme</th>
+            <th>
+                <ng-container *ngIf="layout.isTabletPortraitUp">
+                    Aufnahme
+                </ng-container>
+            </th>
         </tr>
     </thead>
     <tbody>
         <tr *ngFor="let data of basicTable.data; trackBy: trackRecording">
-            <td>{{data.localDate.toLocaleString()}}</td>
             <td>
-                <a *ngIf="!!data.customer; else: numberTemplate"
-                    [routerLink]="['/customer/view', data.customer.source, data.customer.cid]">
-                    {{ data.customer.name }}&nbsp;{{ data.customer.firstname }}
-                </a>
-                <ng-template #numberTemplate>
-                    {{data.from}}
+                <ng-container *ngIf="layout.isTabletPortraitUp; else: mobileDateTemplate">
+                    {{data.localDate.toLocaleString()}}
+                </ng-container>
+                <ng-template #mobileDateTemplate>
+                    {{data.localDate.toLocaleDateString()}}<br />
+                    {{data.localDate.toLocaleTimeString()}}
                 </ng-template>
             </td>
             <td>
-                <audio controls [attr.src]="data.url">
+                <a class="customer-link" *ngIf="!!data.customer"
+                    [routerLink]="['/customer/view', data.customer.source, data.customer.cid]">
+                    {{ data.customer.name }}&nbsp;{{ data.customer.firstname }}
+                </a>
+                <span>
+                    {{data.from}}
+                </span>
+            </td>
+            <td>
+                <button *ngIf="layout.isPhone" nz-button nzType="primary">
+                    <i nz-icon nzType="play-circle" nzTheme="outline" (click)="player.play()"></i>
+                </button>
+                <audio [attr.controls]="layout.isTabletPortraitUp || null" [attr.src]="data.url" #player>
                     HTML5 audio nicht unterstützt
                 </audio>
             </td>

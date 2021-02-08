@@ -20,9 +20,12 @@
       <span>Röntgen</span>
     </li>
 
-    <li routerLink="/calllogs" nzMatchRouter nz-menu-item>
-      <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
-      <span>Anruf Journal</span>
+    <li nz-submenu nzTitle="Anrufe / Voice Mails" nzMatchRouter nzIcon="customer-service">
+      <ul>
+        <li nz-menu-item nzMatchRouter routerLink="/calllogs">Anruf Journal</li>
+        <li *ngFor="let mailbox of mailboxes" nz-menu-item nzMatchRouter [routerLink]="['/voicemail', mailbox]">{{
+          mailbox }}</li>
+      </ul>
     </li>
 
     <li nz-submenu nzTitle="Links" nzIcon="link">
@@ -40,13 +43,6 @@
           <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
           <span>{{item.Text}}</span>
         </a>
-      </ul>
-    </li>
-
-    <li nz-submenu nzTitle="VoiceMails" nzMatchRouter nzIcon="customer-service">
-      <ul>
-        <li *ngFor="let mailbox of mailboxes" nz-menu-item nzMatchRouter [routerLink]="['/voicemail', mailbox]">{{
-          mailbox }}</li>
       </ul>
     </li>
 

@@ -1,12 +1,11 @@
 @import 'src/utils';
 
 :host {
-  display         : block;
-  min-height      : 100%;
-  display         : flex;
-  flex-direction  : column;
   position        : relative;
-  background-color: #50566310;
+  display: block;
+  & > * {
+    display: block;
+  }
 }
 
 .dash-card {
@@ -33,10 +32,14 @@ audio {
 }
 
 .date-selection {
-  margin-bottom: 12px;
-
   nz-date-picker {
     margin-left: 12px;
+  }
+  @include for-phone-only {
+    nz-date-picker {
+      margin-left: 0px;
+      width: 100%;
+    }
   }
 }
 
@@ -50,5 +53,5 @@ audio {
 }
 
 .customer-link {
-  margin-right: 5px;
+  display: block;
 }
