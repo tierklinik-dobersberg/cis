@@ -32,6 +32,7 @@ import { ClockCardComponent } from './clock-card';
 import { NzStatisticModule } from 'ng-zorro-antd/statistic';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzMessageServiceModule } from 'ng-zorro-antd/message';
+import { NzPopoverModule } from 'ng-zorro-antd/popover';
 
 @NgModule({
   imports: [
@@ -53,6 +54,7 @@ import { NzMessageServiceModule } from 'ng-zorro-antd/message';
     NzTimePickerModule,
     NzButtonModule,
     NzResultModule,
+    NzPopoverModule,
     NzDividerModule,
     NzPopconfirmModule,
     NzStepsModule,

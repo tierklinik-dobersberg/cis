@@ -8,30 +8,31 @@
 <ng-template #titleTemplate>
   <span class="header">
     Nachtdienst
-    <i nz-dropdown nzTrigger="click" [nzDropdownMenu]="menu" [nzClickHide]="false" nz-icon nzType="edit"
-      nzTheme="outline" [(nzVisible)]="dropDownVisible" style="cursor: pointer" nz-tooltip
-      nzTooltipTitle="Nachdienst ändern"></i>
+    <i nz-dropdown nzTrigger="click" nz-icon nzType="edit" nzTheme="outline" style="cursor: pointer" nz-tooltip
+      nzTooltipTitle="Nachdienst ändern" nz-popover nzPopoverTitle="Wähle den neuen Nachtdienst aus"
+      [(nzPopoverVisible)]="dropDownVisible" nzPopoverTrigger="click" [nzPopoverContent]="contentTemplate"></i>
 
-    <nz-dropdown-menu #menu="nzDropdownMenu">
-      <ul nz-menu>
-        <li nz-menu-group nzTitle="Wähle den neuen Nachtdienst aus:"></li>
-        <li nz-menu-item *ngFor="let user of allUsers" nz-popconfirm
-          nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{user.fullname || user.name}} ändern"
-          (nzOnConfirm)="changeOnDuty(user)">
-          <nz-avatar *ngIf="!user.avatar" nzIcon="user">
-          </nz-avatar>
-          <span *ngIf="!!user.avatar" class="ant-avatar ant-avatar-circle">
-            <img [attr.src]="user.avatar">
-          </span>
-          {{ user.fullname || user.name }}
-        </li>
-      </ul>
-    </nz-dropdown-menu>
+    <ng-template #contentTemplate>
+      <div class="user-dropdown">
+        <div class="grid">
+          <div class="user" *ngFor="let user of allUsers" nz-popconfirm
+            nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{user.fullname || user.name}} ändern"
+            (nzOnConfirm)="changeOnDuty(user)">
+            <nz-avatar *ngIf="!user.avatar" nzIcon="user">
+            </nz-avatar>
+            <span *ngIf="!!user.avatar" class="ant-avatar ant-avatar-circle">
+              <img [attr.src]="user.avatar">
+            </span>
+            {{ user.fullname || user.name }}
+          </div>
+        </div>
+      </div>
+    </ng-template>
   </span>
 
   <div class="on-duty-container">
     <span *ngIf="!!userAvatar" class="ant-avatar ant-avatar-circle">
-      <img [attr.src]="userAvatar">
+      <img [attr.nzType="text" src]="userAvatar">
     </span>
     <div class="primary-on-duty">
       <span *ngIf="onDuty.length > 0" [nzTooltipTitle]="'bis ' + (onDutyUntil?.toLocaleString() || 'N/A')"
