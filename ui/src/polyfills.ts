@@ -54,7 +54,7 @@ import 'web-animations-js';  // Run `npm install --save web-animations-js`.
 
 /** IE9, IE10 and IE11 requires all of the following polyfills. **/
 import 'core-js/es';
-import 'core-js/features';
+import 'core-js/stable';
 
 /***************************************************************************************************
  * Zone JS is required by default for Angular itself.
