@@ -17,10 +17,10 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
     private reload = new BehaviorSubject<void>(undefined);
 
     onDuty: DoctorOnDuty[] = [];
+    onDutyUntil: Date | null = null;
     firstLoad = true;
     userAvatar: string = '';
     primaryOnDuty: string = '';
-
     dropDownVisible: boolean = false;
 
     allUsers: ProfileWithAvatar[] = [];
@@ -51,7 +51,10 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
                 catchError(err => {
                     // we might get a 404 if there's no roster defined for today.
                     if (err instanceof HttpErrorResponse && err.status === 404) {
-                        return of([]);
+                        return of({
+                            doctors: [],
+                            until: null,
+                        });
                     }
 
                     return throwError(err);
@@ -59,9 +62,10 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
                 retryWhen(errors => errors.pipe(delay(5000))),
             )
             .subscribe({
-                next: doctors => {
+                next: result => {
                     this.firstLoad = false;
-                    this.onDuty = doctors || [];
+                    this.onDuty = result.doctors || [];
+                    this.onDutyUntil = result.until;
                     this.changeDetector.markForCheck();
 
                     if (this.onDuty.length === 0) {
@@ -69,8 +73,6 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
                             this.userAvatar = '';
                     } else if (this.onDuty[0].username !== this.primaryOnDuty) {
                         this.primaryOnDuty = this.onDuty[0].username;
-
-                        console.log(`loading user avatar`);
                         this.identityapi.avatar(this.primaryOnDuty)
                             .subscribe(
                                 avatar => {

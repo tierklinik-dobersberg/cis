@@ -27,14 +27,15 @@
         </li>
       </ul>
     </nz-dropdown-menu>
-
   </span>
+
   <div class="on-duty-container">
     <span *ngIf="!!userAvatar" class="ant-avatar ant-avatar-circle">
       <img [attr.src]="userAvatar">
     </span>
     <div class="primary-on-duty">
-      <span *ngIf="onDuty.length > 0" [nzTooltipTitle]="onDuty[0].phone" nz-tooltip><u>{{
+      <span *ngIf="onDuty.length > 0" [nzTooltipTitle]="'bis ' + (onDutyUntil?.toLocaleString() || 'N/A')"
+        nz-tooltip><u>{{
           onDuty[0].fullname || onDuty[0].username }}</u></span>
       <span class="phone" *ngIf="onDuty.length > 0">
         <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>

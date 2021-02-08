@@ -61,6 +61,10 @@ type DoorController struct {
 	// overwrite). The map key has the format "MM/DD".
 	dateSpecificHours map[string][]OpeningHour
 
+	// changeOnDuty specifies at which time per day the doctor-on
+	// duty changes to the next one.
+	changeOnDuty map[time.Weekday]utils.DayTime
+
 	// holidayTimeRanges specifies the opening hours during
 	// public holidays.
 	holidayTimeRanges []OpeningHour
@@ -92,7 +96,12 @@ type DoorController struct {
 func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holidays HolidayGetter, door DoorInterfacer) (*DoorController, error) {
 	loc, err := time.LoadLocation(cfg.TimeZone)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Location: %w", err)
+	}
+
+	defaultChangeOnDuty, err := utils.ParseDayTime(cfg.DefaultChangeOnDuty)
+	if err != nil {
+		return nil, fmt.Errorf("DefaultChangeOnDuty: %w", err)
 	}
 
 	dc := &DoorController{
@@ -101,6 +110,7 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 		holidays:            holidays,
 		regularOpeningHours: make(map[time.Weekday][]OpeningHour),
 		dateSpecificHours:   make(map[string][]OpeningHour),
+		changeOnDuty:        make(map[time.Weekday]utils.DayTime),
 		door:                door,
 		stop:                make(chan struct{}),
 		reset:               make(chan *struct{}),
@@ -121,6 +131,18 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 			parsed, ok := schema.ParseDay(d)
 			if !ok {
 				return nil, fmt.Errorf("failed to parse day: %s", d)
+			}
+
+			if c.ChangeOnDuty != "" {
+				changeOnDuty, err := utils.ParseDayTime(c.ChangeOnDuty)
+				if err != nil {
+					return nil, fmt.Errorf("invalid ChangeOnDuty: %w", err)
+				}
+
+				if t, ok := dc.changeOnDuty[parsed]; ok && t.AsDuration() != changeOnDuty.AsDuration() {
+					return nil, fmt.Errorf("multiple values for ChangeOnDuty= at weekday %s", parsed)
+				}
+				dc.changeOnDuty[parsed] = changeOnDuty
 			}
 
 			days = append(days, parsed)
@@ -197,6 +219,14 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 		// the hours for specific dates
 		for _, d := range dates {
 			dc.dateSpecificHours[d] = append(dc.dateSpecificHours[d], ranges...)
+		}
+	}
+
+	// by default all weekdays switch at DefaultChangeOnDuty so we need
+	// to fill all missing entries.
+	for i := time.Sunday; i < time.Saturday; i++ {
+		if _, ok := dc.changeOnDuty[i]; !ok {
+			dc.changeOnDuty[i] = defaultChangeOnDuty
 		}
 	}
 
@@ -415,6 +445,14 @@ func (dc *DoorController) scheduler() {
 		}
 		cancel()
 	}
+}
+
+// ChangeOnDuty returns the time at which the doctor-on-duty changes
+// and the given date. It makes sure d is in the correct timezone.
+func (dc *DoorController) ChangeOnDuty(ctx context.Context, d time.Time) time.Time {
+	d = d.In(dc.location)
+	day := dc.changeOnDuty[d.Weekday()]
+	return day.At(d)
 }
 
 // Current returns the current door state.

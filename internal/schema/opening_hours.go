@@ -30,6 +30,10 @@ type OpeningHours struct {
 	// in the format of HH:MM - HH:MM
 	TimeRanges []string
 
+	// ChangeOnDuty specifies the time at which the emergency duty switches
+	// form the day before the day specified.
+	ChangeOnDuty string
+
 	// Holiday controls whether this setting is in effect on holidays.
 	Holiday string
 }
@@ -65,6 +69,11 @@ var OpeningHoursSpec = conf.SectionSpec{
 		Name:        "Holiday",
 		Type:        conf.StringType,
 		Description: "Whether or not this opening hour counts on holidays. Possible values are 'yes' (normal and holidays), 'no' (normal only) or 'only' (holiday only).",
+	},
+	{
+		Name:        "ChangeOnDuty",
+		Type:        conf.StringType,
+		Description: "The time-of-day in format HH:MM at which the doctor-on-duty changes form yesterday to today",
 	},
 }
 

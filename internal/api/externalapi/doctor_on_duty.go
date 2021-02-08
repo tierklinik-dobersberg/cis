@@ -34,45 +34,52 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 				}
 			}
 
-			doctorsOnDuty, err := getDoctorOnDuty(ctx, app, d)
+			doctorsOnDuty, until, err := getDoctorOnDuty(ctx, app, d)
 			if err != nil {
 				return err
 			}
 
-			c.JSON(http.StatusOK, doctorsOnDuty)
+			c.JSON(http.StatusOK, gin.H{
+				"doctors": doctorsOnDuty,
+				"until":   until,
+			})
 			return nil
 		},
 	)
 }
 
-func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.DoctorOnDuty, error) {
+func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.DoctorOnDuty, time.Time, error) {
 	log := logger.From(ctx)
 
-	// The emergency duty lasts until 08:00 in the morning. If we are earlier than 08:00 am we
-	// need to use the emergency duty from the day before.
-	// TODO(ppacher): maybe it would be better to check for the time-frames of the opening-hour
-	if t.Hour() < 8 {
+	// find out if we need to the doctor-on-duty from today or the day before
+	// depending on the ChangeOnDuty time for today.
+	changeDutyAt := app.Door.ChangeOnDuty(ctx, t)
+	if t.Before(changeDutyAt) {
 		// go back in time for one day. We don't care about minute/hours here
 		// from now on.
 		newT := t.Add(-1 * time.Hour * 24)
-		log.Infof("requested doctor-on-duty for %s so jumping back to %s", t, newT)
+		log.Infof("requested doctor-on-duty for %s but duty changes at %s so jumping back to %s", t, changeDutyAt, newT)
 		t = newT
+	} else {
+		// the currently active doctor-on-duty changes the next day.
+		// find out when exactly.
+		changeDutyAt = app.Door.ChangeOnDuty(ctx, t.Add(time.Hour*24))
 	}
 
-	// no that we know what roster is active for the time in question
+	// now that we know what roster is active for the time in question
 	// load it from the database.
 	key := fmt.Sprintf("%04d/%02d/%02d", t.Year(), int(t.Month()), t.Day())
 	roster, err := app.DutyRosters.ForMonth(ctx, t.Month(), t.Year())
 	if err != nil {
 		if errors.Is(err, rosterdb.ErrNotFound) {
-			return nil, httperr.NotFound("roster", key, err)
+			return nil, changeDutyAt, httperr.NotFound("roster", key, err)
 		}
-		return nil, httperr.InternalError(err)
+		return nil, changeDutyAt, httperr.InternalError(err)
 	}
 
 	day, ok := roster.Days[t.Day()]
 	if !ok {
-		return nil, httperr.NotFound("roster-day", key, nil)
+		return nil, changeDutyAt, httperr.NotFound("roster-day", key, nil)
 	}
 
 	// fetch all users so we can convert usernames to phone numbers,
@@ -81,7 +88,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 		identitydb.WithScope(ctx, identitydb.Public),
 	)
 	if err != nil {
-		return nil, httperr.InternalError(err)
+		return nil, changeDutyAt, httperr.InternalError(err)
 	}
 
 	// build a small lookup map by username.
@@ -112,5 +119,5 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 		}
 	}
 
-	return doctorsOnDuty, nil
+	return doctorsOnDuty, changeDutyAt, nil
 }
