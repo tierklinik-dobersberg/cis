@@ -32,7 +32,7 @@
 
   <div class="on-duty-container">
     <span *ngIf="!!userAvatar" class="ant-avatar ant-avatar-circle">
-      <img [attr.nzType="text" src]="userAvatar">
+      <img [attr.src]="userAvatar">
     </span>
     <div class="primary-on-duty">
       <span *ngIf="onDuty.length > 0" [nzTooltipTitle]="'bis ' + (onDutyUntil?.toLocaleString() || 'N/A')"

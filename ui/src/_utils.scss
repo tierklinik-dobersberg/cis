@@ -15,11 +15,10 @@
 }
 
 @mixin page-host {
-  display         : block;
-  min-height      : 100%;
   display         : flex;
-  flex-direction  : column;
+  width: 100%;
   position        : relative;
+  flex-direction: column;
 
   padding: 24px;
   @include for-phone-only {

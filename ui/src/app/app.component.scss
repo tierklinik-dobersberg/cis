@@ -15,7 +15,6 @@
 .menu-sidebar {
   position  : relative;
   z-index   : 10;
-  min-height: 100%;
   box-shadow: 2px 0 6px rgba(0, 21, 41, .35);
   //display   : none;
 
@@ -193,8 +192,9 @@ nz-content {
 }
 
 .inner-content {
-  display: block;
   box-shadow: inset 0px -1px 4px 0px rgba(0, 21, 41, 0.08);
   height    : 100%;
   overflow  : auto;
+  display: flex;
+  align-items: stretch;
 }
