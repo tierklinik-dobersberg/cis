@@ -13,3 +13,16 @@
 @mixin for-big-desktop-up {
   @media (min-width: 1800px) { @content; }
 }
+
+@mixin page-host {
+  display         : block;
+  min-height      : 100%;
+  display         : flex;
+  flex-direction  : column;
+  position        : relative;
+
+  padding: 24px;
+  @include for-phone-only {
+    padding: 12px;
+  }
+}

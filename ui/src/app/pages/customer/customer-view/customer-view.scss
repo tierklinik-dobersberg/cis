@@ -1,23 +1,9 @@
 @import 'src/utils';
 
 :host {
-  display         : block;
-  min-height      : 100%;
-  display         : flex;
-  flex-direction  : column;
-  position        : relative;
-
-  padding: 24px;
+    @include page-host;
 }
 
-
-.customer {
-  box-shadow      : 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
-  width           : 100%;
-  padding         : 24px;
-  background-color: white;
-  border-radius   : 4px;
-}
 
 .tag-list {
   margin-bottom : 12px;

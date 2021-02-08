@@ -1,11 +1,11 @@
-<div class="dash-card selection-container">
+<div class="content-section selection-container">
     <div class="date-selection">
         <label>Aufnahmen anzeigen für:</label>
         <nz-date-picker [nzAllowClear]="false" [ngModel]="date" (ngModelChange)="onChange($event)"></nz-date-picker>
     </div>
 </div>
 
-<nz-table #basicTable [nzData]="recordings" class="dash-card data-container">
+<nz-table #basicTable [nzData]="recordings" class="content-section data-container">
     <thead>
         <tr>
             <th>Zeit</th>

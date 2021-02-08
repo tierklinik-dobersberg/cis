@@ -1,15 +1,8 @@
 @import 'src/utils';
 
 :host {
-  display         : block;
-  min-height      : 100%;
-  display         : flex;
-  flex-direction  : column;
-  position        : relative;
-
-  padding: 24px;
+  @include page-host;
 }
-
 
 .search,
 cdk-virtual-scroll-viewport {

@@ -4,10 +4,12 @@ import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, Sub
 import { catchError, mergeMap, startWith } from "rxjs/operators";
 import { CallLog, CalllogAPI } from "src/app/api";
 import { Customer, CustomerAPI } from "src/app/api/customer.api";
+import { LayoutService } from "src/app/layout.service";
 import { HeaderTitleService } from "src/app/shared/header-title";
 
 interface LocalCallLog extends CallLog {
   localDate: string;
+  localTime: string;
   customer?: Customer;
 }
 
@@ -36,6 +38,7 @@ export class CallLogComponent implements OnInit, OnDestroy {
     private header: HeaderTitleService,
     private calllogapi: CalllogAPI,
     private customerapi: CustomerAPI,
+    public layout: LayoutService,
   ) { }
 
   onChange(date: Date) {
@@ -136,9 +139,11 @@ export class CallLogComponent implements OnInit, OnDestroy {
               cust = lm.get(l.caller);
             }
 
+            let d = new Date(l.date);
             return {
               ...l,
-              localDate: new Date(l.date).toLocaleString(),
+              localDate: d.toLocaleDateString(),
+              localTime: d.toLocaleTimeString(),
               customer: cust,
             };
           });
