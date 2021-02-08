@@ -1,4 +1,4 @@
-<div class="search">
+<div class="search content-section">
     <nz-input-group *ngIf="!useAdvancedSearch" [nzSuffix]="suffixIconSearch">
         <input type="text" nz-input placeholder="Nach Nachnamen suchen ..." [(ngModel)]="searchText"
             (ngModelChange)="search($event)" />
@@ -17,7 +17,7 @@
     </div>
 </div>
 
-<cdk-virtual-scroll-viewport itemSize="73" class="infinite-container">
+<cdk-virtual-scroll-viewport itemSize="73" class="infinite-container content-section">
     <nz-list-empty *ngIf="customers.length === 0" [nzNoResult]="emptyTemplate"></nz-list-empty>
     <ng-template #emptyTemplate>
         <nz-empty></nz-empty>
