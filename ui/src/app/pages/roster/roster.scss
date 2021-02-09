@@ -195,6 +195,10 @@ nz-button-group {
     padding-bottom: 12px;
     transition: all .3s ease-in-out;
 
+    &.today {
+      border-top: 3px solid #93C5FD;
+    }
+
     .selection-row {
       &:not(:first-child) {
         margin-top: 12px;

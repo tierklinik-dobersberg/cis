@@ -111,7 +111,8 @@
 <ng-template #mobileViewTemplate>
   <div class="mobile-view">
     <div class="day content-section" *ngFor="let date of dates" [attr.id]="date.toDateString()"
-      [class.highlight-active]="!!highlightUser" [class.highlight-day]="shouldHighlightDay(date)">
+      [class.highlight-active]="!!highlightUser" [class.highlight-day]="shouldHighlightDay(date)"
+      [class.today]="date.toDateString() === selectedDate?.toDateString()">
       <h3>
         {{ weekdays[date.getDay()] }}, {{ date.toLocaleDateString() }}
       </h3>
