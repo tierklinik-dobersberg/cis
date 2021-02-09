@@ -4,8 +4,9 @@ import { Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { DxrService, Study } from 'src/app/api';
+import { DxrService, Instance, Series, Study } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
+import { LayoutService } from 'src/app/layout.service';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { splitCombinedCustomerAnimalIDs } from 'src/app/utils';
 
@@ -33,6 +34,8 @@ export class XRayComponent implements OnInit, OnDestroy {
   studies: StudyWithMeta[] = [];
   searchText: string = '';
   popOverCustomer: Customer | null = null;
+  drawerVisible: boolean = false;
+  drawerStudy: StudyWithMeta | null = null;
   trackBy: TrackByFunction<Study> = (_, study) => study.studyInstanceUid;
 
   ds = new StudyDataSource(this.dxrapi);
@@ -43,10 +46,21 @@ export class XRayComponent implements OnInit, OnDestroy {
     private dxrapi: DxrService,
     private customerapi: CustomerAPI,
     private nzMessage: NzMessageService,
+    public layout: LayoutService,
   ) { }
 
-  openViewer(study: Study, preview: InstancePreview) {
-    this.router.navigate(['xray/viewer', study.studyInstanceUid, preview.seriesUid, preview.instanceUid])
+  openViewer(study: Study, previewOrSeries: InstancePreview | Series, instance?: Instance) {
+    let seriesUid: string;
+    let instanceUid: string;
+
+    if (!!instance) {
+      seriesUid = (previewOrSeries as Series).seriesInstanceUid;
+      instanceUid = instance.sopInstanceUid;
+    } else {
+      seriesUid = (previewOrSeries as InstancePreview).seriesUid;
+      instanceUid = (previewOrSeries as InstancePreview).instanceUid;
+    }
+    this.router.navigate(['xray/viewer', study.studyInstanceUid, seriesUid, instanceUid])
   }
 
   /**
@@ -74,6 +88,16 @@ export class XRayComponent implements OnInit, OnDestroy {
           this.popOverCustomer = null;
         }
       )
+  }
+
+  openDrawer(event: MouseEvent, study: StudyWithMeta) {
+    this.drawerStudy = study;
+    this.drawerVisible = true;
+  }
+
+  closeDrawer() {
+    this.drawerVisible = false;
+    this.drawerStudy = null;
   }
 
   ngOnInit() {

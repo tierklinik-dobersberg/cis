@@ -10,15 +10,18 @@
 
 <cdk-virtual-scroll-viewport itemSize="73" class="infinite-container content-section">
     <nz-list nzSize="small">
-        <nz-list-item *cdkVirtualFor="let study of ds; trackBy: trackBy">
+        <nz-list-item *cdkVirtualFor="let study of ds; trackBy: trackBy" (click)="openDrawer($event, study)">
             <nz-list-item-meta>
-
                 <nz-list-item-meta-title>
-                    <a *ngIf="!!study.vetinfCID" [routerLink]="['/customer/view', 'vetinf', study.vetinfCID]" nz-popover
+                    <a *ngIf="!!study.vetinfCID && layout.isTabletLandscapeUp"
+                        [routerLink]="['/customer/view', 'vetinf', study.vetinfCID]" nz-popover
                         [nzPopoverMouseEnterDelay]="0.5" (nzPopoverVisibleChange)="onPopoverChange($event, study)"
                         [nzPopoverContent]="popoverTemplate">
                         {{ study | ohifOwnerName }}</a>
-                    <span *ngIf="!study.vetinfCID">{{ study | ohifOwnerName }}</span>
+
+                    <span *ngIf="!study.vetinfCID || !layout.isTabletLandscapeUp">
+                        {{ study | ohifOwnerName }}
+                    </span>
                 </nz-list-item-meta-title>
 
                 <nz-list-item-meta-description>
@@ -47,10 +50,48 @@
                 </ng-template>
             </nz-list-item-meta>
 
-            <nz-list-item-extra>
+            <nz-list-item-extra *ngIf="layout.isTabletLandscapeUp">
                 <img *ngFor="let preview of study.previews" (click)="openViewer(study, preview)" height="60" alt="logo"
                     [attr.src]="preview.previewUrl" />
             </nz-list-item-extra>
         </nz-list-item>
     </nz-list>
 </cdk-virtual-scroll-viewport>
+
+<nz-drawer [nzVisible]="drawerVisible" [nzClosable]="true" nzPlacement="right" (nzOnClose)="closeDrawer()"
+    [nzWidth]="layout.isPhone ? '100vw' : layout.isDesktopUp ? '25vw' : '50vw'">
+    <div class="drawer-container">
+        <h2>{{ drawerStudy | ohifOwnerName }}</h2>
+        <h3>
+            {{ drawerStudy?.animalName }} &nbsp;- &nbsp; {{ drawerStudy?.animalRace !== 'unknown' ?
+            drawerStudy?.animalRace
+            : 'N/A' }}
+        </h3>
+
+        <div *ngIf="!!drawerStudy?.vetinfCID" class="drawer-toolbar">
+            <a nz-button [routerLink]="['/customer/view', 'vetinf', drawerStudy?.vetinfCID]">Kunde
+                anzeigen</a>
+        </div>
+
+        <p>Röntgen-Aufnahmen in dieser Studie:</p>
+        <div class="previews">
+            <div *ngFor="let series of drawerStudy?.seriesList">
+                <h4>
+                    {{ series.seriesDescription }}
+                </h4>
+
+                <ol *ngIf="series?.instances?.length > 0">
+                    <li *ngFor="let instance of series?.instances">
+                        <img (click)="openViewer(drawerStudy, series, instance)"
+                            [attr.src]="instance.url | previewUrl" />
+                    </li>
+                </ol>
+
+                <span *ngIf="!series?.instances?.length" class="no-instances">
+                    <i nz-icon nzType="close" nzTheme="outline"></i>
+                    Keine Aufnahmen
+                </span>
+            </div>
+        </div>
+    </div>
+</nz-drawer>

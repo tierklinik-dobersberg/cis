@@ -44,10 +44,6 @@ nz-list {
         img:not(:last-child) {
             margin-right: 10px;
         }
-
-        @include for-phone-only {
-            display: none;
-        }
     }
 }
 
@@ -65,4 +61,52 @@ nz-list {
             margin-top: 6px;
         }
     }
+}
+
+.drawer-container {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  padding-left: 24px;
+  padding-right: 24px;
+
+  .drawer-toolbar {
+    margin-bottom: 12px;
+  }
+
+  h3 {
+      color: gray;
+      margin-top: -16px;
+  }
+
+  h4 {
+      color: gray;
+      text-transform: uppercase;
+      font-weight: 300;
+      margin-top: 24px;
+  }
+
+  .no-instances {
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      color: red;
+      i {
+          margin-right: 6px;
+      }
+  }
+
+  ol {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      grid-gap: 6px;
+      margin: 0px;
+      padding: 0px;
+
+      li {
+          img {
+              width: 100%;
+          }
+      }
+  }
 }

@@ -22,6 +22,8 @@ import { OhifOwnerNamePipe } from "./ohif-owner-name.pipe";
 import { ViewerComponent } from "./viewer";
 import { XRayComponent } from "./xray";
 import { XRayRoutingModule } from "./xray-routing.module";
+import { NzDrawerModule } from "ng-zorro-antd/drawer";
+import { PreviewUrlPipe } from "./preview-url.pipe";
 
 @NgModule({
     imports: [
@@ -41,6 +43,7 @@ import { XRayRoutingModule } from "./xray-routing.module";
         NzInputModule,
         NzProgressModule,
         NzPopoverModule,
+        NzDrawerModule,
         NzDropDownModule,
         LayoutModule,
         CdkScrollableModule,
@@ -53,7 +56,8 @@ import { XRayRoutingModule } from "./xray-routing.module";
         XRayComponent,
         DxrDatePipe,
         ViewerComponent,
-        OhifOwnerNamePipe
+        OhifOwnerNamePipe,
+        PreviewUrlPipe,
     ]
 })
 export class XRayModule { }
