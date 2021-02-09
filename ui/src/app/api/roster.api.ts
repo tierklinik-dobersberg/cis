@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -18,6 +18,11 @@ export interface Roster {
   };
 }
 
+export interface Overwrite {
+  username?: string;
+  phoneNumber?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -31,7 +36,7 @@ export class RosterAPI {
    * @param month
    */
   forMonth(year: number, month: number): Observable<Roster> {
-    return this.http.get<Roster>(`/api/dutyroster/v1/${year}/${month}`)
+    return this.http.get<Roster>(`/api/dutyroster/v1/roster/${year}/${month}`)
       .pipe(
         map(result => {
           Object.keys(result.days).forEach(dayKey => {
@@ -55,7 +60,7 @@ export class RosterAPI {
    * @param month 
    */
   delete(year: number, month: number): Observable<void> {
-    return this.http.delete(`/api/dutyroster/v1/${year}/${month}`)
+    return this.http.delete(`/api/dutyroster/v1/roster/${year}/${month}`)
       .pipe(map(() => { }))
   }
 
@@ -65,7 +70,42 @@ export class RosterAPI {
    * @param roster The new duty roster.
    */
   create(roster: Roster): Observable<void> {
-    return this.http.put(`/api/dutyroster/v1/${roster.year}/${roster.month}`, roster)
+    return this.http.put(`/api/dutyroster/v1/roster/${roster.year}/${roster.month}`, roster)
       .pipe(map(() => { }))
+  }
+
+  /**
+   * Creates a new duty roster overwrite for the given date.
+   * 
+   * @param overwrite The overwrite for the duty roster
+   * @param date The requested date.
+   */
+  setOverwrite(overwrite: Overwrite, date?: Date): Observable<void> {
+    let params = new HttpParams();
+
+    if (!!date) {
+      params.set(`date`, `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`)
+    }
+
+    return this.http.post<void>(`/api/dutyroster/v1/overwrite`, overwrite, {
+      params: params,
+    })
+  }
+
+  /**
+   * Returns the overwrite for the requeste date (or today).
+   * 
+   * @param date The date
+   */
+  getOverwrite(date?: Date): Observable<Overwrite> {
+    let params = new HttpParams();
+
+    if (!!date) {
+      params.set(`date`, `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`)
+    }
+
+    return this.http.get<Overwrite>(`/api/dutyroster/v1/overwrite`, {
+      params: params,
+    })
   }
 }

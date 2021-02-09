@@ -22,6 +22,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
     userAvatar: string = '';
     primaryOnDuty: string = '';
     dropDownVisible: boolean = false;
+    overwritePhone: string = '';
 
     allUsers: ProfileWithAvatar[] = [];
 
@@ -34,6 +35,21 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
         private nzMessageService: NzMessageService,
         private changeDetector: ChangeDetectorRef) { }
 
+    configureOverwrite(user?: string) {
+        this.rosterapi.setOverwrite({
+            username: user || '',
+            phoneNumber: this.overwritePhone,
+        }).subscribe(
+            () => {
+                this.nzMessageService.success("Dienstplan überschrieben.")
+                this.reload.next();
+            },
+            err => {
+                this.nzMessageService.error(extractErrorMessage(err, 'Dienstplan konnte nicht überschrieben werden'))
+            }
+        )
+        this.overwritePhone = '';
+    }
 
     ngOnInit() {
         this.subscriptions = new Subscription();

@@ -12,6 +12,7 @@ export interface DoctorOnDuty {
 export interface DoctorOnDutyResponse<T = Date> {
     doctors: DoctorOnDuty[];
     until: T;
+    isOverwrite: boolean;
 }
 
 @Injectable({

@@ -13,7 +13,7 @@ import (
 // GetForMonthEndpoint supports getting the duty roster for
 // a given month.
 func GetForMonthEndpoint(grp gin.IRouter) {
-	grp.GET("v1/:year/:month", func(c *gin.Context) {
+	grp.GET("v1/roster/:year/:month", func(c *gin.Context) {
 		app := app.From(c)
 		if app == nil {
 			return

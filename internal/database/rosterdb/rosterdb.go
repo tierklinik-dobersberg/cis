@@ -19,6 +19,9 @@ import (
 // duty roster.
 const DutyRosterCollection = "dutyRoster"
 
+// OverwriteJournal is used to keep track of emergency-duty-overwrites.
+const OverwriteJournal = "dutyRosterOverwrites"
+
 // Database is the database interface for the duty rosters.
 type Database interface {
 	// Create creates a new duty roster.
@@ -30,13 +33,21 @@ type Database interface {
 	// ForMonth returns the duty roster for the given month.
 	ForMonth(ctx context.Context, month time.Month, year int) (*v1alpha.DutyRoster, error)
 
+	// SetOverwrite configures an emergency doctor-on-duty overwrite for the
+	// given date.
+	SetOverwrite(ctx context.Context, date time.Time, user, phone string) error
+
+	// GetOverwrite returns any overwrite configured for date.
+	GetOverwrite(ctx context.Context, date time.Time) (*v1alpha.Overwrite, error)
+
 	// Delete deletes a roster.
 	Delete(ctx context.Context, month time.Month, year int) error
 }
 
 type database struct {
-	cli     *mongo.Client
-	rosters *mongo.Collection
+	cli        *mongo.Client
+	rosters    *mongo.Collection
+	overwrites *mongo.Collection
 }
 
 // New returns a new database by connecting to the mongoDB instance
@@ -68,8 +79,9 @@ func NewWithClient(ctx context.Context, dbName string, client *mongo.Client) (Da
 	}
 
 	db := &database{
-		cli:     client,
-		rosters: client.Database(dbName).Collection(DutyRosterCollection),
+		cli:        client,
+		rosters:    client.Database(dbName).Collection(DutyRosterCollection),
+		overwrites: client.Database(dbName).Collection(OverwriteJournal),
 	}
 
 	if err := db.setup(ctx); err != nil {
@@ -81,7 +93,7 @@ func NewWithClient(ctx context.Context, dbName string, client *mongo.Client) (Da
 
 func (db *database) setup(ctx context.Context) error {
 	// we use a compound index on month and year that must be unique.
-	ind, err := db.rosters.Indexes().CreateOne(ctx, mongo.IndexModel{
+	_, err := db.rosters.Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys: bson.M{
 			"month": 1,
 			"year":  1,
@@ -89,10 +101,19 @@ func (db *database) setup(ctx context.Context) error {
 		Options: options.Index().SetUnique(true).SetSparse(false),
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create index: %w", err)
 	}
 
-	logger.Infof(ctx, "Created index %s", ind)
+	_, err = db.overwrites.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.M{
+			"date": 1,
+		},
+		Options: options.Index().SetUnique(true).SetSparse(false),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create index: %w", err)
+	}
+
 	return nil
 }
 
@@ -168,4 +189,44 @@ func (db *database) Delete(ctx context.Context, month time.Month, year int) erro
 		return httperr.NotFound("roster", fmt.Sprintf("%04d/%02d", year, month), ErrNotFound)
 	}
 	return nil
+}
+
+func (db *database) SetOverwrite(ctx context.Context, d time.Time, user, phone string) error {
+	dstr := d.Format("2006-01-02")
+	overwrite := v1alpha.Overwrite{
+		Date:        dstr,
+		Username:    user,
+		PhoneNumber: phone,
+	}
+
+	if user == "" && phone == "" {
+		return httperr.BadRequest(nil, "Username and phone number not set")
+	}
+
+	_, err := db.overwrites.ReplaceOne(ctx, bson.M{
+		"date": dstr,
+	}, overwrite, options.Replace().SetUpsert(true))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *database) GetOverwrite(ctx context.Context, d time.Time) (*v1alpha.Overwrite, error) {
+	res := db.overwrites.FindOne(ctx, bson.M{
+		"date": d.Format("2006-01-02"),
+	})
+	if res.Err() != nil {
+		if errors.Is(res.Err(), mongo.ErrNoDocuments) {
+			return nil, httperr.NotFound("overwrite", d.String(), res.Err())
+		}
+		return nil, res.Err()
+	}
+
+	var o v1alpha.Overwrite
+	if err := res.Decode(&o); err != nil {
+		return nil, err
+	}
+	return &o, nil
 }

@@ -13,7 +13,7 @@ import (
 // DeleteRosterEndpoint provides a HTTP endpoint to delete the
 // duty roster of a single month.
 func DeleteRosterEndpoint(grp gin.IRouter) {
-	grp.DELETE("v1/:year/:month", func(c *gin.Context) {
+	grp.DELETE("v1/roster/:year/:month", func(c *gin.Context) {
 		app := app.From(c)
 		if app == nil {
 			return

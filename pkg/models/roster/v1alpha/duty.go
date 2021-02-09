@@ -36,3 +36,12 @@ type DutyRoster struct {
 	// Days holds a map of individual day of the duty roster.
 	Days map[int]Day `bson:"days,omitempty" json:"days,omitempty"`
 }
+
+// Overwrite defines an overwrite for the emergency doctor-on-duty
+// at a given date.
+type Overwrite struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"-"`
+	Date        string             `bson:"date,omitempty" json:"date"` // YYYY-MM-DD
+	Username    string             `bson:"username,omitempty" json:"username,omitempty"`
+	PhoneNumber string             `bson:"phoneNumber,omitempty" json:"phoneNumber,omitempty"`
+}

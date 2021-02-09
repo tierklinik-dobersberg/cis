@@ -56,6 +56,22 @@ nz-card {
   max-width: 100%;
   max-width: 100vw;
 
+  h4 {
+    color: gray;
+    text-transform: uppercase;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    font-weight: 300;
+
+    &:not(:first-child) {
+      margin-top: 12px;
+    }
+  }
+
+  input[type="text"] {
+    margin-bottom: 6px;
+  }
+
   .grid {
     display: grid;
     grid-gap: 3px;

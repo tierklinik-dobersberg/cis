@@ -9,15 +9,16 @@
   <span class="header">
     Nachtdienst
     <i nz-dropdown nzTrigger="click" nz-icon nzType="edit" nzTheme="outline" style="cursor: pointer" nz-tooltip
-      nzTooltipTitle="Nachdienst ändern" nz-popover nzPopoverTitle="Wähle den neuen Nachtdienst aus"
+      nzTooltipTitle="Nachdienst ändern" nz-popover nzPopoverTitle="Nachtdienst ändern"
       [(nzPopoverVisible)]="dropDownVisible" nzPopoverTrigger="click" [nzPopoverContent]="contentTemplate"></i>
 
     <ng-template #contentTemplate>
       <div class="user-dropdown">
+        <h4>Wähle den neuen Nachtdienst aus:</h4>
         <div class="grid">
           <div class="user" *ngFor="let user of allUsers" nz-popconfirm
             nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{user.fullname || user.name}} ändern"
-            (nzOnConfirm)="changeOnDuty(user)">
+            (nzOnConfirm)="configureOverwrite(user.name)">
             <nz-avatar *ngIf="!user.avatar" nzIcon="user">
             </nz-avatar>
             <span *ngIf="!!user.avatar" class="ant-avatar ant-avatar-circle">
@@ -26,6 +27,10 @@
             {{ user.fullname || user.name }}
           </div>
         </div>
+        <h4>Oder gib eine Telefonnummer ein:</h4>
+        <input nz-input type="text" [(ngModel)]="overwritePhone" placeholder="+43660123456">
+        <button nz-button nzType="danger" [disabled]="overwritePhone === ''"
+          (click)="configureOverwrite()">Speichern</button>
       </div>
     </ng-template>
   </span>
