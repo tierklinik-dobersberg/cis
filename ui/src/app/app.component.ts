@@ -62,6 +62,11 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
+
+    this.layout.change.subscribe(() => {
+      this.isCollapsed = !this.layout.isTabletLandscapeUp;
+    });
+
     this.configapi.change
       .subscribe(cfg => this.applyConfig(cfg));
 

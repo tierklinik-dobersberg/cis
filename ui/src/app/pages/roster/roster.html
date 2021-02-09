@@ -1,4 +1,4 @@
-<div class="toolbar">
+<div class="toolbar content-section">
   <div class="alerts">
     <nz-alert *ngIf="showNoRosterAlert && !editMode; else: dateHeader" [nzMessage]="noRosterAlertTemplate"
       nzType="warning">
@@ -70,7 +70,7 @@
 </div>
 
 <nz-calendar (nzPanelChange)="onPanelChange($event)" (nzSelectChange)="onDateSelected($event)"
-  *ngIf="layout.isTabletPortraitUp">
+  *ngIf="layout.isTabletLandscapeUp; else mobileViewTemplate" class="content-section">
   <ul *nzDateFullCell="let date" [class.other-month]="date.getMonth() != selectedDate.getMonth()"
     (click)="selectRosterDay(date)" nz-button nz-dropdown
     [(nzVisible)]="getVisibleProp(date.toLocaleString())[date.toLocaleString()]" [nzClickHide]="false"
@@ -97,52 +97,50 @@
 
     <ng-template #userDutyTemplate let-property>
       <li>
-        <span *ngFor="let user of getDay(date)[property]" nz-tooltip [nzTooltipTitle]="userProfiles[user].fullname"
-          [class.highlight-user]="highlightUser === user" [style.backgroundColor]="userProfiles[user].color"
-          [style.color]="userProfiles[user].fontColor" (mouseenter)="highlightUserSubject.next(user)"
-          (mouseleave)="highlightUserSubject.next('')">
-          {{ userProfiles[user].fullname.slice(0, 2) }}
+        <span class="user-tag" *ngFor="let user of getDay(date)[property]" nz-tooltip
+          [nzTooltipTitle]="userProfiles[user]?.fullname" [class.highlight-user]="highlightUser === user"
+          [style.backgroundColor]="userProfiles[user]?.color" [style.color]="userProfiles[user]?.fontColor"
+          (mouseenter)="highlightUserSubject.next(user)" (mouseleave)="highlightUserSubject.next('')">
+          {{ userProfiles[user]?.fullname.slice(0, 2) || 'N/A' }}
         </span>
       </li>
     </ng-template>
   </ul>
 </nz-calendar>
 
-<div *ngIf="layout.isPhone" class="mobile-view">
-  <div class="day" *ngFor="let date of dates" [attr.id]="date.toDateString()" [class.highlight-active]="!!highlightUser"
-    [class.highlight-day]="shouldHighlightDay(date)">
-    <h3>
-      {{ weekdays[date.getDay()] }}, {{ date.toLocaleDateString() }}
-    </h3>
-    <div class="selection-row">
-      <span class="title">Vormittag</span>
-      <ng-container *ngTemplateOutlet="mobileUserDutyTemplate; context: {$implicit: getDay(date).forenoon}">
-      </ng-container>
+<ng-template #mobileViewTemplate>
+  <div class="mobile-view">
+    <div class="day content-section" *ngFor="let date of dates" [attr.id]="date.toDateString()"
+      [class.highlight-active]="!!highlightUser" [class.highlight-day]="shouldHighlightDay(date)">
+      <h3>
+        {{ weekdays[date.getDay()] }}, {{ date.toLocaleDateString() }}
+      </h3>
+      <div class="selection-row">
+        <span class="title">Vormittag</span>
+        <ng-container *ngTemplateOutlet="mobileUserDutyTemplate; context: {$implicit: getDay(date).forenoon}">
+        </ng-container>
+      </div>
+      <div class="selection-row">
+        <span class="title">Nachmittag</span>
+        <ng-container *ngTemplateOutlet="mobileUserDutyTemplate; context: {$implicit: getDay(date).afternoon}">
+        </ng-container>
+      </div>
+      <div class="selection-row">
+        <span class="title">Nachtdienst</span>
+        <ng-container *ngTemplateOutlet="mobileUserDutyTemplate; context: {$implicit: getDay(date).emergency}">
+        </ng-container>
+      </div>
     </div>
-    <div class="selection-row">
-      <span class="title">Nachmittag</span>
-      <ng-container *ngTemplateOutlet="mobileUserDutyTemplate; context: {$implicit: getDay(date).afternoon}">
-      </ng-container>
-    </div>
-    <div class="selection-row">
-      <span class="title">Nachtdienst</span>
-      <ng-container *ngTemplateOutlet="mobileUserDutyTemplate; context: {$implicit: getDay(date).emergency}">
-      </ng-container>
-    </div>
-  </div>
 
-  <ng-template #mobileUserDutyTemplate let-day>
-    <ul class="selected-users">
-      <li>
-        <span *ngFor="let user of day" [class.highlight-user]="highlightUser === user"
-          [style.backgroundColor]="userProfiles[user].color" [style.color]="userProfiles[user].fontColor"
-          (mouseenter)="highlightUserSubject.next(user)" (mouseleave)="highlightUserSubject.next('')">
-          {{userProfiles[user].fullname}}
-        </span>
-      </li>
-    </ul>
-  </ng-template>
-</div>
+    <ng-template #mobileUserDutyTemplate let-day>
+      <span class="user-tag" *ngFor="let user of day" [class.highlight-user]="highlightUser === user"
+        [style.backgroundColor]="userProfiles[user]?.color" [style.color]="userProfiles[user]?.fontColor"
+        (mouseenter)="highlightUserSubject.next(user)" (mouseleave)="highlightUserSubject.next('')">
+        {{ userProfiles[user]?.fullname || 'N/A' }}
+      </span>
+    </ng-template>
+  </div>
+</ng-template>
 
 <nz-dropdown-menu #userMenu="nzDropdownMenu">
   <div nz-menu class="user-menu">
@@ -171,11 +169,11 @@
         <span nz-menu-group class="title">{{title}}</span>
         <nz-select *ngIf="editMode && isDropDownVisible" [(ngModel)]="selectedDay[model]" nzMode="multiple"
           (ngModelChange)="rosterChanged()" nzPlaceHolder="Bitte auswählen">
-          <nz-option *ngFor="let option of usernames" [nzLabel]="userProfiles[option].fullname" [nzValue]="option">
+          <nz-option *ngFor="let option of usernames" [nzLabel]="userProfiles[option]?.fullname" [nzValue]="option">
           </nz-option>
         </nz-select>
         <div *ngIf="!editMode" class="selected-users">
-          <li><span *ngFor="let username of selectedDay[model]">{{userProfiles[username].fullname}}</span></li>
+          <li><span *ngFor="let username of selectedDay[model]">{{userProfiles[username]?.fullname}}</span></li>
         </div>
       </div>
     </ng-template>

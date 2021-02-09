@@ -5,6 +5,15 @@ import { HeaderTitleService } from "./header.service";
 @Component({
     selector: 'app-header-title-outlet',
     template: '{{ header }}',
+    styles: [
+        `
+        :host {
+            display: inline;
+            align-self: center;
+            white-space: nowrap;
+        }
+        `
+    ],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderTitleOutlet implements OnInit, OnDestroy {

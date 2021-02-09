@@ -1,9 +1,9 @@
 @import 'src/utils';
 
 :host {
-  display: block;
-  padding: 24px;
-  background-color: white;
+  @include page-host;
+  //background-color: white;
+  overflow: auto;
 }
 
 nz-select {
@@ -43,11 +43,8 @@ nz-select {
 .toolbar {
   width        : 100%;
   display      : flex;
-  position     : sticky;
-  top          : 0px;
+  align-items: center;
   z-index      : 100;
-  background   : white;
-  border-bottom: 1px solid #f0f0f0;
 
   @include for-phone-only {
     position: relative;
@@ -82,9 +79,6 @@ nz-select {
     margin-right: 12px;
     flex-grow   : 1;
   }
-
-  padding-top  : 12px;
-  margin-bottom: 12px;
 }
 
 .user-menu {
@@ -121,10 +115,28 @@ ul {
 
 ul.highlight-active {
     opacity: 0.35;
-
     &.highlight-day {
       opacity: 1;
       background-color: rgba(238, 255, 0, 0.26);
+    }
+}
+
+.user-tag {
+    padding: {
+      left  : 6px;
+      right : 6px;
+    }
+    height: 24px;
+    display: inline-block;
+
+    border-radius: 2px;
+    border       : 1px solid #b0b0b0;
+    &.highlight-user {
+      font-weight: bold;
+    }
+
+    &:not(:last-child) {
+      margin-right: 3px;
     }
 }
 
@@ -139,26 +151,6 @@ ul.highlight-active {
     align-items    : center;
     overflow       : hidden;
     white-space    : nowrap;
-  }
-
-  li>span {
-    padding: {
-      top   : 0px;
-      bottom: 0px;
-      left  : 6px;
-      right : 6px;
-    }
-
-    border-radius: 2px;
-    border       : 1px solid #b0b0b0;
-
-    &.highlight-user {
-      font-weight: bold;
-    }
-
-    &:not(:last-child) {
-      margin-right: 3px;
-    }
   }
 }
 
@@ -177,13 +169,14 @@ nz-checkbox-wrapper {
 ul {
   list-style: none;
   padding   : 0;
-
-  li:not(:last-child) {
-    border-bottom: 1px solid #f0f0f0;
-  }
+  overflow: hidden;
 
   li {
     height: 30px;
+    
+    &:not(:last-child) {
+      border-bottom: 1px solid #f0f0f0;
+    }
   }
 }
 
@@ -199,17 +192,29 @@ nz-button-group {
   .day {
     border-bottom: 1px solid lightgray;
     padding-top: 12px;
+    padding-bottom: 12px;
+    transition: all .3s ease-in-out;
 
     .selection-row {
-      padding: 0;
+      &:not(:first-child) {
+        margin-top: 12px;
+      }
+
+      padding: 2px;
+      padding-bottom: 6px;
     }
 
     &.highlight-active {
       opacity: 0.35;
+      height: 50px;
+      overflow: hidden;
+
     }
 
     &.highlight-day {
       opacity: 1;
+      height: unset;
+      height: fit-content;
     }
   }
 }
