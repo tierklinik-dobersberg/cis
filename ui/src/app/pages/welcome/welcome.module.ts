@@ -33,6 +33,7 @@ import { NzStatisticModule } from 'ng-zorro-antd/statistic';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzMessageServiceModule } from 'ng-zorro-antd/message';
 import { NzPopoverModule } from 'ng-zorro-antd/popover';
+import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 
 @NgModule({
   imports: [
@@ -51,6 +52,7 @@ import { NzPopoverModule } from 'ng-zorro-antd/popover';
     NzListModule,
     NzInputModule,
     NzMessageServiceModule,
+    NzDrawerModule,
     NzTimePickerModule,
     NzButtonModule,
     NzResultModule,

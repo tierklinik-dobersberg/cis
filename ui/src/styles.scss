@@ -11,7 +11,11 @@ html, body {
 }
 
 .ant-drawer-body {
-    padding: 0px;
+  padding: 0px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
 .content-section {
@@ -31,4 +35,7 @@ html, body {
     }
   }
   border-radius: 4px;
+}
+
+.ant-drawer-content {
 }

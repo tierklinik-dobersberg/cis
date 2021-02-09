@@ -17,6 +17,17 @@ export class LayoutService {
         return this._onUpdate.asObservable();
     }
 
+    get drawerWidth(): Observable<string> {
+        return this.change
+            .pipe(map(() => {
+                return this.isPhone
+                    ? '100vw'
+                    : this.isDesktopUp
+                        ? '25vw'
+                        : '50vw';
+            }))
+    }
+
     isPhone = false;
     isTabletPortraitUp = false;
     isTabletLandscapeUp = false;

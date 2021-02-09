@@ -4,6 +4,7 @@ import { NzMessageService } from "ng-zorro-antd/message";
 import { BehaviorSubject, combineLatest, interval, of, Subscription, throwError } from "rxjs";
 import { catchError, delay, map, mergeMap, retryWhen, startWith } from "rxjs/operators";
 import { DoctorOnDuty, ExternalAPI, IdentityAPI, ProfileWithAvatar, RosterAPI } from "src/app/api";
+import { LayoutService } from "src/app/layout.service";
 import { extractErrorMessage } from "src/app/utils";
 
 @Component({
@@ -21,8 +22,8 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
     firstLoad = true;
     userAvatar: string = '';
     primaryOnDuty: string = '';
-    dropDownVisible: boolean = false;
     overwritePhone: string = '';
+    drawerVisible = false;
 
     allUsers: ProfileWithAvatar[] = [];
 
@@ -33,7 +34,14 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
         private identityapi: IdentityAPI,
         private rosterapi: RosterAPI,
         private nzMessageService: NzMessageService,
-        private changeDetector: ChangeDetectorRef) { }
+        private changeDetector: ChangeDetectorRef,
+        public layout: LayoutService,
+    ) { }
+
+    toggleDrawer() {
+        this.drawerVisible = !this.drawerVisible;
+        this.overwritePhone = '';
+    }
 
     configureOverwrite(user?: string) {
         this.rosterapi.setOverwrite({
@@ -42,13 +50,13 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
         }).subscribe(
             () => {
                 this.nzMessageService.success("Dienstplan überschrieben.")
+                this.drawerVisible = false;
                 this.reload.next();
             },
             err => {
                 this.nzMessageService.error(extractErrorMessage(err, 'Dienstplan konnte nicht überschrieben werden'))
             }
         )
-        this.overwritePhone = '';
     }
 
     ngOnInit() {
@@ -82,7 +90,6 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
                     this.firstLoad = false;
                     this.onDuty = result.doctors || [];
                     this.onDutyUntil = result.until;
-                    this.changeDetector.markForCheck();
 
                     if (this.onDuty.length === 0) {
                         this.primaryOnDuty = '',
@@ -102,43 +109,11 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
                                 }
                             )
                     }
+                    this.changeDetector.markForCheck();
                 },
             });
 
         this.subscriptions.add(sub);
-    }
-
-    changeOnDuty(user: ProfileWithAvatar) {
-        this.dropDownVisible = false;
-
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth() + 1;
-        const day = now.getDate();
-
-        this.rosterapi.forMonth(year, month)
-            .pipe(
-                map(roster => {
-                    const rosterDay = roster.days[day] || { afternoon: [], forenoon: [], emergency: [] };
-                    rosterDay.emergency.splice(0, 1, user.name);
-                    rosterDay.emergency = [
-                        user.name,
-                        ...rosterDay.emergency.slice(1).filter(u => u !== user.name),
-                    ]
-                    roster.days[day] = rosterDay;
-                    return roster;
-                }),
-                mergeMap(roster => this.rosterapi.create(roster))
-            )
-            .subscribe(
-                () => {
-                    this.nzMessageService.success("Dienstplan erfolgreich geändert");
-                    this.reload.next();
-                },
-                err => {
-                    this.nzMessageService.error(extractErrorMessage(err, 'Dienstplan konnte nicht geändet werden'))
-                }
-            )
     }
 
     ngOnDestroy() {

@@ -59,7 +59,7 @@
 </cdk-virtual-scroll-viewport>
 
 <nz-drawer [nzVisible]="drawerVisible" [nzClosable]="true" nzPlacement="right" (nzOnClose)="closeDrawer()"
-    [nzWidth]="layout.isPhone ? '100vw' : layout.isDesktopUp ? '25vw' : '50vw'">
+    [nzWidth]="layout.drawerWidth | async">
     <div class="drawer-container">
         <h2>{{ drawerStudy | ohifOwnerName }}</h2>
         <h3>

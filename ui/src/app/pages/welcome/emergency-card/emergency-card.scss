@@ -1,3 +1,5 @@
+@import 'src/utils';
+
 .avatar {
   background-color: transparent;
   color           : lightblue;
@@ -52,19 +54,17 @@ nz-card {
 }
 
 .user-dropdown {
-  width: 600px;
-  max-width: 100%;
-  max-width: 100vw;
-
+  width: 100%;
   h4 {
-    color: gray;
-    text-transform: uppercase;
     padding-top: 3px;
     padding-bottom: 3px;
     font-weight: 300;
 
     &:not(:first-child) {
-      margin-top: 12px;
+      margin-top: 24px;
+      @include for-phone-only {
+        margin-top: 12px;
+      }
     }
   }
 
@@ -99,7 +99,9 @@ nz-card {
 }
 
 .user {
-  flex: 1 1 auto;
+  &.current {
+    color: #1890ff;
+  }
 }
 
 span.ant-avatar {
