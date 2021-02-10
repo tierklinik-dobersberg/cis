@@ -10,22 +10,28 @@
   <div class="user-dropdown">
     <h2>Nachtdienst überschreiben</h2>
     <h4>Wähle den neuen Nachtdienst aus:</h4>
-    <div class="grid">
-      <div class="user" *ngFor="let user of allUsers" nz-popconfirm
-        nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{user.fullname || user.name}} ändern"
-        (nzOnConfirm)="configureOverwrite(user.name)" [class.current]="user.name === primaryOnDuty">
-        <nz-avatar *ngIf="!user.avatar" nzIcon="user">
-        </nz-avatar>
-        <span *ngIf="!!user.avatar" class="ant-avatar ant-avatar-circle">
-          <img [attr.src]="user.avatar">
-        </span>
-        {{ user.fullname || user.name }}
+    <div class="grid-container">
+      <div class="grid">
+        <div class="user" *ngFor="let user of allUsers" nz-popconfirm
+          nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{user.fullname || user.name}} ändern"
+          (nzOnConfirm)="configureOverwrite(user.name)" [class.current]="user.name === primaryOnDuty">
+          <nz-avatar *ngIf="!user.avatar" nzIcon="user">
+          </nz-avatar>
+          <span *ngIf="!!user.avatar" class="ant-avatar ant-avatar-circle">
+            <img [attr.src]="user.avatar">
+          </span>
+          {{ user.fullname || user.name }}
+        </div>
       </div>
     </div>
     <h4>Oder gib eine Telefonnummer ein:</h4>
     <input nz-input type="text" [(ngModel)]="overwritePhone" placeholder="+43660123456">
-    <button nz-button nzType="danger" [disabled]="overwritePhone === ''"
-      (click)="configureOverwrite()">Speichern</button>
+
+    <div class="drawer-actions">
+      <button nz-button nzType="danger" [disabled]="overwritePhone === ''"
+        (click)="configureOverwrite()">Speichern</button>
+      <button nz-button nzType="primary" *ngIf="isOverwritten" (click)="removeOverwrite()">Dienstplan verwenden</button>
+    </div>
   </div>
 </nz-drawer>
 

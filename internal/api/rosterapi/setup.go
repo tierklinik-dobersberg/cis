@@ -23,4 +23,7 @@ func Setup(grp gin.IRouter) {
 
 	// GET /api/dutyroster/v1/overwrite?date=<date>
 	GetOverwriteEndpoint(router)
+
+	// DELETE /api/dutyroster/v1/overwrite?date=<date>
+	DeleteOverwriteEndpoint(router)
 }

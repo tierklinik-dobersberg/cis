@@ -18,6 +18,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
     private reload = new BehaviorSubject<void>(undefined);
 
     onDuty: DoctorOnDuty[] = [];
+    isOverwritten: boolean = false;
     onDutyUntil: Date | null = null;
     firstLoad = true;
     userAvatar: string = '';
@@ -59,6 +60,20 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
         )
     }
 
+    removeOverwrite() {
+        this.rosterapi.deleteOverwrite()
+            .subscribe(
+                () => {
+                    this.nzMessageService.success('Dienstplan wiederhergestellt.')
+                    this.drawerVisible = false;
+                    this.reload.next();
+                },
+                err => {
+                    this.nzMessageService.error(extractErrorMessage(err, 'Dienstplan konnte nicht wiederhergestellt werden'))
+                }
+            )
+    }
+
     ngOnInit() {
         this.subscriptions = new Subscription();
 
@@ -78,6 +93,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
                         return of({
                             doctors: [],
                             until: null,
+                            isOverwrite: false,
                         });
                     }
 
@@ -90,6 +106,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
                     this.firstLoad = false;
                     this.onDuty = result.doctors || [];
                     this.onDutyUntil = result.until;
+                    this.isOverwritten = result.isOverwrite;
 
                     if (this.onDuty.length === 0) {
                         this.primaryOnDuty = '',

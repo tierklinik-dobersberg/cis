@@ -33,6 +33,9 @@ type Database interface {
 	// ForMonth returns the duty roster for the given month.
 	ForMonth(ctx context.Context, month time.Month, year int) (*v1alpha.DutyRoster, error)
 
+	// Delete deletes a roster.
+	Delete(ctx context.Context, month time.Month, year int) error
+
 	// SetOverwrite configures an emergency doctor-on-duty overwrite for the
 	// given date.
 	SetOverwrite(ctx context.Context, date time.Time, user, phone string) error
@@ -40,8 +43,9 @@ type Database interface {
 	// GetOverwrite returns any overwrite configured for date.
 	GetOverwrite(ctx context.Context, date time.Time) (*v1alpha.Overwrite, error)
 
-	// Delete deletes a roster.
-	Delete(ctx context.Context, month time.Month, year int) error
+	// DeleteOverwrite deletes the roster overwrite for the given
+	// day.
+	DeleteOverwrite(ctx context.Context, date time.Time) error
 }
 
 type database struct {
@@ -104,11 +108,19 @@ func (db *database) setup(ctx context.Context) error {
 		return fmt.Errorf("failed to create index: %w", err)
 	}
 
+	// TODO(ppacher): find migration strategy
+	_, err = db.overwrites.Indexes().DropOne(ctx, "date_1")
+	if err != nil {
+		logger.From(ctx).Errorf("failed to drop index date_1: %s", err)
+	}
+
 	_, err = db.overwrites.Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys: bson.M{
 			"date": 1,
 		},
-		Options: options.Index().SetUnique(true).SetSparse(false),
+		// we don't use a unique index here because we only "mark" overwrites
+		// as deleted instead of actually deleting them.
+		Options: options.Index().SetSparse(false),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create index: %w", err)
@@ -193,29 +205,58 @@ func (db *database) Delete(ctx context.Context, month time.Month, year int) erro
 
 func (db *database) SetOverwrite(ctx context.Context, d time.Time, user, phone string) error {
 	dstr := d.Format("2006-01-02")
-	overwrite := v1alpha.Overwrite{
-		Date:        dstr,
-		Username:    user,
-		PhoneNumber: phone,
-	}
-
 	if user == "" && phone == "" {
 		return httperr.BadRequest(nil, "Username and phone number not set")
 	}
 
-	_, err := db.overwrites.ReplaceOne(ctx, bson.M{
-		"date": dstr,
-	}, overwrite, options.Replace().SetUpsert(true))
+	overwrite := v1alpha.Overwrite{
+		Date:        dstr,
+		Username:    user,
+		PhoneNumber: phone,
+		CreatedAt:   time.Now(),
+		// TODO(ppacher): CreatedAt
+		Deleted: false,
+	}
+
+	log := logger.From(ctx).WithFields(logger.Fields{
+		"date":  dstr,
+		"user":  user,
+		"phone": phone,
+	})
+
+	// update any exsiting entry  as "deleted"
+	// although there should only ever be one document with dstr and delete=false
+	// but make sure we mark every other one as well.
+	_, err := db.overwrites.UpdateMany(
+		ctx,
+		bson.M{
+			"date":    dstr,
+			"deleted": bson.M{"$ne": true},
+		},
+		bson.M{
+			"$set": bson.M{
+				"deleted": true,
+			},
+		},
+	)
 	if err != nil {
 		return err
 	}
 
+	// create a new one.
+	if _, err := db.overwrites.InsertOne(ctx, overwrite); err != nil {
+		return err
+	}
+
+	log.Infof("created new roster overwrite")
 	return nil
+
 }
 
 func (db *database) GetOverwrite(ctx context.Context, d time.Time) (*v1alpha.Overwrite, error) {
 	res := db.overwrites.FindOne(ctx, bson.M{
-		"date": d.Format("2006-01-02"),
+		"date":    d.Format("2006-01-02"),
+		"deleted": bson.M{"$ne": true},
 	})
 	if res.Err() != nil {
 		if errors.Is(res.Err(), mongo.ErrNoDocuments) {
@@ -229,4 +270,31 @@ func (db *database) GetOverwrite(ctx context.Context, d time.Time) (*v1alpha.Ove
 		return nil, err
 	}
 	return &o, nil
+}
+
+func (db *database) DeleteOverwrite(ctx context.Context, d time.Time) error {
+	res, err := db.overwrites.UpdateMany(
+		ctx,
+		bson.M{
+			"date":    d.Format("2006-01-02"),
+			"deleted": bson.M{"$ne": true},
+		},
+		bson.M{
+			"$set": bson.M{
+				"deleted": true,
+			},
+		},
+	)
+	if err != nil || res.MatchedCount == 1 && res.ModifiedCount == 0 {
+		if !errors.Is(err, mongo.ErrNoDocuments) {
+			return err
+		}
+
+		if err == nil {
+			return httperr.InternalError(nil, "unexpected match and modified counts")
+		}
+		return err
+	}
+
+	return nil
 }

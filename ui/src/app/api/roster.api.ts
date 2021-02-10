@@ -93,7 +93,7 @@ export class RosterAPI {
   }
 
   /**
-   * Returns the overwrite for the requeste date (or today).
+   * Returns the overwrite for the requested date. Defaults to today.
    * 
    * @param date The date
    */
@@ -105,6 +105,23 @@ export class RosterAPI {
     }
 
     return this.http.get<Overwrite>(`/api/dutyroster/v1/overwrite`, {
+      params: params,
+    })
+  }
+
+  /**
+   * Deletes the overwrite forthe requested date. Defaults to today.
+   * 
+   * @param date The date
+   */
+  deleteOverwrite(date?: Date): Observable<void> {
+    let params = new HttpParams();
+
+    if (!!date) {
+      params.set(`date`, `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`)
+    }
+
+    return this.http.delete<void>(`/api/dutyroster/v1/overwrite`, {
       params: params,
     })
   }
