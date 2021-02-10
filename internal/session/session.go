@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -14,6 +15,8 @@ import (
 // SessionKey is used to add a user session to a gin
 // request context.
 const SessionKey = "http:session"
+
+var contextSessionKey = struct{ key string }{key: SessionKey}
 
 // Session represents an user session.
 type Session struct {
@@ -32,12 +35,17 @@ type Session struct {
 	RefreshUntil *time.Time
 }
 
-// Set sets the session s on c.
+// Set sets the session s on c. It also creates and assigns
+// a request copy with a new context to c.
 // If s is nil then Set is a no-op.
 func Set(c *gin.Context, s *Session) {
 	if s == nil {
 		return
 	}
+
+	c.Request = c.Request.Clone(
+		context.WithValue(c.Request.Context(), contextSessionKey, s),
+	)
 
 	c.Set(SessionKey, s)
 }
@@ -51,6 +59,28 @@ func Get(c *gin.Context) *Session {
 
 	session, _ := val.(*Session)
 	return session
+}
+
+// FromCtx returns the session associated with ctx.
+func FromCtx(ctx context.Context) *Session {
+	val := ctx.Value(contextSessionKey)
+	if val == nil {
+		return nil
+	}
+
+	s, _ := val.(*Session)
+	return s
+}
+
+// UserFromCtx returns the username associated with ctx.
+// It returns an empty name in case no session is available.
+func UserFromCtx(ctx context.Context) string {
+	s := FromCtx(ctx)
+	if s == nil {
+		return ""
+	}
+
+	return s.User.Name
 }
 
 // Create creates a new session for user. The caller
