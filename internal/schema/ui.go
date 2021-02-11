@@ -66,3 +66,27 @@ var ExternalLinkSpec = conf.SectionSpec{
 		Type:        conf.BoolType,
 	},
 }
+
+// QuickRosterOverwrite defines a "quick-settings" button to
+// configure a roster overwrite.
+type QuickRosterOverwrite struct {
+	DisplayName  string
+	TargetNumber string
+}
+
+// QuickRosterOverwriteSpec defines the configuration stanzas
+// for a quick-roster overwrite definition.
+var QuickRosterOverwriteSpec = conf.SectionSpec{
+	{
+		Name:        "DisplayName",
+		Type:        conf.StringType,
+		Description: "The display name for the quick-overwrite",
+		Required:    true,
+	},
+	{
+		Name:        "TargetNumber",
+		Type:        conf.StringType,
+		Description: "Target phone number or extension",
+		Required:    true,
+	},
+}

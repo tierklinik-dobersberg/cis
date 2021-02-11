@@ -28,5 +28,6 @@ type Config struct {
 type UIConfig struct {
 	schema.UI `section:"UI"`
 
-	ExternalLinks []schema.ExternalLink `section:"ExternalLink"`
+	ExternalLinks         []schema.ExternalLink         `section:"ExternalLink"`
+	QuickRosterOverwrites []schema.QuickRosterOverwrite `section:"QuickRosterOverwrite"`
 }

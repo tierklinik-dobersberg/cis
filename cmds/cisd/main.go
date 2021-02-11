@@ -150,8 +150,9 @@ func getApp(ctx context.Context) *app.App {
 	//
 	uiConf := filepath.Join(svcenv.Env().ConfigurationDirectory, "ui.conf")
 	uiConfSpec := conf.FileSpec{
-		"UI":           schema.UISpec,
-		"ExternalLink": schema.ExternalLinkSpec,
+		"UI":                   schema.UISpec,
+		"ExternalLink":         schema.ExternalLinkSpec,
+		"QuickRosterOverwrite": schema.QuickRosterOverwriteSpec,
 	}
 
 	if err := uiConfSpec.ParseFile(uiConf, &cfg.UI); err != nil && !os.IsNotExist(err) {

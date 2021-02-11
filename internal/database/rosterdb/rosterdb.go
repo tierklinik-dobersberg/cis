@@ -38,7 +38,7 @@ type Database interface {
 
 	// SetOverwrite configures an emergency doctor-on-duty overwrite for the
 	// given date.
-	SetOverwrite(ctx context.Context, date time.Time, user, phone string) error
+	SetOverwrite(ctx context.Context, date time.Time, user, phone, displayName string) error
 
 	// GetOverwrite returns any overwrite configured for date.
 	GetOverwrite(ctx context.Context, date time.Time) (*v1alpha.Overwrite, error)
@@ -203,7 +203,7 @@ func (db *database) Delete(ctx context.Context, month time.Month, year int) erro
 	return nil
 }
 
-func (db *database) SetOverwrite(ctx context.Context, d time.Time, user, phone string) error {
+func (db *database) SetOverwrite(ctx context.Context, d time.Time, user, phone, displayName string) error {
 	dstr := d.Format("2006-01-02")
 	if user == "" && phone == "" {
 		return httperr.BadRequest(nil, "Username and phone number not set")
@@ -213,8 +213,9 @@ func (db *database) SetOverwrite(ctx context.Context, d time.Time, user, phone s
 		Date:        dstr,
 		Username:    user,
 		PhoneNumber: phone,
+		DisplayName: displayName,
 		CreatedAt:   time.Now(),
-		// TODO(ppacher): CreatedAt
+		// TODO(ppacher): CreatedBy
 		Deleted: false,
 	}
 

@@ -44,6 +44,7 @@ type Overwrite struct {
 	Date        string             `bson:"date,omitempty" json:"date"` // YYYY-MM-DD
 	Username    string             `bson:"username,omitempty" json:"username,omitempty"`
 	PhoneNumber string             `bson:"phoneNumber,omitempty" json:"phoneNumber,omitempty"`
+	DisplayName string             `bson:"displayName,omitempty" json:"displayName,omitempty"`
 	Deleted     bool               `bson:"deleted,omitempty" json:"-"`
 	CreatedBy   string             `bson:"createdBy,omitempty" json:"createdBy,omitempty"`
 	CreatedAt   time.Time          `bson:"createdAt,omitempty" json:"createdAt,omitempty"`

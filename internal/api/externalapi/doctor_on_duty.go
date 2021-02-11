@@ -91,7 +91,12 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, changeDutyAt, false, err
 	}
+
 	if err == nil {
+		if overwrite.DisplayName == "" {
+			overwrite.DisplayName = "Manual Overwrite"
+		}
+
 		log.WithFields(logger.Fields{
 			"date":      key,
 			"overwrite": overwrite,
@@ -105,10 +110,6 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 				"",
 			)
 		} else {
-			if overwrite.PhoneNumber != "" {
-				log.Errorf("failed to parse phonenumber %q of overwrite for day %s", overwrite.PhoneNumber, key)
-			}
-
 			var phone string
 			user, ok := lm[overwrite.Username]
 			if !ok || overwrite.Username == "" {
@@ -132,7 +133,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 
 		return []v1alpha.DoctorOnDuty{
 			{
-				FullName: "Overwrite",
+				FullName: overwrite.DisplayName,
 				Phone:    overwrite.PhoneNumber,
 				Username: overwrite.Username,
 			},

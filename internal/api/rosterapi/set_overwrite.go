@@ -12,8 +12,9 @@ import (
 )
 
 type setOverwriteRequest struct {
-	Username string `json:"username"`
-	Phone    string `json:"phoneNumber"`
+	Username    string `json:"username"`
+	Phone       string `json:"phoneNumber"`
+	DisplayName string `json:"displayName"`
 }
 
 // SetOverwriteEndpoint allows to configure the duty roster overwrite.
@@ -37,7 +38,7 @@ func SetOverwriteEndpoint(router *app.Router) {
 				return httperr.BadRequest(err)
 			}
 
-			if err := app.DutyRosters.SetOverwrite(ctx, d, body.Username, body.Phone); err != nil {
+			if err := app.DutyRosters.SetOverwrite(ctx, d, body.Username, body.Phone, body.DisplayName); err != nil {
 				return err
 			}
 
