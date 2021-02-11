@@ -11,7 +11,7 @@
     "secure": false
   },
   "/api": {
-    "target": "https://intern.tierklinikdobersberg.at",
+    "target": "http://localhost:3000/",
     "changeOrigin": true,
     "secure": false
   }

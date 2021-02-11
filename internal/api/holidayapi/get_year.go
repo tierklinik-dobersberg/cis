@@ -1,41 +1,39 @@
 package holidayapi
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
-	"github.com/tierklinik-dobersberg/service/server"
 )
 
 // GetForYearEndpoint returns all holidays in the
 // given year.
-func GetForYearEndpoint(grp gin.IRouter) {
-	grp.GET("v1/:year", func(c *gin.Context) {
-		app := app.From(c)
-		if app == nil {
-			return
-		}
+func GetForYearEndpoint(grp *app.Router) {
+	grp.GET(
+		"v1/:year",
+		func(ctx context.Context, app *app.App, c *gin.Context) error {
+			year, err := strconv.ParseInt(c.Param("year"), 10, 64)
+			if err != nil {
+				return httperr.BadRequest(err, "invalid year")
+			}
 
-		year, err := strconv.ParseInt(c.Param("year"), 10, 64)
-		if err != nil {
-			server.AbortRequest(c, 0, err)
-			return
-		}
+			holidays, err := app.Holidays.Get(ctx, app.Config.Country, int(year))
+			if err != nil {
+				return err
+			}
 
-		holidays, err := app.Holidays.Get(c.Request.Context(), app.Config.Country, int(year))
-		if err != nil {
-			server.AbortRequest(c, http.StatusInternalServerError, err)
-			return
-		}
+			if holidays == nil {
+				// make sure we send an empty array.
+				holidays = make([]openinghours.PublicHoliday, 0)
+			}
 
-		if holidays == nil {
-			// make sure we send an empty array.
-			holidays = make([]openinghours.PublicHoliday, 0)
-		}
-
-		c.JSON(http.StatusOK, holidays)
-	})
+			c.JSON(http.StatusOK, holidays)
+			return nil
+		},
+	)
 }

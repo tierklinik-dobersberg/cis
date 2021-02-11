@@ -1,60 +1,49 @@
 package identityapi
 
 import (
+	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
-	"github.com/tierklinik-dobersberg/service/server"
 )
 
 // ChangePasswordEndpoint allows a user to change it's own password.
-func ChangePasswordEndpoint(grp gin.IRouter) {
+func ChangePasswordEndpoint(grp *app.Router) {
 	grp.PUT(
 		"v1/profile/password",
-		session.Require(),
-		func(c *gin.Context) {
-			appCtx := app.From(c)
-			if appCtx == nil {
-				return
-			}
-
+		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			body := struct {
 				Current     string `json:"current"`
 				NewPassword string `json:"newPassword"`
 			}{}
 
 			if err := json.NewDecoder(c.Request.Body).Decode(&body); err != nil {
-				server.AbortRequest(c, http.StatusBadRequest, err)
-				return
+				return httperr.BadRequest(err, "invalid body")
 			}
 
 			if body.Current == "" {
-				server.AbortRequest(c, http.StatusBadRequest, fmt.Errorf("no current password set"))
-				return
+				return httperr.BadRequest(nil, "missing current password")
 			}
 
 			if body.NewPassword == "" {
-				server.AbortRequest(c, http.StatusBadRequest, fmt.Errorf("password must not be empty"))
-				return
+				return httperr.BadRequest(nil, "missing new password")
 			}
 
 			sess := session.Get(c)
-			if !appCtx.Identities.Authenticate(c.Request.Context(), sess.User.Name, body.Current) {
-				server.AbortRequest(c, http.StatusBadRequest, errors.New("incorrect password"))
-				return
+			if !app.Identities.Authenticate(ctx, sess.User.Name, body.Current) {
+				return httperr.BadRequest(nil)
 			}
 
-			if err := appCtx.Identities.SetUserPassword(c.Request.Context(), sess.User.Name, body.NewPassword, "bcrypt"); err != nil {
-				server.AbortRequest(c, http.StatusInternalServerError, err)
-				return
+			if err := app.Identities.SetUserPassword(ctx, sess.User.Name, body.NewPassword, "bcrypt"); err != nil {
+				return err
 			}
 
 			c.Status(http.StatusNoContent)
+			return nil
 		},
 	)
 }

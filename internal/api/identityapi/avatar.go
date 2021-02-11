@@ -11,32 +11,25 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/session"
+	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
 // AvatarEndpoint serves the user avatar as an image.
-func AvatarEndpoint(grp gin.IRouter) {
+func AvatarEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/avatar/:userName",
-		session.Require(),
-		func(c *gin.Context) {
-			appCtx := app.From(c)
-			if appCtx == nil {
-				return
-			}
-
+		func(ctx context.Context, app *app.App, c *gin.Context) error {
+			log := logger.From(ctx)
 			userName := c.Param("userName")
 			if userName == "" {
-				c.AbortWithStatus(http.StatusBadRequest)
-				return
+				return httperr.BadRequest(nil, "missing username parameter")
 			}
 
-			user, err := appCtx.Identities.GetUser(c.Request.Context(), userName)
+			user, err := app.Identities.GetUser(ctx, userName)
 			if err != nil {
-				logger.From(c.Request.Context()).Errorf("failed to get user %s: %s", userName, err)
-				c.AbortWithStatus(http.StatusInternalServerError)
-				return
+				log.Errorf("failed to get user %s: %s", userName, err)
+				return err
 			}
 
 			avatarFile := user.AvatarFile
@@ -44,15 +37,13 @@ func AvatarEndpoint(grp gin.IRouter) {
 				avatarFile = strings.ToLower(user.Name) + ".png"
 			}
 
-			f, err := loadAvatar(c.Request.Context(), appCtx.Config.AvatarDirectory, avatarFile)
+			f, err := loadAvatar(ctx, app.Config.AvatarDirectory, avatarFile)
 			if err != nil {
 				if os.IsNotExist(err) {
-					c.AbortWithStatus(http.StatusNotFound)
-					return
+					return httperr.NotFound("avatar", userName, err)
 				}
 
-				c.AbortWithError(http.StatusInternalServerError, err)
-				return
+				return err
 			}
 
 			if closer, ok := f.(io.Closer); ok {
@@ -60,6 +51,7 @@ func AvatarEndpoint(grp gin.IRouter) {
 			}
 
 			http.ServeContent(c.Writer, c.Request, userName, time.Now(), f)
+			return nil
 		},
 	)
 }

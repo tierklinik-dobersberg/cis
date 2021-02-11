@@ -1,6 +1,7 @@
 package identityapi
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 
@@ -13,7 +14,7 @@ import (
 // the X-Original-URL header or by using a combination of X-Forwarded-Proto,
 // X-Forwarded-Host and X-Forwarded-URI headers as a fallback. The User member
 // of the permission request is set to the session user associated with c.
-func NewPermissionRequest(c *gin.Context) (*permission.Request, error) {
+func NewPermissionRequest(ctx context.Context, c *gin.Context) (*permission.Request, error) {
 	user := c.GetString("session:user")
 
 	originalURL := c.Request.Header.Get("X-Original-URL")
@@ -27,7 +28,7 @@ func NewPermissionRequest(c *gin.Context) (*permission.Request, error) {
 		return perm, nil
 	}
 
-	logger.From(c.Request.Context()).Infof("no X-Original-URL header present, using X-Forwarded headers")
+	logger.From(ctx).Infof("no X-Original-URL header present, using X-Forwarded headers")
 
 	proto := c.Request.Header.Get("X-Forwarded-Proto")
 	host := c.Request.Header.Get("X-Forwarded-Host")

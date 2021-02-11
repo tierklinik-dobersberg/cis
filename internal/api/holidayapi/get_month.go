@@ -1,6 +1,7 @@
 package holidayapi
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -8,50 +9,47 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/service/server"
 )
 
 // GetForMonthEndpoint returns all holidays in the
 // given month.
-func GetForMonthEndpoint(grp gin.IRouter) {
-	grp.GET("v1/:year/:month", func(c *gin.Context) {
-		app := app.From(c)
-		if app == nil {
-			return
-		}
+func GetForMonthEndpoint(grp *app.Router) {
+	grp.GET(
+		"v1/:year/:month",
+		func(ctx context.Context, app *app.App, c *gin.Context) error {
+			log := logger.From(ctx)
 
-		log := logger.From(c.Request.Context())
-
-		year, err := strconv.ParseInt(c.Param("year"), 10, 64)
-		if err != nil {
-			server.AbortRequest(c, 0, err)
-			return
-		}
-
-		month, err := strconv.ParseInt(c.Param("month"), 10, 64)
-		if err != nil {
-			server.AbortRequest(c, 0, err)
-			return
-		}
-
-		holidays, err := app.Holidays.Get(c.Request.Context(), app.Config.Country, int(year))
-		if err != nil {
-			server.AbortRequest(c, http.StatusInternalServerError, err)
-			return
-		}
-		log.Infof("loading holidays for %d/%d: %+v", year, month, holidays)
-
-		prefix := fmt.Sprintf("%d-%02d-", year, month)
-		result := make([]openinghours.PublicHoliday, 0, len(holidays))
-		for _, day := range holidays {
-			logger.From(c.Request.Context()).Infof("checking %s against %s", day.Date, prefix)
-			if strings.HasPrefix(day.Date, prefix) {
-				result = append(result, day)
+			year, err := strconv.ParseInt(c.Param("year"), 10, 64)
+			if err != nil {
+				return httperr.BadRequest(err, "invalid year")
 			}
-		}
 
-		c.JSON(http.StatusOK, result)
-	})
+			month, err := strconv.ParseInt(c.Param("month"), 10, 64)
+			if err != nil {
+				return httperr.BadRequest(err, "invalid month")
+			}
+
+			holidays, err := app.Holidays.Get(ctx, app.Config.Country, int(year))
+			if err != nil {
+				return err
+			}
+
+			log.Infof("loading holidays for %d/%d: %+v", year, month, holidays)
+
+			prefix := fmt.Sprintf("%d-%02d-", year, month)
+			result := make([]openinghours.PublicHoliday, 0, len(holidays))
+			for _, day := range holidays {
+				log.Infof("checking %s against %s", day.Date, prefix)
+				if strings.HasPrefix(day.Date, prefix) {
+					result = append(result, day)
+				}
+			}
+
+			c.JSON(http.StatusOK, result)
+			return nil
+		},
+	)
 }

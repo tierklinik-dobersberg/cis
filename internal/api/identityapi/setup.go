@@ -1,33 +1,41 @@
 package identityapi
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/session"
+)
 
 // Setup sets up all routes for the identity API.
 func Setup(grp gin.IRouter) {
+	group := app.NewRouter(grp)
+
 	// POST v1/login
-	LoginEndpoint(grp)
+	LoginEndpoint(group)
+
+	router := group.Group("", session.Require())
 
 	// POST v1/refresh
-	RefreshEndpoint(grp)
+	RefreshEndpoint(router)
 
 	// GET v1/verify
-	VerifyEndpoint(grp)
+	VerifyEndpoint(router)
 
 	// GET v1/profile
-	ProfileEndpoint(grp)
+	ProfileEndpoint(router)
 
 	// PUT v1/profile/password
-	ChangePasswordEndpoint(grp)
+	ChangePasswordEndpoint(router)
 
 	// POST v1/password-check
-	PasswordStrengthEndpoint(grp)
+	PasswordStrengthEndpoint(router)
 
 	// GET v1/avatar/:user
-	AvatarEndpoint(grp)
+	AvatarEndpoint(router)
 
 	// GET v1/users
-	ListAllUsersEndpoint(grp)
+	ListAllUsersEndpoint(router)
 
 	// POST v1/logout
-	LogoutEndpoint(grp)
+	LogoutEndpoint(router)
 }

@@ -12,64 +12,54 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
+	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
-	"github.com/tierklinik-dobersberg/service/server"
 )
 
 // CreateOrUpdateEndpoint allows to either create a new or update
 // an existing roster.
-func CreateOrUpdateEndpoint(grp gin.IRouter) {
-	grp.PUT("v1/roster/:year/:month", func(c *gin.Context) {
-		app := app.From(c)
-		if app == nil {
-			return
-		}
+func CreateOrUpdateEndpoint(grp *app.Router) {
+	grp.PUT(
+		"v1/roster/:year/:month",
+		func(ctx context.Context, app *app.App, c *gin.Context) error {
+			month, year, err := getYearAndMonth(c)
+			if err != nil {
+				return err
+			}
 
-		month, year, ok := getYearAndMonth(c)
-		if !ok {
-			return
-		}
+			_, err = app.DutyRosters.ForMonth(ctx, month, year)
+			if err != nil && !errors.Is(err, rosterdb.ErrNotFound) {
+				return err
+			}
 
-		_, err := app.DutyRosters.ForMonth(c.Request.Context(), month, year)
-		if err != nil && !errors.Is(err, rosterdb.ErrNotFound) {
-			server.AbortRequest(c, http.StatusInternalServerError, err)
-			return
-		}
+			var body v1alpha.DutyRoster
+			if err := json.NewDecoder(c.Request.Body).Decode(&body); err != nil {
+				return httperr.BadRequest(err)
+			}
 
-		var body v1alpha.DutyRoster
-		if err := json.NewDecoder(c.Request.Body).Decode(&body); err != nil {
-			server.AbortRequest(c, http.StatusBadRequest, err)
-			return
-		}
+			if body.Month != month || body.Year != year {
+				return httperr.BadRequest(nil, "body specifies a different year/month")
+			}
 
-		if body.Month != month || body.Year != year {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"error": "invalid year or month (url match)",
-			})
-			return
-		}
+			if err := validateRoster(ctx, app, &body); err != nil {
+				return httperr.BadRequest(err)
+			}
 
-		if err := validateRoster(c.Request.Context(), app, &body); err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
+			if errors.Is(err, rosterdb.ErrNotFound) {
+				err = app.DutyRosters.Create(ctx, body.Month, body.Year, body.Days)
+			} else {
+				err = app.DutyRosters.Update(ctx, &body)
+			}
 
-		if errors.Is(err, rosterdb.ErrNotFound) {
-			err = app.DutyRosters.Create(c.Request.Context(), body.Month, body.Year, body.Days)
-		} else {
-			err = app.DutyRosters.Update(c.Request.Context(), &body)
-		}
+			if err != nil {
+				return err
+			}
 
-		if err != nil {
-			server.AbortRequest(c, http.StatusInternalServerError, err)
-			return
-		}
-
-		c.Status(http.StatusNoContent)
-	})
+			c.Status(http.StatusNoContent)
+			return nil
+		},
+	)
 }
 
 func validateRoster(ctx context.Context, app *app.App, roster *v1alpha.DutyRoster) error {

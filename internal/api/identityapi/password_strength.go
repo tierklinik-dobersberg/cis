@@ -1,29 +1,28 @@
 package identityapi
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/nbutton23/zxcvbn-go"
-	"github.com/tierklinik-dobersberg/cis/internal/session"
-	"github.com/tierklinik-dobersberg/service/server"
+	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 )
 
 // PasswordStrengthEndpoint calculates the strength of a password
 // using zxcvbn.
-func PasswordStrengthEndpoint(grp gin.IRouter) {
+func PasswordStrengthEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/password-check",
-		session.Require(),
-		func(c *gin.Context) {
+		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			var body struct {
 				Password string `json:"password"`
 			}
 
 			if err := json.NewDecoder(c.Request.Body).Decode(&body); err != nil {
-				server.AbortRequest(c, http.StatusBadRequest, err)
-				return
+				return httperr.BadRequest(err)
 			}
 
 			result := zxcvbn.PasswordStrength(body.Password, nil)
@@ -33,6 +32,7 @@ func PasswordStrengthEndpoint(grp gin.IRouter) {
 				"crackTime": result.CrackTimeDisplay,
 				"score":     result.Score,
 			})
+			return nil
 		},
 	)
 }

@@ -1,34 +1,27 @@
 package identityapi
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
-	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
 )
 
 // ProfileEndpoint serves the user profile of the user
 // currently logged in.
-func ProfileEndpoint(grp gin.IRouter) {
+func ProfileEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/profile",
-		session.Require(),
-		func(c *gin.Context) {
-			app := app.From(c)
-			if app == nil {
-				return
-			}
-
+		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			sess := session.Get(c)
 
-			ctx := identitydb.WithScope(c.Request.Context(), identitydb.Private)
+			ctx = identitydb.WithScope(ctx, identitydb.Private)
 			user, err := app.Identities.GetUser(ctx, sess.User.Name)
 			if err != nil {
-				httperr.InternalError(err).AbortRequest(c)
-				return
+				return err
 			}
 
 			// the user/request might be granted roles by auto-assignment (see autologin)
@@ -36,6 +29,7 @@ func ProfileEndpoint(grp gin.IRouter) {
 			user.Roles = sess.Roles
 
 			c.JSON(http.StatusOK, user)
+			return nil
 		},
 	)
 }

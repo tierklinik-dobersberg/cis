@@ -7,16 +7,16 @@ import (
 
 // Setup registers all API routes for the roster.
 func Setup(grp gin.IRouter) {
+	router := app.NewRouter(grp)
+
 	// GET /api/dutyroster/v1/roster/:year/:month
-	GetForMonthEndpoint(grp)
+	GetForMonthEndpoint(router)
 
 	// DELETE /api/dutyroster/v1/roster/:year/:month
-	DeleteRosterEndpoint(grp)
+	DeleteRosterEndpoint(router)
 
 	// PUT /api/dutyroster/v1/roster/:year/:month
-	CreateOrUpdateEndpoint(grp)
-
-	router := app.NewRouter(grp)
+	CreateOrUpdateEndpoint(router)
 
 	// POST /api/dutyroster/v1/overwrite?date=<date>
 	SetOverwriteEndpoint(router)
