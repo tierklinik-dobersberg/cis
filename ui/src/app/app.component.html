@@ -56,7 +56,7 @@
 </ng-template>
 
 <nz-drawer *ngIf="layout.isPhone" [nzClosable]="false" [nzVisible]="!isCollapsed" nzPlacement="left"
-  [nzTitle]="drawerTitleTemplate" (nzOnClose)="toggleMenu()">
+  [nzTitle]="drawerTitleTemplate" (nzOnClose)="toggleMenu()" nzWrapClassName="menu-container">
   <ng-container *ngTemplateOutlet="menuTemplate"></ng-container>
 </nz-drawer>
 
