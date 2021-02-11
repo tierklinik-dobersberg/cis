@@ -23,10 +23,16 @@ export interface UserProperty {
   displayName?: string;
 }
 
+export interface QuickRosterOverwrite {
+  DisplayName: string;
+  TargetNumber: string;
+}
+
 export interface UIConfig {
   HideUsersWithRole?: string[];
   ExternalLinks?: ExternalLink[];
   UserProperties: UserProperty[];
+  QuickRosterOverwrites?: QuickRosterOverwrite[];
 }
 
 @Injectable({

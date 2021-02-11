@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { NzMessageService } from "ng-zorro-antd/message";
 import { BehaviorSubject, combineLatest, interval, of, Subscription, throwError } from "rxjs";
 import { catchError, delay, map, mergeMap, retryWhen, startWith } from "rxjs/operators";
-import { DoctorOnDuty, ExternalAPI, IdentityAPI, ProfileWithAvatar, RosterAPI } from "src/app/api";
+import { ConfigAPI, DoctorOnDuty, ExternalAPI, IdentityAPI, ProfileWithAvatar, QuickRosterOverwrite, RosterAPI } from "src/app/api";
 import { LayoutService } from "src/app/layout.service";
 import { extractErrorMessage } from "src/app/utils";
 
@@ -25,6 +25,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
     primaryOnDuty: string = '';
     overwritePhone: string = '';
     drawerVisible = false;
+    quickOverwrites: QuickRosterOverwrite[] = [];
 
     allUsers: ProfileWithAvatar[] = [];
 
@@ -34,6 +35,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
         private externalapi: ExternalAPI,
         private identityapi: IdentityAPI,
         private rosterapi: RosterAPI,
+        private configapi: ConfigAPI,
         private nzMessageService: NzMessageService,
         private changeDetector: ChangeDetectorRef,
         public layout: LayoutService,
@@ -44,10 +46,11 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
         this.overwritePhone = '';
     }
 
-    configureOverwrite(user?: string) {
+    configureOverwrite(user?: string, overwritePhone?: string, disiplayName?: string) {
         this.rosterapi.setOverwrite({
             username: user || '',
-            phoneNumber: this.overwritePhone,
+            phoneNumber: overwritePhone || this.overwritePhone,
+            displayName: disiplayName || '',
         }).subscribe(
             () => {
                 this.nzMessageService.success("Dienstplan überschrieben.")
@@ -77,10 +80,24 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
     ngOnInit() {
         this.subscriptions = new Subscription();
 
+        // get a list of all users including their avatars.
         const allUsersSub = this.identityapi.listUsers({ includeAvatars: true })
             .subscribe(users => this.allUsers = users);
         this.subscriptions.add(allUsersSub);
 
+        // load all quick-overwrites defined in the configuration
+        const configSub = this.configapi.change
+            .subscribe(config => {
+                if (!config) {
+                    return;
+                }
+
+                this.quickOverwrites = config.QuickRosterOverwrites || [];
+            })
+        this.subscriptions.add(configSub);
+
+
+        // watch the current doctor-on-duty
         const sub = combineLatest([
             interval(20000).pipe(startWith(0)),
             this.reload

@@ -9,6 +9,33 @@
   [nzWidth]="layout.drawerWidth | async">
   <div class="user-dropdown">
     <h2>Nachtdienst überschreiben</h2>
+
+    <div class="drawer-actions">
+      <ng-container *ngIf="quickOverwrites.length === 1">
+        <button nz-button nzType="default"
+          (click)="configureOverwrite(null, quickOverwrites[0].TargetNumber, quickOverwrites[0].DisplayName)">
+          {{ quickOverwrites[0].DisplayName }}
+        </button>
+      </ng-container>
+      <button *ngIf="quickOverwrites.length > 1" nz-button nzType="default" nz-dropdown [nzDropdownMenu]="quickMenu">
+        Schnellauswahl
+        <i nz-icon nzType="down" nzTheme="outline"></i>
+      </button>
+      <nz-dropdown-menu #quickMenu="nzDropdownMenu">
+        <ul nz-menu>
+          <li nz-menu-item *ngFor="let quick of quickOverwrites"
+            (click)="configureOverwrite(null, quick.TargetNumber, quick.DisplayName)">
+            {{quick.DisplayName}}
+          </li>
+        </ul>
+      </nz-dropdown-menu>
+      <button nz-button nzType="primary" *ngIf="isOverwritten" (click)="removeOverwrite()" nz-tooltip
+        nzTooltipTitle="Wieder den Dienstplan verwenden">
+        <i nz-icon nzType="close" nzTheme="outline"></i>
+        Zurücksetzen
+      </button>
+    </div>
+
     <h4>Wähle den neuen Nachtdienst aus:</h4>
     <div class="grid-container">
       <div class="grid">
@@ -30,7 +57,6 @@
     <div class="drawer-actions">
       <button nz-button nzType="danger" [disabled]="overwritePhone === ''"
         (click)="configureOverwrite()">Speichern</button>
-      <button nz-button nzType="primary" *ngIf="isOverwritten" (click)="removeOverwrite()">Dienstplan verwenden</button>
     </div>
   </div>
 </nz-drawer>

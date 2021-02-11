@@ -19,6 +19,7 @@ export interface Roster {
 }
 
 export interface Overwrite {
+  displayName?: string;
   username?: string;
   phoneNumber?: string;
 }
@@ -84,7 +85,7 @@ export class RosterAPI {
     let params = new HttpParams();
 
     if (!!date) {
-      params.set(`date`, `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`)
+      params = params.set(`date`, `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`)
     }
 
     return this.http.post<void>(`/api/dutyroster/v1/overwrite`, overwrite, {
@@ -101,7 +102,7 @@ export class RosterAPI {
     let params = new HttpParams();
 
     if (!!date) {
-      params.set(`date`, `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`)
+      params = params.set(`date`, `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`)
     }
 
     return this.http.get<Overwrite>(`/api/dutyroster/v1/overwrite`, {
@@ -118,7 +119,7 @@ export class RosterAPI {
     let params = new HttpParams();
 
     if (!!date) {
-      params.set(`date`, `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`)
+      params = params.set(`date`, `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`)
     }
 
     return this.http.delete<void>(`/api/dutyroster/v1/overwrite`, {
