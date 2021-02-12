@@ -12,6 +12,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
@@ -21,6 +22,7 @@ import (
 func VerifyEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/verify",
+		permission.Anyone,
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			log := logger.From(ctx)
 

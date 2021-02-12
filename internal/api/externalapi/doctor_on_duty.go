@@ -14,6 +14,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/external/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
@@ -26,6 +27,9 @@ import (
 func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/doctor-on-duty",
+		permission.Set{
+			ReadOnDutyAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			d := time.Now()
 			if at := c.Query("at"); at != "" {

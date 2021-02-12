@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	v1 "github.com/tierklinik-dobersberg/cis/pkg/models/customer/v1alpha"
 )
 
@@ -21,6 +22,9 @@ import (
 func ExtendedSearchEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/search",
+		permission.Set{
+			ReadCustomerAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			var result map[string]interface{}
 

@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 // GetByIDEndpoint returns a JSON version of the customer
@@ -17,6 +18,9 @@ import (
 func GetByIDEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/:source/:id",
+		permission.Set{
+			ReadCustomerAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			source := c.Param("source")
 

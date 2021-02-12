@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
 
@@ -13,6 +14,7 @@ import (
 func ListAllUsersEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/users",
+		permission.Anyone,
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			all, err := app.Identities.ListAllUsers(ctx)
 			if err != nil {

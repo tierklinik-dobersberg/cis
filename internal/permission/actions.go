@@ -4,7 +4,12 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+
+	"github.com/gin-gonic/gin"
 )
+
+// ResourceNameFunc should return the name of the resource in question.
+type ResourceNameFunc func(c *gin.Context) (string, error)
 
 // Action is a resource action and subject to
 // permission checks.
@@ -13,6 +18,9 @@ type Action struct {
 	Name string
 	// Description is a short description of the action.
 	Description string
+	// ResourceName func returns the name of the resource
+	// the action operates on from the request context.
+	ResourceName ResourceNameFunc
 	// valid guards against actions being created but
 	// not registered in this package.
 	valid bool
@@ -30,7 +38,7 @@ var (
 
 // DefineAction defines a resource action that can be
 // executed and is subject to permission checks.
-func DefineAction(name, desc string) (*Action, error) {
+func DefineAction(name, desc string, fn ResourceNameFunc) (*Action, error) {
 	actionsLock.Lock()
 	defer actionsLock.Unlock()
 
@@ -40,9 +48,10 @@ func DefineAction(name, desc string) (*Action, error) {
 	}
 
 	action := &Action{
-		Name:        name,
-		Description: desc,
-		valid:       true,
+		Name:         name,
+		Description:  desc,
+		ResourceName: fn,
+		valid:        true,
 	}
 	actions[lower] = action
 
@@ -51,8 +60,8 @@ func DefineAction(name, desc string) (*Action, error) {
 
 // MustDefineAction is like DefineAction but panics if name
 // is already designed.
-func MustDefineAction(name, desc string) *Action {
-	a, err := DefineAction(name, desc)
+func MustDefineAction(name, desc string, fn ResourceNameFunc) *Action {
+	a, err := DefineAction(name, desc, fn)
 	if err != nil {
 		panic(err.Error())
 	}

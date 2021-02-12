@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 // GetOverwriteEndpoint returns the duty-roster overwrite for the
@@ -15,6 +16,9 @@ import (
 func GetOverwriteEndpoint(router *app.Router) {
 	router.GET(
 		"v1/overwrite",
+		permission.Set{
+			ReadRosterOverwriteAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			date := c.Query("date")
 

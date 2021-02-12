@@ -8,8 +8,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/cis/internal/api/calllogapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/calllog/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -28,6 +30,9 @@ type recordCallRequest struct {
 func RecordCallEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/calllog",
+		permission.Set{
+			calllogapi.CreateRecordAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			caller := c.Query("ani")
 			did := c.Query("did")

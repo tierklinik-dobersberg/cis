@@ -8,12 +8,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 // ForDateEndpoints allows loading voicemail records for a given date.
 func ForDateEndpoints(router *app.Router) {
 	router.GET(
 		"v1/search",
+		permission.Set{
+			ReadVoicemailsAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			name := c.Query("name")
 			date := c.Query("date")

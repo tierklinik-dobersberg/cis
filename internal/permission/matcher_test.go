@@ -18,9 +18,7 @@ func TestMatcher_IsApplicable(t *testing.T) {
 		{
 			permission.Request{
 				User:     "admin",
-				Domain:   "example.com",
 				Resource: "/foo",
-				Scheme:   "https",
 			},
 			schema.Permission{
 				Permission: v1alpha.Permission{

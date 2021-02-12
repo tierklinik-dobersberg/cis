@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
 )
 
@@ -15,6 +16,7 @@ import (
 func ProfileEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/profile",
+		permission.Anyone,
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			sess := session.Get(c)
 

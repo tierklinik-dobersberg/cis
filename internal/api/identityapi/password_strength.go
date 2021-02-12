@@ -9,6 +9,7 @@ import (
 	"github.com/nbutton23/zxcvbn-go"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 // PasswordStrengthEndpoint calculates the strength of a password
@@ -16,6 +17,7 @@ import (
 func PasswordStrengthEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/password-check",
+		permission.Anyone,
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			var body struct {
 				Password string `json:"password"`

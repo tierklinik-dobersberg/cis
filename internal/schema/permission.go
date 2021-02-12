@@ -31,11 +31,6 @@ var PermissionSpec = conf.SectionSpec{
 		Required:    true,
 	},
 	{
-		Name:        "Domain",
-		Type:        conf.StringSliceType,
-		Description: "One ore more domains the permission applies to",
-	},
-	{
 		Name:        "Action",
 		Type:        conf.StringSliceType,
 		Description: "One or more actions",

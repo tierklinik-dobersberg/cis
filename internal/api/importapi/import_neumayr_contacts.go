@@ -10,11 +10,15 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/importer/neumayr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 func ImportNeumayrContactsEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/neumayr/contacts",
+		permission.Set{
+			NeumayrContactsAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			file, err := c.FormFile("file")
 			if err != nil {
@@ -31,6 +35,7 @@ func ImportNeumayrContactsEndpoint(grp *app.Router) {
 			if err := c.SaveUploadedFile(file, tmpFile.Name()); err != nil {
 				return httperr.InternalError(err)
 			}
+
 			f, err := os.Open(tmpFile.Name())
 			if err != nil {
 				return httperr.InternalError(err)

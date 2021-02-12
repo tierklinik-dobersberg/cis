@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 // GetForMonthEndpoint supports getting the duty roster for
@@ -13,6 +14,9 @@ import (
 func GetForMonthEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/roster/:year/:month",
+		permission.Set{
+			ReadRosterAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			month, year, err := getYearAndMonth(c)
 			if err != nil {

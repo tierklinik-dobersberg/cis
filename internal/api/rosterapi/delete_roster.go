@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 // DeleteRosterEndpoint provides a HTTP endpoint to delete the
@@ -13,6 +14,9 @@ import (
 func DeleteRosterEndpoint(grp *app.Router) {
 	grp.DELETE(
 		"v1/roster/:year/:month",
+		permission.Set{
+			WriteRosterAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			month, year, err := getYearAndMonth(c)
 			if err != nil {

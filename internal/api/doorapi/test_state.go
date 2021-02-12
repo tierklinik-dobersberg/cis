@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 // TestStateEndpoint allows to test the desired door state for any
@@ -16,6 +17,9 @@ import (
 func TestStateEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/test/:year/:month/:day/:hour/:minute",
+		permission.Set{
+			GetStateAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			year, err := getIntParam("year", c)
 			if err != nil {

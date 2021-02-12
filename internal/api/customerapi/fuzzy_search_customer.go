@@ -11,6 +11,7 @@ import (
 	"github.com/nyaruka/phonenumbers"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	v1 "github.com/tierklinik-dobersberg/cis/pkg/models/customer/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
@@ -21,6 +22,9 @@ import (
 func FuzzySearchEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/",
+		permission.Set{
+			ReadCustomerAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			filter := bson.M{}
 			singleResponse := c.Query("single") != ""

@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
 )
 
@@ -15,6 +16,7 @@ import (
 func ChangePasswordEndpoint(grp *app.Router) {
 	grp.PUT(
 		"v1/profile/password",
+		permission.Anyone,
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			body := struct {
 				Current     string `json:"current"`

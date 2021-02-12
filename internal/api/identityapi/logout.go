@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -15,6 +16,7 @@ import (
 func LogoutEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/logout",
+		permission.Anyone,
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			if session.Get(c) == nil {
 				c.Status(http.StatusOK)

@@ -11,6 +11,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 // OverwriteEndpoint allows to overwrite the door state
@@ -18,6 +19,9 @@ import (
 func OverwriteEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/overwrite",
+		permission.Set{
+			SetStateAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			// parse the request body
 			var body struct {

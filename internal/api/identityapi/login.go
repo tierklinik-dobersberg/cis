@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
@@ -33,6 +34,7 @@ func removeSetSessionCookie(app *app.App, w http.ResponseWriter) {
 func LoginEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/login",
+		permission.Anyone,
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			var user *v1alpha.User
 

@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 type setOverwriteRequest struct {
@@ -21,6 +22,9 @@ type setOverwriteRequest struct {
 func SetOverwriteEndpoint(router *app.Router) {
 	router.POST(
 		"v1/overwrite",
+		permission.Set{
+			WriteRosterOverwriteAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			date := c.Query("date")
 

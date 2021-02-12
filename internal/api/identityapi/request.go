@@ -48,7 +48,7 @@ func PermissionRequestFromURL(u string) (*permission.Request, error) {
 
 	return &permission.Request{
 		Resource: parsed.Path,
-		Domain:   parsed.Hostname(),
-		Scheme:   parsed.Scheme,
+		//Domain:   parsed.Hostname(),
+		//Scheme:   parsed.Scheme,
 	}, nil
 }

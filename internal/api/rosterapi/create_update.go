@@ -13,6 +13,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
 )
@@ -22,6 +23,9 @@ import (
 func CreateOrUpdateEndpoint(grp *app.Router) {
 	grp.PUT(
 		"v1/roster/:year/:month",
+		permission.Set{
+			WriteRosterAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			month, year, err := getYearAndMonth(c)
 			if err != nil {

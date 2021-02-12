@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/calllog/v1alpha"
 )
 
@@ -15,6 +16,9 @@ import (
 func ForCustomerEndpoint(router *app.Router) {
 	router.GET(
 		"v1/customer/:source/:id",
+		permission.Set{
+			ReadRecordsAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			source := c.Param("source")
 			id := c.Param("id")

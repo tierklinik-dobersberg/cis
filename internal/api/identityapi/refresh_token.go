@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
 )
 
@@ -17,6 +18,7 @@ func RefreshEndpoint(grp *app.Router) {
 	// a "refresh" scope one here.
 	grp.POST(
 		"v1/refresh",
+		permission.Anyone,
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			token, err := session.IssueAccessToken(app, c)
 			if err != nil {

@@ -11,6 +11,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
@@ -19,6 +20,7 @@ import (
 func GetForMonthEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/:year/:month",
+		permission.Anyone, // public domain
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			log := logger.From(ctx)
 

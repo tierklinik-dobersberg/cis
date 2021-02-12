@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
@@ -19,6 +20,7 @@ import (
 func AvatarEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/avatar/:userName",
+		permission.Anyone,
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			log := logger.From(ctx)
 			userName := c.Param("userName")

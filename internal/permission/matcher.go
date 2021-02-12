@@ -60,9 +60,6 @@ func (match *Matcher) Decide(ctx context.Context, req *Request) (bool, error) {
 // IsApplicable returns true if perm is applicable to be used for a
 // decision on req.
 func (match *Matcher) IsApplicable(ctx context.Context, req *Request, perm *schema.Permission) bool {
-	if len(perm.Domains) > 0 && !MatchNeedle(ctx, req.Domain, perm.Domains) {
-		return false
-	}
 	if len(perm.Resources) > 0 && !MatchNeedle(ctx, req.Resource, perm.Resources) {
 		return false
 	}

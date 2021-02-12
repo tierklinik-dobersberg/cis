@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/calllog/v1alpha"
 )
 
@@ -18,6 +19,9 @@ import (
 func ForDateEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/date/:year/:month/:day",
+		permission.Set{
+			ReadRecordsAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			year, err := strconv.ParseInt(c.Param("year"), 10, 0)
 			if err != nil {

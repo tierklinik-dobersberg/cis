@@ -8,12 +8,14 @@ var (
 	CreateRecordAction = permission.MustDefineAction(
 		"calllog:create",
 		"Permission to create a new CallLog record",
+		nil,
 	)
 
 	// ReadRecordsAction is the permission required to
 	// retrieve and read calllog records.
 	ReadRecordsAction = permission.MustDefineAction(
 		"calllog:read",
-		"Permission required to retrieve and read calllog records",
+		"Permission required to retrieve and read any calllog record",
+		nil,
 	)
 )
