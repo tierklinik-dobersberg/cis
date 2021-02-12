@@ -32,12 +32,12 @@ func GetContactEndpoint(grp *app.Router) {
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			phone := c.Query("phone")
 			if phone == "" {
-				return httperr.BadRequest(nil, "missing query parameter phone")
+				return httperr.MissingParameter("phone")
 			}
 
 			number, err := phonenumbers.Parse(phone, app.Config.Country)
 			if err != nil {
-				return httperr.BadRequest(err, "Invalid phone number")
+				return httperr.InvalidParameter("phone")
 			}
 
 			filter := bson.M{

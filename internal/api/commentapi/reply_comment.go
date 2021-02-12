@@ -23,7 +23,7 @@ func ReplyCommentEndpoint(router *app.Router) {
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			id := c.Param("id")
 			if id == "" {
-				return httperr.BadRequest(nil)
+				return httperr.MissingParameter("id")
 			}
 
 			sess := session.Get(c)

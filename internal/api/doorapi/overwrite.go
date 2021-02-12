@@ -3,7 +3,6 @@ package doorapi
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -39,16 +38,16 @@ func OverwriteEndpoint(grp *app.Router) {
 			case "unlock":
 				body.State = "unlocked"
 			default:
-				return httperr.BadRequest(nil, fmt.Sprintf("invalid door state %q", body.State))
+				return httperr.InvalidField("state")
 			}
 
 			// ensure it contains a valid duration
 			d, err := time.ParseDuration(body.Duration)
 			if err != nil {
-				return httperr.BadRequest(err, "invalid duration")
+				return httperr.InvalidField("duration")
 			}
 			if d < 0 {
-				return httperr.BadRequest(err, "invalid duration")
+				return httperr.InvalidField("duration")
 			}
 
 			// overwrite the current state

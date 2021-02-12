@@ -23,7 +23,7 @@ func CreateCommentEndpoint(router *app.Router) {
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			key := c.Param("key")
 			if key == "" {
-				return httperr.BadRequest(nil)
+				return httperr.MissingParameter("key")
 			}
 
 			sess := session.Get(c)

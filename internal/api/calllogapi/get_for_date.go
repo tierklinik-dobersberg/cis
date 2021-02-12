@@ -30,12 +30,12 @@ func ForDateEndpoint(grp *app.Router) {
 
 			month, err := strconv.ParseInt(c.Param("month"), 10, 0)
 			if err != nil {
-				return httperr.BadRequest(err, "invalid month")
+				return httperr.InvalidParameter("month")
 			}
 
 			day, err := strconv.ParseInt(c.Param("day"), 10, 0)
 			if err != nil {
-				return httperr.BadRequest(err, "invalid day")
+				return httperr.InvalidParameter("day")
 			}
 
 			d, err := time.Parse("2006-01-02", fmt.Sprintf("%04d-%02d-%02d", year, month, day))

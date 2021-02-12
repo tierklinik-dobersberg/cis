@@ -22,8 +22,11 @@ func ForCustomerEndpoint(router *app.Router) {
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			source := c.Param("source")
 			id := c.Param("id")
-			if source == "" || id == "" {
-				return httperr.BadRequest(nil)
+			if source == "" {
+				return httperr.MissingParameter("source")
+			}
+			if id == "" {
+				return httperr.MissingParameter("id")
 			}
 
 			records, err := app.CallLogs.ForCustomer(ctx, source, id)

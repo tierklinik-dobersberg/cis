@@ -36,7 +36,7 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 				var err error
 				d, err = time.Parse(time.RFC3339, at)
 				if err != nil {
-					return httperr.BadRequest(err, "invalid time in query parameter `at`")
+					return httperr.InvalidParameter("at")
 				}
 			}
 

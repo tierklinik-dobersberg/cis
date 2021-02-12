@@ -1,8 +1,6 @@
 package commentapi
 
 import (
-	"errors"
-
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
@@ -18,7 +16,7 @@ var (
 		func(c *gin.Context) (string, error) {
 			key := c.Param("key")
 			if key == "" {
-				return "", httperr.BadRequest(errors.New("missing parameter key"))
+				return "", httperr.MissingParameter("key")
 			}
 
 			return key, nil
@@ -33,7 +31,7 @@ var (
 		func(c *gin.Context) (string, error) {
 			key := c.Param("key")
 			if key == "" {
-				return "", httperr.BadRequest(errors.New("missing parameter key"))
+				return "", httperr.MissingParameter("key")
 			}
 
 			return key, nil
@@ -53,7 +51,7 @@ var (
 
 			id := c.Param("id")
 			if id == "" {
-				return "", httperr.BadRequest(errors.New("missing parameter id"))
+				return "", httperr.MissingParameter("id")
 			}
 
 			parent, err := app.Comments.ByID(c.Request.Context(), id)

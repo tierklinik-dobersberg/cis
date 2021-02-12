@@ -25,7 +25,7 @@ func DeleteOverwriteEndpoint(router *app.Router) {
 
 			d, err := time.Parse("2006-1-2", date)
 			if err != nil {
-				return httperr.BadRequest(err, "invalid date")
+				return httperr.InvalidParameter("date")
 			}
 
 			if err := app.DutyRosters.DeleteOverwrite(ctx, d); err != nil {

@@ -22,7 +22,7 @@ func ImportNeumayrContactsEndpoint(grp *app.Router) {
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			file, err := c.FormFile("file")
 			if err != nil {
-				return httperr.BadRequest(err)
+				return httperr.MissingField("file")
 			}
 
 			tmpFile, err := ioutil.TempFile("", "upload-*.mdb")

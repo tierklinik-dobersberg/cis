@@ -24,7 +24,7 @@ func ForDateEndpoints(router *app.Router) {
 
 			d, err := time.ParseInLocation("2006-1-2", date, app.Location())
 			if err != nil {
-				return httperr.BadRequest(err, "invalid date")
+				return httperr.InvalidParameter("date")
 			}
 
 			records, err := app.VoiceMails.ForDate(ctx, name, d)

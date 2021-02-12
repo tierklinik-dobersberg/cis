@@ -34,7 +34,7 @@ func SetOverwriteEndpoint(router *app.Router) {
 
 			d, err := time.Parse("2006-1-2", date)
 			if err != nil {
-				return httperr.BadRequest(err, "invalid date")
+				return httperr.InvalidParameter("date")
 			}
 
 			var body setOverwriteRequest

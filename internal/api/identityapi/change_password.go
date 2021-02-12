@@ -28,11 +28,11 @@ func ChangePasswordEndpoint(grp *app.Router) {
 			}
 
 			if body.Current == "" {
-				return httperr.BadRequest(nil, "missing current password")
+				return httperr.MissingField("current")
 			}
 
 			if body.NewPassword == "" {
-				return httperr.BadRequest(nil, "missing new password")
+				return httperr.MissingField("newPassword")
 			}
 
 			sess := session.Get(c)

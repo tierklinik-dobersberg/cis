@@ -11,8 +11,15 @@ import (
 // ErrBadRequest is used when there's no detailed error to report.
 var ErrBadRequest = errors.New("bad request")
 
-// NotFound returns a new not found error.
+// ErrNotFound is a generic not found error.
+var ErrNotFound = errors.New("not found")
+
+// NotFound returns a new not found error. If err is nil
+// than ErrNotFound will be used.
 func NotFound(resourceType, resourceName string, err error) *Error {
+	if err == nil {
+		err = ErrNotFound
+	}
 	return New(http.StatusNotFound, err, gin.H{
 		"error": fmt.Sprintf("%s resource %s not found", resourceType, resourceName),
 	})
@@ -24,6 +31,10 @@ func InternalError(err error, msg ...string) *Error {
 	if len(msg) > 0 {
 		errorMsg = gin.H{
 			"error": msg[0],
+		}
+
+		if err == nil {
+			err = errors.New(msg[0])
 		}
 	}
 
@@ -38,6 +49,9 @@ func BadRequest(err error, msg ...string) *Error {
 		errorMsg = gin.H{
 			"error": msg[0],
 		}
+		if err == nil {
+			err = errors.New(msg[0])
+		}
 	}
 
 	if err == nil {
@@ -45,4 +59,36 @@ func BadRequest(err error, msg ...string) *Error {
 	}
 
 	return New(http.StatusBadRequest, err, errorMsg)
+}
+
+// MissingParameter is a helper method for returning
+// 400 Bad Request for a missing parameter.
+func MissingParameter(name string) *Error {
+	return BadRequest(
+		fmt.Errorf("missing parameter %q", name),
+	)
+}
+
+// MissingField is a helper method for returning
+// 400 Bad Request for a missing body field.
+func MissingField(name string) *Error {
+	return BadRequest(
+		fmt.Errorf("missing field %q in body", name),
+	)
+}
+
+// InvalidParameter is a helper method for returning
+// 400 Bad Request for an invalid paramter value.
+func InvalidParameter(name string) *Error {
+	return BadRequest(
+		fmt.Errorf("invalid value for parameter %q", name),
+	)
+}
+
+// InvalidField is a helper method for returning
+// 400 Bad Request for an invalid body payload field value.
+func InvalidField(name string) *Error {
+	return BadRequest(
+		fmt.Errorf("invalid value for field %q in body", name),
+	)
 }

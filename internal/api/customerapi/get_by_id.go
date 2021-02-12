@@ -25,12 +25,12 @@ func GetByIDEndpoint(grp *app.Router) {
 			source := c.Param("source")
 
 			if source != "vetinf" && source != "neumayr" {
-				return httperr.BadRequest(nil, "unknown source")
+				return httperr.InvalidParameter("source")
 			}
 
 			id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 			if err != nil {
-				return httperr.BadRequest(err, "invalid ID")
+				return httperr.InvalidParameter("id")
 			}
 
 			customer, err := app.Customers.CustomerByCID(ctx, source, int(id))
