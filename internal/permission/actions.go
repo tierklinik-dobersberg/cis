@@ -42,6 +42,10 @@ func DefineAction(name, desc string, fn ResourceNameFunc) (*Action, error) {
 	actionsLock.Lock()
 	defer actionsLock.Unlock()
 
+	if actions == nil {
+		actions = make(map[string]*Action)
+	}
+
 	lower := strings.ToLower(name)
 	if _, ok := actions[lower]; ok {
 		return nil, fmt.Errorf("action %q already defined", name)

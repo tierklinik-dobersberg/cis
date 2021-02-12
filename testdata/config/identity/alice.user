@@ -13,6 +13,6 @@ Color=#1b7550b9
 PhoneExtension=10
 
 [Permission]
-Domain=secure.example.com
-Resource=/resource/foo.*
+Resource=.*
+Action=.*
 Effect=allow

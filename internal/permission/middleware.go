@@ -1,6 +1,12 @@
 package permission
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+
+	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/session"
+)
 
 // SetType fines if one or all actions of a set
 // must be permitted.
@@ -48,8 +54,58 @@ var Anyone = Set(nil)
 
 // Require is a gin middleware that enforces
 // permission requirements.
-func Require(set OneOf) gin.HandlerFunc {
+func Require(matcher *Matcher, set Set) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		sess := session.Get(c)
+		if sess == nil && len(set.Actions()) > 0 {
+			httperr.Forbidden(nil, "no session").AbortRequest(c)
+			return
+		}
 
+		for _, action := range set.Actions() {
+			var resource string
+			if action.ResourceName != nil {
+				var err error
+				resource, err = action.ResourceName(c)
+				if err != nil {
+					httperr.Abort(c, err)
+					return
+				}
+			}
+
+			req := Request{
+				Action:   action.Name,
+				Resource: resource,
+				User:     sess.User.Name,
+			}
+
+			allowed, err := matcher.Decide(c.Request.Context(), &req)
+			if err != nil {
+				httperr.InternalError(err).AbortRequest(c)
+				return
+			}
+
+			if allowed && set.Type() == Or {
+				c.Next()
+				return
+			}
+
+			if !allowed && set.Type() == And {
+				httperr.Forbidden(
+					nil,
+					fmt.Sprintf("Not allowed to perform %s on %q", action.Name, resource),
+				).AbortRequest(c)
+				return
+			}
+		}
+
+		if set.Type() == Or {
+			httperr.Forbidden(nil, "all actions declined").AbortRequest(c)
+			return
+		}
+
+		// If set.Type() == And and we reach this point than
+		// all actions are allowed.
+		c.Next()
 	}
 }
