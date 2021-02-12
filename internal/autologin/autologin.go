@@ -101,7 +101,6 @@ func (mng *Manager) GetAutoAssignedRoles(r *http.Request) ([]string, error) {
 // PerformAutologin may add an autologin user session to c.
 func (mng *Manager) PerformAutologin(c *gin.Context) {
 	log := logger.From(c.Request.Context())
-
 	// never try to issue an automatic session
 	// token if there is a valid user session
 	if session.Get(c) == nil {
@@ -131,7 +130,7 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 					return
 				}
 
-				sess, _, err = session.Create(app, autologin.User, c.Writer)
+				sess, _, err = app.Sessions.Create(autologin.User, c.Writer)
 				if err != nil {
 					log.Errorf("failed to create autologin session: %s", err.Error())
 				}

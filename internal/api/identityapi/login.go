@@ -140,7 +140,7 @@ func LoginEndpoint(grp *app.Router) {
 				return nil
 			}
 
-			sess, accessToken, err := session.Create(app, *user, c.Writer)
+			sess, accessToken, err := app.Sessions.Create(*user, c.Writer)
 			if err != nil {
 				c.AbortWithStatus(http.StatusInternalServerError)
 			}

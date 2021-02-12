@@ -79,6 +79,7 @@ func getApp(ctx context.Context) *app.App {
 
 	var cfg app.Config
 	var autoLoginManager *autologin.Manager
+	sessionManager := new(session.Manager)
 
 	globalConf := conf.SectionSpec{}
 	globalConf = append(globalConf, schema.ConfigSpec...)
@@ -102,7 +103,7 @@ func getApp(ctx context.Context) *app.App {
 			apis := grp.Group(
 				"/api/",
 				httperr.Middleware,
-				session.Middleware,
+				sessionManager.Middleware,
 				func(c *gin.Context) {
 					if autoLoginManager != nil {
 						autoLoginManager.PerformAutologin(c)
@@ -262,7 +263,14 @@ func getApp(ctx context.Context) *app.App {
 	holidayCache := openinghours.NewHolidayCache()
 	doorController, err := openinghours.NewDoorController(cfg.Config, cfg.OpeningHours, holidayCache, door)
 	if err != nil {
-		logger.Fatalf(ctx, "%s", err.Error())
+		logger.Fatalf(ctx, "door-controler: %s", err.Error())
+	}
+
+	//
+	// Configure the session manager
+	//
+	if err := sessionManager.Configure(identities, &cfg.IdentityConfig, &cfg.Config); err != nil {
+		logger.Fatalf(ctx, "session-manager: %s", err.Error())
 	}
 
 	//
@@ -285,6 +293,7 @@ func getApp(ctx context.Context) *app.App {
 		voicemails,
 		mailsyncManager,
 		doorController,
+		sessionManager,
 		holidayCache,
 		calllogs,
 	)

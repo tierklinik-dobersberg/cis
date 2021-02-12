@@ -92,3 +92,17 @@ func InvalidField(name string) *Error {
 		fmt.Errorf("invalid value for field %q in body", name),
 	)
 }
+
+// Forbidden returns 403 Forbidden.
+func Forbidden(err error, msg ...string) *Error {
+	var errorMsg interface{}
+	if len(msg) > 0 {
+		errorMsg = gin.H{
+			"error": msg[0],
+		}
+		if err == nil {
+			err = errors.New(msg[0])
+		}
+	}
+	return New(http.StatusForbidden, err, errorMsg)
+}

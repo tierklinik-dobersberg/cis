@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/cis/internal/session"
 )
 
 // RefreshEndpoint isues a new access token for the active
@@ -20,7 +19,7 @@ func RefreshEndpoint(grp *app.Router) {
 		"v1/refresh",
 		permission.Anyone,
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			token, err := session.IssueAccessToken(app, c)
+			token, err := app.Sessions.IssueAccessToken(c)
 			if err != nil {
 				return err
 			}

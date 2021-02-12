@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/jwt"
+	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
 
@@ -33,6 +35,39 @@ type Session struct {
 	// token can be issued. That is, the session has a valid
 	// token with scope refresh.
 	RefreshUntil *time.Time
+}
+
+// Manager takes care of session management.
+type Manager struct {
+	cookieFactory *CookieFactory
+
+	identities    identitydb.Database
+	identityConfg *schema.IdentityConfig
+	global        *schema.Config
+}
+
+// Configure configures the session manager.
+func (mng *Manager) Configure(identites identitydb.Database, identityConfig *schema.IdentityConfig, globalConfig *schema.Config) error {
+	mng.identities = identites
+	mng.identityConfg = identityConfig
+	mng.global = globalConfig
+
+	base := "/"
+	if globalConfig.BaseURL != "" {
+		u, err := url.Parse(globalConfig.BaseURL)
+		if err != nil {
+			return fmt.Errorf("invalid base URL: %s", err)
+		}
+
+		base = u.Path
+	}
+
+	mng.cookieFactory = &CookieFactory{
+		InsecureCookies: identityConfig.InsecureCookies,
+		Domain:          identityConfig.CookieDomain,
+		BasePath:        base,
+	}
+	return nil
 }
 
 // Set sets the session s on c. It also creates and assigns
@@ -83,35 +118,53 @@ func UserFromCtx(ctx context.Context) string {
 	return s.User.Name
 }
 
+// Delete the session associated with c.
+func (mng *Manager) Delete(c *gin.Context) error {
+	mng.cookieFactory.Clear(
+		mng.identityConfg.AccessTokenCookie,
+		"",
+		c,
+	)
+	mng.cookieFactory.Clear(
+		mng.identityConfg.RefreshTokenCookie,
+		"api/identity/v1/refresh",
+		c,
+	)
+
+	// TODO(ppacher): maybe switch to "cookies", "storage" in production
+	// rather than deleting cache and executionContext as well.
+	c.Header("Clear-Site-Data", "*")
+
+	return nil
+}
+
 // Create creates a new session for user. The caller
 // must ensure user is properly authenticated before
 // issueing a new access and refresh token to the user.
-func Create(app *app.App, user v1alpha.User, w http.ResponseWriter) (*Session, string, error) {
+func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, string, error) {
 	// Issue a new access token for user.
-	accessToken, _, err := GenerateAccessToken(app, user)
+	accessToken, _, err := mng.GenerateAccessToken(user)
 	if err != nil {
 		return nil, "", fmt.Errorf("generating access token: %w", err)
 	}
-	accessCookie := CreateCookie(
-		app,
-		app.Config.AccessTokenCookie,
+	accessCookie := mng.cookieFactory.Create(
+		mng.identityConfg.AccessTokenCookie,
 		accessToken,
-		app.BasePath(),
-		app.Config.AccessTokenTTL,
+		"",
+		mng.identityConfg.AccessTokenTTL,
 	)
 	http.SetCookie(w, accessCookie)
 
 	// Issue a new refresh token for user.
-	refreshToken, _, err := GenerateRefreshToken(app, user)
+	refreshToken, _, err := mng.GenerateRefreshToken(user)
 	if err != nil {
 		return nil, "", fmt.Errorf("generating refresh token: %w", err)
 	}
-	refreshCookie := CreateCookie(
-		app,
-		app.Config.RefreshTokenCookie,
+	refreshCookie := mng.cookieFactory.Create(
+		mng.identityConfg.RefreshTokenCookie,
 		refreshToken,
-		app.EndpointPath("api/identity/v1/refresh"),
-		app.Config.RefreshTokenTTL,
+		"api/identity/v1/refresh",
+		mng.identityConfg.RefreshTokenTTL,
 	)
 	http.SetCookie(w, refreshCookie)
 
@@ -123,88 +176,41 @@ func Create(app *app.App, user v1alpha.User, w http.ResponseWriter) (*Session, s
 	}, accessToken, nil
 }
 
-// Delete the session associated with c.
-func Delete(app *app.App, c *gin.Context) error {
-	ClearCookie(
-		app,
-		app.Config.AccessTokenCookie,
-		app.BasePath(),
-		c,
-	)
-	ClearCookie(
-		app,
-		app.Config.RefreshTokenCookie,
-		app.EndpointPath("api/identity/v1/refresh"),
-		c,
-	)
-
-	// TODO(ppacher): maybe switch to "cookies", "storage" in production
-	// rather than deleting cache and executionContext as well.
-	c.Header("Clear-Site-Data", "*")
-
-	return nil
-}
-
-// ClearCookie removes the cookie with the given name.
-func ClearCookie(app *app.App, cookieName, path string, c *gin.Context) {
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:   cookieName,
-		Path:   path,
-		Domain: app.Config.CookieDomain,
-		MaxAge: -1,
-	})
-}
-
-// CreateCookie wraps value in a http cookie with name.
-func CreateCookie(app *app.App, name, value, path string, ttl time.Duration) *http.Cookie {
-	return &http.Cookie{
-		Name:     name,
-		Value:    value,
-		Path:     path,
-		Domain:   app.Config.CookieDomain,
-		HttpOnly: true,
-		Secure:   !app.Config.InsecureCookies,
-		Expires:  time.Now().Add(ttl),
-	}
-}
-
 // GenerateRefreshToken generates a new refresh token.
-func GenerateRefreshToken(app *app.App, user v1alpha.User) (string, *jwt.Claims, error) {
-	return CreateUserToken(
-		app,
+func (mng *Manager) GenerateRefreshToken(user v1alpha.User) (string, *jwt.Claims, error) {
+	return mng.CreateUserToken(
 		user,
-		app.Config.RefreshTokenTTL,
+		mng.identityConfg.RefreshTokenTTL,
 		jwt.ScopeRefresh,
 	)
 }
 
 // GenerateAccessToken generates a new access token.
-func GenerateAccessToken(app *app.App, user v1alpha.User) (string, *jwt.Claims, error) {
-	return CreateUserToken(
-		app,
+func (mng *Manager) GenerateAccessToken(user v1alpha.User) (string, *jwt.Claims, error) {
+	return mng.CreateUserToken(
 		user,
-		app.Config.AccessTokenTTL,
+		mng.identityConfg.AccessTokenTTL,
 		jwt.ScopeAccess,
 	)
 }
 
 // VerifyUserToken verifies a user token and returns the claims
 // encoded into the JWT.
-func VerifyUserToken(app *app.App, token string) (*jwt.Claims, error) {
-	return jwt.ParseAndVerify([]byte(app.Config.Secret), token)
+func (mng *Manager) VerifyUserToken(token string) (*jwt.Claims, error) {
+	return jwt.ParseAndVerify([]byte(mng.global.Secret), token)
 }
 
 // CreateUserToken creates a new signed token for user including scopes
 // that's valid for ttl.
-func CreateUserToken(app *app.App, user v1alpha.User, ttl time.Duration, scopes ...jwt.Scope) (string, *jwt.Claims, error) {
+func (mng *Manager) CreateUserToken(user v1alpha.User, ttl time.Duration, scopes ...jwt.Scope) (string, *jwt.Claims, error) {
 	var mail string
 	if len(user.Mail) > 0 {
 		mail = user.Mail[0]
 	}
 
 	claims := jwt.Claims{
-		Audience:  app.Config.Audience,
-		Issuer:    app.Config.Issuer,
+		Audience:  mng.global.Audience,
+		Issuer:    mng.global.Issuer,
 		IssuedAt:  time.Now().Unix(),
 		ExpiresAt: time.Now().Add(ttl).Unix(),
 		NotBefore: time.Now().Unix(),
@@ -220,7 +226,11 @@ func CreateUserToken(app *app.App, user v1alpha.User, ttl time.Duration, scopes 
 		// TODO(ppacher): ID for revoking?
 	}
 
-	token, err := jwt.SignToken(app.Config.SigningMethod, []byte(app.Config.Secret), claims)
+	token, err := jwt.SignToken(
+		mng.global.SigningMethod,
+		[]byte(mng.global.Secret),
+		claims,
+	)
 	if err != nil {
 		return "", nil, err
 	}

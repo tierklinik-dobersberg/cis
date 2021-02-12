@@ -23,7 +23,7 @@ func LogoutEndpoint(grp *app.Router) {
 				return nil
 			}
 
-			if err := session.Delete(app, c); err != nil {
+			if err := app.Sessions.Delete(c); err != nil {
 				logger.From(ctx).Errorf("failed to delete session: %s", err)
 			}
 

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/jwt"
@@ -20,11 +19,7 @@ import (
 // Middleware extracts session data from incoming HTTP requests
 // and handles automatic issueing of new access tokens for
 // provided refresh tokens.
-func Middleware(c *gin.Context) {
-	app := app.From(c)
-	if app == nil {
-		return
-	}
+func (mng *Manager) Middleware(c *gin.Context) {
 	log := logger.From(c.Request.Context())
 
 	aborted := false
@@ -45,11 +40,11 @@ func Middleware(c *gin.Context) {
 
 	// get access and refresh tokens
 	//
-	accessToken, accessUser, err := getAccessToken(app, c)
+	accessToken, accessUser, err := mng.getAccessToken(c)
 	if err != nil {
 		return
 	}
-	refreshToken, refreshUser, err := getRefreshToken(app, c)
+	refreshToken, refreshUser, err := mng.getRefreshToken(c)
 	if err != nil {
 		return
 	}
@@ -123,7 +118,7 @@ func Middleware(c *gin.Context) {
 
 // IssueAccessToken creates a new access token for the active session.
 // The session must have a valid refresh token set.
-func IssueAccessToken(app *app.App, c *gin.Context) (string, error) {
+func (mng *Manager) IssueAccessToken(c *gin.Context) (string, error) {
 	sess := Get(c)
 	if sess == nil {
 		return "", httperr.New(http.StatusUnauthorized, errors.New("no session found"), nil)
@@ -133,19 +128,18 @@ func IssueAccessToken(app *app.App, c *gin.Context) (string, error) {
 		return "", httperr.New(http.StatusUnauthorized, errors.New("no or expired refresh token"), nil)
 	}
 
-	token, _, err := GenerateAccessToken(app, sess.User)
+	token, _, err := mng.GenerateAccessToken(sess.User)
 	if err != nil {
 		return "", httperr.Wrap(err)
 	}
 
 	http.SetCookie(
 		c.Writer,
-		CreateCookie(
-			app,
-			app.Config.AccessTokenCookie,
+		mng.cookieFactory.Create(
+			mng.identityConfg.AccessTokenCookie,
 			token,
-			app.BasePath(),
-			app.Config.AccessTokenTTL,
+			"",
+			mng.identityConfg.AccessTokenTTL,
 		),
 	)
 
@@ -186,20 +180,20 @@ func cookieValueOrBearer(cookieName string, r *http.Request) string {
 	return ""
 }
 
-func getAccessToken(app *app.App, c *gin.Context) (*jwt.Claims, *v1alpha.User, error) {
-	tokenValue := cookieValueOrBearer(app.Config.AccessTokenCookie, c.Request)
+func (mng *Manager) getAccessToken(c *gin.Context) (*jwt.Claims, *v1alpha.User, error) {
+	tokenValue := cookieValueOrBearer(mng.identityConfg.AccessTokenCookie, c.Request)
 	if tokenValue == "" {
 		return nil, nil, nil
 	}
 
-	claims, err := VerifyUserToken(app, tokenValue)
+	claims, err := mng.VerifyUserToken(tokenValue)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	if hasScope(claims.Scopes, jwt.ScopeAccess) {
 		ctx := identitydb.WithScope(c.Request.Context(), identitydb.Internal)
-		user, err := app.Identities.GetUser(ctx, claims.Subject)
+		user, err := mng.identities.GetUser(ctx, claims.Subject)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -211,20 +205,20 @@ func getAccessToken(app *app.App, c *gin.Context) (*jwt.Claims, *v1alpha.User, e
 	return nil, nil, nil
 }
 
-func getRefreshToken(app *app.App, c *gin.Context) (*jwt.Claims, *v1alpha.User, error) {
-	tokenValue := cookieValueOrBearer(app.Config.RefreshTokenCookie, c.Request)
+func (mng *Manager) getRefreshToken(c *gin.Context) (*jwt.Claims, *v1alpha.User, error) {
+	tokenValue := cookieValueOrBearer(mng.identityConfg.RefreshTokenCookie, c.Request)
 	if tokenValue == "" {
 		return nil, nil, nil
 	}
 
-	claims, err := VerifyUserToken(app, tokenValue)
+	claims, err := mng.VerifyUserToken(tokenValue)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	if hasScope(claims.Scopes, jwt.ScopeRefresh) {
 		ctx := identitydb.WithScope(c.Request.Context(), identitydb.Internal)
-		user, err := app.Identities.GetUser(ctx, claims.Subject)
+		user, err := mng.identities.GetUser(ctx, claims.Subject)
 		if err != nil {
 			return nil, nil, err
 		}
