@@ -14,7 +14,7 @@ import (
 func LoadCommentsForKeyEndpoint(router *app.Router) {
 	router.GET(
 		"v1/:key",
-		permission.Set{
+		permission.OneOf{
 			ReadCommentsAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

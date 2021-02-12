@@ -14,7 +14,7 @@ import (
 func GetForMonthEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/roster/:year/:month",
-		permission.Set{
+		permission.OneOf{
 			ReadRosterAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

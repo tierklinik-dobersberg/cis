@@ -16,7 +16,7 @@ import (
 func ImportNeumayrContactsEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/neumayr/contacts",
-		permission.Set{
+		permission.OneOf{
 			NeumayrContactsAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

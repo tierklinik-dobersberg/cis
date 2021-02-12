@@ -22,7 +22,7 @@ import (
 func ExtendedSearchEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/search",
-		permission.Set{
+		permission.OneOf{
 			ReadCustomerAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

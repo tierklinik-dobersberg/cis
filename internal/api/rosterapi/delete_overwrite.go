@@ -13,7 +13,7 @@ import (
 func DeleteOverwriteEndpoint(router *app.Router) {
 	router.DELETE(
 		"v1/overwrite",
-		permission.Set{
+		permission.OneOf{
 			WriteRosterOverwriteAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

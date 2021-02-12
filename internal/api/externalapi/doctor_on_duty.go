@@ -27,7 +27,7 @@ import (
 func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/doctor-on-duty",
-		permission.Set{
+		permission.OneOf{
 			ReadOnDutyAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

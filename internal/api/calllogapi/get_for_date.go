@@ -19,7 +19,7 @@ import (
 func ForDateEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/date/:year/:month/:day",
-		permission.Set{
+		permission.OneOf{
 			ReadRecordsAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

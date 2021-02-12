@@ -16,7 +16,7 @@ import (
 func GetOverwriteEndpoint(router *app.Router) {
 	router.GET(
 		"v1/overwrite",
-		permission.Set{
+		permission.OneOf{
 			ReadRosterOverwriteAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

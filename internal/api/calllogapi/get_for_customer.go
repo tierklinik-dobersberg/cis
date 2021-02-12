@@ -16,7 +16,7 @@ import (
 func ForCustomerEndpoint(router *app.Router) {
 	router.GET(
 		"v1/customer/:source/:id",
-		permission.Set{
+		permission.OneOf{
 			ReadRecordsAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

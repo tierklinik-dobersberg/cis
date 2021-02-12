@@ -14,7 +14,7 @@ import (
 func ResetDoorEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/reset",
-		permission.Set{
+		permission.OneOf{
 			SetStateAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

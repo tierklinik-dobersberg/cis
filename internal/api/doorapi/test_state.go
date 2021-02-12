@@ -17,7 +17,7 @@ import (
 func TestStateEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/test/:year/:month/:day/:hour/:minute",
-		permission.Set{
+		permission.OneOf{
 			GetStateAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

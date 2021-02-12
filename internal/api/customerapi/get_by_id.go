@@ -18,7 +18,7 @@ import (
 func GetByIDEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/:source/:id",
-		permission.Set{
+		permission.OneOf{
 			ReadCustomerAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

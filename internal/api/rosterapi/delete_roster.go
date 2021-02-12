@@ -14,7 +14,7 @@ import (
 func DeleteRosterEndpoint(grp *app.Router) {
 	grp.DELETE(
 		"v1/roster/:year/:month",
-		permission.Set{
+		permission.OneOf{
 			WriteRosterAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

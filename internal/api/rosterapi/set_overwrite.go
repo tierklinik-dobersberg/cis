@@ -22,7 +22,7 @@ type setOverwriteRequest struct {
 func SetOverwriteEndpoint(router *app.Router) {
 	router.POST(
 		"v1/overwrite",
-		permission.Set{
+		permission.OneOf{
 			WriteRosterOverwriteAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

@@ -17,7 +17,7 @@ import (
 func ReplyCommentEndpoint(router *app.Router) {
 	router.PUT(
 		"v1/comment/:id/replies",
-		permission.Set{
+		permission.OneOf{
 			ReplyCommentsAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

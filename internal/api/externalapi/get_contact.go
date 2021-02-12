@@ -26,7 +26,7 @@ type ContactResponse struct {
 func GetContactEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/contact",
-		permission.Set{
+		permission.OneOf{
 			GetContactAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

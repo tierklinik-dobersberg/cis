@@ -15,7 +15,7 @@ import (
 func ForDateEndpoints(router *app.Router) {
 	router.GET(
 		"v1/search",
-		permission.Set{
+		permission.OneOf{
 			ReadVoicemailsAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

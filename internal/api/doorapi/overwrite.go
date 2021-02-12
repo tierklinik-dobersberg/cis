@@ -18,7 +18,7 @@ import (
 func OverwriteEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/overwrite",
-		permission.Set{
+		permission.OneOf{
 			SetStateAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

@@ -30,7 +30,7 @@ type recordCallRequest struct {
 func RecordCallEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/calllog",
-		permission.Set{
+		permission.OneOf{
 			calllogapi.CreateRecordAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

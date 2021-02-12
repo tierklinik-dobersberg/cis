@@ -21,7 +21,7 @@ import (
 func FuzzySearchEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/",
-		permission.Set{
+		permission.OneOf{
 			ReadCustomerAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {

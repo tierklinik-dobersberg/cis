@@ -17,7 +17,7 @@ import (
 func CreateCommentEndpoint(router *app.Router) {
 	router.POST(
 		"v1/:key",
-		permission.Set{
+		permission.OneOf{
 			CreateCommentAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
