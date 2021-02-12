@@ -26,6 +26,7 @@ type Permission struct {
 	Resources   []string `json:"resources" option:"Resource"`
 	Effect      string   `json:"effect"`
 	Domains     []string `json:"domain" option:"Domain"`
+	Actions     []string `json:"actions" option:"Action"`
 }
 
 func (perm *Permission) String() string {

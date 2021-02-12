@@ -20,7 +20,6 @@ func WrapHandler(fn HandlerFunc) gin.HandlerFunc {
 		err := fn(c.Request.Context(), app, c)
 		if err != nil {
 			c.Error(err)
-			//httperr.MaybeAbort(c)
 		}
 	}
 }

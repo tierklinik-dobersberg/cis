@@ -10,6 +10,8 @@ type Request struct {
 	Domain string
 	// Resource is the path of the resourc eon the target host.
 	Resource string
+	// Action is the name of the action to be performed.
+	Action string
 	// Scheme is the used scheme for the operation and is likely either
 	// "http" or "https"
 	Scheme string
@@ -22,5 +24,6 @@ func (req *Request) AsFields() logger.Fields {
 		"request:domain":   req.Domain,
 		"request:resource": req.Resource,
 		"request:scheme":   req.Scheme,
+		"request:action":   req.Action,
 	}
 }

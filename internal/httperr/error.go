@@ -3,10 +3,23 @@ package httperr
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/logger"
 )
+
+// StatusCoder returns the HTTP status code that
+// should be used for the error.
+type StatusCoder interface {
+	StatusCode() int
+}
+
+// RequestAborter may be implemented by errors that
+// want to do custom logic when aborting the request.
+type RequestAborter interface {
+	AbortRequest(*gin.Context)
+}
 
 // Error represents an HTTP error.
 type Error struct {
@@ -90,12 +103,12 @@ func (err *Error) AbortRequest(c *gin.Context) {
 
 // Abort aborts the request at c with err.
 func Abort(c *gin.Context, err error) {
-	if aborter, ok := err.(interface{ AbortRequest(*gin.Context) }); ok {
+	if aborter, ok := err.(RequestAborter); ok {
 		aborter.AbortRequest(c)
 		return
 	}
 
-	if statusCoder, ok := err.(interface{ StatusCode() int }); ok {
+	if statusCoder, ok := err.(StatusCoder); ok {
 		c.AbortWithStatus(statusCoder.StatusCode())
 		return
 	}
@@ -126,4 +139,22 @@ func Middleware(c *gin.Context) {
 	lastErr := c.Errors.Last().Err
 	logger.From(c.Request.Context()).Infof("aborting request. last error reported was %s", lastErr)
 	Abort(c, lastErr)
+}
+
+// ErrCode returns the error code that should be used
+// for err.
+func ErrCode(err error) int {
+	if err == nil {
+		return http.StatusOK
+	}
+
+	if os.IsNotExist(err) {
+		return http.StatusNotFound
+	}
+
+	if coder, ok := err.(StatusCoder); ok {
+		return coder.StatusCode()
+	}
+
+	return http.StatusInternalServerError
 }

@@ -66,6 +66,9 @@ func (match *Matcher) IsApplicable(ctx context.Context, req *Request, perm *sche
 	if len(perm.Resources) > 0 && !MatchNeedle(ctx, req.Resource, perm.Resources) {
 		return false
 	}
+	if len(perm.Actions) > 0 && !MatchNeedle(ctx, req.Action, perm.Resources) {
+		return false
+	}
 	return true
 }
 
