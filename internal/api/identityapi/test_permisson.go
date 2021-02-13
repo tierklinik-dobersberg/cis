@@ -1,0 +1,59 @@
+package identityapi
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	"github.com/tierklinik-dobersberg/cis/internal/session"
+)
+
+type testResult struct {
+	Allowed bool   `json:"allowed"`
+	Message string `json:"message,omitempty"`
+	Error   string `json:"error,omitempty"`
+}
+
+// TestPermissionEndpoint allows testing for permissoins.
+func TestPermissionEndpoint(grp *app.Router) {
+	grp.POST(
+		"v1/permissions/test",
+		permission.Anyone,
+		func(ctx context.Context, app *app.App, c *gin.Context) error {
+			var requests map[string]permission.Request
+
+			if err := json.NewDecoder(c.Request.Body).Decode(&requests); err != nil {
+				return httperr.BadRequest(err, "invalid body")
+			}
+
+			sess := session.Get(c)
+			if sess == nil {
+				return httperr.InternalError(nil, "missing session")
+			}
+
+			// test each permission request and record the result
+			var result map[string]*testResult
+			for key, req := range requests {
+				// only allow checks for the current session.
+				// TODO(ppacher): add special permission to test all users.
+				req.User = sess.User.Name
+
+				allowed, err := app.Matcher.Decide(ctx, &req)
+				result[key] = &testResult{
+					Allowed: allowed,
+				}
+				if err != nil {
+					result[key].Error = err.Error()
+				}
+			}
+
+			c.JSON(http.StatusOK, result)
+
+			return nil
+		},
+	)
+}

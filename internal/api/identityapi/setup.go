@@ -21,6 +21,9 @@ func Setup(grp gin.IRouter) {
 	// GET v1/verify
 	VerifyEndpoint(router)
 
+	// POST v1/permissions/test
+	TestPermissionEndpoint(router)
+
 	// GET v1/profile
 	ProfileEndpoint(router)
 
