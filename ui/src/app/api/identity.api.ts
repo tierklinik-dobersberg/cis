@@ -363,13 +363,18 @@ export class IdentityAPI {
     })
       .pipe(
         mergeMap(blob => {
-          return new Promise<string>(resolve => {
+          return new Promise<string>((resolve, reject) => {
             let reader = new FileReader();
             reader.onload = function () {
               let dataUrl = reader.result as string;
               resolve(dataUrl);
             };
-            reader.readAsDataURL(blob);
+            try {
+              reader.readAsDataURL(blob);
+            } catch (err) {
+              console.error(err, blob);
+              reject(err);
+            }
           });
         }),
         tap(data => {
