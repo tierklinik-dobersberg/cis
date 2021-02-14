@@ -22,12 +22,13 @@
   .dash-card {
     box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
     min-width : 300px;
+    height    : 145px;
     @include for-tablet-landscape-up {
       min-width: 350px;
+      min-height    : 145px;
+      height: 100%;
     }
     width     : 100%;
-    min-height    : 145px;
-    height: 100%;
 
     &:not(:last-child) {
       margin-bottom: 12px;
