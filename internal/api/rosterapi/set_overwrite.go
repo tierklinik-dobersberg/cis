@@ -29,17 +29,7 @@ func SetOverwriteEndpoint(router *app.Router) {
 			date := c.Query("date")
 
 			if date == "" {
-				t := time.Now()
-				// find out if we need the doctor-on-duty from today or the day before
-				// depending on the ChangeOnDuty time for today.
-				changeDutyAt := app.Door.ChangeOnDuty(ctx, t)
-				if t.Before(changeDutyAt) {
-					// go back in time for one day. We don't care about minute/hours here
-					// from now on.
-					t = t.Add(-1 * time.Hour * 24)
-				}
-
-				date = t.Format("2006-1-2")
+				date = dateForCurrent(ctx, app)
 			}
 
 			d, err := time.Parse("2006-1-2", date)
@@ -60,4 +50,18 @@ func SetOverwriteEndpoint(router *app.Router) {
 			return nil
 		},
 	)
+}
+
+func dateForCurrent(ctx context.Context, app *app.App) string {
+	t := time.Now()
+	// find out if we need the doctor-on-duty from today or the day before
+	// depending on the ChangeOnDuty time for today.
+	changeDutyAt := app.Door.ChangeOnDuty(ctx, t)
+	if t.Before(changeDutyAt) {
+		// go back in time for one day. We don't care about minute/hours here
+		// from now on.
+		t = t.Add(-1 * time.Hour * 24)
+	}
+
+	return t.Format("2006-1-2")
 }

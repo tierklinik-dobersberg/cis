@@ -23,7 +23,7 @@ func GetOverwriteEndpoint(router *app.Router) {
 			date := c.Query("date")
 
 			if date == "" {
-				date = time.Now().Format("2006-1-2")
+				date = dateForCurrent(ctx, app)
 			}
 
 			d, err := time.Parse("2006-1-2", date)
