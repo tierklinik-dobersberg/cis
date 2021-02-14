@@ -364,6 +364,7 @@ export class IdentityAPI {
       .pipe(
         mergeMap(blob => {
           return new Promise<string>((resolve, reject) => {
+            console.log(blob);
             let reader = new FileReader();
             reader.onload = function () {
               let dataUrl = reader.result as string;
@@ -372,7 +373,7 @@ export class IdentityAPI {
             try {
               reader.readAsDataURL(blob);
             } catch (err) {
-              console.error(err, blob);
+              console.error(err, 'blob', blob);
               reject(err);
             }
           });
