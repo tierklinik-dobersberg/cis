@@ -26,7 +26,8 @@
       min-width: 350px;
     }
     width     : 100%;
-    height    : 145px;
+    min-height    : 145px;
+    height: 100%;
 
     &:not(:last-child) {
       margin-bottom: 12px;

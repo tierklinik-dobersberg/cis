@@ -1,0 +1,28 @@
+
+@import 'src/utils';
+
+nz-card {
+  height: 100%;
+  border-top: 3px solid #93C5FD;
+}
+
+h3 {
+  display       : block;
+  color         : gray;
+  padding-bottom: 3px;
+  font-size     : 90%;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+  margin-top: 12px;
+}
+
+.grid {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-wrap: wrap;
+  &>* {
+      flex: 1 1 160px;
+  }
+}

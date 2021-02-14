@@ -4,6 +4,9 @@
   <app-emergency-card *ngIf="hasDoctorOnDutyAccess" class="dash-card"></app-emergency-card>
   <app-clock-card class="dash-card"></app-clock-card>
 </div>
+<div class="top-row">
+  <app-roster-card class="dash-card" *ngIf="hasRosterAccess"></app-roster-card>
+</div>
 
 
 <!--
