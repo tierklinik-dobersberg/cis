@@ -6,6 +6,13 @@ html, body {
     background-color: #50566310;
 }
 
+.ant-avatar {
+  img {
+    width: 100%;
+    height: auto;
+  }
+}
+
 .ant-picker-cell-inner {
     padding: 0 !important;
 }
