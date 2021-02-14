@@ -64,8 +64,8 @@
 <ng-template #titleTemplate>
   <span class="header">
     Nachtdienst
-    <i nz-dropdown nzTrigger="click" nz-icon nzType="edit" nzTheme="outline" style="cursor: pointer" nz-tooltip
-      nzTooltipTitle="Nachdienst ändern" (click)="toggleDrawer()"></i>
+    <i nz-dropdown *ngIf="canSetOverwrite" nzTrigger="click" nz-icon nzType="edit" nzTheme="outline"
+      style="cursor: pointer" nz-tooltip nzTooltipTitle="Nachdienst ändern" (click)="toggleDrawer()"></i>
   </span>
 
   <div class="on-duty-container">

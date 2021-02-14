@@ -1,4 +1,4 @@
-<nz-card [nzActions]="doorActions">
+<nz-card [nzActions]="hasWriteAccess ? doorActions : []">
   <nz-card-meta nzTitle="Eingangstür" [nzDescription]="doorDescr" [nzAvatar]="avatarTemplate"></nz-card-meta>
 </nz-card>
 

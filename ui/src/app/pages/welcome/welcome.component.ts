@@ -1,7 +1,7 @@
 import { Component, isDevMode, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BehaviorSubject, combineLatest, interval, Subscription } from 'rxjs';
 import { delay, mergeMap, repeatWhen, retryWhen, startWith } from 'rxjs/operators';
-import { DoorAPI, IdentityAPI, Roster, RosterAPI, State } from 'src/app/api';
+import { DoorAPI, IdentityAPI, Permission, Roster, RosterAPI, State } from 'src/app/api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 
 interface Dummy {
@@ -18,6 +18,14 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   readonly isDevMode = isDevMode();
 
   private allSub = new Subscription();
+
+  get hasDoorAccess() {
+    return this.identityapi.hasPermission(Permission.DoorGet);
+  }
+
+  get hasDoctorOnDutyAccess() {
+    return this.identityapi.hasPermission(Permission.ExternalReadOnDuty)
+  }
 
   constructor(
     private header: HeaderTitleService,

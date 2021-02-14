@@ -1,7 +1,7 @@
 <img class="placeholder-img" src="assets/vet.png">
 <div class="top-row">
-  <app-door-card class="dash-card"></app-door-card>
-  <app-emergency-card class="dash-card"></app-emergency-card>
+  <app-door-card *ngIf="hasDoorAccess" class="dash-card"></app-door-card>
+  <app-emergency-card *ngIf="hasDoctorOnDutyAccess" class="dash-card"></app-emergency-card>
   <app-clock-card class="dash-card"></app-clock-card>
 </div>
 

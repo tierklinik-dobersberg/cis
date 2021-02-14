@@ -5,12 +5,12 @@
       <span>Dashboard</span>
     </li>
 
-    <li routerLink="/roster" nzMatchRouter nz-menu-item>
+    <li *ngIf="hasRoster" routerLink="/roster" nzMatchRouter nz-menu-item>
       <i nz-icon nzType="clock-circle"></i>
       <span>Dienstplan</span>
     </li>
 
-    <li routerLink="/customer" nzMatchRouter nz-menu-item>
+    <li *ngIf="hasCustomers" routerLink="/customer" nzMatchRouter nz-menu-item>
       <i nz-icon nzType="team"></i>
       <span>Kunden</span>
     </li>
@@ -20,11 +20,14 @@
       <span>Röntgen</span>
     </li>
 
-    <li nz-submenu nzTitle="Anrufe / Voice Mails" nzMatchRouter nzIcon="customer-service">
+    <li *ngIf="hasCallLog || hasVoiceMail" nz-submenu nzTitle="Anrufe / Voice Mails" nzMatchRouter
+      nzIcon="customer-service">
       <ul>
-        <li nz-menu-item nzMatchRouter routerLink="/calllogs">Anruf Journal</li>
-        <li *ngFor="let mailbox of mailboxes" nz-menu-item nzMatchRouter [routerLink]="['/voicemail', mailbox]">{{
-          mailbox }}</li>
+        <li *ngIf="hasCallLog" nz-menu-item nzMatchRouter routerLink="/calllogs">Anruf Journal</li>
+        <ng-template [ngIf]="hasVoiceMail">
+          <li *ngFor="let mailbox of mailboxes" nz-menu-item nzMatchRouter [routerLink]="['/voicemail', mailbox]">{{
+            mailbox }}</li>
+        </ng-template>
       </ul>
     </li>
 

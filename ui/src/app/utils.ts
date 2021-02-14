@@ -44,6 +44,11 @@ export function extractErrorMessage(err: any, prefix: string = ''): string {
         msg = err.message;
     }
 
+    // Translate common messages
+    if (msg === 'Forbidden') {
+        msg = "Nicht genügend Berechtigungen"
+    }
+
     if (msg !== "" && prefix !== "") {
         msg = prefix + ': ' + msg
     }

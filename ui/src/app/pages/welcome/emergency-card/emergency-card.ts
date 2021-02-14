@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { NzMessageService } from "ng-zorro-antd/message";
 import { BehaviorSubject, combineLatest, interval, of, Subscription, throwError } from "rxjs";
 import { catchError, delay, map, mergeMap, retryWhen, startWith } from "rxjs/operators";
-import { ConfigAPI, DoctorOnDuty, ExternalAPI, IdentityAPI, ProfileWithAvatar, QuickRosterOverwrite, RosterAPI } from "src/app/api";
+import { ConfigAPI, DoctorOnDuty, ExternalAPI, IdentityAPI, Permission, ProfileWithAvatar, QuickRosterOverwrite, RosterAPI } from "src/app/api";
 import { LayoutService } from "src/app/layout.service";
 import { extractErrorMessage } from "src/app/utils";
 
@@ -44,6 +44,10 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
     toggleDrawer() {
         this.drawerVisible = !this.drawerVisible;
         this.overwritePhone = '';
+    }
+
+    get canSetOverwrite() {
+        return this.identityapi.hasPermission(Permission.RosterSetOverwrite)
     }
 
     configureOverwrite(user?: string, overwritePhone?: string, disiplayName?: string) {

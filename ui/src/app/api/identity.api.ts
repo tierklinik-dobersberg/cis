@@ -1,9 +1,29 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
-import { catchError, combineAll, map, mergeAll, mergeMap, tap } from 'rxjs/operators';
+import { catchError, combineAll, filter, map, mergeAll, mergeMap, tap } from 'rxjs/operators';
 import { getContrastFontColor } from '../utils';
 import { UIConfig } from './config.api';
+
+// Permission defines all API permissions.
+export enum Permission {
+  CalllogCreateRecord = "calllog:create",
+  CalllogReadRecords = "calllog:read",
+  CommentCreate = "comment:create",
+  CommentRead = "comment:read",
+  CommentReply = "comment:reply",
+  CustomerRead = "customer:read",
+  DoorGet = "door:get",
+  DoorSet = "door:set",
+  ExternalReadOnDuty = "external:read-on-duty",
+  ExternalReadContact = "external:read-contact",
+  ImportNeumayrContacts = "import:neumayr-contacts",
+  RosterWrite = "roster:write",
+  RosterRead = "roster:read",
+  RosterSetOverwrite = "roster:write:overwrite",
+  RosterGetOverwrite = "roster:read:overwrite",
+  VoicemailRead = "voicemail:read",
+}
 
 export interface Profile {
   name: string;
@@ -35,11 +55,29 @@ export interface ProfileWithAvatar extends Profile {
   fontColor: string | null;
 }
 
+export interface ProfileWithPermissions extends ProfileWithAvatar {
+  permissions: UIPermissions;
+}
+
+export interface PermissionRequest {
+  user?: string;
+  resource?: string;
+  action?: string;
+}
+
+export interface PermissionTestResult {
+  allowed: boolean;
+  message?: string;
+  error?: string;
+}
+
+export type UIPermissions = Partial<Record<Permission, boolean>>;
+
 @Injectable({
   providedIn: 'root'
 })
 export class IdentityAPI {
-  private onLogin = new BehaviorSubject<Profile | null>(null);
+  private onLogin = new BehaviorSubject<ProfileWithPermissions | null>(null);
   private avatarCache: { [key: string]: string } = {};
   private rolesToHide: Set<string> = new Set();
 
@@ -51,6 +89,13 @@ export class IdentityAPI {
   constructor(
     private http: HttpClient,
   ) {
+    // Whenever we switch user we need to load the profiles permissions as well.
+    this.profileChange
+      .pipe(filter(profile => !!profile))
+      .subscribe(() => { })
+
+    // Upon creation try to get the user profile to check if we are currently
+    // logged in.
     this.profile()
       .subscribe(p => {
         this.onLogin.next(p);
@@ -61,13 +106,18 @@ export class IdentityAPI {
     return this.onLogin.asObservable();
   }
 
+  hasPermission(p: Permission): boolean {
+    let profile = this.onLogin.getValue();
+    return profile?.permissions[p] || false;
+  }
+
   /**
    * Creates a new session for the given user.
    *
    * @param username The name of the user to login.
    * @param password The password of the user.
    */
-  login(username: string, password: string, rd: string = ''): Observable<Profile> {
+  login(username: string, password: string, rd: string = ''): Observable<ProfileWithPermissions> {
     let externalRd = '';
     if (rd != '') {
       externalRd = `?redirect=${rd}`
@@ -242,8 +292,60 @@ export class IdentityAPI {
   }
 
   /** Returns the current user profile. */
-  profile(): Observable<Profile> {
+  profile(): Observable<ProfileWithPermissions> {
     return this.http.get<Profile>("/api/identity/v1/profile")
+      .pipe(
+        mergeMap(p => {
+          return this.avatar(p.name)
+            .pipe(
+              catchError(() => of(null)),
+              map(avatar => {
+                return {
+                  ...p,
+                  avatar: avatar,
+                  color: p.color || null,
+                  fontColor: !!p.color ? getContrastFontColor(p.color) : null,
+                }
+              })
+            )
+        }),
+        mergeMap(pwa => {
+          let request: Partial<Record<Permission, PermissionRequest>> = {};
+          let actions: Permission[] = [
+            Permission.RosterGetOverwrite,
+            Permission.RosterRead,
+            Permission.RosterWrite,
+            Permission.RosterSetOverwrite,
+            Permission.ExternalReadOnDuty,
+            Permission.DoorGet,
+            Permission.DoorSet,
+            Permission.ImportNeumayrContacts,
+            Permission.CustomerRead,
+            Permission.CalllogReadRecords,
+            Permission.VoicemailRead,
+          ];
+
+          actions.forEach(perm => {
+            request[perm] = { action: perm }
+          });
+          return this.testPerimissions(request)
+            .pipe(
+              catchError(() => of(null)),
+              map(permissions => {
+                let p: UIPermissions = {};
+
+                Object.keys(permissions || {}).forEach(perm => {
+                  p[perm] = permissions[perm].allowed
+                })
+
+                return {
+                  ...pwa,
+                  permissions: p,
+                }
+              })
+            )
+        })
+      )
   }
 
   /**
@@ -274,5 +376,9 @@ export class IdentityAPI {
           this.avatarCache[user] = data;
         })
       )
+  }
+
+  testPerimissions<T extends { [key: string]: PermissionRequest }>(requests: T): Observable<{ [key: string]: PermissionTestResult }> {
+    return this.http.post<{ [key: string]: PermissionTestResult }>(`/api/identity/v1/permissions/test`, requests);
   }
 }

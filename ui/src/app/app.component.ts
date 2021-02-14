@@ -2,7 +2,7 @@ import { Component, isDevMode, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, share } from 'rxjs/operators';
-import { ConfigAPI, IdentityAPI, Profile, UIConfig, VoiceMailAPI, VoiceMailRecording } from './api';
+import { ConfigAPI, IdentityAPI, Permission, Profile, UIConfig, VoiceMailAPI, VoiceMailRecording } from './api';
 import { LayoutService } from './layout.service';
 
 interface MenuEntry {
@@ -42,6 +42,26 @@ export class AppComponent implements OnInit {
       }),
       share()
     );
+
+  /** Returns true if the user has (at least read-only) access to the roster */
+  get hasRoster() {
+    return this.identity.hasPermission(Permission.RosterRead);
+  }
+
+  /** Returns true if the user can see voicemail records */
+  get hasVoiceMail() {
+    return this.identity.hasPermission(Permission.VoicemailRead)
+  }
+
+  /** Returns true if the user can see calllogs */
+  get hasCallLog() {
+    return this.identity.hasPermission(Permission.CalllogReadRecords)
+  }
+
+  /** Returns true if the user can see customer records */
+  get hasCustomers() {
+    return this.identity.hasPermission(Permission.CustomerRead)
+  }
 
   constructor(
     private identity: IdentityAPI,
