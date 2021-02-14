@@ -42,11 +42,8 @@
         <div class="user" *ngFor="let user of allUsers" nz-popconfirm
           nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{user.fullname || user.name}} ändern"
           (nzOnConfirm)="configureOverwrite(user.name)" [class.current]="user.name === primaryOnDuty">
-          <nz-avatar *ngIf="!user.avatar" nzIcon="user">
+          <nz-avatar nzIcon="user" [nzSrc]="user.avatar">
           </nz-avatar>
-          <span *ngIf="!!user.avatar" class="ant-avatar ant-avatar-circle">
-            <img [attr.src]="user.avatar">
-          </span>
           {{ user.fullname || user.name }}
         </div>
       </div>
@@ -69,9 +66,7 @@
   </span>
 
   <div class="on-duty-container">
-    <span *ngIf="!!userAvatar" class="ant-avatar ant-avatar-circle">
-      <img [attr.src]="userAvatar">
-    </span>
+    <nz-avatar [nzSize]="64" nzIcon="user" [nzSrc]="userAvatar"></nz-avatar>
     <div class="primary-on-duty">
       <span *ngIf="onDuty.length > 0" [nzTooltipTitle]="'bis ' + (onDutyUntil?.toLocaleString() || 'N/A')"
         nz-tooltip><u>{{

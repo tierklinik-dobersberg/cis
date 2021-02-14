@@ -134,18 +134,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
                             this.userAvatar = '';
                     } else if (this.onDuty[0].username !== this.primaryOnDuty) {
                         this.primaryOnDuty = this.onDuty[0].username;
-                        this.identityapi.avatar(this.primaryOnDuty)
-                            .subscribe(
-                                avatar => {
-                                    this.userAvatar = avatar;
-                                    this.changeDetector.detectChanges();
-                                },
-                                err => {
-                                    console.error(err);
-                                    this.userAvatar = '';
-                                    this.changeDetector.detectChanges();
-                                }
-                            )
+                        this.userAvatar = this.identityapi.avatarUrl(this.primaryOnDuty);
                     }
                     this.changeDetector.markForCheck();
                 },

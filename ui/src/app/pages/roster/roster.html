@@ -190,11 +190,8 @@
 
     <div *ngFor="let comment of comments">
       <div class="commenter-container">
-        <nz-avatar *ngIf="!comment.profile?.avatar" nzIcon="user">
+        <nz-avatar nzIcon="user" [nzSrc]="comment.profile?.avatar">
         </nz-avatar>
-        <span *ngIf="!!comment.profile?.avatar" class="ant-avatar ant-avatar-circle">
-          <img [attr.src]="comment.profile?.avatar">
-        </span>
 
         <div class="commenter">
           <span class="username">{{ comment.profile?.fullname || comment.profile?.name || 'Unbekannt' }}</span>

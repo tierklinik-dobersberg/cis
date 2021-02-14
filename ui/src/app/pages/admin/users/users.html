@@ -18,11 +18,8 @@
         <ng-container *ngFor="let  data of userTable.data">
             <tr>
                 <td class="username">
-                    <nz-avatar *ngIf="!data.avatar" nzIcon="user">
+                    <nz-avatar nzIcon="user" [nzSrc]="data.avatar">
                     </nz-avatar>
-                    <span *ngIf="!!data.avatar" class="ant-avatar ant-avatar-circle">
-                        <img [attr.src]="data.avatar">
-                    </span>
 
                     {{data.fullname}}
                 </td>

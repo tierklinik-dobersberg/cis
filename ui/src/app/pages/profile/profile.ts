@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { forkJoin, of, Subscription } from "rxjs";
 import { catchError, mergeMap } from "rxjs/operators";
-import { IdentityAPI, Profile } from "src/app/api";
+import { IdentityAPI, Profile, ProfileWithAvatar } from "src/app/api";
 import { HeaderTitleService } from "src/app/shared/header-title";
 
 @Component({
@@ -9,9 +9,7 @@ import { HeaderTitleService } from "src/app/shared/header-title";
     styleUrls: ['./profile.scss']
 })
 export class ProfileComponent implements OnInit, OnDestroy {
-    userAvatar: string = '';
-
-    profile: Profile | null = null;
+    profile: ProfileWithAvatar | null = null;
 
     private subscriptions = Subscription.EMPTY;
 
@@ -26,18 +24,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.subscriptions = new Subscription();
 
         const profileSub = this.identityapi.profileChange
-            .pipe(
-                mergeMap(p => forkJoin({
-                    profile: of(p),
-                    avatar: !!p
-                        ? this.identityapi.avatar(p.name)
-                            .pipe(catchError(err => of(null)))
-                        : of(null),
-                }))
-            )
             .subscribe(p => {
-                this.profile = p.profile;
-                this.userAvatar = p.avatar || '';
+                this.profile = p;
             });
 
         this.subscriptions.add(profileSub);

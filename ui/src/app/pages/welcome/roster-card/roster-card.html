@@ -5,22 +5,22 @@
     <div>
       <h3>Vormittag</h3>
       <nz-avatar-group>
-        <nz-avatar *ngFor="let user of today?.forenoon" [nzSrc]="users?.get(user)?.avatar" [nzSize]="48" nz-tooltip
-          [nzTooltipTitle]="users?.get(user)?.fullname"></nz-avatar>
+        <nz-avatar *ngFor="let user of today?.forenoon" nzIcon="user" [nzSrc]="users?.get(user)?.avatar" [nzSize]="48"
+          nz-tooltip [nzTooltipTitle]="users?.get(user)?.fullname"></nz-avatar>
       </nz-avatar-group>
     </div>
     <div>
       <h3>Nachmittag</h3>
       <nz-avatar-group>
-        <nz-avatar *ngFor="let user of today?.afternoon" [nzSrc]="users?.get(user)?.avatar" [nzSize]="48" nz-tooltip
-          [nzTooltipTitle]="users?.get(user)?.fullname"></nz-avatar>
+        <nz-avatar *ngFor="let user of today?.afternoon" nzIcon="user" [nzSrc]="users?.get(user)?.avatar" [nzSize]="48"
+          nz-tooltip [nzTooltipTitle]="users?.get(user)?.fullname"></nz-avatar>
       </nz-avatar-group>
     </div>
     <div>
       <h3>Nacht- / Bereitschaftsdienst</h3>
       <nz-avatar-group>
-        <nz-avatar *ngFor="let user of today?.emergency" [nzSrc]="users?.get(user)?.avatar" [nzSize]="48" nz-tooltip
-          [nzTooltipTitle]="users?.get(user)?.fullname"></nz-avatar>
+        <nz-avatar *ngFor="let user of today?.emergency" nzIcon="user" [nzSrc]="users?.get(user)?.avatar" [nzSize]="48"
+          nz-tooltip [nzTooltipTitle]="users?.get(user)?.fullname"></nz-avatar>
       </nz-avatar-group>
     </div>
   </div>

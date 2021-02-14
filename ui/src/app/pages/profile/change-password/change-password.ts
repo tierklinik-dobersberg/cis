@@ -4,7 +4,7 @@ import { Router } from "@angular/router";
 import { NzMessageService } from "ng-zorro-antd/message";
 import { forkJoin, of, Subject, Subscription } from "rxjs";
 import { catchError, debounceTime, mergeMap, switchMap } from "rxjs/operators";
-import { IdentityAPI, PasswordStrenght, Profile } from "src/app/api";
+import { IdentityAPI, PasswordStrenght, Profile, ProfileWithAvatar } from "src/app/api";
 import { HeaderTitleService } from "src/app/shared/header-title";
 
 interface TranslatedStrength extends PasswordStrenght {
@@ -34,9 +34,8 @@ const ScoreColors = [
 })
 export class ChangePasswordComponent implements OnInit, OnDestroy {
     validateForm!: FormGroup;
-    userAvatar: string = '';
 
-    profile: Profile | null = null;
+    profile: ProfileWithAvatar | null = null;
     strength: TranslatedStrength | null = null;
 
     currentPwd: string = '';
@@ -91,18 +90,8 @@ export class ChangePasswordComponent implements OnInit, OnDestroy {
 
         this.subscriptions = new Subscription();
         const profileSub = this.identityapi.profileChange
-            .pipe(
-                mergeMap(p => forkJoin({
-                    profile: of(p),
-                    avatar: !!p
-                        ? this.identityapi.avatar(p.name)
-                            .pipe(catchError(err => of(null)))
-                        : of(null),
-                }))
-            )
             .subscribe(p => {
-                this.profile = p.profile;
-                this.userAvatar = p.avatar || '';
+                this.profile = p;
             });
         this.subscriptions.add(profileSub);
 

@@ -2,7 +2,7 @@ import { Component, isDevMode, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, share } from 'rxjs/operators';
-import { ConfigAPI, IdentityAPI, Permission, Profile, UIConfig, VoiceMailAPI, VoiceMailRecording } from './api';
+import { ConfigAPI, IdentityAPI, Permission, Profile, ProfileWithAvatar, UIConfig, VoiceMailAPI, VoiceMailRecording } from './api';
 import { LayoutService } from './layout.service';
 
 interface MenuEntry {
@@ -26,8 +26,7 @@ export class AppComponent implements OnInit {
   isCollapsed = false;
   isDevMode = isDevMode();
 
-  userAvatar: string = '';
-  profile: Profile | null = null;
+  profile: ProfileWithAvatar | null = null;
   rootLinks: MenuEntry[] = []
   subMenus: SubMenu[] = [];
   menuMode: 'inline' | 'vertical' = 'inline';
@@ -91,27 +90,9 @@ export class AppComponent implements OnInit {
       .subscribe(cfg => this.applyConfig(cfg));
 
     this.identity.profileChange
-      .pipe(
-        mergeMap(p => {
-          if (p === null) {
-            return of({
-              profile: null,
-              avatar: '',
-            })
-          }
-          return forkJoin({
-            profile: of(p),
-            avatar: this.identity.avatar(p.name)
-              .pipe(
-                catchError(err => of('')),
-              )
-          })
-        }),
-      )
       .subscribe({
         next: result => {
-          this.userAvatar = result.avatar;
-          this.profile = result.profile;
+          this.profile = result;
         },
         error: console.error,
       });

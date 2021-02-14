@@ -295,19 +295,13 @@ export class IdentityAPI {
   profile(): Observable<ProfileWithPermissions> {
     return this.http.get<Profile>("/api/identity/v1/profile")
       .pipe(
-        mergeMap(p => {
-          return this.avatar(p.name)
-            .pipe(
-              catchError(() => of(null)),
-              map(avatar => {
-                return {
-                  ...p,
-                  avatar: avatar,
-                  color: p.color || null,
-                  fontColor: !!p.color ? getContrastFontColor(p.color) : null,
-                }
-              })
-            )
+        map(p => {
+          return {
+            ...p,
+            avatar: this.avatarUrl(p.name),
+            color: p.color || null,
+            fontColor: !!p.color ? getContrastFontColor(p.color) : null,
+          }
         }),
         mergeMap(pwa => {
           let request: Partial<Record<Permission, PermissionRequest>> = {};
@@ -348,6 +342,10 @@ export class IdentityAPI {
       )
   }
 
+  avatarUrl(user: string): string {
+    return `/api/identity/v1/avatar/${user}`;
+  }
+
   /**
    * Load a user avatar.
    *
@@ -358,13 +356,14 @@ export class IdentityAPI {
       return of(this.avatarCache[user]);
     }
 
-    return this.http.get("/api/identity/v1/avatar/" + user, {
+    // we use the current timestamp to avoid browser caching
+    // since we already cache those avatars ourself.
+    return this.http.get(`/api/identity/v1/avatar/${user}?date=${new Date().valueOf()}`, {
       responseType: 'blob'
     })
       .pipe(
         mergeMap(blob => {
           return new Promise<string>((resolve, reject) => {
-            console.log(blob);
             let reader = new FileReader();
             reader.onload = function () {
               let dataUrl = reader.result as string;

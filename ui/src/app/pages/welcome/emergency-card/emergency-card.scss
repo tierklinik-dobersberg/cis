@@ -45,10 +45,8 @@ nz-card {
     }
   }
 
-  span.ant-avatar {
+  nz-avatar {
     margin-right: 18px;
-    height: 64px;
-    width: 64px;
     border: 1px solid lightgray;
     box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
   }
@@ -113,14 +111,5 @@ nz-card {
 .user {
   &.current {
     color: #1890ff;
-  }
-}
-
-span.ant-avatar {
-  overflow: hidden;
-
-  img {
-    width : 100%;
-    height: auto;
   }
 }
