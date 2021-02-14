@@ -14,5 +14,5 @@ PhoneExtension=10
 
 [Permission]
 Resource=.*
-Action=roster:.*
+Action=.*
 Effect=allow
