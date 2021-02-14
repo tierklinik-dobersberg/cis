@@ -7,7 +7,7 @@ import { NzMessageService, NzMessageServiceModule } from 'ng-zorro-antd/message'
 import { Observable, Subject, throwError } from 'rxjs';
 import { Subscription } from 'rxjs';
 import { catchError, debounceTime, delay, map, retryWhen } from 'rxjs/operators';
-import { CommentAPI, Day, Holiday, HolidayAPI, IdentityAPI, Profile, Roster, RosterAPI, Comment as BaseComment, ProfileWithAvatar } from 'src/app/api';
+import { CommentAPI, Day, Holiday, HolidayAPI, IdentityAPI, Profile, Roster, RosterAPI, Comment as BaseComment, ProfileWithAvatar, Permission } from 'src/app/api';
 import { LayoutService } from 'src/app/layout.service';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, getContrastFontColor } from 'src/app/utils';
@@ -108,6 +108,11 @@ export class RosterComponent implements OnInit, OnDestroy {
     public layout: LayoutService,
   ) {
     this.setSelectedDate(new Date());
+  }
+
+  /** canEditRoster is true if the current user has permission to edit the roster. */
+  get canEditRoster() {
+    return this.identityapi.hasPermission(Permission.RosterWrite);
   }
 
   setSelectedDate(d: Date) {

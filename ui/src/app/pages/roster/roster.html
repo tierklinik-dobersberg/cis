@@ -39,25 +39,25 @@
 
     </ng-container>
 
-    <button nz-button nzType="primary" nzShape="circle" *ngIf="!editMode && !readonly" (click)="toggleEdit()"
-      nzTooltipTitle="Dienstplan bearbeiten" nz-tooltip>
+    <button nz-button nzType="primary" nzShape="circle" *ngIf="canEditRoster && !editMode && !readonly"
+      (click)="toggleEdit()" nzTooltipTitle="Dienstplan bearbeiten" nz-tooltip>
       <i nz-icon nzType="edit" nzTheme="outline"></i>
     </button>
 
-    <button nz-button nzType="primary" nzShape="circle" *ngIf="editMode || saveLoading" [nzLoading]="saveLoading"
-      (click)="toggleEdit()" nzTooltipTitle="Dienstplan speichern" nz-tooltip>
+    <button nz-button nzType="primary" nzShape="circle" *ngIf="canEditRoster && (editMode || saveLoading)"
+      [nzLoading]="saveLoading" (click)="toggleEdit()" nzTooltipTitle="Dienstplan speichern" nz-tooltip>
       <i nz-icon nzType="save" nzTheme="outline"></i>
     </button>
 
-    <button nz-button *ngIf="editMode" nzType="default" nzShape="circle" [nzLoading]="false" nz-popconfirm
-      nzPopconfirmTitle="Änderungen verwerfen?" nzPopconfirmPlacement="bottom" (nzOnConfirm)="discardChanges()"
-      nzTooltipTitle="Änderunge verwerfen" nz-tooltip>
+    <button nz-button *ngIf="canEditRoster && editMode" nzType="default" nzShape="circle" [nzLoading]="false"
+      nz-popconfirm nzPopconfirmTitle="Änderungen verwerfen?" nzPopconfirmPlacement="bottom"
+      (nzOnConfirm)="discardChanges()" nzTooltipTitle="Änderunge verwerfen" nz-tooltip>
       <i nz-icon nzType="close" nzTheme="outline"></i>
     </button>
 
-    <button nz-button nzType="danger" nzShape="circle" [nzLoading]="false" nz-popconfirm *ngIf="!editMode && !readonly"
-      nzTooltipTitle="Dienstplan löschen" nz-tooltip nzPopconfirmTitle="Dienstplan sicher löschen?"
-      nzPopconfirmPlacement="bottom" (nzOnConfirm)="deleteRoster()">
+    <button nz-button nzType="danger" nzShape="circle" [nzLoading]="false" nz-popconfirm
+      *ngIf="canEditRoster && !editMode && !readonly" nzTooltipTitle="Dienstplan löschen" nz-tooltip
+      nzPopconfirmTitle="Dienstplan sicher löschen?" nzPopconfirmPlacement="bottom" (nzOnConfirm)="deleteRoster()">
       <i nz-icon nzType="delete" nzTheme="outline"></i>
     </button>
 
@@ -153,7 +153,8 @@
     </ng-container>
 
     <div class="selection-row" style="text-align: right; padding-top: 12px">
-      <button *ngIf="!editMode && !readonly" nz-button nzSize="small" nzType="primary" (click)="toggleEdit()">
+      <button *ngIf="canEditRoster && !editMode && !readonly" nz-button nzSize="small" nzType="primary"
+        (click)="toggleEdit()">
         <i nz-icon nzType="edit" nzTheme="outline"></i>
         Bearbeiten
       </button>
