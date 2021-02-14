@@ -7,7 +7,7 @@ import { Day, IdentityAPI, ProfileWithAvatar, Roster, RosterAPI } from 'src/app/
     selector: 'app-roster-card',
     templateUrl: './roster-card.html',
     styleUrls: ['./roster-card.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    //changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RosterCardComponent implements OnInit, OnDestroy {
     private subscriptions = Subscription.EMPTY;
