@@ -42,3 +42,9 @@ html, body {
   }
   border-radius: 4px;
 }
+
+.ant-picker-body {
+  th[role="columnheader"] {
+    text-align: center;
+  }
+}

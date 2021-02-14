@@ -175,7 +175,8 @@
           </nz-option>
         </nz-select>
         <div *ngIf="!editMode" class="selected-users">
-          <li><span *ngFor="let username of selectedDay[model]">{{userProfiles[username]?.fullname}}</span></li>
+          <li><span *ngFor="let username of selectedDay[model]"
+              class="user-tag">{{userProfiles[username]?.fullname}}</span></li>
         </div>
       </div>
     </ng-template>
