@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { interval, of, Subscriber, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest, interval, of, Subject, Subscriber, Subscription } from 'rxjs';
 import { catchError, delay, map, mergeMap, retryWhen, startWith } from 'rxjs/operators';
 import { Day, IdentityAPI, ProfileWithAvatar, Roster, RosterAPI } from 'src/app/api';
 
@@ -7,7 +7,7 @@ import { Day, IdentityAPI, ProfileWithAvatar, Roster, RosterAPI } from 'src/app/
     selector: 'app-roster-card',
     templateUrl: './roster-card.html',
     styleUrls: ['./roster-card.scss'],
-    //changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RosterCardComponent implements OnInit, OnDestroy {
     private subscriptions = Subscription.EMPTY;
@@ -21,6 +21,8 @@ export class RosterCardComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit() {
+        let triggerReload = new BehaviorSubject<void>(undefined);
+
         this.subscriptions = new Subscription();
 
         let userSubscription = this.identityapi.listUsers({ includeAvatars: true })
@@ -28,12 +30,15 @@ export class RosterCardComponent implements OnInit, OnDestroy {
             .subscribe(users => {
                 users.forEach(user => {
                     this.users.set(user.name, user);
+                    triggerReload.next();
                 });
-                this.changeDetector.markForCheck();
             })
         this.subscriptions.add(userSubscription);
 
-        let rosterSubscription = interval(10000)
+        let rosterSubscription = combineLatest([
+            interval(10000),
+            triggerReload,
+        ])
             .pipe(
                 startWith(-1),
                 mergeMap(() => {
@@ -47,9 +52,6 @@ export class RosterCardComponent implements OnInit, OnDestroy {
                     if (!roster) {
                         return null;
                     }
-
-                    console.log(roster.days);
-                    console.log(new Date().getDate());
                     return roster!.days[new Date().getDate()] || null;
                 })
             )
