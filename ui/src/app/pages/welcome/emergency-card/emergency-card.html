@@ -12,8 +12,9 @@
 
     <div class="drawer-actions">
       <ng-container *ngIf="quickOverwrites.length === 1">
-        <button nz-button nzType="default"
-          (click)="configureOverwrite(null, quickOverwrites[0].TargetNumber, quickOverwrites[0].DisplayName)">
+        <button nz-button nzType="default" nz-popconfirm
+          nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{quickOverwrites[0].DisplayName}} ({{quickOverwrites[0].TargetNumber}}) ändern?"
+          (nzOnConfirm)="configureOverwrite(null, quickOverwrites[0].TargetNumber, quickOverwrites[0].DisplayName)">
           {{ quickOverwrites[0].DisplayName }}
         </button>
       </ng-container>
