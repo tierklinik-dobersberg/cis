@@ -358,7 +358,7 @@ export class IdentityAPI {
 
     // we use the current timestamp to avoid browser caching
     // since we already cache those avatars ourself.
-    return this.http.get(`/api/identity/v1/avatar/${user}?date=${new Date().valueOf()}`, {
+    return this.http.get(`/api/identity/v1/avatar/${user}`, {
       responseType: 'blob'
     })
       .pipe(
