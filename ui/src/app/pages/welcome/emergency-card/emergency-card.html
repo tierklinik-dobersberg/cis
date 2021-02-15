@@ -23,14 +23,16 @@
       </button>
       <nz-dropdown-menu #quickMenu="nzDropdownMenu">
         <ul nz-menu>
-          <li nz-menu-item *ngFor="let quick of quickOverwrites"
-            (click)="configureOverwrite(null, quick.TargetNumber, quick.DisplayName)">
+          <li nz-menu-item *ngFor="let quick of quickOverwrites" nz-popconfirm
+            nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{quick.DisplayName}} ({{quick.TargetNumber}}) ändern?"
+            (nzOnConfirm)="configureOverwrite(null, quick.TargetNumber, quick.DisplayName)">
             {{quick.DisplayName}}
           </li>
         </ul>
       </nz-dropdown-menu>
-      <button nz-button nzType="primary" *ngIf="isOverwritten" (click)="removeOverwrite()" nz-tooltip
-        nzTooltipTitle="Wieder den Dienstplan verwenden">
+      <button nz-button nzType="primary" *ngIf="isOverwritten" nz-popconfirm
+        nzPopconfirmTitle="Willst du die Änderungen sicher löschen und wieder den Dienstplan verwenden?"
+        (nzOnConfirm)="removeOverwrite()" nz-tooltip nzTooltipTitle="Wieder den Dienstplan verwenden">
         <i nz-icon nzType="close" nzTheme="outline"></i>
         Zurücksetzen
       </button>
