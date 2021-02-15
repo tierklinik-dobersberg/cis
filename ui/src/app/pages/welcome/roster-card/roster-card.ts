@@ -25,7 +25,7 @@ export class RosterCardComponent implements OnInit, OnDestroy {
 
         this.subscriptions = new Subscription();
 
-        let userSubscription = this.identityapi.listUsers({ includeAvatars: true })
+        let userSubscription = this.identityapi.listUsers()
             .pipe(retryWhen(err => err.pipe(delay(5000))))
             .subscribe(users => {
                 users.forEach(user => {

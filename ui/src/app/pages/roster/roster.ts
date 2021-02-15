@@ -135,7 +135,7 @@ export class RosterComponent implements OnInit, OnDestroy {
 
     // Load all users and keep retrying until we got them.
     const sub =
-      this.identityapi.listUsers({ includeAvatars: true })
+      this.identityapi.listUsers()
         .pipe(retryWhen(err => err.pipe(delay(2000))))
         .subscribe(
           users => {

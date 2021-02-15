@@ -37,7 +37,7 @@ export class UserListComponent implements OnInit, OnDestroy {
                 this.userProps = (cfg.UserProperties || []).filter(prop => prop.visibility === 'public')
             });
 
-        this.identityapi.listUsers({ includeAvatars: true })
+        this.identityapi.listUsers()
             .subscribe(profiles => this.profiles = profiles);
     }
 

@@ -85,7 +85,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
         this.subscriptions = new Subscription();
 
         // get a list of all users including their avatars.
-        const allUsersSub = this.identityapi.listUsers({ includeAvatars: true })
+        const allUsersSub = this.identityapi.listUsers()
             .subscribe(users => this.allUsers = users);
         this.subscriptions.add(allUsersSub);
 

@@ -195,7 +195,7 @@ export class IdentityAPI {
   /**
    * Returns all users stored at cisd.
    */
-  listUsers({ filter, includeAvatars }: { filter?: boolean, includeAvatars?: boolean } = { filter: true, includeAvatars: false }): Observable<ProfileWithAvatar[]> {
+  listUsers({ filter }: { filter?: boolean } = { filter: true }): Observable<ProfileWithAvatar[]> {
     if (filter === undefined) {
       filter = true;
     }
@@ -204,7 +204,6 @@ export class IdentityAPI {
       .pipe(
         map(profiles => {
           if (!filter) {
-            console.log(`no filtering`, profiles)
             return profiles;
           }
           let result = profiles.filter(p => !p.roles || !p.roles.some(
@@ -213,27 +212,15 @@ export class IdentityAPI {
 
           return result;
         }),
-        mergeMap(profiles => {
-
-          return combineLatest(
-            profiles.map(p => {
-              let avatar = of(null);
-              if (includeAvatars) {
-                avatar = this.avatar(p.name).pipe(catchError(err => of(null)))
-              }
-              return avatar
-                .pipe(
-                  map(avatar => {
-                    return {
-                      ...p,
-                      avatar: avatar,
-                      color: p.color || null,
-                      fontColor: !!p.color ? getContrastFontColor(p.color) : null,
-                    }
-                  })
-                )
-            })
-          )
+        map(profiles => {
+          return profiles.map(p => {
+            return {
+              ...p,
+              avatar: this.avatarUrl(p.name),
+              color: p.color || null,
+              fontColor: !!p.color ? getContrastFontColor(p.color) : null,
+            }
+          })
         }),
         map(profiles => {
           return profiles.sort((a, b) => {
