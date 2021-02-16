@@ -3,10 +3,9 @@
 :host {
   @include page-host;
   
-  position        : relative;
-  display: block;
   & > * {
     display: block;
+    width: 100%;
   }
 }
 

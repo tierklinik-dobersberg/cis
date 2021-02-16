@@ -1,11 +1,13 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
+import { NzMessageService } from "ng-zorro-antd/message";
 import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, Subscription } from "rxjs";
 import { catchError, mergeMap, startWith } from "rxjs/operators";
-import { VoiceMailAPI, VoiceMailRecording } from "src/app/api";
+import { SearchParams, VoiceMailAPI, VoiceMailRecording } from "src/app/api";
 import { Customer, CustomerAPI } from "src/app/api/customer.api";
 import { LayoutService } from "src/app/layout.service";
 import { HeaderTitleService } from "src/app/shared/header-title";
+import { extractErrorMessage } from "src/app/utils";
 import { VoiceMailsRoutingModule } from "./voicemails-routing.module";
 
 interface VoiceMailWithCustomer extends VoiceMailRecording {
@@ -18,7 +20,12 @@ interface VoiceMailWithCustomer extends VoiceMailRecording {
 })
 export class VoiceMailComponent implements OnInit, OnDestroy {
     private subscriptions = Subscription.EMPTY;
-    private date$ = new BehaviorSubject<Date>(new Date());
+    private date$ = new BehaviorSubject<Date | null>(null);
+    private onlyUnseen$ = new BehaviorSubject<boolean>(true);
+
+    get onlyUnseen() {
+        return this.onlyUnseen$.getValue();
+    }
 
     get date() {
         return this.date$.getValue();
@@ -31,11 +38,18 @@ export class VoiceMailComponent implements OnInit, OnDestroy {
         private voicemailsapi: VoiceMailAPI,
         private customersapi: CustomerAPI,
         private route: ActivatedRoute,
+        private nzMessage: NzMessageService,
         public layout: LayoutService,
     ) { }
 
-    onChange(date: Date) {
-        this.date$.next(date);
+    onChange(date?: Date, unseen?: boolean) {
+        if (date !== undefined) {
+            this.date$.next(date);
+        }
+
+        if (unseen !== undefined) {
+            this.onlyUnseen$.next(unseen);
+        }
     }
 
     ngOnInit() {
@@ -46,11 +60,21 @@ export class VoiceMailComponent implements OnInit, OnDestroy {
                 interval(10000).pipe(startWith(-1)),
                 this.route.paramMap,
                 this.date$,
+                this.onlyUnseen$,
             ])
                 .pipe(
-                    mergeMap(([_, params, date]) => {
+                    mergeMap(([_, params, date, onlyUnseen]) => {
                         this.header.set(params.get("name"));
-                        return this.voicemailsapi.forDate(date, params.get("name"))
+                        let opts: SearchParams = {};
+                        if (date !== null) {
+                            opts.date = date;
+                        }
+
+                        if (onlyUnseen) {
+                            opts.seen = false;
+                        }
+
+                        return this.voicemailsapi.search(opts)
                     }),
                     mergeMap(recordings => {
                         let m = new Map<string, [string, number]>();
@@ -86,6 +110,24 @@ export class VoiceMailComponent implements OnInit, OnDestroy {
                 })
 
         this.subscriptions.add(paramSub);
+    }
+
+    playRecordig(rec: VoiceMailRecording, player: HTMLAudioElement) {
+        player.play()
+            .then(() => {
+                this.changeSeen(rec, true);
+            })
+            .catch(err => {
+                this.nzMessage.error(extractErrorMessage(err, 'Datei konnte nicht abgespielt werden'))
+            })
+    }
+
+    changeSeen(rec: VoiceMailRecording, seen: boolean) {
+        this.voicemailsapi.updateSeen(rec._id, seen)
+            .subscribe(
+                () => rec.read = seen,
+                err => this.nzMessage.error(extractErrorMessage(err, `Aufnahmen konnte nicht als ${seen ? 'gelesen' : 'ungelesen'} markiert werden`))
+            );
     }
 
     ngOnDestroy() {

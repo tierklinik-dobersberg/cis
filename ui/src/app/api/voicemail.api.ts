@@ -1,4 +1,4 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
@@ -11,6 +11,12 @@ export interface BaseVoiceMailRecording {
     customerSource?: string;
     read?: boolean;
     filename?: string;
+    name?: string;
+}
+
+export interface SearchParams {
+    date?: Date;
+    seen?: boolean;
     name?: string;
 }
 
@@ -30,9 +36,24 @@ export class VoiceMailAPI {
             .pipe(map(res => res));
     }
 
-    forDate(date: Date, mailbox: string = ''): Observable<VoiceMailRecording[]> {
-        let nameParam = mailbox === '' ? '' : `&name=${mailbox}`
-        return this.http.get<BaseVoiceMailRecording[]>(`/api/voicemail/v1/search?date=${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}${nameParam}`)
+    search(opts: SearchParams): Observable<VoiceMailRecording[]> {
+        let params = new HttpParams();
+
+        if (opts.date !== undefined) {
+            params = params.set('date', `${opts.date.getFullYear()}-${opts.date.getMonth() + 1}-${opts.date.getDate()}`)
+        }
+
+        if (opts.name !== undefined) {
+            params = params.set(`name`, opts.name);
+        }
+
+        if (opts.seen !== undefined) {
+            params = params.set(`seen`, `${opts.seen}`)
+        }
+
+        return this.http.get<BaseVoiceMailRecording[]>(`/api/voicemail/v1/search`, {
+            params: params
+        })
             .pipe(
                 map(res => res || []),
                 map(res => res.map(r => ({
@@ -41,5 +62,20 @@ export class VoiceMailAPI {
                     url: `/api/voicemail/v1/recording/${r._id}`,
                 })))
             )
+    }
+
+    updateSeen(id: string, seen: boolean): Observable<void> {
+        if (seen) {
+            return this.http.put<void>(`/api/voicemail/v1/recording/${id}/seen`, null);
+        }
+
+        return this.http.delete<void>(`/api/voicemail/v1/recording/${id}/seen`);
+    }
+
+    forDate(date: Date, name?: string): Observable<VoiceMailRecording[]> {
+        return this.search({
+            date,
+            name,
+        });
     }
 }

@@ -1,7 +1,12 @@
 <div class="content-section selection-container">
     <div class="date-selection">
         <label>Aufnahmen anzeigen für:</label>
-        <nz-date-picker [nzAllowClear]="false" [ngModel]="date" (ngModelChange)="onChange($event)"></nz-date-picker>
+        <nz-date-picker [nzAllowClear]="true" [ngModel]="date" (ngModelChange)="onChange($event, undefined)">
+        </nz-date-picker>
+    </div>
+    <div class="date-selection">
+        <label nz-checkbox [ngModel]="onlyUnseen" (ngModelChange)="onChange(undefined, $event)">Nur neue
+            anzeigen</label>
     </div>
 </div>
 
@@ -38,10 +43,24 @@
                 </span>
             </td>
             <td>
-                <button *ngIf="layout.isPhone" nz-button nzType="primary">
-                    <i nz-icon nzType="play-circle" nzTheme="outline" (click)="player.play()"></i>
-                </button>
-                <audio [attr.controls]="layout.isTabletPortraitUp || null" [attr.src]="data.url" #player>
+
+                <nz-button-group>
+                    <button nz-button [nzType]="data.read ? 'outline' : 'primary'" (click)="playRecordig(data, player)">
+                        <i nz-icon nzType="play-circle" nzTheme="outline"></i>
+                        <span *ngIf="!layout.isPhone">Abspielen</span>
+                    </button>
+                    <button nz-button nz-dropdown [nzDropdownMenu]="menu" nzPlacement="bottomRight">
+                        <i nz-icon nzType="ellipsis"></i>
+                    </button>
+                    <nz-dropdown-menu #menu="nzDropdownMenu">
+                        <ul nz-menu>
+                            <li nz-menu-item (click)="changeSeen(data, false)">Als <b>ungelesen</b> markieren</li>
+                            <li nz-menu-item (click)="changeSeen(data, true)">Als <b>gelesen</b> markieren</li>
+                        </ul>
+                    </nz-dropdown-menu>
+                </nz-button-group>
+
+                <audio [attr.src]="data.url" #player>
                     HTML5 audio nicht unterstützt
                 </audio>
             </td>

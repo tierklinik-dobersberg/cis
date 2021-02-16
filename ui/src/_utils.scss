@@ -16,7 +16,7 @@
 
 @mixin page-host {
   display         : flex;
-  width: 100%;
+  min-width       : 100%;
   position        : relative;
   flex-direction: column;
 
