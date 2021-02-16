@@ -22,6 +22,7 @@ export class VoiceMailComponent implements OnInit, OnDestroy {
     private subscriptions = Subscription.EMPTY;
     private date$ = new BehaviorSubject<Date | null>(null);
     private onlyUnseen$ = new BehaviorSubject<boolean>(true);
+    loading = false;
 
     get onlyUnseen() {
         return this.onlyUnseen$.getValue();
@@ -57,13 +58,13 @@ export class VoiceMailComponent implements OnInit, OnDestroy {
 
         let paramSub =
             combineLatest([
-                interval(10000).pipe(startWith(-1)),
                 this.route.paramMap,
                 this.date$,
                 this.onlyUnseen$,
             ])
                 .pipe(
-                    mergeMap(([_, params, date, onlyUnseen]) => {
+                    mergeMap(([params, date, onlyUnseen]) => {
+                        this.loading = true;
                         this.header.set(params.get("name"));
                         let opts: SearchParams = {};
                         if (date !== null) {
@@ -107,6 +108,9 @@ export class VoiceMailComponent implements OnInit, OnDestroy {
                             customer: result[`${record.customerSource}/${record.customerID}`],
                         }
                     })
+                    setTimeout(() => {
+                        this.loading = false;
+                    }, 1000)
                 })
 
         this.subscriptions.add(paramSub);

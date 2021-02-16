@@ -8,6 +8,12 @@
         <label nz-checkbox [ngModel]="onlyUnseen" (ngModelChange)="onChange(undefined, $event)">Nur neue
             anzeigen</label>
     </div>
+    <div class="date-selection">
+        <button nz-button nzType="outline" (click)="onChange(date, undefined)" [nzLoading]="loading">
+            <i nz-icon nzType="search" nzTheme="outline"></i>
+            Suchen
+        </button>
+    </div>
 </div>
 
 <nz-table #basicTable [nzData]="recordings" class="content-section data-container">

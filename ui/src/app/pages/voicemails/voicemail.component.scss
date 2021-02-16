@@ -19,6 +19,10 @@ audio {
 }
 
 .date-selection {
+  &:not(:last-child) {
+    margin-bottom: 12px;
+  }
+
   nz-date-picker {
     margin-left: 12px;
   }
