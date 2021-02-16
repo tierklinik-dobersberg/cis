@@ -60,7 +60,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
           localDate: new Date(l.date).toLocaleDateString(),
         }));
 
-        this.totalCallTime = sum(this.callrecords.map(l => l.durationSeconds));
+        this.totalCallTime = sum(this.callrecords.map(l => l.durationSeconds || 0));
 
         let counts = new Map<string, number>()
         let sums = new Map<string, number>();
@@ -80,7 +80,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
           },
           {
             name: "Anrufdauer",
-            series: Array.from(sums.entries()).map(([name, value]) => ({ name, value }))
+            series: Array.from(sums.entries()).map(([name, value]) => ({ name: name, value: value / 60 }))
           },
         ]
 
