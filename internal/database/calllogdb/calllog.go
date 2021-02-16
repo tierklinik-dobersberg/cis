@@ -71,6 +71,12 @@ func (db *database) setup(ctx context.Context) error {
 			},
 			Options: options.Index().SetSparse(true),
 		},
+		{
+			Keys: bson.M{
+				"agent": 1,
+			},
+			Options: options.Index().SetSparse(true),
+		},
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create indexes: %w", err)
@@ -80,14 +86,20 @@ func (db *database) setup(ctx context.Context) error {
 }
 
 func (db *database) CreateUnidentified(ctx context.Context, d time.Time, caller string, inboundNumber string) error {
-	parsed, err := phonenumbers.Parse(caller, db.country)
-	if err != nil {
-		logger.Errorf(ctx, "failed to parse caller phone number %s: %s", caller, err)
-		return err
+	formattedNumber := ""
+	if caller != "Anonymous" {
+		parsed, err := phonenumbers.Parse(caller, db.country)
+		if err != nil {
+			logger.Errorf(ctx, "failed to parse caller phone number %s: %s", caller, err)
+			return err
+		}
+		formattedNumber = phonenumbers.Format(parsed, phonenumbers.INTERNATIONAL)
+	} else {
+		formattedNumber = "anonymous"
 	}
 
 	log := v1alpha.CallLog{
-		Caller:        phonenumbers.Format(parsed, phonenumbers.INTERNATIONAL),
+		Caller:        formattedNumber,
 		InboundNumber: inboundNumber,
 		Date:          d,
 		DateStr:       d.Format("2006-01-02"),
@@ -109,13 +121,19 @@ func (db *database) CreateUnidentified(ctx context.Context, d time.Time, caller 
 }
 
 func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallLog) error {
-	// parse and format the caller number so we can search for it.
-	parsedNumber, err := phonenumbers.Parse(record.Caller, db.country)
-	if err != nil {
-		logger.Errorf(ctx, "failed to parse phone number from calllog %s: %s", record.Caller, err)
-		return err
+	formattedNumber := ""
+	if record.Caller != "Anonymous" {
+		parsed, err := phonenumbers.Parse(record.Caller, db.country)
+		if err != nil {
+			logger.Errorf(ctx, "failed to parse caller phone number %s: %s", record.Caller, err)
+			return err
+		}
+		formattedNumber = phonenumbers.Format(parsed, phonenumbers.INTERNATIONAL)
+	} else {
+		formattedNumber = "anonymous"
 	}
-	record.Caller = phonenumbers.Format(parsedNumber, phonenumbers.INTERNATIONAL)
+
+	record.Caller = formattedNumber
 	record.DateStr = record.Date.Format("1006-01-02")
 
 	// load all records that happend on the same date with the same caller
