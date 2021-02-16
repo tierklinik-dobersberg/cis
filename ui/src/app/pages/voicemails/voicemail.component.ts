@@ -116,10 +116,20 @@ export class VoiceMailComponent implements OnInit, OnDestroy {
         this.subscriptions.add(paramSub);
     }
 
-    playRecordig(rec: VoiceMailRecording, player: HTMLAudioElement) {
+    playRecording(rec: VoiceMailRecording, player?: HTMLAudioElement) {
+        player = new Audio(rec.url);
+        player.autoplay = false;
+        player.muted = false;
+        player.volume = 1;
+
+        player.onended = () => {
+            this.changeSeen(rec, true);
+            (rec as any).playing = false;
+        }
+
         player.play()
             .then(() => {
-                this.changeSeen(rec, true);
+                (rec as any).playing = true;
             })
             .catch(err => {
                 this.nzMessage.error(extractErrorMessage(err, 'Datei konnte nicht abgespielt werden'))

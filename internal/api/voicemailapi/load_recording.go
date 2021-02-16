@@ -2,9 +2,13 @@ package voicemailapi
 
 import (
 	"context"
+	"net/http"
+	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
@@ -21,7 +25,14 @@ func LoadRecordingEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.File(rec.Filename)
+			f, err := os.Open(rec.Filename)
+			if err != nil {
+				return httperr.NotFound("recording", id, err)
+			}
+			defer f.Close()
+
+			http.ServeContent(c.Writer, c.Request, rec.Filename, time.Now(), f)
+
 			return nil
 		},
 	)

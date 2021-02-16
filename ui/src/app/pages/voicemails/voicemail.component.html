@@ -51,7 +51,8 @@
             <td>
 
                 <nz-button-group>
-                    <button nz-button [nzType]="data.read ? 'outline' : 'primary'" (click)="playRecordig(data, player)">
+                    <button nz-button [nzType]="data.read ? 'outline' : 'primary'" (click)="playRecording(data)"
+                        [nzLoading]="data.playing">
                         <i nz-icon nzType="play-circle" nzTheme="outline"></i>
                         <span *ngIf="!layout.isPhone">Abspielen</span>
                     </button>
@@ -65,10 +66,6 @@
                         </ul>
                     </nz-dropdown-menu>
                 </nz-button-group>
-
-                <audio [attr.src]="data.url" #player>
-                    HTML5 audio nicht unterstützt
-                </audio>
             </td>
         </tr>
     </tbody>
