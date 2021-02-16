@@ -28,4 +28,9 @@ type CallLog struct {
 	CustomerID string `json:"customerID,omitempty" bson:"customerID,omitempty"`
 	// CustomerSource is the source of the customer record.
 	CustomerSource string `json:"customerSource,omitempty" bson:"customerSource,omitempty"`
+	// Error might be set to true if an error occured during transfer of the call.
+	// The exact error is unknown and should be investigated by an administrator.
+	Error bool `json:"error,omitempty" bson:"error,omitempty"`
+	// TransferTarget is set to the destination of call transfer.
+	TransferTarget string `json:"transferTarget,omitempty" bson:"transferTarget,omitempty"`
 }
