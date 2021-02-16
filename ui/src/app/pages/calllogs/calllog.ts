@@ -132,7 +132,8 @@ export class CallLogComponent implements OnInit, OnDestroy {
           this.logs = logs.logs.map(l => {
             let cust: Customer | undefined;
             if (!!l.customerSource) {
-              cust = logs.customers.find(c => c.source === l.customerSource && c.cid == +l.customerID);
+              cust = logs.customers
+                .find(c => !!c && c.source === l.customerSource && c.cid == +l.customerID);
             }
 
             if (!cust) {
