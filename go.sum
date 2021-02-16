@@ -355,12 +355,8 @@ github.com/tierklinik-dobersberg/go-vetinf v0.1.1 h1:mZQNrJWLzxi/eTn0HQ/IQtUmaL6
 github.com/tierklinik-dobersberg/go-vetinf v0.1.1/go.mod h1:eGt2HDnpDCGub7UKEK0Zi6FF8863+VuitlpSD2s0BWY=
 github.com/tierklinik-dobersberg/logger v0.2.0 h1:LyLxhM/o5+nTzDq1bzrrEWh7Q9+PVKEGDdf4NOtTnsk=
 github.com/tierklinik-dobersberg/logger v0.2.0/go.mod h1:5xiqHfUncsmSw5X/nkWI39Xw1GP3Km3CDNPq5lU68HE=
-github.com/tierklinik-dobersberg/mailbox v0.0.1 h1:SiV8TvfOfMp+kT87XtlicX+ouCCDBp8dJT6fSEp9HGE=
-github.com/tierklinik-dobersberg/mailbox v0.0.1/go.mod h1:n65xeORUBLVr13uHcEH9Rsf4b7tUt86AoqDRyZ57i+Y=
-github.com/tierklinik-dobersberg/mailbox v0.0.2 h1:n1pYJE7sWfeHRb/DFZrF8A/SZBn1ie1TUXlIdwuRhms=
-github.com/tierklinik-dobersberg/mailbox v0.0.2/go.mod h1:b11ERiacP9Jt7kkn/B1+N0EADQVXlE/jLJq4iz7YIBI=
-github.com/tierklinik-dobersberg/mailbox v0.0.3 h1:n0LIrD+lwzzdog/wS3vWgibPDd3U/Hy081b4POcnhWc=
-github.com/tierklinik-dobersberg/mailbox v0.0.3/go.mod h1:b11ERiacP9Jt7kkn/B1+N0EADQVXlE/jLJq4iz7YIBI=
+github.com/tierklinik-dobersberg/mailbox v0.0.4 h1:x5iNX1ARiCXW05PY/0dgxESOw8jHBtpFpuqvnCWjdSo=
+github.com/tierklinik-dobersberg/mailbox v0.0.4/go.mod h1:b11ERiacP9Jt7kkn/B1+N0EADQVXlE/jLJq4iz7YIBI=
 github.com/tierklinik-dobersberg/service v0.2.1 h1:k62uYzwezq10I1XUNGQYAANOCsvIolkzLooGz05N6I4=
 github.com/tierklinik-dobersberg/service v0.2.1/go.mod h1:GScDqGvBrH88tmgx9WHGiuuIWhILtp3okGL7g4YRfn8=
 github.com/tj/assert v0.0.0-20171129193455-018094318fb0/go.mod h1:mZ9/Rh9oLWpLLDRpvE+3b7gP/C2YyLFYxNmcLnPTMe0=
