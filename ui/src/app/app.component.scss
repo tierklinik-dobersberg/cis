@@ -189,6 +189,8 @@ span.ant-avatar {
 
 nz-content {
   background-color: unset;
+  display: flex;
+  flex-direction: column;
 }
 
 .inner-content {
@@ -197,4 +199,5 @@ nz-content {
   overflow  : auto;
   display: flex;
   align-items: stretch;
+  flex-grow: 1;
 }

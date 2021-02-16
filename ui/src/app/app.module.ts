@@ -25,6 +25,7 @@ import { RouterModule } from '@angular/router';
 import { LayoutModule } from '@angular/cdk/layout';
 import { DurationPipe } from './shared/pipes';
 import { SharedModule } from './shared/shared.module';
+import { NzMessageServiceModule } from 'ng-zorro-antd/message';
 
 
 registerLocaleData(de);
@@ -46,6 +47,7 @@ registerLocaleData(de);
     NzDropDownModule,
     FormsModule,
     HttpClientModule,
+    NzMessageServiceModule,
     BrowserAnimationsModule,
     FontAwesomeModule,
     LoginModule,

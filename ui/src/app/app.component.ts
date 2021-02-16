@@ -1,5 +1,6 @@
 import { Component, isDevMode, OnInit } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, NavigationStart, Router } from '@angular/router';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { forkJoin, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, share } from 'rxjs/operators';
 import { ConfigAPI, IdentityAPI, Permission, Profile, ProfileWithAvatar, UIConfig, VoiceMailAPI, VoiceMailRecording } from './api';
@@ -66,6 +67,7 @@ export class AppComponent implements OnInit {
     private identity: IdentityAPI,
     private configapi: ConfigAPI,
     private router: Router,
+    private nzMessage: NzMessageService,
     public layout: LayoutService,
     private voice: VoiceMailAPI,
   ) {
@@ -98,6 +100,13 @@ export class AppComponent implements OnInit {
       });
 
     this.isCollapsed = this.layout.isPhone;
+
+    this.router.events
+      .subscribe(event => {
+        if (event instanceof NavigationEnd && this.layout.isPhone) {
+          this.isCollapsed = true;
+        }
+      })
   }
 
   private applyConfig(cfg: UIConfig | null) {
