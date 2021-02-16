@@ -3,6 +3,7 @@ package commentapi
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
@@ -18,12 +19,21 @@ func LoadCommentsForKeyEndpoint(router *app.Router) {
 			ReadCommentsAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
+			prefix := false
 			key := c.Param("key")
 			if key == "" {
 				return httperr.MissingParameter("key")
 			}
 
-			comments, err := app.Comments.ByKey(ctx, key)
+			if prefixParam := c.Query("prefix"); prefixParam != "" {
+				b, err := strconv.ParseBool(prefixParam)
+				if err != nil {
+					return httperr.BadRequest(err)
+				}
+				prefix = b
+			}
+
+			comments, err := app.Comments.ByKey(ctx, key, prefix)
 			if err != nil {
 				return err
 			}

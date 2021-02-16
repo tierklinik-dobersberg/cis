@@ -26,7 +26,7 @@ type Database interface {
 	// ByID returns a singel comment by ID.
 	ByID(ctx context.Context, id string) (*v1alpha.Comment, error)
 	// ByKey returns all comments that are associated with key.
-	ByKey(ctx context.Context, key string) ([]v1alpha.Comment, error)
+	ByKey(ctx context.Context, key string, prefix bool) ([]v1alpha.Comment, error)
 }
 
 type database struct {
@@ -168,16 +168,29 @@ func (db *database) ByID(ctx context.Context, id string) (*v1alpha.Comment, erro
 	return &c, nil
 }
 
-func (db *database) ByKey(ctx context.Context, key string) ([]v1alpha.Comment, error) {
+func (db *database) ByKey(ctx context.Context, key string, prefix bool) ([]v1alpha.Comment, error) {
 	opts := options.Find()
 
 	opts.SetSort(bson.M{
 		"createdAt": 1,
 	})
 
-	results, err := db.comments.Find(ctx, bson.M{
+	filter := bson.M{
 		"key": key,
-	}, opts)
+	}
+
+	if prefix {
+		filter = bson.M{
+			"key": bson.M{
+				"$regex": primitive.Regex{
+					Pattern: "^" + key,
+					Options: "i",
+				},
+			},
+		}
+	}
+
+	results, err := db.comments.Find(ctx, filter, opts)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, httperr.NotFound("comments", key, err)
