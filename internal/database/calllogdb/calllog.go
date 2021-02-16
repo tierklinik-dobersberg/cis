@@ -19,7 +19,7 @@ import (
 type Database interface {
 	// CreateUnidentified creates new "unidentified" calllog record where
 	// we don't know the caller.
-	CreateUnidentified(ctx context.Context, d time.Time, caller string, inboundNumber string) error
+	CreateUnidentified(ctx context.Context, log v1alpha.CallLog) error
 	// RecordCustomerCall records a call that has been associated with a customer.
 	// When called, RecordCustomerCall searches for an "unidentified" calllog that
 	// was recorded at the same time and replaces that entry.
@@ -85,24 +85,9 @@ func (db *database) setup(ctx context.Context) error {
 	return nil
 }
 
-func (db *database) CreateUnidentified(ctx context.Context, d time.Time, caller string, inboundNumber string) error {
-	formattedNumber := ""
-	if caller != "Anonymous" {
-		parsed, err := phonenumbers.Parse(caller, db.country)
-		if err != nil {
-			logger.Errorf(ctx, "failed to parse caller phone number %s: %s", caller, err)
-			return err
-		}
-		formattedNumber = phonenumbers.Format(parsed, phonenumbers.INTERNATIONAL)
-	} else {
-		formattedNumber = "anonymous"
-	}
-
-	log := v1alpha.CallLog{
-		Caller:        formattedNumber,
-		InboundNumber: inboundNumber,
-		Date:          d,
-		DateStr:       d.Format("2006-01-02"),
+func (db *database) CreateUnidentified(ctx context.Context, log v1alpha.CallLog) error {
+	if err := db.perpareRecord(ctx, &log); err != nil {
+		return err
 	}
 
 	result, err := db.callogs.InsertOne(ctx, log)
@@ -121,20 +106,9 @@ func (db *database) CreateUnidentified(ctx context.Context, d time.Time, caller 
 }
 
 func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallLog) error {
-	formattedNumber := ""
-	if record.Caller != "Anonymous" {
-		parsed, err := phonenumbers.Parse(record.Caller, db.country)
-		if err != nil {
-			logger.Errorf(ctx, "failed to parse caller phone number %s: %s", record.Caller, err)
-			return err
-		}
-		formattedNumber = phonenumbers.Format(parsed, phonenumbers.INTERNATIONAL)
-	} else {
-		formattedNumber = "anonymous"
+	if err := db.perpareRecord(ctx, &record); err != nil {
+		return err
 	}
-
-	record.Caller = formattedNumber
-	record.DateStr = record.Date.Format("1006-01-02")
 
 	// load all records that happend on the same date with the same caller
 	opts := options.Find().SetSort(bson.M{
@@ -238,4 +212,22 @@ func (db *database) ForCustomer(ctx context.Context, source, id string) ([]v1alp
 	}
 
 	return records, nil
+}
+
+func (db *database) perpareRecord(ctx context.Context, record *v1alpha.CallLog) error {
+	formattedNumber := ""
+	if record.Caller != "Anonymous" {
+		parsed, err := phonenumbers.Parse(record.Caller, db.country)
+		if err != nil {
+			logger.Errorf(ctx, "failed to parse caller phone number %s: %s", record.Caller, err)
+			return err
+		}
+		formattedNumber = phonenumbers.Format(parsed, phonenumbers.INTERNATIONAL)
+	} else {
+		formattedNumber = "anonymous"
+	}
+
+	record.Caller = formattedNumber
+	record.DateStr = record.Date.Format("1006-01-02")
+	return nil
 }

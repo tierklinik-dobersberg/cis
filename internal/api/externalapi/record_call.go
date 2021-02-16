@@ -35,12 +35,30 @@ func RecordCallEndpoint(grp *app.Router) {
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			caller := c.Query("ani")
-			did := c.Query("did")
 
-			// If we have a caller and did than this is an "unidentified" call record
+			// If we have a caller than this is an "unidentified" call record
 			// send by the callflow app.
-			if caller != "" && did != "" {
-				if err := app.CallLogs.CreateUnidentified(ctx, time.Now(), caller, did); err != nil {
+			if caller != "" {
+				record := v1alpha.CallLog{
+					Date:          time.Now(),
+					Caller:        caller,
+					InboundNumber: c.Query("did"),
+				}
+
+				if transferTo := c.Query("transferTo"); transferTo != "" {
+					record.TransferTarget = transferTo
+				}
+
+				if errparam := c.Query("error"); errparam != "" {
+					b, err := strconv.ParseBool(errparam)
+					if err != nil {
+						logger.From(ctx).Errorf("invalid error boolean %q, assuming true", err)
+						b = true
+					}
+					record.Error = b
+				}
+
+				if err := app.CallLogs.CreateUnidentified(ctx, record); err != nil {
 					return httperr.InternalError(err)
 				}
 			} else {

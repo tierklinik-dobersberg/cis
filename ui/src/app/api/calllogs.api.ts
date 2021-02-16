@@ -14,6 +14,8 @@ export interface CallLog {
   customerID?: string;
   customerSource?: string;
   agent?: string;
+  transferTarget?: string;
+  error?: boolean;
 }
 
 @Injectable({

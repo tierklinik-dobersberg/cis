@@ -28,7 +28,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let data of basicTable.data; trackBy: trackLog">
+    <tr *ngFor="let data of basicTable.data; trackBy: trackLog" [class.error]="!!data.error">
       <td class="date-time">
         <span>
           {{data.localDate}},
@@ -51,7 +51,12 @@
 
       <ng-container *ngIf="layout.isTabletLandscapeUp">
         <td>{{ (data.durationSeconds || 0) | duration }}</td>
-        <td>{{ data.agent }}</td>
+        <td>
+          {{ data.agent }}
+          <span *ngIf="data.transferTarget && data.transferTarget !== data.agent">
+            (via {{data.transferTarget}})
+          </span>
+        </td>
         <td>{{ data.callType || 'N/A' }}</td>
         <td>{{data.inboundNumber}}</td>
       </ng-container>
