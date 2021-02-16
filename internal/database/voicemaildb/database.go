@@ -3,7 +3,6 @@ package voicemaildb
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/voicemail/v1alpha"
@@ -17,8 +16,8 @@ import (
 // records.
 type Database interface {
 	Create(ctx context.Context, record *v1alpha.VoiceMailRecord) error
-	ForDate(ctx context.Context, voicemailName string, d time.Time) ([]v1alpha.VoiceMailRecord, error)
-	ForCustomer(ctx context.Context, voicemailName string, source, id string) ([]v1alpha.VoiceMailRecord, error)
+	Search(ctx context.Context, opt *SearchOptions) ([]v1alpha.VoiceMailRecord, error)
+	UpdateSeenFlag(ctx context.Context, id string, seen bool) error
 	ByID(ctx context.Context, id string) (*v1alpha.VoiceMailRecord, error)
 }
 
@@ -79,29 +78,11 @@ func (db *database) Create(ctx context.Context, record *v1alpha.VoiceMailRecord)
 	return nil
 }
 
-func (db *database) ForDate(ctx context.Context, name string, d time.Time) ([]v1alpha.VoiceMailRecord, error) {
-	filter := bson.M{
-		"datestr": d.Format("2006-01-02"),
-	}
-	if name != "" {
-		filter["name"] = name
-	}
-	return db.findRecords(ctx, filter)
-}
-
-func (db *database) ForCustomer(ctx context.Context, name, source, id string) ([]v1alpha.VoiceMailRecord, error) {
-	filter := bson.M{
-		"customerID":     id,
-		"customerSource": source,
-	}
-	if name != "" {
-		filter["name"] = name
-	}
-	return db.findRecords(ctx, filter)
-}
-
 func (db *database) ByID(ctx context.Context, id string) (*v1alpha.VoiceMailRecord, error) {
-	objID, _ := primitive.ObjectIDFromHex(id)
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, httperr.BadRequest(err)
+	}
 	result := db.collection.FindOne(ctx, bson.M{"_id": objID})
 	if result.Err() != nil {
 		if errors.Is(result.Err(), mongo.ErrNoDocuments) {
@@ -116,6 +97,35 @@ func (db *database) ByID(ctx context.Context, id string) (*v1alpha.VoiceMailReco
 	}
 
 	return &r, nil
+}
+
+func (db *database) UpdateSeenFlag(ctx context.Context, id string, seen bool) error {
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return httperr.BadRequest(err)
+	}
+
+	result, err := db.collection.UpdateOne(ctx, bson.M{"_id": objID}, bson.M{
+		"$set": bson.M{
+			"read": seen,
+		},
+	})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return httperr.NotFound("voicemail", id, err)
+		}
+		return err
+	}
+
+	if result.MatchedCount != 1 {
+		return httperr.NotFound("voicemail", id, nil)
+	}
+
+	return nil
+}
+
+func (db *database) Search(ctx context.Context, opt *SearchOptions) ([]v1alpha.VoiceMailRecord, error) {
+	return db.findRecords(ctx, opt.toFilter())
 }
 
 func (db *database) findRecords(ctx context.Context, filter interface{}) ([]v1alpha.VoiceMailRecord, error) {
