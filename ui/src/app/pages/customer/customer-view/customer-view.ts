@@ -10,9 +10,6 @@ import { HeaderTitleService } from "src/app/shared/header-title";
 import { extractErrorMessage } from "src/app/utils";
 import { customerTagColor, ExtendedCustomer } from "../utils";
 
-interface LocalCallLog extends CallLog {
-  localDate: string;
-}
 @Component({
   templateUrl: './customer-view.html',
   styleUrls: ['./customer-view.scss']
@@ -21,7 +18,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
 
   totalCallTime: number = 0;
-  callrecords: LocalCallLog[] = [];
+  callrecords: CallLog[] = [];
   customer: ExtendedCustomer | null = null;
 
   constructor(
@@ -55,12 +52,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
           this.header.set(`Kunde: N/A`);
           return;
         }
-        this.callrecords = result.calllogs.map(l => ({
-          ...l,
-          localDate: new Date(l.date).toLocaleDateString(),
-        }));
-
-        this.totalCallTime = sum(this.callrecords.map(l => l.durationSeconds || 0));
+        this.callrecords = result.calllogs;
 
         let counts = new Map<string, number>()
         let sums = new Map<string, number>();

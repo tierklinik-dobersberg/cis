@@ -1,0 +1,62 @@
+<nz-table #basicTable [nzData]="logs" class="content-section data-container">
+    <thead>
+        <tr>
+            <th>Zeit</th>
+            <th>Kunde / Anrufer</th>
+            <ng-container *ngIf="layout.isTabletLandscapeUp">
+                <th>Dauer</th>
+                <th>Agent</th>
+                <th>Type</th>
+                <th>Angerufene Nummer</th>
+            </ng-container>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let data of basicTable.data; trackBy: trackLog" [class.error]="!!data.error">
+            <td class="date-time">
+                <span>
+                    {{data.localDate}},
+                </span>
+                <span>
+                    {{ data.localTime}}
+                </span>
+            </td>
+
+            <td>
+                <a class="customer-link" *ngIf="!!data.customer; else: caller"
+                    [routerLink]="['/customer/view', data.customer.source, data.customer.cid]" nz-tooltip
+                    [nzTooltipTitle]="data.caller">
+                    {{data.customer.name}}&nbsp;{{data.customer.firstname}}
+                </a>
+                <ng-template #caller>
+                    {{ data.caller }}
+                </ng-template>
+            </td>
+
+            <ng-container *ngIf="layout.isTabletLandscapeUp">
+                <td>{{ (data.durationSeconds || 0) | duration }}</td>
+                <td>
+                    <span *ngIf="!!data.agentUser; else: agent" nz-tooltip [nzTooltipTitle]="data.agent">
+                        {{ data.agentUser.fullname || data.agentUser.name }}
+                    </span>
+                    <ng-template #agent>
+                        {{ data.agent }}
+                    </ng-template>
+                    <span *ngIf="data.transferTarget && data.transferTarget !== data.agent" class="transfer-target">
+                        (via
+                        <span *ngIf="!!data.transferToUser; else: transferTo" nz-tooltip
+                            [nzTooltipTitle]="data.transferTarget">
+                            {{ data.transferToUser.fullname || data.transferToUser.name }}
+                        </span>
+                        <ng-template #transferTo>
+                            {{ data.transferTarget }}
+                        </ng-template>
+                        )
+                    </span>
+                </td>
+                <td>{{ data.callType || 'N/A' }}</td>
+                <td>{{data.inboundNumber}}</td>
+            </ng-container>
+        </tr>
+    </tbody>
+</nz-table>

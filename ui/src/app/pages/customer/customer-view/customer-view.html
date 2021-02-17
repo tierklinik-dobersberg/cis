@@ -39,26 +39,5 @@
     </ngx-charts-line-chart>
   </div>
 
-  <nz-table #basicTable [nzData]="callrecords" [nzBordered]>
-    <thead>
-      <tr>
-        <th>Zeit</th>
-        <th>Nummer</th>
-        <th>Dauer</th>
-        <th>Agent</th>
-        <th>Type</th>
-        <th>Angerufene Nummer</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let data of basicTable.data; trackBy: trackLog">
-        <td>{{ data.localDate }}</td>
-        <td>{{ data.caller }}</td>
-        <td>{{ (data.durationSeconds || 0) | duration }}</td>
-        <td>{{ data.agent }}</td>
-        <td>{{ data.callType || 'N/A' }}</td>
-        <td>{{ data.inboundNumber }}</td>
-      </tr>
-    </tbody>
-  </nz-table>
+  <app-calllog-table [records]="callrecords" (totalCallTime)="totalCallTime = $event"></app-calllog-table>
 </div>
