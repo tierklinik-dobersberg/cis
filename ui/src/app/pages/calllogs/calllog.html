@@ -52,7 +52,7 @@
       <ng-container *ngIf="layout.isTabletLandscapeUp">
         <td>{{ (data.durationSeconds || 0) | duration }}</td>
         <td>
-          <span *ngIf="!!data.agentUser; else: agent">
+          <span *ngIf="!!data.agentUser; else: agent" nz-tooltip [nzTooltipTitle]="data.agent">
             {{ data.agentUser.fullname || data.agentUser.name }}
           </span>
           <ng-template #agent>
@@ -60,9 +60,9 @@
           </ng-template>
           <span *ngIf="data.transferTarget && data.transferTarget !== data.agent" class="transfer-target">
             (via
-            <ng-container *ngIf="!!data.transferToUser; else: transferTo">
+            <span *ngIf="!!data.transferToUser; else: transferTo" nz-tooltip [nzTooltipTitle]="data.transferTarget">
               {{ data.transferToUser.fullname || data.transferToUser.name }}
-            </ng-container>
+            </span>
             <ng-template #transferTo>
               {{ data.transferTarget }}
             </ng-template>
