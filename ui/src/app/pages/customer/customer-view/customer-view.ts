@@ -2,9 +2,9 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { sum } from "ng-zorro-antd/core/util";
 import { NzMessageService } from "ng-zorro-antd/message";
-import { forkJoin, of, Subscription } from "rxjs";
-import { catchError, mergeMap } from "rxjs/operators";
-import { CallLog, CalllogAPI } from "src/app/api";
+import { combineLatest, forkJoin, of, Subscription } from "rxjs";
+import { catchError, mergeMap, tap } from "rxjs/operators";
+import { CallLogModel, CalllogAPI, CallLog, UserService } from "src/app/api";
 import { CustomerAPI } from "src/app/api/customer.api";
 import { HeaderTitleService } from "src/app/shared/header-title";
 import { extractErrorMessage } from "src/app/utils";
@@ -25,6 +25,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     private header: HeaderTitleService,
     private customerapi: CustomerAPI,
     private calllogapi: CalllogAPI,
+    private userService: UserService,
     private activatedRoute: ActivatedRoute,
     private nzMessageService: NzMessageService,
   ) { }
@@ -32,9 +33,12 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.subscriptions = new Subscription();
 
-    const routerSub = this.activatedRoute.paramMap
+    const routerSub = combineLatest([
+      this.activatedRoute.paramMap,
+      this.userService.updated,
+    ])
       .pipe(
-        mergeMap(params => {
+        mergeMap(([params]) => {
           const source = params.get("source");
           const id = params.get("cid")
           return forkJoin({
@@ -45,7 +49,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
         catchError(err => {
           this.nzMessageService.error(extractErrorMessage(err, 'Kunde konnte nicht geladen werden'))
           return of(null);
-        })
+        }),
       )
       .subscribe(result => {
         if (!result) {
@@ -81,11 +85,12 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
           tagColor: customerTagColor(result.customer),
         };
         this.header.set(`Kunde: ${this.customer.name} ${this.customer.firstname}`);
-      })
+      }, err => console.error(err))
+
     this.subscriptions.add(routerSub);
   }
 
-  trackLog(_: number, log: CallLog) {
+  trackLog(_: number, log: CallLogModel) {
     return log._id;
   }
 

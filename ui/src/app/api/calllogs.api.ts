@@ -1,9 +1,12 @@
 import { HttpClient } from "@angular/common/http";
+import { ArrayType } from "@angular/compiler";
 import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
+import { Observable, ObservedValueOf } from "rxjs";
+import { map, tap } from "rxjs/operators";
+import { ProfileWithAvatar } from "./identity.api";
+import { UserService } from "./user.service";
 
-export interface CallLog {
+export interface CallLogModel {
   _id?: string;
   caller: string;
   inboundNumber: string;
@@ -18,18 +21,34 @@ export interface CallLog {
   error?: boolean;
 }
 
+/*
+export type ArrayItem<T> = T extends Array<infer Y> ? Y : never;
+export type CallLog = ArrayItem<ObservedValueOf<ReturnType<CalllogAPI['forDate']>>>
+*/
+export interface CallLog extends CallLogModel {
+  agentProfile?: ProfileWithAvatar;
+  transferToProfile?: ProfileWithAvatar;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class CalllogAPI {
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private userService: UserService,
+  ) { }
 
   /**
    * Returns all calllog record recorded for the given date.
    */
   forDate(year: number, month: number, day: number): Observable<CallLog[]> {
-    return this.http.get<CallLog[]>(`/api/calllogs/v1/date/${year}/${month}/${day}`)
-      .pipe(map(result => result || null));
+    return this.http.get<CallLogModel[]>(`/api/calllogs/v1/date/${year}/${month}/${day}`)
+      .pipe(
+        map(result => result || []),
+        this.userService.withUserByExt('agent', 'agentProfile'),
+        this.userService.withUserByExt('transferTarget', 'transferToProfile'),
+      );
   }
 
   /**
@@ -39,7 +58,11 @@ export class CalllogAPI {
    * @param id The ID of the customer
    */
   forCustomer(source: string, id: string): Observable<CallLog[]> {
-    return this.http.get<CallLog[]>(`/api/calllogs/v1/customer/${source}/${id}`)
-      .pipe(map(result => result || null));
+    return this.http.get<CallLogModel[]>(`/api/calllogs/v1/customer/${source}/${id}`)
+      .pipe(
+        map(result => result || []),
+        this.userService.withUserByExt('agent', 'agentProfile'),
+        this.userService.withUserByExt('transferTarget', 'transferToProfile'),
+      );
   }
 }

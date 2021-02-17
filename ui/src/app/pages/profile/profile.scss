@@ -1,57 +1,56 @@
 @import 'src/utils';
 
 :host {
-   @include page-host;
+  @include page-host;
 }
 
 .content-section {
+  background-color: white;
+  margin-left     : auto;
+  margin-right    : auto;
+  margin-bottom   : 48px;
 
-    background-color: white;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 48px;
+  border    : 1px solid #f0f0f0;
+  border-top: 3px solid #93C5FD;
 
-    border: 1px solid #f0f0f0;
-    border-top: 3px solid #93C5FD;
-    
-    min-width: 600px;
-    width: 50vw;
+  min-width: 600px;
+  width    : 50vw;
 
-    @include for-phone-only {
-      min-width: 100%;
-      margin-top: 12px;
-      margin-bottom: 0px;
-      width: 100%;
-    }
+  @include for-phone-only {
+    min-width    : 100%;
+    margin-top   : 12px;
+    margin-bottom: 0px;
+    width        : 100%;
+  }
 }
 
 .current-user {
-  margin-left: auto;
+  margin-left : auto;
   margin-right: auto;
-  margin: 12px;
+  margin      : 12px;
 
-  & >* {
-      display: block;
-  margin-left: auto;
-  margin-right: auto;
+  &>* {
+    display     : block;
+    margin-left : auto;
+    margin-right: auto;
   }
 }
 
 .username {
-    text-transform: capitalize;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  text-transform : capitalize;
+  display        : flex;
+  justify-content: space-between;
+  align-items    : center;
 
-    @include for-phone-only {
-      flex-direction: column;
-    }
+  @include for-phone-only {
+    flex-direction: column;
+  }
 }
 
 span.ant-avatar {
   overflow: hidden;
-  width: 128px;
-  height: 128px;
+  width   : 128px;
+  height  : 128px;
 
   img {
     width : 100%;
@@ -60,8 +59,8 @@ span.ant-avatar {
 }
 
 nz-descriptions {
-    ul {
-        margin: 0;
-        padding-left: 16px;
-    }
+  ul {
+    margin      : 0;
+    padding-left: 16px;
+  }
 }

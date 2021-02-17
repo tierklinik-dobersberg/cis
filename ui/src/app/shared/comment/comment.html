@@ -1,0 +1,27 @@
+<div class="commenter-container">
+  <nz-avatar nzIcon="user" nzSize="small" [nzSrc]="comment.profile?.avatar">
+  </nz-avatar>
+
+  <div class="commenter">
+    <span class="username">{{ comment.profile?.fullname || comment.profile?.name || 'Unbekannt' }}</span>
+    <span>{{ comment.edited ? 'bearbeitet am ' : 'erstellt am '}} {{ comment.date.toLocaleDateString() }}, {{
+      comment.date.toLocaleTimeString() }}</span>
+  </div>
+</div>
+<p class="comment-content">
+  {{comment.message}}
+</p>
+<p class="comment-actions">
+  <a (click)="toggleReply()">Antworten</a>
+</p>
+
+<div *ngIf="reply" class="create-comment-container">
+  <textarea nz-input [nzAutosize]="{ minRows: 3, maxRows: 5 }" [(ngModel)]="commentText"></textarea>
+  <button nz-button nzType="primary" nzSize="small" (click)="replyComment()">Kommentieren</button>
+  <button nz-button nzType="outline" nzSize="small" (click)="toggleReply()">Abbrechen</button>
+</div>
+
+<div [class.replies]="nestedCount < nestedLimit">
+  <app-comment *ngFor="let reply of comment.children" [comment]="reply" (replied)="replied.next($event)"
+    [nestedLimit]="nestedLimit" [nestedCount]="nestedCount + 1"></app-comment>
+</div>

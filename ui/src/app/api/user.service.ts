@@ -1,0 +1,170 @@
+import { Injectable } from "@angular/core";
+import { BehaviorSubject, combineLatest, Observable, OperatorFunction } from "rxjs";
+import { delay, filter, map, mergeMap, retryWhen, take } from "rxjs/operators";
+import { IdentityAPI, ProfileWithAvatar } from "./identity.api";
+import { ConfigAPI } from './config.api';
+
+/**
+ * UserService keeps a list of all users to be used
+ * across the web-application.
+ */
+@Injectable({
+  providedIn: 'root'
+})
+export class UserService {
+  /** Used to notify subscribers about new user data. */
+  private updated$ = new BehaviorSubject<boolean>(false);
+
+  /** Users indexed by name */
+  private _byName: Map<string, ProfileWithAvatar> = new Map();
+
+  /** Users index by phone-extension */
+  private _byExtension: Map<string, ProfileWithAvatar> = new Map();
+
+  /** Emits whenever users have been reloaded */
+  get updated() {
+    return this.updated$.asObservable()
+      .pipe(
+        filter(loaded => !!loaded),
+        map(() => { }),
+      )
+  }
+
+  /** Emits all users */
+  get users(): Observable<ProfileWithAvatar[]> {
+    return this.updated.pipe(map(() => Array.from(this._byName.values())));
+  }
+
+  constructor(
+    private identityapi: IdentityAPI,
+    private configapi: ConfigAPI
+  ) {
+    this.configapi.change
+      .pipe(
+        filter(cfg => !!cfg),
+        mergeMap(() => this.identityapi.listUsers()),
+        retryWhen(err => err.pipe(delay(2000))),
+      )
+      .subscribe(
+        users => this.updateUsers(users),
+      )
+  }
+
+  /**
+   * Returns the user by username.
+   *
+   * @param username The username to search for
+   */
+  byName(username: string): ProfileWithAvatar | null {
+    return this._byName.get(username) || null;
+  }
+
+  /**
+   * Returns the user by "phone" extension.
+   *
+   * @param ext The user extension to search for.
+   */
+  byExtension(ext: string): ProfileWithAvatar | null {
+    return this._byExtension.get(ext) || null;
+  }
+
+  /**
+   * Updates the internal maps to search for users.
+   *
+   * @param users The list of users loaded from CIS.
+   */
+  private updateUsers(users: ProfileWithAvatar[]) {
+    this._byExtension = new Map();
+    this._byName = new Map();
+
+    const cfg = this.configapi.current;
+    const phoneExtension = cfg?.UserPhoneExtensionProperties || [];
+    users.forEach(user => {
+      this._byName.set(user.name, user);
+      phoneExtension.forEach(ext => {
+        const value = user.properties[ext];
+        if (!!value) {
+          this._byExtension.set(value, user)
+        }
+      })
+    });
+
+    this.updated$.next(true);
+
+
+  }
+
+  extendList<T, K extends string>(list: T[], getUser: ((e: T) => ProfileWithAvatar), val: K): (T & { [key in typeof val]?: ProfileWithAvatar })[] {
+    return list.map(elem => this.extendRecord(elem, getUser, val))
+  }
+
+  extendRecord<T, K extends string>(elem: T, getUser: ((e: T) => ProfileWithAvatar), val: K): T & { [key in typeof val]?: ProfileWithAvatar } {
+    const user = getUser(elem);
+    return {
+      ...elem,
+      [val]: user,
+    } as any
+  }
+
+  /**
+   * Extends each element in list with the user profile that is
+   * referenced by the elements [userNameProp] property.
+   *
+   * @param list The list of records to extend.
+   * @param userNameProp The name of the element property that holds
+   *                     the username or a function to retrieve it
+   */
+  extendByName<T, K extends string = 'profile'>(list: T[], userNameProp: keyof T | ((x: T) => string), val?: K): (T & { [key in typeof val]?: ProfileWithAvatar })[] {
+    let getUsername: (x: T) => ProfileWithAvatar;
+
+    if (typeof userNameProp === 'string') {
+      getUsername = x => this.byName(x[userNameProp as string]);
+    } else {
+      getUsername = x => this.byName((userNameProp as any)(x))
+    }
+
+    return this.extendList(list, getUsername, val || 'profile')
+  }
+
+  /**
+   * Extends each element in list with the user profile that is
+   * referenced by the elements [userExtProp] property.
+   *
+   * @param list The list of records to extend.
+   * @param userExtProp The name of the element property that holds
+   *                    the extension or a function to retrieve it
+   */
+  extendByExtension<T, K extends string = 'profile'>(list: T[], userExtProp: keyof T | ((x: T) => string), val?: K): (T & { [key in typeof val]?: ProfileWithAvatar })[] {
+    let getExtension: (x: T) => ProfileWithAvatar;
+
+    if (typeof userExtProp === 'string') {
+      getExtension = x => this.byExtension(x[userExtProp as string]);
+    } else {
+      getExtension = x => this.byExtension((userExtProp as any)(x))
+    }
+
+    return this.extendList(list, getExtension, val || 'profile')
+  }
+
+  withUserByName<T, K extends string = 'profile'>(name: keyof T | ((x: T) => string), val?: K): OperatorFunction<T[], (T & { [key in typeof val]?: ProfileWithAvatar })[]> {
+    return (stream: Observable<T[]>) => {
+      return stream
+        .pipe(
+          map(elements => {
+            return this.extendByName(elements, name, val)
+          })
+        )
+    }
+  }
+
+  withUserByExt<T, K extends string = 'profile'>(name: keyof T | ((x: T) => string), val?: K): OperatorFunction<T[], (T & { [key in typeof val]?: ProfileWithAvatar })[]> {
+    return (stream: Observable<T[]>) => {
+      return stream
+        .pipe(
+          map(elements => {
+            return this.extendByExtension(elements, name, val)
+          })
+        )
+    }
+  }
+}

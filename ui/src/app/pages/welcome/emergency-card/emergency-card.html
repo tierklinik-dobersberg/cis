@@ -44,7 +44,7 @@
       <div class="grid">
         <div class="user" *ngFor="let user of allUsers" nz-popconfirm
           nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{user.fullname || user.name}} ändern"
-          (nzOnConfirm)="configureOverwrite(user.name)" [class.current]="user.name === primaryOnDuty">
+          (nzOnConfirm)="configureOverwrite(user.name)" [class.current]="user.name === primaryOnDuty?.name">
           <nz-avatar nzIcon="user" nzShape="square" [nzSrc]="user.avatar"></nz-avatar>
           {{ user.fullname || user.name }}
         </div>
@@ -68,12 +68,12 @@
   </span>
 
   <div class="on-duty-container">
-    <nz-avatar [nzSize]="64" nzShape="square" nzIcon="user" [nzSrc]="userAvatar"></nz-avatar>
+    <nz-avatar [nzSize]="64" nzShape="square" nzIcon="user" [nzSrc]="primaryOnDuty?.avatar"></nz-avatar>
     <div class="primary-on-duty">
-      <span *ngIf="onDuty.length > 0" [nzTooltipTitle]="'bis ' + (onDutyUntil?.toLocaleString() || 'N/A')"
+      <span *ngIf="!!primaryOnDuty" [nzTooltipTitle]="'bis ' + (onDutyUntil?.toLocaleString() || 'N/A')"
         nz-tooltip><u>{{
-          onDuty[0].fullname || onDuty[0].username }}</u></span>
-      <span class="phone" *ngIf="onDuty.length > 0">
+          primaryOnDuty.fullname || primaryOnDuty.name }}</u></span>
+      <span class="phone" *ngIf="!!primaryOnDuty">
         <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
         {{ onDuty[0].phone }}</span>
     </div>

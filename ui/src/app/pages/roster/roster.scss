@@ -41,10 +41,10 @@ nz-select {
 }
 
 .toolbar {
-  width        : 100%;
-  display      : flex;
+  width      : 100%;
+  display    : flex;
   align-items: center;
-  z-index      : 100;
+  z-index    : 100;
 
   @include for-phone-only {
     position: relative;
@@ -82,12 +82,12 @@ nz-select {
 }
 
 .user-menu {
-  width: 25vw;
+  width    : 25vw;
   min-width: 450px;
-  overflow: auto;
+  overflow : auto;
 
   @include for-phone-only {
-    width: auto;
+    width    : auto;
     min-width: auto;
   }
 }
@@ -110,34 +110,37 @@ ul.holiday {
 }
 
 ul {
-    transition: all .2s ease-in-out;
+  transition: all .2s ease-in-out;
 }
 
 ul.highlight-active {
-    opacity: 0.35;
-    &.highlight-day {
-      opacity: 1;
-      background-color: rgba(238, 255, 0, 0.26);
-    }
+  opacity: 0.35;
+
+  &.highlight-day {
+    opacity         : 1;
+    background-color: rgba(238, 255, 0, 0.26);
+  }
 }
 
 .user-tag {
-    padding: {
-      left  : 6px;
-      right : 6px;
-    }
-    height: 24px;
-    display: inline-block;
+  padding: {
+    left : 6px;
+    right: 6px;
+  }
 
-    border-radius: 2px;
-    border       : 1px solid #b0b0b0;
-    &.highlight-user {
-      font-weight: bold;
-    }
+  height : 24px;
+  display: inline-block;
 
-    &:not(:last-child) {
-      margin-right: 3px;
-    }
+  border-radius: 2px;
+  border       : 1px solid #b0b0b0;
+
+  &.highlight-user {
+    font-weight: bold;
+  }
+
+  &:not(:last-child) {
+    margin-right: 3px;
+  }
 }
 
 .selected-users {
@@ -169,11 +172,11 @@ nz-checkbox-wrapper {
 ul {
   list-style: none;
   padding   : 0;
-  overflow: hidden;
+  overflow  : hidden;
 
   li {
     height: 30px;
-    
+
     &:not(:last-child) {
       border-bottom: 1px solid #f0f0f0;
     }
@@ -182,18 +185,19 @@ ul {
 
 nz-button-group {
   margin-bottom: 8px;
-  margin-right: 8px;
+  margin-right : 8px;
 }
 
 .mobile-view {
   h3 {
     text-align: center;
   }
+
   .day {
-    border-bottom: 1px solid lightgray;
-    padding-top: 12px;
+    border-bottom : 1px solid lightgray;
+    padding-top   : 12px;
     padding-bottom: 12px;
-    transition: all .3s ease-in-out;
+    transition    : all .3s ease-in-out;
 
     &.today {
       border-top: 3px solid #93C5FD;
@@ -204,76 +208,41 @@ nz-button-group {
         margin-top: 12px;
       }
 
-      padding: 2px;
+      padding       : 2px;
       padding-bottom: 6px;
     }
 
     &.highlight-active {
-      opacity: 0.35;
-      height: 50px;
+      opacity : 0.35;
+      height  : 50px;
       overflow: hidden;
 
     }
 
     &.highlight-day {
       opacity: 1;
-      height: unset;
-      height: fit-content;
+      height : unset;
+      height : fit-content;
     }
   }
 }
 
 .comment-container {
-  padding-top: 12px;
+  padding-top   : 12px;
   padding-bottom: 12px;
-  padding-left: 24px;
-  padding-right: 24px;
+  padding-left  : 24px;
+  padding-right : 24px;
 
   .create-comment-container {
-    display: flex;
+    display       : flex;
     flex-direction: column;
-    padding-top: 12px;
+    padding-top   : 12px;
     padding-bottom: 12px;
-    border-top: 1px solid #b0b0b0;
-    margin-top: 24px;
+    border-top    : 1px solid #b0b0b0;
+    margin-top    : 24px;
 
     textarea {
       margin-bottom: 12px;
-    }
-  }
-
-  .commenter-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  span.ant-avatar {
-    width: 40px;
-    height: 40px;
-    overflow: hidden;
-
-    img {
-      width : 100%;
-      height: auto;
-    }
-  }
-
-  .comment-content {
-    padding-top: 6px;
-    margin-left: 52px;
-  }
-
-  .commenter {
-
-    flex-grow: 1;
-    padding-left: 12px;
-    display: flex;
-    flex-direction: column;
-    color: gray;
-
-    span:not(.username) {
-      font-size: 90%;
     }
   }
 }

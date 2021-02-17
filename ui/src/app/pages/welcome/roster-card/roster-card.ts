@@ -1,68 +1,63 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { BehaviorSubject, combineLatest, interval, of, Subject, Subscriber, Subscription } from 'rxjs';
-import { catchError, delay, map, mergeMap, retryWhen, startWith } from 'rxjs/operators';
-import { Day, IdentityAPI, ProfileWithAvatar, Roster, RosterAPI } from 'src/app/api';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { BehaviorSubject, combineLatest, interval, of, Subscription } from 'rxjs';
+import { catchError, map, mergeMap, startWith } from 'rxjs/operators';
+import { Day, ProfileWithAvatar, Roster, RosterAPI, UserService } from 'src/app/api';
 
 @Component({
-    selector: 'app-roster-card',
-    templateUrl: './roster-card.html',
-    styleUrls: ['./roster-card.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-roster-card',
+  templateUrl: './roster-card.html',
+  styleUrls: ['./roster-card.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RosterCardComponent implements OnInit, OnDestroy {
-    private subscriptions = Subscription.EMPTY;
-    users = new Map<string, ProfileWithAvatar>();
-    today: Day | null = null;
+  private subscriptions = Subscription.EMPTY;
 
-    constructor(
-        private rosterapi: RosterAPI,
-        private identityapi: IdentityAPI,
-        private changeDetector: ChangeDetectorRef,
-    ) { }
+  forenoon: ProfileWithAvatar[] = [];
+  afternoon: ProfileWithAvatar[] = [];
+  emergency: ProfileWithAvatar[] = [];
 
-    ngOnInit() {
-        let triggerReload = new BehaviorSubject<void>(undefined);
+  constructor(
+    private rosterapi: RosterAPI,
+    private userService: UserService,
+    private changeDetector: ChangeDetectorRef,
+  ) { }
 
-        this.subscriptions = new Subscription();
+  ngOnInit() {
+    let triggerReload = new BehaviorSubject<void>(undefined);
 
-        let userSubscription = this.identityapi.listUsers()
-            .pipe(retryWhen(err => err.pipe(delay(5000))))
-            .subscribe(users => {
-                users.forEach(user => {
-                    this.users.set(user.name, user);
-                    triggerReload.next();
-                });
-            })
-        this.subscriptions.add(userSubscription);
+    this.subscriptions = new Subscription();
 
-        let rosterSubscription = combineLatest([
-            interval(10000),
-            triggerReload,
-        ])
-            .pipe(
-                startWith(-1),
-                mergeMap(() => {
-                    const now = new Date();
-                    return this.rosterapi.forMonth(now.getFullYear(), now.getMonth() + 1);
-                }),
-                catchError(err => {
-                    return of(null);
-                }),
-                map((roster: Roster | null) => {
-                    if (!roster) {
-                        return null;
-                    }
-                    return roster!.days[new Date().getDate()] || null;
-                })
-            )
-            .subscribe((day: Day | null) => {
-                this.today = day;
-                this.changeDetector.markForCheck();
-            })
-        this.subscriptions.add(rosterSubscription);
-    }
+    let rosterSubscription = combineLatest([
+      interval(10000),
+      triggerReload,
+    ])
+      .pipe(
+        startWith(-1),
+        mergeMap(() => {
+          const now = new Date();
+          return this.rosterapi.forMonth(now.getFullYear(), now.getMonth() + 1);
+        }),
+        catchError(err => {
+          return of(null);
+        }),
+        map((roster: Roster | null) => {
+          if (!roster) {
+            return null;
+          }
+          return roster!.days[new Date().getDate()] || null;
+        })
+      )
+      .subscribe((day: Day | null) => {
+        this.forenoon = (day?.forenoon || []).map(user => this.userService.byName(user))
+        this.afternoon = (day?.afternoon || []).map(user => this.userService.byName(user))
+        this.emergency = (day?.emergency || []).map(user => this.userService.byName(user))
+        this.changeDetector.markForCheck();
+      })
 
-    ngOnDestroy() {
-        this.subscriptions.unsubscribe();
-    }
+    this.subscriptions.add(rosterSubscription);
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
 }

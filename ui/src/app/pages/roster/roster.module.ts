@@ -21,6 +21,7 @@ import { StorageModule } from '@ngx-pwa/local-storage';
 import { NzDrawerModule } from "ng-zorro-antd/drawer";
 import { NzInputModule } from "ng-zorro-antd/input";
 import { NzAvatarModule } from "ng-zorro-antd/avatar";
+import { SharedModule } from "src/app/shared/shared.module";
 
 @NgModule({
   imports: [
@@ -47,6 +48,7 @@ import { NzAvatarModule } from "ng-zorro-antd/avatar";
     NzBadgeModule,
     RosterRoutingModule,
     StorageModule,
+    SharedModule,
   ],
   declarations: [
     RosterComponent,

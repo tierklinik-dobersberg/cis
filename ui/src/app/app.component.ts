@@ -1,10 +1,9 @@
 import { Component, isDevMode, OnInit } from '@angular/core';
-import { NavigationEnd, NavigationStart, Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { forkJoin, of } from 'rxjs';
-import { catchError, filter, map, mergeMap, share } from 'rxjs/operators';
-import { ConfigAPI, IdentityAPI, Permission, Profile, ProfileWithAvatar, UIConfig, VoiceMailAPI, VoiceMailRecording } from './api';
-import { LayoutService } from './layout.service';
+import { filter, map, share } from 'rxjs/operators';
+import { LayoutService } from 'src/app/services';
+import { ConfigAPI, IdentityAPI, Permission, ProfileWithAvatar, UIConfig, VoiceMailAPI } from './api';
 
 interface MenuEntry {
   Icon: string;

@@ -1,16 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { StorageMap } from '@ngx-pwa/local-storage';
 import { NzCalendarMode } from 'ng-zorro-antd/calendar';
-import { NzMessageService, NzMessageServiceModule } from 'ng-zorro-antd/message';
-import { Observable, Subject, throwError } from 'rxjs';
-import { Subscription } from 'rxjs';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { Observable, Subject, Subscription, throwError } from 'rxjs';
 import { catchError, debounceTime, delay, map, retryWhen } from 'rxjs/operators';
-import { CommentAPI, Day, Holiday, HolidayAPI, IdentityAPI, Profile, Roster, RosterAPI, Comment as BaseComment, ProfileWithAvatar, Permission } from 'src/app/api';
-import { LayoutService } from 'src/app/layout.service';
+import { Comment as BaseComment, CommentAPI, Day, Holiday, HolidayAPI, IdentityAPI, Permission, ProfileWithAvatar, Roster, RosterAPI } from 'src/app/api';
+import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
-import { extractErrorMessage, getContrastFontColor } from 'src/app/utils';
+import { extractErrorMessage } from 'src/app/utils';
 
 interface Comment extends BaseComment {
   date: Date;
@@ -404,12 +403,12 @@ export class RosterComponent implements OnInit, OnDestroy {
     this.loadComments(date);
   }
 
-  private loadComments(date = this.selectedDate) {
+  loadComments(date = this.selectedDate) {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
 
     const sub =
-      this.commentapi.list(`roster:${year}-${month}`)
+      this.commentapi.list(`roster:${year}-${month}`, true, true)
         .subscribe(
           comments => {
             console.log(comments);
@@ -460,7 +459,7 @@ export class RosterComponent implements OnInit, OnDestroy {
   /**
    * Returns the Day object for date. If it does not yet exist
    * it is created and stored in the days object.
-   * 
+   *
    * @param date The date in question
    */
   getDay(date: Date) {
@@ -506,7 +505,7 @@ export class RosterComponent implements OnInit, OnDestroy {
 
   /**
    * Callback for changes in the date displayed.
-   * 
+   *
    * @param param0 The event emitted
    */
   onPanelChange({ date, mode }: { date: Date, mode: NzCalendarMode }, scrollTo = false) {

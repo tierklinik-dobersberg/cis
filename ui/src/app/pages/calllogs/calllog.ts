@@ -1,10 +1,8 @@
-import { Component, OnDestroy, OnInit, TrackByFunction } from "@angular/core";
-import { sum } from "ng-zorro-antd/core/util";
-import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, Subject, Subscription } from "rxjs";
-import { catchError, mergeMap, startWith } from "rxjs/operators";
-import { CallLog, CalllogAPI, ConfigAPI, IdentityAPI, ProfileWithAvatar } from "src/app/api";
-import { Customer, CustomerAPI } from "src/app/api/customer.api";
-import { LayoutService } from "src/app/layout.service";
+import { Component, OnDestroy, OnInit } from "@angular/core";
+import { BehaviorSubject, combineLatest, interval, Subscription } from "rxjs";
+import { mergeMap, startWith } from "rxjs/operators";
+import { CallLogModel, CalllogAPI, UserService } from "src/app/api";
+import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from "src/app/shared/header-title";
 
 @Component({
@@ -18,11 +16,12 @@ export class CallLogComponent implements OnInit, OnDestroy {
   date: Date;
 
   totalCallTime: number = 0;
-  logs: CallLog[] = [];
+  logs: CallLogModel[] = [];
 
   constructor(
     private header: HeaderTitleService,
     private calllogapi: CalllogAPI,
+    private userService: UserService,
     public layout: LayoutService,
   ) { }
 
@@ -39,6 +38,7 @@ export class CallLogComponent implements OnInit, OnDestroy {
       combineLatest([
         interval(60000).pipe(startWith(-1)),
         this._selectedDate,
+        this.userService.updated,
       ])
         .pipe(
           mergeMap(() => this._selectedDate),

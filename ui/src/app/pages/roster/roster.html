@@ -188,21 +188,8 @@
   <div class="comment-container">
     <h2>Kommentare</h2>
 
-    <div *ngFor="let comment of comments">
-      <div class="commenter-container">
-        <nz-avatar nzIcon="user" [nzSrc]="comment.profile?.avatar">
-        </nz-avatar>
-
-        <div class="commenter">
-          <span class="username">{{ comment.profile?.fullname || comment.profile?.name || 'Unbekannt' }}</span>
-          <span>{{ comment.edited ? 'bearbeitet am ' : 'erstellt am '}} {{ comment.date.toLocaleDateString() }}, {{
-            comment.date.toLocaleTimeString() }}</span>
-        </div>
-      </div>
-      <p class="comment-content">
-        {{comment.message}}
-      </p>
-    </div>
+    <app-comment *ngFor="let comment of comments" [comment]="comment" (replied)="loadComments()" [nestedLimit]="2">
+    </app-comment>
 
     <div class="create-comment-container">
       <h3>Erstelle einen neuen Kommentar:</h3>

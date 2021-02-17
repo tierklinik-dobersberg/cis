@@ -1,47 +1,57 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Subscription } from "rxjs";
 import { filter } from "rxjs/operators";
-import { ConfigAPI, IdentityAPI, ProfileWithAvatar, UserProperty } from "src/app/api";
-import { LayoutService } from "src/app/layout.service";
+import { ConfigAPI, IdentityAPI, ProfileWithAvatar, UserProperty, UserService } from "src/app/api";
+import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from "src/app/shared/header-title";
 
 @Component({
-    templateUrl: './users.html',
-    styleUrls: ['./users.scss']
+  templateUrl: './users.html',
+  styleUrls: ['./users.scss']
 })
 export class UserListComponent implements OnInit, OnDestroy {
-    expandSet = new Set<string>();
-    userProps: UserProperty[] = [];
+  private subscription = Subscription.EMPTY;
 
-    onExpandChange(id: string, checked: boolean): void {
-        if (checked) {
-            this.expandSet.add(id);
-        } else {
-            this.expandSet.delete(id);
-        }
+  expandSet = new Set<string>();
+  userProps: UserProperty[] = [];
+
+  onExpandChange(id: string, checked: boolean): void {
+    if (checked) {
+      this.expandSet.add(id);
+    } else {
+      this.expandSet.delete(id);
     }
+  }
 
-    profiles: ProfileWithAvatar[] = [];
+  profiles: ProfileWithAvatar[] = [];
 
-    constructor(
-        private header: HeaderTitleService,
-        private identityapi: IdentityAPI,
-        private configapi: ConfigAPI,
-        public layout: LayoutService,
-    ) { }
+  constructor(
+    private header: HeaderTitleService,
+    private userService: UserService,
+    private configapi: ConfigAPI,
+    public layout: LayoutService,
+  ) { }
 
-    ngOnInit() {
-        this.header.set('Benutzer / Mitarbeiter')
-        this.configapi.change
-            .pipe(filter(cfg => !!cfg))
-            .subscribe(cfg => {
-                this.userProps = (cfg.UserProperties || []).filter(prop => prop.visibility === 'public')
-            });
+  ngOnInit() {
+    this.subscription = new Subscription();
 
-        this.identityapi.listUsers()
-            .subscribe(profiles => this.profiles = profiles);
-    }
+    this.header.set('Benutzer / Mitarbeiter')
 
-    ngOnDestroy() {
+    this.subscription.add(
+      this.configapi.change
+        .pipe(filter(cfg => !!cfg))
+        .subscribe(cfg => {
+          this.userProps = (cfg.UserProperties || []).filter(prop => prop.visibility === 'public')
+        })
+    )
 
-    }
+    this.subscription.add(
+      this.userService.users
+        .subscribe(profiles => this.profiles = profiles)
+    )
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
 }

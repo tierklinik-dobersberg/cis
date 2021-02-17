@@ -6,7 +6,7 @@ import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DxrService, Instance, Series, Study } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
-import { LayoutService } from 'src/app/layout.service';
+import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { splitCombinedCustomerAnimalIDs } from 'src/app/utils';
 
@@ -66,7 +66,7 @@ export class XRayComponent implements OnInit, OnDestroy {
   /**
    * Load the customer for the hovered study and shows it in
    * the popover.
-   * 
+   *
    * @param visible Wether or not the popover should be visible.
    * @param study The study that was hovered.
    */
