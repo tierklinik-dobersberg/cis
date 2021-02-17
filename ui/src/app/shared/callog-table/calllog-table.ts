@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, TrackByFunction } from '@angular/core';
 import { sum } from 'ng-zorro-antd/core/util';
 import { BehaviorSubject, combineLatest, forkJoin, Observable, of, Subject, Subscription } from 'rxjs';
-import { catchError, mergeMap } from 'rxjs/operators';
+import { catchError, debounceTime, mergeMap, switchMap } from 'rxjs/operators';
 import { CallLog, CalllogAPI, CallLogModel, ConfigAPI, ProfileWithAvatar } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { LayoutService } from 'src/app/services';
@@ -73,7 +73,8 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
     const sub =
       this.callLogs
         .pipe(
-          mergeMap(logs => {
+          debounceTime(100),
+          switchMap(logs => {
             console.log(`Loading ...`, logs)
             logs = logs || [];
 
