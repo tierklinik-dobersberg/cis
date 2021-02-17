@@ -65,12 +65,15 @@ func GetContactEndpoint(grp *app.Router) {
 							Name:       app.Config.UnknownContactName,
 						},
 						Contact: map[string]interface{}{
-							"phone0": phone,
+							"phone0": strings.ReplaceAll(phonenumbers.Format(number, phonenumbers.NATIONAL), " ", ""),
+							"phone1": strings.ReplaceAll(phonenumbers.Format(number, phonenumbers.INTERNATIONAL), " ", ""),
 						},
 					}
 					if contact.Name == "${caller}" {
 						contact.Name = phone
 					}
+
+					logger.From(ctx).Infof("returning unknown customer (%s/%s): %s for %q", contact.Source, contact.CustomerID, contact.Name, phone)
 
 					c.JSON(http.StatusOK, contact)
 					return nil
