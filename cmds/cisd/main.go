@@ -154,6 +154,7 @@ func getApp(ctx context.Context) *app.App {
 		"UI":                   schema.UISpec,
 		"ExternalLink":         schema.ExternalLinkSpec,
 		"QuickRosterOverwrite": schema.QuickRosterOverwriteSpec,
+		"KnownPhoneExtension":  schema.KnownPhoneExtensionSpec,
 	}
 
 	if err := uiConfSpec.ParseFile(uiConf, &cfg.UI); err != nil && !os.IsNotExist(err) {

@@ -30,4 +30,5 @@ type UIConfig struct {
 
 	ExternalLinks         []schema.ExternalLink         `section:"ExternalLink"`
 	QuickRosterOverwrites []schema.QuickRosterOverwrite `section:"QuickRosterOverwrite"`
+	KnownPhoneExtensions  []schema.KnownPhoneExtension  `section:"KnownPhoneExtension"`
 }

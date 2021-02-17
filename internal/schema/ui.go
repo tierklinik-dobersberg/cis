@@ -7,7 +7,8 @@ import "github.com/ppacher/system-conf/conf"
 // Values here are made available through
 // /api/config/v1/ui
 type UI struct {
-	HideUsersWithRole []string
+	HideUsersWithRole            []string
+	UserPhoneExtensionProperties []string
 }
 
 // UISpec defines what configuration stanzas are supported
@@ -15,6 +16,11 @@ var UISpec = conf.SectionSpec{
 	{
 		Name:        "HideUsersWithRole",
 		Description: "A list or role names. All users that have one of the given roles are hidden from (most parts of) the UI",
+		Type:        conf.StringSliceType,
+	},
+	{
+		Name:        "UserPhoneExtensionProperties",
+		Description: "A list of user properties that hold phone extensions and should be used to link from call log records to users",
 		Type:        conf.StringSliceType,
 	},
 }
@@ -64,6 +70,26 @@ var ExternalLinkSpec = conf.SectionSpec{
 		Name:        "BlankTarget",
 		Description: "Open link in a blank target",
 		Type:        conf.BoolType,
+	},
+}
+
+type KnownPhoneExtension struct {
+	ExtensionNumber string
+	DisplayName     string
+}
+
+var KnownPhoneExtensionSpec = conf.SectionSpec{
+	{
+		Name:        "ExtensionNumber",
+		Description: "The phone extension to match",
+		Type:        conf.StringType,
+		Required:    true,
+	},
+	{
+		Name:        "DisplayName",
+		Description: "The name to display in the UI",
+		Type:        conf.StringType,
+		Required:    true,
 	},
 }
 

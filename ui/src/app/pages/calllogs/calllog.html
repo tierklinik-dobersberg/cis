@@ -52,9 +52,21 @@
       <ng-container *ngIf="layout.isTabletLandscapeUp">
         <td>{{ (data.durationSeconds || 0) | duration }}</td>
         <td>
-          {{ data.agent }}
-          <span *ngIf="data.transferTarget && data.transferTarget !== data.agent">
-            (via {{data.transferTarget}})
+          <span *ngIf="!!data.agentUser; else: agent">
+            {{ data.agentUser.fullname || data.agentUser.name }}
+          </span>
+          <ng-template #agent>
+            {{ data.agent }}
+          </ng-template>
+          <span *ngIf="data.transferTarget && data.transferTarget !== data.agent" class="transfer-target">
+            (via
+            <ng-container *ngIf="!!data.transferToUser; else: transferTo">
+              {{ data.transferToUser.fullname || data.transferToUser.name }}
+            </ng-container>
+            <ng-template #transferTo>
+              {{ data.transferTarget }}
+            </ng-template>
+            )
           </span>
         </td>
         <td>{{ data.callType || 'N/A' }}</td>

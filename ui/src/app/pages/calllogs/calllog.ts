@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit, TrackByFunction } from "@angular/core";
 import { sum } from "ng-zorro-antd/core/util";
-import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, Subscription } from "rxjs";
+import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, Subject, Subscription } from "rxjs";
 import { catchError, mergeMap, startWith } from "rxjs/operators";
-import { CallLog, CalllogAPI } from "src/app/api";
+import { CallLog, CalllogAPI, ConfigAPI, IdentityAPI, ProfileWithAvatar } from "src/app/api";
 import { Customer, CustomerAPI } from "src/app/api/customer.api";
 import { LayoutService } from "src/app/layout.service";
 import { HeaderTitleService } from "src/app/shared/header-title";
@@ -11,6 +11,8 @@ interface LocalCallLog extends CallLog {
   localDate: string;
   localTime: string;
   customer?: Customer;
+  agentUser?: ProfileWithAvatar;
+  transferToUser?: ProfileWithAvatar;
 }
 
 @Component({
@@ -20,11 +22,14 @@ interface LocalCallLog extends CallLog {
 export class CallLogComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
   private _selectedDate = new BehaviorSubject<Date>(new Date());
+  private ready = new Subject<void>();
 
   date: Date;
 
   totalCallTime: number = 0;
   logs: LocalCallLog[] = [];
+
+  private usersByExtensions: Map<string, ProfileWithAvatar> = new Map();
 
   trackLog: TrackByFunction<CallLog> = (i: number, l: LocalCallLog) => {
     if (!!l) {
@@ -38,6 +43,8 @@ export class CallLogComponent implements OnInit, OnDestroy {
     private header: HeaderTitleService,
     private calllogapi: CalllogAPI,
     private customerapi: CustomerAPI,
+    private configapi: ConfigAPI,
+    private identityapi: IdentityAPI,
     public layout: LayoutService,
   ) { }
 
@@ -50,10 +57,28 @@ export class CallLogComponent implements OnInit, OnDestroy {
     this.date = new Date();
     this.subscriptions = new Subscription();
 
+    const userSub = combineLatest([
+      this.identityapi.listUsers(),
+      this.configapi.change
+    ]).subscribe(([users, config]) => {
+      this.usersByExtensions = new Map();
+      (config.UserPhoneExtensionProperties || []).forEach(propName => {
+        users.forEach(user => {
+          let ext = (user.properties || {})[propName];
+          if (!!ext) {
+            this.usersByExtensions.set(ext, user)
+          }
+        })
+      })
+
+      this.ready.next();
+    })
+
     const sub =
       combineLatest([
         interval(60000).pipe(startWith(-1)),
         this._selectedDate,
+        this.ready,
       ])
         .pipe(
           mergeMap(() => this._selectedDate),
@@ -146,6 +171,8 @@ export class CallLogComponent implements OnInit, OnDestroy {
               localDate: d.toLocaleDateString(),
               localTime: d.toLocaleTimeString(),
               customer: cust,
+              agentUser: this.usersByExtensions.get(l.agent),
+              transferToUser: this.usersByExtensions.get(l.transferTarget),
             };
           });
         })

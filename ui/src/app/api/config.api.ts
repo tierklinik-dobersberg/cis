@@ -28,11 +28,18 @@ export interface QuickRosterOverwrite {
   TargetNumber: string;
 }
 
+export interface KnownPhoneExtension {
+  DisplayName: string;
+  ExtensionNumber: string;
+}
+
 export interface UIConfig {
   HideUsersWithRole?: string[];
   ExternalLinks?: ExternalLink[];
   UserProperties: UserProperty[];
   QuickRosterOverwrites?: QuickRosterOverwrite[];
+  KnownPhoneExtensions?: KnownPhoneExtension[];
+  UserPhoneExtensionProperties?: string[];
 }
 
 @Injectable({
