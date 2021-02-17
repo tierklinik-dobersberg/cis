@@ -132,6 +132,7 @@ func (db *database) Reply(ctx context.Context, id string, user, message string) 
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		Key:       parent.Key,
+		ParentID:  parent.ID,
 		User:      user,
 		Message:   message,
 	}
@@ -150,8 +151,13 @@ func (db *database) Reply(ctx context.Context, id string, user, message string) 
 }
 
 func (db *database) ByID(ctx context.Context, id string) (*v1alpha.Comment, error) {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, httperr.BadRequest(err)
+	}
+
 	result := db.comments.FindOne(ctx, bson.M{
-		"_id": id,
+		"_id": oid,
 	})
 	if err := result.Err(); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
