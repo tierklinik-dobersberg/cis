@@ -11,8 +11,8 @@ interface LocalCallLog extends CallLog {
   localDate: string;
   localTime: string;
   customer?: Customer;
-  agentUser?: ProfileWithAvatar;
-  transferToUser?: ProfileWithAvatar;
+  agentUser?: Partial<ProfileWithAvatar>;
+  transferToUser?: Partial<ProfileWithAvatar>;
 }
 
 @Component({
@@ -30,6 +30,7 @@ export class CallLogComponent implements OnInit, OnDestroy {
   logs: LocalCallLog[] = [];
 
   private usersByExtensions: Map<string, ProfileWithAvatar> = new Map();
+  private knownExtensioins: Map<string, Partial<ProfileWithAvatar>> = new Map();
 
   trackLog: TrackByFunction<CallLog> = (i: number, l: LocalCallLog) => {
     if (!!l) {
@@ -69,6 +70,11 @@ export class CallLogComponent implements OnInit, OnDestroy {
             this.usersByExtensions.set(ext, user)
           }
         })
+      });
+
+      this.knownExtensioins = new Map();
+      (config.KnownPhoneExtensions || []).forEach(known => {
+        this.knownExtensioins.set(known.ExtensionNumber, { fullname: known.DisplayName })
       })
 
       this.ready.next();
@@ -171,8 +177,8 @@ export class CallLogComponent implements OnInit, OnDestroy {
               localDate: d.toLocaleDateString(),
               localTime: d.toLocaleTimeString(),
               customer: cust,
-              agentUser: this.usersByExtensions.get(l.agent),
-              transferToUser: this.usersByExtensions.get(l.transferTarget),
+              agentUser: this.usersByExtensions.get(l.agent) || this.knownExtensioins.get(l.agent),
+              transferToUser: this.usersByExtensions.get(l.transferTarget) || this.knownExtensioins.get(l.transferTarget),
             };
           });
         })
