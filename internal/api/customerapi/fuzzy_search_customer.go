@@ -39,7 +39,8 @@ func FuzzySearchEndpoint(grp *app.Router) {
 			if phoneQueries, ok := c.GetQueryArray("phone"); ok && len(phoneQueries) > 0 {
 				phoneNumbers := []string{}
 				for _, phone := range phoneQueries {
-					if phone == "" {
+					// skip empty phone numbers and "anonymous".
+					if phone == "" || phone == "anonymous" {
 						continue
 					}
 					number, err := phonenumbers.Parse(phone, app.Config.Country)
