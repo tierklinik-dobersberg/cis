@@ -1,5 +1,5 @@
 <div class="commenter-container">
-  <nz-avatar nzIcon="user" nzSize="small" [nzSrc]="comment.profile?.avatar">
+  <nz-avatar nzIcon="user" nzSize="small" nzShape="square" [nzSrc]="comment.profile?.avatar">
   </nz-avatar>
 
   <div class="commenter">
@@ -9,7 +9,9 @@
   </div>
 </div>
 <p class="comment-content">
-  {{comment.message}}
+  <markdown emoji>
+    {{comment.message}}
+  </markdown>
 </p>
 <p class="comment-actions">
   <a (click)="toggleReply()">Antworten</a>
@@ -17,8 +19,14 @@
 
 <div *ngIf="reply" class="create-comment-container">
   <textarea nz-input [nzAutosize]="{ minRows: 3, maxRows: 5 }" [(ngModel)]="commentText"></textarea>
-  <button nz-button nzType="primary" nzSize="small" (click)="replyComment()">Kommentieren</button>
-  <button nz-button nzType="outline" nzSize="small" (click)="toggleReply()">Abbrechen</button>
+  <div class="actions">
+    <div>
+      <button nz-button nzType="primary" nzSize="small" (click)="replyComment()">Kommentieren</button>
+      <button nz-button nzType="outline" nzSize="small" (click)="toggleReply()">Abbrechen</button>
+    </div>
+    <a href="https://guides.github.com/features/mastering-markdown/" target="_blank">Markdown</a>
+  </div>
+
 </div>
 
 <div [class.replies]="nestedCount < nestedLimit">

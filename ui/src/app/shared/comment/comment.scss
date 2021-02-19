@@ -46,6 +46,13 @@ span.ant-avatar {
   }
 }
 
+.actions {
+  margin-top     : 6px;
+  display        : flex;
+  justify-content: space-between;
+  align-items    : center;
+}
+
 .replies {
   margin-top  : 6px;
   margin-left : 12px;
@@ -55,7 +62,9 @@ span.ant-avatar {
 
 .create-comment-container {
   button {
-    margin-top  : 6px;
     margin-right: 6px;
   }
+
+  margin-bottom: 36px;
+  margin-top   : 12px;
 }

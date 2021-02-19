@@ -23,6 +23,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { LoginModule } from './pages/login/login.module';
 import { RouterModule } from '@angular/router';
 import { LayoutModule } from '@angular/cdk/layout';
+import { MarkdownModule } from 'ngx-markdown';
 import { DurationPipe } from './shared/pipes';
 import { SharedModule } from './shared/shared.module';
 import { NzMessageServiceModule } from 'ng-zorro-antd/message';
@@ -50,6 +51,7 @@ registerLocaleData(de);
     NzMessageServiceModule,
     BrowserAnimationsModule,
     FontAwesomeModule,
+    MarkdownModule.forRoot(),
     LoginModule,
     RouterModule,
     LayoutModule,
