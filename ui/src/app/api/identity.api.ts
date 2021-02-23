@@ -1,7 +1,8 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
-import { catchError, combineAll, filter, map, mergeAll, mergeMap, tap } from 'rxjs/operators';
+import jwt_decode, { JwtPayload as JWTToken } from 'jwt-decode';
+import { BehaviorSubject, interval, Observable, of } from 'rxjs';
+import { catchError, filter, map, mergeMap, startWith, tap } from 'rxjs/operators';
 import { getContrastFontColor } from '../utils';
 import { UIConfig } from './config.api';
 
@@ -37,10 +38,8 @@ export interface Profile {
   color?: string;
 }
 
-export type Token = string;
-
 interface TokenReponse {
-  token: Token;
+  token: string;
 }
 
 export interface PasswordStrenght {
@@ -73,6 +72,17 @@ export interface PermissionTestResult {
 
 export type UIPermissions = Partial<Record<Permission, boolean>>;
 
+export interface Token extends JWTToken {
+  expiresAt: Date;
+  app_metadata: {
+    authorization: {
+      roles: string[];
+    };
+  };
+}
+
+const tokenThreshold = 10 * 60 * 1000; // 10 minutes
+
 @Injectable({
   providedIn: 'root'
 })
@@ -80,6 +90,7 @@ export class IdentityAPI {
   private onLogin = new BehaviorSubject<ProfileWithPermissions | null>(null);
   private avatarCache: { [key: string]: string } = {};
   private rolesToHide: Set<string> = new Set();
+  private token: Token | null = null;
 
   applyUIConfig(cfg: UIConfig) {
     this.rolesToHide = new Set();
@@ -89,6 +100,25 @@ export class IdentityAPI {
   constructor(
     private http: HttpClient,
   ) {
+    interval(tokenThreshold / 2)
+      .pipe(
+        startWith(-1),
+        filter(() => {
+          if (!this.token) {
+            return true;
+          }
+          return new Date().valueOf() + tokenThreshold >= this.token.expiresAt.valueOf();
+        }),
+        mergeMap(() => this.refresh()),
+        catchError(err => of<Token | null>(null)),
+      )
+      .subscribe(token => {
+        if (!!token) {
+          console.log(`Got new access token: `, token);
+        }
+        this.token = token || null;
+      })
+
     // Whenever we switch user we need to load the profiles permissions as well.
     this.profileChange
       .pipe(filter(profile => !!profile))
@@ -123,17 +153,28 @@ export class IdentityAPI {
       externalRd = `?redirect=${rd}`
     }
 
-    return this.http.post(`/api/identity/v1/login${externalRd}`, {
+    return this.http.post<TokenReponse>(`/api/identity/v1/login${externalRd}`, {
       username: username,
       password: password,
     }, {
       observe: 'response',
-      responseType: 'text',
     })
       .pipe(
         map(resp => {
           if (!resp.ok) {
             throw resp;
+          }
+
+          if (externalRd === '') {
+            // try to decode the token but ingore any error
+            // as only auto-refresh won't work then
+            try {
+              this.token = this.parseToken(resp.body?.token || '');
+              console.log(`Got token`, this.token)
+            } catch (err) {
+              console.error(`Failed to parse token: `, err)
+              this.token = null;
+            }
           }
 
           return undefined;
@@ -153,12 +194,12 @@ export class IdentityAPI {
    */
   refresh(): Observable<Token> {
     return this.http.post<TokenReponse>(`/api/identity/v1/refresh`, null)
-      .pipe(map(r => r.token));
+      .pipe(map(r => this.parseToken(r.token)));
   }
 
   /**
    * Changes the password for the given user.
-   * 
+   *
    * @param current The current user password
    * @param newPwd The new user password
    */
@@ -172,7 +213,7 @@ export class IdentityAPI {
 
   /**
    * Tests if a password is valid.
-   * 
+   *
    * @param password The password to test
    */
   testPassword(password: string): Observable<PasswordStrenght> {
@@ -372,5 +413,13 @@ export class IdentityAPI {
 
   testPerimissions<T extends { [key: string]: PermissionRequest }>(requests: T): Observable<{ [key: string]: PermissionTestResult }> {
     return this.http.post<{ [key: string]: PermissionTestResult }>(`/api/identity/v1/permissions/test`, requests);
+  }
+
+  private parseToken(token: string): Token {
+    let t = jwt_decode<Token>(token);
+    return {
+      ...t,
+      expiresAt: new Date(t.exp * 1000),
+    }
   }
 }
