@@ -60,13 +60,25 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
 
         let counts = new Map<string, number>()
         let sums = new Map<string, number>();
+        let heatMapBuckets = new Map<number, Map<number, number>>();
+
         this.callrecords.forEach(record => {
           let count = counts.get(record.datestr) || 0;
-          let sum = sums.get(record.datestr) || 0;
           count++;
-          sum += record.durationSeconds || 0;
           counts.set(record.datestr, count);
+
+          let sum = sums.get(record.datestr) || 0;
+          sum += record.durationSeconds || 0;
           sums.set(record.datestr, sum);
+
+          let d = new Date(record.date);
+          let hourBucket = heatMapBuckets.get(d.getDay()) || new Map<number, number>();
+          heatMapBuckets.set(d.getDay(), hourBucket);
+
+          const hourIdx = Math.floor(d.getHours() / 2);
+          let hourCount = hourBucket.get(hourIdx) || 0;
+          hourCount++;
+          hourBucket.set(hourIdx, hourCount)
         })
 
         this.callLogSeries = [
@@ -79,6 +91,24 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
             series: Array.from(sums.entries()).map(([name, value]) => ({ name: name, value: value / 60 }))
           },
         ]
+
+        const weekDays = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+        const hours = [4, 5, 6, 7, 8];
+        console.log(heatMapBuckets);
+
+        this.heatMapSeries = weekDays.map((day, index) => {
+          const values = heatMapBuckets.get(index) || new Map<number, number>();
+          return {
+            name: day,
+            series: hours.map(hourIdx => {
+              return {
+                name: `${hourIdx * 2}:00-${hourIdx * 2 + 2}:00`,
+                value: values.get(hourIdx) || 0,
+              }
+            })
+          }
+        })
+        console.log(this.heatMapSeries);
 
         this.customer = {
           ...result.customer,
@@ -98,7 +128,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-
+  heatMapSeries: any[] = [];
   callLogSeries: any[] = [];
   // options
   xAxisLabel: string = 'Tag';
