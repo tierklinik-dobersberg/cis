@@ -40,7 +40,8 @@
   </div>
   <div class="chart-container">
     <ngx-charts-heat-map [results]="heatMapSeries" [legend]="false" xAxisLabel="Wochentag" yAxisLabel="Uhrzeit"
-      [scheme]="['#5AA454', '#A10A28']" [showXAxisLabel]="true" [showYAxisLabel]="true" [xAxis]="true" [yAxis]="true">
+      [scheme]="{domain: ['#5AA454', '#A10A28']}" [showXAxisLabel]="true" [showYAxisLabel]="true" [xAxis]="true"
+      [yAxis]="true">
     </ngx-charts-heat-map>
   </div>
 
