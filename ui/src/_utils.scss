@@ -25,3 +25,9 @@
     padding: 12px;
   }
 }
+
+@mixin hide-on-phone {
+  @include for-phone-only() {
+    display: none;
+  }
+}
