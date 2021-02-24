@@ -1,49 +1,78 @@
-<div class="content-section">
-  <h1>
-    <u>{{ customer?.name }}&nbsp;{{ customer?.firstname }}</u>
-  </h1>
-
-  <div class="tag-list">
-    <nz-tag [nzColor]="customer?.tagColor">{{ customer?.source }}</nz-tag>
+<div class="page-header">
+  <div class="main-row">
+    <div class="row-container">
+      <fieldset>
+        <legend>Name</legend>
+        <i nz-icon nzType="user" nzTheme="outline"></i>
+        <span>
+          {{ customer?.name }}&nbsp;{{ customer?.firstname }}
+        </span>
+      </fieldset>
+    </div>
   </div>
+  <div class="secondary-row">
+    <div class="row-container justify-between phone-grid">
+      <div class="info">
+        <label>ID</label>
+        <span>{{ customer?.cid || 'N/A'}}</span>
+      </div>
 
-  <nz-descriptions nzBordered>
-    <nz-descriptions-item nzTitle="ID" [nzSpan]="3">{{customer?.cid || 'N/A'}}</nz-descriptions-item>
-    <nz-descriptions-item nzTitle="Name" [nzSpan]="3">{{customer?.name || 'N/A'}}</nz-descriptions-item>
-    <nz-descriptions-item nzTitle="Vorname" [nzSpan]="3">{{customer?.firstname || 'N/A'}}</nz-descriptions-item>
-    <nz-descriptions-item nzTitle="Titel" [nzSpan]="3">{{customer?.title || 'N/A'}}</nz-descriptions-item>
-    <nz-descriptions-item nzTitle="Gruppe" [nzSpan]="3">{{customer?.group || 'N/A'}}</nz-descriptions-item>
-    <nz-descriptions-item nzTitle="Summe Telefonate" [nzSpan]="3">{{ (totalCallTime || 0) | duration}}
-    </nz-descriptions-item>
-    <nz-descriptions-item nzTitle="Telefon" [nzSpan]="3">
-      <li *ngFor="let phone of customer?.phoneNumbers">{{phone}}</li>
-    </nz-descriptions-item>
-    <nz-descriptions-item nzTitle="E-Mail" [nzSpan]="3">
-      <li *ngFor="let mail of customer?.mailAddresses">{{mail}}</li>
-    </nz-descriptions-item>
-    <nz-descriptions-item nzTitle="Addresse" [nzSpan]="3">
-      {{ customer?.street }}<br />
-      {{ customer?.cityCode }}&nbsp;{{ customer?.city }}
-    </nz-descriptions-item>
-  </nz-descriptions>
+      <div class="info">
+        <label>Ursprung</label>
+        <nz-tag [nzColor]="customer?.tagColor">{{ customer?.source }}</nz-tag>
+      </div>
+
+      <div class="info">
+        <label>Summe Telefonate</label>
+        <span>{{ (totalCallTime || 0) | duration }}</span>
+      </div>
+
+      <div class="info">
+        <label>Letzter Anruf</label>
+        <span>{{ callrecords.length > 0 ? (callrecords[0].date | date:'short':'':'de') : 'N/A' }}</span>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="content-section calllog-container">
-  <h2>Anruf Journal</h2>
-
-  <div class="chart-container">
-    <ngx-charts-line-chart [scheme]="colorScheme" [legend]="true" [showXAxisLabel]="true" [showYAxisLabel]="true"
-      [xAxis]="true" [yAxis]="true" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]="false"
-      [results]="callLogSeries" (select)="onSelect($event)" (activate)="onActivate($event)"
-      (deactivate)="onDeactivate($event)">
-    </ngx-charts-line-chart>
+<div class="content-wrapper">
+  <div class="content-section">
+    <nz-descriptions nzBordered>
+      <nz-descriptions-item nzTitle="Name" [nzSpan]="3">{{customer?.name || 'N/A'}}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Vorname" [nzSpan]="3">{{customer?.firstname || 'N/A'}}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Titel" [nzSpan]="3">{{customer?.title || 'N/A'}}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Gruppe" [nzSpan]="3">{{customer?.group || 'N/A'}}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Telefon" [nzSpan]="3">
+        <li *ngFor="let phone of customer?.phoneNumbers">{{phone}}</li>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="E-Mail" [nzSpan]="3">
+        <li *ngFor="let mail of customer?.mailAddresses">{{mail}}</li>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Addresse" [nzSpan]="3">
+        {{ customer?.street }}<br />
+        {{ customer?.cityCode }}&nbsp;{{ customer?.city }}
+      </nz-descriptions-item>
+    </nz-descriptions>
   </div>
-  <div class="chart-container">
-    <ngx-charts-heat-map [results]="heatMapSeries" [legend]="false" xAxisLabel="Wochentag" yAxisLabel="Uhrzeit"
-      [scheme]="{domain: ['#5AA454', '#A10A28']}" [showXAxisLabel]="true" [showYAxisLabel]="true" [xAxis]="true"
-      [yAxis]="true">
-    </ngx-charts-heat-map>
+
+  <div class="content-section calllog-container">
+    <h2>Anruf Journal</h2>
+
+    <div class="chart-container">
+      <ngx-charts-line-chart [scheme]="colorScheme" [legend]="true" [showXAxisLabel]="true" [showYAxisLabel]="true"
+        [xAxis]="true" [yAxis]="true" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]="false"
+        [results]="callLogSeries" (select)="onSelect($event)" (activate)="onActivate($event)"
+        (deactivate)="onDeactivate($event)">
+      </ngx-charts-line-chart>
+    </div>
+    <div class="chart-container">
+      <ngx-charts-heat-map [results]="heatMapSeries" [legend]="false" xAxisLabel="Wochentag" yAxisLabel="Uhrzeit"
+        [scheme]="{domain: ['#5AA454', '#A10A28']}" [showXAxisLabel]="true" [showYAxisLabel]="true" [xAxis]="true"
+        [yAxis]="true">
+      </ngx-charts-heat-map>
+    </div>
+
+    <app-calllog-table [records]="callrecords" (totalCallTime)="totalCallTime = $event"></app-calllog-table>
   </div>
 
-  <app-calllog-table [records]="callrecords" (totalCallTime)="totalCallTime = $event"></app-calllog-table>
 </div>

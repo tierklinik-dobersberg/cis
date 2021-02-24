@@ -8,74 +8,98 @@ import { ExtendedCustomer, customerTagColor } from './utils';
 import { HeaderTitleService } from "src/app/shared/header-title";
 
 @Component({
-    templateUrl: './customer-list.html',
-    styleUrls: ['./customer-list.scss']
+  templateUrl: './customer-list.html',
+  styleUrls: ['./customer-list.scss']
 })
 export class CustomerListComponent implements OnInit, OnDestroy {
-    private subscriptions = Subscription.EMPTY;
+  private subscriptions = Subscription.EMPTY;
 
-    searchText = ''
-    customers: ExtendedCustomer[] = [];
-    useAdvancedSearch: boolean = false;
-    searching = false;
+  searchText = ''
+  customers: ExtendedCustomer[] = [];
+  allCustomers: ExtendedCustomer[] = [];
+  useAdvancedSearch: boolean = false;
+  searching = false;
+  sourceTags = new Set<string>();
+  tagColors: { [key: string]: string } = {};
+  tagVisibility: { [key: string]: boolean } = {};
 
-    trackBy: TrackByFunction<Customer> = (_: number, cust: Customer) => cust.cid;
+  trackBy: TrackByFunction<Customer> = (_: number, cust: Customer) => cust.cid;
 
-    constructor(
-        private header: HeaderTitleService,
-        private customerapi: CustomerAPI,
-        private nzMessageService: NzMessageService,
-    ) { }
+  constructor(
+    private header: HeaderTitleService,
+    private customerapi: CustomerAPI,
+    private nzMessageService: NzMessageService,
+  ) { }
 
-    ngOnInit() {
-        this.header.set('Kunden');
-        this.subscriptions = new Subscription();
+  ngOnInit() {
+    this.header.set('Kunden');
+    this.subscriptions = new Subscription();
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
+
+  search(term: string) {
+    let stream: Observable<Customer[]> = this.customerapi.searchName(term);
+
+    if (this.useAdvancedSearch) {
+      let payload: any;
+      try {
+        payload = JSON.parse(term)
+      } catch (err) {
+        return
+      }
+
+      stream = this.customerapi.extendedSearch(payload)
+    } else {
+      let parsedQuery = parseQuery(term, {
+        keywords: ['name', 'firstname', 'phoneNumbers', 'city', 'cityCode', 'street', 'mailAddresses', 'customerSource']
+      })
+
+      if (typeof parsedQuery !== 'string') {
+        let filter = toMongoDBFilter(parsedQuery)
+        stream = this.customerapi.extendedSearch(filter);
+      }
     }
 
-    ngOnDestroy() {
-        this.subscriptions.unsubscribe();
-    }
+    this.searching = true;
+    stream.subscribe(
+      result => {
+        this.sourceTags = new Set();
+        this.tagColors = {};
+        this.allCustomers = [];
 
-    search(term: string) {
-        let stream: Observable<Customer[]> = this.customerapi.searchName(term);
+        (result || []).forEach(c => {
+          let tagColor = customerTagColor(c);
+          this.allCustomers.push({
+            ...c,
+            tagColor: tagColor,
+          })
 
-        if (this.useAdvancedSearch) {
-            let payload: any;
-            try {
-                payload = JSON.parse(term)
-            } catch (err) {
-                return
-            }
+          this.sourceTags.add(c.source);
+          this.tagColors[c.source] = tagColor;
+          if (this.tagVisibility[c.source] === undefined) {
+            this.tagVisibility[c.source] = true;
+          }
+        });
 
-            stream = this.customerapi.extendedSearch(payload)
-        } else {
-            let parsedQuery = parseQuery(term, {
-                keywords: ['name', 'firstname', 'phoneNumbers', 'city', 'cityCode', 'street', 'mailAddresses', 'customerSource']
-            })
+        this.customers = this.allCustomers.filter(c => !!this.tagVisibility[c.source])
+      },
+      err => {
+        const msg = extractErrorMessage(err, "Suche fehlgeschlagen")
+        this.nzMessageService.error(msg);
 
-            if (typeof parsedQuery !== 'string') {
-                let filter = toMongoDBFilter(parsedQuery)
-                console.log(filter);
-                stream = this.customerapi.extendedSearch(filter);
-            }
-        }
+        this.customers = [];
+        this.sourceTags = new Set();
+      },
+      () => {
+        this.searching = false;
+      })
+  }
 
-        this.searching = true;
-        stream.subscribe(
-            result => {
-                this.customers = (result || []).map(c => ({
-                    ...c,
-                    tagColor: customerTagColor(c),
-                }));
-            },
-            err => {
-                const msg = extractErrorMessage(err, "Suche fehlgeschlagen")
-                this.nzMessageService.error(msg);
-
-                this.customers = [];
-            },
-            () => {
-                this.searching = false;
-            })
-    }
+  updateTagVisibility(tag: string, visible: boolean) {
+    this.tagVisibility[tag] = visible;
+    this.customers = this.allCustomers.filter(c => !!this.tagVisibility[c.source])
+  }
 }

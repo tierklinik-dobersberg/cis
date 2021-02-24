@@ -28,7 +28,6 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
 
   @Input()
   set records(v: CallLog[]) {
-    console.log(`Input`, v)
     this.callLogs.next(v);
   }
 
@@ -75,7 +74,6 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
         .pipe(
           debounceTime(100),
           switchMap(logs => {
-            console.log(`Loading ...`, logs)
             logs = logs || [];
 
             let customerSet = new Map<string, [string, string]>();

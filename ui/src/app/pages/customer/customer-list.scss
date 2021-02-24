@@ -9,20 +9,9 @@
 }
 
 
-.search {
-  flex-grow: 0;
-}
-
-.content-wrapper {
-  flex-grow: 1;
-  display: flex;
-  justify-content: space-around;
-}
-
-cdk-virtual-scroll-viewport {
-  max-width: 1280px;
-  flex-grow: 1;
-  box-shadow      : 1px 1px 6px -2px rgba(0, 33, 65, 0.1);
+nz-tag {
+  text-transform: uppercase;
+  font-size     : 80%;
 }
 
 nz-empty {

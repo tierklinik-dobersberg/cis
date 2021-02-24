@@ -1,23 +1,16 @@
-<div class="search page-header">
+<div class="page-header">
   <div class="main-row">
     <div class="row-container">
-      <fieldset>
-        <legend>
-          <span>Name</span>
-        </legend>
+      <h2>
         <i nz-icon nzType="database" nzTheme="outline"></i>
         <span>
           Kundendaten
         </span>
-      </fieldset>
+      </h2>
     </div>
   </div>
   <div class="secondary-row">
     <div class="row-container">
-      <span class="label">
-        <i nz-icon nzType="filter" nzTheme="outline"></i>
-        Filter
-      </span>
 
       <nz-input-group *ngIf="!useAdvancedSearch" [nzSuffix]="suffixIconSearch">
         <input type="text" nz-input placeholder="Nach Nachnamen suchen ..." [(ngModel)]="searchText"
@@ -47,6 +40,16 @@
         <i nz-icon nzType="search"></i>
         Suchen
       </button>
+      <div class="flex-row" style="margin-left: 24px" *ngIf="sourceTags?.size">
+        <span class="label">
+          <i nz-icon nzType="filter" nzTheme="outline"></i>
+          Ursprung:
+        </span>
+        <nz-tag *ngFor="let tag of sourceTags" nzMode="checkable" [nzChecked]="tagVisibility[tag]"
+          (nzCheckedChange)="updateTagVisibility(tag, $event)" [nzColor]="tagVisibility[tag] ? tagColors[tag] : ''">
+          {{ tag }}
+        </nz-tag>
+      </div>
     </div>
   </div>
 </div>

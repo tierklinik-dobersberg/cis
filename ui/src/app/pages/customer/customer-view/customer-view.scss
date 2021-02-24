@@ -1,13 +1,8 @@
 @import 'src/utils';
 
 :host {
-    @include page-host;
-}
-
-
-.tag-list {
-  margin-bottom : 12px;
-  text-transform: uppercase;
+  @include page-host;
+  padding: 0;
 }
 
 .calllog-container {
@@ -20,5 +15,17 @@
 
   @include for-phone-only {
     display: none;
+  }
+}
+
+nz-tag {
+  text-transform: uppercase;
+}
+
+.phone-grid {
+  @include for-phone-only {
+    display              : grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-gap             : 5px;
   }
 }
