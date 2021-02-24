@@ -9,9 +9,11 @@ import { NzIconModule } from "ng-zorro-antd/icon";
 import { NzStatisticModule } from "ng-zorro-antd/statistic";
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzToolTipModule } from "ng-zorro-antd/tooltip";
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { SharedModule } from "src/app/shared/shared.module";
 import { CallLogComponent } from "./calllog";
 import { CallLogRoutingModule } from "./calllog-routing.module";
+import { NzEmptyModule } from "ng-zorro-antd/empty";
 
 @NgModule({
   imports: [
@@ -22,9 +24,11 @@ import { CallLogRoutingModule } from "./calllog-routing.module";
     NzButtonModule,
     NzStatisticModule,
     NzIconModule,
+    NzTabsModule,
     SharedModule,
     NzTableModule,
     NzToolTipModule,
+    NzEmptyModule,
     NzDatePickerModule,
     CallLogRoutingModule,
   ],

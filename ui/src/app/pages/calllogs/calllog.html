@@ -14,4 +14,12 @@
   </div>
 </div>
 
-<app-calllog-table [records]="logs" (totalCallTime)="totalCallTime = $event"></app-calllog-table>
+<nz-tabset>
+  <nz-tab nzTitle="Anruf Journal">
+    <app-calllog-table [records]="logs" (totalCallTime)="totalCallTime = $event"></app-calllog-table>
+  </nz-tab>
+
+  <nz-tab nzTitle="Statistik & Auswertung">
+    <nz-empty nzNotFoundContent="Hier entsteht eine Übersichts und Statistikseite"></nz-empty>
+  </nz-tab>
+</nz-tabset>

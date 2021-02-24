@@ -1,48 +1,65 @@
-<div class="search content-section">
+<div class="search page-header">
+  <div class="main-row">
+    <h2>Kundendaten</h2>
+  </div>
+  <div class="secondary-row">
+    <span class="label">
+      <i nz-icon nzType="filter" nzTheme="outline"></i>
+      Filter
+    </span>
+
     <nz-input-group *ngIf="!useAdvancedSearch" [nzSuffix]="suffixIconSearch">
-        <input type="text" nz-input placeholder="Nach Nachnamen suchen ..." [(ngModel)]="searchText"
-            (ngModelChange)="search($event)" />
+      <input type="text" nz-input placeholder="Nach Nachnamen suchen ..." [(ngModel)]="searchText"
+        (ngModelChange)="search($event)" />
     </nz-input-group>
     <ng-template #suffixIconSearch>
-        <i nz-icon nzType="search"></i>
+      <i nz-icon nzType="search"></i>
     </ng-template>
     <textarea *ngIf="useAdvancedSearch" nz-input placeholder="Expertenmodus" [nzAutosize]="{ minRows: 3, maxRows: 5 }"
-        [(ngModel)]="searchText" (ngModelChange)="search($event)"></textarea>
+      [(ngModel)]="searchText" (ngModelChange)="search($event)"></textarea>
 
-    <div class="expert-results">
-        <label nz-checkbox [(ngModel)]="useAdvancedSearch">Expertenmodus</label>
-        <span>
-            {{ customers.length || 0 }} Ergebnisse
-        </span>
+    <div class="info">
+      <label>Expertenmodus</label>
+      <label nz-checkbox [(ngModel)]="useAdvancedSearch"></label>
     </div>
+    <div class="info">
+      <label>Ergebnisse</label>
+      <span>
+        {{ customers.length || 0 }}
+      </span>
+    </div>
+  </div>
+  <div class="secondary-row">
+    <button nz-button nzType="primary">Suchen</button>
+  </div>
 </div>
 
 <cdk-virtual-scroll-viewport itemSize="73" class="infinite-container content-section">
-    <nz-list-empty *ngIf="customers.length === 0" [nzNoResult]="emptyTemplate"></nz-list-empty>
-    <ng-template #emptyTemplate>
-        <nz-empty></nz-empty>
-        <nz-spin *ngIf="searching" nzSimple></nz-spin>
-    </ng-template>
-    <nz-list nzSize="small">
+  <nz-list-empty *ngIf="customers.length === 0" [nzNoResult]="emptyTemplate"></nz-list-empty>
+  <ng-template #emptyTemplate>
+    <nz-empty></nz-empty>
+    <nz-spin *ngIf="searching" nzSimple></nz-spin>
+  </ng-template>
+  <nz-list nzSize="small">
 
-        <nz-list-item *cdkVirtualFor="let customer of customers; trackBy: trackBy"
-            [routerLink]="['view', customer.source, customer.cid]">
-            <nz-list-item-meta>
-                <nz-list-item-meta-title>
-                    <a>{{ customer.name }} {{ customer.firstname }} </a>
-                </nz-list-item-meta-title>
-                <nz-list-item-meta-description>
-                    <i nz-icon nzType="environment" nzTheme="outline"></i>
-                    {{ customer.cityCode }}&nbsp;{{ customer.city }} - {{ customer.street }} |
-                    <a class="phonenumber" *ngIf="!!(customer.phoneNumbers || [])[0]"
-                        [attr.href]="'tel:' + (customer.phoneNumbers || [])[0]">
-                        <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
-                        {{(customer.phoneNumbers || [])[0]}}
-                    </a>
+    <nz-list-item *cdkVirtualFor="let customer of customers; trackBy: trackBy"
+      [routerLink]="['view', customer.source, customer.cid]">
+      <nz-list-item-meta>
+        <nz-list-item-meta-title>
+          <a>{{ customer.name }} {{ customer.firstname }} </a>
+        </nz-list-item-meta-title>
+        <nz-list-item-meta-description>
+          <i nz-icon nzType="environment" nzTheme="outline"></i>
+          {{ customer.cityCode }}&nbsp;{{ customer.city }} - {{ customer.street }} |
+          <a class="phonenumber" *ngIf="!!(customer.phoneNumbers || [])[0]"
+            [attr.href]="'tel:' + (customer.phoneNumbers || [])[0]">
+            <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
+            {{(customer.phoneNumbers || [])[0]}}
+          </a>
 
-                    <nz-tag [nzColor]="customer.tagColor">{{ customer.source }}</nz-tag>
-                </nz-list-item-meta-description>
-            </nz-list-item-meta>
-        </nz-list-item>
-    </nz-list>
+          <nz-tag [nzColor]="customer.tagColor">{{ customer.source }}</nz-tag>
+        </nz-list-item-meta-description>
+      </nz-list-item-meta>
+    </nz-list-item>
+  </nz-list>
 </cdk-virtual-scroll-viewport>
