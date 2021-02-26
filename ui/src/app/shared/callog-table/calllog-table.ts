@@ -1,8 +1,8 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, TrackByFunction } from '@angular/core';
 import { sum } from 'ng-zorro-antd/core/util';
-import { BehaviorSubject, combineLatest, forkJoin, Observable, of, Subject, Subscription } from 'rxjs';
-import { catchError, debounceTime, mergeMap, switchMap } from 'rxjs/operators';
-import { CallLog, CalllogAPI, CallLogModel, ConfigAPI, ProfileWithAvatar } from 'src/app/api';
+import { BehaviorSubject, combineLatest, forkJoin, Observable, of, Subscription } from 'rxjs';
+import { catchError, debounceTime, switchMap } from 'rxjs/operators';
+import { CallLog, CallLogModel, ConfigAPI, ProfileWithAvatar } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { LayoutService } from 'src/app/services';
 
