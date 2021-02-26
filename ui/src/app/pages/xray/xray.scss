@@ -4,14 +4,11 @@
 
 :host {
   @include page-host;
-}
-
-.search {
-flex-grow: 0;
+  padding: 0;
 }
 
 cdk-virtual-scroll-viewport {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 nz-empty {
@@ -19,94 +16,98 @@ nz-empty {
 }
 
 nz-list {
-    width: 100%;
+  width: 100%;
 
-    nz-list-item:hover {
-        background: #50566308;
+  nz-list-item:hover {
+    background: #50566308;
 
-        h4, a {
-            text-decoration: underline;
-        }
+    h4,
+    a {
+      text-decoration: underline;
+    }
+  }
+
+  nz-list-item-extra {
+    img {
+      cursor    : pointer;
+      box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
+      opacity   : 0.5;
+      transition: all ease-in-out .125s;
+
+      &:hover {
+        opacity   : 1;
+        box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.25);
+      }
     }
 
-    nz-list-item-extra {
-        img {
-            cursor: pointer;
-            box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
-            opacity: 0.5;
-            transition: all ease-in-out .125s;
-
-            &:hover {
-                opacity: 1;
-                box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.25);
-            }
-        }
-        img:not(:last-child) {
-            margin-right: 10px;
-        }
+    img:not(:last-child) {
+      margin-right: 10px;
     }
+  }
 }
 
 .contact-popover {
-    padding: 6px;
-    min-width: 150px;
-    .contact-type {
-        font-size: 95%;
-        display: block;
-        color: gray;
-        text-transform: uppercase;
-        margin-bottom: 3px;
+  padding  : 6px;
+  min-width: 150px;
 
-        &:not(:first-child) {
-            margin-top: 6px;
-        }
+  .contact-type {
+    font-size     : 95%;
+    display       : block;
+    color         : gray;
+    text-transform: uppercase;
+    margin-bottom : 3px;
+
+    &:not(:first-child) {
+      margin-top: 6px;
     }
+  }
 }
 
 .drawer-container {
-  padding-top: 12px;
+  padding-top   : 12px;
   padding-bottom: 12px;
-  padding-left: 24px;
-  padding-right: 24px;
+  padding-left  : 24px;
+  padding-right : 24px;
 
   .drawer-toolbar {
     margin-bottom: 12px;
   }
 
   h3 {
-      color: gray;
-      margin-top: -16px;
+    color     : gray;
+    margin-top: -16px;
   }
 
   h4 {
-      color: gray;
-      text-transform: uppercase;
-      font-weight: 300;
-      margin-top: 24px;
+    color         : gray;
+    text-transform: uppercase;
+    font-weight   : 300;
+    margin-top    : 24px;
   }
 
   .no-instances {
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      color: red;
-      i {
-          margin-right: 6px;
-      }
+    margin-bottom: 12px;
+    display      : flex;
+    align-items  : center;
+    color        : red;
+
+    i {
+      margin-right: 6px;
+    }
   }
 
   ol {
-      list-style: none;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      grid-gap: 6px;
-      margin: 0px;
-      padding: 0px;
+    list-style           : none;
+    display              : grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-gap             : 6px;
+    margin               : 0px;
+    padding              : 0px;
 
-      li {
-          img {
-              width: 100%;
-          }
+    li {
+      img {
+        width: 100%;
       }
+    }
   }
 }

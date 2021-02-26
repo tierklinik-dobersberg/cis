@@ -1,97 +1,115 @@
-<div class="search content-section">
-    <nz-input-group [nzSuffix]="suffixIconSearch">
+<div class="page-header">
+  <div class="main-row">
+    <div class="row-container">
+      <h2>Röntgen Aufnahmen</h2>
+    </div>
+  </div>
+  <div class="secondary-row">
+    <div class="row-container flex-row justify-between">
+      <span class="label">
+        <i nz-icon nzType="filter" nzTheme="outline"></i>
+        FILTER
+      </span>
+      <nz-input-group [nzSuffix]="suffixIconSearch">
         <input type="text" nz-input placeholder="Nach Kundennamen suchen ..." [(ngModel)]="searchText"
-            (ngModelChange)="ds.search($event)" />
-    </nz-input-group>
-    <ng-template #suffixIconSearch>
+          (ngModelChange)="ds.search($event)" />
+      </nz-input-group>
+      <ng-template #suffixIconSearch>
         <i nz-icon nzType="search"></i>
-    </ng-template>
+      </ng-template>
+    </div>
+  </div>
+  <div class="secondary-row">
+    <div class="row-container">
+      <button nz-button nzType="primary" (click)="ds.search(searchText)">Suchen</button>
+    </div>
+  </div>
 </div>
 
-<cdk-virtual-scroll-viewport itemSize="73" class="infinite-container content-section">
+<div class="content-wrapper">
+
+  <cdk-virtual-scroll-viewport itemSize="73" class="infinite-container content-section">
     <nz-list nzSize="small">
-        <nz-list-item *cdkVirtualFor="let study of ds; trackBy: trackBy" (click)="openDrawer($event, study)">
-            <nz-list-item-meta>
-                <nz-list-item-meta-title>
-                    <a *ngIf="!!study.vetinfCID && layout.isTabletLandscapeUp"
-                        [routerLink]="['/customer/view', 'vetinf', study.vetinfCID]" nz-popover
-                        [nzPopoverMouseEnterDelay]="0.5" (nzPopoverVisibleChange)="onPopoverChange($event, study)"
-                        [nzPopoverContent]="popoverTemplate">
-                        {{ study | ohifOwnerName }}</a>
+      <nz-list-item *cdkVirtualFor="let study of ds; trackBy: trackBy" (click)="openDrawer($event, study)">
+        <nz-list-item-meta>
+          <nz-list-item-meta-title>
+            <a *ngIf="!!study.vetinfCID && layout.isTabletLandscapeUp"
+              [routerLink]="['/customer/view', 'vetinf', study.vetinfCID]" nz-popover [nzPopoverMouseEnterDelay]="0.5"
+              (nzPopoverVisibleChange)="onPopoverChange($event, study)" [nzPopoverContent]="popoverTemplate">
+              {{ study | ohifOwnerName }}</a>
 
-                    <span *ngIf="!study.vetinfCID || !layout.isTabletLandscapeUp">
-                        {{ study | ohifOwnerName }}
-                    </span>
-                </nz-list-item-meta-title>
+            <span *ngIf="!study.vetinfCID || !layout.isTabletLandscapeUp">
+              {{ study | ohifOwnerName }}
+            </span>
+          </nz-list-item-meta-title>
 
-                <nz-list-item-meta-description>
-                    {{ study.studyDate | dxrDate }} &nbsp;|&nbsp;
-                    {{ study.animalName }} &nbsp;-&nbsp; {{ study.animalRace !== 'unknown' ? study.animalRace : 'N/A' }}
-                </nz-list-item-meta-description>
+          <nz-list-item-meta-description>
+            {{ study.studyDate | dxrDate }} &nbsp;|&nbsp;
+            {{ study.animalName }} &nbsp;-&nbsp; {{ study.animalRace !== 'unknown' ? study.animalRace : 'N/A' }}
+          </nz-list-item-meta-description>
 
-                <ng-template #popoverTemplate>
-                    <div class="contact-popover">
-                        <h3>{{ popOverCustomer?.name }}&nbsp;{{ popOverCustomer?.firstname }}</h3>
+          <ng-template #popoverTemplate>
+            <div class="contact-popover">
+              <h3>{{ popOverCustomer?.name }}&nbsp;{{ popOverCustomer?.firstname }}</h3>
 
-                        <span class="contact-type">Telefon:</span>
-                        <a *ngFor="let phone of popOverCustomer?.distinctPhoneNumbers; let last=last"
-                            [attr.href]="'tel:' + phone">
-                            {{phone}} {{ !last ? ', ' : '' }}&nbsp;
-                        </a>
-                        <span *ngIf="!popOverCustomer?.distinctPhoneNumbers">N/A</span>
+              <span class="contact-type">Telefon:</span>
+              <a *ngFor="let phone of popOverCustomer?.distinctPhoneNumbers; let last=last"
+                [attr.href]="'tel:' + phone">
+                {{phone}} {{ !last ? ', ' : '' }}&nbsp;
+              </a>
+              <span *ngIf="!popOverCustomer?.distinctPhoneNumbers">N/A</span>
 
-                        <span class="contact-type">E-Mail:</span>
-                        <a *ngFor="let mail of popOverCustomer?.mailAddresses; let last=last"
-                            [attr.href]="'mailto:' + mail">
-                            {{mail}} {{ !last ? ', ' : '' }}&nbsp;
-                        </a>
-                        <span *ngIf="!popOverCustomer?.mailAddresses">N/A</span>
-                    </div>
-                </ng-template>
-            </nz-list-item-meta>
+              <span class="contact-type">E-Mail:</span>
+              <a *ngFor="let mail of popOverCustomer?.mailAddresses; let last=last" [attr.href]="'mailto:' + mail">
+                {{mail}} {{ !last ? ', ' : '' }}&nbsp;
+              </a>
+              <span *ngIf="!popOverCustomer?.mailAddresses">N/A</span>
+            </div>
+          </ng-template>
+        </nz-list-item-meta>
 
-            <nz-list-item-extra *ngIf="layout.isTabletLandscapeUp">
-                <img *ngFor="let preview of study.previews" (click)="openViewer(study, preview)" height="60" alt="logo"
-                    [attr.src]="preview.previewUrl" />
-            </nz-list-item-extra>
-        </nz-list-item>
+        <nz-list-item-extra *ngIf="layout.isTabletLandscapeUp">
+          <img *ngFor="let preview of study.previews" (click)="openViewer(study, preview)" height="60" alt="logo"
+            [attr.src]="preview.previewUrl" />
+        </nz-list-item-extra>
+      </nz-list-item>
     </nz-list>
-</cdk-virtual-scroll-viewport>
+  </cdk-virtual-scroll-viewport>
+</div>
 
 <nz-drawer [nzVisible]="drawerVisible" [nzClosable]="true" nzPlacement="right" (nzOnClose)="closeDrawer()"
-    [nzWidth]="layout.drawerWidth | async">
-    <div class="drawer-container">
-        <h2>{{ drawerStudy | ohifOwnerName }}</h2>
-        <h3>
-            {{ drawerStudy?.animalName }} &nbsp;- &nbsp; {{ drawerStudy?.animalRace !== 'unknown' ?
-            drawerStudy?.animalRace
-            : 'N/A' }}
-        </h3>
+  [nzWidth]="layout.drawerWidth | async">
+  <div class="drawer-container">
+    <h2>{{ drawerStudy | ohifOwnerName }}</h2>
+    <h3>
+      {{ drawerStudy?.animalName }} &nbsp;- &nbsp; {{ drawerStudy?.animalRace !== 'unknown' ?
+      drawerStudy?.animalRace
+      : 'N/A' }}
+    </h3>
 
-        <div *ngIf="!!drawerStudy?.vetinfCID" class="drawer-toolbar">
-            <a nz-button [routerLink]="['/customer/view', 'vetinf', drawerStudy?.vetinfCID]">Kunde
-                anzeigen</a>
-        </div>
-
-        <p>Röntgen-Aufnahmen in dieser Studie:</p>
-        <div class="previews">
-            <div *ngFor="let series of drawerStudy?.seriesList">
-                <h4>
-                    {{ series.seriesDescription }}
-                </h4>
-
-                <ol *ngIf="series?.instances?.length > 0">
-                    <li *ngFor="let instance of series?.instances">
-                        <img (click)="openViewer(drawerStudy, series, instance)"
-                            [attr.src]="instance.url | previewUrl" />
-                    </li>
-                </ol>
-
-                <span *ngIf="!series?.instances?.length" class="no-instances">
-                    <i nz-icon nzType="close" nzTheme="outline"></i>
-                    Keine Aufnahmen
-                </span>
-            </div>
-        </div>
+    <div *ngIf="!!drawerStudy?.vetinfCID" class="drawer-toolbar">
+      <a nz-button [routerLink]="['/customer/view', 'vetinf', drawerStudy?.vetinfCID]">Kunde
+        anzeigen</a>
     </div>
+
+    <p>Röntgen-Aufnahmen in dieser Studie:</p>
+    <div class="previews">
+      <div *ngFor="let series of drawerStudy?.seriesList">
+        <h4>
+          {{ series.seriesDescription }}
+        </h4>
+
+        <ol *ngIf="series?.instances?.length > 0">
+          <li *ngFor="let instance of series?.instances">
+            <img (click)="openViewer(drawerStudy, series, instance)" [attr.src]="instance.url | previewUrl" />
+          </li>
+        </ol>
+
+        <span *ngIf="!series?.instances?.length" class="no-instances">
+          <i nz-icon nzType="close" nzTheme="outline"></i>
+          Keine Aufnahmen
+        </span>
+      </div>
+    </div>
+  </div>
 </nz-drawer>
