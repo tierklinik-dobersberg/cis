@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { Comment, CommentAPI } from 'src/app/api';
 import { extractErrorMessage } from 'src/app/utils';
@@ -8,7 +8,7 @@ import { extractErrorMessage } from 'src/app/utils';
   templateUrl: './comment.html',
   styleUrls: ['./comment.scss']
 })
-export class CommentComponent {
+export class CommentComponent implements OnInit {
   @Input()
   comment: Comment;
 
@@ -17,6 +17,12 @@ export class CommentComponent {
 
   @Input()
   nestedCount = 0;
+
+  @Input()
+  canReply: boolean | null = null;
+
+  @Input()
+  showReplies: boolean | null = null;
 
   @Output()
   replied = new EventEmitter<void>();
@@ -28,6 +34,16 @@ export class CommentComponent {
     private commentapi: CommentAPI,
     private nzMessage: NzMessageService,
   ) { }
+
+  ngOnInit() {
+    if (this.canReply === null) {
+      this.canReply = true;
+    }
+
+    if (this.showReplies === null) {
+      this.showReplies = true;
+    }
+  }
 
   toggleReply() {
     this.reply = !this.reply;

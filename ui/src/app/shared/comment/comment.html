@@ -13,7 +13,7 @@
     {{comment.message}}
   </markdown>
 </p>
-<p class="comment-actions">
+<p class="comment-actions" *ngIf="canReply">
   <a (click)="toggleReply()">Antworten</a>
 </p>
 
@@ -29,7 +29,7 @@
 
 </div>
 
-<div [class.replies]="nestedCount < nestedLimit">
+<div [class.replies]="nestedCount < nestedLimit" *ngIf="showReplies">
   <app-comment *ngFor="let reply of comment.children" [comment]="reply" (replied)="replied.next($event)"
     [nestedLimit]="nestedLimit" [nestedCount]="nestedCount + 1"></app-comment>
 </div>
