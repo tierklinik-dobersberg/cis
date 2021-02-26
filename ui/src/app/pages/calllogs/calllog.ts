@@ -15,6 +15,7 @@ export class CallLogComponent implements OnInit, OnDestroy {
 
   date: Date;
 
+  distinctCallers: Set<string> = new Set();
   totalCallTime: number = 0;
   logs: CallLogModel[] = [];
 
@@ -52,6 +53,11 @@ export class CallLogComponent implements OnInit, OnDestroy {
         )
         .subscribe(logs => {
           this.logs = logs;
+
+          this.distinctCallers = new Set();
+          this.logs.forEach(log => {
+            this.distinctCallers.add(log.caller);
+          })
         })
 
     this.subscriptions.add(sub);

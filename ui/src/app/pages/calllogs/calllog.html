@@ -1,25 +1,42 @@
-<div class="content-section selection-container">
-  <div class="date-selection">
-    <label>Anrufe anzeigen für </label>
-    <nz-date-picker [nzAllowClear]="false" [(ngModel)]="date" (ngModelChange)="onChange($event)"></nz-date-picker>
+<div class="page-header">
+  <div class="main-row">
+    <div class="row-container">
+      <h2>Anruf Journal</h2>
+    </div>
   </div>
-
-  <div class="statistics">
-    <nz-statistic [nzValue]="logs.length" nzTitle="Anrufe Heute" [nzPrefix]="prefixTpl"></nz-statistic>
-    <ng-template #prefixTpl><i nz-icon nzType="phone" [nzRotate]="95"></i></ng-template>
-
-    <nz-statistic [nzValue]="totalCallTime | duration" nzTitle="Gesamte Anrufdauer" [nzPrefix]="prefixTplCallTime">
-    </nz-statistic>
-    <ng-template #prefixTplCallTime><i nz-icon nzType="clock-circle"></i></ng-template>
+  <div class="secondary-row">
+    <div class="row-container flex-row justify-between">
+      <div class="flex-row">
+        <span class="label">
+          <i nz-icon nzType="filter" nzTheme="outline"></i>
+          FILTER
+        </span>
+        <nz-date-picker [nzAllowClear]="false" [(ngModel)]="date" (ngModelChange)="onChange($event)"></nz-date-picker>
+      </div>
+      <div class="info">
+        <label>Telefonate</label>
+        <span>{{logs.length || 0}}</span>
+      </div>
+      <div class="info">
+        <label>Anrufer</label>
+        <span>{{distinctCallers.size}}</span>
+      </div>
+      <div class="info">
+        <label>Anrufdauer</label>
+        <span>{{totalCallTime | duration}}</span>
+      </div>
+    </div>
   </div>
 </div>
 
-<nz-tabset>
-  <nz-tab nzTitle="Anruf Journal">
-    <app-calllog-table [records]="logs" (totalCallTime)="totalCallTime = $event"></app-calllog-table>
-  </nz-tab>
+<div class="content-wrapper">
+  <nz-tabset [nzAnimated]="{inkBar: true, tabPane: false}">
+    <nz-tab nzTitle="Anruf Journal">
+      <app-calllog-table *nz-tab [records]="logs" (totalCallTime)="totalCallTime = $event"></app-calllog-table>
+    </nz-tab>
 
-  <nz-tab nzTitle="Statistik & Auswertung">
-    <nz-empty nzNotFoundContent="Hier entsteht eine Übersichts und Statistikseite"></nz-empty>
-  </nz-tab>
-</nz-tabset>
+    <nz-tab nzTitle="Statistik & Auswertung">
+      <nz-empty *nz-tab nzNotFoundContent="Hier entsteht eine Übersichts und Statistikseite"></nz-empty>
+    </nz-tab>
+  </nz-tabset>
+</div>

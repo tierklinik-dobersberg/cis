@@ -2,6 +2,7 @@
 
 :host {
   @include page-host;
+  padding: 0;
 }
 
 .selection-container {
@@ -20,7 +21,7 @@
 .date-time {
   span {
     white-space: nowrap;
-    display: inline;
+    display    : inline;
 
     @include for-phone-only {
       display: block;
