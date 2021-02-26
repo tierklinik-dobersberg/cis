@@ -20,6 +20,9 @@ import { SharedModule } from "src/app/shared/shared.module";
 import { CustomerListComponent } from "./customer-list";
 import { CustomerRoutingModule } from "./customer-routing.module";
 import { CustomerViewComponent } from "./customer-view";
+import { NzTabsModule } from "ng-zorro-antd/tabs";
+import { NzModalModule } from "ng-zorro-antd/modal";
+import { NzDrawerModule } from "ng-zorro-antd/drawer";
 
 @NgModule({
   imports: [
@@ -36,6 +39,9 @@ import { CustomerViewComponent } from "./customer-view";
     NzIconModule,
     NzSpinModule,
     NzTagModule,
+    NzTabsModule,
+    NzModalModule,
+    NzDrawerModule,
     NzTableModule,
     NzEmptyModule,
     NzGridModule,

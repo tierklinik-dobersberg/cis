@@ -36,43 +36,85 @@
 </div>
 
 <div class="content-wrapper">
-  <div class="content-section">
-    <nz-descriptions nzBordered>
-      <nz-descriptions-item nzTitle="Name" [nzSpan]="3">{{customer?.name || 'N/A'}}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="Vorname" [nzSpan]="3">{{customer?.firstname || 'N/A'}}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="Titel" [nzSpan]="3">{{customer?.title || 'N/A'}}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="Gruppe" [nzSpan]="3">{{customer?.group || 'N/A'}}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="Telefon" [nzSpan]="3">
-        <li *ngFor="let phone of customer?.phoneNumbers">{{phone}}</li>
-      </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="E-Mail" [nzSpan]="3">
-        <li *ngFor="let mail of customer?.mailAddresses">{{mail}}</li>
-      </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="Addresse" [nzSpan]="3">
-        {{ customer?.street }}<br />
-        {{ customer?.cityCode }}&nbsp;{{ customer?.city }}
-      </nz-descriptions-item>
-    </nz-descriptions>
-  </div>
+  <nz-tabset [nzAnimated]="{inkBar:true, tabPane:false}">
+    <nz-tab nzTitle="Übersicht">
+      <div class="content-section">
+        <nz-empty *ngIf="!customerComment; else: noteTemplate" nzNotFoundContent="Keine Kundennotiz"
+          [nzNotFoundFooter]="editCustomerNote">
+        </nz-empty>
+        <ng-template #editCustomerNote>
+          <button nz-button nzType="primary" (click)="editComment()">Beschreibung erstellen</button>
+        </ng-template>
+        <ng-template #noteTemplate>
+          <app-comment [comment]="customerComment" [canReply]="false" [showReplies]="false"></app-comment>
+          <div>
+            <button nz-button nzType="link" (click)="editComment()">Beschreibung bearbeiten</button>
+            <a nz-button (click)="toggleComments()" nzType="link">Alle anzeigen</a>
+          </div>
+        </ng-template>
 
-  <div class="content-section calllog-container">
-    <h2>Anruf Journal</h2>
+        <nz-modal [(nzVisible)]="showCommentModal" nzTitle="Notiz bearbeiten" (nzOnCancel)="handleCommentCancel()"
+          (nzOnOk)="handleCommentOk()">
+          <textarea [(ngModel)]="commentText" rows="4" nz-input></textarea>
+        </nz-modal>
+      </div>
 
-    <div class="chart-container">
-      <ngx-charts-line-chart [scheme]="colorScheme" [legend]="true" [showXAxisLabel]="true" [showYAxisLabel]="true"
-        [xAxis]="true" [yAxis]="true" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]="false"
-        [results]="callLogSeries" (select)="onSelect($event)" (activate)="onActivate($event)"
-        (deactivate)="onDeactivate($event)">
-      </ngx-charts-line-chart>
-    </div>
-    <div class="chart-container">
-      <ngx-charts-heat-map [results]="heatMapSeries" [legend]="false" xAxisLabel="Wochentag" yAxisLabel="Uhrzeit"
-        [scheme]="{domain: ['#5AA454', '#A10A28']}" [showXAxisLabel]="true" [showYAxisLabel]="true" [xAxis]="true"
-        [yAxis]="true">
-      </ngx-charts-heat-map>
-    </div>
+      <div class="content-section">
+        <nz-descriptions nzBordered>
+          <nz-descriptions-item nzTitle="Name" [nzSpan]="3">{{customer?.name || 'N/A'}}</nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Vorname" [nzSpan]="3">{{customer?.firstname || 'N/A'}}</nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Titel" [nzSpan]="3">{{customer?.title || 'N/A'}}</nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Gruppe" [nzSpan]="3">{{customer?.group || 'N/A'}}</nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Telefon" [nzSpan]="3">
+            <li *ngFor="let phone of customer?.phoneNumbers">{{phone}}</li>
+          </nz-descriptions-item>
+          <nz-descriptions-item nzTitle="E-Mail" [nzSpan]="3">
+            <li *ngFor="let mail of customer?.mailAddresses">{{mail}}</li>
+          </nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Addresse" [nzSpan]="3">
+            {{ customer?.street }}<br />
+            {{ customer?.cityCode }}&nbsp;{{ customer?.city }}
+          </nz-descriptions-item>
+        </nz-descriptions>
+      </div>
+    </nz-tab>
 
-    <app-calllog-table [records]="callrecords" (totalCallTime)="totalCallTime = $event"></app-calllog-table>
-  </div>
+    <nz-tab nzTitle="Anruf Journal">
+      <ng-template nz-tab>
+        <div class="content-section">
+          <div class="chart-container">
+            <ngx-charts-line-chart [scheme]="colorScheme" [legend]="true" [showXAxisLabel]="true"
+              [showYAxisLabel]="true" [xAxis]="true" [yAxis]="true" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"
+              [timeline]="false" [results]="callLogSeries" (select)="onSelect($event)" (activate)="onActivate($event)"
+              (deactivate)="onDeactivate($event)">
+            </ngx-charts-line-chart>
+          </div>
+          <div class="chart-container">
+            <ngx-charts-heat-map [results]="heatMapSeries" [legend]="false" xAxisLabel="Wochentag" yAxisLabel="Uhrzeit"
+              [scheme]="{domain: ['#5AA454', '#A10A28']}" [showXAxisLabel]="true" [showYAxisLabel]="true" [xAxis]="true"
+              [yAxis]="true">
+            </ngx-charts-heat-map>
+          </div>
 
+          <app-calllog-table [records]="callrecords" (totalCallTime)="totalCallTime = $event"></app-calllog-table>
+        </div>
+      </ng-template>
+    </nz-tab>
+  </nz-tabset>
 </div>
+
+<nz-drawer [nzClosable]="true" [nzVisible]="showCommentDrawer" nzPlacement="right" (nzOnClose)="toggleComments()"
+  [nzWidth]="layout.isPhone ? '100vw' : layout.isDesktopUp ? '25vw' : '50vw'">
+  <div class="comment-container">
+    <h2>Kommentare</h2>
+
+    <app-comment *ngFor="let comment of allComments" [comment]="comment" (replied)="reload.next()" [nestedLimit]="2">
+    </app-comment>
+
+    <div class="create-comment-container">
+      <h3>Erstelle einen neuen Kommentar:</h3>
+      <textarea nz-input [nzAutosize]="{ minRows: 3, maxRows: 5 }" [(ngModel)]="commentText"></textarea>
+      <button nz-button nzType="primary" (click)="handleCommentOk()">Kommentieren</button>
+    </div>
+  </div>
+</nz-drawer>

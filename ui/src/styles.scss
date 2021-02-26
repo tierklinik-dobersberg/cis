@@ -58,6 +58,10 @@ nz-tag {
   border-radius: 1px;
 }
 
+.content-section~.content-section {
+  margin-top: 24px;
+}
+
 .ant-picker-body {
   th[role="columnheader"] {
     text-align: center;
@@ -240,10 +244,9 @@ nz-tag {
   align-items   : center;
 
   &>* {
-    max-width : 1280px;
-    width     : 100%;
-    display   : block;
-    flex-grow : 1;
-    box-shadow: 1px 1px 6px -2px rgba(0, 33, 65, 0.1);
+    max-width: 1280px;
+    width    : 100%;
+    display  : block;
+    flex-grow: 1;
   }
 }

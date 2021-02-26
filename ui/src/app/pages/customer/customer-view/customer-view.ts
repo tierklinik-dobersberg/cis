@@ -1,11 +1,12 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { sum } from "ng-zorro-antd/core/util";
 import { NzMessageService } from "ng-zorro-antd/message";
-import { combineLatest, forkJoin, of, Subscription } from "rxjs";
+import { BehaviorSubject, combineLatest, forkJoin, of, Subscription } from "rxjs";
 import { catchError, mergeMap, tap } from "rxjs/operators";
-import { CallLogModel, CalllogAPI, CallLog, UserService } from "src/app/api";
+import { CallLogModel, CalllogAPI, CallLog, UserService, CommentAPI, Comment } from "src/app/api";
 import { CustomerAPI } from "src/app/api/customer.api";
+import { LayoutService } from "src/app/services";
 import { HeaderTitleService } from "src/app/shared/header-title";
 import { extractErrorMessage } from "src/app/utils";
 import { customerTagColor, ExtendedCustomer } from "../utils";
@@ -17,18 +18,60 @@ import { customerTagColor, ExtendedCustomer } from "../utils";
 export class CustomerViewComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
 
+  allComments: Comment[] = [];
   totalCallTime: number = 0;
   callrecords: CallLog[] = [];
+  customerComment: Comment | null = null;
   customer: ExtendedCustomer | null = null;
+  reload = new BehaviorSubject<void>(undefined);
+  showCommentModal = false;
+  commentText = ""
+  showCommentDrawer = false;
 
   constructor(
+    public layout: LayoutService,
     private header: HeaderTitleService,
     private customerapi: CustomerAPI,
     private calllogapi: CalllogAPI,
     private userService: UserService,
     private activatedRoute: ActivatedRoute,
+    private commentapi: CommentAPI,
     private nzMessageService: NzMessageService,
+    private changeDetector: ChangeDetectorRef
   ) { }
+
+  handleCommentCancel() {
+    this.showCommentModal = false;
+    this.commentText = "";
+  }
+
+  handleCommentOk() {
+    if (this.commentText == "") {
+      return;
+    }
+    this.commentapi.create(`customer:primaryNote:${this.customer.source}:${this.customer.cid}`, this.commentText)
+      .subscribe(
+        () => {
+          this.customerComment = null;
+          this.showCommentModal = false;
+          this.commentText = "";
+          this.reload.next();
+        },
+        err => {
+          this.nzMessageService.error(extractErrorMessage(err, 'Notiz konnte nicht gespeichert werden'))
+        }
+      )
+  }
+
+  editComment() {
+    this.showCommentModal = true;
+    this.commentText = this.customerComment?.message || '';
+  }
+
+  toggleComments() {
+    this.showCommentDrawer = !this.showCommentDrawer;
+    this.commentText = "";
+  }
 
   ngOnInit() {
     this.subscriptions = new Subscription();
@@ -36,6 +79,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     const routerSub = combineLatest([
       this.activatedRoute.paramMap,
       this.userService.updated,
+      this.reload,
     ])
       .pipe(
         mergeMap(([params]) => {
@@ -44,6 +88,8 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
           return forkJoin({
             customer: this.customerapi.byId(source, id),
             calllogs: this.calllogapi.forCustomer(source, id),
+            notes: this.commentapi.list(`customer:primaryNote:${source}:${id}`, false, true)
+              .pipe(catchError(err => of([])))
           })
         }),
         catchError(err => {
@@ -57,6 +103,14 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
           return;
         }
         this.callrecords = result.calllogs;
+
+        this.allComments = [];
+        this.customerComment = null;
+        if (result.notes?.length > 0) {
+          this.allComments = result.notes;
+          // always display the very last note created.
+          this.customerComment = result.notes[result.notes.length - 1];
+        }
 
         let counts = new Map<string, number>()
         let sums = new Map<string, number>();
@@ -94,7 +148,6 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
 
         const weekDays = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
         const hours = [4, 5, 6, 7, 8];
-        console.log(heatMapBuckets);
 
         this.heatMapSeries = weekDays.map((day, index) => {
           const values = heatMapBuckets.get(index) || new Map<number, number>();
@@ -108,13 +161,14 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
             })
           }
         })
-        console.log(this.heatMapSeries);
 
         this.customer = {
           ...result.customer,
           tagColor: customerTagColor(result.customer),
         };
         this.header.set(`Kunde: ${this.customer.name} ${this.customer.firstname}`);
+
+        this.changeDetector.detectChanges();
       }, err => console.error(err))
 
     this.subscriptions.add(routerSub);
