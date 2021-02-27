@@ -169,11 +169,12 @@ nz-tag {
   }
 
   .row-container {
-    display    : flex;
-    padding    : 6px;
-    width      : 100%;
-    max-width  : 1280px;
-    align-items: center;
+    display      : flex;
+    padding-left : 6px;
+    padding-right: 6px;
+    width        : 100%;
+    max-width    : 1280px;
+    align-items  : center;
 
     &>*:not(:last-child) {
       margin-right: 6px;
@@ -242,6 +243,8 @@ nz-tag {
   display       : flex;
   flex-direction: column;
   align-items   : center;
+  padding-left  : 12px;
+  padding-right : 12px;
 
   &>* {
     max-width: 1280px;

@@ -2,8 +2,12 @@
 
 :host {
   @include page-host;
-  //background-color: white;
   overflow: auto;
+
+
+  @include for-phone-only {
+    padding: 12px;
+  }
 }
 
 nz-select {
@@ -163,6 +167,10 @@ span.title {
   padding-bottom: 3px;
   font-size     : 90%;
   text-transform: uppercase;
+}
+
+nz-calendar {
+  padding: 24px;
 }
 
 nz-checkbox-wrapper {

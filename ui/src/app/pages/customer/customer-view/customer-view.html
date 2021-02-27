@@ -31,6 +31,11 @@
         <label>Letzter Anruf</label>
         <span>{{ callrecords.length > 0 ? (callrecords[0].date | date:'short':'':'de') : 'N/A' }}</span>
       </div>
+
+      <div class="info" *ngIf="!!missingData.length">
+        <label>Fehlende Daten</label>
+        <span>⚠️</span>
+      </div>
     </div>
   </div>
 </div>
@@ -38,6 +43,16 @@
 <div class="content-wrapper">
   <nz-tabset [nzAnimated]="{inkBar:true, tabPane:false}">
     <nz-tab nzTitle="Übersicht">
+      <div class="content-section" *ngIf="!!missingData.length">
+        <h2>
+          <i nz-icon nzType="warning" nzTheme="outline"></i>
+          Nicht alle Kundendaten vorhanden
+        </h2>
+        <p>Bitte ergänze die folgenden Informationen:</p>
+        <ul>
+          <li *ngFor="let point of missingData">{{ point }}</li>
+        </ul>
+      </div>
       <div class="content-section">
         <nz-empty *ngIf="!customerComment; else: noteTemplate" nzNotFoundContent="Keine Kundennotiz"
           [nzNotFoundFooter]="editCustomerNote">
@@ -66,7 +81,7 @@
           <nz-descriptions-item nzTitle="Titel" [nzSpan]="3">{{customer?.title || 'N/A'}}</nz-descriptions-item>
           <nz-descriptions-item nzTitle="Gruppe" [nzSpan]="3">{{customer?.group || 'N/A'}}</nz-descriptions-item>
           <nz-descriptions-item nzTitle="Telefon" [nzSpan]="3">
-            <li *ngFor="let phone of customer?.phoneNumbers">{{phone}}</li>
+            <li *ngFor="let phone of customer?.distinctPhoneNumbers">{{phone}}</li>
           </nz-descriptions-item>
           <nz-descriptions-item nzTitle="E-Mail" [nzSpan]="3">
             <li *ngFor="let mail of customer?.mailAddresses">{{mail}}</li>
@@ -85,8 +100,7 @@
           <div class="chart-container">
             <ngx-charts-line-chart [scheme]="colorScheme" [legend]="true" [showXAxisLabel]="true"
               [showYAxisLabel]="true" [xAxis]="true" [yAxis]="true" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"
-              [timeline]="false" [results]="callLogSeries" (select)="onSelect($event)" (activate)="onActivate($event)"
-              (deactivate)="onDeactivate($event)">
+              [timeline]="false" [results]="callLogSeries">
             </ngx-charts-line-chart>
           </div>
           <div class="chart-container">

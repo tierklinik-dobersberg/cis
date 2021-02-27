@@ -1,3 +1,80 @@
+<div class="page-header">
+  <div class="main-row">
+    <div class="row-container">
+      <h2>
+        {{ selectedDate.toLocaleString('default', { month: 'long' }) }} {{
+        selectedDate.getFullYear() }}
+        <nz-tag *ngIf="editMode" nzColor="geekblue">in Bearbeitung</nz-tag>
+      </h2>
+    </div>
+  </div>
+
+  <div class="secondary-row">
+    <div class="row-container">
+      <div style="flex-grow: 1">
+        <nz-alert *ngIf="showNoRosterAlert && !editMode" [nzMessage]="noRosterAlertTemplate" nzType="warning">
+        </nz-alert>
+      </div>
+      <ng-template #noRosterAlertTemplate>
+        <span>
+          <i class="warning-sign" nz-icon nzType="warning" nzTheme="outline"></i>
+          Kein Dienstplan für {{ selectedDate.toLocaleString('default', { month: 'long' }) }} {{
+          selectedDate.getFullYear() }} gefunden!
+        </span>
+      </ng-template>
+
+      <div class="flex-row justify-between">
+        <ng-container *ngIf="layout.isPhone">
+          <nz-button-group>
+            <button nz-button (click)="today()">
+              <i nz-icon nzType="calendar" nzTheme="outline"></i>
+            </button>
+          </nz-button-group>
+
+          <nz-button-group>
+            <button nz-button (click)="prevMonth()" nzType="primary">
+              <i nz-icon nzType="left" nzTheme="outline"></i>
+            </button>
+            <button nz-button (click)="nextMonth()" nzType="primary">
+              <i nz-icon nzType="right" nzTheme="outline"></i>
+            </button>
+          </nz-button-group>
+
+        </ng-container>
+
+        <button nz-button nzType="primary" nzShape="circle" *ngIf="canEditRoster && !editMode && !readonly"
+          (click)="toggleEdit()" nzTooltipTitle="Dienstplan bearbeiten" nz-tooltip>
+          <i nz-icon nzType="edit" nzTheme="outline"></i>
+        </button>
+
+        <button nz-button nzType="primary" nzShape="circle" *ngIf="canEditRoster && (editMode || saveLoading)"
+          [nzLoading]="saveLoading" (click)="toggleEdit()" nzTooltipTitle="Dienstplan speichern" nz-tooltip>
+          <i nz-icon nzType="save" nzTheme="outline"></i>
+        </button>
+
+        <button nz-button *ngIf="canEditRoster && editMode" nzType="default" nzShape="circle" [nzLoading]="false"
+          nz-popconfirm nzPopconfirmTitle="Änderungen verwerfen?" nzPopconfirmPlacement="bottom"
+          (nzOnConfirm)="discardChanges()" nzTooltipTitle="Änderunge verwerfen" nz-tooltip>
+          <i nz-icon nzType="close" nzTheme="outline"></i>
+        </button>
+
+        <button nz-button nzType="danger" nzShape="circle" [nzLoading]="false" nz-popconfirm
+          *ngIf="canEditRoster && !editMode && !readonly" nzTooltipTitle="Dienstplan löschen" nz-tooltip
+          nzPopconfirmTitle="Dienstplan sicher löschen?" nzPopconfirmPlacement="bottom" (nzOnConfirm)="deleteRoster()">
+          <i nz-icon nzType="delete" nzTheme="outline"></i>
+        </button>
+
+        <nz-badge [nzCount]="comments.length" style="margin-left: 12px">
+          <button nz-button nzType="text" (click)="toggleComments()">
+            <i nz-icon nzType="comment" nzTheme="outline"></i>
+          </button>
+        </nz-badge>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--
 <div class="toolbar content-section">
   <div class="alerts">
     <nz-alert *ngIf="showNoRosterAlert && !editMode; else: dateHeader" [nzMessage]="noRosterAlertTemplate"
@@ -68,6 +145,7 @@
     </nz-badge>
   </div>
 </div>
+-->
 
 <nz-calendar (nzPanelChange)="onPanelChange($event)" (nzSelectChange)="onDateSelected($event)"
   *ngIf="layout.isTabletLandscapeUp; else mobileViewTemplate" class="content-section">

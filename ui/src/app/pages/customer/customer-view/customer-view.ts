@@ -27,6 +27,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
   showCommentModal = false;
   commentText = ""
   showCommentDrawer = false;
+  missingData: string[] = [];
 
   constructor(
     public layout: LayoutService,
@@ -102,7 +103,9 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
           this.header.set(`Kunde: N/A`);
           return;
         }
+
         this.callrecords = result.calllogs;
+        this.updateCallLogGraphs();
 
         this.allComments = [];
         this.customerComment = null;
@@ -112,62 +115,13 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
           this.customerComment = result.notes[result.notes.length - 1];
         }
 
-        let counts = new Map<string, number>()
-        let sums = new Map<string, number>();
-        let heatMapBuckets = new Map<number, Map<number, number>>();
-
-        this.callrecords.forEach(record => {
-          let count = counts.get(record.datestr) || 0;
-          count++;
-          counts.set(record.datestr, count);
-
-          let sum = sums.get(record.datestr) || 0;
-          sum += record.durationSeconds || 0;
-          sums.set(record.datestr, sum);
-
-          let d = new Date(record.date);
-          let hourBucket = heatMapBuckets.get(d.getDay()) || new Map<number, number>();
-          heatMapBuckets.set(d.getDay(), hourBucket);
-
-          const hourIdx = Math.floor(d.getHours() / 2);
-          let hourCount = hourBucket.get(hourIdx) || 0;
-          hourCount++;
-          hourBucket.set(hourIdx, hourCount)
-        })
-
-        this.callLogSeries = [
-          {
-            name: "Anrufe",
-            series: Array.from(counts.entries()).map(([name, value]) => ({ name, value }))
-          },
-          {
-            name: "Anrufdauer",
-            series: Array.from(sums.entries()).map(([name, value]) => ({ name: name, value: value / 60 }))
-          },
-        ]
-
-        const weekDays = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
-        const hours = [4, 5, 6, 7, 8];
-
-        this.heatMapSeries = weekDays.map((day, index) => {
-          const values = heatMapBuckets.get(index) || new Map<number, number>();
-          return {
-            name: day,
-            series: hours.map(hourIdx => {
-              return {
-                name: `${hourIdx * 2}:00-${hourIdx * 2 + 2}:00`,
-                value: values.get(hourIdx) || 0,
-              }
-            })
-          }
-        })
-
         this.customer = {
           ...result.customer,
           tagColor: customerTagColor(result.customer),
         };
-        this.header.set(`Kunde: ${this.customer.name} ${this.customer.firstname}`);
+        this.findMissingData();
 
+        this.header.set(`Kunde: ${this.customer.name} ${this.customer.firstname}`);
         this.changeDetector.detectChanges();
       }, err => console.error(err))
 
@@ -182,6 +136,28 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
+  private findMissingData() {
+    let checks: { name: string; key: keyof ExtendedCustomer }[] = [
+      { name: 'Postleitzahl', key: 'cityCode' },
+      { name: 'Stadt', key: 'city' },
+      { name: 'Nachname', key: 'name' },
+      { name: 'Vorname', key: 'firstname' },
+      { name: 'E-Mail Adresse', key: 'mailAddresses' },
+      { name: 'Telefonnummer', key: 'phoneNumbers' },
+      { name: 'Straße', key: 'street' },
+    ]
+
+    this.missingData = checks
+      .filter(check => {
+        let value = this.customer[check.key];
+        if (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)) {
+          return true;
+        }
+        return false;
+      })
+      .map(check => check.name)
+  }
+
   heatMapSeries: any[] = [];
   callLogSeries: any[] = [];
   // options
@@ -192,15 +168,55 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     domain: ['#5AA454', '#E44D25', '#CFC0BB', '#7aa3e5', '#a8385d', '#aae3f5']
   };
 
-  onSelect(data): void {
-    console.log('Item clicked', JSON.parse(JSON.stringify(data)));
-  }
+  private updateCallLogGraphs() {
+    let counts = new Map<string, number>()
+    let sums = new Map<string, number>();
+    let heatMapBuckets = new Map<number, Map<number, number>>();
 
-  onActivate(data): void {
-    console.log('Activate', JSON.parse(JSON.stringify(data)));
-  }
+    this.callrecords.forEach(record => {
+      let count = counts.get(record.datestr) || 0;
+      count++;
+      counts.set(record.datestr, count);
 
-  onDeactivate(data): void {
-    console.log('Deactivate', JSON.parse(JSON.stringify(data)));
+      let sum = sums.get(record.datestr) || 0;
+      sum += record.durationSeconds || 0;
+      sums.set(record.datestr, sum);
+
+      let d = new Date(record.date);
+      let hourBucket = heatMapBuckets.get(d.getDay()) || new Map<number, number>();
+      heatMapBuckets.set(d.getDay(), hourBucket);
+
+      const hourIdx = Math.floor(d.getHours() / 2);
+      let hourCount = hourBucket.get(hourIdx) || 0;
+      hourCount++;
+      hourBucket.set(hourIdx, hourCount)
+    })
+
+    this.callLogSeries = [
+      {
+        name: "Anrufe",
+        series: Array.from(counts.entries()).map(([name, value]) => ({ name, value }))
+      },
+      {
+        name: "Anrufdauer",
+        series: Array.from(sums.entries()).map(([name, value]) => ({ name: name, value: value / 60 }))
+      },
+    ]
+
+    const weekDays = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+    const hours = [4, 5, 6, 7, 8];
+
+    this.heatMapSeries = weekDays.map((day, index) => {
+      const values = heatMapBuckets.get(index) || new Map<number, number>();
+      return {
+        name: day,
+        series: hours.map(hourIdx => {
+          return {
+            name: `${hourIdx * 2}:00-${hourIdx * 2 + 2}:00`,
+            value: values.get(hourIdx) || 0,
+          }
+        })
+      }
+    })
   }
 }
