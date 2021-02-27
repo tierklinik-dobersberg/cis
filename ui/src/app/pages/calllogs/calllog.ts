@@ -18,6 +18,7 @@ export class CallLogComponent implements OnInit, OnDestroy {
   distinctCallers: Set<string> = new Set();
   totalCallTime: number = 0;
   logs: CallLogModel[] = [];
+  loading = false;
 
   constructor(
     private header: HeaderTitleService,
@@ -44,6 +45,7 @@ export class CallLogComponent implements OnInit, OnDestroy {
         .pipe(
           mergeMap(() => this._selectedDate),
           mergeMap(d => {
+            this.loading = true;
             const year = d.getFullYear();
             const month = d.getMonth() + 1
             const day = d.getDate();
@@ -58,6 +60,9 @@ export class CallLogComponent implements OnInit, OnDestroy {
           this.logs.forEach(log => {
             this.distinctCallers.add(log.caller);
           })
+          setTimeout(() => {
+            this.loading = false;
+          }, 300)
         })
 
     this.subscriptions.add(sub);

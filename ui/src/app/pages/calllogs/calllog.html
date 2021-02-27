@@ -1,7 +1,10 @@
 <div class="page-header">
   <div class="main-row">
     <div class="row-container">
-      <h2>Anruf Journal</h2>
+      <h2>
+        <i nz-icon nzType="history" nzTheme="outline"></i>
+        Anruf Journal
+      </h2>
     </div>
   </div>
   <div class="secondary-row">
@@ -25,6 +28,14 @@
         <label>Anrufdauer</label>
         <span>{{totalCallTime | duration}}</span>
       </div>
+    </div>
+  </div>
+  <div class="secondary-row">
+    <div class="row-container">
+      <button nz-button nzType="primary" (click)="onChange(date)" [nzLoading]="loading">
+        <i nz-icon nzType="search"></i>
+        Suchen
+      </button>
     </div>
   </div>
 </div>

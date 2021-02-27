@@ -95,16 +95,22 @@ nz-tag {
     margin     : 0px;
     font-weight: 400;
     font-size  : 120%;
-    font-family: Poppins;
+    font-family: "Poppins";
+    display    : flex;
+    align-items: center;
+
+    i[nz-icon] {
+      color       : #40617c;
+      margin-right: 6px;
+    }
   }
 
   fieldset {
     align-self: stretch;
 
     >* {
-      font-weight  : 400;
-      //font-size  : 120%;
-      font-family  : Poppins;
+      font-weight: 400;
+      font-family: "Poppins";
     }
 
     legend {
@@ -186,8 +192,8 @@ nz-tag {
   }
 
   .main-row {
-    padding-top   : 6px;
-    padding-bottom: 6px;
+    padding-top   : 12px;
+    padding-bottom: 12px;
   }
 
   .secondary-row {
