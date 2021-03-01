@@ -228,6 +228,6 @@ func (db *database) perpareRecord(ctx context.Context, record *v1alpha.CallLog) 
 	}
 
 	record.Caller = formattedNumber
-	record.DateStr = record.Date.Format("1006-01-02")
+	record.DateStr = record.Date.Format("2006-01-02")
 	return nil
 }
