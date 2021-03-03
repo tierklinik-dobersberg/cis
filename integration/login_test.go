@@ -60,7 +60,24 @@ func (suite *LoginTestSuite) Test_2_LoginAliceSuccess() {
 	}
 
 	suite.Equal(http.StatusOK, res.StatusCode)
-	suite.Len(res.Cookies(), 1)
+	suite.Len(res.Cookies(), 2)
+
+	hasSession := false
+	hasRefresh := false
+
+	// TODO(ppacher): better validate the cookies
+	for _, r := range res.Cookies() {
+		if r.Name == "cis-session" {
+			hasSession = true
+		}
+
+		if r.Name == "cis-refresh" {
+			hasRefresh = true
+		}
+	}
+
+	suite.True(hasSession)
+	suite.True(hasRefresh)
 }
 
 func (suite *LoginTestSuite) Test_3_AliceCookieValid() {
@@ -69,7 +86,7 @@ func (suite *LoginTestSuite) Test_3_AliceCookieValid() {
 		suite.FailNow(err.Error())
 	}
 
-	suite.Equal(http.StatusOK, res.StatusCode)
+	suite.Equal(http.StatusNoContent, res.StatusCode)
 	suite.Len(res.Cookies(), 0)
 }
 
@@ -85,8 +102,9 @@ func (suite *LoginTestSuite) Test_4_Autologin() {
 	suite.NoError(err)
 	suite.Equal(http.StatusOK, res.StatusCode)
 
-	// We expect to receive a session cookie automatically
-	suite.Len(res.Cookies(), 1)
+	// We expect to receive a session and refresh cookie automatically
+	// TODO(ppacher): test CreateSession=no as well.
+	suite.Len(res.Cookies(), 2)
 }
 
 func TestLogin(t *testing.T) {

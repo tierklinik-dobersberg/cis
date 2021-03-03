@@ -33,7 +33,9 @@ func (suite *ProfileTestSuite) Test_AliceProfileSuccess() {
 		PhoneNumber: []string{"+4312345678", "+2812345"},
 		Properties: map[string]interface{}{
 			"GoogleCalendarID": "primary",
+			"PhoneExtension":   "10",
 		},
+		Color: "#1b7550b9",
 	}, p)
 }
 
