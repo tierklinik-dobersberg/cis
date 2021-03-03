@@ -9,4 +9,4 @@ jobs:
       - name: Building cisd
         run: cd integration && docker-compose build cisd
       - name: Run integration tests
-        run: cd integration && go test -v -count=1 . -build=false -log=cisd
+        run: cd integration && go test -v -count=1 . -build=false -log=all
