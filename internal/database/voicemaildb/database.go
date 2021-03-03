@@ -6,6 +6,7 @@ import (
 
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/voicemail/v1alpha"
+	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -125,7 +126,9 @@ func (db *database) UpdateSeenFlag(ctx context.Context, id string, seen bool) er
 }
 
 func (db *database) Search(ctx context.Context, opt *SearchOptions) ([]v1alpha.VoiceMailRecord, error) {
-	return db.findRecords(ctx, opt.toFilter())
+	filter := opt.Build()
+	logger.From(ctx).Infof("Searching voicemails for %+v", filter)
+	return db.findRecords(ctx, filter)
 }
 
 func (db *database) findRecords(ctx context.Context, filter interface{}) ([]v1alpha.VoiceMailRecord, error) {
