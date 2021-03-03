@@ -1,0 +1,163 @@
+{
+    "_id": {
+        "$oid": "60201fd71019fe0e812caa87"
+    },
+    "from": "06601234567",
+    "date": {
+        "$date": "2021-02-07T17:13:59.319Z"
+    },
+    "datestr": "2021-02-07",
+    "filename": "/project/testdata/state/voicemails/2021-02-07T17:13:59Z-06601234567.wav",
+    "name": "Visiten Anmeldungen"
+}
+{
+    "_id": {
+        "$oid": "602021594aa2bd7e4d75848c"
+    },
+    "from": "06601234567",
+    "date": {
+        "$date": "2021-02-07T17:20:25.87Z"
+    },
+    "datestr": "2021-02-07",
+    "filename": "/project/testdata/state/voicemails/2021-02-07T17:20:25Z-06601234567.wav",
+    "name": "Visiten Anmeldungen"
+}
+{
+    "_id": {
+        "$oid": "6020219cfbdac8b50bb5d226"
+    },
+    "from": "06601234567",
+    "date": {
+        "$date": "2021-02-07T17:21:32.121Z"
+    },
+    "datestr": "2021-02-07",
+    "filename": "/project/testdata/state/voicemails/2021-02-07T17:21:32Z-06601234567.wav",
+    "name": "Visiten Anmeldungen"
+}
+{
+    "_id": {
+        "$oid": "60204fb77b6bf98c56bc0900"
+    },
+    "from": "06601234567 ",
+    "date": {
+        "$date": "2021-02-07T20:38:15.484Z"
+    },
+    "datestr": "2021-02-07",
+    "filename": "/project/testdata/state/voicemails/2021-02-07T20:38:15Z-06601234567 .wav",
+    "name": "Visiten Anmeldungen",
+    "read": true
+}
+{
+    "_id": {
+        "$oid": "60204fb77b6bf98c56bc0901"
+    },
+    "from": "06601234567 ",
+    "date": {
+        "$date": "2021-02-07T20:38:15.486Z"
+    },
+    "datestr": "2021-02-07",
+    "filename": "/project/testdata/state/voicemails/2021-02-07T20:38:15Z-06601234567 .wav",
+    "name": "Visiten Anmeldungen",
+    "read": true
+}
+{
+    "_id": {
+        "$oid": "6022a9a8933972cdb1adacfe"
+    },
+    "from": "11 ",
+    "date": {
+        "$date": "2021-02-09T15:26:32.986Z"
+    },
+    "datestr": "2021-02-09",
+    "filename": "/project/testdata/state/voicemails/2021-02-09T15:26:32Z-11 .wav",
+    "name": "Visiten Anmeldungen",
+    "read": true
+}
+{
+    "_id": {
+        "$oid": "602bd4a68feb159356da839c"
+    },
+    "from": "06601234567 ",
+    "date": {
+        "$date": "2021-02-16T14:20:22.161Z"
+    },
+    "datestr": "2021-02-16",
+    "filename": "/project/testdata/state/voicemails/2021-02-16T14:20:22Z-06601234567 .wav",
+    "name": "Visiten Anmeldungen",
+    "read": true
+}
+{
+    "_id": {
+        "$oid": "602bd4a68feb159356da839d"
+    },
+    "from": "0660987654 ",
+    "date": {
+        "$date": "2021-02-16T14:20:22.165Z"
+    },
+    "datestr": "2021-02-16",
+    "filename": "/project/testdata/state/voicemails/2021-02-16T14:20:22Z-0660987654 .wav",
+    "name": "Visiten Anmeldungen",
+    "read": true
+}
+{
+    "_id": {
+        "$oid": "602bd4a68feb159356da839e"
+    },
+    "from": "0660987654 ",
+    "date": {
+        "$date": "2021-02-16T14:20:22.168Z"
+    },
+    "datestr": "2021-02-16",
+    "filename": "/project/testdata/state/voicemails/2021-02-16T14:20:22Z-0660987654 .wav",
+    "name": "Visiten Anmeldungen",
+    "read": true
+}
+{
+    "_id": {
+        "$oid": "602bd4a68feb159356da839f"
+    },
+    "from": "0660987654 ",
+    "date": {
+        "$date": "2021-02-16T14:20:22.171Z"
+    },
+    "datestr": "2021-02-16",
+    "filename": "/project/testdata/state/voicemails/2021-02-16T14:20:22Z-0660987654 .wav",
+    "name": "Visiten Anmeldungen",
+    "read": true
+}
+{
+    "_id": {
+        "$oid": "602ce9a2099360879ca43f4a"
+    },
+    "from": "0660987654 ",
+    "date": {
+        "$date": "2021-02-17T10:02:10.054Z"
+    },
+    "datestr": "2021-02-17",
+    "filename": "/project/testdata/state/voicemails/2021-02-17T10:02:10Z-0660987654 .wav",
+    "name": "Visiten Anmeldungen"
+}
+{
+    "_id": {
+        "$oid": "602cea30e882c829d8bfb527"
+    },
+    "from": "38 ",
+    "date": {
+        "$date": "2021-02-17T10:04:32.181Z"
+    },
+    "datestr": "2021-02-17",
+    "filename": "/project/testdata/state/voicemails/2021-02-17T10:04:32Z-38 .wav",
+    "name": "Visiten Anmeldungen"
+}
+{
+    "_id": {
+        "$oid": "603fe817fbfbb04b6e515982"
+    },
+    "from": "06501234 ",
+    "date": {
+        "$date": "2021-03-03T19:48:39.091Z"
+    },
+    "datestr": "2021-03-03",
+    "filename": "/project/testdata/state/voicemails/2021-03-03T19:48:39Z-06501234 .wav",
+    "name": "Visiten Anmeldungen"
+}

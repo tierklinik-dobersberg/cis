@@ -9,6 +9,15 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
 
+  mongo-import:
+    image: mongo
+    depends_on:
+      - mongo
+    restart: on-failure
+    volumes:
+      - ../:/project
+    command: bash /project/integration/import-data.sh
+
   mongo-express:
     image: mongo-express
     ports:
