@@ -9,5 +9,7 @@ jobs:
       - run: sudo apt install  -y --reinstall libssl1.1
       - run: sudo apt-get update && sudo apt-get install -y --reinstall libssh-4 git
       - run: pip3 install docker-compose --upgrade
+      - name: Building cisd
+        run: cd integration && docker-compose build cisd
       - name: Run integration tests
-        run: cd integration && go test -v -count=1 . -build=true -log=cisd
+        run: cd integration && go test -v -count=1 . -build=false -log=cisd

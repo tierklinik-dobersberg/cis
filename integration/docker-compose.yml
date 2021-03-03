@@ -39,16 +39,16 @@ services:
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
 
-  dxray:
-    image: tkd/dxray
-    build: https://github.com/tierklinik-dobersberg/dxray.git
-    ports:
-      - 9100:9100
-    volumes:
-      - ./dxray.conf:/config/dxray.conf
-      - ../testdata/dxray:/mnt
-    environment:
-      CONFIGURATION_DIRECTORY: /config
+#  dxray:
+#    image: tkd/dxray
+#    build: https://github.com/tierklinik-dobersberg/dxray.git
+#    ports:
+#      - 9100:9100
+#    volumes:
+#      - ./dxray.conf:/config/dxray.conf
+#      - ../testdata/dxray:/mnt
+#    environment:
+#      CONFIGURATION_DIRECTORY: /config
 
   cisd: 
     image: tkd/cisd
