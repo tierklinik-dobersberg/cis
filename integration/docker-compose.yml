@@ -53,6 +53,9 @@ services:
   cisd: 
     image: tkd/cisd
     build: ../
+    depends_on:
+      - mongo
+      - mosquitto
     ports:
       - 3000:3000
     volumes:
