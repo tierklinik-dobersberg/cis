@@ -2,7 +2,6 @@ package calllogdb
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -24,11 +23,8 @@ type Database interface {
 	// When called, RecordCustomerCall searches for an "unidentified" calllog that
 	// was recorded at the same time and replaces that entry.
 	RecordCustomerCall(ctx context.Context, record v1alpha.CallLog) error
-	// ForDate returns all calllogs recorded at d.
-	ForDate(ctx context.Context, d time.Time) ([]v1alpha.CallLog, error)
-	// ForCustomer returns all calllog records that are associated with the specified
-	// customer.
-	ForCustomer(ctx context.Context, source, id string) ([]v1alpha.CallLog, error)
+	// Search searches for all records that match query.
+	Search(ctx context.Context, query *SearchQuery) ([]v1alpha.CallLog, error)
 }
 
 type database struct {
@@ -169,38 +165,13 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 	return nil
 }
 
-func (db *database) ForDate(ctx context.Context, d time.Time) ([]v1alpha.CallLog, error) {
-	key := d.Format("2006-01-02")
+func (db *database) Search(ctx context.Context, query *SearchQuery) ([]v1alpha.CallLog, error) {
+	query.prepare()
 
-	opts := options.Find()
-	opts.SetSort(bson.M{
-		"date": -1,
-	})
+	logger.From(ctx).Infof("Searching callogs for %+v", query.f)
 
-	result, err := db.callogs.Find(ctx, bson.M{"datestr": key}, opts)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	defer result.Close(ctx)
-
-	var records []v1alpha.CallLog
-	if err := result.All(ctx, &records); err != nil {
-		return nil, err
-	}
-
-	return records, nil
-}
-
-func (db *database) ForCustomer(ctx context.Context, source, id string) ([]v1alpha.CallLog, error) {
-	filter := bson.M{
-		"customerSource": source,
-		"customerID":     id,
-	}
 	opts := options.Find().SetSort(bson.M{"date": -1})
-	cursor, err := db.callogs.Find(ctx, filter, opts)
+	cursor, err := db.callogs.Find(ctx, query.f, opts)
 	if err != nil {
 		return nil, err
 	}

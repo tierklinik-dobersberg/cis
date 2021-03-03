@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/calllog/v1alpha"
@@ -29,7 +30,8 @@ func ForCustomerEndpoint(router *app.Router) {
 				return httperr.MissingParameter("id")
 			}
 
-			records, err := app.CallLogs.ForCustomer(ctx, source, id)
+			q := new(calllogdb.SearchQuery).Customer(source, id)
+			records, err := app.CallLogs.Search(ctx, q)
 			if err != nil {
 				return err
 			}

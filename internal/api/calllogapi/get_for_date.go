@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/calllog/v1alpha"
@@ -43,7 +44,10 @@ func ForDateEndpoint(grp *app.Router) {
 				return httperr.BadRequest(err, "invalid date")
 			}
 
-			logs, err := app.CallLogs.ForDate(ctx, d)
+			q := new(calllogdb.SearchQuery).
+				AtDate(d)
+
+			logs, err := app.CallLogs.Search(ctx, q)
 			if err != nil {
 				return err
 			}
