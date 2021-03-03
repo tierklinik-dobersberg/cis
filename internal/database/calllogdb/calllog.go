@@ -166,12 +166,11 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 }
 
 func (db *database) Search(ctx context.Context, query *SearchQuery) ([]v1alpha.CallLog, error) {
-	query.prepare()
-
-	logger.From(ctx).Infof("Searching callogs for %+v", query.f)
+	filter := query.Build()
+	logger.From(ctx).Infof("Searching callogs for %+v", filter)
 
 	opts := options.Find().SetSort(bson.M{"date": -1})
-	cursor, err := db.callogs.Find(ctx, query.f, opts)
+	cursor, err := db.callogs.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err
 	}
