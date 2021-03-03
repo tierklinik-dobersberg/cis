@@ -28,4 +28,5 @@ jobs:
         run: |
           cd ui
           npm ci
+          npm run lint
           npm run build:ci
