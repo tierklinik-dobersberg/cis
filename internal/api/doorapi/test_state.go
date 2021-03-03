@@ -42,7 +42,7 @@ func TestStateEndpoint(grp *app.Router) {
 				return err
 			}
 
-			date := time.Date(year, time.Month(month), day, hour, minute, 0, 0, time.Local)
+			date := time.Date(year, time.Month(month), day, hour, minute, 0, 0, app.Location())
 
 			result, until := app.Door.StateFor(ctx, date)
 			c.JSON(http.StatusOK, gin.H{

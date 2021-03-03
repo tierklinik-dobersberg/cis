@@ -130,7 +130,7 @@ func (suite *DoorTestSuite) Test_0_Dates() {
 }
 func (suite *DoorTestSuite) Test_1_Reset() {
 	defer suite.clearCommands()
-	resp, err := http.Post("http://localhost:3000/api/door/v1/reset", "", nil)
+	resp, err := AsAlice.Post("http://localhost:3000/api/door/v1/reset", "", nil)
 
 	require.NoError(suite.T(), err)
 	suite.Equal(http.StatusOK, resp.StatusCode)
@@ -176,7 +176,7 @@ func (suite *DoorTestSuite) Test_2_Overwrite() {
 		"duration": d.String(),
 	})
 
-	resp, err := http.Post("http://localhost:3000/api/door/v1/overwrite", "application/json", strings.NewReader(string(blob)))
+	resp, err := AsAlice.Post("http://localhost:3000/api/door/v1/overwrite", "application/json", strings.NewReader(string(blob)))
 	suite.Equal(next, suite.receiveCommand())
 
 	require.NoError(suite.T(), err)
@@ -206,8 +206,9 @@ func (suite *DoorTestSuite) getState(date string, t string) (string, time.Time) 
 	msg := fmt.Sprintf("date: %q time:%q ", date, t)
 	url := "http://localhost:3000/api/door/v1/test/" + date + "/" + strings.ReplaceAll(t, ":", "/")
 
-	resp, err := http.Get(url)
+	resp, err := AsAlice.Get(url)
 	require.NoError(suite.T(), err, msg)
+	require.Equal(suite.T(), http.StatusOK, resp.StatusCode)
 
 	var result struct {
 		State string    `json:"desiredState"`
