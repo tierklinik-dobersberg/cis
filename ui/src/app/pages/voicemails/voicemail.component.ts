@@ -64,8 +64,12 @@ export class VoiceMailComponent implements OnInit, OnDestroy {
         .pipe(
           mergeMap(([params, date, onlyUnseen]) => {
             this.loading = true;
-            this.header.set(params.get("name"));
-            let opts: SearchParams = {};
+            const name = params.get("name")
+            this.header.set(name);
+
+            let opts: SearchParams = {
+              name: name,
+            };
             if (date !== null) {
               opts.date = date;
             }
