@@ -6,7 +6,5 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
-      - name: List current directory
-        run: ls -lah
       - name: Run integration tests
-        run: go test -v -count=1 -build=true ./integration
+        run: cd integration && go test -v -count=1 . -build=true -log=cisd
