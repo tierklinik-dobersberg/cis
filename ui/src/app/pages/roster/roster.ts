@@ -25,13 +25,13 @@ export class RosterComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
 
   readonly weekdays = [
-    "Sonntag",
-    "Montag",
-    "Dienstag",
-    "Mittwoch",
-    "Donnerstag",
-    "Freitag",
-    "Samstag"
+    'Sonntag',
+    'Montag',
+    'Dienstag',
+    'Mittwoch',
+    'Donnerstag',
+    'Freitag',
+    'Samstag'
   ];
 
   /** Whether or not the roster should be displayed as readonly  */
@@ -79,10 +79,10 @@ export class RosterComponent implements OnInit, OnDestroy {
   } = {};
 
   /** The current user that should be highlighted */
-  highlightUser: string = '';
+  highlightUser = '';
 
   /** The user that should be highlighted if not overwritten by highlightUser */
-  defaultHightlightUser: string = '';
+  defaultHightlightUser = '';
 
   highlightUserSubject = new Subject<string>();
 
@@ -110,26 +110,26 @@ export class RosterComponent implements OnInit, OnDestroy {
   }
 
   /** canEditRoster is true if the current user has permission to edit the roster. */
-  get canEditRoster() {
+  get canEditRoster(): boolean {
     return this.identityapi.hasPermission(Permission.RosterWrite);
   }
 
-  setSelectedDate(d: Date) {
+  setSelectedDate(d: Date): void {
     this.selectedDate = d;
     this.dates = [];
     const month = d.getMonth();
     const year = d.getFullYear();
-    const daysInMonth = this.daysInMonth(month, year)
+    const daysInMonth = this.daysInMonth(month, year);
     console.log(daysInMonth);
 
     for (let i = 1; i <= daysInMonth; i++) {
       this.dates.push(
         new Date(year, month, i)
-      )
+      );
     }
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.subscriptions = new Subscription();
 
     // Load all users and keep retrying until we got them.
@@ -145,7 +145,7 @@ export class RosterComponent implements OnInit, OnDestroy {
             // finally, load the current roster
             this.loadRoster(this.selectedDate);
           }
-        )
+        );
     this.subscriptions.add(sub);
 
     // The roster is always readonly on tablet-portrait and down
@@ -180,16 +180,16 @@ export class RosterComponent implements OnInit, OnDestroy {
       .pipe(debounceTime(200))
       .subscribe(user => {
         this.highlightUser = user || this.defaultHightlightUser;
-      })
+      });
     this.subscriptions.add(highlightSub);
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 
   /** Callback when the user clicks on a roster date- */
-  selectRosterDay(date: Date) {
+  selectRosterDay(date: Date): void {
     this.selectedDay = this.getDay(date);
   }
 
@@ -207,28 +207,28 @@ export class RosterComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  nextMonth() {
+  nextMonth(): void {
     this.onPanelChange({
       date: new Date(this.selectedDate.getFullYear(), this.selectedDate.getMonth() + 1, 1),
       mode: 'month',
-    })
+    });
   }
 
-  prevMonth() {
+  prevMonth(): void {
     this.onPanelChange({
       date: new Date(this.selectedDate.getFullYear(), this.selectedDate.getMonth() - 1, 1),
       mode: 'month',
-    })
+    });
   }
 
-  today() {
+  today(): void {
     this.onPanelChange({
       date: new Date(),
       mode: 'month',
-    }, true)
+    }, true);
   }
 
-  createComment() {
+  createComment(): void {
     const year = this.selectedDate.getFullYear();
     const month = this.selectedDate.getMonth() + 1;
     this.commentapi.create(`roster:${year}-${month}`, this.newComment)
@@ -238,40 +238,40 @@ export class RosterComponent implements OnInit, OnDestroy {
           this.loadComments();
         },
         err => {
-          this.messageService.error(extractErrorMessage(err, 'Kommentieren fehlgeschlagen'))
+          this.messageService.error(extractErrorMessage(err, 'Kommentieren fehlgeschlagen'));
         }
-      )
+      );
   }
 
   /**
    * Save the current roster.
    */
-  saveRoster() {
-    let roster: Roster = {
+  saveRoster(): void {
+    const roster: Roster = {
       month: this.selectedDate.getMonth() + 1,
       year: this.selectedDate.getFullYear(),
       days: this.days,
-    }
+    };
     this.saveLoading = true;
     this.rosterapi.create(roster)
       .subscribe(() => {
         this.showNoRosterAlert = false;
         this.saveLoading = false;
         this.editMode = false;
-        this.messageService.success("Dienstplan gespeichert")
+        this.messageService.success('Dienstplan gespeichert');
 
         // finally, discard any unsaved changes and reload
         this.discardChanges();
       }, err => {
         this.saveLoading = false;
-        this.messageService.error(extractErrorMessage(err, 'Dienstplan konnte nicht gespeicher werden'))
-      })
+        this.messageService.error(extractErrorMessage(err, 'Dienstplan konnte nicht gespeicher werden'));
+      });
   }
 
   /** Whether or not the edit-day-menu is currently visible.  */
   get isDropDownVisible(): boolean {
     if (Object.keys(this.dropdownVisible).some(key => !!this.dropdownVisible[key])) {
-      return true
+      return true;
     }
 
     return false;
@@ -281,7 +281,7 @@ export class RosterComponent implements OnInit, OnDestroy {
    * Returns (and maybe creates) the boolean that is used to
    * trigger the day-edit-menu for the specific roster date.
    */
-  getVisibleProp(date: string) {
+  getVisibleProp(date: string): object {
     if (this.dropdownVisible[date] === undefined) {
       this.dropdownVisible[date] = false;
     }
@@ -292,47 +292,47 @@ export class RosterComponent implements OnInit, OnDestroy {
   /**
    * Delete the currenlty displayed roster.
    */
-  deleteRoster() {
+  deleteRoster(): void {
     this.rosterapi.delete(this.selectedDate.getFullYear(), this.selectedDate.getMonth() + 1)
       .subscribe(() => {
         this.loadRoster();
-        this.messageService.success("Dienstplan gelöscht.");
-      }, err => console.error(err))
+        this.messageService.success('Dienstplan gelöscht.');
+      }, err => console.error(err));
   }
 
   /**
    * Toggle edit mode. If we're currenlty editing the roster
    * the roster will be saved and edit mode will stopped.
    */
-  toggleEdit() {
+  toggleEdit(): void {
     if (this.readonly) {
       return;
     }
 
     if (this.editMode) {
-      this.saveRoster()
+      this.saveRoster();
       return;
     }
     this.editMode = !this.editMode;
   }
 
-  discardChanges() {
+  discardChanges(): void {
     const key = `roster/${this.selectedDate.getFullYear()}/${this.selectedDate.getMonth() + 1}`;
     this.storage.delete(key)
       .subscribe(() => this.loadRoster());
   }
 
-  toggleComments() {
+  toggleComments(): void {
     this.showComments = !this.showComments;
   }
 
   /**
    * Loads the roster for date.
    */
-  loadRoster(date: Date = this.selectedDate, scrollTo = false) {
+  loadRoster(date: Date = this.selectedDate, scrollTo = false): void {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
-    this.header.set(`Dienstplan:  ${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`)
+    this.header.set(`Dienstplan:  ${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`);
     const sub =
       this.rosterapi.forMonth(date.getFullYear(), date.getMonth() + 1)
         .pipe(
@@ -353,7 +353,7 @@ export class RosterComponent implements OnInit, OnDestroy {
 
                     return [r, false];
                   })
-                ) as Observable<[Roster, boolean]>
+                ) as Observable<[Roster, boolean]>;
             }
 
             return throwError(err);
@@ -388,7 +388,7 @@ export class RosterComponent implements OnInit, OnDestroy {
               console.error(err);
             }
           }
-        )
+        );
     this.subscriptions.add(sub);
 
     const sub2 =
@@ -397,13 +397,13 @@ export class RosterComponent implements OnInit, OnDestroy {
           holidays.forEach(day => {
             this.holidays[new Date(day.date).toDateString()] = day;
           });
-        })
+        });
     this.subscriptions.add(sub2);
 
     this.loadComments(date);
   }
 
-  loadComments(date = this.selectedDate) {
+  loadComments(date = this.selectedDate): void {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
 
@@ -414,43 +414,43 @@ export class RosterComponent implements OnInit, OnDestroy {
             console.log(comments);
             this.comments = comments
               .map(c => {
-                let date = new Date(c.createdAt);
+                let createdAt = new Date(c.createdAt);
                 let edited = false;
                 if (c.createdAt !== c.updatedAt) {
                   edited = true;
-                  date = new Date(c.updatedAt);
+                  createdAt = new Date(c.updatedAt);
                 }
 
                 return {
                   ...c,
-                  date: date,
-                  edited: edited,
+                  date: createdAt,
+                  edited,
                   profile: this.userProfiles[c.user],
-                }
+                };
               })
-              .sort((a, b) => new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf())
+              .sort((a, b) => new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf());
           },
           err => {
             console.error(err);
           }
-        )
+        );
     this.subscriptions.add(sub);
   }
 
   /** Closes all edit-day-menu dropdowns */
-  closeDropdown() {
+  closeDropdown(): void {
     Object.keys(this.dropdownVisible).forEach(key => this.dropdownVisible[key] = false);
   }
 
   /**
    * Callback when the roster got modified.
    */
-  rosterChanged() {
-    let roster: Roster = {
+  rosterChanged(): void {
+    const roster: Roster = {
       month: this.selectedDate.getMonth() + 1,
       year: this.selectedDate.getFullYear(),
       days: this.days,
-    }
+    };
 
     this.storage.set(`roster/${roster.year}/${roster.month}`, roster)
       .subscribe();
@@ -462,16 +462,16 @@ export class RosterComponent implements OnInit, OnDestroy {
    *
    * @param date The date in question
    */
-  getDay(date: Date) {
+  getDay(date: Date): Day {
     // return an empty day if the request if for some day
     // out of the currently selected month
     // TODO(ppacher): fetch that month as well ....
-    if (this.selectedDate.getMonth() != date.getMonth()) {
+    if (this.selectedDate.getMonth() !== date.getMonth()) {
       return {
         afternoon: [],
         forenoon: [],
         emergency: [],
-      }
+      };
     }
 
     const day = date.getDate();
@@ -481,25 +481,25 @@ export class RosterComponent implements OnInit, OnDestroy {
         afternoon: [],
         forenoon: [],
         emergency: [],
-      }
+      };
       this.days[day] = d;
     }
 
-    return d
+    return d;
   }
 
   /**
    * Callback when the user selected a day in the roster
    */
-  onDateSelected(date: Date) {
-    const changed = date.getMonth() != this.selectedDate.getMonth() || date.getFullYear() != this.selectedDate.getFullYear();
+  onDateSelected(date: Date): void {
+    const changed = date.getMonth() !== this.selectedDate.getMonth() || date.getFullYear() !== this.selectedDate.getFullYear();
     this.setSelectedDate(date);
 
     if (changed) {
       this.onPanelChange({
-        date: date,
+        date,
         mode: 'month'
-      })
+      });
     }
   }
 
@@ -508,9 +508,9 @@ export class RosterComponent implements OnInit, OnDestroy {
    *
    * @param param0 The event emitted
    */
-  onPanelChange({ date, mode }: { date: Date, mode: NzCalendarMode }, scrollTo = false) {
+  onPanelChange({ date, mode }: { date: Date, mode: NzCalendarMode }, scrollTo = false): void {
     if (mode === 'year') {
-      return
+      return;
     }
     this.setSelectedDate(date);
 

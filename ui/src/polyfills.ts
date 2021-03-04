@@ -1,3 +1,4 @@
+// tslint:disable
 /**
  * This file includes polyfills needed by Angular and is loaded before the app.
  * You can add your own extra polyfills to this file.
@@ -19,14 +20,14 @@
  */
 
 /** IE11 requires the following for NgClass support on SVG elements */
-//import 'classlist.js';  // Run `npm install --save classlist.js`.
+// import 'classlist.js';  // Run `npm install --save classlist.js`.
 
 /**
  * Web Animations `@angular/platform-browser/animations`
  * Only required if AnimationBuilder is used within the application and using IE/Edge or Safari.
  * Standard animation support in Angular DOES NOT require any polyfills (as of Angular 6.0).
  */
-//import 'web-animations-js';  // Run `npm install --save web-animations-js`.
+// import 'web-animations-js';  // Run `npm install --save web-animations-js`.
 
 /**
  * By default, zone.js will patch all possible macroTask and DomEvents
@@ -53,8 +54,8 @@
  */
 
 /** IE9, IE10 and IE11 requires all of the following polyfills. **/
-//import 'core-js/es';
-//import 'core-js/stable';
+// import 'core-js/es';
+// import 'core-js/stable';
 
 /***************************************************************************************************
  * Zone JS is required by default for Angular itself.
@@ -66,7 +67,7 @@ import 'zone.js/dist/zone';  // Included with Angular CLI.
  * APPLICATION IMPORTS
  */
 // Custom Elements polyfill. Required for browsers that do not natively support Custom Elements.
-//import '@webcomponents/custom-elements';
+// import '@webcomponents/custom-elements';
 // Custom Element ES5 shim. Required for browsers that natively support Custom Elements, but do not
 // support ES2015 modules.
 // NOTE: Chrome, Firefox and Safari should not need this, because they added support for ES2015
@@ -74,5 +75,5 @@ import 'zone.js/dist/zone';  // Included with Angular CLI.
 //       - UC browser for android 11.8 (~3.5% global usage)
 //       - Samsung browser 5.0-8.1 (~0.43% global usage)
 //       - Opera 41-47 (~0.02% global usage)
-//import '@webcomponents/custom-elements/src/native-shim';
+// import '@webcomponents/custom-elements/src/native-shim';
 

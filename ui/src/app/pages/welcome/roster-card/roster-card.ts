@@ -22,12 +22,12 @@ export class RosterCardComponent implements OnInit, OnDestroy {
     private changeDetector: ChangeDetectorRef,
   ) { }
 
-  ngOnInit() {
-    let triggerReload = new BehaviorSubject<void>(undefined);
+  ngOnInit(): void {
+    const triggerReload = new BehaviorSubject<void>(undefined);
 
     this.subscriptions = new Subscription();
 
-    let rosterSubscription = combineLatest([
+    const rosterSubscription = combineLatest([
       interval(10000),
       triggerReload,
     ])
@@ -44,20 +44,20 @@ export class RosterCardComponent implements OnInit, OnDestroy {
           if (!roster) {
             return null;
           }
-          return roster!.days[new Date().getDate()] || null;
+          return roster.days[new Date().getDate()] || null;
         })
       )
       .subscribe((day: Day | null) => {
-        this.forenoon = (day?.forenoon || []).map(user => this.userService.byName(user))
-        this.afternoon = (day?.afternoon || []).map(user => this.userService.byName(user))
-        this.emergency = (day?.emergency || []).map(user => this.userService.byName(user))
+        this.forenoon = (day?.forenoon || []).map(user => this.userService.byName(user));
+        this.afternoon = (day?.afternoon || []).map(user => this.userService.byName(user));
+        this.emergency = (day?.emergency || []).map(user => this.userService.byName(user));
         this.changeDetector.markForCheck();
-      })
+      });
 
     this.subscriptions.add(rosterSubscription);
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 }

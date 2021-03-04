@@ -28,17 +28,6 @@ interface StudyWithMeta extends Study {
   styleUrls: ['./xray.scss']
 })
 export class XRayComponent implements OnInit, OnDestroy {
-  private subscriptions = Subscription.EMPTY;
-
-  offset = 0;
-  studies: StudyWithMeta[] = [];
-  searchText: string = '';
-  popOverCustomer: Customer | null = null;
-  drawerVisible: boolean = false;
-  drawerStudy: StudyWithMeta | null = null;
-  trackBy: TrackByFunction<Study> = (_, study) => study.studyInstanceUid;
-
-  ds = new StudyDataSource(this.dxrapi);
 
   constructor(
     private header: HeaderTitleService,
@@ -48,8 +37,19 @@ export class XRayComponent implements OnInit, OnDestroy {
     private nzMessage: NzMessageService,
     public layout: LayoutService,
   ) { }
+  private subscriptions = Subscription.EMPTY;
 
-  openViewer(study: Study, previewOrSeries: InstancePreview | Series, instance?: Instance) {
+  offset = 0;
+  studies: StudyWithMeta[] = [];
+  searchText = '';
+  popOverCustomer: Customer | null = null;
+  drawerVisible = false;
+  drawerStudy: StudyWithMeta | null = null;
+
+  ds = new StudyDataSource(this.dxrapi);
+  trackBy: TrackByFunction<Study> = (_, study) => study.studyInstanceUid;
+
+  openViewer(study: Study, previewOrSeries: InstancePreview | Series, instance?: Instance): void {
     let seriesUid: string;
     let instanceUid: string;
 
@@ -60,7 +60,7 @@ export class XRayComponent implements OnInit, OnDestroy {
       seriesUid = (previewOrSeries as InstancePreview).seriesUid;
       instanceUid = (previewOrSeries as InstancePreview).instanceUid;
     }
-    this.router.navigate(['xray/viewer', study.studyInstanceUid, seriesUid, instanceUid])
+    this.router.navigate(['xray/viewer', study.studyInstanceUid, seriesUid, instanceUid]);
   }
 
   /**
@@ -70,7 +70,7 @@ export class XRayComponent implements OnInit, OnDestroy {
    * @param visible Wether or not the popover should be visible.
    * @param study The study that was hovered.
    */
-  onPopoverChange(visible: boolean, study: StudyWithMeta) {
+  onPopoverChange(visible: boolean, study: StudyWithMeta): void {
     if (!visible) {
       return;
     }
@@ -87,24 +87,24 @@ export class XRayComponent implements OnInit, OnDestroy {
           console.error(err);
           this.popOverCustomer = null;
         }
-      )
+      );
   }
 
-  openDrawer(event: MouseEvent, study: StudyWithMeta) {
+  openDrawer(event: MouseEvent, study: StudyWithMeta): void {
     this.drawerStudy = study;
     this.drawerVisible = true;
   }
 
-  closeDrawer() {
+  closeDrawer(): void {
     this.drawerVisible = false;
     this.drawerStudy = null;
   }
 
-  ngOnInit() {
-    this.header.set('Röntgen')
+  ngOnInit(): void {
+    this.header.set('Röntgen');
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 }
@@ -130,21 +130,19 @@ class StudyDataSource extends DataSource<StudyWithMeta> {
     return this.dataStream;
   }
 
-  search(text: string) {
-    console.log("search", text);
-
-    if (text === "") {
+  search(text: string): void {
+    if (text === '') {
       if (this.fetchedPages.has(0)) {
         this.updateCurrentStudies(this.cachedData.slice(0, this.pageSize), 0);
       }
       this.fetchPage(0);
-      return
+      return;
     }
 
     this.dxrservice.search(text)
       .subscribe(result => {
         this.updateCurrentStudies(result, -1);
-      })
+      });
   }
 
   disconnect(): void {
@@ -187,10 +185,10 @@ class StudyDataSource extends DataSource<StudyWithMeta> {
       });
   }
 
-  private updateCurrentStudies(studies: Study[], page = 0) {
+  private updateCurrentStudies(studies: Study[], page = 0): void {
     console.log(studies);
     const result = studies.map(study => {
-      var urls: InstancePreview[] = [];
+      const urls: InstancePreview[] = [];
 
       if (!!study.seriesList) {
         study.seriesList.forEach(series => {
@@ -204,18 +202,18 @@ class StudyDataSource extends DataSource<StudyWithMeta> {
               instanceUid: instance.sopInstanceUid,
               previewUrl: url,
               seriesUid: series.seriesInstanceUid,
-            })
-          })
+            });
+          });
         });
       }
 
-      let cid: string = '';
-      let aid: string = '';
+      let cid = '';
+      let aid = '';
 
       try {
         [cid, aid] = splitCombinedCustomerAnimalIDs(study.patientId);
       } catch (err) {
-        console.error(err, study)
+        console.error(err, study);
       }
 
       return {
@@ -223,7 +221,7 @@ class StudyDataSource extends DataSource<StudyWithMeta> {
         previews: urls,
         vetinfCID: cid,
         vetinfAID: aid,
-      }
+      };
     });
 
     if (page >= 0) {

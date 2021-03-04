@@ -1,8 +1,8 @@
-import { HttpClient } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { BehaviorSubject, Observable, of } from "rxjs";
-import { catchError } from "rxjs/operators";
-import { IdentityAPI } from "./identity.api";
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { IdentityAPI } from './identity.api';
 
 export interface ExternalLink {
   ParentMenu: string;
@@ -53,7 +53,7 @@ export class ConfigAPI {
   }
 
   get current(): UIConfig | null {
-    return this.onChange.getValue()
+    return this.onChange.getValue();
   }
 
   constructor(
@@ -75,7 +75,7 @@ export class ConfigAPI {
           // changes.
           this.onChange.next(cfg);
           console.log(cfg);
-        })
+        });
     });
   }
 

@@ -1,7 +1,7 @@
-import { HttpClient, HttpParams } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export interface BaseVoiceMailRecording {
     _id: string;
@@ -32,7 +32,7 @@ export class VoiceMailAPI {
     constructor(private http: HttpClient) { }
 
     listMailboxes(): Observable<string[]> {
-        return this.http.get<string[] | null>("/api/voicemail/v1/list")
+        return this.http.get<string[] | null>('/api/voicemail/v1/list')
             .pipe(map(res => res));
     }
 
@@ -40,7 +40,7 @@ export class VoiceMailAPI {
         let params = new HttpParams();
 
         if (opts.date !== undefined) {
-            params = params.set('date', `${opts.date.getFullYear()}-${opts.date.getMonth() + 1}-${opts.date.getDate()}`)
+            params = params.set('date', `${opts.date.getFullYear()}-${opts.date.getMonth() + 1}-${opts.date.getDate()}`);
         }
 
         if (opts.name !== undefined) {
@@ -48,11 +48,11 @@ export class VoiceMailAPI {
         }
 
         if (opts.seen !== undefined) {
-            params = params.set(`seen`, `${opts.seen}`)
+            params = params.set(`seen`, `${opts.seen}`);
         }
 
         return this.http.get<BaseVoiceMailRecording[]>(`/api/voicemail/v1/search`, {
-            params: params
+            params
         })
             .pipe(
                 map(res => res || []),
@@ -61,7 +61,7 @@ export class VoiceMailAPI {
                     localDate: new Date(r.date),
                     url: `/api/voicemail/v1/recording/${r._id}`,
                 })))
-            )
+            );
     }
 
     updateSeen(id: string, seen: boolean): Observable<void> {

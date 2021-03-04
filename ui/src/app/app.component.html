@@ -86,7 +86,7 @@
 </ng-template>
 
 <nz-layout class="app-layout">
-  <nz-sider *ngIf="!(isLogin | async) && !layout.isPhone" class="menu-sidebar" nzCollapsible nzWidth="260px"
+  <nz-sider *ngIf="(isLogin | async) === false && !layout.isPhone" class="menu-sidebar" nzCollapsible nzWidth="260px"
     [(nzCollapsed)]="isCollapsed" [nzTrigger]="null">
 
     <div class="sidebar-container">
@@ -109,7 +109,7 @@
   </nz-sider>
 
   <nz-layout>
-    <nz-header *ngIf="!(isLogin | async)">
+    <nz-header *ngIf="(isLogin | async) === false">
       <div class="app-header">
         <span class="header-trigger" (click)="toggleMenu()">
           <i class="trigger" nz-icon [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'"></i>

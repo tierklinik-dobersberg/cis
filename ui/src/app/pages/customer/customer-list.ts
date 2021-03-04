@@ -1,11 +1,11 @@
-import { Component, OnDestroy, OnInit, TrackByFunction } from "@angular/core";
-import { NzMessageService } from "ng-zorro-antd/message";
-import { from, Observable, Subject, Subscription } from "rxjs";
-import { Customer, CustomerAPI } from "src/app/api/customer.api";
-import { extractErrorMessage, toMongoDBFilter } from "src/app/utils";
+import { Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { from, Observable, Subject, Subscription } from 'rxjs';
+import { Customer, CustomerAPI } from 'src/app/api/customer.api';
+import { extractErrorMessage, toMongoDBFilter } from 'src/app/utils';
 import { parse as parseQuery } from 'search-query-parser';
 import { ExtendedCustomer, customerTagColor } from './utils';
-import { HeaderTitleService } from "src/app/shared/header-title";
+import { HeaderTitleService } from 'src/app/shared/header-title';
 
 @Component({
   templateUrl: './customer-list.html',
@@ -14,10 +14,10 @@ import { HeaderTitleService } from "src/app/shared/header-title";
 export class CustomerListComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
 
-  searchText = ''
+  searchText = '';
   customers: ExtendedCustomer[] = [];
   allCustomers: ExtendedCustomer[] = [];
-  useAdvancedSearch: boolean = false;
+  useAdvancedSearch = false;
   searching = false;
   sourceTags = new Set<string>();
   tagColors: { [key: string]: string } = {};
@@ -31,34 +31,34 @@ export class CustomerListComponent implements OnInit, OnDestroy {
     private nzMessageService: NzMessageService,
   ) { }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.header.set('Kunden');
     this.subscriptions = new Subscription();
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 
-  search(term: string) {
+  search(term: string): void {
     let stream: Observable<Customer[]> = this.customerapi.searchName(term);
 
     if (this.useAdvancedSearch) {
       let payload: any;
       try {
-        payload = JSON.parse(term)
+        payload = JSON.parse(term);
       } catch (err) {
-        return
+        return;
       }
 
-      stream = this.customerapi.extendedSearch(payload)
+      stream = this.customerapi.extendedSearch(payload);
     } else {
-      let parsedQuery = parseQuery(term, {
+      const parsedQuery = parseQuery(term, {
         keywords: ['name', 'firstname', 'phoneNumbers', 'city', 'cityCode', 'street', 'mailAddresses', 'customerSource']
-      })
+      });
 
       if (typeof parsedQuery !== 'string') {
-        let filter = toMongoDBFilter(parsedQuery)
+        const filter = toMongoDBFilter(parsedQuery);
         stream = this.customerapi.extendedSearch(filter);
       }
     }
@@ -71,11 +71,11 @@ export class CustomerListComponent implements OnInit, OnDestroy {
         this.allCustomers = [];
 
         (result || []).forEach(c => {
-          let tagColor = customerTagColor(c);
+          const tagColor = customerTagColor(c);
           this.allCustomers.push({
             ...c,
-            tagColor: tagColor,
-          })
+            tagColor,
+          });
 
           this.sourceTags.add(c.source);
           this.tagColors[c.source] = tagColor;
@@ -84,10 +84,10 @@ export class CustomerListComponent implements OnInit, OnDestroy {
           }
         });
 
-        this.customers = this.allCustomers.filter(c => !!this.tagVisibility[c.source])
+        this.customers = this.allCustomers.filter(c => !!this.tagVisibility[c.source]);
       },
       err => {
-        const msg = extractErrorMessage(err, "Suche fehlgeschlagen")
+        const msg = extractErrorMessage(err, 'Suche fehlgeschlagen');
         this.nzMessageService.error(msg);
 
         this.customers = [];
@@ -95,11 +95,11 @@ export class CustomerListComponent implements OnInit, OnDestroy {
       },
       () => {
         this.searching = false;
-      })
+      });
   }
 
-  updateTagVisibility(tag: string, visible: boolean) {
+  updateTagVisibility(tag: string, visible: boolean): void {
     this.tagVisibility[tag] = visible;
-    this.customers = this.allCustomers.filter(c => !!this.tagVisibility[c.source])
+    this.customers = this.allCustomers.filter(c => !!this.tagVisibility[c.source]);
   }
 }

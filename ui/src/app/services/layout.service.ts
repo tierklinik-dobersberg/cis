@@ -1,20 +1,17 @@
-import { BreakpointObserver } from "@angular/cdk/layout";
-import { Injectable } from "@angular/core";
-import { BehaviorSubject, Observable } from "rxjs";
-import { map } from "rxjs/operators";
-
-
-
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 @Injectable({
   providedIn: 'root'
 })
 export class LayoutService {
   breakpoints: Observable<{ [key: string]: boolean }>;
 
-  private _onUpdate = new BehaviorSubject<void>(undefined);
+  private onUpdate = new BehaviorSubject<void>(undefined);
 
-  get change() {
-    return this._onUpdate.asObservable();
+  get change(): Observable<void> {
+    return this.onUpdate.asObservable();
   }
 
   get drawerWidth(): Observable<string> {
@@ -25,7 +22,7 @@ export class LayoutService {
           : this.isDesktopUp
             ? '25vw'
             : '50vw';
-      }))
+      }));
   }
 
   isPhone = false;
@@ -49,11 +46,11 @@ export class LayoutService {
     this.breakpoints.subscribe(states => {
       this.isPhone = states['(max-width: 599px)'];
       this.isTabletPortraitUp = states['(min-width: 600px)'];
-      this.isTabletLandscapeUp = states['(min-width: 900px)']
-      this.isDesktopUp = states['(min-width: 1200px)']
-      this.isBigDesktopUp = states['(min-width: 1800px)']
+      this.isTabletLandscapeUp = states['(min-width: 900px)'];
+      this.isDesktopUp = states['(min-width: 1200px)'];
+      this.isBigDesktopUp = states['(min-width: 1800px)'];
 
-      this._onUpdate.next();
+      this.onUpdate.next();
     });
   }
 }

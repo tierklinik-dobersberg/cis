@@ -1,7 +1,7 @@
-import { HttpClient, HttpParams } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export interface RemoteCustomer {
   _id?: string;
@@ -45,7 +45,7 @@ export class CustomerAPI {
   searchName(name: string): Observable<Customer[]> {
     return this.http.get<Customer[]>(`/api/customer/v1/`, {
       params: {
-        name: name,
+        name,
       },
     })
       .pipe(map(result => result.map(customer => ({
@@ -56,7 +56,7 @@ export class CustomerAPI {
 
   search(params: { [key: string]: string | string[] }): Observable<Customer[]> {
     return this.http.get<Customer[]>(`/api/customer/v1/`, {
-      params: params,
+      params,
     })
       .pipe(map(result => result.map(customer => ({
         ...customer,
@@ -74,20 +74,20 @@ export class CustomerAPI {
 }
 
 export function distinctPhoneNumbers(numbers: string[]): string[] {
-  let distinct = new Map<string, string>();
+  const distinct = new Map<string, string>();
 
   // phone numbers returned from the API are correctly formated
   // and thus contain a space between the number part and the
   // provider part. We just return numbers distinct by number-part
   // ignoring all other parts before it (international prefix and provider
   // prefix).
-  (numbers || []).forEach(number => {
-    const parts = number.split(" ");
+  (numbers || []).forEach(phoneNumber => {
+    const parts = phoneNumber.split(' ');
     const key = parts[parts.length - 1];
     if (!distinct.has(key)) {
-      distinct.set(key, number);
+      distinct.set(key, phoneNumber);
     }
-  })
+  });
 
   return Array.from(distinct.values());
 }

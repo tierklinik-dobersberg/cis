@@ -9,7 +9,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageServiceModule } from 'ng-zorro-antd/message';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
-import { LoginComponent } from "./login";
+import { LoginComponent } from './login';
 import { LoginRoutingModule } from './login-routing';
 
 @NgModule({

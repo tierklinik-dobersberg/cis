@@ -1,115 +1,115 @@
-import { HttpErrorResponse } from "@angular/common/http";
-import { Component, OnDestroy, OnInit } from "@angular/core";
-import { FormGroup, FormBuilder, Validators } from "@angular/forms";
-import { ActivatedRoute, Router } from "@angular/router";
-import { NzMessageService } from "ng-zorro-antd/message";
-import { Subscription } from "rxjs";
-import { mergeMap } from "rxjs/operators";
-import { IdentityAPI, Profile } from "src/app/api";
-import { extractErrorMessage } from "src/app/utils";
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { Subscription } from 'rxjs';
+import { mergeMap } from 'rxjs/operators';
+import { IdentityAPI, Profile } from 'src/app/api';
+import { extractErrorMessage } from 'src/app/utils';
 
 @Component({
-    templateUrl: './login.html',
-    styleUrls: ['./login.scss']
+  templateUrl: './login.html',
+  styleUrls: ['./login.scss']
 })
 export class LoginComponent implements OnInit, OnDestroy {
-    private subscriptions = Subscription.EMPTY;
+  private subscriptions = Subscription.EMPTY;
 
-    lastMessageID: string = '';
-    username: string = '';
-    password: string = '';
-    profile: Profile | null = null;
+  lastMessageID = '';
+  username = '';
+  password = '';
+  profile: Profile | null = null;
 
-    validateForm!: FormGroup;
+  validateForm!: FormGroup;
 
-    submitForm(): void {
-        for (const i in this.validateForm.controls) {
-            this.validateForm.controls[i].markAsDirty();
-            this.validateForm.controls[i].updateValueAndValidity();
-        }
+  submitForm(): void {
+    for (const i of Object.keys(this.validateForm.controls)) {
+      this.validateForm.controls[i].markAsDirty();
+      this.validateForm.controls[i].updateValueAndValidity();
+    }
 
-        if (this.validateForm.valid) {
-            if (this.lastMessageID != '') {
-                this.messageService.remove(this.lastMessageID);
+    if (this.validateForm.valid) {
+      if (this.lastMessageID !== '') {
+        this.messageService.remove(this.lastMessageID);
+      }
+
+      this.lastMessageID = this.messageService.loading('Anmeldung ...').messageId;
+
+      this.identityapi.login(this.username, this.password)
+        .pipe(mergeMap(() => this.identityapi.profile()))
+        .subscribe(
+          profile => {
+            this.messageService.remove(this.lastMessageID);
+            this.lastMessageID = this.messageService.info(`Hallo, ${profile.fullname}`).messageId;
+            const target = this.activatedRoute.snapshot.queryParamMap.get('rd') || '/';
+
+            if (target.startsWith('http')) {
+              window.location.href = target;
+            } else {
+              this.router.navigate([target]);
             }
+          },
+          err => {
+            this.messageService.remove(this.lastMessageID);
+            const msg = extractErrorMessage(err, 'Anmeldung fehlgeschlagen');
+            this.lastMessageID = this.messageService.error(msg).messageId;
+          }
+        );
+    }
+  }
 
-            this.lastMessageID = this.messageService.loading('Anmeldung ...').messageId;
+  continue(): void {
+    // try to refresh the access token
+    this.identityapi.refresh()
+      .subscribe(
+        () => {
+          const target = this.activatedRoute.snapshot.queryParamMap.get('rd') || '/';
 
-            this.identityapi.login(this.username, this.password)
-                .pipe(mergeMap(() => this.identityapi.profile()))
-                .subscribe(
-                    profile => {
-                        this.messageService.remove(this.lastMessageID);
-                        this.lastMessageID = this.messageService.info(`Hallo, ${profile.fullname}`).messageId;
-                        let target = this.activatedRoute.snapshot.queryParamMap.get('rd') || '/'
-
-                        if (target.startsWith("http")) {
-                            window.location.href = target;
-                        } else {
-                            this.router.navigate([target]);
-                        }
-                    },
-                    err => {
-                        this.messageService.remove(this.lastMessageID);
-                        const msg = extractErrorMessage(err, 'Anmeldung fehlgeschlagen');
-                        this.lastMessageID = this.messageService.error(msg).messageId;
-                    }
-                )
+          if (target.startsWith('http')) {
+            window.location.href = target;
+          } else {
+            this.router.navigate([target]);
+          }
+        },
+        err => {
+          this.profile = null;
+          if (err instanceof HttpErrorResponse && err.status === 401) {
+            this.lastMessageID = this.messageService.error('Aus Sicherheitsgründen musst du dich erneut anmelden.').messageId;
+          } else {
+            this.messageService.error('Failed to refresh session access token');
+            console.error(err);
+          }
         }
-    }
+      );
+  }
 
-    continue() {
-        // try to refresh the access token
-        this.identityapi.refresh()
-            .subscribe(
-                () => {
-                    let target = this.activatedRoute.snapshot.queryParamMap.get('rd') || '/'
+  logout(): void {
+    this.identityapi.logout()
+      .subscribe(() => this.router.navigate(['/', 'login']));
+  }
 
-                    if (target.startsWith("http")) {
-                        window.location.href = target;
-                    } else {
-                        this.router.navigate([target]);
-                    }
-                },
-                err => {
-                    this.profile = null;
-                    if (err instanceof HttpErrorResponse && err.status === 401) {
-                        this.lastMessageID = this.messageService.error("Aus Sicherheitsgründen musst du dich erneut anmelden.").messageId;
-                    } else {
-                        this.messageService.error("Failed to refresh session access token");
-                        console.error(err);
-                    }
-                }
-            )
-    }
+  constructor(
+    private router: Router,
+    private fb: FormBuilder,
+    private messageService: NzMessageService,
+    private identityapi: IdentityAPI,
+    private activatedRoute: ActivatedRoute,
+  ) { }
 
-    logout() {
-        this.identityapi.logout()
-            .subscribe(() => this.router.navigate(['/', 'login']))
-    }
+  ngOnInit(): void {
+    this.validateForm = this.fb.group({
+      userName: [null, [Validators.required]],
+      password: [null, [Validators.required]],
+      remember: [true]
+    });
 
-    constructor(
-        private router: Router,
-        private fb: FormBuilder,
-        private messageService: NzMessageService,
-        private identityapi: IdentityAPI,
-        private activatedRoute: ActivatedRoute,
-    ) { }
+    this.subscriptions = new Subscription();
 
-    ngOnInit(): void {
-        this.validateForm = this.fb.group({
-            userName: [null, [Validators.required]],
-            password: [null, [Validators.required]],
-            remember: [true]
-        });
+    const sub = this.identityapi.profileChange.subscribe(profile => this.profile = profile);
+    this.subscriptions.add(sub);
+  }
 
-        this.subscriptions = new Subscription();
-
-        const sub = this.identityapi.profileChange.subscribe(profile => this.profile = profile);
-        this.subscriptions.add(sub);
-    }
-
-    ngOnDestroy() {
-        this.subscriptions.unsubscribe();
-    }
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
 }

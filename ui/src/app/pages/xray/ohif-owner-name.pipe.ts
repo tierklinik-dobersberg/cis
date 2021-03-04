@@ -16,11 +16,11 @@ export class OhifOwnerNamePipe implements PipeTransform {
             return study;
         }
 
-        let names: Set<string> = new Set();
+        const names: Set<string> = new Set();
 
         (study.seriesList || []).forEach(series => {
             (series.instances || []).forEach(instance => {
-                if (instance.responsiblePersonRole === "OWNER" && !!instance.responsiblePerson) {
+                if (instance.responsiblePersonRole === 'OWNER' && !!instance.responsiblePerson) {
                     names.add(instance.responsiblePerson);
                 }
             });
@@ -32,7 +32,7 @@ export class OhifOwnerNamePipe implements PipeTransform {
             names.add(study.patientName);
         }
 
-        return Array.from(names.values()).join(", ");
+        return Array.from(names.values()).join(', ');
     }
 
 }

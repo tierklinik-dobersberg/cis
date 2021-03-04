@@ -27,7 +27,7 @@ export class CommentComponent implements OnInit {
   @Output()
   replied = new EventEmitter<void>();
 
-  commentText: string = '';
+  commentText = '';
   reply = false;
 
   constructor(
@@ -35,7 +35,7 @@ export class CommentComponent implements OnInit {
     private nzMessage: NzMessageService,
   ) { }
 
-  ngOnInit() {
+  ngOnInit(): void {
     if (this.canReply === null) {
       this.canReply = true;
     }
@@ -45,20 +45,20 @@ export class CommentComponent implements OnInit {
     }
   }
 
-  toggleReply() {
+  toggleReply(): void {
     this.reply = !this.reply;
     this.commentText = '';
   }
 
-  replyComment() {
+  replyComment(): void {
     this.commentapi.reply(this.comment._id, this.commentText)
       .subscribe(
         () => {
-          this.replied.next()
-          this.commentText = "";
+          this.replied.next();
+          this.commentText = '';
           this.reply = false;
         },
-        err => this.nzMessage.error(extractErrorMessage(err, "Kommentar konnte nicht erstellt werden"))
-      )
+        err => this.nzMessage.error(extractErrorMessage(err, 'Kommentar konnte nicht erstellt werden'))
+      );
   }
 }

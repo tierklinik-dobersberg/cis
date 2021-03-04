@@ -1,29 +1,39 @@
-import { HttpErrorResponse } from "@angular/common/http";
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction } from "@angular/core";
-import { NzMessageService } from "ng-zorro-antd/message";
-import { BehaviorSubject, combineLatest, interval, of, Subscription, throwError } from "rxjs";
-import { catchError, delay, mergeMap, retryWhen, startWith } from "rxjs/operators";
-import { ConfigAPI, DoctorOnDuty, ExternalAPI, IdentityAPI, Permission, ProfileWithAvatar, QuickRosterOverwrite, RosterAPI, UserService } from "src/app/api";
+import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { BehaviorSubject, combineLatest, interval, of, Subscription, throwError } from 'rxjs';
+import { catchError, delay, mergeMap, retryWhen, startWith } from 'rxjs/operators';
+import {
+  ConfigAPI,
+  DoctorOnDuty,
+  ExternalAPI,
+  IdentityAPI,
+  Permission,
+  ProfileWithAvatar,
+  QuickRosterOverwrite,
+  RosterAPI,
+  UserService
+} from 'src/app/api';
 import { LayoutService } from 'src/app/services';
-import { extractErrorMessage } from "src/app/utils";
+import { extractErrorMessage } from 'src/app/utils';
 
 @Component({
   selector: 'app-emergency-card',
   templateUrl: './emergency-card.html',
   styleUrls: ['./emergency-card.scss'],
-  //changeDetection: ChangeDetectionStrategy.OnPush,
+  // changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EmergencyCardComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
   private reload = new BehaviorSubject<void>(undefined);
 
   onDuty: DoctorOnDuty[] = [];
-  isOverwritten: boolean = false;
+  isOverwritten = false;
   onDutyUntil: Date | null = null;
   firstLoad = true;
   primaryOnDuty: ProfileWithAvatar | null = null;
 
-  overwritePhone: string = '';
+  overwritePhone = '';
   drawerVisible = false;
   quickOverwrites: QuickRosterOverwrite[] = [];
 
@@ -42,47 +52,47 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
     public layout: LayoutService,
   ) { }
 
-  toggleDrawer() {
+  toggleDrawer(): void {
     this.drawerVisible = !this.drawerVisible;
     this.overwritePhone = '';
   }
 
-  get canSetOverwrite() {
-    return this.identityapi.hasPermission(Permission.RosterSetOverwrite)
+  get canSetOverwrite(): boolean {
+    return this.identityapi.hasPermission(Permission.RosterSetOverwrite);
   }
 
-  configureOverwrite(user?: string, overwritePhone?: string, disiplayName?: string) {
+  configureOverwrite(user?: string, overwritePhone?: string, disiplayName?: string): void {
     this.rosterapi.setOverwrite({
       username: user || '',
       phoneNumber: overwritePhone || this.overwritePhone,
       displayName: disiplayName || '',
     }).subscribe(
       () => {
-        this.nzMessageService.success("Dienstplan überschrieben.")
+        this.nzMessageService.success('Dienstplan überschrieben.');
         this.drawerVisible = false;
         this.reload.next();
       },
       err => {
-        this.nzMessageService.error(extractErrorMessage(err, 'Dienstplan konnte nicht überschrieben werden'))
+        this.nzMessageService.error(extractErrorMessage(err, 'Dienstplan konnte nicht überschrieben werden'));
       }
-    )
+    );
   }
 
-  removeOverwrite() {
+  removeOverwrite(): void {
     this.rosterapi.deleteOverwrite()
       .subscribe(
         () => {
-          this.nzMessageService.success('Dienstplan wiederhergestellt.')
+          this.nzMessageService.success('Dienstplan wiederhergestellt.');
           this.drawerVisible = false;
           this.reload.next();
         },
         err => {
-          this.nzMessageService.error(extractErrorMessage(err, 'Dienstplan konnte nicht wiederhergestellt werden'))
+          this.nzMessageService.error(extractErrorMessage(err, 'Dienstplan konnte nicht wiederhergestellt werden'));
         }
-      )
+      );
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.subscriptions = new Subscription();
 
     // get a list of all users including their avatars.
@@ -98,7 +108,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
         }
 
         this.quickOverwrites = config.QuickRosterOverwrites || [];
-      })
+      });
     this.subscriptions.add(configSub);
 
 
@@ -130,7 +140,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
           this.onDutyUntil = result.until;
           this.isOverwritten = result.isOverwrite;
 
-          this.primaryOnDuty = this.userService.byName(this.onDuty[0]?.username)
+          this.primaryOnDuty = this.userService.byName(this.onDuty[0]?.username);
           this.changeDetector.markForCheck();
         },
       });
@@ -138,7 +148,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
     this.subscriptions.add(sub);
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 }

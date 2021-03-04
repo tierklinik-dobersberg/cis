@@ -1,7 +1,7 @@
-import { Injectable } from "@angular/core";
-import { BehaviorSubject, combineLatest, Observable, OperatorFunction } from "rxjs";
-import { delay, filter, map, mergeMap, retryWhen, take } from "rxjs/operators";
-import { IdentityAPI, ProfileWithAvatar } from "./identity.api";
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, combineLatest, Observable, OperatorFunction } from 'rxjs';
+import { delay, filter, map, mergeMap, retryWhen, take } from 'rxjs/operators';
+import { IdentityAPI, ProfileWithAvatar } from './identity.api';
 import { ConfigAPI } from './config.api';
 
 /**
@@ -16,23 +16,23 @@ export class UserService {
   private updated$ = new BehaviorSubject<boolean>(false);
 
   /** Users indexed by name */
-  private _byName: Map<string, ProfileWithAvatar> = new Map();
+  private usersByName: Map<string, ProfileWithAvatar> = new Map();
 
   /** Users index by phone-extension */
-  private _byExtension: Map<string, ProfileWithAvatar> = new Map();
+  private usersByExtension: Map<string, ProfileWithAvatar> = new Map();
 
   /** Emits whenever users have been reloaded */
-  get updated() {
+  get updated(): Observable<void> {
     return this.updated$.asObservable()
       .pipe(
         filter(loaded => !!loaded),
         map(() => { }),
-      )
+      );
   }
 
   /** Emits all users */
   get users(): Observable<ProfileWithAvatar[]> {
-    return this.updated.pipe(map(() => Array.from(this._byName.values())));
+    return this.updated.pipe(map(() => Array.from(this.usersByName.values())));
   }
 
   constructor(
@@ -47,7 +47,7 @@ export class UserService {
       )
       .subscribe(
         users => this.updateUsers(users),
-      )
+      );
   }
 
   /**
@@ -56,7 +56,7 @@ export class UserService {
    * @param username The username to search for
    */
   byName(username: string): ProfileWithAvatar | null {
-    return this._byName.get(username) || null;
+    return this.usersByName.get(username) || null;
   }
 
   /**
@@ -65,7 +65,7 @@ export class UserService {
    * @param ext The user extension to search for.
    */
   byExtension(ext: string): ProfileWithAvatar | null {
-    return this._byExtension.get(ext) || null;
+    return this.usersByExtension.get(ext) || null;
   }
 
   /**
@@ -73,37 +73,38 @@ export class UserService {
    *
    * @param users The list of users loaded from CIS.
    */
-  private updateUsers(users: ProfileWithAvatar[]) {
-    this._byExtension = new Map();
-    this._byName = new Map();
+  private updateUsers(users: ProfileWithAvatar[]): void {
+    this.usersByExtension = new Map();
+    this.usersByName = new Map();
 
     const cfg = this.configapi.current;
     const phoneExtension = cfg?.UserPhoneExtensionProperties || [];
     users.forEach(user => {
-      this._byName.set(user.name, user);
+      this.usersByName.set(user.name, user);
       phoneExtension.forEach(ext => {
         const value = user.properties[ext];
         if (!!value) {
-          this._byExtension.set(value, user)
+          this.usersByExtension.set(value, user);
         }
-      })
+      });
     });
 
     this.updated$.next(true);
-
-
   }
 
-  extendList<T, K extends string>(list: T[], getUser: ((e: T) => ProfileWithAvatar), val: K): (T & { [key in typeof val]?: ProfileWithAvatar })[] {
-    return list.map(elem => this.extendRecord(elem, getUser, val))
+  extendList<T, K extends string>(list: T[], getUser: ((e: T) => ProfileWithAvatar), val: K):
+    (T & { [key in typeof val]?: ProfileWithAvatar })[] {
+
+    return list.map(elem => this.extendRecord(elem, getUser, val));
   }
 
-  extendRecord<T, K extends string>(elem: T, getUser: ((e: T) => ProfileWithAvatar), val: K): T & { [key in typeof val]?: ProfileWithAvatar } {
+  extendRecord<T, K extends string>(elem: T, getUser: ((e: T) => ProfileWithAvatar), val: K):
+    T & { [key in typeof val]?: ProfileWithAvatar } {
     const user = getUser(elem);
     return {
       ...elem,
       [val]: user,
-    } as any
+    } as any;
   }
 
   /**
@@ -114,16 +115,17 @@ export class UserService {
    * @param userNameProp The name of the element property that holds
    *                     the username or a function to retrieve it
    */
-  extendByName<T, K extends string = 'profile'>(list: T[], userNameProp: keyof T | ((x: T) => string), val?: K): (T & { [key in typeof val]?: ProfileWithAvatar })[] {
+  extendByName<T, K extends string = 'profile'>(list: T[], userNameProp: keyof T | ((x: T) => string), val?: K):
+    (T & { [key in typeof val]?: ProfileWithAvatar })[] {
     let getUsername: (x: T) => ProfileWithAvatar;
 
     if (typeof userNameProp === 'string') {
       getUsername = x => this.byName(x[userNameProp as string]);
     } else {
-      getUsername = x => this.byName((userNameProp as any)(x))
+      getUsername = x => this.byName((userNameProp as any)(x));
     }
 
-    return this.extendList(list, getUsername, val || 'profile')
+    return this.extendList(list, getUsername, val || 'profile');
   }
 
   /**
@@ -134,37 +136,40 @@ export class UserService {
    * @param userExtProp The name of the element property that holds
    *                    the extension or a function to retrieve it
    */
-  extendByExtension<T, K extends string = 'profile'>(list: T[], userExtProp: keyof T | ((x: T) => string), val?: K): (T & { [key in typeof val]?: ProfileWithAvatar })[] {
+  extendByExtension<T, K extends string = 'profile'>(list: T[], userExtProp: keyof T | ((x: T) => string), val?: K):
+    (T & { [key in typeof val]?: ProfileWithAvatar })[] {
     let getExtension: (x: T) => ProfileWithAvatar;
 
     if (typeof userExtProp === 'string') {
       getExtension = x => this.byExtension(x[userExtProp as string]);
     } else {
-      getExtension = x => this.byExtension((userExtProp as any)(x))
+      getExtension = x => this.byExtension((userExtProp as any)(x));
     }
 
-    return this.extendList(list, getExtension, val || 'profile')
+    return this.extendList(list, getExtension, val || 'profile');
   }
 
-  withUserByName<T, K extends string = 'profile'>(name: keyof T | ((x: T) => string), val?: K): OperatorFunction<T[], (T & { [key in typeof val]?: ProfileWithAvatar })[]> {
+  withUserByName<T, K extends string = 'profile'>(name: keyof T | ((x: T) => string), val?: K):
+    OperatorFunction<T[], (T & { [key in typeof val]?: ProfileWithAvatar })[]> {
     return (stream: Observable<T[]>) => {
       return stream
         .pipe(
           map(elements => {
-            return this.extendByName(elements, name, val)
+            return this.extendByName(elements, name, val);
           })
-        )
-    }
+        );
+    };
   }
 
-  withUserByExt<T, K extends string = 'profile'>(name: keyof T | ((x: T) => string), val?: K): OperatorFunction<T[], (T & { [key in typeof val]?: ProfileWithAvatar })[]> {
+  withUserByExt<T, K extends string = 'profile'>(name: keyof T | ((x: T) => string), val?: K):
+    OperatorFunction<T[], (T & { [key in typeof val]?: ProfileWithAvatar })[]> {
     return (stream: Observable<T[]>) => {
       return stream
         .pipe(
           map(elements => {
-            return this.extendByExtension(elements, name, val)
+            return this.extendByExtension(elements, name, val);
           })
-        )
-    }
+        );
+    };
   }
 }

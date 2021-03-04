@@ -15,19 +15,16 @@ interface Dummy {
   styleUrls: ['./welcome.component.scss']
 })
 export class WelcomeComponent implements OnInit, OnDestroy {
-  readonly isDevMode = isDevMode();
 
-  private allSub = new Subscription();
-
-  get hasDoorAccess() {
+  get hasDoorAccess(): boolean {
     return this.identityapi.hasPermission(Permission.DoorGet);
   }
 
-  get hasDoctorOnDutyAccess() {
-    return this.identityapi.hasPermission(Permission.ExternalReadOnDuty)
+  get hasDoctorOnDutyAccess(): boolean {
+    return this.identityapi.hasPermission(Permission.ExternalReadOnDuty);
   }
 
-  get hasRosterAccess() {
+  get hasRosterAccess(): boolean {
     return this.identityapi.hasPermission(Permission.RosterRead);
   }
 
@@ -36,14 +33,9 @@ export class WelcomeComponent implements OnInit, OnDestroy {
     private identityapi: IdentityAPI,
     private rosterapi: RosterAPI
   ) { }
+  readonly isDevMode = isDevMode();
 
-  ngOnInit() {
-    this.header.set('Dashboard')
-  }
-
-  ngOnDestroy() {
-    this.allSub.unsubscribe();
-  }
+  private allSub = new Subscription();
 
   /** TEST CODE */
   currentStep = 0;
@@ -54,44 +46,52 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   busyUser: Dummy | null = null;
   users: Dummy[] = [
     {
-      name: "Mag. Carmen Pacher",
+      name: 'Mag. Carmen Pacher',
       busyTimes: [
         [0, 4],
         [22, 28],
       ]
     },
     {
-      name: "Dr. Claudia Fürst",
+      name: 'Dr. Claudia Fürst',
       busyTimes: [
         [0, 3],
       ]
     }
-  ]
+  ];
 
-  isBusy(idx: number, user: Dummy) {
+  ngOnInit(): void {
+    this.header.set('Dashboard');
+  }
+
+  ngOnDestroy(): void {
+    this.allSub.unsubscribe();
+  }
+
+  isBusy(idx: number, user: Dummy): boolean {
     return user.busyTimes.some(time => idx >= time[0] && idx <= time[1]);
   }
 
-  startBusy(startIdx: number, user: Dummy, event: MouseEvent) {
+  startBusy(startIdx: number, user: Dummy, event: MouseEvent): void {
     this.startIdx = startIdx;
     this.busyUser = user;
   }
 
-  getTime(slot: number) {
+  getTime(slot: number): string {
     const hour = 8 + Math.floor(slot / 4);
     const min = (slot % 4) * 15;
     const pad = (val: number) => {
-      let s = `${val}`;
+      const s = `${val}`;
       if (s.length < 2) {
-        return `0${s}`
+        return `0${s}`;
       }
-      return s
-    }
+      return s;
+    };
 
-    return pad(hour) + ":" + pad(min)
+    return pad(hour) + ':' + pad(min);
   }
 
-  endBusy(endIdx: number, user: Dummy, event: MouseEvent) {
+  endBusy(endIdx: number, user: Dummy, event: MouseEvent): void {
     if (this.startIdx === null) {
       return;
     }
@@ -99,7 +99,7 @@ export class WelcomeComponent implements OnInit, OnDestroy {
     if (user !== this.busyUser) {
       this.busyUser = null;
       this.startIdx = null;
-      return
+      return;
     }
 
     user.busyTimes.push([this.startIdx, endIdx]);

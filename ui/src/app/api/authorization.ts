@@ -1,8 +1,8 @@
-import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpResponse } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { Router } from "@angular/router";
-import { Observable, throwError } from "rxjs";
-import { catchError } from "rxjs/operators";
+import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpResponse } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Injectable({
     providedIn: 'root'
@@ -16,12 +16,12 @@ export class AuthorizationInterceptor implements HttpInterceptor {
                 catchError(err => {
                     if (req.url.startsWith('/api')) {
                         if (err instanceof HttpErrorResponse && err.status === 401) {
-                            if (!req.url.includes("identity/v1/login") && !req.url.includes("identity/v1/refresh")) {
+                            if (!req.url.includes('identity/v1/login') && !req.url.includes('identity/v1/refresh')) {
 
                                 if (!this.router.url.startsWith('/login')) {
                                     this.router.navigate(['/', 'login'], {
                                         queryParams: {
-                                            'rd': this.router.url
+                                            rd: this.router.url
                                         }
                                     });
                                 }
@@ -30,8 +30,8 @@ export class AuthorizationInterceptor implements HttpInterceptor {
 
                         console.error(`API error on ${req.url}`, err);
                     }
-                    return throwError(err)
+                    return throwError(err);
                 })
-            )
+            );
     }
 }

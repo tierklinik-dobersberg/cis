@@ -9,10 +9,10 @@ import { map, startWith } from 'rxjs/operators';
 })
 export class ClockCardComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
-  clock: string = '';
+  clock = '';
 
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.subscriptions = new Subscription();
 
     const sub =
@@ -26,7 +26,7 @@ export class ClockCardComponent implements OnInit, OnDestroy {
     this.subscriptions.add(sub);
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 }

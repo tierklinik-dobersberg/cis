@@ -23,7 +23,7 @@ export interface State {
 
 interface RemoteState {
   state: DoorState;
-  until: string,
+  until: string;
   resetInProgress?: boolean;
 }
 
@@ -35,12 +35,6 @@ export class DoorAPI {
 
   /**
    * Tests which door state would be active at the given time and date.
-   *
-   * @param year
-   * @param month
-   * @param day
-   * @param hour
-   * @param minute
    */
   test(year: number, month: number, day: number, hour: number, minute: number): Observable<TestResult> {
     return this.http.get<RemoteTestResult>(`api/door/v1/${year}/${month}/${day}/${hour}/${minute}`)
@@ -49,9 +43,9 @@ export class DoorAPI {
           return {
             desiredState: resp.desiredState,
             until: new Date(resp.until),
-          }
+          };
         })
-      )
+      );
   }
 
   /**
@@ -65,9 +59,9 @@ export class DoorAPI {
             state: resp.state,
             until: new Date(resp.until),
             resetInProgress: resp.resetInProgress,
-          }
+          };
         })
-      )
+      );
   }
 
   /**
@@ -80,9 +74,9 @@ export class DoorAPI {
           return {
             state: resp.state,
             until: new Date(resp.until),
-          }
+          };
         })
-      )
+      );
   }
 
   /**
@@ -93,17 +87,17 @@ export class DoorAPI {
    */
   overwrite(state: 'lock' | 'unlock', duration: string | number): Observable<State> {
     return this.http.post<RemoteState>(`/api/door/v1/overwrite`, {
-      state: state,
-      duration: duration,
+      state,
+      duration,
     })
       .pipe(
         map(resp => {
           return {
             state: resp.state,
             until: new Date(resp.until),
-          }
+          };
         })
-      )
+      );
   }
 }
 

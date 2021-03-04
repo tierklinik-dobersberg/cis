@@ -1,10 +1,10 @@
-import { HttpClient } from "@angular/common/http";
-import { ArrayType } from "@angular/compiler";
-import { Injectable } from "@angular/core";
-import { Observable, ObservedValueOf } from "rxjs";
-import { map, tap } from "rxjs/operators";
-import { ProfileWithAvatar } from "./identity.api";
-import { UserService } from "./user.service";
+import { HttpClient } from '@angular/common/http';
+import { ArrayType } from '@angular/compiler';
+import { Injectable } from '@angular/core';
+import { Observable, ObservedValueOf } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+import { ProfileWithAvatar } from './identity.api';
+import { UserService } from './user.service';
 
 export interface CallLogModel {
   _id?: string;

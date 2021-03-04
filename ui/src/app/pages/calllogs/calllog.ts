@@ -1,9 +1,9 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
-import { BehaviorSubject, combineLatest, interval, Subscription } from "rxjs";
-import { mergeMap, startWith } from "rxjs/operators";
-import { CallLogModel, CalllogAPI, UserService } from "src/app/api";
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { BehaviorSubject, combineLatest, interval, Subscription } from 'rxjs';
+import { mergeMap, startWith } from 'rxjs/operators';
+import { CallLogModel, CalllogAPI, UserService } from 'src/app/api';
 import { LayoutService } from 'src/app/services';
-import { HeaderTitleService } from "src/app/shared/header-title";
+import { HeaderTitleService } from 'src/app/shared/header-title';
 
 @Component({
   templateUrl: './calllog.html',
@@ -11,12 +11,12 @@ import { HeaderTitleService } from "src/app/shared/header-title";
 })
 export class CallLogComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
-  private _selectedDate = new BehaviorSubject<Date>(new Date());
+  private selectedDate = new BehaviorSubject<Date>(new Date());
 
   date: Date;
 
   distinctCallers: Set<string> = new Set();
-  totalCallTime: number = 0;
+  totalCallTime = 0;
   logs: CallLogModel[] = [];
   loading = false;
 
@@ -27,11 +27,11 @@ export class CallLogComponent implements OnInit, OnDestroy {
     public layout: LayoutService,
   ) { }
 
-  onChange(date: Date) {
-    this._selectedDate.next(date);
+  onChange(date: Date): void {
+    this.selectedDate.next(date);
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.header.set('Anruf Journal');
     this.date = new Date();
     this.subscriptions = new Subscription();
@@ -39,15 +39,15 @@ export class CallLogComponent implements OnInit, OnDestroy {
     const sub =
       combineLatest([
         interval(60000).pipe(startWith(-1)),
-        this._selectedDate,
+        this.selectedDate,
         this.userService.updated,
       ])
         .pipe(
-          mergeMap(() => this._selectedDate),
+          mergeMap(() => this.selectedDate),
           mergeMap(d => {
             this.loading = true;
             const year = d.getFullYear();
-            const month = d.getMonth() + 1
+            const month = d.getMonth() + 1;
             const day = d.getDate();
 
             return this.calllogapi.forDate(year, month, day);
@@ -59,16 +59,16 @@ export class CallLogComponent implements OnInit, OnDestroy {
           this.distinctCallers = new Set();
           this.logs.forEach(log => {
             this.distinctCallers.add(log.caller);
-          })
+          });
           setTimeout(() => {
             this.loading = false;
-          }, 300)
-        })
+          }, 300);
+        });
 
     this.subscriptions.add(sub);
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 }

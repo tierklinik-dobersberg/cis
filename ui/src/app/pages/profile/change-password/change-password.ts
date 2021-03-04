@@ -1,11 +1,11 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { Router } from "@angular/router";
-import { NzMessageService } from "ng-zorro-antd/message";
-import { of, Subject, Subscription } from "rxjs";
-import { catchError, debounceTime, switchMap } from "rxjs/operators";
-import { IdentityAPI, PasswordStrenght, ProfileWithAvatar } from "src/app/api";
-import { HeaderTitleService } from "src/app/shared/header-title";
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { of, Subject, Subscription } from 'rxjs';
+import { catchError, debounceTime, switchMap } from 'rxjs/operators';
+import { IdentityAPI, PasswordStrenght, ProfileWithAvatar } from 'src/app/api';
+import { HeaderTitleService } from 'src/app/shared/header-title';
 
 interface TranslatedStrength extends PasswordStrenght {
   text: string;
@@ -18,7 +18,7 @@ const ScoreTranslations = [
   'Mäßig',
   'Gut',
   'Ausgezeichnet'
-]
+];
 
 const ScoreColors = [
   '#DC2626',
@@ -26,7 +26,7 @@ const ScoreColors = [
   '#F59E0B',
   '#60A5FA',
   '#059669'
-]
+];
 
 @Component({
   templateUrl: './change-password.html',
@@ -38,38 +38,38 @@ export class ChangePasswordComponent implements OnInit, OnDestroy {
   profile: ProfileWithAvatar | null = null;
   strength: TranslatedStrength | null = null;
 
-  currentPwd: string = '';
-  newPwd: string = '';
-  repeatPwd: string = '';
+  currentPwd = '';
+  newPwd = '';
+  repeatPwd = '';
 
   private subscriptions = Subscription.EMPTY;
   private checkPassword = new Subject<string>();
 
   submitForm(): void {
-    for (const i in this.validateForm.controls) {
+    for (const i of Object.keys(this.validateForm.controls)) {
       this.validateForm.controls[i].markAsDirty();
       this.validateForm.controls[i].updateValueAndValidity();
     }
 
     if (!this.validateForm.valid) {
-      return
+      return;
     }
 
     if (this.repeatPwd !== this.newPwd) {
-      this.messageService.warning(`Passwörter stimmen nicht überein.`)
-      return
+      this.messageService.warning(`Passwörter stimmen nicht überein.`);
+      return;
     }
 
     this.identityapi.changePassword(this.currentPwd, this.newPwd)
       .subscribe(
         () => this.router.navigate(['../']),
         err => {
-          this.messageService.error(`Passwort konnte nicht geändert werden: ${err.statusText || err.error || err.message}`)
+          this.messageService.error(`Passwort konnte nicht geändert werden: ${err.statusText || err.error || err.message}`);
         }
-      )
+      );
   }
 
-  onPasswordChange(value: string) {
+  onPasswordChange(value: string): void {
     this.checkPassword.next(value);
   }
 
@@ -81,7 +81,7 @@ export class ChangePasswordComponent implements OnInit, OnDestroy {
     private messageService: NzMessageService) { }
 
   ngOnInit(): void {
-    this.header.set('Passwort ändern.')
+    this.header.set('Passwort ändern.');
     this.validateForm = this.fb.group({
       currentPassword: [null, [Validators.required]],
       password: [null, [Validators.required]],
@@ -104,20 +104,20 @@ export class ChangePasswordComponent implements OnInit, OnDestroy {
       .subscribe((result: PasswordStrenght | null) => {
         if (!result) {
           this.strength = null;
-          return
+          return;
         }
 
         this.strength = {
           ...result,
           text: ScoreTranslations[result.score],
           color: ScoreColors[result.score],
-        }
-      })
+        };
+      });
     this.subscriptions.add(changeSub);
 
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 }

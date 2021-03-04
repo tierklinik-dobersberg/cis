@@ -11,10 +11,20 @@ import { DoorAPI, IdentityAPI, Permission, State } from 'src/app/api';
 })
 export class DoorCardComponent implements OnInit, OnDestroy {
 
+  get hasWriteAccess(): boolean {
+    return this.identityapi.hasPermission(Permission.DoorSet);
+  }
+
+  constructor(
+    private identityapi: IdentityAPI,
+    private doorapi: DoorAPI,
+    private nzMessageService: NzMessageService,
+  ) { }
+
   doorState: State;
   doorActions: TemplateRef<any>[] = [];
-  stateUntilDay: string = '';
-  stateUntilTime: string = '';
+  stateUntilDay = '';
+  stateUntilTime = '';
   private triggerDoorReload = new BehaviorSubject<void>(undefined);
 
   @ViewChild('openAction', { read: TemplateRef, static: true })
@@ -29,26 +39,16 @@ export class DoorCardComponent implements OnInit, OnDestroy {
   @ViewChild('resetAction', { read: TemplateRef, static: true })
   resetAction: TemplateRef<any>;
 
-  get hasWriteAccess() {
-    return this.identityapi.hasPermission(Permission.DoorSet)
-  }
-
-  constructor(
-    private identityapi: IdentityAPI,
-    private doorapi: DoorAPI,
-    private nzMessageService: NzMessageService,
-  ) { }
-
-  overwriteDoor(state: 'lock' | 'unlock', duration: string) {
-    this.doorapi.overwrite(state, duration)
-      .subscribe((state) => {
-        this.updateDoorState(state);
-      }, err => console.error(err))
-  }
-
   private allSub = new Subscription();
 
-  ngOnInit() {
+  overwriteDoor(state: 'lock' | 'unlock', duration: string): void {
+    this.doorapi.overwrite(state, duration)
+      .subscribe(updatedState => {
+        this.updateDoorState(updatedState);
+      }, err => console.error(err));
+  }
+
+  ngOnInit(): void {
     const sub =
       combineLatest([
         interval(10000),
@@ -61,12 +61,12 @@ export class DoorCardComponent implements OnInit, OnDestroy {
         )
         .subscribe(state => {
           this.updateDoorState(state);
-        })
+        });
 
     this.allSub.add(sub);
   }
 
-  private updateDoorState(state: State) {
+  private updateDoorState(state: State): void {
     this.doorState = state;
 
     const now = new Date();
@@ -74,25 +74,25 @@ export class DoorCardComponent implements OnInit, OnDestroy {
     this.doorActions = [
       this.lockAction,
       this.resetAction,
-    ]
+    ];
     if (this.doorState.state === 'locked') {
       this.doorActions = [
         this.unlockAction,
         this.openAction,
         this.resetAction,
-      ]
+      ];
     }
 
     this.stateUntilDay = '';
     this.stateUntilTime = state.until.toLocaleTimeString();
-    if (now.toDateString() != state.until.toDateString()) {
-      const days = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
-      this.stateUntilDay = days[state.until.getDay()] + " ";
+    if (now.toDateString() !== state.until.toDateString()) {
+      const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+      this.stateUntilDay = days[state.until.getDay()] + ' ';
     }
   }
 
-  resetDoor() {
-    const resetMessageID = this.nzMessageService.loading("Tür wird zurückgesetzt", {
+  resetDoor(): void {
+    const resetMessageID = this.nzMessageService.loading('Tür wird zurückgesetzt', {
       nzDuration: 0,
     }).messageId;
 
@@ -103,7 +103,7 @@ export class DoorCardComponent implements OnInit, OnDestroy {
         mergeMap(() => this.doorapi.state()),
         tap(state => {
           if (state.resetInProgress) {
-            resetStarted = true
+            resetStarted = true;
           }
         }),
         takeWhile(state => !resetStarted || state.resetInProgress)
@@ -113,12 +113,12 @@ export class DoorCardComponent implements OnInit, OnDestroy {
         err => console.error(err),
         () => {
           this.nzMessageService.remove(resetMessageID);
-          this.nzMessageService.success("Tür wurde zurückgesetzt");
+          this.nzMessageService.success('Tür wurde zurückgesetzt');
         }
-      )
+      );
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.allSub.unsubscribe();
   }
 }

@@ -32,9 +32,6 @@ export class RosterAPI {
 
   /**
    * Returns the duty roster for the given month in year.
-   *
-   * @param year
-   * @param month
    */
   forMonth(year: number, month: number): Observable<Roster> {
     return this.http.get<Roster>(`/api/dutyroster/v1/roster/${year}/${month}`)
@@ -48,21 +45,18 @@ export class RosterAPI {
             day.emergency = day.emergency || [];
 
             result.days[dayKey] = day;
-          })
+          });
           return result;
         })
-      )
+      );
   }
 
   /**
    * Delete the duty roster for the given month in year.
-   * 
-   * @param year 
-   * @param month 
    */
   delete(year: number, month: number): Observable<void> {
     return this.http.delete(`/api/dutyroster/v1/roster/${year}/${month}`)
-      .pipe(map(() => { }))
+      .pipe(map(() => { }));
   }
 
   /**
@@ -72,12 +66,12 @@ export class RosterAPI {
    */
   create(roster: Roster): Observable<void> {
     return this.http.put(`/api/dutyroster/v1/roster/${roster.year}/${roster.month}`, roster)
-      .pipe(map(() => { }))
+      .pipe(map(() => { }));
   }
 
   /**
    * Creates a new duty roster overwrite for the given date.
-   * 
+   *
    * @param overwrite The overwrite for the duty roster
    * @param date The requested date.
    */
@@ -85,45 +79,45 @@ export class RosterAPI {
     let params = new HttpParams();
 
     if (!!date) {
-      params = params.set(`date`, `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`)
+      params = params.set(`date`, `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`);
     }
 
     return this.http.post<void>(`/api/dutyroster/v1/overwrite`, overwrite, {
-      params: params,
-    })
+      params,
+    });
   }
 
   /**
    * Returns the overwrite for the requested date. Defaults to today.
-   * 
+   *
    * @param date The date
    */
   getOverwrite(date?: Date): Observable<Overwrite> {
     let params = new HttpParams();
 
     if (!!date) {
-      params = params.set(`date`, `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`)
+      params = params.set(`date`, `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`);
     }
 
     return this.http.get<Overwrite>(`/api/dutyroster/v1/overwrite`, {
-      params: params,
-    })
+      params,
+    });
   }
 
   /**
    * Deletes the overwrite forthe requested date. Defaults to today.
-   * 
+   *
    * @param date The date
    */
   deleteOverwrite(date?: Date): Observable<void> {
     let params = new HttpParams();
 
     if (!!date) {
-      params = params.set(`date`, `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`)
+      params = params.set(`date`, `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`);
     }
 
     return this.http.delete<void>(`/api/dutyroster/v1/overwrite`, {
-      params: params,
-    })
+      params,
+    });
   }
 }

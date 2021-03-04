@@ -27,7 +27,7 @@ export class AppComponent implements OnInit {
   isDevMode = isDevMode();
 
   profile: ProfileWithAvatar | null = null;
-  rootLinks: MenuEntry[] = []
+  rootLinks: MenuEntry[] = [];
   subMenus: SubMenu[] = [];
   menuMode: 'inline' | 'vertical' = 'inline';
   mailboxes: string[] = [];
@@ -36,30 +36,30 @@ export class AppComponent implements OnInit {
     .pipe(
       filter(e => e instanceof NavigationEnd),
       map(() => {
-        const isLogin = this.router.url.startsWith("/login")
+        const isLogin = this.router.url.startsWith('/login');
         return isLogin;
       }),
       share()
     );
 
   /** Returns true if the user has (at least read-only) access to the roster */
-  get hasRoster() {
+  get hasRoster(): boolean {
     return this.identity.hasPermission(Permission.RosterRead);
   }
 
   /** Returns true if the user can see voicemail records */
-  get hasVoiceMail() {
-    return this.identity.hasPermission(Permission.VoicemailRead)
+  get hasVoiceMail(): boolean {
+    return this.identity.hasPermission(Permission.VoicemailRead);
   }
 
   /** Returns true if the user can see calllogs */
-  get hasCallLog() {
-    return this.identity.hasPermission(Permission.CalllogReadRecords)
+  get hasCallLog(): boolean {
+    return this.identity.hasPermission(Permission.CalllogReadRecords);
   }
 
   /** Returns true if the user can see customer records */
-  get hasCustomers() {
-    return this.identity.hasPermission(Permission.CustomerRead)
+  get hasCustomers(): boolean {
+    return this.identity.hasPermission(Permission.CustomerRead);
   }
 
   constructor(
@@ -72,16 +72,16 @@ export class AppComponent implements OnInit {
   ) {
   }
 
-  logout() {
+  logout(): void {
     this.identity.logout()
-      .subscribe(() => this.router.navigate(['/', 'login']))
+      .subscribe(() => this.router.navigate(['/', 'login']));
   }
 
-  toggleMenu() {
+  toggleMenu(): void {
     this.isCollapsed = !this.isCollapsed;
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
 
     this.layout.change.subscribe(() => {
       this.isCollapsed = !this.layout.isTabletLandscapeUp;
@@ -105,17 +105,17 @@ export class AppComponent implements OnInit {
         if (event instanceof NavigationEnd && this.layout.isPhone) {
           this.isCollapsed = true;
         }
-      })
+      });
   }
 
-  private applyConfig(cfg: UIConfig | null) {
-    let menus = new Map<string, SubMenu>();
+  private applyConfig(cfg: UIConfig | null): void {
+    const menus = new Map<string, SubMenu>();
     this.rootLinks = [];
 
     (cfg?.ExternalLinks || []).forEach(link => {
       if (!link.ParentMenu) {
-        this.rootLinks.push(link)
-        return
+        this.rootLinks.push(link);
+        return;
       }
 
       let m = menus.get(link.ParentMenu);
@@ -123,17 +123,17 @@ export class AppComponent implements OnInit {
         m = {
           Text: link.ParentMenu,
           Items: []
-        }
-        menus.set(link.ParentMenu, m)
+        };
+        menus.set(link.ParentMenu, m);
       }
 
-      m.Items.push(link)
-    })
+      m.Items.push(link);
+    });
 
     this.subMenus = Array.from(menus.values());
     this.voice.listMailboxes().subscribe(mailboxes => {
       console.log(mailboxes);
       this.mailboxes = mailboxes;
-    })
+    });
   }
 }
