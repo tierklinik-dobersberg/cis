@@ -23,7 +23,7 @@ func Nonce(size int) (string, error) {
 func Signature(secret string, parts ...string) string {
 	hash := hmac.New(sha256.New, []byte(secret))
 	for _, p := range parts {
-		hash.Write([]byte(p))
+		_, _ = hash.Write([]byte(p))
 	}
 
 	return base64.StdEncoding.EncodeToString(hash.Sum(nil))

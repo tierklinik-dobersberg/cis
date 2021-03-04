@@ -430,18 +430,24 @@ func (dc *DoorController) scheduler() {
 		if retries < maxTries {
 			retries++
 
+			var err error
 			switch state {
 			case Locked:
-				dc.Lock(ctx)
+				err = dc.Lock(ctx)
 			case Unlocked:
-				dc.Unlock(ctx)
+				err = dc.Unlock(ctx)
 			default:
 				logger.Errorf(ctx, "invalid door state returned by Current(): %s", string(state))
 				cancel()
 				continue
 			}
 
-			lastState = state
+			if err != nil {
+				logger.Errorf(ctx, "failed to set desired door state %s: %s", string(state), err)
+			} else {
+				lastState = state
+			}
+
 		}
 		cancel()
 	}

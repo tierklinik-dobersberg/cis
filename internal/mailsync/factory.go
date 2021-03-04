@@ -56,7 +56,12 @@ func (mng *Manager) NewSyncer(ctx context.Context, name string, interval time.Du
 	if err != nil {
 		return nil, err
 	}
-	defer cli.IMAP.Logout(time.Second * 5)
+	defer func() {
+		_, err := cli.IMAP.Logout(time.Second * 5)
+		if err != nil {
+			logger.Errorf(ctx, "failed to perform IMAP logout: %s", err)
+		}
+	}()
 
 	syncer := &Syncer{
 		state:        state,

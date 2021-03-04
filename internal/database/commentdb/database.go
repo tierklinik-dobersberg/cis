@@ -8,6 +8,7 @@ import (
 
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/comment/v1alpha"
+	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -50,7 +51,11 @@ func New(ctx context.Context, url, dbName string) (Database, error) {
 
 	db, err := NewWithClient(ctx, dbName, client)
 	if err != nil {
-		defer client.Disconnect(ctx)
+		defer func() {
+			if err := client.Disconnect(ctx); err != nil {
+				logger.Errorf(ctx, "failed to gracefully disconnect from MongoDB: %s", err)
+			}
+		}()
 		return nil, err
 	}
 

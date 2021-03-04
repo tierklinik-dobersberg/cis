@@ -110,7 +110,12 @@ func (cache *HolidayCache) Get(ctx context.Context, country string, year int) ([
 
 		if entry.Loaded.Before(time.Now().Add(time.Hour * -24)) {
 			log.Infof("Re-fetching holidays for %s in %d", country, year)
-			go cache.load(country, year)
+			go func() {
+				_, err := cache.load(country, year)
+				if err != nil {
+					log.Errorf("failed to re-fetch holidays: %s", err)
+				}
+			}()
 		}
 
 		return entry.PublicHolidays, nil

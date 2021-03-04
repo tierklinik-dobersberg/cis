@@ -123,7 +123,12 @@ func (sync *Syncer) poll() {
 		sync.log.Errorf("failed to connect: %w", err)
 		return
 	}
-	defer cli.IMAP.Logout(time.Second * 2)
+	defer func() {
+		_, err := cli.IMAP.Logout(time.Second * 2)
+		if err != nil {
+			logger.Errorf(ctx, "failed to perform IMAP logout: %s", err)
+		}
+	}()
 
 	if cli.IMAP.Mailbox.UIDValidity != sync.state.UIDValidity {
 		sync.log.Infof("mailbox UID validity changed from %d to %d", sync.state.UIDValidity, cli.IMAP.Mailbox.UIDValidity)
