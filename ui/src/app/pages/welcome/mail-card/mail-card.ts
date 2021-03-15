@@ -16,7 +16,8 @@ export class VoiceMailCardComponent implements OnInit, OnDestroy {
   @Input()
   mailboxName: string;
 
-  unreadCount: number = 0;
+  /** The number of unread voicemails in this mailbox. */
+  unreadCount = 0;
 
   constructor(
     private voicemail: VoiceMailAPI,

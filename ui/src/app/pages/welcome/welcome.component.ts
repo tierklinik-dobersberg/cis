@@ -70,7 +70,7 @@ export class WelcomeComponent implements OnInit, OnDestroy {
       .pipe(retryWhen(e => e.pipe(delay(10000))))
       .subscribe(mailboxes => {
         this.mailboxes = mailboxes;
-      })
+      });
   }
 
   ngOnDestroy(): void {
