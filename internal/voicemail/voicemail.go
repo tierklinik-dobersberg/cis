@@ -2,8 +2,10 @@ package voicemail
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -157,14 +159,37 @@ func (box *Mailbox) HandleMail(ctx context.Context, mail *mailbox.EMail) {
 		targetDir,
 		fileName,
 	)
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		log.Errorf("failed to create voice file at %s: %s", path, err)
+		return
+	}
 
-	if err := ioutil.WriteFile(path, voiceFiles[0].Body, 0644); err != nil {
-		log.Errorf("failed to write voice file to %s: %s", path, err)
+	hasher := sha256.New()
+	multiwriter := io.MultiWriter(hasher, f)
+
+	if _, err := multiwriter.Write(voiceFiles[0].Body); err != nil {
+		log.Errorf("failed to create voice file at %s: %s", path, err)
+		f.Close()
+		return
+	}
+
+	if err := f.Close(); err != nil {
+		log.Errorf("failed to close voice file at %s: %s", path, err)
+	}
+
+	hash := hex.EncodeToString(hasher.Sum(nil))
+	newPath := filepath.Join(
+		targetDir,
+		fmt.Sprintf("%s%s", hash, filepath.Ext(voiceFiles[0].FileName)),
+	)
+	if err := os.Rename(path, newPath); err != nil {
+		log.Errorf("failed to rename voice file from %s to %s: %s", path, newPath, err)
 		return
 	}
 
 	record := v1alpha.VoiceMailRecord{
-		Filename:       path,
+		Filename:       newPath,
 		Name:           box.name,
 		Date:           time.Now(),
 		From:           caller,
