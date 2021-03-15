@@ -35,6 +35,7 @@ import { NzMessageServiceModule } from 'ng-zorro-antd/message';
 import { NzPopoverModule } from 'ng-zorro-antd/popover';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { RosterCardComponent } from './roster-card';
+import { VoiceMailCardComponent } from './mail-card';
 
 @NgModule({
   imports: [
@@ -72,6 +73,7 @@ import { RosterCardComponent } from './roster-card';
     ClockCardComponent,
     EmergencyCardComponent,
     RosterCardComponent,
+    VoiceMailCardComponent,
   ],
   exports: [WelcomeComponent]
 })

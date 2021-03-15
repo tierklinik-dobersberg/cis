@@ -1,7 +1,7 @@
 import { Component, isDevMode, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BehaviorSubject, combineLatest, interval, Subscription } from 'rxjs';
 import { delay, mergeMap, repeatWhen, retryWhen, startWith } from 'rxjs/operators';
-import { DoorAPI, IdentityAPI, Permission, Roster, RosterAPI, State } from 'src/app/api';
+import { DoorAPI, IdentityAPI, Permission, Roster, RosterAPI, State, VoiceMailAPI } from 'src/app/api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 
 interface Dummy {
@@ -15,6 +15,7 @@ interface Dummy {
   styleUrls: ['./welcome.component.scss']
 })
 export class WelcomeComponent implements OnInit, OnDestroy {
+  mailboxes: string[] = [];
 
   get hasDoorAccess(): boolean {
     return this.identityapi.hasPermission(Permission.DoorGet);
@@ -31,8 +32,10 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   constructor(
     private header: HeaderTitleService,
     private identityapi: IdentityAPI,
+    private voicemailapi: VoiceMailAPI,
     private rosterapi: RosterAPI
   ) { }
+
   readonly isDevMode = isDevMode();
 
   private allSub = new Subscription();
@@ -62,6 +65,12 @@ export class WelcomeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.header.set('Dashboard');
+
+    this.voicemailapi.listMailboxes()
+      .pipe(retryWhen(e => e.pipe(delay(10000))))
+      .subscribe(mailboxes => {
+        this.mailboxes = mailboxes;
+      })
   }
 
   ngOnDestroy(): void {

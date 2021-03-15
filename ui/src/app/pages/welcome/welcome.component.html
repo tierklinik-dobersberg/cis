@@ -6,6 +6,9 @@
   <app-roster-card class="dash-card" *ngIf="hasRosterAccess"></app-roster-card>
 </div>
 
+<div class="top-row">
+  <app-voicemail-card class="dash-card" *ngFor="let name of mailboxes" [mailboxName]="name"></app-voicemail-card>
+</div>
 
 <!--
   <h2 *ngIf="isDevMode" class="ant-row">Terminvergabe</h2>
