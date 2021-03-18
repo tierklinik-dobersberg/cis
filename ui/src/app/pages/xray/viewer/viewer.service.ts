@@ -79,12 +79,5 @@ export class DwvService {
       'jpeg-baseline': 'assets/dwv/decoders/pdfjs/decode-jpegbaseline.js',
       rle: 'assets/dwv/decoders/dwv/decode-rle.js'
     };
-
-    const style = dwv.html.Style;
-    dwv.html.Style = () => {
-      const s = new style();
-      s.setScale(0.2);
-      return s;
-    };
   }
 }
