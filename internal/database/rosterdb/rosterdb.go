@@ -154,6 +154,8 @@ func (db *database) Create(ctx context.Context, month time.Month, year int, days
 		logger.From(ctx).Errorf("invalid type in result.InsertedID, expected primitive.ObjectID but got %T", result.InsertedID)
 	}
 
+	go db.fireChangeEvent(ctx, month, year)
+
 	return nil
 }
 
@@ -170,6 +172,8 @@ func (db *database) Update(ctx context.Context, roster *v1alpha.DutyRoster) erro
 	if result.MatchedCount != 1 || result.ModifiedCount != 1 {
 		return fmt.Errorf("failed to update roster. matched=%d modified=%d", result.MatchedCount, result.ModifiedCount)
 	}
+
+	go db.fireChangeEvent(ctx, roster.Month, roster.Year)
 
 	return nil
 }
@@ -204,6 +208,9 @@ func (db *database) Delete(ctx context.Context, month time.Month, year int) erro
 	if res.DeletedCount < 1 {
 		return httperr.NotFound("roster", fmt.Sprintf("%04d/%02d", year, month), ErrNotFound)
 	}
+
+	go db.fireDeleteEvent(ctx, month, year)
+
 	return nil
 }
 
@@ -254,6 +261,9 @@ func (db *database) SetOverwrite(ctx context.Context, d time.Time, user, phone, 
 	}
 
 	log.Infof("created new roster overwrite")
+
+	go db.fireOverwriteEvent(ctx, d, user, phone, displayName)
+
 	return nil
 
 }
@@ -300,6 +310,8 @@ func (db *database) DeleteOverwrite(ctx context.Context, d time.Time) error {
 		}
 		return err
 	}
+
+	go db.fireOverwriteDeleteEvent(ctx, d)
 
 	return nil
 }
