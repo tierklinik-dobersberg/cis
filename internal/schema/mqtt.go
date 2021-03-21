@@ -1,6 +1,12 @@
 package schema
 
-import "github.com/ppacher/system-conf/conf"
+import (
+	"context"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/logger"
+)
 
 // MqttConfig groups all MQTT related configuration settings.
 type MqttConfig struct {
@@ -41,4 +47,36 @@ var MqttSpec = conf.SectionSpec{
 		Type:        conf.StringType,
 		Description: "Password for MQTT server",
 	},
+}
+
+// GetClient returns a new MQTT client based on the configuration settings
+// in cfg.
+func (cfg MqttConfig) GetClient(ctx context.Context) (mqtt.Client, error) {
+	opts := mqtt.NewClientOptions()
+	for _, srv := range cfg.MqttServer {
+		opts.AddBroker(srv)
+	}
+
+	opts.SetClientID(cfg.MqttClientID)
+
+	if cfg.MqttUser != "" {
+		opts.SetUsername(cfg.MqttUser)
+		opts.SetPassword(cfg.MqttPassword)
+	}
+
+	opts.SetAutoReconnect(true)
+
+	// TODO(ppacher): do we need a default handler?
+	// opts.SetDefaultPublishHandler(messagePubHandler)
+
+	opts.OnConnect = func(cli mqtt.Client) {
+		logger.Infof(ctx, "connected to MQTT server")
+	}
+
+	opts.OnConnectionLost = func(cli mqtt.Client, err error) {
+		logger.Errorf(ctx, "lost connection to MQTT server: %s", err.Error())
+	}
+
+	client := mqtt.NewClient(opts)
+	return client, nil
 }

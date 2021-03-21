@@ -35,32 +35,10 @@ type MqttDoor struct {
 // NewMqttDoor connects to the MQTT server configured in cfg
 // and returns a new MqttDoor interfacer.
 func NewMqttDoor(cfg schema.MqttConfig) (*MqttDoor, error) {
-	opts := mqtt.NewClientOptions()
-	for _, srv := range cfg.MqttServer {
-		opts.AddBroker(srv)
+	client, err := cfg.GetClient(context.Background())
+	if err != nil {
+		return nil, err
 	}
-
-	opts.SetClientID(cfg.MqttClientID)
-
-	if cfg.MqttUser != "" {
-		opts.SetUsername(cfg.MqttUser)
-		opts.SetPassword(cfg.MqttPassword)
-	}
-
-	opts.SetAutoReconnect(true)
-
-	// TODO(ppacher): do we need a default handler?
-	// opts.SetDefaultPublishHandler(messagePubHandler)
-
-	opts.OnConnect = func(cli mqtt.Client) {
-		logger.Infof(context.Background(), "connected to MQTT server")
-	}
-
-	opts.OnConnectionLost = func(cli mqtt.Client, err error) {
-		logger.Errorf(context.Background(), "lost connection to MQTT server: %s", err.Error())
-	}
-
-	client := mqtt.NewClient(opts)
 
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		return nil, token.Error()
@@ -69,6 +47,11 @@ func NewMqttDoor(cfg schema.MqttConfig) (*MqttDoor, error) {
 	return &MqttDoor{
 		cli: client,
 	}, nil
+}
+
+// Client returns the MQTT client used.
+func (door *MqttDoor) Client() mqtt.Client {
+	return door.cli
 }
 
 // Lock send a lock request.
