@@ -8,9 +8,15 @@ import (
 	"github.com/tierklinik-dobersberg/logger"
 )
 
+type subscription struct {
+	topic      string
+	subscriber string
+	ch         chan<- *Event
+}
+
 type Registry struct {
 	l           sync.RWMutex
-	subscribers map[string]map[string]chan<- *Event
+	subscribers []subscription
 }
 
 // Fire fires a new event of the given ID to all subscribers.
@@ -28,17 +34,21 @@ func (reg *Registry) Fire(ctx context.Context, id string, payload EventData) {
 		Created: time.Now(),
 	}
 
-	for key := range reg.subscribers[id] {
-		ch := reg.subscribers[id][key]
-		go func(key string) {
+	for _, sub := range reg.subscribers {
+		if !MatchSubscription(id, sub.topic) {
+			continue
+		}
+
+		go func(sub subscription) {
 			select {
-			case ch <- evt:
+			case sub.ch <- evt:
 			case <-time.After(time.Second):
 				log.WithFields(logger.Fields{
-					"subscriber": key,
+					"subscriber":   sub.subscriber,
+					"subscription": sub.topic,
 				}).Errorf("failed to notify event subscriber")
 			}
-		}(key)
+		}(sub)
 	}
 }
 
@@ -50,18 +60,26 @@ func (reg *Registry) Subscribe(client, eventID string) <-chan *Event {
 	reg.l.Lock()
 	defer reg.l.Unlock()
 
-	if reg.subscribers == nil {
-		reg.subscribers = make(map[string]map[string]chan<- *Event)
-	}
-
-	if _, ok := reg.subscribers[eventID]; !ok {
-		reg.subscribers[eventID] = make(map[string]chan<- *Event)
-	}
-
 	ch := make(chan *Event)
-	reg.subscribers[eventID][client] = ch
+	reg.subscribers = append(reg.subscribers, subscription{
+		topic:      eventID,
+		subscriber: client,
+		ch:         ch,
+	})
 
 	return ch
+}
+
+// Unsubscribe removes a previous subscription from client on eventID.
+func (reg *Registry) Unsubscribe(client, eventID string) {
+	reg.l.Lock()
+	defer reg.l.Unlock()
+
+	for idx, subscription := range reg.subscribers {
+		if subscription.subscriber == client && subscription.topic == eventID {
+			reg.subscribers = append(reg.subscribers[:idx], reg.subscribers[idx+1:]...)
+		}
+	}
 }
 
 // Subscribe subscribes to events on the DefaultRegistry.
