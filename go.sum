@@ -288,6 +288,8 @@ github.com/ppacher/system-conf v0.6.0 h1:XKPxJ8cW3U1H+eObFLoMI640O3Z2GitZv4uzikA
 github.com/ppacher/system-conf v0.6.0/go.mod h1:UTcn/7lTkcZaCjXpWCz/d1iYG0nn5CnOryTImTlA/BY=
 github.com/ppacher/system-conf v0.7.4 h1:6pwPDvgJj9v9BXDzibP+k62/ZHI+Oipk5hNxQpXSUoQ=
 github.com/ppacher/system-conf v0.7.4/go.mod h1:UTcn/7lTkcZaCjXpWCz/d1iYG0nn5CnOryTImTlA/BY=
+github.com/ppacher/system-conf v0.7.5 h1:Y4dR+sxam8/1YASolUtDFMe2YkaVC28X32kpbenbRL8=
+github.com/ppacher/system-conf v0.7.5/go.mod h1:UTcn/7lTkcZaCjXpWCz/d1iYG0nn5CnOryTImTlA/BY=
 github.com/prometheus/client_golang v0.9.1/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=
 github.com/prometheus/client_golang v0.9.3/go.mod h1:/TN21ttK/J9q6uSwhBd54HahCDft0ttaMvbicHlPoso=
 github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910/go.mod h1:MbSGuTsp3dbXC40dX6PRTWyKYBIrTGTE9sqQNg2J8bo=
