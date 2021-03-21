@@ -1,6 +1,7 @@
 package trigger
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -34,12 +35,22 @@ type Handler interface {
 	HandleEvent(event *event.Event)
 }
 
+type Type struct {
+	conf.OptionRegistry
+	CreateFunc func(context.Context, *conf.Section) (Handler, error)
+}
+
+// Create calls CreateFunc and implements Factory.
+func (t *Type) Create(ctx context.Context, sec *conf.Section) (Handler, error) {
+	return t.CreateFunc(ctx, sec)
+}
+
 type Factory interface {
 	conf.OptionRegistry
 
 	// Create creates a new trigger handler from the given
 	// section.
-	Create(sec *conf.Section) (Handler, error)
+	Create(ctx context.Context, sec *conf.Section) (Handler, error)
 }
 
 type Registry struct {
@@ -56,14 +67,14 @@ func NewRegistry(eventReg *event.Registry) *Registry {
 }
 
 // LoadFiles loads all .trigger files from path.
-func (reg *Registry) LoadFiles(path string) error {
+func (reg *Registry) LoadFiles(ctx context.Context, path string) error {
 	files, err := conf.ReadDir(path, ".trigger", reg)
 	if err != nil {
 		return err
 	}
 
 	for _, file := range files {
-		if err := reg.CreateTrigger(file); err != nil {
+		if err := reg.CreateTrigger(ctx, file); err != nil {
 			return fmt.Errorf("%s: %s", file.Path, err)
 		}
 	}
@@ -90,7 +101,7 @@ func (reg *Registry) OptionsForSection(sec string) (conf.OptionRegistry, bool) {
 }
 
 // CreateTrigger creates a new trigger from a file defintion.
-func (reg *Registry) CreateTrigger(f *conf.File) error {
+func (reg *Registry) CreateTrigger(ctx context.Context, f *conf.File) error {
 	matchSecs := f.Sections.GetAll("Match")
 	if len(matchSecs) != 1 {
 		return fmt.Errorf("expected exactly one [Match] section but found %d", len(matchSecs))
@@ -119,7 +130,7 @@ func (reg *Registry) CreateTrigger(f *conf.File) error {
 			return fmt.Errorf("found unknown trigger action %q", sec.Name)
 		}
 
-		handler, err := factory.Create(&sec)
+		handler, err := factory.Create(ctx, &sec)
 		if err != nil {
 			return fmt.Errorf("failed creating trigger handler for %s", sec.Name)
 		}
@@ -164,6 +175,16 @@ func (reg *Registry) MustRegisterHandlerType(name string, factory Factory) {
 	if err := reg.RegisterHandlerType(name, factory); err != nil {
 		panic(err)
 	}
+}
+
+// RegisterHandlerType is a shortcut for using DefaultRegistry.RegisterHandlerType.
+func RegisterHandlerType(name string, factory Factory) error {
+	return DefaultRegistry.RegisterHandlerType(name, factory)
+}
+
+// MustRegisterHandlerType is a shortcut for using DefaultRegistry.MustRegisterHandlerType.
+func MustRegisterHandlerType(name string, factory Factory) {
+	DefaultRegistry.MustRegisterHandlerType(name, factory)
 }
 
 // DefaultRegistry is a trigger registry that is configured for the
