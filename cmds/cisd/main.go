@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/spf13/cobra"
@@ -258,9 +259,17 @@ func getApp(ctx context.Context) *app.App {
 	}
 
 	//
+	// prepare mqtt client
+	//
+	mqttClient, err := cfg.MqttConfig.GetClient(ctx)
+	if err != nil {
+		logger.Fatalf(ctx, "mqtt: %s", err.Error())
+	}
+
+	//
 	// prepare entry door controller
 	//
-	door := getDoorInterface(ctx, cfg.MqttConfig)
+	door := getDoorInterface(ctx, mqttClient)
 	holidayCache := openinghours.NewHolidayCache()
 	doorController, err := openinghours.NewDoorController(cfg.Config, cfg.OpeningHours, holidayCache, door)
 	if err != nil {
@@ -297,14 +306,15 @@ func getApp(ctx context.Context) *app.App {
 		sessionManager,
 		holidayCache,
 		calllogs,
+		mqttClient,
 	)
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 
 	return appCtx
 }
 
-func getDoorInterface(ctx context.Context, cfg schema.MqttConfig) openinghours.DoorInterfacer {
-	cli, err := openinghours.NewMqttDoor(cfg)
+func getDoorInterface(ctx context.Context, client mqtt.Client) openinghours.DoorInterfacer {
+	cli, err := openinghours.NewMqttDoor(client)
 	if err != nil {
 		logger.Fatalf(ctx, err.Error())
 	}

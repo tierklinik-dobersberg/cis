@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
@@ -45,6 +46,7 @@ type App struct {
 	Door        *openinghours.DoorController
 	Holidays    openinghours.HolidayGetter
 	CallLogs    calllogdb.Database
+	MQTTClient  mqtt.Client
 }
 
 func (app *App) String() string {
@@ -65,7 +67,9 @@ func NewApp(
 	door *openinghours.DoorController,
 	sessionManager *session.Manager,
 	holidays openinghours.HolidayGetter,
-	calllogs calllogdb.Database) *App {
+	calllogs calllogdb.Database,
+	mqttClient mqtt.Client,
+) *App {
 	return &App{
 		Instance:    inst,
 		Config:      cfg,
@@ -80,6 +84,7 @@ func NewApp(
 		Sessions:    sessionManager,
 		Holidays:    holidays,
 		CallLogs:    calllogs,
+		MQTTClient:  mqttClient,
 	}
 }
 
@@ -118,6 +123,12 @@ func From(c *gin.Context) *App {
 		return nil
 	}
 
+	return val
+}
+
+// FromContext returns the App associated with c.
+func FromContext(ctx context.Context) *App {
+	val, _ := ctx.Value(appContextKey).(*App)
 	return val
 }
 

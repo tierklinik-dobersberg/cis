@@ -6,7 +6,6 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/uuid"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
@@ -34,16 +33,7 @@ type MqttDoor struct {
 
 // NewMqttDoor connects to the MQTT server configured in cfg
 // and returns a new MqttDoor interfacer.
-func NewMqttDoor(cfg schema.MqttConfig) (*MqttDoor, error) {
-	client, err := cfg.GetClient(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		return nil, token.Error()
-	}
-
+func NewMqttDoor(client mqtt.Client) (*MqttDoor, error) {
 	return &MqttDoor{
 		cli: client,
 	}, nil
