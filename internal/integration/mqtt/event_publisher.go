@@ -10,42 +10,26 @@ import (
 )
 
 type EventPublisher struct {
-	Client           mqtt.Client
-	EventFilter      string
-	InstanceName     string
 	TopicPrefix      string
+	EventAsTopic     bool
 	QualityOfService int
-	Registry         *event.Registry
+	cli              mqtt.Client
 }
 
-// Start starts publishing events on MQTT until the provided context
-// is cancelled.
-func (pub *EventPublisher) Start(ctx context.Context) {
-	go func() {
-		<-ctx.Done()
-	}()
+// HandleEvent implements (event.Handler).
+func (pub *EventPublisher) HandleEvent(ctx context.Context, evt *event.Event) {
+	blob, err := json.Marshal(evt)
+	if err != nil {
+		logger.From(ctx).Errorf("failed to publish event: json: %s", err)
+		return
+	}
 
-	events := pub.Registry.Subscribe(pub.InstanceName, pub.EventFilter)
+	topic := pub.TopicPrefix
+	if pub.EventAsTopic {
+		topic += evt.ID
+	}
 
-	go func() {
-		defer pub.Registry.Unsubscribe(pub.InstanceName, pub.EventFilter)
-
-		for {
-			select {
-			case evt := <-events:
-				blob, err := json.Marshal(evt)
-				if err != nil {
-					logger.From(ctx).Errorf("failed to publish event: json: %s", err)
-					continue
-				}
-
-				topic := pub.TopicPrefix + evt.ID
-				if token := pub.Client.Publish(topic, byte(pub.QualityOfService), false, blob); token.Wait() && token.Error() != nil {
-					logger.From(ctx).Errorf("failed to publish event on MQTT: %s", token.Error())
-				}
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
+	if token := pub.cli.Publish(topic, byte(pub.QualityOfService), false, blob); token.Wait() && token.Error() != nil {
+		logger.From(ctx).Errorf("failed to publish event on MQTT: %s", token.Error())
+	}
 }
