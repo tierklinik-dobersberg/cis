@@ -5,6 +5,7 @@ package autodoc
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/ppacher/system-conf/conf"
@@ -32,7 +33,7 @@ type File struct {
 	Sections map[string]conf.OptionRegistry `json:"-"`
 	// LazySectionsFunc can be set if some section cannot be determined
 	// at init time but must be loaded by different means.
-	LazySectionsFunc func() map[string]conf.OptionRegistry
+	LazySectionsFunc func() map[string]conf.OptionRegistry `json:"-"`
 	// Example may hold a configuration example
 	Example string `json:"example,omitempty"`
 	// ExampleDescription describes the configuration example
@@ -41,13 +42,14 @@ type File struct {
 	Template string `json:"template,omitempty"`
 	// LazyTemplateFunc can be used instead of Template if generating a
 	// valid Template is not possible during build time.
-	LazyTemplateFunc func() string
+	LazyTemplateFunc func() string `json:"-"`
 }
 
 // Registry keeps track of configuration files.
 type Registry struct {
-	l     sync.RWMutex
-	files map[string]File
+	l         sync.RWMutex
+	files     map[string]File
+	renderers map[string]Renderer
 }
 
 // Register registeres a new configuratin file type.
@@ -64,6 +66,19 @@ func (reg *Registry) Register(f File) error {
 	return nil
 }
 
+// RegisterRenderer registers a new autodoc renderer.
+func (reg *Registry) RegisterRenderer(kind string, renderer Renderer) error {
+	reg.l.Lock()
+	defer reg.l.Unlock()
+
+	kind = strings.ToLower(kind)
+	if _, ok := reg.renderers[kind]; ok {
+		return fmt.Errorf("renderer for %s already registered", kind)
+	}
+	reg.renderers[kind] = renderer
+	return nil
+}
+
 // List returns a list of all configuration files supported.
 func (reg *Registry) List() []File {
 	reg.l.RLock()
@@ -74,6 +89,19 @@ func (reg *Registry) List() []File {
 		result = append(result, file)
 	}
 	return result
+}
+
+// Render renders f as kind.
+func (reg *Registry) Render(kind string, f File) (string, error) {
+	reg.l.RLock()
+	defer reg.l.RUnlock()
+
+	renderer, ok := reg.renderers[strings.ToLower(kind)]
+	if !ok {
+		return "", fmt.Errorf("no renderer for %q registered", kind)
+	}
+
+	return renderer.RenderFile(f)
 }
 
 // DocsFor returns the documentation that matches p.
@@ -98,7 +126,8 @@ func (reg *Registry) DocsFor(p string) (File, bool) {
 // NewRegistry creates a new registry.
 func NewRegistry() *Registry {
 	return &Registry{
-		files: make(map[string]File),
+		files:     make(map[string]File),
+		renderers: make(map[string]Renderer),
 	}
 }
 
@@ -111,6 +140,18 @@ func Register(f File) error {
 // error.
 func MustRegister(f File) {
 	if err := Register(f); err != nil {
+		panic(err)
+	}
+}
+
+// RegisterRenderer calls DefaultRegistry.RegisterRenderer
+func RegisterRenderer(kind string, renderer Renderer) error {
+	return DefaultRegistry.RegisterRenderer(kind, renderer)
+}
+
+// MustRegisterRenderer is like RegisterRenderer but panics on error.
+func MustRegisterRenderer(kind string, renderer Renderer) {
+	if err := RegisterRenderer(kind, renderer); err != nil {
 		panic(err)
 	}
 }
