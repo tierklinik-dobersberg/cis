@@ -35,7 +35,7 @@ func init() {
 		[Match]
 		EventFilter=
 
-		# And trigger actions as sepearte section below.
+		# Add trigger actions as sepearte section below.
 		`,
 	})
 }
