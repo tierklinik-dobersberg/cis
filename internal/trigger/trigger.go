@@ -32,7 +32,7 @@ type MatchConfig struct {
 // Handler handles events fired by the event registry the
 // handler's factory is attached.
 type Handler interface {
-	HandleEvent(event *event.Event)
+	HandleEvent(ctx context.Context, event *event.Event)
 }
 
 type Type struct {
@@ -63,7 +63,17 @@ type Registry struct {
 func NewRegistry(eventReg *event.Registry) *Registry {
 	return &Registry{
 		factories: make(map[string]Factory),
+		event:     eventReg,
 	}
+}
+
+// TypeCount returns the number of trigger types that have been
+// registered so far.
+func (reg *Registry) TypeCount() int {
+	reg.l.RLock()
+	defer reg.l.RUnlock()
+
+	return len(reg.factories)
 }
 
 // LoadFiles loads all .trigger files from path.
@@ -108,8 +118,8 @@ func (reg *Registry) CreateTrigger(ctx context.Context, f *conf.File) error {
 	}
 
 	var match MatchConfig
-	if err := conf.DecodeSections(matchSecs, MatchSpec, match); err != nil {
-		return fmt.Errorf("failed to parse [Match] section: %s", err)
+	if err := conf.DecodeSections(matchSecs, MatchSpec, &match); err != nil {
+		return fmt.Errorf("failed to parse [Match] section: %w", err)
 	}
 
 	reg.l.RLock()
@@ -132,7 +142,7 @@ func (reg *Registry) CreateTrigger(ctx context.Context, f *conf.File) error {
 
 		handler, err := factory.Create(ctx, &sec)
 		if err != nil {
-			return fmt.Errorf("failed creating trigger handler for %s", sec.Name)
+			return fmt.Errorf("failed creating trigger handler for %s: %w", sec.Name, err)
 		}
 		handlers = append(handlers, handler)
 	}
@@ -146,7 +156,7 @@ func (reg *Registry) CreateTrigger(ctx context.Context, f *conf.File) error {
 			// TODO(ppacher): add context so we can cancel this one.
 			for msg := range ch {
 				for _, handler := range handlers {
-					go handler.HandleEvent(msg)
+					go handler.HandleEvent(ctx, msg)
 				}
 			}
 		}()
