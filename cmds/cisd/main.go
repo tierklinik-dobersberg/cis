@@ -40,6 +40,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
+	"github.com/tierklinik-dobersberg/cis/internal/trigger"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/server"
@@ -47,6 +48,13 @@ import (
 	"github.com/tierklinik-dobersberg/service/svcenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	//
+	// underscore imports that register themself somewhere
+	//
+
+	// MQTT trigger type
+	_ "github.com/tierklinik-dobersberg/cis/internal/integration/mqtt"
 )
 
 func main() {
@@ -259,11 +267,21 @@ func getApp(ctx context.Context) *app.App {
 	}
 
 	//
-	// prepare mqtt client
+	// prepare MQTT client and connect to broker
 	//
 	mqttClient, err := cfg.MqttConfig.GetClient(ctx)
 	if err != nil {
 		logger.Fatalf(ctx, "mqtt: %s", err.Error())
+	}
+
+	// TODO(ppacher): try to connect in background
+	for {
+		if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
+			logger.Errorf(ctx, "failed to connect to mqtt: %s", err)
+			time.Sleep(time.Second)
+			continue
+		}
+		break
 	}
 
 	//
@@ -309,6 +327,18 @@ func getApp(ctx context.Context) *app.App {
 		mqttClient,
 	)
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
+
+	//
+	// Prepare triggers
+	//
+	// TODO(ppacher): this currently requires app.App to have been associated with ctx.
+	// I'm somewhat unhappy with that requirement so make it go away in the future.
+	//
+	ctx = app.With(ctx, appCtx)
+	logger.Infof(ctx, "%d trigger types available so far", trigger.DefaultRegistry.TypeCount())
+	if err := trigger.DefaultRegistry.LoadFiles(ctx, instance.ConfigurationDirectory); err != nil {
+		logger.Fatalf(ctx, "triggers: %s", err)
+	}
 
 	return appCtx
 }
