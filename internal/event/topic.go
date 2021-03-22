@@ -1,6 +1,8 @@
 package event
 
-import "strings"
+import (
+	"strings"
+)
 
 // MatchSubscription checks if topic matches the subscription.
 // Topics are modelled after MQTT topics and are separated
