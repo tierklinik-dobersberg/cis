@@ -21,8 +21,8 @@ func (db *identDB) loadRoles(identityDir string) error {
 		"Role":       schema.RoleSpec,
 		"Permission": schema.PermissionSpec,
 	}
-	if db.autologinConditions != nil {
-		spec["AutoAssign"] = db.autologinConditions
+	if db.httpConditionRegistry != nil {
+		spec["AutoAssign"] = db.httpConditionRegistry
 	}
 
 	roleFiles, err := utils.LoadFiles(identityDir, ".role", spec)
@@ -32,7 +32,7 @@ func (db *identDB) loadRoles(identityDir string) error {
 
 	// build the roles map
 	for _, f := range roleFiles {
-		g, autoassign, err := decodeRole(f, db.autologinConditions)
+		g, autoassign, err := decodeRole(f, db.httpConditionRegistry)
 		if err != nil {
 			return fmt.Errorf("%s: %w", f.Path, err)
 		}

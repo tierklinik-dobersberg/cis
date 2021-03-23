@@ -67,24 +67,24 @@ type Database interface {
 
 // The actual in-memory implementation for identDB.
 type identDB struct {
-	dir                 string
-	country             string
-	userPropertySpecs   []schema.UserPropertyDefinition
-	rw                  sync.RWMutex
-	autologinConditions *httpcond.Registry
-	users               map[string]*user
-	roles               map[string]*role
-	autologinUsers      map[string]conf.Section
-	autologinRoles      map[string]conf.Section
+	dir                   string
+	country               string
+	userPropertySpecs     []schema.UserPropertyDefinition
+	rw                    sync.RWMutex
+	httpConditionRegistry *httpcond.Registry
+	users                 map[string]*user
+	roles                 map[string]*role
+	autologinUsers        map[string]conf.Section
+	autologinRoles        map[string]conf.Section
 }
 
 // New returns a new database that uses ldr.
 func New(ctx context.Context, dir, country string, userProperties []schema.UserPropertyDefinition, reg *httpcond.Registry) (Database, error) {
 	db := &identDB{
-		dir:                 dir,
-		autologinConditions: reg,
-		userPropertySpecs:   userProperties,
-		country:             country,
+		dir:                   dir,
+		httpConditionRegistry: reg,
+		userPropertySpecs:     userProperties,
+		country:               country,
 	}
 
 	if err := db.reload(ctx); err != nil {

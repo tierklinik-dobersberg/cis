@@ -28,8 +28,8 @@ func (db *identDB) loadUsers(identityDir string) error {
 		"User":       conf.SectionSpec(append(schema.UserSpec, userPropertySpecs...)),
 		"Permission": schema.PermissionSpec,
 	}
-	if db.autologinConditions != nil {
-		spec["AutoLogin"] = newAutologinRegistry(db.autologinConditions, conf.SectionSpec{
+	if db.httpConditionRegistry != nil {
+		spec["AutoLogin"] = newAutologinRegistry(db.httpConditionRegistry, conf.SectionSpec{
 			{
 				Name:        "CreateSession",
 				Type:        conf.BoolType,
@@ -46,7 +46,7 @@ func (db *identDB) loadUsers(identityDir string) error {
 
 	// build the user map
 	for _, f := range userFiles {
-		u, autologin, err := buildUser(f, userPropertySpecs, db.autologinConditions, db.country)
+		u, autologin, err := buildUser(f, userPropertySpecs, db.httpConditionRegistry, db.country)
 		if err != nil {
 			return fmt.Errorf("%s: %w", f.Path, err)
 		}
