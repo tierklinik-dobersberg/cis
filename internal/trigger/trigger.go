@@ -11,18 +11,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/event"
 )
 
-// MatchSpec defines all configuration stanzas that
-// are available in each [Match] section
-var MatchSpec = conf.SectionSpec{
-	{
-		Name:        "EventFilter",
-		Type:        conf.StringSliceType,
-		Aliases:     []string{"Event"},
-		Description: "A event subscription topic",
-		Default:     "#",
-	},
-}
-
 // MatchConfig is the parsed form of a [Match] section in
 // .trigger files.
 type MatchConfig struct {

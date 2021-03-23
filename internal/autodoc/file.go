@@ -26,11 +26,12 @@ type File struct {
 
 	// Sections holds a list of all sections that are allowed
 	// to exist in this file type.
-	Sections map[string]conf.OptionRegistry `json:"-"`
+	Sections conf.FileSpec `json:"-"`
 
 	// LazySectionsFunc can be set if some section cannot be determined
 	// at init time but must be loaded by different means.
-	LazySectionsFunc func() map[string]conf.OptionRegistry `json:"-"`
+	// The result from LazySectionsFunc must always be merged with Sections.
+	LazySectionsFunc func() conf.FileSpec `json:"-"`
 
 	// Example may hold a configuration example
 	Example string `json:"example,omitempty"`

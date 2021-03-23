@@ -25,11 +25,11 @@ func init() {
 		Multiple:       true,
 		LookupPaths:    []string{},
 		DropinsAllowed: false,
-		Sections:       map[string]conf.OptionRegistry{"Match": MatchSpec},
-		LazySectionsFunc: func() map[string]conf.OptionRegistry {
+		Sections:       conf.FileSpec{"Match": MatchSpec},
+		LazySectionsFunc: func() conf.FileSpec {
 			DefaultRegistry.l.RLock()
 			defer DefaultRegistry.l.RUnlock()
-			m := make(map[string]conf.OptionRegistry)
+			m := make(conf.FileSpec)
 			for name, factory := range DefaultRegistry.factories {
 				m[name] = factory
 			}
