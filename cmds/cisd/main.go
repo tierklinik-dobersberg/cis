@@ -9,7 +9,6 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
-	"github.com/ppacher/system-conf/conf"
 	"github.com/spf13/cobra"
 	"github.com/tierklinik-dobersberg/cis/internal/api/calllogapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/commentapi"
@@ -38,7 +37,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/mailsync"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
 	"github.com/tierklinik-dobersberg/cis/internal/trigger"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
@@ -145,14 +143,7 @@ func getApp(ctx context.Context) *app.App {
 	// There might be a ui.conf file so try to load it.
 	//
 	uiConf := filepath.Join(svcenv.Env().ConfigurationDirectory, "ui.conf")
-	uiConfSpec := conf.FileSpec{
-		"UI":                   schema.UISpec,
-		"ExternalLink":         schema.ExternalLinkSpec,
-		"QuickRosterOverwrite": schema.QuickRosterOverwriteSpec,
-		"KnownPhoneExtension":  schema.KnownPhoneExtensionSpec,
-	}
-
-	if err := uiConfSpec.ParseFile(uiConf, &cfg.UI); err != nil && !os.IsNotExist(err) {
+	if err := uiConfigFile.Sections.ParseFile(uiConf, &cfg.UI); err != nil && !os.IsNotExist(err) {
 		logger.Fatalf(ctx, "failed to load ui.conf: %s", err)
 	}
 
