@@ -8,7 +8,7 @@ import (
 
 // LoadFiles loads all files in dir that have the extension ext and
 // parses them using spec.
-func LoadFiles(dir, ext string, spec conf.FileSpec) ([]*conf.File, error) {
+func LoadFiles(dir, ext string, spec conf.SectionRegistry) ([]*conf.File, error) {
 	names := make(map[string]struct{})
 	files := make([]*conf.File, 0)
 
