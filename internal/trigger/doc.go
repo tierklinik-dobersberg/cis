@@ -5,7 +5,21 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/autodoc"
 )
 
+// MatchSpec defines all configuration stanzas that
+// are available in each [Match] section
+var MatchSpec = conf.SectionSpec{
+	{
+		Name:        "EventFilter",
+		Type:        conf.StringSliceType,
+		Aliases:     []string{"Event"},
+		Description: "A event subscription topic",
+		Default:     "#",
+	},
+}
+
 func init() {
+	// we don't need the file reference here as Registry does implement
+	// (conf.SectionRegistry) itself.
 	autodoc.MustRegister(autodoc.File{
 		Name:           ".trigger",
 		Multiple:       true,
@@ -23,19 +37,19 @@ func init() {
 		},
 		Description: "Trigger can be used to perform actions whenever an internal event is fired. They are mainly useful to integrate with external systems.",
 		Example: `
-		[Match]
-		EventFilter=event/roster/#
+			[Match]
+			EventFilter=event/roster/#
 
-		[MQTT-Publish]
-		EventAsTopic=yes
-		TopicPrefix=cis
-		`,
+			[MQTT-Publish]
+			EventAsTopic=yes
+			TopicPrefix=cis
+			`,
 		ExampleDescription: "Publishes all roster updates on MQTT.",
 		Template: `
-		[Match]
-		EventFilter=
+			[Match]
+			EventFilter=
 
-		# Add trigger actions as sepearte section below.
-		`,
+			# Add trigger actions as sepearte section below.
+			`,
 	})
 }

@@ -45,3 +45,19 @@ type File struct {
 	// valid Template is not possible during build time.
 	LazyTemplateFunc func() string `json:"-"`
 }
+
+// OptionsForSection implements (conf.SectionRegistry). It uses all sections defined
+// in Section and will call LazySectionsFunc if set each time. Note that this behavior
+// is subject to change and File might cache the result of LazySectionsFunc() for later
+// use.
+func (f *File) OptionsForSection(sectionName string) (conf.OptionRegistry, bool) {
+	if optionRegistry, ok := f.Sections[sectionName]; ok {
+		return optionRegistry, true
+	}
+	if f.LazySectionsFunc != nil {
+		if optionRegistry, ok := f.LazySectionsFunc()[sectionName]; ok {
+			return optionRegistry, true
+		}
+	}
+	return nil, false
+}
