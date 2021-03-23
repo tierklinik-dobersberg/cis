@@ -1,6 +1,10 @@
 package autodoc
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/ppacher/system-conf/conf"
+)
 
 // Unindent removes common indention from all lines in text.
 func Unindent(text string) string {
@@ -21,6 +25,14 @@ func Unindent(text string) string {
 	}
 
 	return strings.Join(lines, "\n")
+}
+
+func MergeOptions(opts ...[]conf.OptionSpec) conf.SectionSpec {
+	var result []conf.OptionSpec
+	for _, arr := range opts {
+		result = append(result, arr...)
+	}
+	return result
 }
 
 func whitespacePrefixLen(line string) int {

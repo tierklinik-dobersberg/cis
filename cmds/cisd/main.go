@@ -43,7 +43,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/trigger"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/service/service"
 	"github.com/tierklinik-dobersberg/service/svcenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -91,24 +90,10 @@ func getApp(ctx context.Context) *app.App {
 	var autoLoginManager *autologin.Manager
 	sessionManager := new(session.Manager)
 
-	globalConf := conf.SectionSpec{}
-	globalConf = append(globalConf, schema.ConfigSpec...)
-	globalConf = append(globalConf, schema.DatabaseSpec...)
-	globalConf = append(globalConf, schema.IdentityConfigSpec...)
-	globalConf = append(globalConf, schema.MqttSpec...)
-
 	instance, err := service.Boot(service.Config{
 		ConfigFileName: "cis.conf",
-		ConfigFileSpec: conf.FileSpec{
-			"global":       globalConf,
-			"import":       schema.VetInfSpec,
-			"listener":     server.ListenerSpec,
-			"userproperty": schema.UserSchemaExtension,
-			"openinghour":  schema.OpeningHoursSpec,
-			"integration":  schema.IntegrationConfigSpec,
-			"voicemail":    schema.VoiceMailSpec,
-		},
-		ConfigTarget: &cfg,
+		ConfigFileSpec: globalConfigFile.Sections,
+		ConfigTarget:   &cfg,
 		RouteSetupFunc: func(grp gin.IRouter) error {
 			apis := grp.Group(
 				"/api/",
