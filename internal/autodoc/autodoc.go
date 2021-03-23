@@ -17,29 +17,39 @@ type File struct {
 	// that Name is expected to only hold the expected file
 	// extension (like .service or .trigger).
 	Name string `json:"name,omitempty"`
+
 	// Description holds a description of the configuration file.
 	Description string `json:"description,omitempty"`
+
 	// Multiple should be set to true if multiple units of the
 	// described file may exist.
 	Multiple bool `json:"multiple"`
+
 	// LookupPaths might be set to the lookup paths that are
 	// searched in order.
 	LookupPaths []string `json:"lookupPaths,omitempty"`
+
 	// DropinsAllowed should be set to true if drop-in files
 	// are supported for this configuration unit.
 	DropinsAllowed bool `json:"dropinsAllowed"`
+
 	// Sections holds a list of all sections that are allowed
 	// to exist in this file type.
 	Sections map[string]conf.OptionRegistry `json:"-"`
+
 	// LazySectionsFunc can be set if some section cannot be determined
 	// at init time but must be loaded by different means.
 	LazySectionsFunc func() map[string]conf.OptionRegistry `json:"-"`
+
 	// Example may hold a configuration example
 	Example string `json:"example,omitempty"`
+
 	// ExampleDescription describes the configuration example
 	ExampleDescription string `json:"exampleDescription,omitempty"`
+
 	// Template holds a file template that can be used as a starting base
 	Template string `json:"template,omitempty"`
+
 	// LazyTemplateFunc can be used instead of Template if generating a
 	// valid Template is not possible during build time.
 	LazyTemplateFunc func() string `json:"-"`
@@ -48,22 +58,22 @@ type File struct {
 // Registry keeps track of configuration files.
 type Registry struct {
 	l         sync.RWMutex
-	files     map[string]File
+	files     map[string]*File
 	renderers map[string]Renderer
 }
 
 // Register registeres a new configuratin file type.
-func (reg *Registry) Register(f File) error {
+func (reg *Registry) Register(f File) (*File, error) {
 	reg.l.Lock()
 	defer reg.l.Unlock()
 
 	if _, ok := reg.files[f.Name]; ok {
-		return fmt.Errorf("configuration file %q already registered", f.Name)
+		return nil, fmt.Errorf("configuration file %q already registered", f.Name)
 	}
 
-	reg.files[f.Name] = f
+	reg.files[f.Name] = &f
 
-	return nil
+	return &f, nil
 }
 
 // RegisterRenderer registers a new autodoc renderer.
@@ -86,13 +96,13 @@ func (reg *Registry) List() []File {
 
 	result := make([]File, 0, len(reg.files))
 	for _, file := range reg.files {
-		result = append(result, file)
+		result = append(result, *file)
 	}
 	return result
 }
 
 // Render renders f as kind.
-func (reg *Registry) Render(kind string, f File) (string, error) {
+func (reg *Registry) Render(kind string, f *File) (string, error) {
 	reg.l.RLock()
 	defer reg.l.RUnlock()
 
@@ -101,12 +111,12 @@ func (reg *Registry) Render(kind string, f File) (string, error) {
 		return "", fmt.Errorf("no renderer for %q registered", kind)
 	}
 
-	return renderer.RenderFile(f)
+	return renderer.RenderFile(*f)
 }
 
 // DocsFor returns the documentation that matches p.
 // Note that LookupPaths are not checked here.
-func (reg *Registry) DocsFor(p string) (File, bool) {
+func (reg *Registry) DocsFor(p string) (*File, bool) {
 	reg.l.RLock()
 	defer reg.l.RUnlock()
 
@@ -120,28 +130,30 @@ func (reg *Registry) DocsFor(p string) (File, bool) {
 		return f, ok
 	}
 
-	return File{}, false
+	return nil, false
 }
 
 // NewRegistry creates a new registry.
 func NewRegistry() *Registry {
 	return &Registry{
-		files:     make(map[string]File),
+		files:     make(map[string]*File),
 		renderers: make(map[string]Renderer),
 	}
 }
 
 // Register calls DefaultRegistry.Register(f).
-func Register(f File) error {
+func Register(f File) (*File, error) {
 	return DefaultRegistry.Register(f)
 }
 
 // MustRegister is like Register but panics in case of an
 // error.
-func MustRegister(f File) {
-	if err := Register(f); err != nil {
+func MustRegister(f File) *File {
+	file, err := Register(f)
+	if err != nil {
 		panic(err)
 	}
+	return file
 }
 
 // RegisterRenderer calls DefaultRegistry.RegisterRenderer

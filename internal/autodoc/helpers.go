@@ -2,12 +2,13 @@ package autodoc
 
 import "strings"
 
+// Unindent removes common indention from all lines in text.
 func Unindent(text string) string {
 	lines := strings.Split(text, "\n")
 	commonIndent := 1000
 
 	for _, line := range lines {
-		prefix := countWhitePrefix(line)
+		prefix := whitespacePrefixLen(line)
 		if prefix < commonIndent && strings.TrimLeft(line, " \t") != "" {
 			commonIndent = prefix
 		}
@@ -22,7 +23,7 @@ func Unindent(text string) string {
 	return strings.Join(lines, "\n")
 }
 
-func countWhitePrefix(line string) int {
+func whitespacePrefixLen(line string) int {
 	for idx, c := range line {
 		if c == ' ' || c == '\t' {
 			continue
