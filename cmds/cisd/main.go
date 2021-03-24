@@ -74,6 +74,7 @@ func getRootCommand() *cobra.Command {
 		getImportCommand(),
 		getDoorCommand(),
 		getManCommand(),
+		getValidateCommand(),
 	)
 
 	return cmd

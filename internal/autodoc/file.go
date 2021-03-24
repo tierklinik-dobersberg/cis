@@ -1,6 +1,12 @@
 package autodoc
 
-import "github.com/ppacher/system-conf/conf"
+import (
+	"fmt"
+	"path/filepath"
+	"strings"
+
+	"github.com/ppacher/system-conf/conf"
+)
 
 // File represents a configuration file.
 type File struct {
@@ -52,15 +58,12 @@ type File struct {
 // is subject to change and File might cache the result of LazySectionsFunc() for later
 // use.
 func (f *File) OptionsForSection(sectionName string) (conf.OptionRegistry, bool) {
-	if optionRegistry, ok := f.Sections[sectionName]; ok {
-		return optionRegistry, true
+	all := f.GetLowerCaseSections()
+	sec, ok := all[sectionName]
+	if !ok {
+		return nil, false
 	}
-	if f.LazySectionsFunc != nil {
-		if optionRegistry, ok := f.LazySectionsFunc()[sectionName]; ok {
-			return optionRegistry, true
-		}
-	}
-	return nil, false
+	return conf.SectionSpec(sec), true
 }
 
 // GetSections returns all sections allowed in f. It merges all sections
@@ -78,4 +81,65 @@ func (f *File) GetSections() map[string][]conf.OptionSpec {
 		}
 	}
 	return s
+}
+
+// GetLowerCaseSections is like GetSections but converts all section
+// names to lowercase.
+func (f *File) GetLowerCaseSections() map[string][]conf.OptionSpec {
+	s := make(map[string][]conf.OptionSpec, len(f.Sections))
+	for key, value := range f.Sections {
+		s[strings.ToLower(key)] = value.All()
+	}
+	if f.LazySectionsFunc != nil {
+		for key, value := range f.LazySectionsFunc() {
+			key = strings.ToLower(key)
+			s[key] = append(s[key], value.All()...)
+		}
+	}
+	return s
+}
+
+// ValidateSection validates all options in section.
+func (f *File) ValidateSection(section conf.Section) error {
+	allSections := f.GetLowerCaseSections()
+	spec, ok := allSections[strings.ToLower(section.Name)]
+	if !ok {
+		return conf.ErrUnknownSection
+	}
+	return conf.ValidateOptions(section.Options, conf.SectionSpec(spec))
+}
+
+// ValidateFile validates all sections and options in file.
+func (f *File) ValidateFile(file *conf.File) error {
+	return conf.ValidateFile(file, f)
+}
+
+// LoadFile loads and validates the file at f. If dropins are allowed
+// for f then all dropins in dropinSearchDir and f.LookupPaths are loaded and
+// applied. Note that dropinSearchDir takes precedence over f.LookupPaths.
+// See conf.DropinSearchPaths for more information on drop-in load order.
+func (f *File) LoadFile(path string, dropinSearchDir []string) (*conf.File, error) {
+	file, err := conf.LoadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := f.ValidateFile(file); err != nil {
+		return nil, err
+	}
+
+	if f.DropinsAllowed {
+		dropins, err := conf.LoadDropIns(
+			filepath.Base(file.Path),
+			append(dropinSearchDir, f.LookupPaths...),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("drop-ins: %w", err)
+		}
+		if err := conf.ApplyDropIns(file, dropins, f); err != nil {
+			return nil, fmt.Errorf("drop-ins: %w", err)
+		}
+	}
+
+	return file, nil
 }
