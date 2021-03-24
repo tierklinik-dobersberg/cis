@@ -25,18 +25,7 @@ type JSONRenderer struct{}
 func (js *JSONRenderer) RenderFile(f autodoc.File) (string, error) {
 	file := File{
 		File:     f,
-		Sections: make(map[string][]conf.OptionSpec),
-	}
-
-	// convert conf.OptionRegistry to []conf.OptionSpec
-	for key, value := range f.Sections {
-		file.Sections[key] = value.All()
-	}
-
-	if f.LazySectionsFunc != nil {
-		for key, value := range f.LazySectionsFunc() {
-			file.Sections[key] = append(file.Sections[key], value.All()...)
-		}
+		Sections: f.GetSections(),
 	}
 
 	if f.LazyTemplateFunc != nil {

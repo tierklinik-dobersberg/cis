@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/autodoc"
 )
 
@@ -17,16 +16,6 @@ type MarkdownRenderer struct{}
 
 func (MarkdownRenderer) RenderFile(f autodoc.File) (string, error) {
 	var buf = new(bytes.Buffer)
-
-	sections := make(map[string][]conf.OptionSpec)
-	for key, value := range f.Sections {
-		sections[key] = value.All()
-	}
-	if f.LazySectionsFunc != nil {
-		for key, value := range f.LazySectionsFunc() {
-			sections[key] = append(sections[key], value.All()...)
-		}
-	}
 
 	if f.Multiple {
 		fmt.Fprintf(buf, "# [unit]%s\n", f.Name)
@@ -53,7 +42,7 @@ func (MarkdownRenderer) RenderFile(f autodoc.File) (string, error) {
 
 	fmt.Fprintf(buf, "## Sections\n\n")
 
-	for name, options := range sections {
+	for name, options := range f.GetSections() {
 		fmt.Fprintf(buf, "### [%s]\n\n", name)
 
 		for _, opt := range options {

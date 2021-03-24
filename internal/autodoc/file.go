@@ -62,3 +62,20 @@ func (f *File) OptionsForSection(sectionName string) (conf.OptionRegistry, bool)
 	}
 	return nil, false
 }
+
+// GetSections returns all sections allowed in f. It merges all sections
+// defined in the Sections map with the result of LazySectionsFunc if set.
+// In addition, GetSections uses (conf.OptionRegistry).All() to convert
+// the section definitions to a slice of conf.OptionSpec.
+func (f *File) GetSections() map[string][]conf.OptionSpec {
+	s := make(map[string][]conf.OptionSpec, len(f.Sections))
+	for key, value := range f.Sections {
+		s[key] = value.All()
+	}
+	if f.LazySectionsFunc != nil {
+		for key, value := range f.LazySectionsFunc() {
+			s[key] = append(s[key], value.All()...)
+		}
+	}
+	return s
+}
