@@ -143,7 +143,7 @@ func (db *database) Search(ctx context.Context, filter *SearchOptions) ([]v1alph
 		"customerID":     1,
 		"animalID":       -1,
 	})
-	result, err := db.collection.Find(ctx, filter, opts)
+	result, err := db.collection.Find(ctx, filter.Build(), opts)
 	if err != nil {
 		return nil, err
 	}
