@@ -13,6 +13,11 @@ import (
 	"github.com/tierklinik-dobersberg/logger"
 )
 
+type ExportedCustomer struct {
+	customerdb.Customer
+	Deleted bool
+}
+
 // Exporter is capable of exporting and extracting
 // data of a VetInf installation.
 type Exporter struct {
@@ -44,7 +49,7 @@ func NewExporter(cfg schema.VetInf, country string) (*Exporter, error) {
 // ExportCustomers exports all vetinf customers and streams them to
 // the returned channel. Errors encountered when exporting single
 // customers are logged and ignored.
-func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *customerdb.Customer, int, error) {
+func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *ExportedCustomer, int, error) {
 	log := logger.From(ctx)
 
 	customerDB, err := e.db.CustomerDB(e.cfg.VetInfEncoding)
@@ -54,7 +59,7 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *customerdb.Cust
 
 	dataCh, errCh, total := customerDB.StreamAll(ctx)
 
-	customers := make(chan *customerdb.Customer, 10)
+	customers := make(chan *ExportedCustomer, 10)
 
 	go func() {
 		for err := range errCh {
@@ -67,19 +72,22 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *customerdb.Cust
 		for customer := range dataCh {
 			//textparse.PhoneNumber(ctx, customer.Phone)
 
-			dbCustomer := &customerdb.Customer{
-				CustomerID: customer.ID,
-				City:       customer.City,
-				CityCode:   customer.CityCode,
-				Firstname:  customer.Firstname,
-				Group:      customer.Group,
-				Name:       customer.Name,
-				Street:     customer.Street,
-				Title:      customer.Titel,
-				Source:     "vetinf",
-				Metadata: map[string]interface{}{
-					"rawVetInfRecord": customer,
+			dbCustomer := &ExportedCustomer{
+				Customer: customerdb.Customer{
+					CustomerID: customer.ID,
+					City:       customer.City,
+					CityCode:   customer.CityCode,
+					Firstname:  customer.Firstname,
+					Group:      customer.Group,
+					Name:       customer.Name,
+					Street:     customer.Street,
+					Title:      customer.Titel,
+					Source:     "vetinf",
+					Metadata: map[string]interface{}{
+						"rawVetInfRecord": customer,
+					},
 				},
+				Deleted: customer.Meta.Deleted,
 			}
 
 			key := fmt.Sprintf("[%s %s <cid:%d>]", dbCustomer.Name, dbCustomer.Firstname, dbCustomer.CustomerID)
@@ -108,6 +116,12 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *customerdb.Cust
 			if hasInvalidPhone {
 				logger.Infof(ctx, "customer %s has invalid phone numer", key)
 				dbCustomer.Metadata["vetinfInvalidPhone"] = true
+			}
+
+			// if we use "shadow" delete we can mark the customer as
+			// deleted immediately.
+			if customer.Meta.Deleted {
+				dbCustomer.Metadata["_deleted"] = true
 			}
 
 			select {

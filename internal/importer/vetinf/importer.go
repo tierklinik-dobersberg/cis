@@ -39,21 +39,39 @@ func init() {
 						countNew := 0
 						countUpdated := 0
 						countUnchanged := 0
+						countDeleted := 0
+						skippedDeleted := 0
 
 						for customer := range ch {
 							existing, err := app.Customers.CustomerByCID(ctx, "vetinf", customer.CustomerID)
-							if errors.Is(err, customerdb.ErrNotFound) {
-								err = app.Customers.CreateCustomer(ctx, customer)
+
+							switch {
+							case errors.Is(err, customerdb.ErrNotFound) && !customer.Deleted:
+								err = app.Customers.CreateCustomer(ctx, &customer.Customer)
 								if err == nil {
 									countNew++
 								}
-							} else if existing != nil && existing.Hash() != customer.Hash() {
+
+							case errors.Is(err, customerdb.ErrNotFound) && customer.Deleted:
+								// TODO(ppacher): create the customer if we use shadow-delete
+								skippedDeleted++
+
+							case existing != nil && customer.Deleted:
+								err = app.Customers.DeleteCustomer(ctx, existing.ID.Hex())
+								if err == nil {
+									countDeleted++
+								}
+
+							case existing != nil && existing.Hash() != customer.Hash():
+								// TODO(ppacher): if we use "shadow-delete" we might need to update
+								// as well.
 								customer.ID = existing.ID
-								err = app.Customers.UpdateCustomer(ctx, customer)
+								err = app.Customers.UpdateCustomer(ctx, &customer.Customer)
 								if err == nil {
 									countUpdated++
 								}
-							} else if existing != nil {
+
+							case existing != nil:
 								countUnchanged++
 							}
 
@@ -63,9 +81,11 @@ func init() {
 						}
 
 						logger.From(ctx).WithFields(logger.Fields{
-							"new":       countNew,
-							"updated":   countUpdated,
-							"unchanged": countUnchanged,
+							"new":            countNew,
+							"updated":        countUpdated,
+							"unchanged":      countUnchanged,
+							"deleted":        countDeleted,
+							"skippedDeleted": skippedDeleted,
 						}).Infof("Import finished")
 
 						return nil
