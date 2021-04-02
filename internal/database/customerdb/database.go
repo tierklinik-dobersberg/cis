@@ -40,6 +40,9 @@ type Database interface {
 	// SearchCustomerByName searches for all customers that matches
 	// name.
 	SearchCustomerByName(ctx context.Context, name string) ([]*Customer, error)
+
+	// DeleteCustomer deletes the customer identified by source and cid.
+	DeleteCustomer(ctx context.Context, id string) error
 }
 
 type database struct {
@@ -225,6 +228,23 @@ func (db *database) SearchCustomerByName(ctx context.Context, name string) ([]*C
 
 func (db *database) FilterCustomer(ctx context.Context, filter bson.M) ([]*Customer, error) {
 	return db.findCustomers(ctx, filter)
+}
+
+func (db *database) DeleteCustomer(ctx context.Context, id string) error {
+	dbid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	result, err := db.customers.DeleteOne(ctx, bson.M{
+		"_id": dbid,
+	})
+	if err != nil {
+		return err
+	}
+	if result.DeletedCount != 1 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 func (db *database) findCustomers(ctx context.Context, filter interface{}) ([]*Customer, error) {
