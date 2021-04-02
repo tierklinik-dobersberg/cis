@@ -32,21 +32,25 @@ type Customer struct {
 // Hash returns a hash of the customer
 func (cu *Customer) Hash() string {
 	h := sha1.New()
-	_, _ = h.Write([]byte(fmt.Sprintf("%d", cu.CustomerID)))
-	_, _ = h.Write([]byte(cu.City))
-	_, _ = h.Write([]byte(fmt.Sprintf("%d", cu.CityCode)))
-	_, _ = h.Write([]byte(cu.Firstname))
-	_, _ = h.Write([]byte(cu.Group))
-	_, _ = h.Write([]byte(cu.Name))
-	_, _ = h.Write([]byte(cu.Source))
+	w := func(s string) {
+		_, _ = h.Write([]byte(s))
+	}
+
+	w(fmt.Sprintf("%d", cu.CustomerID))
+	w(cu.City)
+	w(fmt.Sprintf("%d", cu.CityCode))
+	w(cu.Firstname)
+	w(cu.Group)
+	w(cu.Name)
+	w(cu.Source)
 	for _, p := range cu.PhoneNumbers {
-		_, _ = h.Write([]byte(p))
+		w(p)
 	}
 	for _, m := range cu.MailAddresses {
-		_, _ = h.Write([]byte(m))
+		w(m)
 	}
-	_, _ = h.Write([]byte(cu.Street))
-	_, _ = h.Write([]byte(cu.Title))
+	w(cu.Street)
+	w(cu.Title)
 
 	return hex.EncodeToString(h.Sum(nil))
 }

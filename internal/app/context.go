@@ -16,6 +16,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/mailsync"
@@ -39,6 +40,7 @@ type App struct {
 	DutyRosters rosterdb.Database
 	Identities  identitydb.Database
 	Customers   customerdb.Database
+	Patients    patientdb.Database
 	Comments    commentdb.Database
 	VoiceMails  voicemaildb.Database
 	Sessions    *session.Manager
@@ -60,6 +62,7 @@ func NewApp(
 	matcher *permission.Matcher,
 	identities identitydb.Database,
 	customers customerdb.Database,
+	patients patientdb.Database,
 	dutyRosters rosterdb.Database,
 	comments commentdb.Database,
 	voicemail voicemaildb.Database,
@@ -76,6 +79,7 @@ func NewApp(
 		Matcher:     matcher,
 		Identities:  identities,
 		Customers:   customers,
+		Patients:    patients,
 		DutyRosters: dutyRosters,
 		Comments:    comments,
 		VoiceMails:  voicemail,

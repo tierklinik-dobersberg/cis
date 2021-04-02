@@ -120,14 +120,14 @@ func getVetinfImportCommand() *cobra.Command {
 
 				existing, err := app.Customers.CustomerByCID(context.Background(), "vetinf", customer.CustomerID)
 				if errors.Is(err, customerdb.ErrNotFound) {
-					err = app.Customers.CreateCustomer(context.Background(), customer)
+					err = app.Customers.CreateCustomer(context.Background(), &customer.Customer)
 					if err == nil {
 						created++
 					}
 				} else if existing != nil && existing.Hash() != customer.Hash() {
 					customer.ID = existing.ID
 
-					err = app.Customers.UpdateCustomer(context.Background(), customer)
+					err = app.Customers.UpdateCustomer(context.Background(), &customer.Customer)
 					if err == nil {
 						updated++
 					}

@@ -168,7 +168,7 @@ func (db *database) UpdateCustomer(ctx context.Context, cu *Customer) error {
 		return err
 	}
 
-	if result.ModifiedCount != 1 && result.MatchedCount != 1 {
+	if result.ModifiedCount != 1 || result.MatchedCount != 1 {
 		return fmt.Errorf("Expected to update one customer but matched %d and modified %d", result.MatchedCount, result.ModifiedCount)
 	}
 

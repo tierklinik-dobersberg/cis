@@ -9,12 +9,22 @@ import (
 	"github.com/spf13/afero"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
+	"github.com/tierklinik-dobersberg/cis/pkg/models/patient/v1alpha"
 	"github.com/tierklinik-dobersberg/go-vetinf/vetinf"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
+// ExportedCustomer is a customer exported from a VetInf
+// installation.
 type ExportedCustomer struct {
 	customerdb.Customer
+	Deleted bool
+}
+
+// ExportedAnimal is a animal patient record exported from a
+// VetInf installation.
+type ExportedAnimal struct {
+	v1alpha.PatientRecord
 	Deleted bool
 }
 
@@ -118,12 +128,6 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *ExportedCustome
 				dbCustomer.Metadata["vetinfInvalidPhone"] = true
 			}
 
-			// if we use "shadow" delete we can mark the customer as
-			// deleted immediately.
-			if customer.Meta.Deleted {
-				dbCustomer.Metadata["_deleted"] = true
-			}
-
 			select {
 			case customers <- dbCustomer:
 			case <-ctx.Done():
@@ -133,6 +137,85 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *ExportedCustome
 	}()
 
 	return customers, total, nil
+}
+
+func (e *Exporter) ExportAnimals(ctx context.Context) (<-chan *ExportedAnimal, int, error) {
+	log := logger.From(ctx)
+	animaldb, err := e.db.AnimalDB(e.cfg.VetInfEncoding)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataCh, errCh, total := animaldb.StreamAll(ctx)
+	records := make(chan *ExportedAnimal, 100)
+
+	go func() {
+		for err := range errCh {
+			log.Errorf("export: %s", err)
+		}
+	}()
+
+	go func() {
+		defer close(records)
+		for animal := range dataCh {
+			exported := &ExportedAnimal{
+				PatientRecord: v1alpha.PatientRecord{
+					AnimalID:       animal.AnimalID,
+					CustomerSource: "vetinf",
+					CustomerID:     animal.CustomerID,
+					Size:           animal.Size,
+					Species:        animal.Species,
+					Breed:          animal.Breed,
+					Birthday:       animal.Birthday,
+					Gender:         animal.Gender,
+					Name:           animal.Name,
+					SpecialDetail:  animal.SpecialDetail,
+					Color:          animal.Color,
+					ChipNumber:     animal.ChipNumber,
+				},
+				Deleted: animal.Meta.Deleted,
+			}
+
+			if animal.Extra1 != "" {
+				exported.Notes = append(exported.Notes, animal.Extra1)
+			}
+			if animal.Extra2 != "" {
+				exported.Notes = append(exported.Notes, animal.Extra2)
+			}
+			if animal.Extra3 != "" {
+				exported.Notes = append(exported.Notes, animal.Extra3)
+			}
+			if animal.Extra4 != "" {
+				exported.Notes = append(exported.Notes, animal.Extra4)
+			}
+			if animal.Extra5 != "" {
+				exported.Notes = append(exported.Notes, animal.Extra5)
+			}
+			if animal.Extra6 != "" {
+				exported.Notes = append(exported.Notes, animal.Extra6)
+			}
+			if animal.Extra7 != "" {
+				exported.Notes = append(exported.Notes, animal.Extra7)
+			}
+			if animal.Extra8 != "" {
+				exported.Notes = append(exported.Notes, animal.Extra8)
+			}
+			if animal.Extra9 != "" {
+				exported.Notes = append(exported.Notes, animal.Extra9)
+			}
+			if animal.Extra10 != "" {
+				exported.Notes = append(exported.Notes, animal.Extra10)
+			}
+
+			select {
+			case records <- exported:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	return records, total, nil
 }
 
 func addNumber(id string, numbers []string, number, country string, hasError *bool) []string {

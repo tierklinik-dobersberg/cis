@@ -12,9 +12,9 @@ import (
 )
 
 // GetByIDEndpoint returns a JSON version of the customer
-// with the given :id.
+// with the given :source/:id.
 //
-// GET /api/v1/customer/:id
+// GET /api/customer/v1/:source/:id
 func GetByIDEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/:source/:id",

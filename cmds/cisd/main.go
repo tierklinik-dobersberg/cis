@@ -19,6 +19,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/holidayapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/identityapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/importapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/patientapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/voicemailapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
@@ -27,6 +28,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/errorlog"
@@ -131,6 +133,8 @@ func getApp(ctx context.Context) *app.App {
 				commentapi.Setup(apis.Group("comments", session.Require()))
 				// voicemailapi allows access to voicemail mailboxes
 				voicemailapi.Setup(apis.Group("voicemail", session.Require()))
+				// patientapi allows access to patient data
+				patientapi.Setup(apis.Group("patient", session.Require()))
 			}
 
 			return nil
@@ -193,6 +197,11 @@ func getApp(ctx context.Context) *app.App {
 	customers, err := customerdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
 		logger.Fatalf(ctx, "customerdb: %s", err.Error())
+	}
+
+	patients, err := patientdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
+	if err != nil {
+		logger.Fatalf(ctx, "patientdb: %s", err.Error())
 	}
 
 	identities, err := identitydb.New(ctx, instance.ConfigurationDirectory, cfg.Country, cfg.UserProperties, httpcond.DefaultRegistry)
@@ -294,6 +303,7 @@ func getApp(ctx context.Context) *app.App {
 		matcher,
 		identities,
 		customers,
+		patients,
 		rosters,
 		comments,
 		voicemails,

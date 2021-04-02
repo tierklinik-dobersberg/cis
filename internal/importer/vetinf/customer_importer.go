@@ -32,14 +32,18 @@ func getCustomerImporter(app *app.App, exporter *Exporter) *importer.Instance {
 			for customer := range ch {
 				existing, err := app.Customers.CustomerByCID(ctx, "vetinf", customer.CustomerID)
 
+				if errors.Is(err, customerdb.ErrNotFound) {
+					err = nil
+				}
+
 				switch {
-				case errors.Is(err, customerdb.ErrNotFound) && !customer.Deleted:
+				case existing == nil && !customer.Deleted:
 					err = app.Customers.CreateCustomer(ctx, &customer.Customer)
 					if err == nil {
 						countNew++
 					}
 
-				case errors.Is(err, customerdb.ErrNotFound) && customer.Deleted:
+				case existing == nil && customer.Deleted:
 					// TODO(ppacher): create the customer if we use shadow-delete
 					skippedDeleted++
 

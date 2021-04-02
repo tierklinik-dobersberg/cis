@@ -20,6 +20,7 @@ func init() {
 
 			return []*importer.Instance{
 				getCustomerImporter(app, exporter),
+				getAnimalImporter(app, exporter),
 			}, nil
 		},
 	})
