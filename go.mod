@@ -30,7 +30,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/tevino/abool v1.2.0
 	github.com/tierklinik-dobersberg/go-vetinf v0.1.3
-	github.com/tierklinik-dobersberg/logger v0.2.0
+	github.com/tierklinik-dobersberg/logger v0.3.0
 	github.com/tierklinik-dobersberg/mailbox v0.0.4
 	github.com/tierklinik-dobersberg/service v0.2.1
 	github.com/vbauerster/mpb v3.4.0+incompatible
