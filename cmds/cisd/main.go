@@ -35,6 +35,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
+	"github.com/tierklinik-dobersberg/cis/internal/integration/mongolog"
 	"github.com/tierklinik-dobersberg/cis/internal/integration/rocket"
 	"github.com/tierklinik-dobersberg/cis/internal/mailsync"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
@@ -193,6 +194,14 @@ func getApp(ctx context.Context) *app.App {
 	// prepare databases and everything that requires MongoDB
 	//
 	mongoClient := getMongoClient(ctx, cfg.DatabaseURI)
+
+	if cfg.MongoLogConfig.Enabled {
+		mongoLogger, err := mongolog.NewWithClient(ctx, cfg.DatabaseName, mongoClient, cfg.MongoLogConfig)
+		if err != nil {
+			logger.Fatalf(ctx, "mongolog: %s", err.Error())
+		}
+		logAdapter.AddDefaultAdapter(mongoLogger)
+	}
 
 	customers, err := customerdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {

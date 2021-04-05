@@ -27,6 +27,7 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 		"OpeningHour":  schema.OpeningHoursSpec,
 		"Integration":  schema.IntegrationConfigSpec,
 		"Voicemail":    schema.VoiceMailSpec,
+		"MongoLog":     schema.MongoLogSpec,
 		"CORS":         server.CORSSpec,
 	},
 })

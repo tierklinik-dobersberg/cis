@@ -15,6 +15,8 @@ type Config struct {
 
 	schema.IntegrationConfig `section:"Integration"`
 
+	schema.MongoLogConfig `section:"MongoLog"`
+
 	OpeningHours   []schema.OpeningHours           `section:"OpeningHour"`
 	UserProperties []schema.UserPropertyDefinition `section:"UserProperty"`
 	Listeners      []server.Listener               `section:"Listener"`

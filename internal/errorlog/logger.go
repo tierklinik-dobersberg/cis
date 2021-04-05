@@ -24,15 +24,25 @@ func New(defaultAdapter logger.Adapter) *Adapter {
 }
 
 func (a *Adapter) Write(clock time.Time, severity logger.Severity, msg string, fields logger.Fields) {
+	a.rw.Lock()
+	defer a.rw.Unlock()
 	a.defaultAdapter.Write(clock, severity, msg, fields)
-
 	if severity == logger.Error {
-		a.rw.Lock()
-		defer a.rw.Unlock()
 
 		if a.errorAdapter != nil {
 			a.errorAdapter.Write(clock, severity, msg, fields)
 		}
+	}
+}
+
+func (a *Adapter) AddDefaultAdapter(adapter logger.Adapter) {
+	a.rw.Lock()
+	defer a.rw.Unlock()
+
+	if a.defaultAdapter == nil {
+		a.defaultAdapter = adapter
+	} else {
+		a.defaultAdapter = logger.MultiAdapter(a.defaultAdapter, adapter)
 	}
 }
 
