@@ -32,6 +32,11 @@
         <span>{{ callrecords.length > 0 ? (callrecords[0].date | date:'short':'':'de') : 'N/A' }}</span>
       </div>
 
+      <div class="info">
+        <label>Tiere</label>
+        <span>{{ patients?.length || 0 }}</span>
+      </div>
+
       <div class="info" *ngIf="!!missingData.length">
         <label>Fehlende Daten</label>
         <span>⚠️</span>
@@ -94,6 +99,35 @@
       </div>
     </nz-tab>
 
+    <nz-tab nzTitle="Patienten">
+      <div class="content-section">
+        <nz-list nzSize="small">
+          <nz-list-item *ngFor="let patient of patients">
+            <nz-list-item-meta>
+              <nz-list-item-meta-title>
+                <ng-container *ngIf="patient.name; else noName">
+                  {{ patient.name }}
+                </ng-container>
+                <ng-template #noName>
+                  <i>Kein Name</i>
+                </ng-template>
+              </nz-list-item-meta-title>
+
+              <nz-list-item-meta-description>
+                {{ patient.species }}
+                <ng-container *ngIf="patient.breed">
+                  &nbsp;|&nbsp;{{ patient.breed }}
+                </ng-container>
+                <ng-container *ngIf="patient.birthday">
+                  &nbsp; - <i nz-icon nzType="calendar" nzTheme="outline"></i> {{ patient.birthday }}
+                </ng-container>
+              </nz-list-item-meta-description>
+            </nz-list-item-meta>
+          </nz-list-item>
+        </nz-list>
+      </div>
+    </nz-tab>
+
     <nz-tab nzTitle="Anruf Journal">
       <ng-template nz-tab>
         <div class="content-section">
@@ -105,8 +139,8 @@
           </div>
           <div class="chart-container">
             <ngx-charts-heat-map [results]="heatMapSeries" [legend]="false" xAxisLabel="Wochentag" yAxisLabel="Uhrzeit"
-              [scheme]="{domain: ['#5AA454', '#A10A28']}" [showXAxisLabel]="true" [showYAxisLabel]="true" [xAxis]="true"
-              [yAxis]="true">
+              [scheme]="{domain: ['#5AA45410', '#A10A2850']}" [showXAxisLabel]="true" [showYAxisLabel]="true"
+              [xAxis]="true" [yAxis]="true">
             </ngx-charts-heat-map>
           </div>
 

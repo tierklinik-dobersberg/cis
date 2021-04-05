@@ -11,3 +11,4 @@ export * from './import.api';
 export * from './comment.api';
 export * from './voicemail.api';
 export * from './user.service';
+export * from './patient.api';

@@ -1,11 +1,10 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { sum } from 'ng-zorro-antd/core/util';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, combineLatest, forkJoin, of, Subscription } from 'rxjs';
-import { catchError, mergeMap, tap } from 'rxjs/operators';
-import { CallLogModel, CalllogAPI, CallLog, UserService, CommentAPI, Comment } from 'src/app/api';
-import { CustomerAPI } from 'src/app/api/customer.api';
+import { catchError, mergeMap } from 'rxjs/operators';
+import { CallLog, CalllogAPI, CallLogModel, Comment, CommentAPI, LocalPatient, PatientAPI, UserService } from 'src/app/api';
+import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage } from 'src/app/utils';
@@ -21,6 +20,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     public layout: LayoutService,
     private header: HeaderTitleService,
     private customerapi: CustomerAPI,
+    private patientapi: PatientAPI,
     private calllogapi: CalllogAPI,
     private userService: UserService,
     private activatedRoute: ActivatedRoute,
@@ -28,6 +28,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     private nzMessageService: NzMessageService,
     private changeDetector: ChangeDetectorRef
   ) { }
+
   private subscriptions = Subscription.EMPTY;
 
   allComments: Comment[] = [];
@@ -40,6 +41,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
   commentText = '';
   showCommentDrawer = false;
   missingData: string[] = [];
+  patients: LocalPatient[] = [];
 
   heatMapSeries: any[] = [];
   callLogSeries: any[] = [];
@@ -87,6 +89,13 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscriptions = new Subscription();
 
+    interface ForkJoinResult {
+      customer: Customer;
+      calllogs: CallLog[];
+      patients: LocalPatient[];
+      notes: Comment[];
+    }
+
     const routerSub = combineLatest([
       this.activatedRoute.paramMap,
       this.userService.updated,
@@ -99,6 +108,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
           return forkJoin({
             customer: this.customerapi.byId(source, id),
             calllogs: this.calllogapi.forCustomer(source, id),
+            patients: this.patientapi.getPatientsForCustomer(source, id),
             notes: this.commentapi.list(`customer:primaryNote:${source}:${id}`, false, true)
               .pipe(catchError(err => of([])))
           });
@@ -108,7 +118,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
           return of(null);
         }),
       )
-      .subscribe(result => {
+      .subscribe((result: ForkJoinResult | null) => {
         if (!result) {
           this.header.set(`Kunde: N/A`);
           return;
@@ -129,7 +139,10 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
           ...result.customer,
           tagColor: customerTagColor(result.customer),
         };
-        this.findMissingData();
+
+        this.patients = result.patients,
+
+          this.findMissingData();
 
         this.header.set(`Kunde: ${this.customer.name} ${this.customer.firstname}`);
         this.changeDetector.detectChanges();

@@ -23,6 +23,7 @@ import { CustomerViewComponent } from './customer-view';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
+import { NzPopoverModule } from 'ng-zorro-antd/popover';
 
 @NgModule({
   imports: [
@@ -45,6 +46,7 @@ import { NzDrawerModule } from 'ng-zorro-antd/drawer';
     NzTableModule,
     NzEmptyModule,
     NzGridModule,
+    NzPopoverModule,
     NgxChartsModule,
     SharedModule,
     ScrollingModule,
