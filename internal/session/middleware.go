@@ -12,15 +12,17 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/jwt"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
-	"github.com/tierklinik-dobersberg/logger"
 )
+
+var log = pkglog.New("session")
 
 // Middleware extracts session data from incoming HTTP requests
 // and handles automatic issueing of new access tokens for
 // provided refresh tokens.
 func (mng *Manager) Middleware(c *gin.Context) {
-	log := logger.From(c.Request.Context())
+	log := log.From(c.Request.Context())
 
 	aborted := false
 	defer func() {
@@ -153,9 +155,9 @@ func Require() gin.HandlerFunc {
 		sess := Get(c)
 		if sess == nil || sess.AccessUntil == nil {
 			if sess == nil {
-				logger.Infof(c.Request.Context(), "Request without a valid session, aborting")
+				log.From(c.Request.Context()).Infof("Request without a valid session, aborting")
 			} else {
-				logger.Infof(c.Request.Context(), "Request session without access scope, aborting")
+				log.From(c.Request.Context()).Infof("Request session without access scope, aborting")
 			}
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "no access token provided",

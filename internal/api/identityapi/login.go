@@ -38,7 +38,7 @@ func LoginEndpoint(grp *app.Router) {
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			var user *v1alpha.User
 
-			log := logger.From(ctx)
+			log := log.From(ctx)
 
 			// Autologin may have assigned a new session cookie for the
 			// request. Make sure we clear that out for the login

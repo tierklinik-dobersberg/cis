@@ -6,8 +6,10 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/logger"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 )
+
+var log = pkglog.New("httperr")
 
 // StatusCoder returns the HTTP status code that
 // should be used for the error.
@@ -118,18 +120,19 @@ func Abort(c *gin.Context, err error) {
 
 func Middleware(c *gin.Context) {
 	c.Next()
-	logger.From(c.Request.Context()).Infof("request %s finished errors=%d", c.Request.URL, len(c.Errors))
+	log := log.From(c.Request.Context())
+	log.Infof("request %s finished errors=%d", c.Request.URL, len(c.Errors))
 
 	// nothing to do if the status has already been written.
 	if c.Writer.Written() {
-		logger.From(c.Request.Context()).Infof("request already written: %d", c.Writer.Status())
+		log.Infof("request already written: %d", c.Writer.Status())
 		return
 	}
 
 	// No error recorded and not status/content written,
 	// try to do it ourself.
 	if len(c.Errors) == 0 {
-		logger.From(c.Request.Context()).Infof("finishing request with 201 No Content")
+		log.Infof("finishing request with 201 No Content")
 		c.Status(http.StatusNoContent)
 		return
 	}
@@ -137,7 +140,7 @@ func Middleware(c *gin.Context) {
 	// we only care about the very last error here.
 	// The error handling in gin is a bit weired IMHO.
 	lastErr := c.Errors.Last().Err
-	logger.From(c.Request.Context()).Infof("aborting request. last error reported was %s", lastErr)
+	log.Infof("aborting request. last error reported was %s", lastErr)
 	Abort(c, lastErr)
 }
 

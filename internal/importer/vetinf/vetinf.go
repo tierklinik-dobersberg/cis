@@ -8,11 +8,14 @@ import (
 	"github.com/nyaruka/phonenumbers"
 	"github.com/spf13/afero"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/patient/v1alpha"
 	"github.com/tierklinik-dobersberg/go-vetinf/vetinf"
 	"github.com/tierklinik-dobersberg/logger"
 )
+
+var log = pkglog.New("vetinf")
 
 // ExportedCustomer is a customer exported from a VetInf
 // installation.
@@ -60,7 +63,7 @@ func NewExporter(cfg schema.VetInf, country string) (*Exporter, error) {
 // the returned channel. Errors encountered when exporting single
 // customers are logged and ignored.
 func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *ExportedCustomer, int, error) {
-	log := logger.From(ctx)
+	log := log.From(ctx)
 
 	customerDB, err := e.db.CustomerDB(e.cfg.VetInfEncoding)
 	if err != nil {
@@ -124,7 +127,7 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *ExportedCustome
 			}
 
 			if hasInvalidPhone {
-				logger.Infof(ctx, "customer %s has invalid phone numer", key)
+				log.Infof("customer %s has invalid phone numer", key)
 				dbCustomer.Metadata["vetinfInvalidPhone"] = true
 			}
 
@@ -140,7 +143,7 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *ExportedCustome
 }
 
 func (e *Exporter) ExportAnimals(ctx context.Context) (<-chan *ExportedAnimal, int, error) {
-	log := logger.From(ctx)
+	log := log.From(ctx)
 	animaldb, err := e.db.AnimalDB(e.cfg.VetInfEncoding)
 	if err != nil {
 		return nil, 0, err
@@ -222,6 +225,7 @@ func addNumber(id string, numbers []string, number, country string, hasError *bo
 	p, err := phonenumbers.Parse(number, country)
 	if err != nil {
 		*hasError = true
+		// FIXME(ppacher): provide logger
 		logger.DefaultLogger().Infof("%s failed to parse phone number: %q in country %s: %s", id, number, country, err)
 		return numbers
 	}

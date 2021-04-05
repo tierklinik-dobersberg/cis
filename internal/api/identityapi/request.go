@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/logger"
 )
 
 // NewPermissionRequest returns a new permission request for c by either parsing
@@ -28,7 +27,7 @@ func NewPermissionRequest(ctx context.Context, c *gin.Context) (*permission.Requ
 		return perm, nil
 	}
 
-	logger.From(ctx).Infof("no X-Original-URL header present, using X-Forwarded headers")
+	log.From(ctx).Infof("no X-Original-URL header present, using X-Forwarded headers")
 
 	proto := c.Request.Header.Get("X-Forwarded-Proto")
 	host := c.Request.Header.Get("X-Forwarded-Host")

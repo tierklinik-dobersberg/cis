@@ -3,7 +3,10 @@ package externalapi
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 )
+
+var log = pkglog.New("externalapi")
 
 // Setup configures all integrationapi endpoints.
 func Setup(grp gin.IRouter) {

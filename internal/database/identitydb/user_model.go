@@ -9,7 +9,6 @@ import (
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
-	"github.com/tierklinik-dobersberg/logger"
 )
 
 type user struct {
@@ -88,7 +87,7 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, autologinCondi
 	for idx, phone := range u.PhoneNumber {
 		parsed, err := phonenumbers.Parse(phone, country)
 		if err != nil {
-			logger.Errorf(context.Background(), "Failed to parse phone number %s from user %s: %s", phone, u.Name, err)
+			log.From(context.TODO()).Errorf("Failed to parse phone number %s from user %s: %s", phone, u.Name, err)
 			continue
 		}
 

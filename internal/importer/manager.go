@@ -9,8 +9,11 @@ import (
 	"github.com/robfig/cron/v3"
 	"github.com/tevino/abool"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/logger"
 )
+
+var log = pkglog.New("importer")
 
 // Handler is capable of importing data from an external source.
 type Handler interface {
@@ -107,14 +110,12 @@ func New(ctx context.Context, app *app.App) (*Importer, error) {
 }
 
 func (imp *Importer) setup(ctx context.Context, app *app.App) error {
-	log := logger.From(ctx)
-
 	factoriesLock.RLock()
 	defer factoriesLock.RUnlock()
 
 	var instances []*Instance
 	for _, fn := range factories {
-		log.Infof("creating importers for %s", fn.Name)
+		log.From(ctx).Infof("creating importers for %s", fn.Name)
 		res, err := fn.Setup(app)
 		if err != nil {
 			return fmt.Errorf("importer %s: %w", fn.Name, err)
@@ -123,7 +124,7 @@ func (imp *Importer) setup(ctx context.Context, app *app.App) error {
 		for _, inst := range res {
 			var err error
 			inst.schedule, err = cron.ParseStandard(inst.Schedule)
-			inst.log = logger.From(ctx).WithFields(logger.Fields{
+			inst.log = log.From(ctx).WithFields(logger.Fields{
 				"importer": fn.Name,
 				"id":       inst.ID,
 			})
@@ -142,7 +143,7 @@ func (imp *Importer) setup(ctx context.Context, app *app.App) error {
 		imp.instances = append(imp.instances, inst)
 	}
 
-	log.Infof("created and scheduled %d importers", len(instances))
+	log.From(ctx).Infof("created and scheduled %d importers", len(instances))
 
 	return nil
 }

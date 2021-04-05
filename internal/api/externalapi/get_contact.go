@@ -13,7 +13,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/customer/v1alpha"
-	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -73,7 +72,7 @@ func GetContactEndpoint(grp *app.Router) {
 						contact.Name = phone
 					}
 
-					logger.From(ctx).Infof("returning unknown customer (%s/%d): %s for %q", contact.Source, contact.CustomerID, contact.Name, phone)
+					log.From(ctx).Infof("returning unknown customer (%s/%d): %s for %q", contact.Source, contact.CustomerID, contact.Name, phone)
 
 					c.JSON(http.StatusOK, contact)
 					return nil
@@ -88,7 +87,7 @@ func GetContactEndpoint(grp *app.Router) {
 			*/
 			if len(customers) > 1 {
 				//return httperr.WithCode(http.StatusMultipleChoices, errors.New("to many matches for "+phone))
-				logger.Errorf(ctx, "multiple (%d) results found for %s", len(customers), phone)
+				log.From(ctx).Errorf("multiple (%d) results found for %s", len(customers), phone)
 			}
 
 			response := ContactResponse{

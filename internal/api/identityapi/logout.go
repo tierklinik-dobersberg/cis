@@ -8,7 +8,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
-	"github.com/tierklinik-dobersberg/logger"
 )
 
 // LogoutEndpoint clears the session cookie. It does not invalidate
@@ -24,7 +23,7 @@ func LogoutEndpoint(grp *app.Router) {
 			}
 
 			if err := app.Sessions.Delete(c); err != nil {
-				logger.From(ctx).Errorf("failed to delete session: %s", err)
+				log.From(ctx).Errorf("failed to delete session: %s", err)
 			}
 
 			c.Status(http.StatusOK)

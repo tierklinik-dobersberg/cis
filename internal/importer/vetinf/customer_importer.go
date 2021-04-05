@@ -17,6 +17,7 @@ func getCustomerImporter(app *app.App, exporter *Exporter) *importer.Instance {
 		RunImmediately: true,
 		Handler: importer.ImportFunc(func() error {
 			ctx := context.Background()
+			log := log.From(ctx)
 
 			ch, _, err := exporter.ExportCustomers(ctx)
 			if err != nil {
@@ -67,11 +68,11 @@ func getCustomerImporter(app *app.App, exporter *Exporter) *importer.Instance {
 				}
 
 				if err != nil {
-					logger.Errorf(ctx, "failed to import customer %s: %s", customer.CustomerID, err)
+					log.Errorf("failed to import customer %s: %s", customer.CustomerID, err)
 				}
 			}
 
-			logger.From(ctx).WithFields(logger.Fields{
+			log.WithFields(logger.Fields{
 				"new":            countNew,
 				"updated":        countUpdated,
 				"unchanged":      countUnchanged,

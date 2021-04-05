@@ -9,12 +9,14 @@ import (
 
 	"github.com/antzucaro/matchr"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
-	"github.com/tierklinik-dobersberg/logger"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+var log = pkglog.New("customerdb")
 
 // CustomerCollection is the MongoDB collection name
 // that holds all customers.
@@ -68,7 +70,7 @@ func New(ctx context.Context, url, dbName string) (Database, error) {
 	if err != nil {
 		defer func() {
 			if err := client.Disconnect(ctx); err != nil {
-				logger.Errorf(ctx, "failed to gracefully disconnect from MongoDB: %s", err)
+				log.From(ctx).Errorf("failed to gracefully disconnect from MongoDB: %s", err)
 			}
 		}()
 		return nil, err
@@ -147,7 +149,7 @@ func (db *database) CreateCustomer(ctx context.Context, cu *Customer) error {
 	if id, ok := result.InsertedID.(primitive.ObjectID); ok {
 		cu.ID = id
 	} else {
-		logger.From(ctx).Errorf("invalid type in result.InsertedID, expected primitv.ObjectID but got %T", result.InsertedID)
+		log.From(ctx).Errorf("invalid type in result.InsertedID, expected primitv.ObjectID but got %T", result.InsertedID)
 	}
 
 	return nil

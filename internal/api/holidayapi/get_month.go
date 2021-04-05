@@ -12,7 +12,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/logger"
 )
 
 // GetForMonthEndpoint returns all holidays in the
@@ -22,7 +21,7 @@ func GetForMonthEndpoint(grp *app.Router) {
 		"v1/:year/:month",
 		permission.Anyone, // public domain
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			log := logger.From(ctx)
+			log := log.From(ctx)
 
 			year, err := strconv.ParseInt(c.Param("year"), 10, 64)
 			if err != nil {

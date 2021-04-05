@@ -15,13 +15,15 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/mailsync"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/voicemail/v1alpha"
-	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/mailbox"
 	"github.com/tierklinik-dobersberg/service/svcenv"
 	"go.mongodb.org/mongo-driver/bson"
 )
+
+var log = pkglog.New("voicemail")
 
 // Mailbox handles voicmails.
 type Mailbox struct {
@@ -80,7 +82,7 @@ func New(
 
 // HandleMail implements mailsync.MessageHandler.
 func (box *Mailbox) HandleMail(ctx context.Context, mail *mailbox.EMail) {
-	log := logger.From(ctx)
+	log := log.From(ctx)
 
 	texts := mail.FindByMIME("text/plain")
 	if len(texts) == 0 {

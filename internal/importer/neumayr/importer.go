@@ -22,6 +22,7 @@ func NewImporter(app *app.App) *Importer {
 }
 
 func (imp *Importer) Import(ctx context.Context, mdb *os.File) (countNew, countUpdated, countUnchanged int, err error) {
+	log := log.From(ctx)
 	converter, err := NewConverter(imp.app.Config.Country)
 	if err != nil {
 		return 0, 0, 0, err
@@ -50,11 +51,11 @@ func (imp *Importer) Import(ctx context.Context, mdb *os.File) (countNew, countU
 		}
 
 		if err != nil {
-			logger.Errorf(ctx, "failed to import customer %s: %s", customer.CustomerID, err)
+			log.Errorf("failed to import customer %s: %s", customer.CustomerID, err)
 		}
 	}
 
-	logger.From(ctx).WithFields(logger.Fields{
+	log.WithFields(logger.Fields{
 		"new":       countNew,
 		"updated":   countUpdated,
 		"unchanged": countUnchanged,

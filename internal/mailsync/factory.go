@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/mailbox"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
+
+var log = pkglog.New("mailsync")
 
 // Manager manages mail syncers and persists their state in
 // a mongodb collection.
@@ -38,6 +41,8 @@ func (mng *Manager) setup(ctx context.Context) error {
 
 // NewSyncer returns a new
 func (mng *Manager) NewSyncer(ctx context.Context, name string, interval time.Duration, cfg *mailbox.Config) (*Syncer, error) {
+	log := log.From(ctx)
+
 	result := mng.syncState.FindOne(ctx, bson.M{"name": name})
 	if result.Err() != nil && !errors.Is(result.Err(), mongo.ErrNoDocuments) {
 		return nil, fmt.Errorf("loading state: %w", result.Err())
@@ -59,7 +64,7 @@ func (mng *Manager) NewSyncer(ctx context.Context, name string, interval time.Du
 	defer func() {
 		_, err := cli.IMAP.Logout(time.Second * 5)
 		if err != nil {
-			logger.Errorf(ctx, "failed to perform IMAP logout: %s", err)
+			log.Errorf("failed to perform IMAP logout: %s", err)
 		}
 	}()
 
@@ -68,7 +73,7 @@ func (mng *Manager) NewSyncer(ctx context.Context, name string, interval time.Du
 		syncState:    mng.syncState,
 		cfg:          cfg,
 		pollInterval: interval,
-		log: logger.From(ctx).WithFields(logger.Fields{
+		log: log.WithFields(logger.Fields{
 			"mailbox": name,
 		}),
 	}

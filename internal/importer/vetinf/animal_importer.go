@@ -17,6 +17,7 @@ func getAnimalImporter(app *app.App, exporter *Exporter) *importer.Instance {
 		Schedule:       app.Config.VetInfImportSchedule,
 		Handler: importer.ImportFunc(func() error {
 			ctx := context.Background()
+			log := log.From(ctx)
 
 			ch, _, err := exporter.ExportAnimals(ctx)
 			if err != nil {
@@ -67,10 +68,10 @@ func getAnimalImporter(app *app.App, exporter *Exporter) *importer.Instance {
 				}
 
 				if err != nil {
-					logger.Errorf(ctx, "failed to import patient: %s", err)
+					log.Errorf("failed to import patient: %s", err)
 				}
 			}
-			logger.From(ctx).WithFields(logger.Fields{
+			log.WithFields(logger.Fields{
 				"new":            countNew,
 				"updated":        countUpdated,
 				"unchanged":      countUnchanged,

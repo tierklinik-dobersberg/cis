@@ -56,7 +56,7 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 }
 
 func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.DoctorOnDuty, time.Time, bool, error) {
-	log := logger.From(ctx)
+	log := log.From(ctx)
 
 	// find out if we need to the doctor-on-duty from today or the day before
 	// depending on the ChangeOnDuty time for today.

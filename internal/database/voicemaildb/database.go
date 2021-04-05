@@ -5,13 +5,15 @@ import (
 	"errors"
 
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/voicemail/v1alpha"
-	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+var log = pkglog.New("voicemaildb")
 
 // Database defines the interface to create and search for voicemail
 // records.
@@ -132,7 +134,7 @@ func (db *database) UpdateSeenFlag(ctx context.Context, id string, seen bool) er
 
 func (db *database) Search(ctx context.Context, opt *SearchOptions) ([]v1alpha.VoiceMailRecord, error) {
 	filter := opt.Build()
-	logger.From(ctx).Infof("Searching voicemails for %+v", filter)
+	log.From(ctx).Infof("Searching voicemails for %+v", filter)
 	return db.findRecords(ctx, filter)
 }
 

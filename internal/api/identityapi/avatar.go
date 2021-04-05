@@ -13,7 +13,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/logger"
 )
 
 // AvatarEndpoint serves the user avatar as an image.
@@ -22,7 +21,7 @@ func AvatarEndpoint(grp *app.Router) {
 		"v1/avatar/:userName",
 		permission.Anyone,
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			log := logger.From(ctx)
+			log := log.From(ctx)
 			userName := c.Param("userName")
 			if userName == "" {
 				return httperr.BadRequest(nil, "missing username parameter")
@@ -61,7 +60,7 @@ func AvatarEndpoint(grp *app.Router) {
 func loadAvatar(ctx context.Context, path string, fileName string) (io.ReadSeeker, error) {
 	filePath := filepath.Clean(filepath.Join(path, fileName))
 
-	logger.Infof(ctx, "Loading avatar from %s", filePath)
+	log.From(ctx).Infof("Loading avatar from %s", filePath)
 
 	f, err := os.Open(filePath)
 	if err != nil {

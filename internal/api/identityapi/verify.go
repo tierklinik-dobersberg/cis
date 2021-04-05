@@ -15,7 +15,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
-	"github.com/tierklinik-dobersberg/logger"
 )
 
 // VerifyEndpoint verifies a permission request.
@@ -24,7 +23,7 @@ func VerifyEndpoint(grp *app.Router) {
 		"v1/verify",
 		permission.Anyone,
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			log := logger.From(ctx)
+			log := log.From(ctx)
 
 			sess := session.Get(c)
 			if sess == nil {
@@ -65,7 +64,7 @@ func VerifyEndpoint(grp *app.Router) {
 }
 
 func verifyBasicAuth(ctx context.Context, db identitydb.Database, header string) (*v1alpha.User, error) {
-	log := logger.From(ctx)
+	log := log.From(ctx)
 
 	// We only support "Basic" auth so error out immediately for any
 	// other technique.

@@ -30,7 +30,7 @@ type OverwriteEvent struct {
 func (db *database) fireChangeEvent(ctx context.Context, month time.Month, year int) {
 	roster, err := db.ForMonth(ctx, month, year)
 	if err != nil {
-		logger.From(ctx).WithFields(logger.Fields{
+		log.From(ctx).WithFields(logger.Fields{
 			"year":  year,
 			"month": month,
 		}).Errorf("failed to fire event: %s", err)

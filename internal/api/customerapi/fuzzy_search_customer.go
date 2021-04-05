@@ -12,7 +12,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	v1 "github.com/tierklinik-dobersberg/cis/pkg/models/customer/v1alpha"
-	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -72,8 +71,6 @@ func FuzzySearchEndpoint(grp *app.Router) {
 			if mail := c.Query("mail"); mail != "" {
 				filter["mailAddresses"] = mail
 			}
-
-			logger.Infof(ctx, "%+v", filter)
 
 			customers, err := app.Customers.FilterCustomer(ctx, filter)
 			if err != nil {

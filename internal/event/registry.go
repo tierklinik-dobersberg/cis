@@ -5,8 +5,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/logger"
 )
+
+var log = pkglog.New("event")
 
 type subscription struct {
 	topic      string
@@ -24,7 +27,7 @@ func (reg *Registry) Fire(ctx context.Context, id string, payload EventData) {
 	reg.l.RLock()
 	defer reg.l.RUnlock()
 
-	log := logger.From(ctx).WithFields(logger.Fields{
+	log := log.From(ctx).WithFields(logger.Fields{
 		"eventID": id,
 	})
 

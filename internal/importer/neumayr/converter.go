@@ -13,8 +13,10 @@ import (
 
 	"github.com/nyaruka/phonenumbers"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
-	"github.com/tierklinik-dobersberg/logger"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 )
+
+var log = pkglog.New("neumayr")
 
 // Converter converts contact data from Neumayr installations.
 type Converter struct {
@@ -29,13 +31,14 @@ func NewConverter(country string) (*Converter, error) {
 }
 
 func (conv *Converter) Convert(ctx context.Context, mdb *os.File) ([]customerdb.Customer, error) {
-	logger.Infof(ctx, "converting MDB to CSV archive using RebaseData")
+	log := log.From(ctx)
+	log.Infof("converting MDB to CSV archive using RebaseData")
 	zipFile, err := ConvertMDB(mdb)
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Infof(ctx, "Parsing records ...")
+	log.Infof("Parsing records ...")
 	size, err := zipFile.Seek(0, 2)
 	if err != nil {
 		return nil, fmt.Errorf("failed to seek to end: %w", err)
@@ -87,7 +90,7 @@ func (conv *Converter) Convert(ctx context.Context, mdb *os.File) ([]customerdb.
 		}
 
 		if err != nil {
-			logger.Errorf(ctx, "failed to read record from CSV file: %s", err)
+			log.Errorf("failed to read record from CSV file: %s", err)
 			if !errors.Is(err, csv.ErrFieldCount) {
 				continue
 			}
@@ -118,7 +121,7 @@ func (conv *Converter) Convert(ctx context.Context, mdb *os.File) ([]customerdb.
 		rawID := get("ID")
 		id, err := strconv.ParseInt(rawID, 10, 0)
 		if err != nil {
-			logger.Errorf(ctx, "failed to parse user ID %q: %s", rawID, err)
+			log.Errorf("failed to parse user ID %q: %s", rawID, err)
 			// We NEED an ID so skip this record.
 			continue
 		}
@@ -140,7 +143,7 @@ func (conv *Converter) Convert(ctx context.Context, mdb *os.File) ([]customerdb.
 		cityParts := strings.SplitN(addressParts[0], " ", 2)
 		cityCode, err := strconv.ParseInt(cityParts[0], 10, 0)
 		if err != nil {
-			logger.Errorf(ctx, "failed to parse city code from %q: %s", addressParts[0])
+			log.Errorf("failed to parse city code from %q: %s", addressParts[0])
 		}
 		city := addressParts[0]
 		if len(cityParts) == 2 {
@@ -152,7 +155,7 @@ func (conv *Converter) Convert(ctx context.Context, mdb *os.File) ([]customerdb.
 		if len(rawPhone) > 3 {
 			phone, err = phonenumbers.Parse(rawPhone, conv.country)
 			if err != nil {
-				logger.Errorf(ctx, "failed to parse phone number from %q: %s", rawPhone, err)
+				log.Errorf("failed to parse phone number from %q: %s", rawPhone, err)
 			}
 		}
 

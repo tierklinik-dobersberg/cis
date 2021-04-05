@@ -13,7 +13,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/calllog/v1alpha"
-	"github.com/tierklinik-dobersberg/logger"
 )
 
 type recordCallRequest struct {
@@ -52,7 +51,7 @@ func RecordCallEndpoint(grp *app.Router) {
 				if errparam := c.Query("error"); errparam != "" {
 					b, err := strconv.ParseBool(errparam)
 					if err != nil {
-						logger.From(ctx).Errorf("invalid error boolean %q, assuming true", err)
+						log.From(ctx).Errorf("invalid error boolean %q, assuming true", err)
 						b = true
 					}
 					record.Error = b
@@ -87,7 +86,7 @@ func RecordCallEndpoint(grp *app.Router) {
 
 				date, err := time.ParseInLocation("02.01.2006 15:04", payload.DateTime, app.Location())
 				if err != nil {
-					logger.Errorf(ctx, "failed to parse calllog dateTime %s: %s", payload.DateTime, err)
+					log.From(ctx).Errorf("failed to parse calllog dateTime %s: %s", payload.DateTime, err)
 					return httperr.InvalidField("dateTime")
 				}
 				record.Date = date
@@ -96,16 +95,6 @@ func RecordCallEndpoint(grp *app.Router) {
 					return err
 				}
 			}
-
-			/*
-				reqBlob, err := httputil.DumpRequest(c.Request, true)
-				if err != nil {
-					logger.Errorf(ctx, "failed to dump request: %s", err)
-				}
-				if err := ioutil.WriteFile("/log/record-call-request.dump", reqBlob, 0700); err != nil {
-					logger.Errorf(ctx, "failed to dump request: %s", err)
-				}
-			*/
 
 			c.Status(http.StatusNoContent)
 			return nil

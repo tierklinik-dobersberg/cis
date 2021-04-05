@@ -7,7 +7,10 @@ import (
 	"sync"
 
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 )
+
+var log = pkglog.New("httpcond")
 
 // MatchFunc is the func that validates if a request fullfills
 // a condition. Its passed the incoming HTTP request and the

@@ -6,13 +6,15 @@ import (
 	"time"
 
 	"github.com/nyaruka/phonenumbers"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/calllog/v1alpha"
-	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+var log = pkglog.New("calllogdb")
 
 // Database supports storing and retrieving of calllog records.
 type Database interface {
@@ -81,27 +83,28 @@ func (db *database) setup(ctx context.Context) error {
 	return nil
 }
 
-func (db *database) CreateUnidentified(ctx context.Context, log v1alpha.CallLog) error {
-	if err := db.perpareRecord(ctx, &log); err != nil {
+func (db *database) CreateUnidentified(ctx context.Context, record v1alpha.CallLog) error {
+	if err := db.perpareRecord(ctx, &record); err != nil {
 		return err
 	}
 
-	result, err := db.callogs.InsertOne(ctx, log)
+	result, err := db.callogs.InsertOne(ctx, record)
 	if err != nil {
 		return err
 	}
 
 	// Just make sure the result is what we expect.
 	if id, ok := result.InsertedID.(primitive.ObjectID); ok {
-		log.ID = id
+		record.ID = id
 	} else {
-		logger.From(ctx).Errorf("invalid type in result.InsertedID, expected primitive.ObjectID but got %T", result.InsertedID)
+		log.From(ctx).Errorf("invalid type in result.InsertedID, expected primitive.ObjectID but got %T", result.InsertedID)
 	}
 
 	return nil
 }
 
 func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallLog) error {
+	log := log.From(ctx)
 	if err := db.perpareRecord(ctx, &record); err != nil {
 		return err
 	}
@@ -114,7 +117,7 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 		"datestr": record.DateStr,
 		"caller":  record.Caller,
 	}
-	logger.Infof(ctx, "searching for %+v", filter)
+	log.Infof("searching for %+v", filter)
 	cursor, err := db.callogs.Find(ctx, filter, opts)
 	if err != nil {
 		return err
@@ -129,7 +132,7 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 
 	for cursor.Next(ctx) {
 		if err := cursor.Decode(&existing); err != nil {
-			logger.Errorf(ctx, "failed to decode existing calllog record: %s", err)
+			log.Errorf("failed to decode existing calllog record: %s", err)
 		} else {
 			if lower.Before(existing.Date) && upper.After(existing.Date) {
 				found = true
@@ -139,7 +142,7 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 	}
 	// we only log error here and still create the record.
 	if cursor.Err() != nil {
-		logger.Errorf(ctx, "failed to search for unidentified calllog record: %s", cursor.Err())
+		log.Errorf("failed to search for unidentified calllog record: %s", cursor.Err())
 	}
 
 	if found {
@@ -152,14 +155,14 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 			return result.Err()
 		}
 
-		logger.Infof(ctx, "replaced unidentified calllog for %s with customer-record for %s:%s", record.Caller, record.CustomerSource, record.CustomerID)
+		log.Infof("replaced unidentified calllog for %s with customer-record for %s:%s", record.Caller, record.CustomerSource, record.CustomerID)
 	} else {
 		_, err := db.callogs.InsertOne(ctx, record)
 		if err != nil {
 			return err
 		}
 
-		logger.Infof(ctx, "created new customer-record for %s:%s with phone number %s", record.CustomerSource, record.CustomerID, record.Caller)
+		log.Infof("created new customer-record for %s:%s with phone number %s", record.CustomerSource, record.CustomerID, record.Caller)
 	}
 
 	return nil
@@ -167,7 +170,7 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 
 func (db *database) Search(ctx context.Context, query *SearchQuery) ([]v1alpha.CallLog, error) {
 	filter := query.Build()
-	logger.From(ctx).Infof("Searching callogs for %+v", filter)
+	log.From(ctx).Infof("Searching callogs for %+v", filter)
 
 	opts := options.Find().SetSort(bson.M{"date": -1})
 	cursor, err := db.callogs.Find(ctx, filter, opts)
@@ -189,7 +192,7 @@ func (db *database) perpareRecord(ctx context.Context, record *v1alpha.CallLog) 
 	if record.Caller != "Anonymous" {
 		parsed, err := phonenumbers.Parse(record.Caller, db.country)
 		if err != nil {
-			logger.Errorf(ctx, "failed to parse caller phone number %s: %s", record.Caller, err)
+			log.From(ctx).Errorf("failed to parse caller phone number %s: %s", record.Caller, err)
 			return err
 		}
 		formattedNumber = phonenumbers.Format(parsed, phonenumbers.INTERNATIONAL)

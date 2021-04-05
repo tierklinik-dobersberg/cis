@@ -3,8 +3,11 @@ package identityapi
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
 )
+
+var log = pkglog.New("identityapi")
 
 // Setup sets up all routes for the identity API.
 func Setup(grp gin.IRouter) {

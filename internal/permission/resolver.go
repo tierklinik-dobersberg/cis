@@ -58,7 +58,7 @@ func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string) ([
 		permissions = append(permissions, rolePermissions)
 	}
 
-	logger.From(ctx).WithFields(logger.Fields{
+	log.From(ctx).WithFields(logger.Fields{
 		"total":     countIndirect + countDirect,
 		"direct":    countDirect,
 		"inherited": countIndirect,

@@ -5,9 +5,11 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
-	"github.com/tierklinik-dobersberg/logger"
 )
+
+var log = pkglog.New("permission")
 
 // Matcher is used to decide on permission requests.
 type Matcher struct {
@@ -23,7 +25,7 @@ func NewMatcher(resolver *Resolver) *Matcher {
 // request is permitted or not. In case of an error, false and the error is
 // returned.
 func (match *Matcher) Decide(ctx context.Context, req *Request) (bool, error) {
-	l := logger.From(ctx).WithFields(req.AsFields())
+	l := log.From(ctx).WithFields(req.AsFields())
 
 	permissions, err := match.resolver.ResolveUserPermissions(ctx, req.User)
 	if err != nil {
@@ -77,7 +79,7 @@ func MatchNeedle(ctx context.Context, needle string, haystack []string) bool {
 	for _, hay := range haystack {
 		re, err := regexp.Compile(hay)
 		if err != nil {
-			logger.From(ctx).Errorf("failed to compile regexp %q: %s", hay, err)
+			log.From(ctx).Errorf("failed to compile regexp %q: %s", hay, err)
 			continue
 		}
 

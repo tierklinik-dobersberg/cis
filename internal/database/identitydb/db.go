@@ -14,10 +14,12 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/passwd"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
-	"github.com/tierklinik-dobersberg/logger"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var log = pkglog.New("identitydb")
 
 var (
 	// ErrNotFound is returned when the requested user or role does not
@@ -95,7 +97,7 @@ func New(ctx context.Context, dir, country string, userProperties []schema.UserP
 }
 
 func (db *identDB) Authenticate(ctx context.Context, name, password string) bool {
-	log := logger.From(ctx)
+	log := log.From(ctx)
 
 	db.rw.RLock()
 	defer db.rw.RUnlock()
@@ -323,7 +325,7 @@ func (db *identDB) reload(ctx context.Context) error {
 		}
 	}
 
-	logger.Infof(ctx, "identity: loaded %d users and %d roles", len(db.users), len(db.roles))
+	log.From(ctx).Infof("identity: loaded %d users and %d roles", len(db.users), len(db.roles))
 
 	return nil
 }

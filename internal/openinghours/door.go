@@ -13,10 +13,12 @@ import (
 	"time"
 
 	"github.com/tevino/abool"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
-	"github.com/tierklinik-dobersberg/logger"
 )
+
+var log = pkglog.New("openinghours")
 
 // DoorState describes the current state of the entry door.
 type DoorState string
@@ -349,21 +351,22 @@ func (dc *DoorController) resetDoor() {
 	dc.overwriteLock.Unlock()
 
 	ctx := context.Background()
+	log := log.From(ctx)
 	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
 	if err := dc.door.Unlock(ctx); err != nil {
-		logger.Errorf(ctx, "failed to unlock door: %s", err)
+		log.Errorf("failed to unlock door: %s", err)
 	}
 
 	time.Sleep(time.Second * 2)
 	if err := dc.door.Lock(ctx); err != nil {
-		logger.Errorf(ctx, "failed to unlock door: %s", err)
+		log.Errorf("failed to unlock door: %s", err)
 	}
 
 	time.Sleep(time.Second * 2)
 	if err := dc.door.Unlock(ctx); err != nil {
-		logger.Errorf(ctx, "failed to unlock door: %s", err)
+		log.Errorf("failed to unlock door: %s", err)
 	}
 
 }
@@ -408,7 +411,7 @@ func (dc *DoorController) scheduler() {
 		// a reset may never be in progress at this point (because only this loop
 		// executes a reset and it must have finished already)
 		if resetInProgress {
-			logger.Errorf(ctx, "BUG: a door reset is expected to be false")
+			log.From(ctx).Errorf("BUG: a door reset is expected to be false")
 		}
 
 		if until.IsZero() {
@@ -437,13 +440,13 @@ func (dc *DoorController) scheduler() {
 			case Unlocked:
 				err = dc.Unlock(ctx)
 			default:
-				logger.Errorf(ctx, "invalid door state returned by Current(): %s", string(state))
+				log.From(ctx).Errorf("invalid door state returned by Current(): %s", string(state))
 				cancel()
 				continue
 			}
 
 			if err != nil {
-				logger.Errorf(ctx, "failed to set desired door state %s: %s", string(state), err)
+				log.From(ctx).Errorf("failed to set desired door state %s: %s", string(state), err)
 			} else {
 				lastState = state
 			}
@@ -476,10 +479,11 @@ func (dc *DoorController) StateFor(ctx context.Context, t time.Time) (DoorState,
 }
 
 func (dc *DoorController) stateFor(ctx context.Context, t time.Time) (DoorState, time.Time) {
+	log := log.From(ctx)
 	// if we have an active overwrite we need to return it
 	// together with it's end time.
 	if overwrite := dc.getManualOverwrite(); overwrite != nil && overwrite.until.After(t) {
-		logger.Infof(ctx, "using manual door overwrite %q by %q until %s", overwrite.state, overwrite.sessionUser, overwrite.until)
+		log.Infof("using manual door overwrite %q by %q until %s", overwrite.state, overwrite.sessionUser, overwrite.until)
 		return overwrite.state, overwrite.until
 	}
 
@@ -505,6 +509,7 @@ func (dc *DoorController) stateFor(ctx context.Context, t time.Time) (DoorState,
 
 // OpeningFramesForDay returns a list of openinghours on the day specified by t.
 func (dc *DoorController) OpeningFramesForDay(ctx context.Context, t time.Time) []OpeningHour {
+	log := log.From(ctx)
 	key := fmt.Sprintf("%02d/%02d", t.Month(), t.Day())
 
 	// First we check for date specific overwrites ...
@@ -517,7 +522,7 @@ func (dc *DoorController) OpeningFramesForDay(ctx context.Context, t time.Time) 
 	isHoliday, err := dc.holidays.IsHoliday(ctx, dc.country, t)
 	if err != nil {
 		isHoliday = false
-		logger.Errorf(ctx, "failed to load holidays: %s", err.Error())
+		log.Errorf("failed to load holidays: %s", err.Error())
 	}
 	if isHoliday {
 		return dc.holidayTimeRanges
@@ -530,18 +535,19 @@ func (dc *DoorController) OpeningFramesForDay(ctx context.Context, t time.Time) 
 	}
 
 	// There are no ranges for that day!
-	logger.Infof(ctx, "No opening hour ranges found for %s", t)
+	log.Infof("No opening hour ranges found for %s", t)
 	return nil
 }
 
 func (dc *DoorController) findUpcomingFrames(ctx context.Context, t time.Time, limit int) []utils.TimeRange {
+	log := log.From(ctx)
 	var result []utils.TimeRange
 
 	// Nothing to search for if there aren't any regular opening hours.
 	// There could be some holiday-only or date-specific hours but that's rather a
 	// configuration issue.
 	if len(dc.regularOpeningHours) == 0 {
-		logger.Errorf(ctx, "no regular opening hours configured")
+		log.Errorf("no regular opening hours configured")
 		return nil
 	}
 

@@ -6,13 +6,15 @@ import (
 	"fmt"
 
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/patient/v1alpha"
-	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+var log = pkglog.New("patientdb")
 
 const CollectionName = "patients"
 
@@ -68,7 +70,7 @@ func (db *database) CreatePatient(ctx context.Context, record *v1alpha.PatientRe
 
 	id, ok := result.InsertedID.(primitive.ObjectID)
 	if !ok {
-		logger.From(ctx).Errorf("invalid type in result.InsertedID, expected primitv.ObjectID but got %T", result.InsertedID)
+		log.From(ctx).Errorf("invalid type in result.InsertedID, expected primitv.ObjectID but got %T", result.InsertedID)
 	} else {
 		record.ID = id
 	}

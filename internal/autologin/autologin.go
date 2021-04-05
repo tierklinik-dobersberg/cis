@@ -10,10 +10,12 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
-	"github.com/tierklinik-dobersberg/logger"
 )
+
+var log = pkglog.New("autologin")
 
 type autologinRecord struct {
 	httpcond.Condition
@@ -58,7 +60,7 @@ func (mng *Manager) getUserLogin(r *http.Request) (*schema.User, bool, error) {
 	for user, cond := range mng.users {
 		matched, err := cond.Match(r)
 		if err != nil {
-			logger.From(r.Context()).Errorf("failed to check for autologin for user %s: %s", user, err)
+			log.From(r.Context()).Errorf("failed to check for autologin for user %s: %s", user, err)
 			continue
 		}
 
@@ -86,7 +88,7 @@ func (mng *Manager) GetAutoAssignedRoles(r *http.Request) ([]string, error) {
 	for role, cond := range mng.roleAssignment {
 		matched, err := cond.Match(r)
 		if err != nil {
-			logger.From(r.Context()).Errorf("failed to check for autoassignment of role %s: %s", role, err)
+			log.From(r.Context()).Errorf("failed to check for autoassignment of role %s: %s", role, err)
 			continue
 		}
 
@@ -100,7 +102,7 @@ func (mng *Manager) GetAutoAssignedRoles(r *http.Request) ([]string, error) {
 
 // PerformAutologin may add an autologin user session to c.
 func (mng *Manager) PerformAutologin(c *gin.Context) {
-	log := logger.From(c.Request.Context())
+	log := log.From(c.Request.Context())
 	// never try to issue an automatic session
 	// token if there is a valid user session
 	if session.Get(c) == nil {
@@ -149,7 +151,7 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 
 	roles, err := mng.GetAutoAssignedRoles(c.Request)
 	if err != nil {
-		logger.From(c.Request.Context()).Errorf("failed to get auto-assign roles: %s", err)
+		log.Errorf("failed to get auto-assign roles: %s", err)
 		return
 	}
 
@@ -174,7 +176,7 @@ func (mng *Manager) buildConditions(ctx context.Context) {
 	for user, section := range users {
 		cond, err := mng.conditionBuilder.Build(section)
 		if err != nil {
-			logger.From(ctx).Errorf("cannot build autologin conditions for user %s: %s", user, err)
+			log.From(ctx).Errorf("cannot build autologin conditions for user %s: %s", user, err)
 			continue
 		}
 
@@ -189,7 +191,7 @@ func (mng *Manager) buildConditions(ctx context.Context) {
 	for role, section := range roles {
 		cond, err := mng.conditionBuilder.Build(section)
 		if err != nil {
-			logger.From(ctx).Errorf("cannot build autoassign conditions for role %s: %s", role, err)
+			log.From(ctx).Errorf("cannot build autoassign conditions for role %s: %s", role, err)
 			continue
 		}
 

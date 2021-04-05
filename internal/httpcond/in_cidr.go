@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/utils"
 )
 
@@ -23,7 +22,7 @@ func init() {
 
 			ip := utils.RealClientIP(req)
 			if ip == nil {
-				logger.From(req.Context()).Errorf("RequestFromCIDR: failed to get (real) client IP")
+				log.From(req.Context()).Errorf("RequestFromCIDR: failed to get (real) client IP")
 				return false, nil
 			}
 

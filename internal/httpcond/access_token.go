@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/logger"
 )
 
 func init() {
@@ -16,6 +15,7 @@ func init() {
 		ConcatFunc:  NewOr,
 		Type:        conf.StringSliceType,
 		Match: func(r *http.Request, value string) (bool, error) {
+			log := log.From(r.Context())
 			var token string
 			if h := r.Header.Get("Authorization"); h != "" {
 				switch {
@@ -26,7 +26,7 @@ func init() {
 					tokenBlob, err := base64.URLEncoding.DecodeString(tokenValue)
 					if err != nil {
 						// do not report this as an error here
-						logger.Infof(r.Context(), "Found Basic authorization header but failed to base64 decode it: %q: %s", value, err)
+						log.Infof("Found Basic authorization header but failed to base64 decode it: %q: %s", value, err)
 						return false, nil
 					}
 
@@ -36,15 +36,15 @@ func init() {
 					// apart and ignore one of them.
 					if strings.Contains(token, ":") {
 						parts := strings.SplitN(token, ":", 2)
-						logger.Infof(r.Context(), "Testing access token %q against %q", parts[0], value)
+						log.Infof("Testing access token %q against %q", parts[0], value)
 						if parts[0] == value {
-							logger.Infof(r.Context(), "Accepting access token in user part")
+							log.Infof("Accepting access token in user part")
 							return true, nil
 						}
 
-						logger.Infof(r.Context(), "Testing access token %q against %q", parts[1], value)
+						log.Infof("Testing access token %q against %q", parts[1], value)
 						if parts[1] == value {
-							logger.Infof(r.Context(), "Accepting access token in password part")
+							log.Infof("Accepting access token in password part")
 							return true, nil
 						}
 					}
@@ -62,7 +62,7 @@ func init() {
 				token = r.Form.Get("access_token")
 			}
 
-			logger.Infof(r.Context(), "Testing access token %q against %q", token, value)
+			log.Infof("Testing access token %q against %q", token, value)
 			return token == value, nil
 		},
 	})

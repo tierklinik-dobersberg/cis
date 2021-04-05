@@ -23,6 +23,6 @@ func New(name string) *PackageLogger {
 func (log *PackageLogger) From(ctx context.Context) logger.Logger {
 	l := logger.From(ctx)
 	return l.WithFields(logger.Fields{
-		"name": log.Name,
+		"package": log.Name,
 	})
 }

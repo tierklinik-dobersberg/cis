@@ -6,7 +6,6 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/tierklinik-dobersberg/cis/internal/event"
-	"github.com/tierklinik-dobersberg/logger"
 )
 
 type EventPublisher struct {
@@ -20,7 +19,7 @@ type EventPublisher struct {
 func (pub *EventPublisher) HandleEvent(ctx context.Context, evt *event.Event) {
 	blob, err := json.Marshal(evt)
 	if err != nil {
-		logger.From(ctx).Errorf("failed to publish event: json: %s", err)
+		log.From(ctx).Errorf("failed to publish event: json: %s", err)
 		return
 	}
 
@@ -30,6 +29,6 @@ func (pub *EventPublisher) HandleEvent(ctx context.Context, evt *event.Event) {
 	}
 
 	if token := pub.cli.Publish(topic, byte(pub.QualityOfService), false, blob); token.Wait() && token.Error() != nil {
-		logger.From(ctx).Errorf("failed to publish event on MQTT: %s", token.Error())
+		log.From(ctx).Errorf("failed to publish event on MQTT: %s", token.Error())
 	}
 }

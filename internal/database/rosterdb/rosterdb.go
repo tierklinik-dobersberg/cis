@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
@@ -14,6 +15,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+var log = pkglog.New("rosterdb")
 
 // DutyRosterCollection is the MongoDB collection name for the
 // duty roster.
@@ -71,7 +74,7 @@ func New(ctx context.Context, url, dbName string) (Database, error) {
 	if err != nil {
 		defer func() {
 			if err := client.Disconnect(ctx); err != nil {
-				logger.Errorf(ctx, "failed to gracefully disconnect from MongoDB: %s", err)
+				log.From(ctx).Errorf("failed to gracefully disconnect from MongoDB: %s", err)
 			}
 		}()
 		return nil, err
@@ -115,7 +118,7 @@ func (db *database) setup(ctx context.Context) error {
 	// TODO(ppacher): find migration strategy
 	_, err = db.overwrites.Indexes().DropOne(ctx, "date_1")
 	if err != nil {
-		logger.From(ctx).Errorf("failed to drop index date_1: %s", err)
+		log.From(ctx).Errorf("failed to drop index date_1: %s", err)
 	}
 
 	_, err = db.overwrites.Indexes().CreateOne(ctx, mongo.IndexModel{
@@ -151,7 +154,7 @@ func (db *database) Create(ctx context.Context, month time.Month, year int, days
 	if id, ok := result.InsertedID.(primitive.ObjectID); ok {
 		roster.ID = id
 	} else {
-		logger.From(ctx).Errorf("invalid type in result.InsertedID, expected primitive.ObjectID but got %T", result.InsertedID)
+		log.From(ctx).Errorf("invalid type in result.InsertedID, expected primitive.ObjectID but got %T", result.InsertedID)
 	}
 
 	go db.fireChangeEvent(ctx, month, year)
@@ -230,7 +233,7 @@ func (db *database) SetOverwrite(ctx context.Context, d time.Time, user, phone, 
 		Deleted: false,
 	}
 
-	log := logger.From(ctx).WithFields(logger.Fields{
+	log := log.From(ctx).WithFields(logger.Fields{
 		"date":  dstr,
 		"user":  user,
 		"phone": phone,

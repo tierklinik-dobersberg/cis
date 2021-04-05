@@ -3,7 +3,10 @@ package holidayapi
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 )
+
+var log = pkglog.New("holidayapi")
 
 // Setup configures the holidayapi endpoints.
 func Setup(grp gin.IRouter) {

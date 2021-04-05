@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tierklinik-dobersberg/logger"
 	"golang.org/x/sync/singleflight"
 )
 
@@ -71,7 +70,7 @@ func LoadHolidays(ctx context.Context, country string, year int) ([]PublicHolida
 		return nil, err
 	}
 
-	logger.From(ctx).Infof("loaded holidays for %s in %d: %+v", country, year, result)
+	log.From(ctx).Infof("loaded holidays for %s in %d: %+v", country, year, result)
 
 	return result, nil
 }
@@ -101,7 +100,7 @@ func NewHolidayCache() *HolidayCache {
 // in the given year. If the holidays have already been loaded they are served from
 // cache.
 func (cache *HolidayCache) Get(ctx context.Context, country string, year int) ([]PublicHoliday, error) {
-	log := logger.From(ctx)
+	log := log.From(ctx)
 	cache.rw.RLock()
 
 	if entry, ok := cache.cache[fmt.Sprintf("%s-%d", country, year)]; ok {
