@@ -226,7 +226,7 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 
 	// by default all weekdays switch at DefaultChangeOnDuty so we need
 	// to fill all missing entries.
-	for i := time.Sunday; i < time.Saturday; i++ {
+	for i := time.Sunday; i <= time.Saturday; i++ {
 		if _, ok := dc.changeOnDuty[i]; !ok {
 			dc.changeOnDuty[i] = defaultChangeOnDuty
 		}
@@ -253,6 +253,8 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 
 // Overwrite overwrites the current door state with state until untilTime.
 func (dc *DoorController) Overwrite(ctx context.Context, state DoorState, untilTime time.Time) error {
+	log.From(ctx).V(7).Logf("overwritting door state to %s until %s", state, untilTime)
+
 	if err := isValidState(state); err != nil {
 		return err
 	}
@@ -276,6 +278,7 @@ func (dc *DoorController) Overwrite(ctx context.Context, state DoorState, untilT
 	case <-dc.stop:
 		return errors.New("stopped")
 	case dc.reset <- resetSoft:
+		log.From(ctx).V(6).Logf("door overwrite forcing %s until %s done", state, untilTime)
 	}
 
 	return nil
@@ -338,7 +341,7 @@ func (dc *DoorController) Reset(ctx context.Context) error {
 // resetDoor resets the entry door by unlocking, locking and unlocking
 // it again. For whatever reason, this proved to work best when the door
 // does not behave as it should.
-func (dc *DoorController) resetDoor() {
+func (dc *DoorController) resetDoor(ctx context.Context) {
 	dc.wg.Add(1)
 	defer dc.wg.Done()
 
@@ -350,7 +353,6 @@ func (dc *DoorController) resetDoor() {
 	dc.manualOverwrite = nil
 	dc.overwriteLock.Unlock()
 
-	ctx := context.Background()
 	log := log.From(ctx)
 	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
@@ -385,14 +387,15 @@ func (dc *DoorController) scheduler() {
 	var until time.Time = time.Now().Add(time.Second)
 
 	for {
+		ctx := context.Background()
+
 		select {
 		case <-dc.stop:
 			return
 		case hard := <-dc.reset:
 			if hard != resetSoft {
-
 				// reset the door state. it will unlock for a second or so.
-				dc.resetDoor()
+				dc.resetDoor(ctx)
 			}
 			// force applying the door state.
 			lastState = DoorState("")
@@ -403,7 +406,7 @@ func (dc *DoorController) scheduler() {
 		case <-time.After(time.Minute):
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		ctx, cancel := context.WithTimeout(ctx, time.Second)
 
 		var resetInProgress bool
 		state, until, resetInProgress = dc.Current(ctx)
@@ -459,8 +462,10 @@ func (dc *DoorController) scheduler() {
 // ChangeOnDuty returns the time at which the doctor-on-duty changes
 // and the given date. It makes sure d is in the correct timezone.
 func (dc *DoorController) ChangeOnDuty(ctx context.Context, d time.Time) time.Time {
-	d = d.In(dc.location)
-	day := dc.changeOnDuty[d.Weekday()]
+	day, ok := dc.changeOnDuty[d.Weekday()]
+	if !ok {
+		log.From(ctx).Errorf("no time for change-on-duty configured for %s (%d)", d.Weekday(), d)
+	}
 	return day.At(d)
 }
 
@@ -535,7 +540,7 @@ func (dc *DoorController) OpeningFramesForDay(ctx context.Context, t time.Time) 
 	}
 
 	// There are no ranges for that day!
-	log.Infof("No opening hour ranges found for %s", t)
+	log.V(4).Logf("No opening hour ranges found for %s", t)
 	return nil
 }
 

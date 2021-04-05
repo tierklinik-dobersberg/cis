@@ -61,16 +61,20 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 	// find out if we need to the doctor-on-duty from today or the day before
 	// depending on the ChangeOnDuty time for today.
 	changeDutyAt := app.Door.ChangeOnDuty(ctx, t)
+
+	log.V(7).Logf("searching doctor on duty for %s. Duty time frame changes on %s at %s", t, changeDutyAt.Weekday(), changeDutyAt)
+
 	if t.Before(changeDutyAt) {
 		// go back in time for one day. We don't care about minute/hours here
 		// from now on.
 		newT := t.Add(-1 * time.Hour * 24)
-		log.Infof("requested doctor-on-duty for %s but duty changes at %s so jumping back to %s", t, changeDutyAt, newT)
+		log.V(6).Logf("requested time belongs to previous doctor-on-duty time frame, switching lookup time from %s to %s", t, newT)
 		t = newT
 	} else {
 		// the currently active doctor-on-duty changes the next day.
 		// find out when exactly.
 		changeDutyAt = app.Door.ChangeOnDuty(ctx, t.Add(time.Hour*24))
+		log.V(7).Logf("current doctor-on-duty time frame ends at %s", changeDutyAt)
 	}
 
 	// fetch all users so we can convert usernames to phone numbers,
@@ -89,6 +93,9 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 	}
 
 	key := fmt.Sprintf("%04d/%02d/%02d", t.Year(), int(t.Month()), t.Day())
+	log = log.WithFields(logger.Fields{
+		"rosterDate": key,
+	})
 
 	// first check if we have an active overwrite for today
 	overwrite, err := app.DutyRosters.GetOverwrite(ctx, t)
@@ -102,7 +109,6 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 		}
 
 		log.WithFields(logger.Fields{
-			"date":      key,
 			"overwrite": overwrite,
 		}).Infof("found active overwrite, using that instead")
 
