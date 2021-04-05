@@ -19,6 +19,7 @@ var LogsCollection = "mongolog"
 
 type Record struct {
 	Time           time.Time              `json:"time" bson:"time,omitempty"`
+	UnixEpoch      int64                  `json:"unixEpoch" bson:"unixEpoch"`
 	Severity       int                    `json:"severity" bson:"severity"`
 	SeverityString string                 `json:"severityString" bson:"severityString"`
 	Message        string                 `json:"message" bson:"message"`
@@ -117,6 +118,7 @@ func (adapter *Adapter) canWrite(severity logger.Severity, fields logger.Fields)
 func (adapter *Adapter) Write(t time.Time, severity logger.Severity, msg string, fields logger.Fields) {
 	record := &Record{
 		Time:           t,
+		UnixEpoch:      t.UnixNano(),
 		Severity:       int(severity),
 		SeverityString: severity.String(),
 		Message:        msg,
