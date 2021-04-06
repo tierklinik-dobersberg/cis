@@ -136,7 +136,7 @@ describe("The identity API", () => {
                 newPassword: "test",
             })
             expect(response).toBeDefined();
-            expect(response.status).toBe(204)
+            expect(response.status).toBe(201)
 
             const loginResponse = await axios.post("http://localhost:3000/api/identity/v1/login", {
                 username: "alice",
