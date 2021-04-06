@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -35,6 +36,18 @@ type Session struct {
 	// token can be issued. That is, the session has a valid
 	// token with scope refresh.
 	RefreshUntil *time.Time
+}
+
+func (session *Session) String() string {
+	var scopes []string
+	if session.AccessUntil != nil {
+		scopes = append(scopes, jwt.ScopeAccess)
+	}
+	if session.RefreshUntil != nil {
+		scopes = append(scopes, jwt.ScopeRefresh)
+	}
+
+	return fmt.Sprintf("session(%s:%s)", session.User.Name, strings.Join(scopes, ","))
 }
 
 // Manager takes care of session management.

@@ -36,7 +36,7 @@ func (mng *Manager) Middleware(c *gin.Context) {
 	// everything here.
 	session := Get(c)
 	if session != nil {
-		log.Infof("session already loaded for this request")
+		log.Infof("request is already assigned to %s", session)
 		return
 	}
 
@@ -44,17 +44,19 @@ func (mng *Manager) Middleware(c *gin.Context) {
 	//
 	accessToken, accessUser, err := mng.getAccessToken(c)
 	if err != nil {
+		log.V(3).Logf("failed to get access token: %s", err)
 		return
 	}
 	refreshToken, refreshUser, err := mng.getRefreshToken(c)
 	if err != nil {
+		log.V(3).Logf("failed to get refresh token: %s", err)
 		return
 	}
 
 	// if there's neither a refresh nor an access token we'll
 	// skip it.
 	if refreshToken == nil && accessToken == nil {
-		log.Info("unauthenticated request: no access or refresh token provided")
+		log.V(3).Log("unauthenticated request: no access or refresh token provided")
 
 		reqBlob, err := httputil.DumpRequest(c.Request, true)
 		if err != nil {
@@ -72,7 +74,7 @@ func (mng *Manager) Middleware(c *gin.Context) {
 	if accessUser != nil && refreshUser != nil && accessUser.Name != refreshUser.Name {
 		aborted = true
 		// TODO(ppacher): INCIDENT!
-		log.Infof("security alert: access and refresh token user differ: %s != %s", accessUser.Name, refreshUser.Name)
+		log.V(3).Logf("security alert: access and refresh token user differ: %s != %s", accessUser.Name, refreshUser.Name)
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
@@ -84,7 +86,7 @@ func (mng *Manager) Middleware(c *gin.Context) {
 	if user == nil {
 		aborted = true
 		c.AbortWithStatus(http.StatusInternalServerError)
-		log.Infof("request denied: failed to find user for token")
+		log.V(3).Log("request denied: failed to find user for token")
 		return
 	}
 
@@ -110,9 +112,11 @@ func (mng *Manager) Middleware(c *gin.Context) {
 	// if we don't have a valid access or refresh scope now
 	// return without setting a session on c.
 	if session.AccessUntil == nil && session.RefreshUntil == nil {
-		log.Infof("unauthenticated request: no valid access or refresh token found")
+		log.V(3).Logf("unauthenticated request: no valid access or refresh token found: %s", session)
 		return
 	}
+
+	log.V(6).Logf("session %s valid", session)
 
 	// add the session to the gin context.
 	Set(c, session)
