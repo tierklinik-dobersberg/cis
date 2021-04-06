@@ -3,7 +3,7 @@ import { issue, issueCommand } from '@actions/core/lib/command'
 export class GHActionsReporter implements jasmine.CustomReporter {
     private failes: jasmine.CustomReporterResult[] = [];
 
-    jasmineDone(result: jasmine.RunDetails) {
+    jasmineDone(_: jasmine.RunDetails) {
         this.failes.forEach(result => {
             issue("group", result.fullName)
             result.failedExpectations.forEach(expectation => {
