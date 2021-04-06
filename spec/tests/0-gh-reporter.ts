@@ -18,13 +18,13 @@ export class GHActionsReporter implements jasmine.CustomReporter {
                             line: match[2],
                             col: match[3]
                         },
-                        expectation.message
+                        result.fullName + " " + expectation.message
                     );
                 } else {
                     issueCommand(
                         "error",
                         {},
-                        expectation.message
+                        result.fullName + " " + expectation.message
                     );
                 }
             })
