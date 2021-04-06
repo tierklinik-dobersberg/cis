@@ -291,6 +291,14 @@ func (db *identDB) applyPrivacy(ctx context.Context, u *user) schema.User {
 		schemaUser.Properties,
 	)
 
+	// make sure only internal requests get access to password
+	// data.
+	if GetScope(ctx) != Internal {
+		schemaUser.AvatarFile = ""
+		schemaUser.PasswordAlgo = ""
+		schemaUser.PasswordHash = ""
+	}
+
 	return schemaUser
 }
 

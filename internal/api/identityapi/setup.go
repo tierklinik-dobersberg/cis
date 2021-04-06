@@ -19,7 +19,7 @@ func Setup(grp gin.IRouter) {
 	router := group.Group("", session.Require())
 
 	// POST v1/refresh
-	RefreshEndpoint(router)
+	RefreshEndpoint(group)
 
 	// GET v1/verify
 	VerifyEndpoint(router)
