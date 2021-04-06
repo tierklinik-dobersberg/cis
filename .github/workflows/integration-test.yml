@@ -8,10 +8,8 @@ jobs:
       - uses: actions/setup-go@v2
       - name: Building cisd
         run: cd integration && docker-compose build cisd
-      - name: Run integration tests
-        run: cd integration && go test -v -count=1 . -build=false
       - name: Setup environment
-        run: cd integratoin && docker-compose up -d
+        run: cd integration && docker-compose up -d
       - name: Run Jasmine tests
         run: cd spec && npm install && npm test
       - name: Teardown environment
