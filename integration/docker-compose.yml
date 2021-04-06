@@ -61,6 +61,7 @@ services:
     volumes:
       - ../:/project
       - /home/ppc/mnt/Infdat:/mnt
+      - /tmp/cislog:/log
     environment:
       CONFIGURATION_DIRECTORY: /project/testdata/config
       STATE_DIRECTORY: /project/testdata/state
