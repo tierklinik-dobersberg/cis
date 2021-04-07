@@ -20,7 +20,7 @@ type VoicemailEvent struct {
 	CountUnread    int                `json:"countUnread" bson:"countUnread"`
 }
 
-func (db *database) fireEvent(ctx context.Context, id string) {
+func (db *database) fireEvent(ctx context.Context, id string, created bool) {
 	record, err := db.ByID(ctx, id)
 	if err != nil {
 		logger.From(ctx).Errorf("failed to fire event for record id: %s: %s", id, err)
@@ -28,7 +28,9 @@ func (db *database) fireEvent(ctx context.Context, id string) {
 	}
 
 	readStr := "unread"
-	if record.Read {
+	if created {
+		readStr = "created"
+	} else if record.Read {
 		readStr = "read"
 	}
 	eventID := fmt.Sprintf("event/voicemails/%s", readStr)
