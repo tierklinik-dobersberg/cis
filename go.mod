@@ -3,23 +3,21 @@ module github.com/tierklinik-dobersberg/cis
 go 1.14
 
 require (
-	github.com/GeertJohan/go.rice v1.0.0 // indirect
 	github.com/VividCortex/ewma v1.1.1 // indirect
-	github.com/alecthomas/kong-hcl v0.1.8-0.20190615233001-b21fea9723c8 // indirect
 	github.com/antzucaro/matchr v0.0.0-20191224151129-ab6ba461ddec
 	github.com/aws/aws-sdk-go v1.36.12 // indirect
-	github.com/charmbracelet/glamour v0.2.0 // indirect
+	github.com/charmbracelet/glamour v0.2.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.3.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/google/renameio v1.0.0
 	github.com/google/uuid v1.1.2
-	github.com/gorilla/csrf v1.6.0 // indirect
-	github.com/gorilla/handlers v1.4.1 // indirect
-	github.com/gorilla/mux v1.7.3 // indirect
+	github.com/kevinburke/go-types v0.0.0-20201208005256-aee49f568a20 // indirect
+	github.com/kevinburke/go.uuid v1.2.0 // indirect
+	github.com/kevinburke/rest v0.0.0-20210222204520-f7a2e216372f // indirect
+	github.com/kevinburke/twilio-go v0.0.0-20210327194925-1623146bcf73
 	github.com/klauspost/compress v1.11.4 // indirect
-	github.com/logrusorgru/aurora v0.0.0-20191116043053-66b7ad493a23 // indirect
 	github.com/mxk/go-imap v0.0.0-20150429134902-531c36c3f12d
 	github.com/nbutton23/zxcvbn-go v0.0.0-20201221231540-e56b841a3c88
 	github.com/nyaruka/phonenumbers v1.0.61
@@ -33,6 +31,8 @@ require (
 	github.com/tierklinik-dobersberg/logger v0.3.0
 	github.com/tierklinik-dobersberg/mailbox v0.0.4
 	github.com/tierklinik-dobersberg/service v0.2.1
+	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
+	github.com/ttacon/libphonenumber v1.2.1 // indirect
 	github.com/vbauerster/mpb v3.4.0+incompatible
 	go.mongodb.org/mongo-driver v1.4.4
 	golang.org/x/crypto v0.0.0-20201217014255-9d1352758620

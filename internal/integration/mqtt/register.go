@@ -51,7 +51,7 @@ func RegisterTriggerOn(reg *trigger.Registry) error {
 				cli: app.MQTTClient,
 			}
 			if err := conf.DecodeSections([]conf.Section{*sec}, Spec, pub); err != nil {
-				return nil, fmt.Errorf("failed to parse section: %s", err)
+				return nil, fmt.Errorf("failed to parse section: %w", err)
 			}
 
 			return pub, nil
