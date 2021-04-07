@@ -79,7 +79,7 @@ func (db *database) Create(ctx context.Context, record *v1alpha.VoiceMailRecord)
 
 	record.ID = result.InsertedID.(primitive.ObjectID)
 
-	go db.fireEvent(ctx, record.ID.Hex(), true)
+	go db.fireEvent(context.Background(), record.ID.Hex(), true)
 
 	return nil
 }
@@ -127,7 +127,7 @@ func (db *database) UpdateSeenFlag(ctx context.Context, id string, seen bool) er
 		return httperr.NotFound("voicemail", id, nil)
 	}
 
-	go db.fireEvent(ctx, id, false)
+	go db.fireEvent(context.Background(), id, false)
 
 	return nil
 }
