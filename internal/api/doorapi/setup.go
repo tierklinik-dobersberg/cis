@@ -3,7 +3,10 @@ package doorapi
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 )
+
+var log = pkglog.New("doorapi")
 
 // Setup registers all routes for the door controller.
 func Setup(grp gin.IRouter) {

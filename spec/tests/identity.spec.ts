@@ -3,7 +3,6 @@ import { Cookie, parse as parseCookie } from 'set-cookie-parser';
 import { Alice } from '../utils';
 
 describe("The identity API", () => {
-
     it("should allow access to all members", async () => {
         const response = await Alice.get("http://localhost:3000/api/identity/v1/users")
         expect(response).toBeDefined()

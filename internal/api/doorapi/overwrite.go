@@ -11,6 +11,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 // OverwriteEndpoint allows to overwrite the door state
@@ -50,8 +51,15 @@ func OverwriteEndpoint(grp *app.Router) {
 				return httperr.InvalidField("duration")
 			}
 
-			// overwrite the current state
 			until := time.Now().Add(d)
+
+			log.From(c).WithFields(logger.Fields{
+				"duration": d.String(),
+				"state":    body.State,
+				"until":    until.String(),
+			}).V(6).Logf("received manual door overwrite request")
+
+			// overwrite the current state
 			err = app.Door.Overwrite(ctx, openinghours.DoorState(body.State), until)
 			if err != nil {
 				return err
