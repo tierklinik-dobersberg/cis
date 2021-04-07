@@ -1,0 +1,106 @@
+{
+    "_id": {
+        "$oid": "606d6d0833e22e411f8d9530"
+    },
+    "month": 4,
+    "year": 2021,
+    "days": {
+        "1": {},
+        "2": {},
+        "3": {},
+        "4": {},
+        "5": {
+            "forenoon": [
+                "alice"
+            ],
+            "afternoon": [
+                "alice"
+            ],
+            "emergency": [
+                "alice"
+            ]
+        },
+        "6": {
+            "forenoon": [
+                "bob"
+            ],
+            "afternoon": [
+                "bob"
+            ],
+            "emergency": [
+                "bob"
+            ]
+        },
+        "7": {
+            "forenoon": [
+                "alice"
+            ],
+            "afternoon": [
+                "alice"
+            ],
+            "emergency": [
+                "alice"
+            ]
+        },
+        "8": {
+            "forenoon": [
+                "bob"
+            ],
+            "afternoon": [
+                "bob"
+            ],
+            "emergency": [
+                "bob"
+            ]
+        },
+        "9": {
+            "forenoon": [
+                "alice"
+            ],
+            "afternoon": [
+                "alice"
+            ],
+            "emergency": [
+                "alice"
+            ]
+        },
+        "10": {
+            "forenoon": [
+                "bob"
+            ],
+            "afternoon": [
+                "bob"
+            ],
+            "emergency": [
+                "bob"
+            ]
+        },
+        "11": {
+            "forenoon": [
+                "bob"
+            ],
+            "emergency": [
+                "alice"
+            ]
+        },
+        "12": {},
+        "13": {},
+        "14": {},
+        "15": {},
+        "16": {},
+        "17": {},
+        "18": {},
+        "19": {},
+        "20": {},
+        "21": {},
+        "22": {},
+        "23": {},
+        "24": {},
+        "25": {},
+        "26": {},
+        "27": {},
+        "28": {},
+        "29": {},
+        "30": {}
+    }
+}
