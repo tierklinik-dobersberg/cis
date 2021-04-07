@@ -18,7 +18,7 @@ func LogoutEndpoint(grp *app.Router) {
 		permission.Anyone,
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			if session.Get(c) == nil {
-				c.Status(http.StatusOK)
+				c.Status(http.StatusNoContent)
 				return nil
 			}
 
@@ -26,7 +26,7 @@ func LogoutEndpoint(grp *app.Router) {
 				log.From(ctx).Errorf("failed to delete session: %s", err)
 			}
 
-			c.Status(http.StatusOK)
+			c.Status(http.StatusNoContent)
 			return nil
 		},
 	)

@@ -121,26 +121,26 @@ func Abort(c *gin.Context, err error) {
 func Middleware(c *gin.Context) {
 	c.Next()
 	log := log.From(c.Request.Context())
-	log.Infof("request %s finished errors=%d", c.Request.URL, len(c.Errors))
+	log.V(8).Logf("request %s finished errors=%d", c.Request.URL, len(c.Errors))
 
 	// nothing to do if the status has already been written.
-	if c.Writer.Written() {
-		log.Infof("request already written: %d", c.Writer.Status())
+	if c.Writer.Written() || c.Writer.Status() != http.StatusOK {
+		log.V(8).Logf("request already written: %d", c.Writer.Status())
 		return
 	}
 
 	// No error recorded and not status/content written,
 	// try to do it ourself.
 	if len(c.Errors) == 0 {
-		log.Infof("finishing request with 201 No Content")
-		c.Status(http.StatusNoContent)
+		log.V(7).Logf("finishing request with 200 OK")
+		c.Status(http.StatusOK)
 		return
 	}
 
 	// we only care about the very last error here.
 	// The error handling in gin is a bit weired IMHO.
 	lastErr := c.Errors.Last().Err
-	log.Infof("aborting request. last error reported was %s", lastErr)
+	log.V(7).Logf("aborting request. last error reported was %s", lastErr)
 	Abort(c, lastErr)
 }
 
