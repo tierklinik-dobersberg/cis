@@ -41,4 +41,6 @@ export class GHActionsReporter implements jasmine.CustomReporter {
     }
 }
 
-jasmine.getEnv().addReporter(new GHActionsReporter())
+if (!!process.env['CI']) {
+    jasmine.getEnv().addReporter(new GHActionsReporter())
+}

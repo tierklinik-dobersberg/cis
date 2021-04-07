@@ -56,6 +56,7 @@ services:
     depends_on:
       - mongo
       - mosquitto
+      - mongo-import
     ports:
       - 3000:3000
     volumes:
