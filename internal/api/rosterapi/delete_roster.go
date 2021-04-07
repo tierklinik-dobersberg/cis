@@ -27,7 +27,7 @@ func DeleteRosterEndpoint(grp *app.Router) {
 				return err
 			}
 
-			c.Status(http.StatusGone)
+			c.Status(http.StatusAccepted)
 			return nil
 		},
 	)

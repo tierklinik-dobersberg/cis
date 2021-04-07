@@ -2,6 +2,7 @@ package rosterapi
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -31,6 +32,8 @@ func DeleteOverwriteEndpoint(router *app.Router) {
 			if err := app.DutyRosters.DeleteOverwrite(ctx, d); err != nil {
 				return err
 			}
+
+			c.Status(http.StatusNoContent)
 
 			return nil
 		},
