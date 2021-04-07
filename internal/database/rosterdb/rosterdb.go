@@ -303,15 +303,17 @@ func (db *database) DeleteOverwrite(ctx context.Context, d time.Time) error {
 			},
 		},
 	)
-	if err != nil || res.MatchedCount == 1 && res.ModifiedCount == 0 {
-		if !errors.Is(err, mongo.ErrNoDocuments) {
-			return err
+
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return httperr.NotFound("overwrite", d.Format("2006-01-02"), err)
 		}
 
-		if err == nil {
-			return httperr.InternalError(nil, "unexpected match and modified counts")
-		}
 		return err
+	}
+
+	if res.ModifiedCount == 0 {
+		return httperr.NotFound("overwrite", d.Format("2006-01-02"), nil)
 	}
 
 	go db.fireOverwriteDeleteEvent(ctx, d)
