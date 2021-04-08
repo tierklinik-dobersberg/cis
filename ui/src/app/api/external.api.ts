@@ -9,8 +9,8 @@ export interface DoctorOnDuty {
   fullname: string;
   phone: string;
   properties?: {
-    [key: string]: any
-  }
+    [key: string]: any;
+  };
 }
 
 export interface DoctorOnDutyResponse<T = Date> {
