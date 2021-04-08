@@ -76,7 +76,6 @@ func getRootCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		getImportCommand(),
 		getDoorCommand(),
 		getManCommand(),
 		getValidateCommand(),

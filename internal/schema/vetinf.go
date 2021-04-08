@@ -8,6 +8,7 @@ type VetInf struct {
 	VetInfDirectory      string
 	VetInfEncoding       string
 	VetInfImportSchedule string
+	VetInfUserIDProperty string
 }
 
 // VetInfSpec describes the allowed configuration directives for
@@ -30,5 +31,11 @@ var VetInfSpec = conf.SectionSpec{
 		Type:        conf.StringType,
 		Default:     "@every 10m",
 		Description: "Schedule for the VetInf data import",
+	},
+	{
+		Name:        "VetInfUserIDProperty",
+		Type:        conf.StringType,
+		Default:     "",
+		Description: "The name of the user property that maps to the user identifier in VetInf.",
 	},
 }

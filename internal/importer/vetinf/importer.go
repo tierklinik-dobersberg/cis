@@ -13,7 +13,7 @@ func init() {
 				return nil, nil
 			}
 
-			exporter, err := NewExporter(app.Config.VetInf, app.Config.Country)
+			exporter, err := NewExporter(app.Config.VetInf, app.Config.Country, app.Identities)
 			if err != nil {
 				return nil, err
 			}
