@@ -8,13 +8,19 @@ import (
 	"sync"
 
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/event"
+	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 )
+
+var log = pkglog.New("trigger")
 
 // MatchConfig is the parsed form of a [Match] section in
 // .trigger files.
 type MatchConfig struct {
-	EventFilter []string
+	EventFilter   []string
+	BufferUntil   []string
+	DebounceUntil []string
 }
 
 // Handler handles events fired by the event registry.
@@ -111,6 +117,16 @@ func (reg *Registry) CreateTrigger(ctx context.Context, f *conf.File) error {
 		return fmt.Errorf("failed to parse [Match] section: %w", err)
 	}
 
+	instanceCfg, err := matchToInstanceConfig(match)
+	if err != nil {
+		return err
+	}
+
+	instanceCfg.Location = app.FromContext(ctx).Location()
+
+	fileBase := filepath.Base(f.Path)
+	fileBase = strings.TrimSuffix(fileBase, filepath.Ext(fileBase))
+
 	reg.l.RLock()
 	defer reg.l.RUnlock()
 
@@ -133,7 +149,7 @@ func (reg *Registry) CreateTrigger(ctx context.Context, f *conf.File) error {
 		if err != nil {
 			return fmt.Errorf("failed creating trigger handler for %s: %w", sec.Name, err)
 		}
-		instances = append(instances, NewInstance(handler))
+		instances = append(instances, NewInstance(fileBase+"-"+sec.Name, handler, instanceCfg))
 	}
 
 	// finally, subscribe to events and dispatch them to the handlers

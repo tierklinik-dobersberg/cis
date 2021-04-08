@@ -21,7 +21,7 @@ var Spec = conf.SectionSpec{
 		Name:        "From",
 		Type:        conf.StringType,
 		Required:    true,
-		Description: "The sender number of alphanumeric sender ID",
+		Description: "The sender number or alphanumeric sender ID",
 	},
 	{
 		Name:        "To",
@@ -42,6 +42,12 @@ var Spec = conf.SectionSpec{
 		Required:    true,
 		Internal:    true,
 		Description: "The twilio authentication token",
+	},
+	{
+		Name:        "AcceptBuffered",
+		Type:        conf.BoolType,
+		Default:     "no",
+		Description: "Whether or not the template accepts buffered events. That is, a sice of events is passed instead of a single one.",
 	},
 	{
 		Name:        "Template",
@@ -97,12 +103,13 @@ func RegisterTriggerOn(reg *trigger.Registry) error {
 }
 
 type EventHandler struct {
-	From         string
-	To           []string
-	AccountSid   string
-	Token        string
-	Template     string
-	TemplateFile string
+	From           string
+	To             []string
+	AccountSid     string
+	Token          string
+	Template       string
+	TemplateFile   string
+	AcceptBuffered bool
 
 	template *template.Template
 	client   *twilio.Client
@@ -110,6 +117,20 @@ type EventHandler struct {
 
 func (ev *EventHandler) HandleEvents(ctx context.Context, evts ...*event.Event) {
 	log := log.From(ctx)
+
+	if ev.AcceptBuffered {
+		buf := new(bytes.Buffer)
+		if err := ev.template.Execute(buf, evts); err != nil {
+			log.Errorf("failed to execute template for buffered events: %s", err)
+			return
+		}
+		for _, to := range ev.To {
+			if _, err := ev.client.Messages.SendMessage(ev.From, to, buf.String(), nil); err != nil {
+				log.Errorf("failed to send message to %s: %s", to, err)
+			}
+		}
+		return
+	}
 
 	for _, evt := range evts {
 		buf := new(bytes.Buffer)
