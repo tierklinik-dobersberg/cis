@@ -55,6 +55,8 @@ import (
 
 	// MQTT trigger type
 	_ "github.com/tierklinik-dobersberg/cis/internal/integration/mqtt"
+	// Twilio trigger type
+	_ "github.com/tierklinik-dobersberg/cis/internal/integration/twilio"
 )
 
 func main() {
