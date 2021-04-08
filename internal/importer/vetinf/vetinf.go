@@ -157,6 +157,7 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *ExportedCustome
 					Metadata: map[string]interface{}{
 						"rawVetInfRecord": customer,
 					},
+					VaccinationReminder: customer.WantsVaccinationReminder(),
 				},
 				Deleted: customer.Meta.Deleted,
 			}

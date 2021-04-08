@@ -16,6 +16,7 @@ export interface RemoteCustomer {
   phoneNumbers: string[];
   mailAddresses: string[];
   source: string;
+  vaccinationReminder: boolean;
 }
 export interface Customer extends RemoteCustomer {
   distinctPhoneNumbers: string[];

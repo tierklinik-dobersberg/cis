@@ -57,6 +57,10 @@ import (
 	_ "github.com/tierklinik-dobersberg/cis/internal/integration/mqtt"
 	// Twilio trigger type
 	_ "github.com/tierklinik-dobersberg/cis/internal/integration/twilio"
+	// VetInf importer
+	_ "github.com/tierklinik-dobersberg/cis/internal/importer/neumayr"
+	// Neumayr importer
+	_ "github.com/tierklinik-dobersberg/cis/internal/importer/vetinf"
 )
 
 func main() {

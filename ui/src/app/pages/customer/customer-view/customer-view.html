@@ -85,6 +85,8 @@
           <nz-descriptions-item nzTitle="Vorname" [nzSpan]="3">{{customer?.firstname || 'N/A'}}</nz-descriptions-item>
           <nz-descriptions-item nzTitle="Titel" [nzSpan]="3">{{customer?.title || 'N/A'}}</nz-descriptions-item>
           <nz-descriptions-item nzTitle="Gruppe" [nzSpan]="3">{{customer?.group || 'N/A'}}</nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Impferinnerung" [nzSpan]="3">{{ customer?.vaccinationReminder ? 'Ja' : 'Nein'
+            }}</nz-descriptions-item>
           <nz-descriptions-item nzTitle="Telefon" [nzSpan]="3">
             <li *ngFor="let phone of customer?.distinctPhoneNumbers">{{phone}}</li>
           </nz-descriptions-item>
