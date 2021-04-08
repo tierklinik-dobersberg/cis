@@ -15,6 +15,16 @@ var MatchSpec = conf.SectionSpec{
 		Description: "A event subscription topic",
 		Default:     "#",
 	},
+	{
+		Name:        "BufferUntil",
+		Type:        conf.StringSliceType,
+		Description: "Buffer events and emit then at defined times. Accepts HH:MM values.",
+	},
+	{
+		Name:        "DebounceUntil",
+		Type:        conf.StringSliceType,
+		Description: "Like BufferUntil but only remembers the last event emitted.",
+	},
 }
 
 func init() {
@@ -48,6 +58,8 @@ func init() {
 		Template: `
 			[Match]
 			EventFilter=
+			# BufferUntil=
+			# DebounceUntil=
 
 			# Add trigger actions as sepearte section below.
 			`,

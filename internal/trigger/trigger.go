@@ -17,10 +17,11 @@ type MatchConfig struct {
 	EventFilter []string
 }
 
-// Handler handles events fired by the event registry the
-// handler's factory is attached.
+// Handler handles events fired by the event registry.
 type Handler interface {
-	HandleEvent(ctx context.Context, event *event.Event)
+	// HanldeEvents is called for each set of events fired. There might
+	// be multiple events if the users configures a BufferUntil or BufferTime.
+	HandleEvents(ctx context.Context, event ...*event.Event)
 }
 
 type Type struct {
@@ -113,7 +114,7 @@ func (reg *Registry) CreateTrigger(ctx context.Context, f *conf.File) error {
 	reg.l.RLock()
 	defer reg.l.RUnlock()
 
-	var handlers []Handler
+	var instances []*Instance
 
 	// now iterate over all sections and call the associated factory
 	for _, sec := range f.Sections {
@@ -132,7 +133,7 @@ func (reg *Registry) CreateTrigger(ctx context.Context, f *conf.File) error {
 		if err != nil {
 			return fmt.Errorf("failed creating trigger handler for %s: %w", sec.Name, err)
 		}
-		handlers = append(handlers, handler)
+		instances = append(instances, NewInstance(handler))
 	}
 
 	// finally, subscribe to events and dispatch them to the handlers
@@ -140,14 +141,19 @@ func (reg *Registry) CreateTrigger(ctx context.Context, f *conf.File) error {
 		instanceName := fmt.Sprintf("%s-%02d", filepath.Base(f.Path), idx)
 		ch := reg.event.Subscribe(instanceName, filter)
 
-		go func() {
-			// TODO(ppacher): add context so we can cancel this one.
-			for msg := range ch {
-				for _, handler := range handlers {
-					go handler.HandleEvent(ctx, msg)
+		go func(filter string) {
+			defer reg.event.Unsubscribe(instanceName, filter)
+			for {
+				select {
+				case msg := <-ch:
+					for _, instance := range instances {
+						go instance.Handle(ctx, msg)
+					}
+				case <-ctx.Done():
+					return
 				}
 			}
-		}()
+		}(filter)
 	}
 
 	return nil

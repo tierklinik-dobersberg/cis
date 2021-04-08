@@ -108,20 +108,23 @@ type EventHandler struct {
 	client   *twilio.Client
 }
 
-func (ev *EventHandler) HandleEvent(ctx context.Context, evt *event.Event) {
+func (ev *EventHandler) HandleEvents(ctx context.Context, evts ...*event.Event) {
 	log := log.From(ctx)
-	buf := new(bytes.Buffer)
 
-	if err := ev.template.Execute(buf, evt); err != nil {
-		log.Errorf("failed to execute template: %s", err)
-		return
-	}
+	for _, evt := range evts {
+		buf := new(bytes.Buffer)
 
-	for _, to := range ev.To {
-		_, err := ev.client.Messages.SendMessage(ev.From, to, buf.String(), nil)
-		if err != nil {
-			log.Errorf("failed to send message to %s: %s", to, err)
+		if err := ev.template.Execute(buf, evt); err != nil {
+			log.Errorf("failed to execute template: %s", err)
 			continue
+		}
+
+		for _, to := range ev.To {
+			_, err := ev.client.Messages.SendMessage(ev.From, to, buf.String(), nil)
+			if err != nil {
+				log.Errorf("failed to send message to %s: %s", to, err)
+				continue
+			}
 		}
 	}
 }

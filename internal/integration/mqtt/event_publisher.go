@@ -16,19 +16,22 @@ type EventPublisher struct {
 }
 
 // HandleEvent implements (event.Handler).
-func (pub *EventPublisher) HandleEvent(ctx context.Context, evt *event.Event) {
-	blob, err := json.Marshal(evt)
-	if err != nil {
-		log.From(ctx).Errorf("failed to publish event: json: %s", err)
-		return
-	}
+func (pub *EventPublisher) HandleEvents(ctx context.Context, evts ...*event.Event) {
+	for _, evt := range evts {
 
-	topic := pub.TopicPrefix
-	if pub.EventAsTopic {
-		topic += evt.ID
-	}
+		blob, err := json.Marshal(evt)
+		if err != nil {
+			log.From(ctx).Errorf("failed to publish event: json: %s", err)
+			continue
+		}
 
-	if token := pub.cli.Publish(topic, byte(pub.QualityOfService), false, blob); token.Wait() && token.Error() != nil {
-		log.From(ctx).Errorf("failed to publish event on MQTT: %s", token.Error())
+		topic := pub.TopicPrefix
+		if pub.EventAsTopic {
+			topic += evt.ID
+		}
+
+		if token := pub.cli.Publish(topic, byte(pub.QualityOfService), false, blob); token.Wait() && token.Error() != nil {
+			log.From(ctx).Errorf("failed to publish event on MQTT: %s", token.Error())
+		}
 	}
 }
