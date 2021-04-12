@@ -29,6 +29,35 @@ func removeSetSessionCookie(app *app.App, w http.ResponseWriter) {
 	}
 }
 
+func GetSessionStatus(grp *app.Router) {
+	grp.GET(
+		"v1/login",
+		permission.Anyone,
+		func(ctx context.Context, app *app.App, c *gin.Context) error {
+			sess := session.Get(c)
+			if sess == nil {
+				return httperr.Forbidden(nil, "not allowed")
+			}
+
+			r := gin.H{
+				"user":     sess.User.Name,
+				"mail":     sess.User.Mail,
+				"fullname": sess.User.Fullname,
+			}
+
+			if sess.AccessUntil != nil {
+				r["access"] = sess.AccessUntil.Format(time.RFC3339)
+			}
+			if sess.RefreshUntil != nil {
+				r["refresh"] = sess.RefreshUntil.Format(time.RFC3339)
+			}
+
+			c.JSON(http.StatusOK, r)
+			return nil
+		},
+	)
+}
+
 // LoginEndpoint allows to user to log-in and create a
 // session cookie.
 func LoginEndpoint(grp *app.Router) {

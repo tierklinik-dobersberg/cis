@@ -3,13 +3,13 @@ module github.com/tierklinik-dobersberg/cis
 go 1.14
 
 require (
-	github.com/VividCortex/ewma v1.1.1 // indirect
 	github.com/antzucaro/matchr v0.0.0-20191224151129-ab6ba461ddec
 	github.com/aws/aws-sdk-go v1.36.12 // indirect
 	github.com/charmbracelet/glamour v0.2.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.3.0
 	github.com/gin-gonic/gin v1.6.3
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/google/renameio v1.0.0
 	github.com/google/uuid v1.1.2
@@ -33,10 +33,13 @@ require (
 	github.com/tierklinik-dobersberg/service v0.2.1
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.2.1 // indirect
-	github.com/vbauerster/mpb v3.4.0+incompatible
+	github.com/yuin/goldmark v1.2.1 // indirect
 	go.mongodb.org/mongo-driver v1.4.4
 	golang.org/x/crypto v0.0.0-20201217014255-9d1352758620
-	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
-	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
-	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf // indirect
+	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1
+	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/sys v0.0.0-20210403161142-5e06dd20ab57 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	google.golang.org/api v0.13.0
 )

@@ -16,10 +16,13 @@ func Setup(grp gin.IRouter) {
 	// POST v1/login
 	LoginEndpoint(group)
 
-	router := group.Group("", session.Require())
-
 	// POST v1/refresh
 	RefreshEndpoint(group)
+
+	router := group.Group("", session.Require())
+
+	// GET v1/login
+	GetSessionStatus(router)
 
 	// GET v1/verify
 	VerifyEndpoint(router)

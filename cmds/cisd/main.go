@@ -83,6 +83,7 @@ func getRootCommand() *cobra.Command {
 		getDoorCommand(),
 		getManCommand(),
 		getValidateCommand(),
+		getCalendarCommand(),
 	)
 
 	return cmd
