@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/logger"
 	"google.golang.org/api/calendar/v3"
 )
 
@@ -17,6 +18,18 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*E
 		end   *time.Time
 		data  *StructuredEvent
 	)
+
+	if item == nil {
+		return nil, fmt.Errorf("received nil item")
+	}
+
+	if item.Start == nil {
+		log.From(ctx).WithFields(logger.Fields{
+			"event": item,
+		}).Errorf("failed to process google calendar event: event.Start == nil")
+
+		return nil, fmt.Errorf("event with ID %s does not have start time", item.Id)
+	}
 
 	if item.Start.DateTime != "" {
 		start, err = time.Parse(time.RFC3339, item.Start.DateTime)
