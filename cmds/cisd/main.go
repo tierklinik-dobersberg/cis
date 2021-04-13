@@ -395,6 +395,9 @@ func runMain() {
 		logger.Fatalf(ctx, "failed to start door scheduler: %s", err)
 	}
 
+	// we log on error so this one get's forwarded to error reportes.
+	logger.Errorf(ctx, "CIS starting ....")
+
 	// run the server.
 	if err := app.Instance.Serve(); err != nil {
 		logger.Fatalf(ctx, "failed to serve: %s", err)

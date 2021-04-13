@@ -3,13 +3,14 @@ package calendar
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/tierklinik-dobersberg/cis/internal/event"
-	"github.com/tierklinik-dobersberg/logger"
 	"google.golang.org/api/calendar/v3"
+	"google.golang.org/api/googleapi"
 )
 
 type eventCache struct {
@@ -75,47 +76,110 @@ func (ec *eventCache) loadEvents(ctx context.Context, emit bool) bool {
 
 	call := ec.svc.Events.List(ec.calID)
 	if ec.syncToken == "" {
+		ec.events = nil
 		now := time.Now()
 		ec.minTime = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, ec.location)
-		call = call.ShowDeleted(false).SingleEvents(true).TimeMin(ec.minTime.Format(time.RFC3339))
+		call.ShowDeleted(false).SingleEvents(true).TimeMin(ec.minTime.Format(time.RFC3339))
 	} else {
-		call = call.SyncToken(ec.syncToken)
+		call.SyncToken(ec.syncToken)
 	}
 
-	res, err := call.Do()
-	if err != nil {
-		log.From(ctx).Errorf("failed to pull events: %s", err)
-		return false
-	}
+	updatesProcessed := 0
+	pageToken := ""
+	for {
+		if pageToken != "" {
+			call.PageToken(pageToken)
+		}
 
-	ec.syncToken = res.NextSyncToken
-	var events = make([]Event, len(res.Items))
-
-	for idx, item := range res.Items {
-		evt, err := convertToEvent(ctx, ec.calID, item)
+		res, err := call.Do()
 		if err != nil {
-			log.From(ctx).Errorf(err.Error())
+			if apiErr, ok := err.(*googleapi.Error); ok && apiErr.Code == http.StatusGone {
+				// start over without a sync token
+				// return "success" so we retry in a minute
+				ec.syncToken = ""
+				return true
+			}
+
+			log.From(ctx).Errorf("failed to sync events: %s", err)
+			return false
+		}
+
+		for _, item := range res.Items {
+			ec.syncAndEmit(ctx, item, emit)
+		}
+		updatesProcessed += len(res.Items)
+
+		if res.NextPageToken != "" {
+			pageToken = res.NextPageToken
 			continue
 		}
-		events[idx] = *evt
-	}
+		if res.NextSyncToken != "" {
+			ec.syncToken = res.NextSyncToken
+			break
+		}
 
-	ec.events = append(ec.events, events...)
+		// We should actually never reach this point as one of the above
+		// if's should have matched. if we get her google apis returned
+		// something unexpected so better clear anything we have and start
+		// over.
+		log.From(ctx).Errorf("unexpected google api response, starting over")
+		ec.syncToken = ""
+		ec.events = nil
+		ec.minTime = time.Time{}
+		return false
+	}
+	if updatesProcessed > 0 {
+		log.From(ctx).Infof("processed %d updates", updatesProcessed)
+	}
 
 	sort.Sort(ByStartTime(ec.events))
 
-	log.From(ctx).WithFields(logger.Fields{
-		"syncToken": ec.syncToken,
-	}).Infof("loaded and cached %d new events", len(events))
+	return true
+}
 
-	if emit {
-		for _, evt := range events {
-			eventID := fmt.Sprintf("event/calendar/%s/created", evt.CalendarID)
-			event.Fire(ctx, eventID, evt)
+func (ec *eventCache) syncAndEmit(ctx context.Context, item *calendar.Event, emit bool) {
+	evt, action := ec.syncEvent(ctx, item)
+	if evt != nil {
+		log.From(ctx).V(7).Logf("event %s: %s (%s)", action, evt.ID, evt.Summary)
+		if emit {
+			event.Fire(ctx, fmt.Sprintf("event/calendar/%s/%s", evt.CalendarID, action), evt)
 		}
 	}
+}
 
-	return true
+func (ec *eventCache) syncEvent(ctx context.Context, item *calendar.Event) (*Event, string) {
+	foundAtIndex := -1
+	for idx, evt := range ec.events {
+		if evt.ID == item.Id {
+			foundAtIndex = idx
+			break
+		}
+	}
+	if foundAtIndex > -1 {
+		// check if the item has been deleted
+		if item.Start == nil {
+			evt := ec.events[foundAtIndex]
+			ec.events = append(ec.events[:foundAtIndex], ec.events[foundAtIndex+1:]...)
+			return &evt, "deleted"
+		}
+
+		// this should be an update
+		evt, err := convertToEvent(ctx, ec.calID, item)
+		if err != nil {
+			log.From(ctx).Errorf("failed to convert event: %s", err)
+			return nil, ""
+		}
+		ec.events[foundAtIndex] = *evt
+		return evt, "updated"
+	}
+
+	evt, err := convertToEvent(ctx, ec.calID, item)
+	if err != nil {
+		log.From(ctx).Errorf("failed to convert event: %s", err)
+		return nil, ""
+	}
+	ec.events = append(ec.events, *evt)
+	return evt, "created"
 }
 
 func (ec *eventCache) evictFromCache(ctx context.Context) {
