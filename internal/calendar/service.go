@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
-	"strings"
+	"sync"
 	"time"
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
+	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/svcenv"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -24,19 +25,20 @@ var ConfigSpec = conf.SectionSpec{
 		Name:        "CredentialsFile",
 		Type:        conf.StringType,
 		Description: "Path to google client credentials",
-		Required:    true,
+		Default:     "google-credentials.json",
 	},
 	{
 		Name:        "TokenFile",
 		Type:        conf.StringType,
 		Description: "Path to client token file",
-		Required:    true,
+		Default:     "token.json",
 	},
 }
 
 type Config struct {
 	CredentialsFile string
 	TokenFile       string
+	Location        *time.Location
 }
 
 // Service allows to read and manipulate google
@@ -48,6 +50,10 @@ type Service interface {
 
 type service struct {
 	*calendar.Service
+	location *time.Location
+
+	cacheLock   sync.Mutex
+	eventsCache map[string]*eventCache
 }
 
 // New creates a new calendar service from cfg.
@@ -69,7 +75,18 @@ func New(cfg Config) (Service, error) {
 	}
 
 	svc := &service{
-		Service: calSvc,
+		Service:     calSvc,
+		eventsCache: make(map[string]*eventCache),
+		location:    cfg.Location,
+	}
+	if svc.location == nil {
+		svc.location = time.Local
+	}
+
+	// create a new eventCache for each calendar right now
+	ctx := context.TODO()
+	if _, err := svc.ListCalendars(ctx); err != nil {
+		log.From(ctx).Errorf("failed to start watching calendars: %s", err)
 	}
 
 	return svc, nil
@@ -111,12 +128,56 @@ func (svc *service) ListCalendars(ctx context.Context) ([]Calendar, error) {
 			Timezone: item.TimeZone,
 			Location: loc,
 		}
+		// immediately prepare the calendar cache
+		if _, err = svc.cacheFor(ctx, item.Id); err != nil {
+			log.From(ctx).Errorf("failed to perpare calendar event cache for %s: %s", item.Id, err)
+		}
 	}
 
 	return list, nil
 }
 
 func (svc *service) ListEvents(ctx context.Context, calendarID string, searchOpts *EventSearchOptions) ([]Event, error) {
+	cache, err := svc.cacheFor(ctx, calendarID)
+	if err != nil {
+		log.From(ctx).Errorf("failed to get event cache for calendar %s: %s", calendarID, err)
+	}
+
+	if cache != nil {
+		events, ok := cache.tryLoadFromCache(ctx, searchOpts)
+		if ok {
+			return events, nil
+		}
+		log.From(ctx).V(7).Logf("cache miss when loading events for %s", calendarID)
+	}
+
+	return svc.loadEvents(ctx, calendarID, searchOpts)
+}
+
+func (svc *service) cacheFor(ctx context.Context, calid string) (*eventCache, error) {
+	svc.cacheLock.Lock()
+	defer svc.cacheLock.Unlock()
+
+	cache, ok := svc.eventsCache[calid]
+	if ok {
+		log.From(ctx).V(8).Logf("using existing event cache for %s", calid)
+		return cache, nil
+	}
+
+	ctx = logger.WithFields(ctx, logger.Fields{
+		"calendarID": calid,
+	})
+	cache, err := newCache(ctx, calid, svc.location, svc.Service)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.eventsCache[calid] = cache
+	log.From(ctx).V(7).Logf("created new event cache for calendar %s", calid)
+	return cache, nil
+}
+
+func (svc *service) loadEvents(ctx context.Context, calendarID string, searchOpts *EventSearchOptions) ([]Event, error) {
 	call := svc.Events.List(calendarID).ShowDeleted(false).SingleEvents(true)
 
 	if searchOpts != nil {
@@ -135,66 +196,12 @@ func (svc *service) ListEvents(ctx context.Context, calendarID string, searchOpt
 
 	var events = make([]Event, len(res.Items))
 	for idx, item := range res.Items {
-		var (
-			err   error
-			start time.Time
-			end   *time.Time
-			data  *StructuredEvent
-		)
-
-		if item.Start.DateTime != "" {
-			start, err = time.Parse(time.RFC3339, item.Start.DateTime)
-		} else {
-			start, err = time.Parse("2006-01-02", item.Start.Date)
-		}
+		evt, err := convertToEvent(ctx, calendarID, item)
 		if err != nil {
-			log.From(ctx).Errorf("failed to parse event start time: %s", err)
+			log.From(ctx).Errorf(err.Error())
 			continue
 		}
-
-		if !item.EndTimeUnspecified {
-			var t time.Time
-			if item.End.DateTime != "" {
-				t, err = time.Parse(time.RFC3339, item.End.DateTime)
-			} else {
-				t, err = time.Parse("2006-01-02", item.End.Date)
-			}
-			if err != nil {
-				log.From(ctx).Errorf("failed to parse event end time: %s", err)
-				continue
-			}
-			end = &t
-		}
-
-		// TODO(ppacher): add support for freeform text in the description
-		// as well by using something like YAML frontmatter
-		if item.Description != "" {
-			reader := strings.NewReader(item.Description)
-			f, err := conf.Deserialize("", reader)
-			// TODO(ppacher): we could be more strict here
-			if err == nil && f.Sections.Has("CIS") {
-				data = new(StructuredEvent)
-				err = conf.DecodeSections(f.Sections, StructuredEventSpec, data)
-			}
-
-			if err != nil {
-				// only log on trace level because we expect this to happen
-				// a lot
-				log.From(ctx).V(7).Logf("failed to parse description: %s", err)
-				data = nil
-			}
-		}
-
-		events[idx] = Event{
-			ID:           item.Id,
-			Summary:      strings.TrimSpace(item.Summary),
-			Description:  strings.TrimSpace(item.Description),
-			StartTime:    start,
-			EndTime:      end,
-			FullDayEvent: item.Start.DateTime == "" && item.Start.Date != "",
-			CalendarID:   calendarID,
-			Data:         data,
-		}
+		events[idx] = *evt
 	}
 
 	return events, nil

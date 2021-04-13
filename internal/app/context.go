@@ -12,6 +12,7 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
@@ -49,6 +50,7 @@ type App struct {
 	Holidays    openinghours.HolidayGetter
 	CallLogs    calllogdb.Database
 	MQTTClient  mqtt.Client
+	Calendar    calendar.Service
 }
 
 func (app *App) String() string {
@@ -72,6 +74,7 @@ func NewApp(
 	holidays openinghours.HolidayGetter,
 	calllogs calllogdb.Database,
 	mqttClient mqtt.Client,
+	calendarEvents calendar.Service,
 ) *App {
 	return &App{
 		Instance:    inst,
@@ -89,6 +92,7 @@ func NewApp(
 		Holidays:    holidays,
 		CallLogs:    calllogs,
 		MQTTClient:  mqttClient,
+		Calendar:    calendarEvents,
 	}
 }
 
@@ -179,7 +183,7 @@ func (app *App) EndpointPath(relativePath string) string {
 func (app *App) Location() *time.Location {
 	loc, err := time.LoadLocation(app.Config.TimeZone)
 	if err != nil {
-		return time.UTC
+		return time.Local
 	}
 
 	return loc

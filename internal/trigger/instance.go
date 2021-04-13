@@ -41,7 +41,7 @@ func matchToInstanceConfig(match MatchConfig) (*InstanceConfig, error) {
 		return nil, fmt.Errorf("DebounceUntil= and BufferUntil= are mutually exclusive")
 	}
 
-	instanceCfg.Location = time.UTC
+	instanceCfg.Location = time.Local
 
 	return instanceCfg, nil
 }

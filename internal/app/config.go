@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/service/server"
 )
@@ -16,6 +17,8 @@ type Config struct {
 	schema.IntegrationConfig `section:"Integration"`
 
 	schema.MongoLogConfig `section:"MongoLog"`
+
+	GoogleCalendar calendar.Config `section:"GoogleCalendar"`
 
 	OpeningHours   []schema.OpeningHours           `section:"OpeningHour"`
 	UserProperties []schema.UserPropertyDefinition `section:"UserProperty"`

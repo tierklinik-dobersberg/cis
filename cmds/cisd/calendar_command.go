@@ -92,10 +92,11 @@ func getEventsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "list-events",
 		Run: func(cmd *cobra.Command, args []string) {
+			svc := calendarService()
 			opts := new(calendar.EventSearchOptions)
 
 			if len(args) == 0 {
-				list, err := calendarService().ListCalendars(context.Background())
+				list, err := svc.ListCalendars(context.Background())
 				if err != nil {
 					log.Fatalf("failed to get calendars: %s", err)
 				}
@@ -116,7 +117,7 @@ func getEventsCommand() *cobra.Command {
 
 			var allEvents []calendar.Event
 			for _, calId := range args {
-				events, err := calendarService().ListEvents(
+				events, err := svc.ListEvents(
 					context.Background(),
 					calId,
 					opts,

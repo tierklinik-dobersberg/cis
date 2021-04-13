@@ -24,6 +24,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/voicemailapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/autologin"
+	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
@@ -249,6 +250,11 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "voicemaildb: %s", err)
 	}
 
+	calendarService, err := calendar.New(cfg.GoogleCalendar)
+	if err != nil {
+		logger.Fatalf(ctx, "calendar: %s", err)
+	}
+
 	matcher := permission.NewMatcher(permission.NewResolver(identities))
 
 	//
@@ -328,6 +334,7 @@ func getApp(ctx context.Context) *app.App {
 		holidayCache,
 		calllogs,
 		mqttClient,
+		calendarService,
 	)
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 
