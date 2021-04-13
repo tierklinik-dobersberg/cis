@@ -90,6 +90,13 @@ func (mng *Manager) Middleware(c *gin.Context) {
 		return
 	}
 
+	if user.Disabled {
+		aborted = true
+		c.AbortWithStatus(http.StatusForbidden)
+		log.V(3).Log("request denied: user has been disabled!")
+		return
+	}
+
 	// at this point we have a valid session
 	// (either access scope, refresh scope or both)
 	session = &Session{

@@ -42,6 +42,16 @@ func SetOverwriteEndpoint(router *app.Router) {
 				return httperr.BadRequest(err)
 			}
 
+			if body.Username != "" {
+				user, err := app.Identities.GetUser(ctx, body.Username)
+				if err != nil {
+					return err
+				}
+				if user.Disabled {
+					return httperr.BadRequest(nil, "user is disabled")
+				}
+			}
+
 			if err := app.DutyRosters.SetOverwrite(ctx, d, body.Username, body.Phone, body.DisplayName); err != nil {
 				return err
 			}

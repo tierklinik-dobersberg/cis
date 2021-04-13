@@ -102,8 +102,12 @@ func validateRoster(ctx context.Context, app *app.App, roster *v1alpha.DutyRoste
 
 func validateUsers(users []string, lm map[string]schema.User) error {
 	for _, u := range users {
-		if _, ok := lm[strings.ToLower(u)]; !ok {
+		user, ok := lm[strings.ToLower(u)]
+		if !ok {
 			return fmt.Errorf("unknown user %s", u)
+		}
+		if user.Disabled {
+			return fmt.Errorf("user %s is disabled", u)
 		}
 	}
 	return nil

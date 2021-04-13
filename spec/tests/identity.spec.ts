@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { Cookie, parse as parseCookie } from 'set-cookie-parser';
 import { Alice } from '../utils';
 
@@ -35,6 +35,17 @@ describe("The identity API", () => {
                 "roles": ["default-role"],
                 "properties": { "PhoneExtension": "12" },
                 "color": "#ddb0b0"
+            })
+        expect(response.data).toContain(
+            {
+                "name": "diser",
+                "fullname": "Disabled user",
+                "mail": null,
+                "phoneNumbers": null,
+                "roles": ["default-role"],
+                "properties": { "PhoneExtension": "13" },
+                "color": "#1b7550b9",
+                "disabled": true,
             })
     })
 
@@ -89,6 +100,15 @@ describe("The identity API", () => {
             expect(refreshCookie).toBeTruthy();
             // refresh cookie MUST be scoped to the exact refresh endpoint
             expect(refreshCookie.path).toBe("/api/identity/v1/refresh")
+        })
+
+        it("should not work for disabled uesrs", async () => {
+            const response = await axios.post("http://localhost:3000/api/identity/v1/login", {
+                username: "diser",
+                password: "password",
+            }).catch(err => err.response as AxiosResponse)
+
+            expect(response.status).toBe(401)
         })
 
         it("should issue a new access token on refresh", async () => {

@@ -1,6 +1,7 @@
 import { Alice } from '../utils';
 import { Roster } from '../../ui/src/app/api/roster.api';
 import { DoctorOnDutyResponse } from '../../ui/src/app/api/external.api';
+import { AxiosResponse } from 'axios';
 
 describe("Duty roster API:", () => {
     describe("Managing duty rosters", () => {
@@ -108,6 +109,13 @@ describe("Duty roster API:", () => {
                 date: "2021-02-01",
             })
             expect(new Date(createdAt).getTime() / 1000).toBeCloseTo(new Date().getTime() / 1000, 0)
+        })
+
+        it("should fail for disabled users", async () => {
+            let response = await Alice.post("http://localhost:3000/api/dutyroster/v1/overwrite?date=2021-2-1", {
+                username: "diser"
+            }).catch(err => err.response as AxiosResponse)
+            expect(response.status).toBe(400)
         })
 
         it("should work for custom phone numbers", async () => {

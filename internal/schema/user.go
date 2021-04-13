@@ -63,4 +63,10 @@ var UserSpec = conf.SectionSpec{
 		Type:        conf.StringType,
 		Description: "A Hex encoded color that should be used to represent the user in the UI. The color may container an alpha channel as well.",
 	},
+	{
+		Name:        "Disabled",
+		Type:        conf.BoolType,
+		Default:     "no",
+		Description: "Whether or not the user is disabled.",
+	},
 }

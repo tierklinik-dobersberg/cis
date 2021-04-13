@@ -108,6 +108,12 @@ func (db *identDB) Authenticate(ctx context.Context, name, password string) bool
 		return false
 	}
 
+	if u.Disabled {
+		// TODO(ppacher): incident report!
+		log.Infof("identity: user %s is disabled. Authentication denied", name)
+		return false
+	}
+
 	if u.PasswordAlgo == "" {
 		log.Infof("identity: user with name %q does not have a password", name)
 		return false

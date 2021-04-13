@@ -1,0 +1,15 @@
+[User]
+Name=diser
+FullName=Disabled user
+PasswordAlgo=plain
+PasswordHash=password
+Roles=default-role
+GoogleCalendarID=primary
+Color=#1b7550b9
+PhoneExtension=13
+Disabled=yes
+
+[Permission]
+Resource=.*
+Action=.*
+Effect=allow
