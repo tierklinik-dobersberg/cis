@@ -249,7 +249,8 @@
         <span nz-menu-group class="title">{{title}}</span>
         <nz-select *ngIf="editMode && isDropDownVisible" [(ngModel)]="selectedDay[model]" nzMode="multiple"
           (ngModelChange)="rosterChanged()" nzPlaceHolder="Bitte auswählen">
-          <nz-option *ngFor="let option of usernames" [nzLabel]="userProfiles[option]?.fullname" [nzValue]="option">
+          <nz-option *ngFor="let option of selectableUserNames" [nzLabel]="userProfiles[option]?.fullname"
+            [nzValue]="option">
           </nz-option>
         </nz-select>
         <div *ngIf="!editMode" class="selected-users">

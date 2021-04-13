@@ -59,8 +59,8 @@ export class RosterComponent implements OnInit, OnDestroy {
     emergency: [],
   };
 
-  /** All available user names */
-  usernames: string[] = [];
+  /** All selectable, available user names */
+  selectableUserNames: string[] = [];
 
   /** All available user profiles */
   userProfiles: { [key: string]: ProfileWithAvatar } = {};
@@ -140,7 +140,9 @@ export class RosterComponent implements OnInit, OnDestroy {
           users => {
             this.userProfiles = {};
             users.forEach(user => this.userProfiles[user.name] = user);
-            this.usernames = users.map(user => user.name);
+            this.selectableUserNames = users
+              .filter(user => !user.disabled)
+              .map(user => user.name);
 
             // finally, load the current roster
             this.loadRoster(this.selectedDate);

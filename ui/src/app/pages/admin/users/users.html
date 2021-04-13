@@ -16,7 +16,7 @@
     </thead>
     <tbody>
         <ng-container *ngFor="let  data of userTable.data">
-            <tr>
+            <tr [class.disabled]="!!data.disabled">
                 <td class="username">
                     <nz-avatar nzIcon="user" [nzSrc]="data.avatar">
                     </nz-avatar>

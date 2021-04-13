@@ -36,6 +36,7 @@ export interface Profile {
     [key: string]: any;
   };
   color?: string;
+  disabled?: boolean;
 }
 
 interface TokenReponse {

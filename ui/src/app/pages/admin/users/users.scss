@@ -18,6 +18,13 @@ span.ant-avatar {
   }
 }
 
+.disabled {
+  &, ::ng-deep {
+    text-decoration: line-through;
+    opacity: 0.6;
+  }
+}
+
 .username {
   white-space: nowrap;
 }
