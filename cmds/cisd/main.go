@@ -10,6 +10,7 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
+	"github.com/tierklinik-dobersberg/cis/internal/api/calendarapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/calllogapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/commentapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/configapi"
@@ -143,6 +144,8 @@ func getApp(ctx context.Context) *app.App {
 				voicemailapi.Setup(apis.Group("voicemail", session.Require()))
 				// patientapi allows access to patient data
 				patientapi.Setup(apis.Group("patient", session.Require()))
+				// calendarapi provides access to calendar data
+				calendarapi.Setup(apis.Group("calendar", session.Require()))
 			}
 
 			return nil
