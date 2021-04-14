@@ -79,7 +79,7 @@ func (ec *eventCache) loadEvents(ctx context.Context, emit bool) bool {
 		ec.events = nil
 		now := time.Now()
 		ec.minTime = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, ec.location)
-		call.ShowDeleted(false).SingleEvents(true).TimeMin(ec.minTime.Format(time.RFC3339))
+		call.ShowDeleted(false).SingleEvents(false).TimeMin(ec.minTime.Format(time.RFC3339))
 	} else {
 		call.SyncToken(ec.syncToken)
 	}
@@ -140,7 +140,7 @@ func (ec *eventCache) loadEvents(ctx context.Context, emit bool) bool {
 func (ec *eventCache) syncAndEmit(ctx context.Context, item *calendar.Event, emit bool) {
 	evt, action := ec.syncEvent(ctx, item)
 	if evt != nil {
-		log.From(ctx).V(7).Logf("event %s: %s (%s)", action, evt.ID, evt.Summary)
+		log.From(ctx).V(7).Logf("event %s: %s %s (%s)", action, evt.ID, evt.StartTime.Format("2006-01-02 15:04:05"), evt.Summary)
 		if emit {
 			event.Fire(ctx, fmt.Sprintf("event/calendar/%s/%s", evt.CalendarID, action), evt)
 		}
