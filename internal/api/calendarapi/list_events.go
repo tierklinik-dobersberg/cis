@@ -117,8 +117,9 @@ func ListEventsEndpoint(router *app.Router) {
 			for idx, evt := range events {
 				u := calIdToUser[evt.CalendarID]
 				modelEvents[idx] = v1alpha.Event{
-					Event:    evt,
-					Username: u.Name,
+					Event:        evt,
+					Username:     u.Name,
+					CalendarName: calIdToCal[evt.CalendarID].Name,
 				}
 			}
 
