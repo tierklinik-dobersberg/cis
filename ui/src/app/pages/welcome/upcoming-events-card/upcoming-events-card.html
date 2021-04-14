@@ -4,11 +4,11 @@
         <span>Nächste Termine</span> - <a class="toggle" (click)="toggle()">{{showAll ? 'Nur nächste' : 'Alle'}}
             anzeigen</a>
     </ng-template>
-    <div class="event-container">
+    <div class="event-container" *ngIf="events.length > 0">
         <ul>
             <li *ngFor="let event of events; trackBy: trackEvent" class="event" [class.past]="event.past"
-                [class.highlight]="event.user?.name === highlightUser">
-                <span class="time" [style.color]="event.user?.color || null">{{ event.startTime | date:"shortTime"
+                [class.highlight-active]="highlightUser !== ''" [class.highlight]="event.user?.name === highlightUser">
+                <span class="time" [style.color]="event.user?.color || null">{{ event.startTime | date:"hh:mm"
                     }}</span>
                 <span class="summary">{{ event.summary }}</span>
                 <span class="user" *ngIf="!!event.user" [style.backgroundColor]="event.user.color"
@@ -17,4 +17,6 @@
             </li>
         </ul>
     </div>
+
+    <nz-empty *ngIf="events.length === 0" nzNotFoundContent="Keine Termine mehr"></nz-empty>
 </nz-card>

@@ -14,11 +14,18 @@ nz-card {
     display: flex;
     flex-direction: column;
     overflow: auto;
+    height: 100%;
 }
 
 a.toggle {
     font-size: 90%;
     opacity: .9;
+}
+
+nz-empty {
+    margin-top: auto;
+    margin-bottom: auto;
+    opacity: .7;
 }
 
 .event-container {
@@ -46,9 +53,14 @@ a.toggle {
             opacity: .5;
         }
 
+        &.highlight-active {
+            display: none;
+        }
+
         &.highlight {
             background-color: lightgoldenrodyellow;
             border-left: 2px solid orange;
+            display: flex;
         }
 
         .time {
