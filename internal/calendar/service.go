@@ -189,19 +189,31 @@ func (svc *service) loadEvents(ctx context.Context, calendarID string, searchOpt
 		}
 	}
 
-	res, err := call.Do()
-	if err != nil {
-		return nil, err
-	}
-
-	var events = make([]Event, len(res.Items))
-	for idx, item := range res.Items {
-		evt, err := convertToEvent(ctx, calendarID, item)
+	var events []Event
+	var pageToken string
+	for {
+		if pageToken != "" {
+			call.PageToken(pageToken)
+		}
+		res, err := call.Do()
 		if err != nil {
-			log.From(ctx).Errorf(err.Error())
+			return nil, err
+		}
+
+		for _, item := range res.Items {
+			evt, err := convertToEvent(ctx, calendarID, item)
+			if err != nil {
+				log.From(ctx).Errorf(err.Error())
+				continue
+			}
+			events = append(events, *evt)
+		}
+
+		if res.NextPageToken != "" {
+			pageToken = res.NextPageToken
 			continue
 		}
-		events[idx] = *evt
+		break
 	}
 
 	return events, nil
