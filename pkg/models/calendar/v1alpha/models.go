@@ -6,5 +6,5 @@ import (
 
 type Event struct {
 	calendar.Event
-	Username string `json:"username"`
+	Username string `json:"username,omitempty"`
 }

@@ -16,12 +16,12 @@ type Calendar struct {
 type Event struct {
 	ID           string           `json:"_id" bson:"_id"`
 	Summary      string           `json:"summary" bson:"summary,omitempty"`
-	Description  string           `json:"description" bson:"description,omitempty"`
+	Description  string           `json:"description,omitempty" bson:"description,omitempty"`
 	StartTime    time.Time        `json:"startTime" bson:"startTime,omitempty"`
-	EndTime      *time.Time       `json:"endTime" bson:"endTime,omitempty"`
+	EndTime      *time.Time       `json:"endTime,omitempty" bson:"endTime,omitempty"`
 	CalendarID   string           `json:"calendarID" bson:"calendarID,omitempty"`
 	FullDayEvent bool             `json:"fullDayEvent" bson:"fullDayEvent"`
-	Data         *StructuredEvent `json:"data" bson:"data,omitempty"`
+	Data         *StructuredEvent `json:"data,omitempty" bson:"data,omitempty"`
 }
 
 type StructuredEvent struct {

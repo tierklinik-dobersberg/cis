@@ -12,3 +12,4 @@ export * from './comment.api';
 export * from './voicemail.api';
 export * from './user.service';
 export * from './patient.api';
+export * from './calendar.api';

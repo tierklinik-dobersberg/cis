@@ -5,23 +5,44 @@
     <div>
       <h3>Vormittag</h3>
       <nz-avatar-group>
-        <nz-avatar *ngFor="let user of forenoon" nzIcon="user" [nzSrc]="user.avatar" [nzSize]="48" nz-tooltip
-          [nzTooltipTitle]="user.fullname"></nz-avatar>
+        <ng-container *ngFor="let user of forenoon">
+          <nz-avatar nzIcon="user" [nzSrc]="user.avatar" [nzSize]="48" nz-tooltip [nzTooltipTitle]="tooltipTemplate">
+          </nz-avatar>
+          <ng-template #tooltipTemplate>
+            {{ user.fullname }}<br />
+            <span><b>{{ eventsPerUser.get(user.name)?.length || 0 }}</b> Termine heute</span>
+          </ng-template>
+        </ng-container>
+
       </nz-avatar-group>
     </div>
     <div>
       <h3>Nachmittag</h3>
       <nz-avatar-group>
-        <nz-avatar *ngFor="let user of afternoon" nzIcon="user" [nzSrc]="user.avatar" [nzSize]="48" nz-tooltip
-          [nzTooltipTitle]="user.fullname"></nz-avatar>
+        <ng-container *ngFor="let user of afternoon">
+          <nz-avatar nzIcon="user" [nzSrc]="user.avatar" [nzSize]="48" nz-tooltip [nzTooltipTitle]="tooltipTemplate">
+          </nz-avatar>
+          <ng-template #tooltipTemplate>
+            {{ user.fullname }}<br />
+            <span><b>{{ eventsPerUser.get(user.name)?.length || 0 }}</b> Termine heute</span>
+          </ng-template>
+        </ng-container>
+
       </nz-avatar-group>
     </div>
     <div>
       <h3>Nacht- / Bereitschaftsdienst</h3>
       <nz-avatar-group>
-        <nz-avatar *ngFor="let user of emergency" nzIcon="user" [nzSrc]="user.avatar" [nzSize]="48" nz-tooltip
-          [nzTooltipTitle]="user.fullname"></nz-avatar>
+        <ng-container *ngFor="let user of emergency">
+          <nz-avatar nzIcon="user" [nzSrc]="user.avatar" [nzSize]="48" nz-tooltip [nzTooltipTitle]="tooltipTemplate">
+          </nz-avatar>
+          <ng-template #tooltipTemplate>
+            {{ user.fullname }}<br />
+            <span><b>{{ eventsPerUser.get(user.name)?.length || 0 }}</b> Termine heute</span>
+          </ng-template>
+        </ng-container>
       </nz-avatar-group>
+
     </div>
   </div>
 </nz-card>

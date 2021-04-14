@@ -37,6 +37,7 @@ export interface Profile {
   };
   color?: string;
   disabled?: boolean;
+  calendarID?: string;
 }
 
 interface TokenReponse {
