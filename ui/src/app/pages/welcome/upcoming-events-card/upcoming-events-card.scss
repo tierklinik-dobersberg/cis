@@ -1,0 +1,74 @@
+@import 'src/utils';
+
+nz-card {
+  height: 100%;
+  flex-grow: 1;
+  border-top: 3px solid #93C5FD;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+
+::ng-deep .ant-card-body {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+a.toggle {
+    font-size: 90%;
+    opacity: .9;
+}
+
+.event-container {
+    flex-grow: 1;
+    overflow: auto;
+    display: block;
+    ul {
+        list-style-type: none;
+        padding: 0;
+    }
+    margin-top: 1rem;
+
+    .event {
+        position: relative;
+        display: flex;
+        align-items: center;
+        height: 48px;
+        border-bottom: 1px solid lightgray;
+        border-left: 2px solid transparent;
+        transition: all 300ms ease-in-out;
+        padding-left: 4px;
+
+        &.past {
+            height: 36px;
+            opacity: .5;
+        }
+
+        &.highlight {
+            background-color: lightgoldenrodyellow;
+            border-left: 2px solid orange;
+        }
+
+        .time {
+            flex: 0 0;
+            color: gray;
+            margin-right: 1rem;
+            white-space: nowrap;
+        }
+        .summary {
+            flex: 1;
+            line-height: 1rem;
+        }
+        .user {
+            flex: 0 0;
+            white-space: nowrap;
+            padding-left: 6px;
+            padding-right: 6px;
+            border-radius: 6px;
+            color: white;
+            background-color: gray;
+        }
+    }
+}

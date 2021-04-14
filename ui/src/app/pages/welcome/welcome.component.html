@@ -1,15 +1,12 @@
 <img class="placeholder-img" src="assets/vet.png">
-<div class="top-row">
+<div class="grid">
   <app-door-card *ngIf="hasDoorAccess" class="dash-card"></app-door-card>
   <app-emergency-card *ngIf="hasDoctorOnDutyAccess" class="dash-card"></app-emergency-card>
-  <app-clock-card class="dash-card"></app-clock-card>
-  <app-roster-card class="dash-card" *ngIf="hasRosterAccess"></app-roster-card>
-</div>
-
-<div class="top-row">
+  <app-roster-card class="dash-card" *ngIf="hasRosterAccess" (userHover)="upcomingEvents.highlightUser = $event">
+  </app-roster-card>
   <app-voicemail-card class="dash-card" *ngFor="let name of mailboxes" [mailboxName]="name"></app-voicemail-card>
+  <app-upcoming-events-card #upcomingEvents class="dash-card"></app-upcoming-events-card>
 </div>
-
 <!--
   <h2 *ngIf="isDevMode" class="ant-row">Terminvergabe</h2>
 

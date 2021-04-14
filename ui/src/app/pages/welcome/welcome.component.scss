@@ -4,12 +4,72 @@
   @include page-host;
 }
 
+.grid {
+  padding: 12px;
+  display: grid;
+  grid-gap: 12px;
+  @include for-phone-only {
+    padding: 6px;
+    grid-gap: 6px;
+  }
+  grid-auto-rows: minmax(145px, auto);
+
+  @include for-tablet-landscape-up {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include for-desktop-up {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .dash-card {
+    box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
+  }
+
+  app-door-card {
+    @include for-tablet-portrait-up {
+      grid-column: 1 / span 2;
+      grid-row: 1;
+    }
+    @include for-desktop-up {
+      grid-column: auto;
+    }
+  }
+
+  app-emergency-card {
+    grid-column: 1;
+  }
+  app-roster-card {
+    grid-column: 1;
+    @include for-tablet-portrait-up {
+      grid-column: 2;
+      grid-row: 2 / span 2;
+    }
+
+    @include for-desktop-up {
+      grid-row: auto;
+      grid-column: 1;
+    }
+  }
+
+  app-upcoming-events-card {
+    grid-row: auto / span 3;
+    @include for-tablet-portrait-up {
+      grid-column: 1 / span 2;
+      height: 565px;
+    }
+    @include for-desktop-up {
+      grid-column: 2 / span 2;
+      grid-row: 1 / span 3;
+    }
+  }
+}
+
 .top-row {
   display        : flex;
   flex-direction : column;
   justify-content: space-evenly;
   flex-wrap      : wrap;
-  align-items    : center;
   padding        : 12px;
 
   @include for-tablet-landscape-up {
@@ -23,6 +83,7 @@
     box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
     min-width : 300px;
     min-height: 145px;
+    max-height: 300px;
     height    : auto;
     height    : fit-content;
     display: flex;

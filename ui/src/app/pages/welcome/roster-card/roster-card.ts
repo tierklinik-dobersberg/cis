@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, Output } from '@angular/core';
 import { BehaviorSubject, combineLatest, interval, of, Subscription } from 'rxjs';
 import { catchError, map, mergeMap, startWith } from 'rxjs/operators';
 import { CalendarAPI, Day, LocalEvent, ProfileWithAvatar, Roster, RosterAPI, UserService } from 'src/app/api';
@@ -17,6 +17,9 @@ export class RosterCardComponent implements OnInit, OnDestroy {
   emergency: ProfileWithAvatar[] = [];
 
   eventsPerUser = new Map<string, LocalEvent[]>()
+
+  @Output()
+  userHover = new EventEmitter<string>();
 
   constructor(
     private rosterapi: RosterAPI,

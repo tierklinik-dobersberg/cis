@@ -1,13 +1,13 @@
 import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { BehaviorSubject, Subscription, combineLatest, interval } from 'rxjs';
-import { startWith, mergeMap, retryWhen, delay, takeUntil, takeWhile, tap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, interval, Subscription } from 'rxjs';
+import { delay, mergeMap, retryWhen, startWith, takeWhile, tap } from 'rxjs/operators';
 import { DoorAPI, IdentityAPI, Permission, State } from 'src/app/api';
 
 @Component({
   selector: 'app-door-card',
   templateUrl: './door-card.html',
-  styleUrls: ['./door-card.scss']
+  styleUrls: ['./door-card.scss'],
 })
 export class DoorCardComponent implements OnInit, OnDestroy {
 
@@ -21,6 +21,7 @@ export class DoorCardComponent implements OnInit, OnDestroy {
     private nzMessageService: NzMessageService,
   ) { }
 
+  clock: Date = new Date();
   doorState: State;
   doorActions: TemplateRef<any>[] = [];
   stateUntilDay = '';
@@ -60,9 +61,9 @@ export class DoorCardComponent implements OnInit, OnDestroy {
           retryWhen(err => err.pipe(delay(10000))),
         )
         .subscribe(state => {
+          this.clock = new Date();
           this.updateDoorState(state);
         });
-
     this.allSub.add(sub);
   }
 

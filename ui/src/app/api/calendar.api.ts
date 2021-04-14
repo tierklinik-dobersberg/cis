@@ -12,11 +12,16 @@ export interface RemoteEvent {
     calendarID: string;
     fullDayEvent?: boolean;
     username?: string;
+    calendarName?: string;
     data?: {
         customerSource: string;
         customerID: string;
         animalID?: string;
     }
+}
+
+export interface Calendar {
+
 }
 
 export interface LocalEvent extends Omit<Omit<RemoteEvent, 'startTime'>, 'endTime'> {

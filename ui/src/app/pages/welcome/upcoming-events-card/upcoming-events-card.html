@@ -1,0 +1,20 @@
+<nz-card>
+    <nz-card-meta [nzTitle]="headerTemplate"></nz-card-meta>
+    <ng-template #headerTemplate>
+        <span>Nächste Termine</span> - <a class="toggle" (click)="toggle()">{{showAll ? 'Nur nächste' : 'Alle'}}
+            anzeigen</a>
+    </ng-template>
+    <div class="event-container">
+        <ul>
+            <li *ngFor="let event of events; trackBy: trackEvent" class="event" [class.past]="event.past"
+                [class.highlight]="event.user?.name === highlightUser">
+                <span class="time" [style.color]="event.user?.color || null">{{ event.startTime | date:"shortTime"
+                    }}</span>
+                <span class="summary">{{ event.summary }}</span>
+                <span class="user" *ngIf="!!event.user" [style.backgroundColor]="event.user.color"
+                    [style.color]="event.user.fontColor">{{ event.user.fullname }}</span>
+                <span class="user" *ngIf="!event.user">{{ event.calendarName }}</span>
+            </li>
+        </ul>
+    </div>
+</nz-card>

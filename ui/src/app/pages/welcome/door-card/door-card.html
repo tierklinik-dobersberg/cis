@@ -3,11 +3,17 @@
 </nz-card>
 
 <ng-template #doorDescr>
-  <span class="door-description">
-    <span>{{ doorState?.state === 'locked' ? 'Gesperrt' : 'Geöffnet'}}</span>
-    <span>bis</span>
-    <span><u>{{stateUntilDay}}{{stateUntilTime}}</u></span>
-  </span>
+  <div class="container">
+    <span class="door-description">
+      <span>{{ doorState?.state === 'locked' ? 'Gesperrt' : 'Geöffnet'}}</span>
+      <span>bis</span>
+      <span><u>{{stateUntilDay}}{{stateUntilTime}}</u></span>
+    </span>
+
+    <span class="clock">
+      {{ clock | date:"shortTime" }}
+    </span>
+  </div>
 </ng-template>
 
 <ng-template #avatarTemplate>

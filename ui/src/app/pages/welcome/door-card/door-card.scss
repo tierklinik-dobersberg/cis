@@ -4,6 +4,19 @@ nz-card {
   border-top: 3px solid #93C5FD;
 }
 
+.container {
+  position: relative;
+
+  .clock {
+    position: absolute;
+right: 0px;
+    top: -3rem;
+
+    font-size: 2.5rem;
+    opacity: .2;
+  }
+}
+
 .door-avatar {
   border    : 1px solid lightgray;
   transition: background-color ease-in-out .2s;

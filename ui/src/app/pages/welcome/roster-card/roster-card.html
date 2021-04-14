@@ -4,45 +4,29 @@
 
     <div>
       <h3>Vormittag</h3>
-      <nz-avatar-group>
-        <ng-container *ngFor="let user of forenoon">
-          <nz-avatar nzIcon="user" [nzSrc]="user.avatar" [nzSize]="48" nz-tooltip [nzTooltipTitle]="tooltipTemplate">
-          </nz-avatar>
-          <ng-template #tooltipTemplate>
-            {{ user.fullname }}<br />
-            <span><b>{{ eventsPerUser.get(user.name)?.length || 0 }}</b> Termine heute</span>
-          </ng-template>
-        </ng-container>
-
-      </nz-avatar-group>
+      <ng-container *ngTemplateOutlet="userGroupTemplate; context: {$implicit: forenoon}"></ng-container>
     </div>
     <div>
       <h3>Nachmittag</h3>
-      <nz-avatar-group>
-        <ng-container *ngFor="let user of afternoon">
-          <nz-avatar nzIcon="user" [nzSrc]="user.avatar" [nzSize]="48" nz-tooltip [nzTooltipTitle]="tooltipTemplate">
-          </nz-avatar>
-          <ng-template #tooltipTemplate>
-            {{ user.fullname }}<br />
-            <span><b>{{ eventsPerUser.get(user.name)?.length || 0 }}</b> Termine heute</span>
-          </ng-template>
-        </ng-container>
-
-      </nz-avatar-group>
+      <ng-container *ngTemplateOutlet="userGroupTemplate; context: {$implicit: afternoon}"></ng-container>
     </div>
     <div>
       <h3>Nacht- / Bereitschaftsdienst</h3>
-      <nz-avatar-group>
-        <ng-container *ngFor="let user of emergency">
-          <nz-avatar nzIcon="user" [nzSrc]="user.avatar" [nzSize]="48" nz-tooltip [nzTooltipTitle]="tooltipTemplate">
-          </nz-avatar>
-          <ng-template #tooltipTemplate>
-            {{ user.fullname }}<br />
-            <span><b>{{ eventsPerUser.get(user.name)?.length || 0 }}</b> Termine heute</span>
-          </ng-template>
-        </ng-container>
-      </nz-avatar-group>
-
+      <ng-container *ngTemplateOutlet="userGroupTemplate; context: {$implicit: emergency}"></ng-container>
     </div>
   </div>
 </nz-card>
+
+<ng-template #userGroupTemplate let-data>
+  <nz-avatar-group>
+    <ng-container *ngFor="let user of data">
+      <nz-avatar nzIcon="user" [nzSrc]="user.avatar" [nzSize]="48" nz-tooltip [nzTooltipTitle]="tooltipTemplate"
+        (mouseenter)="userHover.next(user.name)" (mouseleave)="userHover.next('')">
+      </nz-avatar>
+      <ng-template #tooltipTemplate>
+        {{ user.fullname }}<br />
+        <span><b>{{ eventsPerUser.get(user.name)?.length || 0 }}</b> Termine heute</span>
+      </ng-template>
+    </ng-container>
+  </nz-avatar-group>
+</ng-template>
