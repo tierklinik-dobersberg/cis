@@ -15,6 +15,7 @@ import (
 	"github.com/tierklinik-dobersberg/service/svcenv"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"golang.org/x/sync/singleflight"
 	"google.golang.org/api/calendar/v3"
 )
 
@@ -54,6 +55,7 @@ type service struct {
 
 	cacheLock   sync.Mutex
 	eventsCache map[string]*eventCache
+	loadGroup   singleflight.Group
 }
 
 // New creates a new calendar service from cfg.
@@ -180,43 +182,54 @@ func (svc *service) cacheFor(ctx context.Context, calid string) (*eventCache, er
 func (svc *service) loadEvents(ctx context.Context, calendarID string, searchOpts *EventSearchOptions) ([]Event, error) {
 	call := svc.Events.List(calendarID).ShowDeleted(false).SingleEvents(true)
 
+	key := calendarID
 	if searchOpts != nil {
 		if searchOpts.from != nil {
 			call = call.TimeMin(searchOpts.from.Format(time.RFC3339))
+			key += fmt.Sprintf("-%s", searchOpts.from.Format(time.RFC3339))
 		}
 		if searchOpts.to != nil {
 			call = call.TimeMax(searchOpts.to.Format(time.RFC3339))
+			key += fmt.Sprintf("-%s", searchOpts.to.Format(time.RFC3339))
 		}
 	}
 
-	var events []Event
-	var pageToken string
-	for {
-		if pageToken != "" {
-			call.PageToken(pageToken)
-		}
-		res, err := call.Do()
-		if err != nil {
-			return nil, err
-		}
-
-		for _, item := range res.Items {
-			evt, err := convertToEvent(ctx, calendarID, item)
+	res, err, shared := svc.loadGroup.Do(key, func() (interface{}, error) {
+		var events []Event
+		var pageToken string
+		for {
+			if pageToken != "" {
+				call.PageToken(pageToken)
+			}
+			res, err := call.Do()
 			if err != nil {
-				log.From(ctx).Errorf(err.Error())
+				return nil, err
+			}
+
+			for _, item := range res.Items {
+				evt, err := convertToEvent(ctx, calendarID, item)
+				if err != nil {
+					log.From(ctx).Errorf(err.Error())
+					continue
+				}
+				events = append(events, *evt)
+			}
+
+			if res.NextPageToken != "" {
+				pageToken = res.NextPageToken
 				continue
 			}
-			events = append(events, *evt)
+			break
 		}
 
-		if res.NextPageToken != "" {
-			pageToken = res.NextPageToken
-			continue
-		}
-		break
+		return events, nil
+	})
+	svc.loadGroup.Forget(key)
+	if shared {
+		log.From(ctx).V(7).Logf("shared calendar load between multiple callers")
 	}
 
-	return events, nil
+	return res.([]Event), err
 }
 
 func tokenFromFile(path string) (*oauth2.Token, error) {
