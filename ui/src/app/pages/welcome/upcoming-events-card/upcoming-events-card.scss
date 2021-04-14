@@ -10,7 +10,7 @@ nz-card {
 }
 
 
-::ng-deep .ant-card-body {
+::ng-deep app-upcoming-events-card .ant-card-body {
     display: flex;
     flex-direction: column;
     overflow: auto;
