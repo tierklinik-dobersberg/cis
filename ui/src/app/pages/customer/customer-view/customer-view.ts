@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -91,9 +92,9 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
 
     interface ForkJoinResult {
       customer: Customer;
-      calllogs: CallLog[];
-      patients: LocalPatient[];
-      notes: Comment[];
+      calllogs: CallLog[] | HttpErrorResponse;
+      patients: LocalPatient[] | HttpErrorResponse;
+      notes: Comment[] | HttpErrorResponse;
     }
 
     const routerSub = combineLatest([
@@ -107,13 +108,16 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
           const id = params.get('cid');
           return forkJoin({
             customer: this.customerapi.byId(source, id),
-            calllogs: this.calllogapi.forCustomer(source, id),
-            patients: this.patientapi.getPatientsForCustomer(source, id),
+            calllogs: this.calllogapi.forCustomer(source, id)
+              .pipe(catchError(err => of(err))),
+            patients: this.patientapi.getPatientsForCustomer(source, id)
+              .pipe(catchError(err => of(err))),
             notes: this.commentapi.list(`customer:primaryNote:${source}:${id}`, false, true)
-              .pipe(catchError(err => of([])))
+              .pipe(catchError(err => of(err)))
           });
         }),
         catchError(err => {
+          // this can only happen if we fail to load the customer at all
           this.nzMessageService.error(extractErrorMessage(err, 'Kunde konnte nicht geladen werden'));
           return of(null);
         }),
@@ -124,15 +128,28 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
           return;
         }
 
-        this.callrecords = result.calllogs;
-        this.updateCallLogGraphs();
+        this.callrecords = [];
+        if (Array.isArray(result.calllogs)) {
+          this.callrecords = result.calllogs;
+          this.updateCallLogGraphs();
+        } else {
+          this.nzMessageService.error(
+            extractErrorMessage(result.calllogs, 'Anruf Journal konnte nicht geladen werden')
+          );
+        }
 
         this.allComments = [];
         this.customerComment = null;
-        if (result.notes?.length > 0) {
+        if (Array.isArray(result.notes)) {
           this.allComments = result.notes;
           // always display the very last note created.
-          this.customerComment = result.notes[result.notes.length - 1];
+          if (result.notes.length > 0) {
+            this.customerComment = result.notes[result.notes.length - 1];
+          }
+        } else {
+          this.nzMessageService.error(
+            extractErrorMessage(result.notes, 'Kommentare konnten nicht geladen werden')
+          );
         }
 
         this.customer = {
@@ -140,9 +157,16 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
           tagColor: customerTagColor(result.customer),
         };
 
-        this.patients = result.patients,
+        this.patients = [];
+        if (Array.isArray(result.patients)) {
+          this.patients = result.patients;
+        } else {
+          this.nzMessageService.error(
+            extractErrorMessage(result.patients, 'Patienten konnten nicht geladen werden')
+          );
+        }
 
-          this.findMissingData();
+        this.findMissingData();
 
         this.header.set(`Kunde: ${this.customer.name} ${this.customer.firstname}`);
         this.changeDetector.detectChanges();
