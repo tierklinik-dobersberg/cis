@@ -12,6 +12,7 @@ type User struct {
 	Properties  map[string]interface{} `json:"properties" option:"-"`
 	Color       string                 `json:"color,omitempty"`
 	Disabled    bool                   `json:"disabled,omitempty"`
+	CalendarID  string                 `json:"calendarID,omitempty"`
 }
 
 // Role describes a role object. For security and privacy

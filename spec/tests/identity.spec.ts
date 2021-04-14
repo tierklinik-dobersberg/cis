@@ -24,6 +24,7 @@ describe("The identity API", () => {
                 "phoneNumbers": ["+4312345678", "+2812345"],
                 "roles": ["default-role"],
                 "properties": { "PhoneExtension": "10" },
+                "calendarID": "primary",
                 "color": "#1b7550b9"
             })
         expect(response.data).toContain(
@@ -66,9 +67,10 @@ describe("The identity API", () => {
             roles: [
                 "default-role",
             ],
+            calendarID: "primary",
             properties: {
-                GoogleCalendarID: "primary",
                 PhoneExtension: '10',
+                PrivateProperty: 'some-secret-value',
             },
             color: "#1b7550b9",
         })

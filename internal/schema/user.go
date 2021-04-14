@@ -59,6 +59,11 @@ var UserSpec = conf.SectionSpec{
 		Description: "Path to the avatar file name. Relative to AvatarDirectory.",
 	},
 	{
+		Name:        "CalendarID",
+		Type:        conf.StringType,
+		Description: "The ID of the calendar that belongs to that user",
+	},
+	{
 		Name:        "Color",
 		Type:        conf.StringType,
 		Description: "A Hex encoded color that should be used to represent the user in the UI. The color may container an alpha channel as well.",

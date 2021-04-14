@@ -2,7 +2,6 @@
 Name=guest
 FullName=guest user
 Roles=Service Account
-GoogleCalendarID=-
 
 [AutoLogin]
 CreateSession=yes
