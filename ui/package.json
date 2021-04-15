@@ -13,7 +13,7 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "~11.2.10",
-    "@angular/cdk": "^11.0.4",
+    "@angular/cdk": "^11.2.9",
     "@angular/common": "~11.2.10",
     "@angular/compiler": "~11.2.10",
     "@angular/core": "~11.2.10",
@@ -37,7 +37,7 @@
     "jwt-decode": "^3.1.2",
     "ng-zorro-antd": "~11.4.0",
     "ngx-markdown": "^11.0.1",
-    "rxjs": "~6.6.0",
+    "rxjs": "~6.6.7",
     "search-query-parser": "^1.5.5",
     "tslib": "^2.0.0",
     "web-animations-js": "^2.3.2",
