@@ -74,7 +74,7 @@ func parseDescription(desc string) (*StructuredEvent, error) {
 	foundSectionStart := false
 	for idx, line := range lines {
 		line := strings.TrimSpace(line)
-		if strings.HasPrefix(line, "[") && strings.HasSuffix(line, "]") {
+		if line == "[CIS]" {
 			foundSectionStart = true
 			lines = lines[idx:]
 			break

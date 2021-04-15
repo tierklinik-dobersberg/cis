@@ -19,6 +19,7 @@ type eventCache struct {
 	syncToken     string
 	location      *time.Location
 	firstLoadDone chan struct{}
+	trigger       chan struct{}
 
 	calID  string
 	events []Event
@@ -35,12 +36,20 @@ func newCache(ctx context.Context, id string, loc *time.Location, svc *calendar.
 		svc:           svc,
 		location:      loc,
 		firstLoadDone: make(chan struct{}),
+		trigger:       make(chan struct{}),
 	}
 
 	go cache.watch(ctx)
 	<-cache.firstLoadDone
 
 	return cache, nil
+}
+
+func (ec *eventCache) triggerSync() {
+	select {
+	case ec.trigger <- struct{}{}:
+	default:
+	}
 }
 
 func (ec *eventCache) watch(ctx context.Context) {
@@ -66,6 +75,7 @@ func (ec *eventCache) watch(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-time.After(waitTime):
+		case <-ec.trigger:
 		}
 	}
 }

@@ -1,11 +1,13 @@
 package calendar
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -47,6 +49,7 @@ type Config struct {
 type Service interface {
 	ListCalendars(ctx context.Context) ([]Calendar, error)
 	ListEvents(ctx context.Context, calendarID string, filter *EventSearchOptions) ([]Event, error)
+	CreateEvent(ctx context.Context, calId, name, description string, startTime time.Time, duration time.Duration, data *StructuredEvent) error
 }
 
 type service struct {
@@ -154,6 +157,45 @@ func (svc *service) ListEvents(ctx context.Context, calendarID string, searchOpt
 	}
 
 	return svc.loadEvents(ctx, calendarID, searchOpts)
+}
+
+func (svc *service) CreateEvent(ctx context.Context, calId, name, description string, startTime time.Time, duration time.Duration, data *StructuredEvent) error {
+	// convert structured event data to it's string representation
+	// and append to description.
+	if data != nil {
+		metaFile, err := conf.ConvertToFile(struct {
+			Data *StructuredEvent `section:"CIS"`
+		}{data}, "")
+		if err != nil {
+			return err
+		}
+		buf := new(bytes.Buffer)
+		if err := conf.WriteSectionsTo(metaFile.Sections, buf); err != nil {
+			return err
+		}
+		description = strings.TrimSpace(description) + "\n\n" + buf.String()
+	}
+
+	res, err := svc.Service.Events.Insert(calId, &calendar.Event{
+		Summary:     name,
+		Description: description,
+		Start: &calendar.EventDateTime{
+			DateTime: startTime.Format(time.RFC3339),
+		},
+		End: &calendar.EventDateTime{
+			DateTime: startTime.Add(duration).Format(time.RFC3339),
+		},
+		Status: "confirmed",
+	}).Do()
+	if err != nil {
+		return err
+	}
+	log.From(ctx).Infof("created event with id %s", res.Id)
+
+	if cache, _ := svc.cacheFor(ctx, calId); cache != nil {
+		cache.triggerSync()
+	}
+	return nil
 }
 
 func (svc *service) cacheFor(ctx context.Context, calid string) (*eventCache, error) {
