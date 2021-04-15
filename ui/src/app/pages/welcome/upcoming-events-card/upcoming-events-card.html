@@ -3,18 +3,43 @@
     <ng-template #headerTemplate>
         <span>Nächste Termine</span> - <a class="toggle" (click)="toggle()">{{showAll ? 'Nur nächste' : 'Alle'}}
             anzeigen</a>
+
+        <span class="filter" nz-dropdown [nzDropdownMenu]="dropdown" [nzClickHide]="false">
+            <i nz-icon nzType="filter" nzTheme="outline"></i>
+            Filter
+        </span>
+
+        <nz-dropdown-menu #dropdown="nzDropdownMenu">
+            <ul nz-menu>
+                <li nz-menu-item *ngFor="let cal of allCalendars.values()" (click)="cal.displayed = !cal.displayed"
+                    (dblclick)="selectOnly(cal.id)">
+                    <i [style.opacity]="cal.displayed ? 1 : 0" nz-icon nzType="check" nzTheme="outline"></i>
+                    {{ cal.name }}
+                </li>
+            </ul>
+        </nz-dropdown-menu>
     </ng-template>
     <div class="event-container" *ngIf="events.length > 0">
         <ul>
-            <li *ngFor="let event of events; trackBy: trackEvent" class="event" [class.past]="event.past"
-                [class.highlight-active]="highlightUser !== ''" [class.highlight]="event.user?.name === highlightUser">
-                <span class="time" [style.color]="event.user?.color || null">{{ event.startTime | date:"HH:mm"
-                    }}</span>
-                <span class="summary">{{ event.summary }}</span>
-                <span class="user" *ngIf="!!event.user" [style.backgroundColor]="event.user.color"
-                    [style.color]="event.user.fontColor">{{ event.user.fullname }}</span>
-                <span class="user" *ngIf="!event.user">{{ event.calendarName }}</span>
-            </li>
+            <ng-container *ngFor="let event of events; trackBy: trackEvent">
+                <li *ngIf="allCalendars.get(event.calendarID).displayed" class="event" [class.past]="event.past"
+                    [class.highlight-active]="highlightUser !== ''"
+                    [class.highlight]="event.user?.name === highlightUser">
+                    <span class="time" [style.color]="event.user?.color || null">{{ event.startTime | date:"HH:mm"
+                        }}</span>
+
+                    <span class="summary-container">
+                        <span class="summary">{{ event.summary }}</span>
+                        <span class="user name" *ngIf="!!event.user; else calendarName"
+                            [style.backgroundColor]="event.user.color" [style.color]="event.user.fontColor">{{
+                            event.user.fullname }}</span>
+
+                        <ng-template #calendarName>
+                            <span class="user">{{ event.calendarName }}</span>
+                        </ng-template>
+                    </span>
+                </li>
+            </ng-container>
         </ul>
     </div>
 

@@ -24,7 +24,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropdownButtonDirective, NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { DoorCardComponent } from './door-card';
 import { EmergencyCardComponent } from './emergency-card';
 import { NzSpinModule } from 'ng-zorro-antd/spin';

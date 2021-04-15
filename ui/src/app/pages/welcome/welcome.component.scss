@@ -56,11 +56,11 @@
     grid-row: auto / span 3;
     @include for-tablet-portrait-up {
       grid-column: 1 / span 2;
-      height: 565px;
+      height: 700px;
     }
     @include for-desktop-up {
       grid-column: 2 / span 2;
-      grid-row: 1 / span 3;
+      grid-row: 1 / span 4;
     }
   }
 }

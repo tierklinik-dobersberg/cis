@@ -17,10 +17,25 @@ nz-card {
     height: 100%;
 }
 
-a.toggle {
-    font-size: 90%;
-    opacity: .9;
+ul[nz-menu] {
+    user-select: none;
 }
+
+span.filter, .toggle {
+    font-size: 85%;
+    opacity: .85;
+    cursor: pointer;
+}
+
+span.filter {
+    float: right;
+    text-transform: uppercase;
+    color: #40617c;
+    &:hover {
+        opacity: 1;
+    }
+}
+
 
 nz-empty {
     margin-top: auto;
@@ -42,14 +57,16 @@ nz-empty {
         position: relative;
         display: flex;
         align-items: center;
-        height: 48px;
+        min-height: 48px;
+        padding-top: 3px;
+        padding-bottom: 3px;
         border-bottom: 1px solid lightgray;
         border-left: 2px solid transparent;
         transition: all 300ms ease-in-out;
         padding-left: 4px;
 
         &.past {
-            height: 36px;
+            min-height: 36px;
             opacity: .5;
         }
 
@@ -69,11 +86,22 @@ nz-empty {
             margin-right: 1rem;
             white-space: nowrap;
         }
+
+        .summary-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            @include for-tablet-portrait-up {
+                flex-direction: row;
+            }
+        }
         .summary {
             flex: 1;
             line-height: 1rem;
         }
         .user {
+            font-size: 90%;
             flex: 0 0;
             white-space: nowrap;
             padding-left: 6px;

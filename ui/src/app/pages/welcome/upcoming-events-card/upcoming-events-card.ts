@@ -8,6 +8,12 @@ interface DisplayEvent extends LocalEvent {
     past: boolean;
 }
 
+interface Calendar {
+    name: string;
+    id: string;
+    displayed: boolean;
+}
+
 @Component({
     selector: 'app-upcoming-events-card',
     templateUrl: './upcoming-events-card.html',
@@ -19,6 +25,7 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
 
     events: DisplayEvent[] = [];
     showAll = false;
+    allCalendars: Map<string, Calendar> = new Map();
 
     trackEvent: TrackByFunction<LocalEvent> = (_: number, event: LocalEvent) => event._id;
 
@@ -37,6 +44,21 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
         private userService: UserService,
         private changeDetectorRef: ChangeDetectorRef,
     ) { }
+
+    selectOnly(id: string) {
+        const all = Array.from(this.allCalendars.values())
+        // if all all calendars are hidden an we handle a double
+        // click than display all again
+        if (!all.filter(cal => cal.id !== id).some(cal => cal.displayed)) {
+            all.forEach(cal => cal.displayed = true);
+            return;
+        }
+
+        all.forEach(val => {
+            val.displayed = val.id === id;
+        })
+        this.changeDetectorRef.markForCheck();
+    }
 
     ngOnInit() {
         this.subscription = new Subscription();
@@ -70,6 +92,24 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
                         past: event.startTime.getTime() < now,
                         user: this.userService.byName(event.username),
                     }));
+
+                // create a list of displayed calendars.
+                const calMap = new Map<string, Calendar>();
+                this.events.forEach(evt => {
+                    let name = evt.user ? evt.user.fullname : evt.calendarName;
+                    let isDisplayed = this.allCalendars.get(evt.calendarID)?.displayed;
+                    if (isDisplayed === undefined) {
+                        isDisplayed = true;
+                    }
+
+                    calMap.set(evt.calendarID, {
+                        id: evt.calendarID,
+                        name: name,
+                        displayed: isDisplayed,
+                    })
+                })
+                this.allCalendars = calMap;
+
                 this.changeDetectorRef.markForCheck();
             });
 
