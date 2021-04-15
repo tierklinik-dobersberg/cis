@@ -16,7 +16,6 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*E
 		err   error
 		start time.Time
 		end   *time.Time
-		data  *StructuredEvent
 	)
 
 	if item == nil {
@@ -53,23 +52,9 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*E
 		end = &t
 	}
 
-	// TODO(ppacher): add support for freeform text in the description
-	// as well by using something like YAML frontmatter
-	if item.Description != "" {
-		reader := strings.NewReader(item.Description)
-		f, err := conf.Deserialize("", reader)
-		// TODO(ppacher): we could be more strict here
-		if err == nil && f.Sections.Has("CIS") {
-			data = new(StructuredEvent)
-			err = conf.DecodeSections(f.Sections, StructuredEventSpec, data)
-		}
-
-		if err != nil {
-			// only log on trace level because we expect this to happen
-			// a lot
-			log.From(ctx).V(7).Logf("failed to parse description: %s", err)
-			data = nil
-		}
+	data, err := parseDescription(item.Description)
+	if err != nil {
+		log.From(ctx).Errorf("failed to parse calendar event meta data: %s", err)
 	}
 
 	return &Event{
@@ -82,4 +67,33 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*E
 		CalendarID:   calid,
 		Data:         data,
 	}, nil
+}
+
+func parseDescription(desc string) (*StructuredEvent, error) {
+	lines := strings.Split(desc, "\n")
+	foundSectionStart := false
+	for idx, line := range lines {
+		line := strings.TrimSpace(line)
+		if strings.HasPrefix(line, "[") && strings.HasSuffix(line, "]") {
+			foundSectionStart = true
+			lines = lines[idx:]
+			break
+		}
+	}
+	if !foundSectionStart {
+		return nil, nil
+	}
+
+	reader := strings.NewReader(strings.Join(lines, "\n"))
+	f, err := conf.Deserialize("", reader)
+	if err != nil {
+		return nil, err
+	}
+
+	var data StructuredEvent
+	if err := conf.DecodeSections(f.Sections, StructuredEventSpec, &data); err != nil {
+		return nil, err
+	}
+
+	return &data, nil
 }
