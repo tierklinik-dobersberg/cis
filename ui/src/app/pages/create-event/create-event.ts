@@ -71,14 +71,16 @@ export class CreateEventComponent implements OnInit, OnDestroy {
                 takeUntil(this.destroy$),
                 switchMap(calllogs => {
                     if (this.customerSearchResult.length > 0) {
-                        // abort if the user already search for customers
+                        // abort if the user already searched for customers
                         return of(null as Customer[]);
                     }
-
-                    let recent = calllogs.filter(call => !!call.customerSource).slice(0, 10);
+                    // TODO(ppacher): also accept calllogs where we don't know the number and
+                    // ask the user to assign it. That's possible the easiest way to get phone - customer
+                    // assignments done.
+                    let recent = calllogs.filter(call => !!call.customerSource && call.customerSource !== 'unknown').slice(0, 10);
                     return forkJoin(
                         recent.map(call => this.customerapi.byId(call.customerSource!, call.customerID!))
-                    )
+                    );
                 })
             )
             .subscribe(result => {
@@ -88,7 +90,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
                 this.customerSearchResult = result.map(customer => ({
                     ...customer,
                     display: `${customer.name} ${customer.firstname}, ${customer.street}, ${customer.city}`
-                }))
+                }));
             })
 
         this.searchCustomer$.pipe(
@@ -104,7 +106,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
             this.customerSearchResult = customers.map(customer => ({
                 ...customer,
                 display: `${customer.name} ${customer.firstname}, ${customer.street}, ${customer.city}`
-            }))
+            }));
         });
 
         this.loadPatient$.pipe(
@@ -141,26 +143,24 @@ export class CreateEventComponent implements OnInit, OnDestroy {
             }
             this.rosterDay = null;
             if (roster.roster === null) {
-                // no roster available
                 return;
             }
             const day = roster.roster.days[roster.date.getDate()];
             if (!day) {
-                // no roster available
                 return;
             }
-
+            // make sure we actually have some users configued. otherwise this still counts
+            // as "no-roster".
             if (day.forenoon.length === 0 && day.afternoon.length === 0 && day.emergency.length === 0) {
                 return;
             }
-
             this.rosterDay = {
                 ...day,
                 usersForenoon: (day.forenoon || []).map(user => this.users.byName(user)),
                 usersAfternoon: (day.afternoon || []).map(user => this.users.byName(user)),
                 usersEmergency: (day.emergency || []).map(user => this.users.byName(user)),
             }
-        })
+        });
     }
 
     ngOnDestroy() {
