@@ -22,6 +22,7 @@ interface DisplayDay extends Day {
 export class CreateEventComponent implements OnInit, OnDestroy {
     selectedCustomer: DisplayCustomer | null = null;
     customerSearchResult: DisplayCustomer[] = [];
+    calllogSuggestions: DisplayCustomer[] = [];
 
     selectedPatients: (LocalPatient | string)[] = [];
     customerPatients: LocalPatient[] = [];
@@ -70,10 +71,6 @@ export class CreateEventComponent implements OnInit, OnDestroy {
             .pipe(
                 takeUntil(this.destroy$),
                 switchMap(calllogs => {
-                    if (this.customerSearchResult.length > 0) {
-                        // abort if the user already searched for customers
-                        return of(null as Customer[]);
-                    }
                     // TODO(ppacher): also accept calllogs where we don't know the number and
                     // ask the user to assign it. That's possible the easiest way to get phone - customer
                     // assignments done.
@@ -87,18 +84,23 @@ export class CreateEventComponent implements OnInit, OnDestroy {
                 if (result === null) {
                     return;
                 }
-                this.customerSearchResult = result.map(customer => ({
+                this.calllogSuggestions = result.map(customer => ({
                     ...customer,
                     display: `${customer.name} ${customer.firstname}, ${customer.street}, ${customer.city}`
                 }));
+                if (this.customerSearchResult.length === 0) {
+                    this.customerSearchResult = this.calllogSuggestions;
+                }
             })
 
         this.searchCustomer$.pipe(
             takeUntil(this.destroy$),
             debounceTime(500),
-            filter(name => name != ""),
             switchMap(name => {
                 this.customersLoading = true;
+                if (name === '') {
+                    return of(this.calllogSuggestions);
+                }
                 return this.customerapi.searchName(name);
             }),
         ).subscribe(customers => {
