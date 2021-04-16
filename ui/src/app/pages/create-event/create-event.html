@@ -24,9 +24,9 @@
             3. Termin auswählen:
         </h2>
         <div>
-            <button nz-button nzType="text"><i nz-icon nzType="left"></i></button>
+            <button nz-button nzType="text" (click)="prevDay()"><i nz-icon nzType="left"></i></button>
             <nz-date-picker [(ngModel)]="selectedDate" (ngModelChange)="selectDate($event)"></nz-date-picker>
-            <button nz-button nzType="text"><i nz-icon nzType="right"></i></button>
+            <button nz-button nzType="text" (click)="nextDay()"><i nz-icon nzType="right"></i></button>
         </div>
         <span class="warning" *ngIf="selectedDate != null && rosterDay === null && !rosterLoading">Kein Dienstplan
             verfügbar!</span>

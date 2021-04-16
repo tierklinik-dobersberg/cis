@@ -27,7 +27,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
     selectedPatients: (LocalPatient | string)[] = [];
     customerPatients: LocalPatient[] = [];
     rosterDay: DisplayDay | null = null;
-    selectedDate: Date | null = null;
+    selectedDate: Date | null = new Date();
 
     rosterLoading = false;
     customersLoading = false;
@@ -62,6 +62,22 @@ export class CreateEventComponent implements OnInit, OnDestroy {
 
     selectPatient(event: any) {
         console.log(event);
+    }
+
+    nextDay() {
+        if (!this.selectedDate) {
+            return;
+        }
+        this.selectedDate = new Date(this.selectedDate.getTime() + 24 * 60 * 60 * 1000);
+        this.selectDate(this.selectedDate);
+    }
+
+    prevDay() {
+        if (!this.selectedDate) {
+            return;
+        }
+        this.selectedDate = new Date(this.selectedDate.getTime() - 24 * 60 * 60 * 1000);
+        this.selectDate(this.selectedDate);
     }
 
     ngOnInit() {
