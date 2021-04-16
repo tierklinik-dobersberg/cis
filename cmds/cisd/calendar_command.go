@@ -44,6 +44,7 @@ func getCalendarCommand() *cobra.Command {
 		getCalendarAuthCommand(),
 		getCalendarListCommand(),
 		getEventsCommand(),
+		getCreateEventCommand(),
 	)
 
 	return cmd
@@ -137,7 +138,12 @@ func getEventsCommand() *cobra.Command {
 					bold = ""
 				}
 
-				fmt.Fprintf(buf, "- _%s_ %s%s%s\n", event.StartTime.Format("15:04"), bold, event.Summary, bold)
+				meta := ""
+				if event.Data != nil {
+					meta = fmt.Sprintf(" createdBy=%s cid=%s/%d", event.Data.CreatedBy, event.Data.CustomerSource, event.Data.CustomerID)
+				}
+
+				fmt.Fprintf(buf, "- _%s_ %s%s%s%s\n", event.StartTime.Format("15:04"), bold, event.Summary, bold, meta)
 			}
 
 			fmt.Println(Render(buf.String()))
@@ -148,5 +154,60 @@ func getEventsCommand() *cobra.Command {
 		f.StringVar(&forDay, "for-day", "", "Date to load events for. Format YYYY-MM-DD")
 	}
 
+	return cmd
+}
+
+func getCreateEventCommand() *cobra.Command {
+	var (
+		dateTimeStr    string
+		duration       time.Duration
+		summary        string
+		description    string
+		createdBy      string
+		customerID     int
+		customerSource string
+		animalID       string
+		calID          string
+	)
+	cmd := &cobra.Command{
+		Use: "create",
+		Run: func(cmd *cobra.Command, args []string) {
+			var data *calendar.StructuredEvent
+			if customerSource != "" || createdBy != "" {
+				data = &calendar.StructuredEvent{
+					CustomerSource: customerSource,
+					CustomerID:     customerID,
+					AnimalID:       animalID,
+					CreatedBy:      createdBy,
+				}
+			}
+
+			startTime, err := time.ParseInLocation("2006-01-02 15:04", dateTimeStr, time.Local)
+			if err != nil {
+				log.Fatalf("invalid --at time: %s", err)
+			}
+
+			svc := calendarService()
+			err = svc.CreateEvent(context.Background(), calID, summary, description, startTime, duration, data)
+			if err != nil {
+				log.Fatalf("failed to create event: %s", err)
+			}
+		},
+	}
+	f := cmd.Flags()
+	{
+		f.StringVar(&dateTimeStr, "at", "", "Datetime in format yyyy-mm-dd hh:mm")
+		f.DurationVar(&duration, "for", 15*time.Minute, "Duration")
+		f.StringVar(&summary, "summary", "", "Event summary")
+		f.StringVar(&description, "description", "", "Event description")
+		f.StringVar(&createdBy, "created-by", "", "User name that created the event")
+		f.IntVar(&customerID, "cid", 0, "Customer ID")
+		f.StringVar(&customerSource, "customer-source", "", "Customer source")
+		f.StringVar(&animalID, "animal-id", "", "Animal ID")
+		f.StringVar(&calID, "calendar", "", "Calendar ID")
+	}
+	cmd.MarkFlagRequired("at")
+	cmd.MarkFlagRequired("summary")
+	cmd.MarkFlagRequired("calendar")
 	return cmd
 }

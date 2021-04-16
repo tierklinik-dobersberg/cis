@@ -23,7 +23,9 @@ import (
 func ListEventsEndpoint(router *app.Router) {
 	router.GET(
 		"v1/events",
-		permission.Anyone, // FIXME
+		permission.OneOf{
+			ReadEventsAction,
+		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			day := time.Now()
 			if forDay := c.Query("for-day"); forDay != "" {

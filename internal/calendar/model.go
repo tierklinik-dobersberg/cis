@@ -52,9 +52,12 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*E
 		end = &t
 	}
 
-	data, err := parseDescription(item.Description)
+	newDescription, data, err := parseDescription(item.Description)
 	if err != nil {
 		log.From(ctx).Errorf("failed to parse calendar event meta data: %s", err)
+	}
+	if err == nil {
+		item.Description = newDescription
 	}
 
 	return &Event{
@@ -69,31 +72,36 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*E
 	}, nil
 }
 
-func parseDescription(desc string) (*StructuredEvent, error) {
-	lines := strings.Split(desc, "\n")
-	foundSectionStart := false
-	for idx, line := range lines {
+func parseDescription(desc string) (string, *StructuredEvent, error) {
+	allLines := strings.Split(desc, "\n")
+	var (
+		sectionLines      []string
+		strippedDescr     string
+		foundSectionStart bool
+	)
+	for idx, line := range allLines {
 		line := strings.TrimSpace(line)
 		if line == "[CIS]" {
 			foundSectionStart = true
-			lines = lines[idx:]
+			sectionLines = allLines[idx:]
+			strippedDescr = strings.TrimSpace(strings.Join(allLines[:idx], "\n"))
 			break
 		}
 	}
 	if !foundSectionStart {
-		return nil, nil
+		return "", nil, nil
 	}
 
-	reader := strings.NewReader(strings.Join(lines, "\n"))
+	reader := strings.NewReader(strings.Join(sectionLines, "\n"))
 	f, err := conf.Deserialize("", reader)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	var data StructuredEvent
 	if err := conf.DecodeSections(f.Sections, StructuredEventSpec, &data); err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
-	return &data, nil
+	return strippedDescr, &data, nil
 }

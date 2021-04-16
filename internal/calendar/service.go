@@ -50,6 +50,7 @@ type Service interface {
 	ListCalendars(ctx context.Context) ([]Calendar, error)
 	ListEvents(ctx context.Context, calendarID string, filter *EventSearchOptions) ([]Event, error)
 	CreateEvent(ctx context.Context, calId, name, description string, startTime time.Time, duration time.Duration, data *StructuredEvent) error
+	DeleteEvent(ctx context.Context, calID, eventId string) error
 }
 
 type service struct {
@@ -194,6 +195,14 @@ func (svc *service) CreateEvent(ctx context.Context, calId, name, description st
 
 	if cache, _ := svc.cacheFor(ctx, calId); cache != nil {
 		cache.triggerSync()
+	}
+	return nil
+}
+
+func (svc *service) DeleteEvent(ctx context.Context, calid, eventid string) error {
+	err := svc.Service.Events.Delete(calid, eventid).Do()
+	if err != nil {
+		return err
 	}
 	return nil
 }

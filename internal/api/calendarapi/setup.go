@@ -11,4 +11,10 @@ func Setup(grp gin.IRouter) {
 
 	// GET /api/calendar/v1/events?for-day=2006-1-2&for-user=alice&for-user=bob
 	ListEventsEndpoint(router)
+
+	// POST /api/calendar/v1/events
+	CreateEventEndpoint(router)
+
+	// DELETE /api/calendar/v1/events/:calid/:id
+	DeleteEventEndpoint(router)
 }
