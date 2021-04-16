@@ -39,6 +39,11 @@ export class CalllogAPI {
     private userService: UserService,
   ) { }
 
+  forToday(): Observable<CallLog[]> {
+    const now = new Date();
+    return this.forDate(now.getFullYear(), now.getMonth() + 1, now.getDate())
+  }
+
   /**
    * Returns all calllog record recorded for the given date.
    */

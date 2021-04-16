@@ -5,6 +5,13 @@
       <span>Dashboard</span>
     </li>
 
+    <!--
+    <li *ngIf="canCreateEvent" routerLink="/create-event" nzMatchRouter nz-menu-item>
+      <i nz-icon nzType="calendar" nzTheme="outline"></i>
+      <span>Neuer Termin</span>
+    </li>
+-->
+
     <li *ngIf="hasRoster" routerLink="/roster" nzMatchRouter nz-menu-item>
       <i nz-icon nzType="clock-circle"></i>
       <span>Dienstplan</span>

@@ -1,0 +1,51 @@
+<div class="choose-customer content-section">
+    <div>
+        <h2>1. Kundennamen suchen</h2>
+        <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Kunde auswählen" (ngModelChange)="selectCustomer($event)"
+            [(ngModel)]="selectedCustomer" (nzOnSearch)="searchCustomer($event)">
+            <nz-option *ngFor="let customer of customerSearchResult" [nzLabel]="customer.display" [nzValue]="customer">
+            </nz-option>
+        </nz-select>
+    </div>
+
+    <div>
+        <h2>2. Patienten suchen</h2>
+        <nz-select nzMode="tags" nzPlaceHolder="Tag Mode" [(ngModel)]="selectedPatients"
+            (ngModelChange)="selectPatient($event)">
+            <nz-option *ngFor="let patient of customerPatients" [nzLabel]="patient.name" [nzValue]="patient">
+            </nz-option>
+        </nz-select>
+    </div>
+</div>
+
+<div class="choose-date content-section">
+    <div class="select-date-container">
+        <h2>
+            3. Termin auswählen:
+        </h2>
+        <div>
+            <button nz-button nzType="text"><i nz-icon nzType="left"></i></button>
+            <nz-date-picker [(ngModel)]="selectedDate" (ngModelChange)="selectDate($event)"></nz-date-picker>
+            <button nz-button nzType="text"><i nz-icon nzType="right"></i></button>
+        </div>
+        <span class="warning" *ngIf="selectedDate != null && rosterDay === null && !rosterLoading">Kein Dienstplan
+            verfügbar!</span>
+    </div>
+    <div *ngIf="!!rosterDay">
+        <h2>Vormittag</h2>
+        <span *ngFor="let user of rosterDay.usersForenoon">{{user.fullname}}</span>
+        <h2>Nachmittag</h2>
+        <span *ngFor="let user of rosterDay.usersAfternoon">{{user.fullname}}</span>
+        <h2>Nachdienst</h2>
+        <span *ngFor="let user of rosterDay.usersEmergency">{{user.fullname}}</span>
+    </div>
+</div>
+
+<div class="event-description content-section">
+    <h2>4. Beschreibug:</h2>
+</div>
+
+<div class="save-event content-section">
+    <button nz-button nzType="primary">Erstellen</button>
+    <button nz-button nzType="danger">Abbrechen</button>
+</div>

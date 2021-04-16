@@ -1,0 +1,75 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+.choose-customer {
+    flex: 0 0;
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    align-items: stretch;
+
+    div {
+        flex: 1 0;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+
+        &:first-of-type {
+            margin-right: 6px;
+        }
+        &:last-of-type {
+            margin-left: 6px;
+        }
+    }
+}
+
+.choose-date {
+    flex: 0 0;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+
+    .select-date-container {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        h2 {
+            margin-bottom: 0;
+            margin-right: 12px;
+        }
+    }
+}
+
+span.warning {
+    margin-left: 12px;
+    font-size: 95%;
+    color: red;
+}
+
+.content-section {
+    margin-top: 12px;
+    margin-bottom: 0px;
+}
+
+.content-section h2 {
+    margin: 0px;
+    font-weight: 400;
+    font-size: 120%;
+    font-family: "Poppins";
+    display: flex;
+    align-items: center;
+
+    margin-bottom: 6px;
+}
+
+.save-event {
+    flex: 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}

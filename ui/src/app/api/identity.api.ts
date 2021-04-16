@@ -24,6 +24,9 @@ export enum Permission {
   RosterSetOverwrite = 'roster:write:overwrite',
   RosterGetOverwrite = 'roster:read:overwrite',
   VoicemailRead = 'voicemail:read',
+  CalendarRead = 'calendar:events:read',
+  CalendarWrite = 'calendar:events:write',
+  CalendarDelete = 'calendar:events:delete',
 }
 
 export interface Profile {
@@ -351,6 +354,9 @@ export class IdentityAPI {
             Permission.CustomerRead,
             Permission.CalllogReadRecords,
             Permission.VoicemailRead,
+            Permission.CalendarDelete,
+            Permission.CalendarRead,
+            Permission.CalendarWrite
           ];
 
           actions.forEach(perm => {

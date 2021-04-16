@@ -62,6 +62,17 @@ export class AppComponent implements OnInit {
     return this.identity.hasPermission(Permission.CustomerRead);
   }
 
+  /**
+   * Returns true if the user can create calendar events. For usability,
+   * this also requires hasCustomer, hasCalllog and hasRoster
+   */
+  get canCreateEvent(): boolean {
+    return this.identity.hasPermission(Permission.CalendarWrite)
+      && this.hasCallLog
+      && this.hasCustomers
+      && this.hasRoster;
+  }
+
   constructor(
     private identity: IdentityAPI,
     private configapi: ConfigAPI,
