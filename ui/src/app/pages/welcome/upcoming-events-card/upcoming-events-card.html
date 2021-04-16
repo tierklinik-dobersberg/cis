@@ -25,8 +25,10 @@
                 <li *ngIf="allCalendars.get(event.calendarID).displayed" class="event" [class.past]="event.past"
                     [class.highlight-active]="highlightUser !== ''"
                     [class.highlight]="event.user?.name === highlightUser">
-                    <span class="time" [style.color]="event.user?.color || null">{{ event.startTime | date:"HH:mm"
-                        }}</span>
+                    <span class="time" [style.color]="event.user?.color || null">
+                        <span>{{ event.startTime | date:"HH:mm" }}</span>
+                        <span class="duration" *ngIf="event.duration">{{ event.duration | duration }}</span>
+                    </span>
 
                     <span class="summary-container">
                         <span class="summary">{{ event.summary }}</span>

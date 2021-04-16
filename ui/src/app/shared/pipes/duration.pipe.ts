@@ -1,22 +1,41 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { isDevMode, Pipe, PipeTransform } from '@angular/core';
+import { Duration, DurationLayout } from 'src/utils/duration';
+
+export type InputUnit = "ns" | "µs" | "ms" | "s" | "m" | "h";
 
 @Pipe({
   name: 'duration',
   pure: true
 })
 export class DurationPipe implements PipeTransform {
-  transform(value: string | number): string {
-    const secondsNum = typeof value === 'string'
-      ? parseInt(value, 10) // don't forget the second param
-      : value;
-    let hours: string | number = Math.floor(secondsNum / 3600);
-    let minutes: string | number = Math.floor((secondsNum - (hours * 3600)) / 60);
-    let seconds: string | number = secondsNum - (hours * 3600) - (minutes * 60);
-
-    if (hours < 10) { hours = '0' + hours; }
-    if (minutes < 10) { minutes = '0' + minutes; }
-    if (seconds < 10) { seconds = '0' + seconds; }
-
-    return hours + ':' + minutes + ':' + seconds;
+  transform(value: string | number, layout: DurationLayout = "default", input: InputUnit = "s"): string {
+    console.log(value);
+    let d: Duration;
+    switch (input) {
+      case "h":
+        d = Duration.hours(+value);
+        break;
+      case "m":
+        d = Duration.minutes(+value);
+        break;
+      case "s":
+        d = Duration.seconds(+value);
+        break;
+      case "ms":
+        d = Duration.milliseconds(+value);
+        break;
+      case "µs":
+        d = Duration.microseconds(+value);
+        break;
+      case "ns":
+        d = Duration.nanoseconds(+value);
+        break
+      default:
+        if (isDevMode()) {
+          return "WRONG_LAYOUT"
+        }
+        return ""
+    }
+    return d.format(layout)
   }
 }

@@ -38,6 +38,7 @@ import { RosterCardComponent } from './roster-card';
 import { VoiceMailCardComponent } from './mail-card';
 import { UpcomingEventsCardComponent } from './upcoming-events-card';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
+import { SharedModule } from 'src/app/shared/shared.module';
 
 @NgModule({
   imports: [
@@ -69,6 +70,7 @@ import { NzEmptyModule } from 'ng-zorro-antd/empty';
     NzSpinModule,
     NzStatisticModule,
     NzEmptyModule,
+    SharedModule,
   ],
   declarations: [
     WelcomeComponent,

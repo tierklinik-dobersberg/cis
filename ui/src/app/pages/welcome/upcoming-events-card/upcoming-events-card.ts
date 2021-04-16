@@ -2,10 +2,12 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy
 import { BehaviorSubject, combineLatest, interval, of, Subscription } from "rxjs";
 import { catchError, filter, mergeMap, startWith } from "rxjs/operators";
 import { CalendarAPI, LocalEvent, ProfileWithAvatar, UserService } from "src/app/api";
+import { Duration } from "src/utils/duration";
 
 interface DisplayEvent extends LocalEvent {
     user?: ProfileWithAvatar;
     past: boolean;
+    duration?: number;
 }
 
 interface Calendar {
@@ -91,6 +93,7 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
                         ...event,
                         past: event.startTime.getTime() < now,
                         user: this.userService.byName(event.username),
+                        duration: !!event.endTime ? (event.endTime.getTime() - event.startTime.getTime()) / 1000 : null,
                     }));
 
                 // create a list of displayed calendars.
