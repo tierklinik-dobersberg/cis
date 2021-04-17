@@ -75,8 +75,8 @@ func ParseDayTime(str string) (DayTime, error) {
 
 // DayTimeRange represents a range at any day
 type DayTimeRange struct {
-	From DayTime
-	To   DayTime
+	From DayTime `json:"from"`
+	To   DayTime `json:"to"`
 }
 
 func (dtr *DayTimeRange) String() string {
@@ -93,8 +93,8 @@ func (dtr *DayTimeRange) At(d time.Time) *TimeRange {
 
 // TimeRange defines a range in time that may start and end at different dates.
 type TimeRange struct {
-	From time.Time
-	To   time.Time
+	From time.Time `json:"from"`
+	To   time.Time `json:"to"`
 }
 
 // Covers returns true if t is covered by tr.

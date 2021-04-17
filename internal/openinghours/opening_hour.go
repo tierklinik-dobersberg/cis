@@ -13,9 +13,9 @@ import (
 type OpeningHour struct {
 	utils.DayTimeRange
 
-	Holiday    bool
-	OpenBefore time.Duration
-	CloseAfter time.Duration
+	Holiday    bool          `json:"holiday"`
+	OpenBefore time.Duration `json:"closeBefore"`
+	CloseAfter time.Duration `json:"closeAfter"`
 }
 
 // EffectiveOpen returns the duration from midnight at which

@@ -20,6 +20,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/holidayapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/identityapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/importapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/openinghoursapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/patientapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/voicemailapi"
@@ -146,6 +147,8 @@ func getApp(ctx context.Context) *app.App {
 				patientapi.Setup(apis.Group("patient", session.Require()))
 				// calendarapi provides access to calendar data
 				calendarapi.Setup(apis.Group("calendar", session.Require()))
+				// openinghoursapi provides access to the configured openinghours
+				openinghoursapi.Setup(apis.Group("openinghours", session.Require()))
 			}
 
 			return nil
