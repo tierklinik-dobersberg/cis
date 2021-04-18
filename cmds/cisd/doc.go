@@ -4,7 +4,7 @@ import (
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/autodoc"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/service/svcenv"
 )
@@ -17,18 +17,18 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 	},
 	Sections: conf.FileSpec{
 		"Global": autodoc.MergeOptions(
-			schema.ConfigSpec,
-			schema.DatabaseSpec,
-			schema.IdentityConfigSpec,
-			schema.MqttSpec,
+			cfgspec.ConfigSpec,
+			cfgspec.DatabaseSpec,
+			cfgspec.IdentityConfigSpec,
+			cfgspec.MqttSpec,
 		),
-		"Import":         schema.VetInfSpec,
+		"Import":         cfgspec.VetInfSpec,
 		"Listener":       server.ListenerSpec,
-		"UserProperty":   schema.UserSchemaExtension,
-		"OpeningHour":    schema.OpeningHoursSpec,
-		"Integration":    schema.IntegrationConfigSpec,
-		"Voicemail":      schema.VoiceMailSpec,
-		"MongoLog":       schema.MongoLogSpec,
+		"UserProperty":   cfgspec.UserSchemaExtension,
+		"OpeningHour":    cfgspec.OpeningHoursSpec,
+		"Integration":    cfgspec.IntegrationConfigSpec,
+		"Voicemail":      cfgspec.VoiceMailSpec,
+		"MongoLog":       cfgspec.MongoLogSpec,
 		"GoogleCalendar": calendar.ConfigSpec,
 		"CORS":           server.CORSSpec,
 	},
@@ -41,9 +41,9 @@ var uiConfigFile = autodoc.MustRegister(autodoc.File{
 		svcenv.Env().ConfigurationDirectory,
 	},
 	Sections: conf.FileSpec{
-		"UI":                   schema.UISpec,
-		"ExternalLink":         schema.ExternalLinkSpec,
-		"QuickRosterOverwrite": schema.QuickRosterOverwriteSpec,
-		"KnownPhoneExtension":  schema.KnownPhoneExtensionSpec,
+		"UI":                   cfgspec.UISpec,
+		"ExternalLink":         cfgspec.ExternalLinkSpec,
+		"QuickRosterOverwrite": cfgspec.QuickRosterOverwriteSpec,
+		"KnownPhoneExtension":  cfgspec.KnownPhoneExtensionSpec,
 	},
 })

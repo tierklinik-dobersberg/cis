@@ -43,6 +43,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/mailsync"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
 	"github.com/tierklinik-dobersberg/cis/internal/trigger"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
@@ -204,7 +205,7 @@ func getApp(ctx context.Context) *app.App {
 	}
 
 	//
-	// prepare databases and everything that requires MongoDB
+	// prepare the mongodb client and maybe setup log-forwarding to mongodb
 	//
 	mongoClient := getMongoClient(ctx, cfg.DatabaseURI)
 
@@ -216,6 +217,26 @@ func getApp(ctx context.Context) *app.App {
 		logAdapter.AddDefaultAdapter(mongoLogger)
 	}
 
+	//
+	// Apply any pending migrations
+	//
+	schemaDB, err := schema.NewDatabaseFromClient(ctx, cfg.DatabaseName, mongoClient)
+	if err != nil {
+		logger.Fatalf(ctx, "schemadb: %s", err.Error())
+	}
+	migrated, err := schema.ApplyMigrations(ctx, schemaDB, mongoClient)
+	if err != nil {
+		logger.Fatalf(ctx, "failed to apply migrations: %s", err)
+	}
+	if migrated {
+		logger.Infof(ctx, "successfully applied schema migrations")
+	} else {
+		logger.Infof(ctx, "nothing to migrate ...")
+	}
+
+	//
+	// prepare databases and everything that requires MongoDB
+	//
 	customers, err := customerdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
 		logger.Fatalf(ctx, "customerdb: %s", err.Error())

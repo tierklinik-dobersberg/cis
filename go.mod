@@ -13,6 +13,7 @@ require (
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/google/renameio v1.0.0
 	github.com/google/uuid v1.1.2
+	github.com/hashicorp/go-version v1.3.0 // indirect
 	github.com/kevinburke/go-types v0.0.0-20201208005256-aee49f568a20 // indirect
 	github.com/kevinburke/go.uuid v1.2.0 // indirect
 	github.com/kevinburke/rest v0.0.0-20210222204520-f7a2e216372f // indirect
