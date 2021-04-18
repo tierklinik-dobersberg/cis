@@ -11,11 +11,11 @@ import (
 
 	"github.com/google/renameio"
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/passwd"
 	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -37,23 +37,23 @@ type Database interface {
 	Authenticate(ctx context.Context, name string, password string) bool
 
 	// ListAllUsers returns all users stored in the database.
-	ListAllUsers(ctx context.Context) ([]schema.User, error)
+	ListAllUsers(ctx context.Context) ([]cfgspec.User, error)
 
 	// GetUser returns the user object for the user identified by
 	// it's name.
-	GetUser(ctx context.Context, name string) (schema.User, error)
+	GetUser(ctx context.Context, name string) (cfgspec.User, error)
 
 	// GetRole returns the role object for the role identified by
 	// it's name.
-	GetRole(ctx context.Context, name string) (schema.Role, error)
+	GetRole(ctx context.Context, name string) (cfgspec.Role, error)
 
 	// GetUserPermissions returns a slice of permissions directly attached to
 	// the user identified by name.
-	GetUserPermissions(ctx context.Context, name string) ([]schema.Permission, error)
+	GetUserPermissions(ctx context.Context, name string) ([]cfgspec.Permission, error)
 
 	// GetRolePermissions returns a slice of permissions directly attached to
 	// the role identified by name.
-	GetRolePermissions(ctx context.Context, name string) ([]schema.Permission, error)
+	GetRolePermissions(ctx context.Context, name string) ([]cfgspec.Permission, error)
 
 	// GetAutologinUsers returns a map that contains the autologin section for each
 	// user that has one defined.
@@ -71,7 +71,7 @@ type Database interface {
 type identDB struct {
 	dir                   string
 	country               string
-	userPropertySpecs     []schema.UserPropertyDefinition
+	userPropertySpecs     []cfgspec.UserPropertyDefinition
 	rw                    sync.RWMutex
 	httpConditionRegistry *httpcond.Registry
 	users                 map[string]*user
@@ -81,7 +81,7 @@ type identDB struct {
 }
 
 // New returns a new database that uses ldr.
-func New(ctx context.Context, dir, country string, userProperties []schema.UserPropertyDefinition, reg *httpcond.Registry) (Database, error) {
+func New(ctx context.Context, dir, country string, userProperties []cfgspec.UserPropertyDefinition, reg *httpcond.Registry) (Database, error) {
 	db := &identDB{
 		dir:                   dir,
 		httpConditionRegistry: reg,
@@ -127,11 +127,11 @@ func (db *identDB) Authenticate(ctx context.Context, name, password string) bool
 	return match
 }
 
-func (db *identDB) ListAllUsers(ctx context.Context) ([]schema.User, error) {
+func (db *identDB) ListAllUsers(ctx context.Context) ([]cfgspec.User, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
-	users := make([]schema.User, 0, len(db.users))
+	users := make([]cfgspec.User, 0, len(db.users))
 	for _, user := range db.users {
 		users = append(users, db.applyPrivacy(ctx, user))
 	}
@@ -139,31 +139,31 @@ func (db *identDB) ListAllUsers(ctx context.Context) ([]schema.User, error) {
 	return users, nil
 }
 
-func (db *identDB) GetUser(ctx context.Context, name string) (schema.User, error) {
+func (db *identDB) GetUser(ctx context.Context, name string) (cfgspec.User, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
 	u, ok := db.users[strings.ToLower(name)]
 	if !ok {
-		return schema.User{}, httperr.NotFound("user", name, ErrNotFound)
+		return cfgspec.User{}, httperr.NotFound("user", name, ErrNotFound)
 	}
 
 	return db.applyPrivacy(ctx, u), nil
 }
 
-func (db *identDB) GetRole(ctx context.Context, name string) (schema.Role, error) {
+func (db *identDB) GetRole(ctx context.Context, name string) (cfgspec.Role, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
 	g, ok := db.roles[strings.ToLower(name)]
 	if !ok {
-		return schema.Role{}, httperr.NotFound("role", name, ErrNotFound)
+		return cfgspec.Role{}, httperr.NotFound("role", name, ErrNotFound)
 	}
 
 	return g.Role, nil
 }
 
-func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]schema.Permission, error) {
+func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]cfgspec.Permission, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
@@ -172,14 +172,14 @@ func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]schem
 		return nil, httperr.NotFound("user", name, ErrNotFound)
 	}
 
-	perms := make([]schema.Permission, len(u.Permissions))
+	perms := make([]cfgspec.Permission, len(u.Permissions))
 	for idx, p := range u.Permissions {
 		perms[idx] = *p
 	}
 	return perms, nil
 }
 
-func (db *identDB) GetRolePermissions(ctx context.Context, name string) ([]schema.Permission, error) {
+func (db *identDB) GetRolePermissions(ctx context.Context, name string) ([]cfgspec.Permission, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
@@ -188,7 +188,7 @@ func (db *identDB) GetRolePermissions(ctx context.Context, name string) ([]schem
 		return nil, httperr.NotFound("role", name, ErrNotFound)
 	}
 
-	perms := make([]schema.Permission, len(g.Permissions))
+	perms := make([]cfgspec.Permission, len(g.Permissions))
 	for idx, p := range g.Permissions {
 		perms[idx] = *p
 	}
@@ -288,7 +288,7 @@ func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo str
 	return nil
 }
 
-func (db *identDB) applyPrivacy(ctx context.Context, u *user) schema.User {
+func (db *identDB) applyPrivacy(ctx context.Context, u *user) cfgspec.User {
 	schemaUser := u.User
 
 	schemaUser.Properties = FilterProperties(

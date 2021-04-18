@@ -11,10 +11,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
 )
 
@@ -80,7 +80,7 @@ func validateRoster(ctx context.Context, app *app.App, roster *v1alpha.DutyRoste
 	if err != nil {
 		return err
 	}
-	lm := make(map[string]schema.User, len(allUsers))
+	lm := make(map[string]cfgspec.User, len(allUsers))
 	for _, user := range allUsers {
 		lm[strings.ToLower(user.Name)] = user
 	}
@@ -100,7 +100,7 @@ func validateRoster(ctx context.Context, app *app.App, roster *v1alpha.DutyRoste
 	return nil
 }
 
-func validateUsers(users []string, lm map[string]schema.User) error {
+func validateUsers(users []string, lm map[string]cfgspec.User) error {
 	for _, u := range users {
 		user, ok := lm[strings.ToLower(u)]
 		if !ok {

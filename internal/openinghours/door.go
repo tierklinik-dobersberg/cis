@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/tevino/abool"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
 )
 
@@ -95,7 +95,7 @@ type DoorController struct {
 }
 
 // NewDoorController returns a new door controller.
-func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holidays HolidayGetter, door DoorInterfacer) (*DoorController, error) {
+func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, holidays HolidayGetter, door DoorInterfacer) (*DoorController, error) {
 	loc, err := time.LoadLocation(cfg.TimeZone)
 	if err != nil {
 		return nil, fmt.Errorf("Location: %w", err)
@@ -126,11 +126,11 @@ func NewDoorController(cfg schema.Config, timeRanges []schema.OpeningHours, holi
 		)
 
 		for _, d := range c.OnWeekday {
-			if err := schema.ValidDay(d); err != nil {
+			if err := cfgspec.ValidDay(d); err != nil {
 				return nil, err
 			}
 
-			parsed, ok := schema.ParseDay(d)
+			parsed, ok := cfgspec.ParseDay(d)
 			if !ok {
 				return nil, fmt.Errorf("failed to parse day: %s", d)
 			}

@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 )
 
 var log = pkglog.New("permission")
@@ -61,7 +61,7 @@ func (match *Matcher) Decide(ctx context.Context, req *Request) (bool, error) {
 
 // IsApplicable returns true if perm is applicable to be used for a
 // decision on req.
-func (match *Matcher) IsApplicable(ctx context.Context, req *Request, perm *schema.Permission) bool {
+func (match *Matcher) IsApplicable(ctx context.Context, req *Request, perm *cfgspec.Permission) bool {
 	if len(perm.Resources) > 0 && !MatchNeedle(ctx, req.Resource, perm.Resources) {
 		return false
 	}

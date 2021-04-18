@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -36,7 +36,7 @@ type Adapter struct {
 }
 
 // NewWithClient returns a new mongolog Adapter using cli.
-func NewWithClient(ctx context.Context, dbName string, cli *mongo.Client, cfg schema.MongoLogConfig) (*Adapter, error) {
+func NewWithClient(ctx context.Context, dbName string, cli *mongo.Client, cfg cfgspec.MongoLogConfig) (*Adapter, error) {
 	adapter := &Adapter{
 		collection:  cli.Database(dbName).Collection(LogsCollection),
 		pendingLogs: list.New().Init(),
@@ -49,7 +49,7 @@ func NewWithClient(ctx context.Context, dbName string, cli *mongo.Client, cfg sc
 	return adapter, nil
 }
 
-func (adapter *Adapter) setup(ctx context.Context, cfg schema.MongoLogConfig) error {
+func (adapter *Adapter) setup(ctx context.Context, cfg cfgspec.MongoLogConfig) error {
 	adapter.defaultLevel = cfg.DefaultLevel
 	adapter.packageLevels = make(map[string]int)
 	for idx, value := range cfg.PackageLevel {

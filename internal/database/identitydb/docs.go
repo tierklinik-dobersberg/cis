@@ -3,8 +3,8 @@ package identitydb
 import (
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/autodoc"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 )
 
 func init() {
@@ -14,8 +14,8 @@ func init() {
 		Description:    "Describes a user role and associated permissions",
 		DropinsAllowed: true,
 		Sections: conf.FileSpec{
-			"Role":       schema.RoleSpec,
-			"Permission": schema.PermissionSpec,
+			"Role":       cfgspec.RoleSpec,
+			"Permission": cfgspec.PermissionSpec,
 			// FIXME(ppacher): this is a hard assumption here. if Database
 			// gets created with a different registry we report wrong configuration
 			// stanzas. Or, the section might be completely invalid at all.
@@ -52,8 +52,8 @@ func init() {
 		Description:    "A user identity and associated settings",
 		DropinsAllowed: true,
 		Sections: conf.FileSpec{
-			"User":       schema.UserSpec,
-			"Permission": schema.PermissionSpec,
+			"User":       cfgspec.UserSpec,
+			"Permission": cfgspec.PermissionSpec,
 			// FIXME(ppacher): see comment above.
 			"AutoLogin": newAutologinRegistry(httpcond.DefaultRegistry, conf.SectionSpec{
 				{

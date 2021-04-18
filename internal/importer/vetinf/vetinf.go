@@ -9,10 +9,10 @@ import (
 
 	"github.com/nyaruka/phonenumbers"
 	"github.com/spf13/afero"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/patient/v1alpha"
 	"github.com/tierklinik-dobersberg/go-vetinf/vetinf"
 	"github.com/tierklinik-dobersberg/logger"
@@ -37,7 +37,7 @@ type ExportedAnimal struct {
 // Exporter is capable of exporting and extracting
 // data of a VetInf installation.
 type Exporter struct {
-	cfg      schema.VetInf
+	cfg      cfgspec.VetInf
 	db       *vetinf.Infdat
 	country  string
 	usersMap map[int]string
@@ -47,7 +47,7 @@ type Exporter struct {
 }
 
 // NewExporter creates a new exporter for vetinf.
-func NewExporter(cfg schema.VetInf, country string, users identitydb.Database) (*Exporter, error) {
+func NewExporter(cfg cfgspec.VetInf, country string, users identitydb.Database) (*Exporter, error) {
 	stat, err := os.Stat(cfg.VetInfDirectory)
 	if err != nil {
 		return nil, err

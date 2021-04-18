@@ -5,21 +5,21 @@ import (
 	"strings"
 
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
 )
 
 type role struct {
-	schema.Role `section:"Role"`
+	cfgspec.Role `section:"Role"`
 
-	Permissions []*schema.Permission `section:"Permission"`
+	Permissions []*cfgspec.Permission `section:"Permission"`
 }
 
 func (db *identDB) loadRoles(identityDir string) error {
 	spec := conf.FileSpec{
-		"Role":       schema.RoleSpec,
-		"Permission": schema.PermissionSpec,
+		"Role":       cfgspec.RoleSpec,
+		"Permission": cfgspec.PermissionSpec,
 	}
 	if db.httpConditionRegistry != nil {
 		spec["AutoAssign"] = db.httpConditionRegistry
@@ -56,8 +56,8 @@ func (db *identDB) loadRoles(identityDir string) error {
 
 func decodeRole(f *conf.File, cond *httpcond.Registry) (*role, *conf.Section, error) {
 	spec := conf.FileSpec{
-		"Role":       schema.RoleSpec,
-		"Permission": schema.PermissionSpec,
+		"Role":       cfgspec.RoleSpec,
+		"Permission": cfgspec.PermissionSpec,
 	}
 
 	if cond != nil {

@@ -8,10 +8,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
 	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
 )
 
@@ -53,7 +53,7 @@ func NewManager(ctx context.Context, identity identitydb.Database, reg *httpcond
 	return mng
 }
 
-func (mng *Manager) getUserLogin(r *http.Request) (*schema.User, bool, error) {
+func (mng *Manager) getUserLogin(r *http.Request) (*cfgspec.User, bool, error) {
 	mng.rw.RLock()
 	defer mng.rw.RUnlock()
 

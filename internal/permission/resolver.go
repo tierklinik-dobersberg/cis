@@ -3,8 +3,8 @@ package permission
 import (
 	"context"
 
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
@@ -23,8 +23,8 @@ func NewResolver(db identitydb.Database) *Resolver {
 // ResolveUserPermissions resolves all permissions that apply to a user.
 // Permissions are returned in slices ordered as they should be evaluated.
 // Permissions in the same slice have the same priority.
-func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string) ([][]schema.Permission, error) {
-	var permissions [][]schema.Permission
+func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string) ([][]cfgspec.Permission, error) {
+	var permissions [][]cfgspec.Permission
 	countDirect := 0
 	countIndirect := 0
 
@@ -43,7 +43,7 @@ func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string) ([
 	}
 
 	// collect permissions of direct roles
-	var rolePermissions []schema.Permission
+	var rolePermissions []cfgspec.Permission
 	for _, roleName := range userObj.Roles {
 		rolePerms, err := res.db.GetRolePermissions(ctx, roleName)
 		if err != nil {

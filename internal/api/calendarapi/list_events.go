@@ -11,9 +11,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/calendar/v1alpha"
 	"golang.org/x/sync/errgroup"
 )
@@ -53,8 +53,8 @@ func ListEventsEndpoint(router *app.Router) {
 			if err != nil {
 				return err
 			}
-			userNameToUser := make(map[string]schema.User)
-			calIdToUser := make(map[string]schema.User)
+			userNameToUser := make(map[string]cfgspec.User)
+			calIdToUser := make(map[string]cfgspec.User)
 			for _, user := range users {
 				userNameToUser[user.Name] = user
 				if user.CalendarID != "" {

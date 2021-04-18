@@ -1,4 +1,4 @@
-package schema
+package cfgspec
 
 import (
 	"github.com/ppacher/system-conf/conf"

@@ -6,13 +6,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 )
 
 type uiResponseModel struct {
 	app.UIConfig
-	UserProperties []schema.UserPropertyDefinition
+	UserProperties []cfgspec.UserPropertyDefinition
 }
 
 // GetUIConfigEndpoint provides access to the UI configuration.

@@ -7,14 +7,14 @@ import (
 
 	"github.com/nyaruka/phonenumbers"
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
 )
 
 type user struct {
-	schema.User `section:"User"`
+	cfgspec.User `section:"User"`
 
-	Permissions []*schema.Permission `section:"Permission"`
+	Permissions []*cfgspec.Permission `section:"Permission"`
 }
 
 func (db *identDB) loadUsers(identityDir string) error {
@@ -24,8 +24,8 @@ func (db *identDB) loadUsers(identityDir string) error {
 	}
 
 	spec := conf.FileSpec{
-		"User":       conf.SectionSpec(append(schema.UserSpec, userPropertySpecs...)),
-		"Permission": schema.PermissionSpec,
+		"User":       conf.SectionSpec(append(cfgspec.UserSpec, userPropertySpecs...)),
+		"Permission": cfgspec.PermissionSpec,
 	}
 	if db.httpConditionRegistry != nil {
 		spec["AutoLogin"] = newAutologinRegistry(db.httpConditionRegistry, conf.SectionSpec{
@@ -69,8 +69,8 @@ func (db *identDB) loadUsers(identityDir string) error {
 
 func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, autologinConditions conf.OptionRegistry, country string) (*user, *conf.Section, error) {
 	spec := conf.FileSpec{
-		"User":       schema.UserSpec,
-		"Permission": schema.PermissionSpec,
+		"User":       cfgspec.UserSpec,
+		"Permission": cfgspec.PermissionSpec,
 	}
 
 	if autologinConditions != nil {

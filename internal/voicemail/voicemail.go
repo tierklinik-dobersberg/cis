@@ -12,11 +12,11 @@ import (
 	"time"
 
 	"github.com/nyaruka/phonenumbers"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/mailsync"
 	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/voicemail/v1alpha"
 	"github.com/tierklinik-dobersberg/mailbox"
 	"github.com/tierklinik-dobersberg/service/svcenv"
@@ -41,7 +41,7 @@ func New(
 	ctx context.Context,
 	customers customerdb.Database,
 	voicemails voicemaildb.Database,
-	cfg schema.VoiceMail,
+	cfg cfgspec.VoiceMail,
 	country string,
 	mng *mailsync.Manager,
 ) (*Mailbox, error) {

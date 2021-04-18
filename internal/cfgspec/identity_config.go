@@ -1,4 +1,4 @@
-package schema
+package cfgspec
 
 import (
 	"time"

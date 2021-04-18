@@ -3,7 +3,7 @@ package identitydb
 import (
 	"context"
 
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 )
 
 // Scope defines the access scope.
@@ -46,13 +46,13 @@ func GetScope(ctx context.Context) Scope {
 }
 
 // FilterProperties applies the privacy settings to all user properties.
-func FilterProperties(scope Scope, defs []schema.UserPropertyDefinition, props map[string]interface{}) map[string]interface{} {
+func FilterProperties(scope Scope, defs []cfgspec.UserPropertyDefinition, props map[string]interface{}) map[string]interface{} {
 	if scope == Internal {
 		return props
 	}
 
 	// build a lookup map for all defs.
-	lm := make(map[string]schema.UserPropertyDefinition)
+	lm := make(map[string]cfgspec.UserPropertyDefinition)
 	for _, spec := range defs {
 		lm[spec.Name] = spec
 	}
