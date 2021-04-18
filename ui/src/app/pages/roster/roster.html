@@ -264,16 +264,18 @@
 
 <nz-drawer [nzClosable]="true" [nzVisible]="showComments" nzPlacement="right" (nzOnClose)="toggleComments()"
   [nzWidth]="layout.isPhone ? '100vw' : layout.isDesktopUp ? '25vw' : '50vw'">
-  <div class="comment-container">
-    <h2>Kommentare</h2>
+  <ng-template [nzDrawerContent]>
+    <div class="comment-container">
+      <h2>Kommentare</h2>
 
-    <app-comment *ngFor="let comment of comments" [comment]="comment" (replied)="loadComments()" [nestedLimit]="2">
-    </app-comment>
+      <app-comment *ngFor="let comment of comments" [comment]="comment" (replied)="loadComments()" [nestedLimit]="2">
+      </app-comment>
 
-    <div class="create-comment-container">
-      <h3>Erstelle einen neuen Kommentar:</h3>
-      <textarea nz-input [nzAutosize]="{ minRows: 3, maxRows: 5 }" [(ngModel)]="newComment"></textarea>
-      <button nz-button nzType="primary" (click)="createComment()">Kommentieren</button>
+      <div class="create-comment-container">
+        <h3>Erstelle einen neuen Kommentar:</h3>
+        <textarea nz-input [nzAutosize]="{ minRows: 3, maxRows: 5 }" [(ngModel)]="newComment"></textarea>
+        <button nz-button nzType="primary" (click)="createComment()">Kommentieren</button>
+      </div>
     </div>
-  </div>
+  </ng-template>
 </nz-drawer>

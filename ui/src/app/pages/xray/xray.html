@@ -79,37 +79,39 @@
 
 <nz-drawer [nzVisible]="drawerVisible" [nzClosable]="true" nzPlacement="right" (nzOnClose)="closeDrawer()"
   [nzWidth]="layout.drawerWidth | async">
-  <div class="drawer-container">
-    <h2>{{ drawerStudy | ohifOwnerName }}</h2>
-    <h3>
-      {{ drawerStudy?.animalName }} &nbsp;- &nbsp; {{ drawerStudy?.animalRace !== 'unknown' ?
-      drawerStudy?.animalRace
-      : 'N/A' }}
-    </h3>
+  <ng-template [nzDrawerContent]>
+    <div class="drawer-container">
+      <h2>{{ drawerStudy | ohifOwnerName }}</h2>
+      <h3>
+        {{ drawerStudy?.animalName }} &nbsp;- &nbsp; {{ drawerStudy?.animalRace !== 'unknown' ?
+        drawerStudy?.animalRace
+        : 'N/A' }}
+      </h3>
 
-    <div *ngIf="!!drawerStudy?.vetinfCID" class="drawer-toolbar">
-      <a nz-button [routerLink]="['/customer/view', 'vetinf', drawerStudy?.vetinfCID]">Kunde
-        anzeigen</a>
-    </div>
+      <div *ngIf="!!drawerStudy?.vetinfCID" class="drawer-toolbar">
+        <a nz-button [routerLink]="['/customer/view', 'vetinf', drawerStudy?.vetinfCID]">Kunde
+          anzeigen</a>
+      </div>
 
-    <p>Röntgen-Aufnahmen in dieser Studie:</p>
-    <div class="previews">
-      <div *ngFor="let series of drawerStudy?.seriesList">
-        <h4>
-          {{ series.seriesDescription }}
-        </h4>
+      <p>Röntgen-Aufnahmen in dieser Studie:</p>
+      <div class="previews">
+        <div *ngFor="let series of drawerStudy?.seriesList">
+          <h4>
+            {{ series.seriesDescription }}
+          </h4>
 
-        <ol *ngIf="series?.instances?.length > 0">
-          <li *ngFor="let instance of series?.instances">
-            <img (click)="openViewer(drawerStudy, series, instance)" [attr.src]="instance.url | previewUrl" />
-          </li>
-        </ol>
+          <ol *ngIf="series?.instances?.length > 0">
+            <li *ngFor="let instance of series?.instances">
+              <img (click)="openViewer(drawerStudy, series, instance)" [attr.src]="instance.url | previewUrl" />
+            </li>
+          </ol>
 
-        <span *ngIf="!series?.instances?.length" class="no-instances">
-          <i nz-icon nzType="close" nzTheme="outline"></i>
-          Keine Aufnahmen
-        </span>
+          <span *ngIf="!series?.instances?.length" class="no-instances">
+            <i nz-icon nzType="close" nzTheme="outline"></i>
+            Keine Aufnahmen
+          </span>
+        </div>
       </div>
     </div>
-  </div>
+  </ng-template>
 </nz-drawer>

@@ -7,57 +7,59 @@
 
 <nz-drawer [nzVisible]="drawerVisible" (nzOnClose)="toggleDrawer()" [nzClosable]="true" nzPlacement="right"
   [nzWidth]="layout.drawerWidth | async">
-  <div class="user-dropdown">
-    <h2>Nachtdienst überschreiben</h2>
+  <ng-template [nzDrawerContent]>
+    <div class="user-dropdown">
+      <h2>Nachtdienst überschreiben</h2>
 
-    <div class="drawer-actions">
-      <ng-container *ngIf="quickOverwrites.length === 1">
-        <button nz-button nzType="default" nz-popconfirm
-          nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{quickOverwrites[0].DisplayName}} ({{quickOverwrites[0].TargetNumber}}) ändern?"
-          (nzOnConfirm)="configureOverwrite(null, quickOverwrites[0].TargetNumber, quickOverwrites[0].DisplayName)">
-          {{ quickOverwrites[0].DisplayName }}
+      <div class="drawer-actions">
+        <ng-container *ngIf="quickOverwrites.length === 1">
+          <button nz-button nzType="default" nz-popconfirm
+            nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{quickOverwrites[0].DisplayName}} ({{quickOverwrites[0].TargetNumber}}) ändern?"
+            (nzOnConfirm)="configureOverwrite(null, quickOverwrites[0].TargetNumber, quickOverwrites[0].DisplayName)">
+            {{ quickOverwrites[0].DisplayName }}
+          </button>
+        </ng-container>
+        <button *ngIf="quickOverwrites.length > 1" nz-button nzType="default" nz-dropdown [nzDropdownMenu]="quickMenu">
+          Schnellauswahl
+          <i nz-icon nzType="down" nzTheme="outline"></i>
         </button>
-      </ng-container>
-      <button *ngIf="quickOverwrites.length > 1" nz-button nzType="default" nz-dropdown [nzDropdownMenu]="quickMenu">
-        Schnellauswahl
-        <i nz-icon nzType="down" nzTheme="outline"></i>
-      </button>
-      <nz-dropdown-menu #quickMenu="nzDropdownMenu">
-        <ul nz-menu>
-          <li nz-menu-item *ngFor="let quick of quickOverwrites" nz-popconfirm
-            nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{quick.DisplayName}} ({{quick.TargetNumber}}) ändern?"
-            (nzOnConfirm)="configureOverwrite(null, quick.TargetNumber, quick.DisplayName)">
-            {{quick.DisplayName}}
-          </li>
-        </ul>
-      </nz-dropdown-menu>
-      <button nz-button nzType="primary" *ngIf="isOverwritten" nz-popconfirm
-        nzPopconfirmTitle="Willst du die Änderungen sicher löschen und wieder den Dienstplan verwenden?"
-        (nzOnConfirm)="removeOverwrite()" nz-tooltip nzTooltipTitle="Wieder den Dienstplan verwenden">
-        <i nz-icon nzType="close" nzTheme="outline"></i>
-        Zurücksetzen
-      </button>
-    </div>
+        <nz-dropdown-menu #quickMenu="nzDropdownMenu">
+          <ul nz-menu>
+            <li nz-menu-item *ngFor="let quick of quickOverwrites" nz-popconfirm
+              nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{quick.DisplayName}} ({{quick.TargetNumber}}) ändern?"
+              (nzOnConfirm)="configureOverwrite(null, quick.TargetNumber, quick.DisplayName)">
+              {{quick.DisplayName}}
+            </li>
+          </ul>
+        </nz-dropdown-menu>
+        <button nz-button nzType="primary" *ngIf="isOverwritten" nz-popconfirm
+          nzPopconfirmTitle="Willst du die Änderungen sicher löschen und wieder den Dienstplan verwenden?"
+          (nzOnConfirm)="removeOverwrite()" nz-tooltip nzTooltipTitle="Wieder den Dienstplan verwenden">
+          <i nz-icon nzType="close" nzTheme="outline"></i>
+          Zurücksetzen
+        </button>
+      </div>
 
-    <h4>Wähle den neuen Nachtdienst aus:</h4>
-    <div class="grid-container">
-      <div class="grid">
-        <div class="user" *ngFor="let user of allUsers" nz-popconfirm
-          nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{user.fullname || user.name}} ändern"
-          (nzOnConfirm)="configureOverwrite(user.name)" [class.current]="user.name === primaryOnDuty?.name">
-          <nz-avatar nzIcon="user" nzShape="square" [nzSrc]="user.avatar"></nz-avatar>
-          {{ user.fullname || user.name }}
+      <h4>Wähle den neuen Nachtdienst aus:</h4>
+      <div class="grid-container">
+        <div class="grid">
+          <div class="user" *ngFor="let user of allUsers" nz-popconfirm
+            nzPopconfirmTitle="Willst du den Nachtdienst sicher auf {{user.fullname || user.name}} ändern"
+            (nzOnConfirm)="configureOverwrite(user.name)" [class.current]="user.name === primaryOnDuty?.name">
+            <nz-avatar nzIcon="user" nzShape="square" [nzSrc]="user.avatar"></nz-avatar>
+            {{ user.fullname || user.name }}
+          </div>
         </div>
       </div>
-    </div>
-    <h4>Oder gib eine Telefonnummer ein:</h4>
-    <input nz-input type="text" [(ngModel)]="overwritePhone" placeholder="+43660123456">
+      <h4>Oder gib eine Telefonnummer ein:</h4>
+      <input nz-input type="text" [(ngModel)]="overwritePhone" placeholder="+43660123456">
 
-    <div class="drawer-actions">
-      <button nz-button nzType="danger" [disabled]="overwritePhone === ''"
-        (click)="configureOverwrite()">Speichern</button>
+      <div class="drawer-actions">
+        <button nz-button nzType="danger" [disabled]="overwritePhone === ''"
+          (click)="configureOverwrite()">Speichern</button>
+      </div>
     </div>
-  </div>
+  </ng-template>
 </nz-drawer>
 
 <ng-template #titleTemplate>
