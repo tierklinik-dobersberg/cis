@@ -65,6 +65,10 @@ export class Duration {
         return Math.floor(this._nanoseconds / hour);
     }
 
+    addTo(d: Date): Date {
+        return new Date(d.getTime() + this.milliseconds);
+    }
+
     format(layout: DurationLayout = "default"): string {
         if (layout === "default") {
             return this.toString();

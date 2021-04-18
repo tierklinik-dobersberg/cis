@@ -73,3 +73,142 @@ span.warning {
     align-items: center;
     justify-content: space-between;
 }
+
+.user-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 6px;
+
+    &:not(:last-of-type) {
+        border-bottom: 1px solid #e7e7e788;
+        margin-bottom: 6px;
+    }
+
+    .profile {
+        flex-grow: 0;
+        flex-shrink: 0;
+        width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: flex;
+        align-items: center;
+
+        nz-avatar {
+            margin-right: 6px;
+        }
+    }
+    .slot-container, .slot-header {
+        flex: 1 0;
+        display: flex; 
+        height: 30px;
+
+        .slot {
+            display: block;
+            flex: 1 0;
+            border: 1px solid white;
+            transition: all 200ms ease-in-out;
+        }
+    }
+
+    .slot-header {
+        visibility: hidden;
+        .slot {
+            font-size: 90%;
+            font-family: "Poppins";
+            text-align: center;
+            align-self: flex-end;
+        }
+
+        .slot:nth-child(3n+1) {
+            visibility: visible;
+            overflow: visible;
+        }
+    }
+
+    .slot-container {
+        .slot {
+            opacity: .2;
+            cursor: pointer;
+            background-color: #e1fa9c;
+            &.highlighted {
+                border-color: lightsalmon;
+                transform: scaleY(1.2);
+            }
+
+            &:hover {
+                background-color: lightblue;
+                opacity: 1;
+            }
+
+            &.closed {
+                background-color: lightgoldenrodyellow;
+            }
+
+            &.busy {
+                background-color: lightsalmon;
+            }
+
+            &.available {
+                opacity: 1;
+            }
+        }
+    }
+}
+
+.slot-tooltip {
+    display: flex;
+    flex-direction: column;
+    span {
+        display: block;
+        text-align: center;
+        font-weight: bold;
+        text-decoration: underline;
+    }
+    ul {
+        padding: 0;
+        margin: 0;
+
+        li {
+            padding: 3px;
+        }
+
+        li:not(:last-of-type) {
+            border-bottom: 1px solid #fdfdfda2;
+        }
+    }
+}
+
+  fieldset {
+    align-self: stretch;
+
+    >* {
+      font-weight: 400;
+      font-family: "Poppins";
+    }
+
+    legend {
+      font-family   : Lato, sans-serif;
+      margin        : 0;
+      margin-left   : -3px;
+      margin-bottom : -3px;
+      padding-left  : 3px;
+      padding-right : 3px;
+      display       : inline;
+      font-size     : 75%;
+      color         : gray;
+      text-transform: uppercase;
+      width         : auto;
+    }
+
+    i[nz-icon] {
+      color    : #40617c;
+      font-size: 90%;
+    }
+
+    position     : relative;
+    padding-left : 12px;
+    padding-right: 12px;
+    border       : thin solid #cccccc81;
+    border-radius: 3px;
+  }

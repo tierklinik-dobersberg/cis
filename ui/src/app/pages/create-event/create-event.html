@@ -32,17 +32,54 @@
             verfügbar!</span>
     </div>
     <div *ngIf="!!rosterDay">
-        <h2>Vormittag</h2>
-        <span *ngFor="let user of rosterDay.usersForenoon">{{user.fullname}}</span>
-        <h2>Nachmittag</h2>
-        <span *ngFor="let user of rosterDay.usersAfternoon">{{user.fullname}}</span>
-        <h2>Nachdienst</h2>
-        <span *ngFor="let user of rosterDay.usersEmergency">{{user.fullname}}</span>
+        <div class="user-row">
+            <span class="profile"></span>
+            <div class="slot-header">
+                <span class="slot" *ngFor="let slot of timeSlots">
+                    {{ slot.from | date:"HH:mm" }}
+                </span>
+            </div>
+        </div>
+        <div *ngFor="let user of allUsers" class="user-row">
+            <span class="profile">
+                <nz-avatar nzIcon="user" [nzSrc]="user.avatar"></nz-avatar>
+                {{ user.fullname }}
+            </span>
+            <div class="slot-container">
+                <ng-container *ngFor="let slot of timeSlots">
+                    <span class="slot" [class.closed]="!slot.isOpeningHour"
+                        [class.highlighted]="slot.highlighted && highlightedUserSlot === user.name"
+                        (mouseenter)="highlightSlot(user.name, slot)" (mouseleave)="highlightSlot(user.name, null)"
+                        [class.busy]="slot.users[user.name]?.length > 0" [class.available]="!!slot.available[user.name]"
+                        nz-tooltip [nzTooltipTitle]="tooltipTemplate"></span>
+                    <ng-template #tooltipTemplate>
+                        <div class="slot-tooltip">
+                            <span>
+                                {{ slot.from | date:"HH:mm" }}
+                            </span>
+                            <ul>
+                                <li *ngFor="let event of slot.users[user.name]">{{ event.summary }}</li>
+                            </ul>
+                        </div>
+                    </ng-template>
+                </ng-container>
+            </div>
+        </div>
     </div>
 </div>
 
 <div class="event-description content-section">
     <h2>4. Beschreibug:</h2>
+
+    <fieldset>
+        <legend>Benötigte Resourcen</legend>
+        <div>
+            <label nz-checkbox>Zahnraum</label>
+            <label nz-checkbox>OP Steril</label>
+            <label nz-checkbox>OP Unsteril</label>
+        </div>
+    </fieldset>
+
 </div>
 
 <div class="save-event content-section">
