@@ -97,7 +97,10 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
 
     // get a list of all users including their avatars.
     const allUsersSub = this.userService.users
-      .subscribe(users => this.allUsers = users);
+      .subscribe(users => {
+        this.allUsers = users.filter(u => !u.disabled);
+      });
+
     this.subscriptions.add(allUsersSub);
 
     // load all quick-overwrites defined in the configuration
