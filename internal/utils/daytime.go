@@ -22,8 +22,11 @@ func (dt DayTime) AsDuration() time.Duration {
 }
 
 // At returns a new time.Time that represents dt at t.
-func (dt DayTime) At(t time.Time) time.Time {
-	midnight := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+func (dt DayTime) At(t time.Time, loc *time.Location) time.Time {
+	if loc == nil {
+		loc = t.Location()
+	}
+	midnight := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, loc)
 	return midnight.Add(dt.AsDuration())
 }
 
@@ -84,10 +87,10 @@ func (dtr *DayTimeRange) String() string {
 }
 
 // At returns a the TimeRange that results when adding dtr to d.
-func (dtr *DayTimeRange) At(d time.Time) *TimeRange {
+func (dtr *DayTimeRange) At(d time.Time, loc *time.Location) *TimeRange {
 	return &TimeRange{
-		From: dtr.From.At(d),
-		To:   dtr.To.At(d),
+		From: dtr.From.At(d, loc),
+		To:   dtr.To.At(d, loc),
 	}
 }
 

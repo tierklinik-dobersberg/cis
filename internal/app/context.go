@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"sync"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -51,6 +52,9 @@ type App struct {
 	CallLogs    calllogdb.Database
 	MQTTClient  mqtt.Client
 	Calendar    calendar.Service
+
+	loadLocationOnce sync.Once
+	location         *time.Location
 }
 
 func (app *App) String() string {
@@ -181,10 +185,14 @@ func (app *App) EndpointPath(relativePath string) string {
 
 // Location returns the location CIS is running at.
 func (app *App) Location() *time.Location {
-	loc, err := time.LoadLocation(app.Config.TimeZone)
-	if err != nil {
-		return time.Local
-	}
+	app.loadLocationOnce.Do(func() {
+		loc, err := time.LoadLocation(app.Config.TimeZone)
+		if err != nil {
+			logger.Errorf(context.Background(), "failed to parse location: %s (%w). using time.Local instead", app.Config.TimeZone, err)
+			loc = time.Local
+		}
+		app.location = loc
+	})
 
-	return loc
+	return app.location
 }

@@ -13,7 +13,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
-	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/external/v1alpha"
@@ -61,20 +60,28 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 	// find out if we need to the doctor-on-duty from today or the day before
 	// depending on the ChangeOnDuty time for today.
 	changeDutyAt := app.Door.ChangeOnDuty(ctx, t)
+	var nextChange time.Time
+	var isDayShift bool
 
 	log.V(7).Logf("searching doctor on duty for %s. Duty time frame changes on %s at %s", t, changeDutyAt.Weekday(), changeDutyAt)
 
-	if t.Before(changeDutyAt) {
-		// go back in time for one day. We don't care about minute/hours here
-		// from now on.
-		newT := t.Add(-1 * time.Hour * 24)
-		log.V(6).Logf("requested time belongs to previous doctor-on-duty time frame, switching lookup time from %s to %s", t, newT)
-		t = newT
+	if changeDutyAt.IsApplicable(t) {
+		if changeDutyAt.IsDayShift(t) {
+			nextChange = changeDutyAt.NightStartAt(t)
+			isDayShift = true
+		} else {
+			isDayShift = false
+			nextDay := t.Add(24 * time.Hour)
+			nextDayChange := app.Door.ChangeOnDuty(ctx, nextDay)
+			nextChange = nextDayChange.DayStartAt(nextDay)
+		}
 	} else {
-		// the currently active doctor-on-duty changes the next day.
-		// find out when exactly.
-		changeDutyAt = app.Door.ChangeOnDuty(ctx, t.Add(time.Hour*24))
-		log.V(7).Logf("current doctor-on-duty time frame ends at %s", changeDutyAt)
+		// we're during the night-shift of the previous day
+		// so we need to load that to get the responsible staff.
+		nextChange = changeDutyAt.DayStartAt(t)
+		newT := t.Add(-24 * time.Hour)
+		log.V(7).Logf("switching lookup time from %s to %s the previous night shift is active", t, newT)
+		t = newT
 	}
 
 	// fetch all users so we can convert usernames to phone numbers,
@@ -83,7 +90,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 		identitydb.WithScope(ctx, identitydb.Public),
 	)
 	if err != nil {
-		return nil, changeDutyAt, false, httperr.InternalError(err)
+		return nil, nextChange, false, httperr.InternalError(err)
 	}
 
 	// build a small lookup map by username.
@@ -100,7 +107,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 	// first check if we have an active overwrite for today
 	overwrite, err := app.DutyRosters.GetOverwrite(ctx, t)
 	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, changeDutyAt, false, err
+		return nil, nextChange, false, err
 	}
 
 	if err == nil {
@@ -124,7 +131,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 			user, ok := lm[overwrite.Username]
 			if !ok || overwrite.Username == "" {
 				log.Errorf("found invalid emergency duty overwrite for day %s", key)
-				return nil, changeDutyAt, true, fmt.Errorf("invalid overwrite")
+				return nil, nextChange, true, fmt.Errorf("invalid overwrite")
 			}
 
 			if len(user.PhoneNumber) > 0 {
@@ -138,7 +145,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 					Username:   user.Name,
 					Properties: user.Properties,
 				},
-			}, changeDutyAt, true, nil
+			}, nextChange, true, nil
 		}
 
 		return []v1alpha.DoctorOnDuty{
@@ -147,27 +154,29 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 				Phone:    overwrite.PhoneNumber,
 				Username: overwrite.Username,
 			},
-		}, changeDutyAt, true, nil
+		}, nextChange, true, nil
 	}
 
-	// now that we know what roster is active for the time in question
-	// load it from the database.
-	roster, err := app.DutyRosters.ForMonth(ctx, t.Month(), t.Year())
+	day, err := app.DutyRosters.ForDay(ctx, t)
 	if err != nil {
-		if errors.Is(err, rosterdb.ErrNotFound) {
-			return nil, changeDutyAt, false, httperr.NotFound("roster", key, err)
-		}
-		return nil, changeDutyAt, false, httperr.InternalError(err)
+		return nil, nextChange, false, err
 	}
 
-	day, ok := roster.Days[t.Day()]
-	if !ok {
-		return nil, changeDutyAt, false, httperr.NotFound("roster-day", key, nil)
+	// Get the correct username slice. If there's no "day-shift"
+	// configured we fallback to the night shift.
+	// TODO(ppacher): make this configurable or at least make sure
+	// everyone knows that!
+	var activeShift []string
+	if isDayShift && len(day.OnCall.Day) > 0 {
+		activeShift = day.OnCall.Day
+	} else {
+		activeShift = day.OnCall.Night
 	}
+
 	// convert all the usernames from the Emergency slice to their
 	// v1alpha.DoctorOnDuty API model.
-	doctorsOnDuty := make([]v1alpha.DoctorOnDuty, len(day.Emergency))
-	for idx, u := range day.Emergency {
+	doctorsOnDuty := make([]v1alpha.DoctorOnDuty, len(activeShift))
+	for idx, u := range activeShift {
 		user, ok := lm[u]
 		if !ok {
 			log.Errorf("unknown user %s configured as doctor-on-duty", u)
@@ -186,5 +195,5 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 		}
 	}
 
-	return doctorsOnDuty, changeDutyAt, false, nil
+	return doctorsOnDuty, nextChange, false, nil
 }

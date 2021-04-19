@@ -109,10 +109,10 @@ func (inst *Instance) waitAndFire(ctx context.Context) {
 		// TODO(ppacher): better just block until we actually need
 		// to do something.
 		shouldFire := false
-		now := time.Now().In(inst.cfg.Location)
+		now := time.Now()
 		nowStr := now.Format("2006-01-02 15:04")
 		for _, frame := range frames {
-			fireTime := frame.At(now).Format("2006-01-02 15:04")
+			fireTime := frame.At(now, inst.cfg.Location).Format("2006-01-02 15:04")
 			if fireTime == nowStr {
 				shouldFire = true
 				break

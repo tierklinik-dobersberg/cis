@@ -6,6 +6,14 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// OnCall defines who is on-call during day and night. Those
+// are used to determine who is responsible of handling emergencies
+// or other duties after office-hours.
+type OnCall struct {
+	Day   []string `bson:"day,omitempty" json:"day,omitempty"`
+	Night []string `bson:"night,omitempty" json:"night,omitempty"`
+}
+
 // Day describes the doctors on duty for a single
 // day.
 type Day struct {
@@ -15,11 +23,7 @@ type Day struct {
 	// Afternoon is a list of usernames that are in duty after lunch.
 	Afternoon []string `bson:"afternoon,omitempty" json:"afternoon,omitempty"`
 
-	// List of usernames that are responsible for handling
-	// emergencies after office-hours.
-	// Later usernames serving as the backup for the previous
-	// one.
-	Emergency []string `bson:"emergency,omitempty" json:"emergency,omitempty"`
+	OnCall OnCall `bson:"onCall,omitempty" json:"onCall,omitempty"`
 }
 
 // DutyRoster describes the doctors on duty for one month.

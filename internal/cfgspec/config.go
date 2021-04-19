@@ -22,9 +22,11 @@ type Config struct {
 	UnknownContactSource string
 	UnknownContactID     int
 
-	DefaultOpenBefore   time.Duration
-	DefaultCloseAfter   time.Duration
-	DefaultChangeOnDuty string
+	DefaultOpenBefore time.Duration
+	DefaultCloseAfter time.Duration
+
+	DefaultOnCallDayStart   string
+	DefaultOnCallNightStart string
 }
 
 // ConfigSpec defines the different configuration stanzas for the Config struct.
@@ -79,10 +81,14 @@ var ConfigSpec = conf.SectionSpec{
 		Description: "Default value for CloseAfter= in [OpeningHour]",
 	},
 	{
-		Name:        "DefaultChangeOnDuty",
+		Name:        "DefaultOnCallDayStart",
 		Type:        conf.StringType,
-		Description: "The default value for ChangeOnDuty in [OpeningHour]",
-		Required:    true,
+		Description: "Default value for OnCallDayStart= in [OpeningHour]",
+	},
+	{
+		Name:        "DefaultOnCallNightStart",
+		Type:        conf.StringType,
+		Description: "Default value for OnCallNightStart= in [OpeningHour]",
 	},
 	{
 		Name:        "TimeZone",

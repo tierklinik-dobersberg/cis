@@ -30,7 +30,6 @@ func GetOpeningHoursEndpoint(router *app.Router) {
 					return httperr.InvalidParameter("at")
 				}
 			}
-			d = d.In(app.Location())
 
 			frames := app.Door.OpeningFramesForDay(ctx, d)
 			holiday, err := app.Holidays.IsHoliday(ctx, app.Config.Country, d)
@@ -40,7 +39,7 @@ func GetOpeningHoursEndpoint(router *app.Router) {
 
 			timeRanges := make([]utils.TimeRange, len(frames))
 			for idx, frame := range frames {
-				timeRanges[idx] = *frame.At(d)
+				timeRanges[idx] = *frame.At(d, app.Location())
 			}
 
 			c.JSON(http.StatusOK, GetOpeningHoursResponse{

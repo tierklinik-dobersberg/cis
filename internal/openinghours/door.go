@@ -65,7 +65,7 @@ type DoorController struct {
 
 	// changeOnDuty specifies at which time per day the doctor-on
 	// duty changes to the next one.
-	changeOnDuty map[time.Weekday]utils.DayTime
+	changeOnDuty map[time.Weekday]*ChangeOnCall
 
 	// holidayTimeRanges specifies the opening hours during
 	// public holidays.
@@ -101,9 +101,13 @@ func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, ho
 		return nil, fmt.Errorf("Location: %w", err)
 	}
 
-	defaultChangeOnDuty, err := utils.ParseDayTime(cfg.DefaultChangeOnDuty)
+	defaultOnCallDayStart, err := utils.ParseDayTime(cfg.DefaultOnCallDayStart)
 	if err != nil {
-		return nil, fmt.Errorf("DefaultChangeOnDuty: %w", err)
+		return nil, fmt.Errorf("DefaultOnCallDayStart: %w", err)
+	}
+	defaultOnCallNightStart, err := utils.ParseDayTime(cfg.DefaultOnCallNightStart)
+	if err != nil {
+		return nil, fmt.Errorf("DefaultOnCallNightStart: %w", err)
 	}
 
 	dc := &DoorController{
@@ -112,11 +116,22 @@ func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, ho
 		holidays:            holidays,
 		regularOpeningHours: make(map[time.Weekday][]OpeningHour),
 		dateSpecificHours:   make(map[string][]OpeningHour),
-		changeOnDuty:        make(map[time.Weekday]utils.DayTime),
+		changeOnDuty:        make(map[time.Weekday]*ChangeOnCall),
 		door:                door,
 		stop:                make(chan struct{}),
 		reset:               make(chan *struct{}),
 		resetInProgress:     abool.NewBool(false),
+	}
+
+	// for each weekday, prepare the start times for the day and night
+	// on-call shifts.
+	for i := time.Sunday; i <= time.Saturday; i++ {
+		dc.changeOnDuty[i] = &ChangeOnCall{
+			dayStart:   defaultOnCallDayStart,
+			nightStart: defaultOnCallNightStart,
+			loc:        loc,
+			weekday:    i,
+		}
 	}
 
 	for _, c := range timeRanges {
@@ -135,16 +150,28 @@ func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, ho
 				return nil, fmt.Errorf("failed to parse day: %s", d)
 			}
 
-			if c.ChangeOnDuty != "" {
-				changeOnDuty, err := utils.ParseDayTime(c.ChangeOnDuty)
-				if err != nil {
-					return nil, fmt.Errorf("invalid ChangeOnDuty: %w", err)
+			if c.OnCallDayStart != "" {
+				if dc.changeOnDuty[parsed].dayStart != defaultOnCallDayStart {
+					return nil, fmt.Errorf("multiple values for OnCallDayStart= at weekday %s", parsed)
 				}
 
-				if t, ok := dc.changeOnDuty[parsed]; ok && t.AsDuration() != changeOnDuty.AsDuration() {
-					return nil, fmt.Errorf("multiple values for ChangeOnDuty= at weekday %s", parsed)
+				dayStart, err := utils.ParseDayTime(c.OnCallDayStart)
+				if err != nil {
+					return nil, fmt.Errorf("invalid OnCallDayStart: %w", err)
 				}
-				dc.changeOnDuty[parsed] = changeOnDuty
+				dc.changeOnDuty[parsed].dayStart = dayStart
+			}
+
+			if c.OnCallNightStart != "" {
+				if dc.changeOnDuty[parsed].nightStart != defaultOnCallNightStart {
+					return nil, fmt.Errorf("multiple values for OnCallNightStart= at weekday %s", parsed)
+				}
+
+				nightStart, err := utils.ParseDayTime(c.OnCallNightStart)
+				if err != nil {
+					return nil, fmt.Errorf("invalid OnCallNightStart: %w", err)
+				}
+				dc.changeOnDuty[parsed].nightStart = nightStart
 			}
 
 			days = append(days, parsed)
@@ -224,16 +251,7 @@ func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, ho
 		}
 	}
 
-	// by default all weekdays switch at DefaultChangeOnDuty so we need
-	// to fill all missing entries.
-	for i := time.Sunday; i <= time.Saturday; i++ {
-		if _, ok := dc.changeOnDuty[i]; !ok {
-			dc.changeOnDuty[i] = defaultChangeOnDuty
-		}
-	}
-
 	// finally, sort all opening hours and make sure we don't have overlapping ones
-
 	for k := range dc.regularOpeningHours {
 		if err := sortAndValidate(dc.regularOpeningHours[k]); err != nil {
 			return nil, err
@@ -461,12 +479,14 @@ func (dc *DoorController) scheduler() {
 
 // ChangeOnDuty returns the time at which the doctor-on-duty changes
 // and the given date. It makes sure d is in the correct timezone.
-func (dc *DoorController) ChangeOnDuty(ctx context.Context, d time.Time) time.Time {
-	day, ok := dc.changeOnDuty[d.Weekday()]
+func (dc *DoorController) ChangeOnDuty(ctx context.Context, d time.Time) *ChangeOnCall {
+	d = d.In(dc.location)
+	change, ok := dc.changeOnDuty[d.Weekday()]
 	if !ok {
 		log.From(ctx).Errorf("no time for change-on-duty configured for %s (%d)", d.Weekday(), d)
+		return nil
 	}
-	return day.At(d.In(dc.location))
+	return change
 }
 
 // Current returns the current door state.
@@ -518,6 +538,8 @@ func (dc *DoorController) stateFor(ctx context.Context, t time.Time) (DoorState,
 
 // OpeningFramesForDay returns a list of openinghours on the day specified by t.
 func (dc *DoorController) OpeningFramesForDay(ctx context.Context, t time.Time) []OpeningHour {
+	t = t.In(dc.location)
+
 	log := log.From(ctx)
 	key := fmt.Sprintf("%02d/%02d", t.Month(), t.Day())
 
@@ -567,7 +589,7 @@ func (dc *DoorController) findUpcomingFrames(ctx context.Context, t time.Time, l
 		var idx int
 		found := false
 		for idx = range ranges {
-			tr := ranges[idx].At(t)
+			tr := ranges[idx].At(t, dc.location)
 			tr.From = tr.From.Add(-ranges[idx].OpenBefore)
 			tr.To = tr.To.Add(ranges[idx].CloseAfter)
 
@@ -580,7 +602,7 @@ func (dc *DoorController) findUpcomingFrames(ctx context.Context, t time.Time, l
 		if found {
 			// all frames following idx are up-coming.
 			for _, d := range ranges[idx:] {
-				tr := d.At(t)
+				tr := d.At(t, dc.location)
 				tr.From = tr.From.Add(-d.OpenBefore)
 				tr.To = tr.To.Add(d.CloseAfter)
 				result = append(result, *tr)

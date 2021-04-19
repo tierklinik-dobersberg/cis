@@ -36,6 +36,9 @@ type Database interface {
 	// ForMonth returns the duty roster for the given month.
 	ForMonth(ctx context.Context, month time.Month, year int) (*v1alpha.DutyRoster, error)
 
+	// ForDay returns the roster for the day specified by t.
+	ForDay(ctx context.Context, t time.Time) (*v1alpha.Day, error)
+
 	// Delete deletes a roster.
 	Delete(ctx context.Context, month time.Month, year int) error
 
@@ -197,6 +200,20 @@ func (db *database) ForMonth(ctx context.Context, month time.Month, year int) (*
 	}
 
 	return result, nil
+}
+
+func (db *database) ForDay(ctx context.Context, t time.Time) (*v1alpha.Day, error) {
+	roster, err := db.ForMonth(ctx, t.Month(), t.Year())
+	if err != nil {
+		return nil, err
+	}
+
+	day, ok := roster.Days[t.Day()]
+	if !ok {
+		key := fmt.Sprintf("%04d/%02d", t.Year(), t.Month())
+		return nil, httperr.NotFound("roster-day", key, nil)
+	}
+	return &day, nil
 }
 
 func (db *database) Delete(ctx context.Context, month time.Month, year int) error {

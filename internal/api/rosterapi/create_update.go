@@ -92,8 +92,11 @@ func validateRoster(ctx context.Context, app *app.App, roster *v1alpha.DutyRoste
 		if err := validateUsers(day.Afternoon, lm); err != nil {
 			return fmt.Errorf("afternoon: %s", err)
 		}
-		if err := validateUsers(day.Emergency, lm); err != nil {
-			return fmt.Errorf("emergency: %s", err)
+		if err := validateUsers(day.OnCall.Day, lm); err != nil {
+			return fmt.Errorf("onCal.day: %s", err)
+		}
+		if err := validateUsers(day.OnCall.Night, lm); err != nil {
+			return fmt.Errorf("oncall.Night: %s", err)
 		}
 	}
 

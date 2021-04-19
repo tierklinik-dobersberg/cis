@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/utils"
 )
 
 // OpeningHours is used to describe the opening and office hours.
@@ -27,12 +28,18 @@ type OpeningHours struct {
 	CloseAfter time.Duration
 
 	// TimeRanges describe the opening hours on the specified days
-	// in the format of HH:MM - HH:MM
+	// in the format of HH:MM - HH:MM.
 	TimeRanges []string
 
-	// ChangeOnDuty specifies the time at which the emergency duty switches
-	// form the day before the day specified.
-	ChangeOnDuty string
+	// OnCallDayStart defines the time the day-shift for the on-call doctor
+	// starts. This also denotes the end of the previous night shift.
+	// Format is HH:MM in the configured timezone.
+	OnCallDayStart string
+
+	// OnCallNightStart defines the time the night-shift for the on-call doctor
+	// starts. This also denotes the endof the previous day shift.
+	// Format is HH:MM in the configured timezone.
+	OnCallNightStart string
 
 	// Holiday controls whether this setting is in effect on holidays.
 	Holiday string
@@ -71,9 +78,14 @@ var OpeningHoursSpec = conf.SectionSpec{
 		Description: "Whether or not this opening hour counts on holidays. Possible values are 'yes' (normal and holidays), 'no' (normal only) or 'only' (holiday only).",
 	},
 	{
-		Name:        "ChangeOnDuty",
+		Name:        "OnCallDayStart",
 		Type:        conf.StringType,
-		Description: "The time-of-day in format HH:MM at which the doctor-on-duty changes form yesterday to today",
+		Description: "Defines the time the day-shift for the on-call doctor starts. This also denotes the end of the prvious night shift. Format is HH:MM in the configured timezone.",
+	},
+	{
+		Name:        "OnCallNightStart",
+		Type:        conf.StringType,
+		Description: "Defines the time the night-shift for the on-call doctor starts. This also denotes the end of the prvious day shift. Format is HH:MM in the configured timezone.",
 	},
 }
 
@@ -83,6 +95,16 @@ func (opt *OpeningHours) Validate() error {
 	for _, day := range opt.OnWeekday {
 		if err := ValidDay(day); err != nil {
 			return err
+		}
+	}
+	if opt.OnCallDayStart != "" {
+		if _, err := utils.ParseDayTime(opt.OnCallDayStart); err != nil {
+			return fmt.Errorf("OnCallDayStart: %w", err)
+		}
+	}
+	if opt.OnCallNightStart != "" {
+		if _, err := utils.ParseDayTime(opt.OnCallNightStart); err != nil {
+			return fmt.Errorf("OnCallNightStart: %w", err)
 		}
 	}
 
