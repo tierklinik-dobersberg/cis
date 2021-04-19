@@ -224,7 +224,7 @@ func getApp(ctx context.Context) *app.App {
 	if err != nil {
 		logger.Fatalf(ctx, "schemadb: %s", err.Error())
 	}
-	migrated, err := schema.ApplyMigrations(ctx, schemaDB, mongoClient)
+	migrated, err := schema.ApplyMigrations(ctx, schemaDB, mongoClient.Database(cfg.DatabaseName))
 	if err != nil {
 		logger.Fatalf(ctx, "failed to apply migrations: %s", err)
 	}
