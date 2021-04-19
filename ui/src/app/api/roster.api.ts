@@ -3,10 +3,15 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+export interface OnCall {
+  day: string[];
+  night: string[];
+}
+
 export interface Day {
   forenoon: string[];
   afternoon: string[];
-  emergency: string[];
+  onCall: OnCall;
 }
 
 export interface Roster {
@@ -42,7 +47,8 @@ export class RosterAPI {
 
             day.afternoon = day.afternoon || [];
             day.forenoon = day.forenoon || [];
-            day.emergency = day.emergency || [];
+            day.onCall.day = day.onCall.day || [];
+            day.onCall.night = day.onCall.night || [];
 
             result.days[dayKey] = day;
           });

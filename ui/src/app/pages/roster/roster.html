@@ -169,16 +169,17 @@
       </ng-template>
     </span>
 
-    <ng-container *ngTemplateOutlet="userDutyTemplate; context: {$implicit: 'forenoon'}"></ng-container>
-    <ng-container *ngTemplateOutlet="userDutyTemplate; context: {$implicit: 'afternoon'}"></ng-container>
-    <ng-container *ngTemplateOutlet="userDutyTemplate; context: {$implicit: 'emergency'}"></ng-container>
+    <ng-container *ngTemplateOutlet="userDutyTemplate; context: {$implicit: getDay(date).forenoon}"></ng-container>
+    <ng-container *ngTemplateOutlet="userDutyTemplate; context: {$implicit: getDay(date).afternoon}"></ng-container>
+    <ng-container *ngTemplateOutlet="userDutyTemplate; context: {$implicit: getDay(date).onCall.day}"></ng-container>
+    <ng-container *ngTemplateOutlet="userDutyTemplate; context: {$implicit: getDay(date).onCall.night}"></ng-container>
 
-    <ng-template #userDutyTemplate let-property>
+    <ng-template #userDutyTemplate let-set>
       <li>
-        <span class="user-tag" *ngFor="let user of getDay(date)[property]" nz-tooltip
-          [nzTooltipTitle]="userProfiles[user]?.fullname" [class.highlight-user]="highlightUser === user"
-          [style.backgroundColor]="userProfiles[user]?.color" [style.color]="userProfiles[user]?.fontColor"
-          (mouseenter)="highlightUserSubject.next(user)" (mouseleave)="highlightUserSubject.next('')">
+        <span class="user-tag" *ngFor="let user of set" nz-tooltip [nzTooltipTitle]="userProfiles[user]?.fullname"
+          [class.highlight-user]="highlightUser === user" [style.backgroundColor]="userProfiles[user]?.color"
+          [style.color]="userProfiles[user]?.fontColor" (mouseenter)="highlightUserSubject.next(user)"
+          (mouseleave)="highlightUserSubject.next('')">
           {{ userProfiles[user]?.fullname.slice(0, 2) || 'N/A' }}
         </span>
       </li>
@@ -205,8 +206,13 @@
         </ng-container>
       </div>
       <div class="selection-row">
-        <span class="title">Nachtdienst</span>
-        <ng-container *ngTemplateOutlet="mobileUserDutyTemplate; context: {$implicit: getDay(date).emergency}">
+        <span class="title">Tag Bereitschaft</span>
+        <ng-container *ngTemplateOutlet="mobileUserDutyTemplate; context: {$implicit: getDay(date).onCall.day}">
+        </ng-container>
+      </div>
+      <div class="selection-row">
+        <span class="title">Nacht Bereitschaft</span>
+        <ng-container *ngTemplateOutlet="mobileUserDutyTemplate; context: {$implicit: getDay(date).onCall.night}">
         </ng-container>
       </div>
     </div>
@@ -227,7 +233,9 @@
     </ng-container>
     <ng-container *ngTemplateOutlet="userSelection; context: {$implicit: 'afternoon', title: 'Nachmittag'}">
     </ng-container>
-    <ng-container *ngTemplateOutlet="userSelection; context: {$implicit: 'emergency', title: 'Nachtdienst'}">
+    <ng-container *ngTemplateOutlet="userSelectionOnCall; context: {$implicit: 'day', title: 'Tag Bereitschaft'}">
+    </ng-container>
+    <ng-container *ngTemplateOutlet="userSelectionOnCall; context: {$implicit: 'night', title: 'Nacht Bereitschaft'}">
     </ng-container>
 
     <div class="selection-row" style="text-align: right; padding-top: 12px">
@@ -243,7 +251,6 @@
       </button>
     </div>
 
-
     <ng-template #userSelection let-model let-title="title">
       <div class="selection-row">
         <span nz-menu-group class="title">{{title}}</span>
@@ -255,6 +262,22 @@
         </nz-select>
         <div *ngIf="!editMode" class="selected-users">
           <li><span *ngFor="let username of selectedDay[model]"
+              class="user-tag">{{userProfiles[username]?.fullname}}</span></li>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template #userSelectionOnCall let-model let-title="title">
+      <div class="selection-row">
+        <span nz-menu-group class="title">{{title}}</span>
+        <nz-select *ngIf="editMode && isDropDownVisible" [(ngModel)]="selectedDay.onCall[model]" nzMode="multiple"
+          (ngModelChange)="rosterChanged()" nzPlaceHolder="Bitte auswählen">
+          <nz-option *ngFor="let option of selectableUserNames" [nzLabel]="userProfiles[option]?.fullname"
+            [nzValue]="option">
+          </nz-option>
+        </nz-select>
+        <div *ngIf="!editMode" class="selected-users">
+          <li><span *ngFor="let username of selectedDay.onCall[model]"
               class="user-tag">{{userProfiles[username]?.fullname}}</span></li>
         </div>
       </div>

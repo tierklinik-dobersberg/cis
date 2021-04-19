@@ -56,7 +56,10 @@ export class RosterComponent implements OnInit, OnDestroy {
   selectedDay: Day = {
     afternoon: [],
     forenoon: [],
-    emergency: [],
+    onCall: {
+      day: [],
+      night: [],
+    },
   };
 
   /** All selectable, available user names */
@@ -203,7 +206,10 @@ export class RosterComponent implements OnInit, OnDestroy {
     if (day.afternoon.some(user => user === this.highlightUser)) {
       return true;
     }
-    if (day.emergency.some(user => user === this.highlightUser)) {
+    if (day.onCall.day.some(user => user === this.highlightUser)) {
+      return true;
+    }
+    if (day.onCall.night.some(user => user === this.highlightUser)) {
       return true;
     }
     return false;
@@ -472,7 +478,10 @@ export class RosterComponent implements OnInit, OnDestroy {
       return {
         afternoon: [],
         forenoon: [],
-        emergency: [],
+        onCall: {
+          day: [],
+          night: [],
+        }
       };
     }
 
@@ -482,7 +491,10 @@ export class RosterComponent implements OnInit, OnDestroy {
       d = {
         afternoon: [],
         forenoon: [],
-        emergency: [],
+        onCall: {
+          day: [],
+          night: [],
+        }
       };
       this.days[day] = d;
     }

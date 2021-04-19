@@ -12,27 +12,42 @@ describe("Duty roster API:", () => {
                 1: {
                     forenoon: ["alice"],
                     afternoon: ["alice", "bob"],
-                    emergency: ["alice"],
+                    onCall: {
+                        day: ["alice"],
+                        night: ["alice"],
+                    }
                 },
                 2: {
                     forenoon: ["bob"],
                     afternoon: ["alice", "bob"],
-                    emergency: ["bob"],
+                    onCall: {
+                        day: ["bob"],
+                        night: ["bob"],
+                    }
                 },
                 3: {
                     forenoon: ["alice"],
                     afternoon: ["bob"],
-                    emergency: ["alice"],
+                    onCall: {
+                        day: ["alice"],
+                        night: ["alice"],
+                    }
                 },
                 4: {
                     forenoon: ["bob"],
                     afternoon: ["alice", "bob"],
-                    emergency: ["bob"],
+                    onCall: {
+                        day: ["bob"],
+                        night: ["bob"],
+                    }
                 },
                 5: {
                     forenoon: ["bob"],
                     afternoon: ["bob"],
-                    emergency: ["bob"],
+                    onCall: {
+                        day: ["bob"],
+                        night: ["bob"],
+                    }
                 },
             }
         }
@@ -176,7 +191,19 @@ describe("Duty roster API:", () => {
                     PhoneExtension: "12",
                 }
             }])
-            expect(response.data.until).toBe("2021-04-07T07:30:00+02:00")
+            expect(response.data.until).toBe("2021-04-06T19:30:00+02:00")
+
+            const response2 = await get(6, 22, 0)
+            expect(response2.status).toBe(200)
+            expect(response2.data.doctors).toEqual([{
+                username: "bob",
+                fullname: "Bob Mustermann",
+                phone: "",
+                properties: {
+                    PhoneExtension: "12",
+                }
+            }])
+            expect(response2.data.until).toBe("2021-04-07T07:30:00+02:00")
         })
 
         it("should honor change-of-duty on regular days", async () => {
@@ -202,7 +229,19 @@ describe("Duty roster API:", () => {
                     PhoneExtension: "12",
                 }
             }])
-            expect(response2.data.until).toBe("2021-04-07T07:30:00+02:00")
+            expect(response2.data.until).toBe("2021-04-06T19:30:00+02:00")
+
+            const response3 = await get(6, 17, 30)
+            expect(response3.status).toBe(200)
+            expect(response3.data.doctors).toEqual([{
+                username: "bob",
+                fullname: "Bob Mustermann",
+                phone: "",
+                properties: {
+                    PhoneExtension: "12",
+                }
+            }])
+            expect(response3.data.until).toBe("2021-04-07T07:30:00+02:00")
         })
 
         it("should honor change-of-duty on specific days", async () => {
@@ -228,18 +267,30 @@ describe("Duty roster API:", () => {
                     PhoneExtension: "12",
                 }
             }])
-            expect(response2.data.until).toBe("2021-04-11T19:30:00+02:00")
+            expect(response2.data.until).toBe("2021-04-10T19:30:00+02:00")
+
+            const response3 = await get(10, 23, 30)
+            expect(response3.status).toBe(200)
+            expect(response3.data.doctors).toEqual([{
+                username: "bob",
+                fullname: "Bob Mustermann",
+                phone: "",
+                properties: {
+                    PhoneExtension: "12",
+                }
+            }])
+            expect(response3.data.until).toBe("2021-04-11T07:30:00+02:00")
         })
 
         it("should honor change-of-duty on specific days even if it's late", async () => {
             const response = await get(11, 17, 29) // duty changes at 19:30 in Europe/Vienna
             expect(response.status).toBe(200)
             expect(response.data.doctors).toEqual([{
-                username: "bob",
-                fullname: "Bob Mustermann",
-                phone: "",
+                username: "alice",
+                fullname: "Alice Musterfrau",
+                phone: "+4312345678",
                 properties: {
-                    PhoneExtension: "12",
+                    PhoneExtension: "10",
                 }
             }])
             expect(response.data.until).toBe("2021-04-11T19:30:00+02:00")

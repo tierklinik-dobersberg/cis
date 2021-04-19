@@ -11,8 +11,12 @@
       <ng-container *ngTemplateOutlet="userGroupTemplate; context: {$implicit: afternoon}"></ng-container>
     </div>
     <div>
-      <h3>Nacht- / Bereitschaftsdienst</h3>
-      <ng-container *ngTemplateOutlet="userGroupTemplate; context: {$implicit: emergency}"></ng-container>
+      <h3>Tagdienst</h3>
+      <ng-container *ngTemplateOutlet="userGroupTemplate; context: {$implicit: onCallDay}"></ng-container>
+    </div>
+    <div>
+      <h3>Nachtdienst</h3>
+      <ng-container *ngTemplateOutlet="userGroupTemplate; context: {$implicit: onCallNight}"></ng-container>
     </div>
   </div>
 </nz-card>

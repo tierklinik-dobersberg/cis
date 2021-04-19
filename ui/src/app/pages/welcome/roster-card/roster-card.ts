@@ -14,7 +14,8 @@ export class RosterCardComponent implements OnInit, OnDestroy {
 
   forenoon: ProfileWithAvatar[] = [];
   afternoon: ProfileWithAvatar[] = [];
-  emergency: ProfileWithAvatar[] = [];
+  onCallDay: ProfileWithAvatar[] = [];
+  onCallNight: ProfileWithAvatar[] = [];
 
   eventsPerUser = new Map<string, LocalEvent[]>()
 
@@ -56,13 +57,15 @@ export class RosterCardComponent implements OnInit, OnDestroy {
       .subscribe((day: Day | null) => {
         this.forenoon = (day?.forenoon || []).map(user => this.userService.byName(user));
         this.afternoon = (day?.afternoon || []).map(user => this.userService.byName(user));
-        this.emergency = (day?.emergency || []).map(user => this.userService.byName(user));
+        this.onCallDay = (day?.onCall.day || []).map(user => this.userService.byName(user));
+        this.onCallNight = (day?.onCall.night || []).map(user => this.userService.byName(user));
         this.changeDetector.markForCheck();
 
         let users = new Set([
           ...this.forenoon,
           ...this.afternoon,
-          ...this.emergency,
+          ...this.onCallDay,
+          ...this.onCallNight,
         ].filter(user => !!user.calendarID).map(u => u.name))
         this.calendarapi.listEvents(null, Array.from(users))
           .subscribe({

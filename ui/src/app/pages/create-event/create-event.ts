@@ -260,7 +260,8 @@ export class CreateEventComponent implements OnInit, OnDestroy {
         let userSet = new Set([
             ...day?.forenoon,
             ...day?.afternoon,
-            ...day?.emergency,
+            ...day?.onCall.day,
+            ...day?.onCall.night,
         ]);
         this.allUsers = [];
         userSet.forEach(user => {
@@ -274,12 +275,12 @@ export class CreateEventComponent implements OnInit, OnDestroy {
             let end = slotSize.addTo(iter);
 
             if (!isOpeningHour) {
-                usersSlot = day?.emergency;
+                // FIXME(ppacher): expose day/night shift changes
+                usersSlot = [...day?.onCall.day, ...day?.onCall.night];
             } else if (iter.getTime() <= threshold) {
                 usersSlot = day?.forenoon;
             } else {
                 usersSlot = day?.afternoon;
-                // TODO(pacher): emergency
             }
 
             let users: TimeSlot['users'] = {};
