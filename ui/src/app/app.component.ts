@@ -112,6 +112,10 @@ export class AppComponent implements OnInit {
       })
     })
 
+    this.updates.activated.subscribe(event => {
+      this.nzMessage.info("Gratuliere! Du verwendest nun Version " + event.current + " von CIS")
+    })
+
     this.appRef.isStable.pipe(first(stable => !!stable))
       .subscribe(() => this.updates.checkForUpdate())
 
