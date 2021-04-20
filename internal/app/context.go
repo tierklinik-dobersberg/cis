@@ -192,7 +192,18 @@ func (app *App) Location() *time.Location {
 			loc = time.Local
 		}
 		app.location = loc
+		if app.location.String() != time.Local.String() {
+			// warn for now if there's a difference. We should have all times fixed already
+			// but better make sure the user knowns.
+			logger.Errorf(context.Background(), "WARNING: local time zone and configured TimeZone= differ. It's recommended to keep them the same!")
+		}
 	})
 
 	return app.location
+}
+
+// ParseTime is like time.Parse but makes sure the returned time is put
+// into the configured local timezone.
+func (app *App) ParseTime(layout string, str string) (time.Time, error) {
+	return time.ParseInLocation(layout, str, app.Location())
 }

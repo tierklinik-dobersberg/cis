@@ -479,8 +479,14 @@ func (dc *DoorController) scheduler() {
 
 // ChangeOnDuty returns the time at which the doctor-on-duty changes
 // and the given date. It makes sure d is in the correct timezone.
+// Note that ChangeOnDuty requires the Weekday of d which might differ
+// depending on t's zone information. The caller must make sure to have
+// t in the desired time zone!
 func (dc *DoorController) ChangeOnDuty(ctx context.Context, d time.Time) *ChangeOnCall {
-	d = d.In(dc.location)
+	if d.Location() == time.UTC {
+		log.From(ctx).Errorf("WARNING: ChnageOnDuty called with time in UTC")
+	}
+
 	change, ok := dc.changeOnDuty[d.Weekday()]
 	if !ok {
 		log.From(ctx).Errorf("no time for change-on-duty configured for %s (%d)", d.Weekday(), d)
@@ -491,19 +497,16 @@ func (dc *DoorController) ChangeOnDuty(ctx context.Context, d time.Time) *Change
 
 // Current returns the current door state.
 func (dc *DoorController) Current(ctx context.Context) (DoorState, time.Time, bool) {
-	// ensure the location is set correctly because DayTime.At(time.Time) copies the
-	// location and requires it to be set correctly!
 	state, until := dc.stateFor(ctx, time.Now().In(dc.location))
 
 	return state, until, dc.resetInProgress.IsSet()
 }
 
 // StateFor returns the desired door state for the time t.
-// It makes sure t is in the correct location.
+// It makes sure t is in the correct location. Like in ChangeOnDuty, the
+// caller must make sure that t is in the desired timezone as StateFor will copy
+// hour and date information.
 func (dc *DoorController) StateFor(ctx context.Context, t time.Time) (DoorState, time.Time) {
-	// ensure the location is set correctly because DayTime.At(time.Time) copies the
-	// location and requires it to be set correctly!
-	t = t.In(dc.location)
 	return dc.stateFor(ctx, t)
 }
 

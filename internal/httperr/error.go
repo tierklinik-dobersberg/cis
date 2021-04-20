@@ -125,7 +125,6 @@ func Middleware(c *gin.Context) {
 
 	// nothing to do if the status has already been written.
 	if c.Writer.Written() || c.Writer.Status() != http.StatusOK {
-		log.V(8).Logf("request already written: %d", c.Writer.Status())
 		return
 	}
 

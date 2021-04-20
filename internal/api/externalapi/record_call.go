@@ -84,7 +84,7 @@ func RecordCallEndpoint(grp *app.Router) {
 					record.DurationSeconds = durationSeconds
 				}
 
-				date, err := time.ParseInLocation("02.01.2006 15:04", payload.DateTime, app.Location())
+				date, err := app.ParseTime("02.01.2006 15:04", payload.DateTime)
 				if err != nil {
 					log.From(ctx).Errorf("failed to parse calllog dateTime %s: %s", payload.DateTime, err)
 					return httperr.InvalidField("dateTime")

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
@@ -39,7 +38,7 @@ func ForDateEndpoint(grp *app.Router) {
 				return httperr.InvalidParameter("day")
 			}
 
-			d, err := time.Parse("2006-01-02", fmt.Sprintf("%04d-%02d-%02d", year, month, day))
+			d, err := app.ParseTime("2006-01-02", fmt.Sprintf("%04d-%02d-%02d", year, month, day))
 			if err != nil {
 				return httperr.BadRequest(err, "invalid date")
 			}

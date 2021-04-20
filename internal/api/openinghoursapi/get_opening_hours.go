@@ -25,7 +25,7 @@ func GetOpeningHoursEndpoint(router *app.Router) {
 			d := time.Now()
 			if at := c.Query("at"); at != "" {
 				var err error
-				d, err = time.Parse("2006-1-2", at)
+				d, err = app.ParseTime("2006-1-2", at)
 				if err != nil {
 					return httperr.InvalidParameter("at")
 				}

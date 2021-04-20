@@ -33,7 +33,7 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 			d := time.Now()
 			if at := c.Query("at"); at != "" {
 				var err error
-				d, err = time.Parse(time.RFC3339, at)
+				d, err = app.ParseTime(time.RFC3339, at)
 				if err != nil {
 					return httperr.InvalidParameter("at")
 				}
@@ -56,6 +56,7 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 
 func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.DoctorOnDuty, time.Time, bool, error) {
 	log := log.From(ctx)
+	t = t.In(app.Location())
 
 	// find out if we need to the doctor-on-duty from today or the day before
 	// depending on the ChangeOnDuty time for today.

@@ -3,7 +3,6 @@ package rosterapi
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
@@ -26,7 +25,7 @@ func GetOverwriteEndpoint(router *app.Router) {
 				date = dateForCurrentRoster(ctx, app)
 			}
 
-			d, err := time.Parse("2006-1-2", date)
+			d, err := app.ParseTime("2006-1-2", date)
 			if err != nil {
 				return httperr.InvalidParameter("date")
 			}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
@@ -28,7 +27,7 @@ func SearchEndpoint(router *app.Router) {
 			}
 
 			if date := c.Query("date"); date != "" {
-				d, err := time.ParseInLocation("2006-1-2", date, app.Location())
+				d, err := app.ParseTime("2006-1-2", date)
 				if err != nil {
 					return httperr.InvalidParameter("date")
 				}

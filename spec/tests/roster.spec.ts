@@ -206,6 +206,33 @@ describe("Duty roster API:", () => {
             expect(response2.data.until).toBe("2021-04-07T07:30:00+02:00")
         })
 
+        it("should work even with different time-zones", async () => {
+            const inLocalTime = await Alice.get<DoctorOnDutyResponse<string>>("http://localhost:3000/api/external/v1/doctor-on-duty?at=2021-04-11T01:10:00%2B02:00")
+                .catch(err => err.response)
+
+            expect(inLocalTime.status).toBe(200)
+            expect(inLocalTime.data.doctors).toEqual([{
+                username: "bob",
+                fullname: "Bob Mustermann",
+                phone: "",
+                properties: {
+                    PhoneExtension: "12",
+                }
+            }])
+
+            const inUTC = await Alice.get<DoctorOnDutyResponse<string>>("http://localhost:3000/api/external/v1/doctor-on-duty?at=2021-04-10T23:10:00Z")
+                .catch(err => err.response)
+            expect(inUTC.status).toBe(200)
+            expect(inUTC.data.doctors).toEqual([{
+                username: "bob",
+                fullname: "Bob Mustermann",
+                phone: "",
+                properties: {
+                    PhoneExtension: "12",
+                }
+            }])
+        })
+
         it("should honor change-of-duty on regular days", async () => {
             const response = await get(6, 5, 29) // duty changes at 07:30 in Europe/Vienna
             expect(response.status).toBe(200)
@@ -279,7 +306,7 @@ describe("Duty roster API:", () => {
                     PhoneExtension: "12",
                 }
             }])
-            expect(response3.data.until).toBe("2021-04-11T07:30:00+02:00")
+            expect(response3.data.until).toBe("2021-04-11T08:30:00+02:00")
         })
 
         it("should honor change-of-duty on specific days even if it's late", async () => {

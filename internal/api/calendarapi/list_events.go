@@ -30,7 +30,7 @@ func ListEventsEndpoint(router *app.Router) {
 			day := time.Now()
 			if forDay := c.Query("for-day"); forDay != "" {
 				var err error
-				day, err = time.Parse("2006-1-2", forDay)
+				day, err = app.ParseTime("2006-1-2", forDay)
 				if err != nil {
 					return httperr.InvalidParameter("for-day")
 				}
