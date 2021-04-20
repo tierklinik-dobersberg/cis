@@ -112,6 +112,18 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 	}
 
 	if err == nil {
+		// TODO(ppacher):
+		// 		Overwrites always affect the day and the night shift.
+		//		To make sure the users see the correct end-of-overwrite
+		//		we might need switch nextChange to the end of the night
+		//		shift the next day. If we are already in the night shift
+		// 		there is nothing to do.
+		if isDayShift {
+			nextDay := t.Add(24 * time.Hour)
+			nextDayChange := app.Door.ChangeOnDuty(ctx, nextDay)
+			nextChange = nextDayChange.DayStartAt(nextDay)
+		}
+
 		if overwrite.DisplayName == "" {
 			overwrite.DisplayName = "Manual Overwrite"
 		}
