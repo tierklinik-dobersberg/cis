@@ -1,16 +1,20 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { BehaviorSubject, combineLatest, interval, of, Subscription, throwError } from 'rxjs';
-import { catchError, delay, mergeMap, retryWhen, startWith } from 'rxjs/operators';
+import { NzModalService } from 'ng-zorro-antd/modal';
+import { BehaviorSubject, combineLatest, forkJoin, interval, of, Subscription, throwError } from 'rxjs';
+import { catchError, delay, mergeMap, retryWhen, startWith, switchMap } from 'rxjs/operators';
 import {
   ConfigAPI,
+  Day,
   DoctorOnDuty,
+  DoctorOnDutyResponse,
   ExternalAPI,
   IdentityAPI,
   Permission,
   ProfileWithAvatar,
   QuickRosterOverwrite,
+  Roster,
   RosterAPI,
   UserService
 } from 'src/app/api';
@@ -36,6 +40,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
   overwritePhone = '';
   drawerVisible = false;
   quickOverwrites: QuickRosterOverwrite[] = [];
+  rosterDay: Day | null = null;
 
   allUsers: ProfileWithAvatar[] = [];
 
@@ -49,6 +54,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
     private configapi: ConfigAPI,
     private nzMessageService: NzMessageService,
     private changeDetector: ChangeDetectorRef,
+    private modal: NzModalService,
     public layout: LayoutService,
   ) { }
 
@@ -62,20 +68,24 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
   }
 
   configureOverwrite(user?: string, overwritePhone?: string, disiplayName?: string): void {
-    this.rosterapi.setOverwrite({
-      username: user || '',
-      phoneNumber: overwritePhone || this.overwritePhone,
-      displayName: disiplayName || '',
-    }).subscribe(
-      () => {
-        this.nzMessageService.success('Dienstplan überschrieben.');
-        this.drawerVisible = false;
-        this.reload.next();
-      },
-      err => {
-        this.nzMessageService.error(extractErrorMessage(err, 'Dienstplan konnte nicht überschrieben werden'));
-      }
-    );
+    let configure = () => {
+      this.rosterapi.setOverwrite({
+        username: user || '',
+        phoneNumber: overwritePhone || this.overwritePhone,
+        displayName: disiplayName || '',
+      }).subscribe(
+        () => {
+          this.nzMessageService.success('Dienstplan überschrieben.');
+          this.drawerVisible = false;
+          this.reload.next();
+        },
+        err => {
+          this.nzMessageService.error(extractErrorMessage(err, 'Dienstplan konnte nicht überschrieben werden'));
+        }
+      );
+    }
+    // TODO(ppacher): inform user if we are overwritting to shifts (day and night) with different staff!
+    configure()
   }
 
   removeOverwrite(): void {
@@ -121,27 +131,46 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
       this.reload
     ])
       .pipe(
-        mergeMap(() => this.externalapi.getDoctorsOnDuty()),
-        catchError(err => {
-          // we might get a 404 if there's no roster defined for today.
-          if (err instanceof HttpErrorResponse && err.status === 404) {
-            return of({
-              doctors: [],
-              until: null,
-              isOverwrite: false,
-            });
-          }
+        mergeMap(() => forkJoin({
+          onDuty: this.externalapi.getDoctorsOnDuty()
+            .pipe(
+              catchError(err => {
+                // we might get a 404 if there's no roster defined for today.
+                if (err instanceof HttpErrorResponse && err.status === 404) {
+                  return of({
+                    doctors: [],
+                    until: null,
+                    isOverwrite: false,
+                  } as DoctorOnDutyResponse<any>);
+                }
 
-          return throwError(err);
-        }),
+                return throwError(err);
+              }),
+            ),
+          roster: this.rosterapi.forMonth()
+            .pipe(
+              catchError(err => {
+                if (err instanceof HttpErrorResponse && err.status === 404) {
+                  return of(null as Roster);
+                }
+                return throwError(err)
+              })
+            )
+        })),
         retryWhen(errors => errors.pipe(delay(5000))),
       )
       .subscribe({
         next: result => {
           this.firstLoad = false;
-          this.onDuty = result.doctors || [];
-          this.onDutyUntil = result.until;
-          this.isOverwritten = result.isOverwrite;
+          this.onDuty = result.onDuty.doctors || [];
+          this.onDutyUntil = result.onDuty.until;
+          this.isOverwritten = result.onDuty.isOverwrite;
+
+          this.rosterDay = null;
+          if (!!result.roster) {
+            this.rosterDay = result.roster.days[(new Date().getDate())]
+            // TODO(ppacher): get on-call-change time frames
+          }
 
           this.primaryOnDuty = this.userService.byName(this.onDuty[0]?.username);
           this.changeDetector.markForCheck();

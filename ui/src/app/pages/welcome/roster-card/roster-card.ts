@@ -17,6 +17,8 @@ export class RosterCardComponent implements OnInit, OnDestroy {
   onCallDay: ProfileWithAvatar[] = [];
   onCallNight: ProfileWithAvatar[] = [];
 
+  onCallIsSame: boolean = true;
+
   eventsPerUser = new Map<string, LocalEvent[]>()
 
   @Output()
@@ -59,6 +61,13 @@ export class RosterCardComponent implements OnInit, OnDestroy {
         this.afternoon = (day?.afternoon || []).map(user => this.userService.byName(user));
         this.onCallDay = (day?.onCall.day || []).map(user => this.userService.byName(user));
         this.onCallNight = (day?.onCall.night || []).map(user => this.userService.byName(user));
+
+        // FIXME(ppacher): make this a bit more obvious
+        if (this.onCallDay.length === 0) {
+          this.onCallDay = this.onCallNight;
+        }
+        this.onCallIsSame = JSON.stringify(this.onCallNight) == JSON.stringify(this.onCallDay);
+
         this.changeDetector.markForCheck();
 
         let users = new Set([

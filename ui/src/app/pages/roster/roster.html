@@ -63,7 +63,7 @@
           nzPopconfirmTitle="Dienstplan sicher löschen?" nzPopconfirmPlacement="bottom" (nzOnConfirm)="deleteRoster()">
           <i nz-icon nzType="delete" nzTheme="outline"></i>
         </button>
-
+        i
         <nz-badge [nzCount]="comments.length" style="margin-left: 12px">
           <button nz-button nzType="text" (click)="toggleComments()">
             <i nz-icon nzType="comment" nzTheme="outline"></i>
@@ -73,79 +73,6 @@
     </div>
   </div>
 </div>
-
-<!--
-<div class="toolbar content-section">
-  <div class="alerts">
-    <nz-alert *ngIf="showNoRosterAlert && !editMode; else: dateHeader" [nzMessage]="noRosterAlertTemplate"
-      nzType="warning">
-    </nz-alert>
-
-    <ng-template #dateHeader>
-      <h1>
-        {{ selectedDate.toLocaleString('default', { month: 'long' }) }} {{
-        selectedDate.getFullYear() }}
-        <nz-tag *ngIf="editMode" nzColor="geekblue">in Bearbeitung</nz-tag>
-      </h1>
-    </ng-template>
-
-    <ng-template #noRosterAlertTemplate>
-      <span>
-        <i class="warning-sign" nz-icon nzType="warning" nzTheme="outline"></i>
-        Kein Dienstplan für {{ selectedDate.toLocaleString('default', { month: 'long' }) }} {{
-        selectedDate.getFullYear() }} gefunden!</span>
-    </ng-template>
-  </div>
-
-  <div class="actions">
-    <ng-container *ngIf="layout.isPhone">
-      <nz-button-group>
-        <button nz-button (click)="today()">
-          <i nz-icon nzType="calendar" nzTheme="outline"></i>
-        </button>
-      </nz-button-group>
-
-      <nz-button-group>
-        <button nz-button (click)="prevMonth()" nzType="primary">
-          <i nz-icon nzType="left" nzTheme="outline"></i>
-        </button>
-        <button nz-button (click)="nextMonth()" nzType="primary">
-          <i nz-icon nzType="right" nzTheme="outline"></i>
-        </button>
-      </nz-button-group>
-
-    </ng-container>
-
-    <button nz-button nzType="primary" nzShape="circle" *ngIf="canEditRoster && !editMode && !readonly"
-      (click)="toggleEdit()" nzTooltipTitle="Dienstplan bearbeiten" nz-tooltip>
-      <i nz-icon nzType="edit" nzTheme="outline"></i>
-    </button>
-
-    <button nz-button nzType="primary" nzShape="circle" *ngIf="canEditRoster && (editMode || saveLoading)"
-      [nzLoading]="saveLoading" (click)="toggleEdit()" nzTooltipTitle="Dienstplan speichern" nz-tooltip>
-      <i nz-icon nzType="save" nzTheme="outline"></i>
-    </button>
-
-    <button nz-button *ngIf="canEditRoster && editMode" nzType="default" nzShape="circle" [nzLoading]="false"
-      nz-popconfirm nzPopconfirmTitle="Änderungen verwerfen?" nzPopconfirmPlacement="bottom"
-      (nzOnConfirm)="discardChanges()" nzTooltipTitle="Änderunge verwerfen" nz-tooltip>
-      <i nz-icon nzType="close" nzTheme="outline"></i>
-    </button>
-
-    <button nz-button nzType="danger" nzShape="circle" [nzLoading]="false" nz-popconfirm
-      *ngIf="canEditRoster && !editMode && !readonly" nzTooltipTitle="Dienstplan löschen" nz-tooltip
-      nzPopconfirmTitle="Dienstplan sicher löschen?" nzPopconfirmPlacement="bottom" (nzOnConfirm)="deleteRoster()">
-      <i nz-icon nzType="delete" nzTheme="outline"></i>
-    </button>
-
-    <nz-badge [nzCount]="comments.length" style="margin-left: 12px">
-      <button nz-button nzType="text" (click)="toggleComments()">
-        <i nz-icon nzType="comment" nzTheme="outline"></i>
-      </button>
-    </nz-badge>
-  </div>
-</div>
--->
 
 <nz-calendar (nzPanelChange)="onPanelChange($event)" (nzSelectChange)="onDateSelected($event)"
   *ngIf="layout.isTabletLandscapeUp; else mobileViewTemplate" class="content-section">
@@ -228,17 +155,26 @@
 </ng-template>
 
 <nz-dropdown-menu #userMenu="nzDropdownMenu">
-  <div nz-menu class="user-menu">
+  <div *ngIf="!!selectedDay" nz-menu class="user-menu">
     <ng-container *ngTemplateOutlet="userSelection; context: {$implicit: 'forenoon', title: 'Vormittag'}">
     </ng-container>
     <ng-container *ngTemplateOutlet="userSelection; context: {$implicit: 'afternoon', title: 'Nachmittag'}">
     </ng-container>
-    <ng-container *ngTemplateOutlet="userSelectionOnCall; context: {$implicit: 'day', title: 'Tag Bereitschaft'}">
+
+    <ng-container *ngIf="differentOnCallDay || onCallIsDifferent">
+      <ng-container *ngTemplateOutlet="userSelectionOnCall; context: {$implicit: 'day', title: 'Tag Bereitschaft'}">
+      </ng-container>
     </ng-container>
+
     <ng-container *ngTemplateOutlet="userSelectionOnCall; context: {$implicit: 'night', title: 'Nacht Bereitschaft'}">
     </ng-container>
 
     <div class="selection-row" style="text-align: right; padding-top: 12px">
+      <button nzType="link" nz-button nzSize="small" *ngIf="editMode && !(differentOnCallDay || onCallIsDifferent)"
+        class="selection-row" (click)="differentOnCallDay = true">
+        Tag Bereitschaftsdienst hinzufügen
+      </button>
+
       <button *ngIf="canEditRoster && !editMode && !readonly" nz-button nzSize="small" nzType="primary"
         (click)="toggleEdit()">
         <i nz-icon nzType="edit" nzTheme="outline"></i>

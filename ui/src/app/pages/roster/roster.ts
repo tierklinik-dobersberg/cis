@@ -1,5 +1,6 @@
+import { CdkScrollable, ScrollDispatcher } from '@angular/cdk/overlay';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { StorageMap } from '@ngx-pwa/local-storage';
 import { NzCalendarMode } from 'ng-zorro-antd/calendar';
@@ -21,7 +22,7 @@ interface Comment extends BaseComment {
   templateUrl: './roster.html',
   styleUrls: ['./roster.scss'],
 })
-export class RosterComponent implements OnInit, OnDestroy {
+export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
 
   readonly weekdays = [
@@ -53,14 +54,7 @@ export class RosterComponent implements OnInit, OnDestroy {
   dates: Date[] = [];
 
   /** The currently selected day for the day-edit-menu */
-  selectedDay: Day = {
-    afternoon: [],
-    forenoon: [],
-    onCall: {
-      day: [],
-      night: [],
-    },
-  };
+  selectedDay: Day | null = null;
 
   /** All selectable, available user names */
   selectableUserNames: string[] = [];
@@ -98,7 +92,13 @@ export class RosterComponent implements OnInit, OnDestroy {
   /** two-way binded value for the create-comment textarea */
   newComment = '';
 
+  /** Whether or not the user want's to configure a seaprate on-call employee for the day shift */
+  differentOnCallDay = false;
+
   constructor(
+    elementRef: ElementRef,
+    scrollDispatcher: ScrollDispatcher,
+    ngZone: NgZone,
     private header: HeaderTitleService,
     private rosterapi: RosterAPI,
     private holidayapi: HolidayAPI,
@@ -109,7 +109,29 @@ export class RosterComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     public layout: LayoutService,
   ) {
+    super(elementRef, scrollDispatcher, ngZone);
+
     this.setSelectedDate(new Date());
+  }
+
+  onCallIsDifferent: boolean = false;
+
+  private updateOnCallIsDifferent() {
+    this.onCallIsDifferent = false;
+    if (!this.selectedDay) {
+      return;
+    }
+    if (!this.selectedDay.onCall) {
+      return;
+    }
+    // if day is not set it defaults to night so we ignore that case
+    // here as well.
+    if (!this.selectedDay.onCall.day?.length) {
+      return;
+    }
+    const day = JSON.stringify(this.selectedDay.onCall.day);
+    const night = JSON.stringify(this.selectedDay.onCall.night);
+    this.onCallIsDifferent = day !== night;
   }
 
   /** canEditRoster is true if the current user has permission to edit the roster. */
@@ -123,7 +145,6 @@ export class RosterComponent implements OnInit, OnDestroy {
     const month = d.getMonth();
     const year = d.getFullYear();
     const daysInMonth = this.daysInMonth(month, year);
-    console.log(daysInMonth);
 
     for (let i = 1; i <= daysInMonth; i++) {
       this.dates.push(
@@ -133,6 +154,8 @@ export class RosterComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    super.ngOnInit();
+
     this.subscriptions = new Subscription();
 
     // Load all users and keep retrying until we got them.
@@ -190,12 +213,15 @@ export class RosterComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    super.ngOnDestroy();
+
     this.subscriptions.unsubscribe();
   }
 
   /** Callback when the user clicks on a roster date- */
   selectRosterDay(date: Date): void {
     this.selectedDay = this.getDay(date);
+    this.updateOnCallIsDifferent();
   }
 
   shouldHighlightDay(date: Date): boolean {
@@ -448,12 +474,17 @@ export class RosterComponent implements OnInit, OnDestroy {
   /** Closes all edit-day-menu dropdowns */
   closeDropdown(): void {
     Object.keys(this.dropdownVisible).forEach(key => this.dropdownVisible[key] = false);
+    this.differentOnCallDay = false;
+    this.selectedDay = null;
+    this.updateOnCallIsDifferent();
   }
 
   /**
    * Callback when the roster got modified.
    */
   rosterChanged(): void {
+    this.updateOnCallIsDifferent();
+
     const roster: Roster = {
       month: this.selectedDate.getMonth() + 1,
       year: this.selectedDate.getFullYear(),

@@ -10,6 +10,7 @@ import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageServiceModule } from 'ng-zorro-antd/message';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { MarkdownModule } from 'ngx-markdown';
@@ -53,7 +54,7 @@ import { DurationPipe } from './pipes';
     NzMessageServiceModule,
     NzEmptyModule,
     ScrollingModule,
-
+    NzModalModule,
     DurationPipe,
     HeaderTitleOutletComponent,
     CommentComponent,
