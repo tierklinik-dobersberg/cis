@@ -7,7 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
-import { ServiceWorkerModule } from '@angular/service-worker';
+import { ServiceWorkerModule, SwUpdate } from '@angular/service-worker';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { far } from '@fortawesome/free-regular-svg-icons';
 import { fas } from '@fortawesome/free-solid-svg-icons';
@@ -20,6 +20,7 @@ import { NzIconService } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzMessageServiceModule } from 'ng-zorro-antd/message';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 import { MarkdownModule } from 'ngx-markdown';
 import { environment } from '../environments/environment';
 import { AuthorizationInterceptor } from './api';
@@ -51,6 +52,7 @@ registerLocaleData(de);
     HttpClientModule,
     NzMessageServiceModule,
     BrowserAnimationsModule,
+    NzModalModule,
     FontAwesomeModule,
     MarkdownModule.forRoot(),
     LoginModule,

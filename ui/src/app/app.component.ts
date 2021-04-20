@@ -1,7 +1,9 @@
-import { Component, isDevMode, OnInit } from '@angular/core';
+import { ApplicationRef, Component, isDevMode, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
+import { SwUpdate } from '@angular/service-worker';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { filter, map, share } from 'rxjs/operators';
+import { NzModalService } from 'ng-zorro-antd/modal';
+import { filter, first, map, share } from 'rxjs/operators';
 import { LayoutService } from 'src/app/services';
 import { ConfigAPI, IdentityAPI, Permission, ProfileWithAvatar, UIConfig, VoiceMailAPI } from './api';
 
@@ -78,6 +80,9 @@ export class AppComponent implements OnInit {
     private configapi: ConfigAPI,
     private router: Router,
     private nzMessage: NzMessageService,
+    private modal: NzModalService,
+    private appRef: ApplicationRef,
+    private updates: SwUpdate,
     public layout: LayoutService,
     private voice: VoiceMailAPI,
   ) {
@@ -93,6 +98,22 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.updates.available.subscribe(event => {
+      this.modal.confirm({
+        nzCancelDisabled: true,
+        nzTitle: "Neue Version verfügbar",
+        nzContent: "Einen neue Version von CIS ist verfügbar!",
+        nzOkText: "Update",
+        nzOnOk: async () => {
+          await this.updates.activateUpdate();
+          document.location.reload();
+        },
+        nzClosable: false,
+      })
+    })
+
+    this.appRef.isStable.pipe(first(stable => !!stable))
+      .subscribe(() => this.updates.checkForUpdate())
 
     this.layout.change.subscribe(() => {
       this.isCollapsed = !this.layout.isTabletLandscapeUp;
