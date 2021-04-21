@@ -10,7 +10,7 @@
 
     <div>
         <h2>2. Patienten suchen</h2>
-        <nz-select nzMode="tags" nzPlaceHolder="Tag Mode" [(ngModel)]="selectedPatients"
+        <nz-select nzMode="tags" nzPlaceHolder="Patienten" [(ngModel)]="selectedPatients"
             (ngModelChange)="selectPatient($event)">
             <nz-option *ngFor="let patient of customerPatients" [nzLabel]="patient.name" [nzValue]="patient">
             </nz-option>
@@ -25,47 +25,18 @@
         </h2>
         <div>
             <button nz-button nzType="text" (click)="prevDay()"><i nz-icon nzType="left"></i></button>
-            <nz-date-picker [(ngModel)]="selectedDate" (ngModelChange)="selectDate($event)"></nz-date-picker>
+            <nz-date-picker [(ngModel)]="selectedDate" [nzDisabledDate]="disabledDate"></nz-date-picker>
             <button nz-button nzType="text" (click)="nextDay()"><i nz-icon nzType="right"></i></button>
-        </div>
-        <span class="warning" *ngIf="selectedDate != null && rosterDay === null && !rosterLoading">Kein Dienstplan
-            verfügbar!</span>
-    </div>
-    <div *ngIf="!!rosterDay">
-        <div class="user-row">
-            <span class="profile"></span>
-            <div class="slot-header">
-                <span class="slot" *ngFor="let slot of timeSlots">
-                    {{ slot.from | date:"HH:mm" }}
-                </span>
-            </div>
-        </div>
-        <div *ngFor="let user of allUsers" class="user-row">
-            <span class="profile">
-                <nz-avatar nzIcon="user" [nzSrc]="user.avatar"></nz-avatar>
-                {{ user.fullname }}
+            <span *ngIf="!!selectedTime" class="selected-time">
+                <nz-avatar nzIcon="user" [nzSrc]="selectedTime.user?.avatar" nzSize="small"></nz-avatar>
+                {{ selectedTime.user?.fullname || selectedTime.user?.name }}: <b>{{ selectedTime.date | date:"HH:mm"
+                    }}</b> für
+                <b>{{ selectedTime.duration.toString() }}</b>
             </span>
-            <div class="slot-container">
-                <ng-container *ngFor="let slot of timeSlots">
-                    <span class="slot" [class.closed]="!slot.isOpeningHour"
-                        [class.highlighted]="slot.highlighted && highlightedUserSlot === user.name"
-                        (mouseenter)="highlightSlot(user.name, slot)" (mouseleave)="highlightSlot(user.name, null)"
-                        [class.busy]="slot.users[user.name]?.length > 0" [class.available]="!!slot.available[user.name]"
-                        nz-tooltip [nzTooltipTitle]="tooltipTemplate"></span>
-                    <ng-template #tooltipTemplate>
-                        <div class="slot-tooltip">
-                            <span>
-                                {{ slot.from | date:"HH:mm" }}
-                            </span>
-                            <ul>
-                                <li *ngFor="let event of slot.users[user.name]">{{ event.summary }}</li>
-                            </ul>
-                        </div>
-                    </ng-template>
-                </ng-container>
-            </div>
         </div>
     </div>
+    <app-quick-time-selector *ngIf="!!selectedDate" [date]="selectedDate" (selectedTime)="selectedTime = $event">
+    </app-quick-time-selector>
 </div>
 
 <div class="event-description content-section">

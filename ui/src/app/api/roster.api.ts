@@ -39,13 +39,20 @@ export class RosterAPI {
    * Returns the duty roster for the given month in year.
    */
   forMonth(): Observable<Roster>;
+  forMonth(d: Date): Observable<Roster>;
   forMonth(year: number, month: number): Observable<Roster>;
-  forMonth(year?: number, month?: number): Observable<Roster> {
-    if (year === undefined) {
-      const now = new Date();
-      year = now.getFullYear();
-      month = now.getMonth() + 1;
+  forMonth(yearOrDate?: number | Date, month?: number): Observable<Roster> {
+    let year: number;
+    if (yearOrDate === undefined) {
+      yearOrDate = new Date();
     }
+    if (yearOrDate instanceof Date) {
+      year = yearOrDate.getFullYear();
+      month = yearOrDate.getMonth() + 1;
+    } else {
+      year = yearOrDate;
+    }
+
 
     return this.http.get<Roster>(`/api/dutyroster/v1/roster/${year}/${month}`)
       .pipe(

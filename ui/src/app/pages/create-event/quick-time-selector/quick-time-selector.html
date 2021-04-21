@@ -1,0 +1,39 @@
+<div class="user-row">
+    <span class="profile"></span>
+    <div class="slot-header">
+        <span class="slot" *ngFor="let slot of timeSlots">
+            {{ slot.from | date:"HH:mm" }}
+        </span>
+    </div>
+</div>
+<div *ngFor="let user of allUsers" class="user-row">
+    <span class="profile">
+        <nz-avatar nzIcon="user" [nzSrc]="user.avatar"></nz-avatar>
+        {{ user.fullname }}
+    </span>
+    <div class="slot-container">
+        <ng-container *ngFor="let slot of timeSlots">
+            <span class="slot" [class.closed]="!slot.isOpeningHour"
+                [class.highlighted]="slot.highlighted && highlightedUserSlot === user.name"
+                [class.selected]="slot.selected && user.name == selectedUser" [class.disabled]="slot.disabled"
+                (mousedown)="selectRangeStart(slot, user.name, $event)" (mouseenter)="highlightSlot(user.name, slot)"
+                (mouseleave)="highlightSlot(user.name, null)" [class.busy]="slot.users[user.name]?.length > 0"
+                [class.available]="!!slot.available[user.name]" (click)="selectSlot(slot, user.name)" nz-tooltip
+                [nzTooltipTitle]="tooltipTemplate"></span>
+        </ng-container>
+
+        <ng-template #tooltipTemplate>
+            <div class="slot-tooltip">
+                <span>
+                    {{ tooltipTimeStart | date:'HH:mm' }} - {{ tooltipTimeEnd | date:'HH:mm' }}
+                </span>
+                <ul>
+                    <li *ngFor="let event of tooltipEvents">
+                        <i>{{ event.startTime | date:"HH:mm" }}</i>
+                        {{ event.summary }}
+                    </li>
+                </ul>
+            </div>
+        </ng-template>
+    </div>
+</div>
