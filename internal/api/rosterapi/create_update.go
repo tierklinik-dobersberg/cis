@@ -15,6 +15,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	"github.com/tierklinik-dobersberg/cis/internal/utils"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
 )
 
@@ -85,17 +86,23 @@ func validateRoster(ctx context.Context, app *app.App, roster *v1alpha.DutyRoste
 		lm[strings.ToLower(user.Name)] = user
 	}
 
-	for _, day := range roster.Days {
-		if err := validateUsers(day.Forenoon, lm); err != nil {
+	midnight := utils.Midnight(time.Now())
+	for date, day := range roster.Days {
+		// we allow disabled users only for days that are already in the past.
+		// this is a simple work-around to allow users to edit the currently active
+		// roster even if it referes to a now disabled user on days already in the past.
+		allowDisabled := time.Date(roster.Year, roster.Month, date, 0, 0, 0, 0, app.Location()).Before(midnight)
+
+		if err := validateUsers(day.Forenoon, lm, allowDisabled); err != nil {
 			return fmt.Errorf("forenoon: %s", err)
 		}
-		if err := validateUsers(day.Afternoon, lm); err != nil {
+		if err := validateUsers(day.Afternoon, lm, allowDisabled); err != nil {
 			return fmt.Errorf("afternoon: %s", err)
 		}
-		if err := validateUsers(day.OnCall.Day, lm); err != nil {
+		if err := validateUsers(day.OnCall.Day, lm, allowDisabled); err != nil {
 			return fmt.Errorf("onCal.day: %s", err)
 		}
-		if err := validateUsers(day.OnCall.Night, lm); err != nil {
+		if err := validateUsers(day.OnCall.Night, lm, allowDisabled); err != nil {
 			return fmt.Errorf("oncall.Night: %s", err)
 		}
 	}
@@ -103,13 +110,13 @@ func validateRoster(ctx context.Context, app *app.App, roster *v1alpha.DutyRoste
 	return nil
 }
 
-func validateUsers(users []string, lm map[string]cfgspec.User) error {
+func validateUsers(users []string, lm map[string]cfgspec.User, allowDisabled bool) error {
 	for _, u := range users {
 		user, ok := lm[strings.ToLower(u)]
 		if !ok {
 			return fmt.Errorf("unknown user %s", u)
 		}
-		if user.Disabled {
+		if !allowDisabled && user.Disabled {
 			return fmt.Errorf("user %s is disabled", u)
 		}
 	}

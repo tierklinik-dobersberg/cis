@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"time"
 )
 
 // Nonce returns a random nonce of the given size
@@ -34,4 +35,9 @@ func Signature(secret string, parts ...string) string {
 func VerifySignature(signature, secret string, parts ...string) bool {
 	expectedSig := Signature(secret, parts...)
 	return signature == expectedSig
+}
+
+// Midnight returns a new time that represents midnight at t.
+func Midnight(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
