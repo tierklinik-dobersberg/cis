@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { SearchParserResult } from 'search-query-parser';
 
 export function parseColor(input: string): number[] {
@@ -34,10 +35,14 @@ export function getContrastFontColor(bgColor: string): string {
 export function extractErrorMessage(err: any, prefix: string = ''): string {
   let msg = '';
 
+  console.error(err);
+
   if (typeof err === 'string') {
     msg = err;
   } else if ('error' in err && typeof err.error === 'string') {
     msg = err.error;
+  } else if ('error' in err && typeof err.error?.error === 'string') {
+    msg = err.err.error;
   } else if ('statusText' in err && typeof err.statusText === 'string') {
     msg = err.statusText;
   } else if ('message' in err && typeof err.message === 'string') {

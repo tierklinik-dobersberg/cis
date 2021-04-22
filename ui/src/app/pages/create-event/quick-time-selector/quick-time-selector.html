@@ -17,8 +17,8 @@
                 [class.highlighted]="slot.highlighted && highlightedUserSlot === user.name"
                 [class.selected]="slot.selected && user.name == selectedUser" [class.disabled]="slot.disabled"
                 (mousedown)="selectRangeStart(slot, user.name, $event)" (mouseenter)="highlightSlot(user.name, slot)"
-                (mouseleave)="highlightSlot(user.name, null)" [class.busy]="slot.users[user.name]?.length > 0"
-                [class.available]="!!slot.available[user.name]" (click)="selectSlot(slot, user.name)" nz-tooltip
+                (mouseleave)="highlightSlot(user.name, null)" [class.available]="!!slot.available[user.name]"
+                [class.busy]="slot.users[user.name]?.length > 0" (click)="selectSlot(slot, user.name)" nz-tooltip
                 [nzTooltipTitle]="tooltipTemplate"></span>
         </ng-container>
 

@@ -2,6 +2,11 @@
     display: block;
 }
 
+$qts-color-busy: red;
+$qts-color-available: green;
+$qts-color-selected: blue;
+$qts-color-closed: grey;
+
 .user-row {
     display: flex;
     align-items: center;
@@ -56,16 +61,9 @@
 
     .slot-container {
         .slot {
+            user-select: none;
             opacity: .2;
             cursor: pointer;
-            background-color: #e1fa9c;
-
-            &.highlighted {
-                border-color: #e1fa9c;
-                &.busy {
-                    border-color: lightsalmon;
-                }
-            }
 
             &.highlighted, &.selected {
                 transform: scaleY(1.2);
@@ -75,24 +73,25 @@
                 opacity: 1;
             }
 
+            &.available {
+                opacity: 1;
+                background-color: $qts-color-available;
+            }
+
             &.closed {
-                background-color: lightgoldenrodyellow;
+                background-color: $qts-color-closed;
             }
 
             &.busy {
-                background-color: lightsalmon;
+                background-color: $qts-color-busy;
                 &:not(.selected):hover {
-                    background-color: darken(lightsalmon, 10%);
+                    background-color: darken($qts-color-busy, 10%);
                 }
             }
 
             &.selected {
-                background-color: lightblue;
-                border-color: rgba(173, 216, 230, 0.116);
-                opacity: 1;
-            }
-
-            &.available {
+                background-color: $qts-color-selected;
+                border-color: $qts-color-selected;
                 opacity: 1;
             }
 

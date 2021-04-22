@@ -56,6 +56,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
 
         let updateSlots$ = new Subject<MouseEvent>();
         const slotSize = (downEvent.target as HTMLSpanElement).clientWidth;
+        const start = (downEvent.target as HTMLSpanElement).getBoundingClientRect().x;
         const index = this.timeSlots.findIndex(s => s === slot);
         this.selectedUser = user;
         this.timeSlots.forEach(s => s.selected = false);
@@ -74,7 +75,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
             takeUntil(this.destroy$))
             .subscribe(
                 event => {
-                    const diffX = event.clientX - downEvent.clientX;
+                    const diffX = event.clientX - start;
                     const offsetSlots = Math.floor(diffX / slotSize);
                     this.timeSlots.forEach(s => s.selected = false);
 
@@ -82,7 +83,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                     if (offsetSlots > 0) {
                         slots = this.timeSlots.slice(index, index + offsetSlots + 1);
                     } else {
-                        slots = this.timeSlots.slice(index + offsetSlots + 1, index + 1);
+                        slots = this.timeSlots.slice(index + offsetSlots, index + 1);
                     }
                     slot.selected = true;
                     slots.forEach(s => {
