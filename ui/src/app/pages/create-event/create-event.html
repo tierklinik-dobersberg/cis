@@ -1,21 +1,39 @@
 <div class="choose-customer content-section">
-    <div>
-        <h2>1. Kundennamen suchen</h2>
+    <h2>Kunden und Patienten auswählen</h2>
+
+    <div class="row">
         <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Kunde auswählen" (ngModelChange)="selectCustomer($event)"
             [(ngModel)]="selectedCustomer" (nzOnSearch)="searchCustomer($event)">
             <nz-option *ngFor="let customer of customerSearchResult" [nzLabel]="customer.display" [nzValue]="customer">
             </nz-option>
         </nz-select>
-    </div>
-
-    <div>
-        <h2>2. Patienten suchen</h2>
-        <nz-select nzMode="tags" nzPlaceHolder="Patienten" [(ngModel)]="selectedPatients"
-            (ngModelChange)="selectPatient($event)">
+        <nz-select nzMode="tags" nzPlaceHolder="Patienten" [(ngModel)]="selectedPatients">
             <nz-option *ngFor="let patient of customerPatients" [nzLabel]="patient.name" [nzValue]="patient">
             </nz-option>
         </nz-select>
     </div>
+</div>
+
+<div class="event-description content-section">
+    <h2>2. Beschreibug:</h2>
+
+    <div class="row">
+        <fieldset class="required-resource">
+            <legend>Benötigt</legend>
+            <div>
+                <label *ngFor="let resource of resources" nz-checkbox [(ngModel)]="resource.selected"
+                    (ngModelChange)="updateResources()">{{ resource.name
+                    }}</label>
+            </div>
+        </fieldset>
+
+        <fieldset class="description">
+            <legend>Beschreiung</legend>
+            <input nz-input type="text" placeholder="Zusammenfassung">
+            <textarea rows="4" nz-input placeholder="Beschreiung"></textarea>
+        </fieldset>
+    </div>
+
 </div>
 
 <div class="choose-date content-section">
@@ -35,22 +53,9 @@
             </span>
         </div>
     </div>
-    <app-quick-time-selector *ngIf="!!selectedDate" [date]="selectedDate" (selectedTime)="selectedTime = $event">
+    <app-quick-time-selector *ngIf="!!selectedDate" [date]="selectedDate" (selectedTime)="selectedTime = $event"
+        [resourcesRequired]="selectedResources">
     </app-quick-time-selector>
-</div>
-
-<div class="event-description content-section">
-    <h2>4. Beschreibug:</h2>
-
-    <fieldset>
-        <legend>Benötigte Resourcen</legend>
-        <div>
-            <label nz-checkbox>Zahnraum</label>
-            <label nz-checkbox>OP Steril</label>
-            <label nz-checkbox>OP Unsteril</label>
-        </div>
-    </fieldset>
-
 </div>
 
 <div class="save-event content-section">

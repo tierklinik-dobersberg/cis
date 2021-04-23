@@ -11,26 +11,22 @@ type Resource struct {
 	// ID is the actual ID of the resource and should not be changed
 	// once the resource has be used. For resources created from
 	// .resource files, the ID is the name of the file.
-	ID string
+	ID string `json:"id" option:"-"`
 
 	// Name is the human readable name of the resource and should
 	// uniquely identify that resource.
-	Name string
+	Name string `json:"name,omitempty"`
 
 	// Description is a human readable description of the resource.
-	Description string
+	Description string `json:"description,omitempty"`
 
 	// Location might be used to specify the physical location of
 	// the resource.
-	Location string
+	Location string `json:"location,omitempty"`
 
 	// MaxConcurrentUse specifies the maximum number of times
 	// the resource can be used concurrently. This defaults to 1.
-	MaxConcurrentUse int
-
-	// Dynamic may be set to true to indicate that this resource
-	// is dynamic and has been created during runtime.
-	Dynamic bool
+	MaxConcurrentUse int `json:"maxConcurrentUse,omitempty"`
 }
 
 // ResourceSpec defines the config stanzas that can be used to
@@ -58,6 +54,4 @@ var ResourceSpec = conf.SectionSpec{
 		Default:     "1",
 		Type:        conf.IntType,
 	},
-	// It is not possible to create "dynamic" resources through .resource files
-	// so there's no OptionSpec for Resource.Dynamic.
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/importapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/openinghoursapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/patientapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/resourceapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/voicemailapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
@@ -32,6 +33,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
+	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/errorlog"
@@ -150,6 +152,8 @@ func getApp(ctx context.Context) *app.App {
 				calendarapi.Setup(apis.Group("calendar", session.Require()))
 				// openinghoursapi provides access to the configured openinghours
 				openinghoursapi.Setup(apis.Group("openinghours", session.Require()))
+				// resourceapi provides access to limited resource definitions
+				resourceapi.Setup(apis.Group("resources", session.Require()))
 			}
 
 			return nil
@@ -235,8 +239,17 @@ func getApp(ctx context.Context) *app.App {
 	}
 
 	//
+	// Load any resource file definitions
+	//
+	resources := resourcedb.NewRegistry()
+	if err := resourcedb.LoadFiles(resources, svcenv.Env().ConfigurationDirectory); err != nil {
+		logger.Fatalf(ctx, "failed to load resource files: %s", err.Error())
+	}
+
+	//
 	// prepare databases and everything that requires MongoDB
 	//
+
 	customers, err := customerdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
 		logger.Fatalf(ctx, "customerdb: %s", err.Error())
@@ -362,6 +375,7 @@ func getApp(ctx context.Context) *app.App {
 		calllogs,
 		mqttClient,
 		calendarService,
+		resources,
 	)
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 

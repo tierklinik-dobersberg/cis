@@ -1,5 +1,27 @@
-// Package resourcedb enables simple resource management.
-// Resources are created at the resource registry and can be "rented"
-// for given time frames. Those time frames are stored as UseRecords
-// in a mongodb collection.
 package resourcedb
+
+import (
+	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/autodoc"
+)
+
+var ResourceFileSpec = autodoc.MustRegister(autodoc.File{
+	Name:        ".resource",
+	Multiple:    true,
+	Description: "Resource definitions",
+	Sections: conf.FileSpec{
+		"Resource": ResourceSpec,
+	},
+	Example: `,
+	[Resource]
+	Name=Surgery Room 1
+	MaxConcurrentUse=2
+	Description=Our main surgery room with two tables.`,
+	Template: `
+	[Resource]
+	Name=
+	Description=
+	Location=
+	MaxConcurrentUse=1
+	`,
+})

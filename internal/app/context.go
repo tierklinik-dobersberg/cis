@@ -19,6 +19,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
+	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/mailsync"
@@ -52,6 +53,7 @@ type App struct {
 	CallLogs    calllogdb.Database
 	MQTTClient  mqtt.Client
 	Calendar    calendar.Service
+	Resources   *resourcedb.Registry
 
 	loadLocationOnce sync.Once
 	location         *time.Location
@@ -79,6 +81,7 @@ func NewApp(
 	calllogs calllogdb.Database,
 	mqttClient mqtt.Client,
 	calendarEvents calendar.Service,
+	resourceRegistry *resourcedb.Registry,
 ) *App {
 	return &App{
 		Instance:    inst,
@@ -97,6 +100,7 @@ func NewApp(
 		CallLogs:    calllogs,
 		MQTTClient:  mqttClient,
 		Calendar:    calendarEvents,
+		Resources:   resourceRegistry,
 	}
 }
 

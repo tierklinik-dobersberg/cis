@@ -17,6 +17,7 @@ export interface RemoteEvent {
         customerSource: string;
         customerID: string;
         animalID?: string;
+        requiredResources?: string[];
     }
 }
 

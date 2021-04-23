@@ -16,8 +16,8 @@ type Registry struct {
 	renderers map[string]Renderer
 }
 
-// Register registeres a new configuratin file type.
-func (reg *Registry) Register(f File) (*File, error) {
+// RegisterFile registeres a new configuratin file type.
+func (reg *Registry) RegisterFile(f File) (*File, error) {
 	reg.l.Lock()
 	defer reg.l.Unlock()
 
@@ -97,7 +97,7 @@ func NewRegistry() *Registry {
 
 // Register calls DefaultRegistry.Register(f).
 func Register(f File) (*File, error) {
-	return DefaultRegistry.Register(f)
+	return DefaultRegistry.RegisterFile(f)
 }
 
 // MustRegister is like Register but panics in case of an

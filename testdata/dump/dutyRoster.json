@@ -104,3 +104,131 @@
         "30": {}
     }
 }
+{
+    "_id": {
+        "$oid": "607ece6ef98a745a6dc8c567"
+    },
+    "month": 3,
+    "year": 2021,
+    "days": {
+        "1": {
+            "forenoon": [
+                "alice"
+            ],
+            "afternoon": [
+                "bob"
+            ],
+            "onCall": {
+                "day": [
+                    "alice"
+                ],
+                "night": [
+                    "bob"
+                ]
+            }
+        },
+        "2": {
+            "forenoon": [
+                "alice"
+            ],
+            "afternoon": [
+                "bob"
+            ],
+            "onCall": {
+                "day": [
+                    "alice"
+                ],
+                "night": [
+                    "bob"
+                ]
+            }
+        },
+        "3": {
+            "onCall": {}
+        },
+        "4": {
+            "onCall": {}
+        },
+        "5": {
+            "onCall": {}
+        },
+        "6": {
+            "onCall": {}
+        },
+        "7": {
+            "onCall": {}
+        },
+        "8": {
+            "onCall": {}
+        },
+        "9": {
+            "onCall": {}
+        },
+        "10": {
+            "onCall": {}
+        },
+        "11": {
+            "onCall": {}
+        },
+        "12": {
+            "onCall": {}
+        },
+        "13": {
+            "onCall": {}
+        },
+        "14": {
+            "onCall": {}
+        },
+        "15": {
+            "onCall": {}
+        },
+        "16": {
+            "onCall": {}
+        },
+        "17": {
+            "onCall": {}
+        },
+        "18": {
+            "onCall": {}
+        },
+        "19": {
+            "onCall": {}
+        },
+        "20": {
+            "onCall": {}
+        },
+        "21": {
+            "onCall": {}
+        },
+        "22": {
+            "onCall": {}
+        },
+        "23": {
+            "onCall": {}
+        },
+        "24": {
+            "onCall": {}
+        },
+        "25": {
+            "onCall": {}
+        },
+        "26": {
+            "onCall": {}
+        },
+        "27": {
+            "onCall": {}
+        },
+        "28": {
+            "onCall": {}
+        },
+        "29": {
+            "onCall": {}
+        },
+        "30": {
+            "onCall": {}
+        },
+        "31": {
+            "onCall": {}
+        }
+    }
+}

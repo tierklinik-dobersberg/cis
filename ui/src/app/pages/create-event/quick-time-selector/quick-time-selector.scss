@@ -65,8 +65,12 @@ $qts-color-closed: grey;
             opacity: .2;
             cursor: pointer;
 
+                &.resources-free {
+                    transform: scaleY(1.2);
+                }
+
             &.highlighted, &.selected {
-                transform: scaleY(1.2);
+                transform: scaleY(1.4);
             }
 
             &:hover {
@@ -94,7 +98,6 @@ $qts-color-closed: grey;
                 border-color: $qts-color-selected;
                 opacity: 1;
             }
-
             &.disabled {
                 cursor: no-drop;
                 opacity: .2 !important;
