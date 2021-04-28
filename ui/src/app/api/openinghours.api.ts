@@ -45,6 +45,6 @@ export class OpeningHoursAPI {
                     to: new Date(frame.to),
                 }))
             }))
-        )
+        );
     }
 }

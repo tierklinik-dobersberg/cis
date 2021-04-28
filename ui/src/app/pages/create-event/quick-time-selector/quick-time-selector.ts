@@ -36,6 +36,34 @@ export interface SelectedTime {
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
+
+    @Input()
+    set resourcesRequired(v: string[]) {
+        this._resourcesRequired = new Set<string>(v);
+        this.onResourcesRequired$.next(this._resourcesRequired);
+    }
+    get resourcesRequired() { return Array.from(this._resourcesRequired); }
+
+    @Input()
+    set date(d: Date | string) {
+        if (typeof d === 'string') {
+            d = new Date(d);
+        }
+        this._date = d;
+        this.onDate$.next(this._date);
+        console.log('new date selected');
+    }
+    get date() { return this._date; }
+
+    constructor(
+        private rosterapi: RosterAPI,
+        private calendarapi: CalendarAPI,
+        private openinghoursapi: OpeningHoursAPI,
+        private users: UserService,
+        private cdr: ChangeDetectorRef,
+        private nzMessageService: NzMessageService,
+        private renderer: Renderer2,
+    ) { }
     private destroy$ = new Subject();
     private onDate$ = new BehaviorSubject<Date>(new Date());
 
@@ -44,27 +72,24 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
     timeSlots: TimeSlot[] = [];
     loading = true;
     allUsers: ProfileWithAvatar[] = [];
-    highlightedUserSlot: string = '';
-    selectedUser: string = '';
+    highlightedUserSlot = '';
+    selectedUser = '';
     tooltipTimeStart: Date | null = null;
     tooltipTimeEnd: Date | null = null;
     tooltipEvents: LocalEvent[] = [];
-
-    @Input()
-    set resourcesRequired(v: string[]) {
-        this._resourcesRequired = new Set<string>(v)
-        this.onResourcesRequired$.next(this._resourcesRequired);
-    }
-    get resourcesRequired() { return Array.from(this._resourcesRequired) }
     _resourcesRequired = new Set<string>();
     private onResourcesRequired$ = new BehaviorSubject<Set<string>>(new Set());
+    private _date: Date = new Date();
+
+    @Output()
+    selectedTime = new EventEmitter<SelectedTime>();
 
     selectRangeStart(slot: TimeSlot, user: string, downEvent: MouseEvent) {
         if (slot.disabled) {
             return;
         }
 
-        let updateSlots$ = new Subject<MouseEvent>();
+        const updateSlots$ = new Subject<MouseEvent>();
         const slotSize = (downEvent.target as HTMLSpanElement).clientWidth;
         const start = (downEvent.target as HTMLSpanElement).getBoundingClientRect().x;
         const index = this.timeSlots.findIndex(s => s === slot);
@@ -72,11 +97,11 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
         this.timeSlots.forEach(s => s.selected = false);
         slot.selected = true;
 
-        let stopMouseMove = this.renderer.listen(document, "mousemove", event => {
+        const stopMouseMove = this.renderer.listen(document, 'mousemove', event => {
             updateSlots$.next(event);
-        })
+        });
 
-        let stopMouseUp = this.renderer.listen(document, "mouseup", event => {
+        const stopMouseUp = this.renderer.listen(document, 'mouseup', event => {
             updateSlots$.next(event);
             updateSlots$.complete();
         });
@@ -110,45 +135,20 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                         return;
                     }
                     const from = selectedSlots[0].from;
-                    const to = selectedSlots[selectedSlots.length - 1].to
+                    const to = selectedSlots[selectedSlots.length - 1].to;
                     const duration = Duration.milliseconds(to.getTime() - from.getTime());
 
                     this.selectedTime.next({
                         date: from,
-                        duration: duration,
+                        duration,
                         user: this.users.byName(this.selectedUser),
-                    })
-                    stopMouseMove()
-                    stopMouseUp()
-                })
+                    });
+                    stopMouseMove();
+                    stopMouseUp();
+                });
 
         updateSlots$.next(downEvent);
     }
-
-    @Input()
-    set date(d: Date | string) {
-        if (typeof d === 'string') {
-            d = new Date(d);
-        }
-        this._date = d;
-        this.onDate$.next(this._date);
-        console.log("new date selected");
-    }
-    get date() { return this._date; }
-    private _date: Date = new Date()
-
-    @Output()
-    selectedTime = new EventEmitter<SelectedTime>();
-
-    constructor(
-        private rosterapi: RosterAPI,
-        private calendarapi: CalendarAPI,
-        private openinghoursapi: OpeningHoursAPI,
-        private users: UserService,
-        private cdr: ChangeDetectorRef,
-        private nzMessageService: NzMessageService,
-        private renderer: Renderer2,
-    ) { }
 
     ngOnInit() {
         combineLatest([
@@ -166,7 +166,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                         events: this.loadOrNull(
                             this.calendarapi.listEvents(d)
                         )
-                    })
+                    });
                 })),
             this.onResourcesRequired$
         ]).pipe(
@@ -176,7 +176,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
         )
             .subscribe(([result]) => {
                 console.log(result);
-                this.resetView()
+                this.resetView();
                 if (!result.openinghours) {
                     // TODO(ppacher): fall back to simple "create-event" mode
                     return;
@@ -185,15 +185,15 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                 this.isHoliday = result.openinghours.isHoliday;
                 let day: Day | null = null;
                 if (!!result.roster) {
-                    day = result.roster.days[result.date.getDate()]
+                    day = result.roster.days[result.date.getDate()];
                 }
                 if (!day) {
-                    this.nzMessageService.error("Kein Dienstplan definiert")
+                    this.nzMessageService.error('Kein Dienstplan definiert');
                     return;
                 }
-                this.updateTimeSlots(result.openinghours.openingHours, day, result.events)
+                this.updateTimeSlots(result.openinghours.openingHours, day, result.events);
                 this.cdr.markForCheck();
-            })
+            });
     }
 
     ngOnDestroy() {
@@ -204,24 +204,24 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
     highlightSlot(user: string, slot: TimeSlot | null) {
         if (slot === null) {
             this.highlightedUserSlot = '';
-            this.timeSlots.forEach(slot => slot.highlighted = false)
+            this.timeSlots.forEach(slot => slot.highlighted = false);
             return;
         }
         this.highlightedUserSlot = user;
-        let ids = new Set<string>();
+        const ids = new Set<string>();
         (slot.users[user] || []).forEach(event => ids.add(event._id));
 
         this.timeSlots.forEach(s => {
-            s.highlighted = (s.users[user] || []).some(event => ids.has(event._id))
-        })
+            s.highlighted = (s.users[user] || []).some(event => ids.has(event._id));
+        });
         // make sure the current slot is always highlighted
         slot.highlighted = true;
 
-        let highlightdSlots = this.timeSlots.filter(slot => slot.highlighted);
+        const highlightdSlots = this.timeSlots.filter(slot => slot.highlighted);
 
         this.tooltipTimeStart = highlightdSlots[0].from;
         this.tooltipTimeEnd = highlightdSlots[highlightdSlots.length - 1].to;
-        let m = new Map<string, LocalEvent>()
+        const m = new Map<string, LocalEvent>();
 
         this.tooltipEvents = slot.users[user];
     }
@@ -231,10 +231,10 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
             if (err.status !== 404) {
                 this.nzMessageService.error(
                     extractErrorMessage(err)
-                )
+                );
             }
             return of(null as T);
-        }))
+        }));
     }
 
     private resetView() {
@@ -262,34 +262,34 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
             return;
         }
 
-        let isInFrame = (d: Date) => {
+        const isInFrame = (d: Date) => {
             const ts = d.getTime();
-            return openinghours.some(frame => frame.from.getTime() <= ts && frame.to.getTime() >= ts)
-        }
+            return openinghours.some(frame => frame.from.getTime() <= ts && frame.to.getTime() >= ts);
+        };
 
-        let eventMap = new Map<string, LocalEvent[]>();
+        const eventMap = new Map<string, LocalEvent[]>();
         (events || []).forEach(event => {
             if (!event.username) {
                 return;
             }
             console.log(event);
-            let arr = eventMap.get(event.username) || [];
+            const arr = eventMap.get(event.username) || [];
             arr.push(event),
                 eventMap.set(event.username, arr);
-        })
+        });
 
         const slotSize = Duration.minutes(15);
-        const threshold = new Date(earliestDate.getFullYear(), earliestDate.getMonth(), earliestDate.getDate(), 12, 0, 0).getTime()
+        const threshold = new Date(earliestDate.getFullYear(), earliestDate.getMonth(), earliestDate.getDate(), 12, 0, 0).getTime();
 
         this.allUsers = [];
-        let userSet = new Set([
+        const userSet = new Set([
             ...day.forenoon,
             ...day.afternoon,
             ...day.onCall.day,
             ...day.onCall.night,
         ]);
         userSet.forEach(user => {
-            this.allUsers.push(this.users.byName(user))
+            this.allUsers.push(this.users.byName(user));
         });
 
         const now = new Date().getTime();
@@ -297,8 +297,8 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
         this.timeSlots = [];
         for (let iter = earliestDate; iter.getTime() < latestDate.getTime(); iter = slotSize.addTo(iter)) {
             let usersSlot: string[];
-            let isOpeningHour = isInFrame(iter);
-            let end = slotSize.addTo(iter);
+            const isOpeningHour = isInFrame(iter);
+            const end = slotSize.addTo(iter);
 
             if (!isOpeningHour) {
                 // FIXME(ppacher): expose day/night shift changes
@@ -309,38 +309,38 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                 usersSlot = day?.afternoon;
             }
 
-            let users: TimeSlot['users'] = {};
-            let available: TimeSlot['available'] = {};
+            const users: TimeSlot['users'] = {};
+            const available: TimeSlot['available'] = {};
             (usersSlot || []).forEach(user => {
                 users[user] = (eventMap.get(user) || []).filter(event => {
                     if (!event.endTime) {
                         return false;
                     }
 
-                    let eventStart = event.startTime.getTime();
-                    let eventEnd = event.endTime!.getTime();
-                    let slotStart = iter.getTime();
+                    const eventStart = event.startTime.getTime();
+                    const eventEnd = event.endTime!.getTime();
+                    const slotStart = iter.getTime();
 
                     return slotStart >= eventStart && slotStart < eventEnd;
                 });
                 available[user] = true;
-            })
+            });
 
-            let allResourcesFree = !Object.keys(users).some(key => {
-                return users[key].some(event => !!event.data?.requiredResources?.some(res => this._resourcesRequired.has(res)))
-            })
+            const allResourcesFree = !Object.keys(users).some(key => {
+                return users[key].some(event => !!event.data?.requiredResources?.some(res => this._resourcesRequired.has(res)));
+            });
 
             this.timeSlots.push({
                 from: iter,
                 to: end,
-                users: users,
-                available: available,
-                isOpeningHour: isOpeningHour,
+                users,
+                available,
+                isOpeningHour,
                 highlighted: false,
                 selected: false,
                 disabled: iter.getTime() < now,
-                allResourcesFree: allResourcesFree,
-            })
+                allResourcesFree,
+            });
         }
     }
 }

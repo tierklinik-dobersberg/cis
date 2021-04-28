@@ -18,7 +18,7 @@ export interface RemoteEvent {
         customerID: string;
         animalID?: string;
         requiredResources?: string[];
-    }
+    };
 }
 
 export interface Calendar {
@@ -37,12 +37,12 @@ export class CalendarAPI {
     constructor(private http: HttpClient) { }
 
     listEvents(day?: Date, users?: string[]): Observable<LocalEvent[]> {
-        let params = {}
+        const params = {};
         if (!!day) {
-            params["for-day"] = `${day.getFullYear()}-${day.getMonth() + 1}-${day.getDate()}`;
+            params['for-day'] = `${day.getFullYear()}-${day.getMonth() + 1}-${day.getDate()}`;
         }
         if (Array.isArray(users)) {
-            params["for-user"] = users;
+            params['for-user'] = users;
         }
         return this.http.get<RemoteEvent[]>(`/api/calendar/v1/events`, {
             params
@@ -52,6 +52,6 @@ export class CalendarAPI {
                 startTime: new Date(event.startTime),
                 endTime: !!event.endTime ? new Date(event.endTime) : undefined,
             })))
-        )
+        );
     }
 }

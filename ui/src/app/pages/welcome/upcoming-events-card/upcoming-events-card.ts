@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TrackByFunction } from "@angular/core";
-import { BehaviorSubject, combineLatest, interval, of, Subscription } from "rxjs";
-import { catchError, filter, mergeMap, startWith } from "rxjs/operators";
-import { CalendarAPI, LocalEvent, ProfileWithAvatar, UserService } from "src/app/api";
-import { Duration } from "src/utils/duration";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
+import { BehaviorSubject, combineLatest, interval, of, Subscription } from 'rxjs';
+import { catchError, filter, mergeMap, startWith } from 'rxjs/operators';
+import { CalendarAPI, LocalEvent, ProfileWithAvatar, UserService } from 'src/app/api';
+import { Duration } from 'src/utils/duration';
 
 interface DisplayEvent extends LocalEvent {
     user?: ProfileWithAvatar;
@@ -23,13 +23,6 @@ interface Calendar {
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
-    private subscription = Subscription.EMPTY;
-
-    events: DisplayEvent[] = [];
-    showAll = false;
-    allCalendars: Map<string, Calendar> = new Map();
-
-    trackEvent: TrackByFunction<LocalEvent> = (_: number, event: LocalEvent) => event._id;
 
     @Input()
     set highlightUser(s: string) {
@@ -37,18 +30,25 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
         this.changeDetectorRef.markForCheck();
     }
     get highlightUser() { return this._highlightUser; }
-    private _highlightUser: string = '';
-
-    private reload = new BehaviorSubject<void>(undefined);
 
     constructor(
         private calendarapi: CalendarAPI,
         private userService: UserService,
         private changeDetectorRef: ChangeDetectorRef,
     ) { }
+    private subscription = Subscription.EMPTY;
+
+    events: DisplayEvent[] = [];
+    showAll = false;
+    allCalendars: Map<string, Calendar> = new Map();
+    private _highlightUser = '';
+
+    private reload = new BehaviorSubject<void>(undefined);
+
+    trackEvent: TrackByFunction<LocalEvent> = (_: number, event: LocalEvent) => event._id;
 
     selectOnly(id: string) {
-        const all = Array.from(this.allCalendars.values())
+        const all = Array.from(this.allCalendars.values());
         // if all all calendars are hidden an we handle a double
         // click than display all again
         if (!all.filter(cal => cal.id !== id).some(cal => cal.displayed)) {
@@ -58,14 +58,14 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
 
         all.forEach(val => {
             val.displayed = val.id === id;
-        })
+        });
         this.changeDetectorRef.markForCheck();
     }
 
     ngOnInit() {
         this.subscription = new Subscription();
 
-        let events = combineLatest([
+        const events = combineLatest([
             interval(10000).pipe(startWith(-1)),
             this.reload,
         ])
@@ -86,7 +86,7 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
                             return diff;
                         }
 
-                        if (a._id > b._id) return 1;
+                        if (a._id > b._id) { return 1; }
                         return -1;
                     })
                     .map(event => ({
@@ -99,7 +99,7 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
                 // create a list of displayed calendars.
                 const calMap = new Map<string, Calendar>();
                 this.events.forEach(evt => {
-                    let name = evt.user ? evt.user.fullname : evt.calendarName;
+                    const name = evt.user ? evt.user.fullname : evt.calendarName;
                     let isDisplayed = this.allCalendars.get(evt.calendarID)?.displayed;
                     if (isDisplayed === undefined) {
                         isDisplayed = true;
@@ -107,10 +107,10 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
 
                     calMap.set(evt.calendarID, {
                         id: evt.calendarID,
-                        name: name,
+                        name,
                         displayed: isDisplayed,
-                    })
-                })
+                    });
+                });
                 this.allCalendars = calMap;
 
                 this.changeDetectorRef.markForCheck();

@@ -1,41 +1,41 @@
 import { isDevMode, Pipe, PipeTransform } from '@angular/core';
 import { Duration, DurationLayout } from 'src/utils/duration';
 
-export type InputUnit = "ns" | "µs" | "ms" | "s" | "m" | "h";
+export type InputUnit = 'ns' | 'µs' | 'ms' | 's' | 'm' | 'h';
 
 @Pipe({
   name: 'duration',
   pure: true
 })
 export class DurationPipe implements PipeTransform {
-  transform(value: string | number, layout: DurationLayout = "default", input: InputUnit = "s"): string {
+  transform(value: string | number, layout: DurationLayout = 'default', input: InputUnit = 's'): string {
     console.log(value);
     let d: Duration;
     switch (input) {
-      case "h":
+      case 'h':
         d = Duration.hours(+value);
         break;
-      case "m":
+      case 'm':
         d = Duration.minutes(+value);
         break;
-      case "s":
+      case 's':
         d = Duration.seconds(+value);
         break;
-      case "ms":
+      case 'ms':
         d = Duration.milliseconds(+value);
         break;
-      case "µs":
+      case 'µs':
         d = Duration.microseconds(+value);
         break;
-      case "ns":
+      case 'ns':
         d = Duration.nanoseconds(+value);
-        break
+        break;
       default:
         if (isDevMode()) {
-          return "WRONG_LAYOUT"
+          return 'WRONG_LAYOUT';
         }
-        return ""
+        return '';
     }
-    return d.format(layout)
+    return d.format(layout);
   }
 }

@@ -79,9 +79,15 @@ span.warning {
         width: 100%;
 }
 
+.column {
+    flex-shrink: 0;
+    flex-shrink: 0;
+}
+
 
   fieldset {
     align-self: stretch;
+    background-color: rgba(236, 236, 236, 0.133);
 
     >* {
       font-weight: 400;
@@ -114,7 +120,7 @@ span.warning {
     border-radius: 3px;
   }
 
-  .required-resource {
+  .required-resource, .creator {
       flex-shrink: 0;
       flex-grow: 0;
       margin-right: 6px;
@@ -132,15 +138,34 @@ span.warning {
       }
   }
 
+  .creator {
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      nz-select {
+          margin: 12px;
+          flex-grow: 1;
+      }
+  }
+
   .description {
       width: 100%;
-      padding: 6px;
+      padding: 12px;
+      display: flex; 
+      flex-direction: column;
+
       input, textarea {
           width: 100%;
       }
 
       input {
           margin-bottom: 3px;
+          flex-grow: 0;
+          flex-shrink: 0;
+      }
+
+      textarea {
+          flex-grow: 1;
       }
   }
 

@@ -65,9 +65,9 @@ $qts-color-closed: grey;
             opacity: .2;
             cursor: pointer;
 
-                &.resources-free {
-                    transform: scaleY(1.2);
-                }
+            &.resources-free {
+                transform: scaleY(1.2);
+            }
 
             &.highlighted, &.selected {
                 transform: scaleY(1.4);

@@ -18,19 +18,29 @@
     <h2>2. Beschreibug:</h2>
 
     <div class="row">
-        <fieldset class="required-resource">
-            <legend>Benötigt</legend>
-            <div>
-                <label *ngFor="let resource of resources" nz-checkbox [(ngModel)]="resource.selected"
-                    (ngModelChange)="updateResources()">{{ resource.name
-                    }}</label>
-            </div>
-        </fieldset>
+        <div class="column">
+            <fieldset class="required-resource">
+                <legend>Benötigt</legend>
+                <div>
+                    <label *ngFor="let resource of resources" nz-checkbox [(ngModel)]="resource.selected"
+                        (ngModelChange)="updateResources()">{{ resource.name
+                        }}</label>
+                </div>
+            </fieldset>
+
+            <fieldset class="creator">
+                <legend>Erstellt durch</legend>
+                <nz-select nzShowSearch required nzAllowClear nzPlaceHolder="Bitte auswählen" [(ngModel)]="createdBy">
+                    <nz-option *ngFor="let user of (users | async)" [nzLabel]="user.fullname" [nzValue]="user.name">
+                    </nz-option>
+                </nz-select>
+            </fieldset>
+        </div>
 
         <fieldset class="description">
             <legend>Beschreiung</legend>
-            <input nz-input type="text" placeholder="Zusammenfassung">
-            <textarea rows="4" nz-input placeholder="Beschreiung"></textarea>
+            <input nz-input type="text" required placeholder="Zusammenfassung" [(ngModel)]="summary">
+            <textarea rows="4" nz-input placeholder="Beschreiung" [(ngModel)]="description"></textarea>
         </fieldset>
     </div>
 
@@ -60,5 +70,5 @@
 
 <div class="save-event content-section">
     <button nz-button nzType="primary">Erstellen</button>
-    <button nz-button nzType="danger">Abbrechen</button>
+    <button nz-button nzType="danger" (click)="resetView()">Abbrechen</button>
 </div>

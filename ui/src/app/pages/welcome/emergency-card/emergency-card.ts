@@ -68,7 +68,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
   }
 
   configureOverwrite(user?: string, overwritePhone?: string, disiplayName?: string): void {
-    let configure = () => {
+    const configure = () => {
       this.rosterapi.setOverwrite({
         username: user || '',
         phoneNumber: overwritePhone || this.overwritePhone,
@@ -83,9 +83,9 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
           this.nzMessageService.error(extractErrorMessage(err, 'Dienstplan konnte nicht überschrieben werden'));
         }
       );
-    }
+    };
     // TODO(ppacher): inform user if we are overwritting to shifts (day and night) with different staff!
-    configure()
+    configure();
   }
 
   removeOverwrite(): void {
@@ -153,7 +153,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
                 if (err instanceof HttpErrorResponse && err.status === 404) {
                   return of(null as Roster);
                 }
-                return throwError(err)
+                return throwError(err);
               })
             )
         })),
@@ -168,7 +168,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
 
           this.rosterDay = null;
           if (!!result.roster) {
-            this.rosterDay = result.roster.days[(new Date().getDate())]
+            this.rosterDay = result.roster.days[(new Date().getDate())];
             // TODO(ppacher): get on-call-change time frames
           }
 

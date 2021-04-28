@@ -15,6 +15,6 @@ export class ResourceAPI {
     constructor(private http: HttpClient) { }
 
     listResources(): Observable<Resource[]> {
-        return this.http.get<Resource[]>('/api/resources/v1')
+        return this.http.get<Resource[]>('/api/resources/v1');
     }
 }

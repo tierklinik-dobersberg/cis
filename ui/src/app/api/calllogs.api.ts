@@ -41,7 +41,7 @@ export class CalllogAPI {
 
   forToday(): Observable<CallLog[]> {
     const now = new Date();
-    return this.forDate(now.getFullYear(), now.getMonth() + 1, now.getDate())
+    return this.forDate(now.getFullYear(), now.getMonth() + 1, now.getDate());
   }
 
   /**

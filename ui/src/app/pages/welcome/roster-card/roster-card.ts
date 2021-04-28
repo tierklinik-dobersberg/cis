@@ -17,9 +17,9 @@ export class RosterCardComponent implements OnInit, OnDestroy {
   onCallDay: ProfileWithAvatar[] = [];
   onCallNight: ProfileWithAvatar[] = [];
 
-  onCallIsSame: boolean = true;
+  onCallIsSame = true;
 
-  eventsPerUser = new Map<string, LocalEvent[]>()
+  eventsPerUser = new Map<string, LocalEvent[]>();
 
   @Output()
   userHover = new EventEmitter<string>();
@@ -70,30 +70,30 @@ export class RosterCardComponent implements OnInit, OnDestroy {
 
         this.changeDetector.markForCheck();
 
-        let users = new Set([
+        const users = new Set([
           ...this.forenoon,
           ...this.afternoon,
           ...this.onCallDay,
           ...this.onCallNight,
-        ].filter(user => !!user.calendarID).map(u => u.name))
+        ].filter(user => !!user.calendarID).map(u => u.name));
         this.calendarapi.listEvents(null, Array.from(users))
           .subscribe({
             next: events => {
               this.eventsPerUser.clear();
               events.forEach(event => {
                 if (!!event.username) {
-                  let userEvents = this.eventsPerUser.get(event.username) || [];
+                  const userEvents = this.eventsPerUser.get(event.username) || [];
                   userEvents.push(event);
                   this.eventsPerUser.set(event.username, userEvents);
                 }
-              })
+              });
 
               this.changeDetector.markForCheck();
             },
             error: err => {
-              console.error(err)
+              console.error(err);
             }
-          })
+          });
 
       });
 

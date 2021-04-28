@@ -114,7 +114,7 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
     this.setSelectedDate(new Date());
   }
 
-  onCallIsDifferent: boolean = false;
+  onCallIsDifferent = false;
 
   private updateOnCallIsDifferent() {
     this.onCallIsDifferent = false;

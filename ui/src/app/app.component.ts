@@ -99,25 +99,24 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.updates.available.subscribe(event => {
-      this.modal.confirm({
-        nzCancelDisabled: true,
-        nzTitle: "Neue Version verfügbar",
-        nzContent: "Einen neue Version von CIS ist verfügbar!",
-        nzOkText: "Update",
+      this.modal.info({
+        nzTitle: 'Neue Version verfügbar',
+        nzContent: 'Einen neue Version von CIS ist verfügbar!',
+        nzOkText: 'Update',
         nzOnOk: async () => {
           await this.updates.activateUpdate();
           document.location.reload();
         },
         nzClosable: false,
-      })
-    })
+      });
+    });
 
     this.updates.activated.subscribe(event => {
-      this.nzMessage.info("Gratuliere! Du verwendest nun Version " + event.current + " von CIS")
-    })
+      this.nzMessage.info('Gratuliere! Du verwendest nun Version ' + event.current + ' von CIS');
+    });
 
     this.appRef.isStable.pipe(first(stable => !!stable))
-      .subscribe(() => this.updates.checkForUpdate())
+      .subscribe(() => this.updates.checkForUpdate());
 
     this.layout.change.subscribe(() => {
       this.isCollapsed = !this.layout.isTabletLandscapeUp;

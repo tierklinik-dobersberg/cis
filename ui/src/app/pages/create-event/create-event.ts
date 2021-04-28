@@ -1,10 +1,10 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
-import { animationFrameScheduler, forkJoin, of, Subject } from "rxjs";
-import { catchError, debounceTime, observeOn, switchMap, takeUntil } from "rxjs/operators";
-import { CalendarAPI, CalllogAPI, LocalPatient, OpeningHoursAPI, PatientAPI, Resource, ResourceAPI, RosterAPI, UserService } from "src/app/api";
-import { Customer, CustomerAPI } from "src/app/api/customer.api";
-import { HeaderTitleService } from "src/app/shared/header-title";
-import { SelectedTime } from "./quick-time-selector";
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { animationFrameScheduler, forkJoin, Observable, of, Subject } from 'rxjs';
+import { catchError, debounceTime, filter, map, observeOn, share, switchMap, takeUntil } from 'rxjs/operators';
+import { CalendarAPI, CalllogAPI, LocalPatient, OpeningHoursAPI, PatientAPI, ProfileWithAvatar, Resource, ResourceAPI, RosterAPI, UserService } from 'src/app/api';
+import { Customer, CustomerAPI } from 'src/app/api/customer.api';
+import { HeaderTitleService } from 'src/app/shared/header-title';
+import { SelectedTime } from './quick-time-selector';
 
 interface ResourceModel extends Resource {
     selected: boolean;
@@ -45,11 +45,30 @@ export class CreateEventComponent implements OnInit, OnDestroy {
        new events */
     resources: ResourceModel[];
 
+    /** emits when a new resource is selected as required. */
     private onSelectedResources$ = new Subject<void>();
+
+    /** The list of resources that are required for this event */
     selectedResources: string[] = [];
 
+    /** Whether or not we're currently loading customer data */
     customersLoading = false;
+
+    /** Whether or not we're currently loading patient data */
     patientsLoading = false;
+
+    /** The event's summary */
+    summary = '';
+
+    /** An additional description of the event */
+    description = '';
+
+    /** The name of the user that creates the event */
+    createdBy = '';
+
+    /** All available user names */
+    users: Observable<ProfileWithAvatar[]> = this.userService.users
+        .pipe(map(user => user.filter(u => !u.disabled)), share());
 
     private searchCustomer$ = new Subject<string>();
     private loadPatient$ = new Subject<DisplayCustomer | null>();
@@ -61,6 +80,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
         private calllogapi: CalllogAPI,
         private patientapi: PatientAPI,
         private resourceapi: ResourceAPI,
+        private userService: UserService,
     ) { }
 
     /**
@@ -72,7 +92,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
 
     /**
      * Selects the customer for which the event should be created.
-     * 
+     *
      * @param customer The customer to select
      */
     selectCustomer(customer: DisplayCustomer | null) {
@@ -102,13 +122,30 @@ export class CreateEventComponent implements OnInit, OnDestroy {
     /**
      * Check if a date should be displayed as "not-allowed"
      * in the date-picker.
-     * 
+     *
      * @param d The date to check
      */
     disabledDate(d: Date) {
         const now = new Date();
         const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         return d.getTime() < midnight.getTime();
+    }
+
+    /**
+     * Resets the component to it's initial state
+     */
+    resetView() {
+        this.selectCustomer(null);
+        this.customerSearchResult = [];
+        this.onSelectedResources$.next();
+        this.summary = '';
+        this.description = '';
+        this.createdBy = '';
+        this.selectedDate = new Date();
+        this.selectedTime = null;
+        this.selectedCustomer = null;
+        this.selectedPatients = [];
+        this.resources.forEach(r => r.selected = false);
     }
 
     updateResources() {
@@ -125,7 +162,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
         )
             .subscribe(() => {
                 this.selectedResources = this.resources.filter(r => r.selected).map(r => r.id);
-            })
+            });
 
         this.resourceapi.listResources()
             .subscribe(resources => this.resources = resources.map(r => ({
@@ -140,7 +177,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
                     // TODO(ppacher): also accept calllogs where we don't know the number and
                     // ask the user to assign it. That's possible the easiest way to get phone - customer
                     // assignments done.
-                    let recent = calllogs.filter(call => !!call.customerSource && call.customerSource !== 'unknown').slice(0, 10);
+                    const recent = calllogs.filter(call => !!call.customerSource && call.customerSource !== 'unknown').slice(0, 10);
                     return forkJoin(
                         recent.map(call => this.customerapi.byId(call.customerSource!, call.customerID!))
                     );
@@ -157,7 +194,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
                 if (this.customerSearchResult.length === 0) {
                     this.customerSearchResult = this.calllogSuggestions;
                 }
-            })
+            });
 
         this.searchCustomer$.pipe(
             takeUntil(this.destroy$),
