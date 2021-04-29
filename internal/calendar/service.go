@@ -25,6 +25,12 @@ var log = pkglog.New("calendar")
 
 var ConfigSpec = conf.SectionSpec{
 	{
+		Name:        "Enabled",
+		Type:        conf.BoolType,
+		Description: "Whether or not google calendar integration is enabled",
+		Default:     "no",
+	},
+	{
 		Name:        "CredentialsFile",
 		Type:        conf.StringType,
 		Description: "Path to google client credentials",
@@ -39,6 +45,7 @@ var ConfigSpec = conf.SectionSpec{
 }
 
 type Config struct {
+	Enabled         bool
 	CredentialsFile string
 	TokenFile       string
 	Location        *time.Location
@@ -64,6 +71,10 @@ type service struct {
 
 // New creates a new calendar service from cfg.
 func New(cfg Config) (Service, error) {
+	if !cfg.Enabled {
+		return &noopService{}, nil
+	}
+
 	creds, err := credsFromFile(cfg.CredentialsFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read credentials file %s: %w", cfg.CredentialsFile, err)
