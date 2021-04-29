@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -121,6 +122,13 @@ func getApp(ctx context.Context) *app.App {
 					c.Next()
 				},
 			)
+			// alive check
+			{
+				apis.GET("/", func(c *gin.Context) {
+					c.Status(http.StatusOK)
+				})
+			}
+			// API endpoints
 			{
 				// identityapi provides user and session endpoints
 				identityapi.Setup(apis.Group("identity"))

@@ -44,7 +44,10 @@ func CreateOrUpdateEndpoint(grp *app.Router) {
 			}
 
 			if body.Month != month || body.Year != year {
-				return httperr.BadRequest(nil, "body specifies a different year/month")
+				return httperr.BadRequest(nil, fmt.Sprintf(
+					"body specifies a different year/month. body.year = %d, param.year=%d body.month = %d, param.month = %d",
+					body.Year, year, body.Month, month,
+				))
 			}
 
 			if err := validateRoster(ctx, app, &body); err != nil {

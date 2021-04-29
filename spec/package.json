@@ -4,7 +4,7 @@
   "description": "Integration and system tests for CIS",
   "main": "index.js",
   "scripts": {
-    "test": "jasmine --reporter=jasmine-console-reporter --config=jasmine.json"
+    "test": "node -r ts-node/register/type-check test.ts"
   },
   "author": "",
   "license": "MIT",

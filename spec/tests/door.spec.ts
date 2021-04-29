@@ -13,7 +13,7 @@ describe("Door management", () => {
     let messages = new Subject<Message>();
 
     let receive = () => {
-        return new Promise((resolve, reject) => {
+        return new Promise<any>((resolve, reject) => {
             let resolved = false;
             let timeout = interval(3000)
 

@@ -53,19 +53,19 @@ describe("Duty roster API:", () => {
         }
 
         describe("by creating a new roster", () => {
-            it("should validate year", () => {
+            it("should validate year", async () => {
                 let copy = {
                     ...roster,
                     year: 2022,
                 }
-                expectAsync(Alice.put("http://localhost:3000/api/dutyroster/v1/roster/2021/1", copy)).toBeRejected()
+                await expectAsync(Alice.put("http://localhost:3000/api/dutyroster/v1/roster/2021/1", copy)).toBeRejected()
             })
-            it("should validate month", () => {
+            it("should validate month", async () => {
                 let copy = {
                     ...roster,
                     month: 2,
                 }
-                expectAsync(Alice.put("http://localhost:3000/api/dutyroster/v1/roster/2021/1", copy)).toBeRejected()
+                await expectAsync(Alice.put("http://localhost:3000/api/dutyroster/v1/roster/2021/1", copy)).toBeRejected()
             })
             it("should work", async () => {
                 const response = await Alice.put("http://localhost:3000/api/dutyroster/v1/roster/2021/1", roster)
@@ -180,7 +180,7 @@ describe("Duty roster API:", () => {
             return Alice.get<DoctorOnDutyResponse<string>>("http://localhost:3000/api/external/v1/doctor-on-duty?at=" + d.toISOString())
         }
 
-        it("should check the correct roster", async () => {
+        fit("should check the correct roster", async () => {
             const response = await get(6, 10, 0)
             expect(response.status).toBe(200)
             expect(response.data.doctors).toEqual([{
