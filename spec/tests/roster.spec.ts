@@ -82,14 +82,14 @@ describe("Duty roster API:", () => {
                 expect(response.data).toEqual(roster)
             })
 
-            it("should fail if there is not roster", () => {
-                expectAsync(Alice.get("http://localhost:3000/api/dutyroster/v1/roster/2019/10")).toBeRejected()
+            it("should fail if there is not roster", async () => {
+                await expectAsync(Alice.get("http://localhost:3000/api/dutyroster/v1/roster/2019/10")).toBeRejected()
             })
         })
 
         describe("by deleting a roster", () => {
-            it("should fail if the roster does not exist", () => {
-                expectAsync(Alice.delete("http://localhost:3000/api/durtyroster/v1/roster/2019/10")).toBeRejected()
+            it("should fail if the roster does not exist", async () => {
+                await expectAsync(Alice.delete("http://localhost:3000/api/durtyroster/v1/roster/2019/10")).toBeRejected()
             })
 
             it("should work", async () => {
