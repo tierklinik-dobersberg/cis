@@ -85,6 +85,10 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 		t = newT
 	}
 
+	log = log.WithFields(logger.Fields{
+		"nextChange": nextChange.Format(time.RFC3339),
+	})
+
 	// fetch all users so we can convert usernames to phone numbers,
 	// ...
 	allUsers, err := app.Identities.ListAllUsers(
@@ -182,8 +186,16 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 	var activeShift []string
 	if isDayShift && len(day.OnCall.Day) > 0 {
 		activeShift = day.OnCall.Day
+		log.WithFields(logger.Fields{
+			"users": activeShift,
+		}).Infof("using day shift")
 	} else {
 		activeShift = day.OnCall.Night
+		if isDayShift {
+			log.WithFields(logger.Fields{
+				"users": activeShift,
+			}).Infof("no day shift defined, falling back to night shift.")
+		}
 	}
 
 	// convert all the usernames from the Emergency slice to their
