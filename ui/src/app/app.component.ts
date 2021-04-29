@@ -120,11 +120,16 @@ export class AppComponent implements OnInit {
     });
 
     this.updates.activated.subscribe(event => {
-      this.nzMessage.info('Gratuliere! Du verwendest nun Version ' + event.current + ' von CIS');
+      this.nzMessage.info('Gratuliere! Du verwendest nun die neuste Version von CIS');
     });
 
-    this.appRef.isStable.pipe(first(stable => !!stable))
-      .subscribe(() => this.updates.checkForUpdate());
+    this.appRef.isStable.pipe(
+      first(stable => !!stable),
+      mergeMap(() => interval(10 * 60 * 1000).pipe(startWith(-1))),
+    )
+      .subscribe(() => {
+        this.updates.checkForUpdate();
+      });
 
     this.layout.change.subscribe(() => {
       this.isCollapsed = !this.layout.isTabletLandscapeUp;
