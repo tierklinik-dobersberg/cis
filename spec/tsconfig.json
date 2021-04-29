@@ -10,8 +10,5 @@
         "noImplicitAny": true,
         "suppressImplicitAnyIndexErrors": true,
         "allowJs": true
-    },
-    "angularCompilerOptions": {
-        "strictTemplates": true
     }
 }
