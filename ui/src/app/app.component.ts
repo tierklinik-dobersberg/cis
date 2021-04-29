@@ -1,9 +1,11 @@
-import { ApplicationRef, Component, isDevMode, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { ApplicationRef, Component, HostListener, isDevMode, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { filter, first, map, share } from 'rxjs/operators';
+import { interval, of } from 'rxjs';
+import { catchError, delay, filter, first, map, mergeMap, retryWhen, share, startWith, take, takeUntil, tap } from 'rxjs/operators';
 import { LayoutService } from 'src/app/services';
 import { ConfigAPI, IdentityAPI, Permission, ProfileWithAvatar, UIConfig, VoiceMailAPI } from './api';
 
@@ -33,6 +35,9 @@ export class AppComponent implements OnInit {
   subMenus: SubMenu[] = [];
   menuMode: 'inline' | 'vertical' = 'inline';
   mailboxes: string[] = [];
+
+  isReachable: boolean = false;
+  checkRunning = false;
 
   isLogin = this.router.events
     .pipe(
@@ -85,6 +90,7 @@ export class AppComponent implements OnInit {
     private updates: SwUpdate,
     public layout: LayoutService,
     private voice: VoiceMailAPI,
+    private http: HttpClient,
   ) {
   }
 
@@ -98,6 +104,8 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.checkReachability();
+
     this.updates.available.subscribe(event => {
       this.modal.info({
         nzTitle: 'Neue Version verfügbar',
@@ -141,6 +149,29 @@ export class AppComponent implements OnInit {
           this.isCollapsed = true;
         }
       });
+  }
+
+  @HostListener('window:focus')
+  checkReachability() {
+    if (this.checkRunning) {
+      return;
+    }
+    this.checkRunning = true;
+    this.http.get('/api/')
+      .pipe(retryWhen(d => {
+        this.isReachable = false;
+        return d.pipe(delay(2000));
+      }))
+      .subscribe({
+        next: () => {
+          this.isReachable = true;
+          this.checkRunning = false;
+        },
+        complete: () => {
+          console.log("reachability check done")
+        },
+        error: err => console.error(err)
+      })
   }
 
   private applyConfig(cfg: UIConfig | null): void {

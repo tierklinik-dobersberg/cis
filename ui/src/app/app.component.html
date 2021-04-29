@@ -178,3 +178,9 @@
     </nz-content>
   </nz-layout>
 </nz-layout>
+
+<div *ngIf="!isReachable" class="not-reachable-container">
+  <i nz-icon [nzType]="'sync'" [nzSpin]="true"></i>
+  <p>Verbindung zu CIS unterbrochen</p>
+  <p>Bitte haben Sie einen Moment Gedult!</p>
+</div>

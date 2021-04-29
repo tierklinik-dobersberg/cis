@@ -201,3 +201,28 @@ nz-content {
   align-items: stretch;
   flex-grow: 1;
 }
+
+.not-reachable-container {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  backdrop-filter : blur(10px);
+  background-color: rgba(#f5f3f3, 0.45);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
+
+  i {
+    font-size: 200%;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 130%;
+    font-family: "Poppins";
+  }
+}
