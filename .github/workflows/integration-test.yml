@@ -11,6 +11,6 @@ jobs:
       - name: Setup environment
         run: cd integration && docker-compose up -d
       - name: Run Jasmine tests
-        run: cd spec && npm install && CI=true npm test
+        run: cd spec && npm install && CI=true npm test || ( cd integration ; docker-compose logs cisd ; exit -1 )
       - name: Teardown environment
         run: cd integration && docker-compose down
