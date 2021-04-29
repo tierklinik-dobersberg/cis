@@ -36,7 +36,7 @@ export class AppComponent implements OnInit {
   menuMode: 'inline' | 'vertical' = 'inline';
   mailboxes: string[] = [];
 
-  isReachable: boolean = false;
+  isReachable: boolean = true;
   checkRunning = false;
 
   isLogin = this.router.events

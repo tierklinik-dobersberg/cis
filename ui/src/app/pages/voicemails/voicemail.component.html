@@ -51,7 +51,7 @@
             <td>
 
                 <nz-button-group>
-                    <button nz-button [nzType]="data.read ? 'text' : 'primary'" (click)="playRecording(data)"
+                    <button nz-button [nzType]="data.read ? 'default' : 'primary'" (click)="playRecording(data)"
                         [nzLoading]="data.playing">
                         <i nz-icon nzType="play-circle" nzTheme="outline"></i>
                         <span *ngIf="!layout.isPhone">Abspielen</span>
