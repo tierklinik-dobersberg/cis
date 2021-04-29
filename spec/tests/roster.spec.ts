@@ -180,7 +180,7 @@ describe("Duty roster API:", () => {
             return Alice.get<DoctorOnDutyResponse<string>>("http://localhost:3000/api/external/v1/doctor-on-duty?at=" + d.toISOString())
         }
 
-        fit("should check the correct roster", async () => {
+        it("should check the correct roster", async () => {
             const response = await get(6, 10, 0)
             expect(response.status).toBe(200)
             expect(response.data.doctors).toEqual([{
