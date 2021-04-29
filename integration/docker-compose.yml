@@ -54,9 +54,12 @@ services:
     image: tkd/cisd
     build: ../
     depends_on:
-      - mongo
-      - mosquitto
-      - mongo-import
+      mongo:
+        condition: service_started
+      mosquitto:
+        condition: service_started
+      mongo-import:
+        condition: service_completed_successfully
     ports:
       - 3000:3000
     volumes:
