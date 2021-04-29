@@ -243,7 +243,7 @@ export class IdentityAPI {
    * Returns all users stored at cisd.
    */
   listUsers(opts?: { filter?: boolean }): Observable<ProfileWithAvatar[]> {
-    // tslint:disable-next-line:no-shadowed-variable
+    // eslint-disable-next-line @typescript-eslint/no-shadow
     let { filter } = opts || {};
 
     if (filter === undefined) {

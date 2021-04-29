@@ -8,7 +8,7 @@ import { extractErrorMessage } from 'src/app/utils';
   templateUrl: './import.html',
   styleUrls: ['./import.scss'],
 })
-export class ImportPageComponent implements OnInit, OnDestroy {
+export class ImportPageComponent implements OnInit {
   fileToUpload: File = null;
   importing = false;
 
@@ -18,7 +18,8 @@ export class ImportPageComponent implements OnInit, OnDestroy {
     private nzMessageService: NzMessageService,
   ) { }
 
-  handleFileInput(files: FileList): void {
+  handleFileInput(event: Event): void {
+    const files = (event.target as HTMLInputElement).files;
     this.fileToUpload = files.item(0);
   }
 
@@ -35,9 +36,5 @@ export class ImportPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.header.set('Daten Import');
-  }
-
-  ngOnDestroy(): void {
-
   }
 }

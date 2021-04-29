@@ -9,7 +9,7 @@
             anzeigen</label>
     </div>
     <div class="date-selection">
-        <button nz-button nzType="outline" (click)="onChange(date, undefined)" [nzLoading]="loading">
+        <button nz-button nzType="primary" (click)="onChange(date, undefined)" [nzLoading]="loading">
             <i nz-icon nzType="search" nzTheme="outline"></i>
             Suchen
         </button>
@@ -51,7 +51,7 @@
             <td>
 
                 <nz-button-group>
-                    <button nz-button [nzType]="data.read ? 'outline' : 'primary'" (click)="playRecording(data)"
+                    <button nz-button [nzType]="data.read ? 'text' : 'primary'" (click)="playRecording(data)"
                         [nzLoading]="data.playing">
                         <i nz-icon nzType="play-circle" nzTheme="outline"></i>
                         <span *ngIf="!layout.isPhone">Abspielen</span>

@@ -3,7 +3,7 @@
 
     <label for="file">Zum Importieren die Datei <strong>Kontakt.mdb</strong> aus dem Neumayr Verzeichnis
         auswählen:</label>
-    <input type="file" id="file" (change)="handleFileInput($event.target.files)">
+    <input type="file" id="file" (change)="handleFileInput($event)">
 
     <div class="actions">
         <button nz-button nzType="primary" (click)="importNeumayrContacts()" [nzLoading]="importing">

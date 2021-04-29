@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy
 import { BehaviorSubject, combineLatest, interval, of, Subscription } from 'rxjs';
 import { catchError, filter, mergeMap, startWith } from 'rxjs/operators';
 import { CalendarAPI, LocalEvent, ProfileWithAvatar, UserService } from 'src/app/api';
-import { Duration } from 'src/utils/duration';
 
 interface DisplayEvent extends LocalEvent {
     user?: ProfileWithAvatar;
@@ -45,7 +44,7 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
 
     private reload = new BehaviorSubject<void>(undefined);
 
-    trackEvent: TrackByFunction<LocalEvent> = (_: number, event: LocalEvent) => event._id;
+    trackEvent: TrackByFunction<DisplayEvent> = (_: number, event: DisplayEvent) => event._id;
 
     selectOnly(id: string) {
         const all = Array.from(this.allCalendars.values());

@@ -29,12 +29,12 @@ export function customerTagColor(val?: Customer): string {
 
   for (i = 0; i < val.source.length; i++) {
     chr = val.source.charCodeAt(i);
-    // tslint:disable-next-line:no-bitwise
+    // eslint-disable-next-line no-bitwise
     hash = ((hash << 2) - hash) + chr;
-    // tslint:disable-next-line:no-bitwise
+    // eslint-disable-next-line no-bitwise
     hash |= 0; // Convert to 32bit integer
   }
 
-  // tslint:disable-next-line:no-bitwise
+  // eslint-disable-next-line no-bitwise
   return tagColors[hash & tagColors.length];
 }

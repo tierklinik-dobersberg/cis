@@ -11,6 +11,7 @@ import { extractErrorMessage } from 'src/app/utils';
 
 interface VoiceMailWithCustomer extends VoiceMailRecording {
   customer?: Customer;
+  playing: boolean;
 }
 
 @Component({
@@ -119,7 +120,7 @@ export class VoiceMailComponent implements OnInit, OnDestroy {
     this.subscriptions.add(paramSub);
   }
 
-  playRecording(rec: VoiceMailRecording, player?: HTMLAudioElement): void {
+  playRecording(rec: VoiceMailWithCustomer, player?: HTMLAudioElement): void {
     player = new Audio(rec.url);
     player.autoplay = false;
     player.muted = false;
@@ -127,12 +128,12 @@ export class VoiceMailComponent implements OnInit, OnDestroy {
 
     player.onended = () => {
       this.changeSeen(rec, true);
-      (rec as any).playing = false;
+      rec.playing = false;
     };
 
     player.play()
       .then(() => {
-        (rec as any).playing = true;
+        rec.playing = true;
       })
       .catch(err => {
         this.nzMessage.error(extractErrorMessage(err, 'Datei konnte nicht abgespielt werden'));
@@ -153,7 +154,7 @@ export class VoiceMailComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  trackRecording(_: number, r: VoiceMailRecording): string | null {
+  trackRecording(_: number, r: VoiceMailWithCustomer): string | null {
     return r._id || null;
   }
 }

@@ -35,7 +35,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
 
   private knownExtensions: Map<string, ProfileWithAvatar> = new Map();
 
-  trackLog: TrackByFunction<CallLogModel> = (i: number, l: CallLogModel) => {
+  trackLog: TrackByFunction<LocalCallLog> = (i: number, l: LocalCallLog) => {
     if (!!l && l._id !== undefined) {
       return l._id;
     }
