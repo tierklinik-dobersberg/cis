@@ -22,7 +22,9 @@ export interface RemoteEvent {
 }
 
 export interface Calendar {
-
+    name?: string;
+    _id: string;
+    timeZone?: string;
 }
 
 export interface LocalEvent extends Omit<Omit<RemoteEvent, 'startTime'>, 'endTime'> {
@@ -35,6 +37,10 @@ export interface LocalEvent extends Omit<Omit<RemoteEvent, 'startTime'>, 'endTim
 })
 export class CalendarAPI {
     constructor(private http: HttpClient) { }
+
+    listCalendars(): Observable<Calendar[]> {
+        return this.http.get<Calendar[]>('/api/calendar/v1/');
+    }
 
     listEvents(day?: Date, users?: string[]): Observable<LocalEvent[]> {
         const params = {};
