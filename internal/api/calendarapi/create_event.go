@@ -99,6 +99,12 @@ func validateEventModel(ctx context.Context, app *app.App, event *v1alpha.Create
 		} else if event.Data.AnimalID != "" {
 			return httperr.MissingField("customerSource and customerID")
 		}
+
+		for _, requiredResource := range event.Data.RequiredResources {
+			if _, err := app.Resources.Get(requiredResource); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
