@@ -13,7 +13,7 @@ import (
 	"google.golang.org/api/googleapi"
 )
 
-type eventCache struct {
+type googleEventCache struct {
 	rw            sync.RWMutex
 	minTime       time.Time
 	syncToken     string
@@ -26,12 +26,12 @@ type eventCache struct {
 	svc    *calendar.Service
 }
 
-func (ec *eventCache) String() string {
+func (ec *googleEventCache) String() string {
 	return fmt.Sprintf("Cache<%s>", ec.calID)
 }
 
-func newCache(ctx context.Context, id string, loc *time.Location, svc *calendar.Service) (*eventCache, error) {
-	cache := &eventCache{
+func newCache(ctx context.Context, id string, loc *time.Location, svc *calendar.Service) (*googleEventCache, error) {
+	cache := &googleEventCache{
 		calID:         id,
 		svc:           svc,
 		location:      loc,
@@ -45,14 +45,14 @@ func newCache(ctx context.Context, id string, loc *time.Location, svc *calendar.
 	return cache, nil
 }
 
-func (ec *eventCache) triggerSync() {
+func (ec *googleEventCache) triggerSync() {
 	select {
 	case ec.trigger <- struct{}{}:
 	default:
 	}
 }
 
-func (ec *eventCache) watch(ctx context.Context) {
+func (ec *googleEventCache) watch(ctx context.Context) {
 	waitTime := time.Minute
 	firstLoad := true
 	for {
@@ -80,7 +80,7 @@ func (ec *eventCache) watch(ctx context.Context) {
 	}
 }
 
-func (ec *eventCache) loadEvents(ctx context.Context, emit bool) bool {
+func (ec *googleEventCache) loadEvents(ctx context.Context, emit bool) bool {
 	ec.rw.Lock()
 	defer ec.rw.Unlock()
 
@@ -147,7 +147,7 @@ func (ec *eventCache) loadEvents(ctx context.Context, emit bool) bool {
 	return true
 }
 
-func (ec *eventCache) syncAndEmit(ctx context.Context, item *calendar.Event, emit bool) {
+func (ec *googleEventCache) syncAndEmit(ctx context.Context, item *calendar.Event, emit bool) {
 	evt, action := ec.syncEvent(ctx, item)
 	if evt != nil {
 		log.From(ctx).V(7).Logf("event %s: %s %s (%s)", action, evt.ID, evt.StartTime.Format("2006-01-02 15:04:05"), evt.Summary)
@@ -157,7 +157,7 @@ func (ec *eventCache) syncAndEmit(ctx context.Context, item *calendar.Event, emi
 	}
 }
 
-func (ec *eventCache) syncEvent(ctx context.Context, item *calendar.Event) (*Event, string) {
+func (ec *googleEventCache) syncEvent(ctx context.Context, item *calendar.Event) (*Event, string) {
 	foundAtIndex := -1
 	for idx, evt := range ec.events {
 		if evt.ID == item.Id {
@@ -192,7 +192,7 @@ func (ec *eventCache) syncEvent(ctx context.Context, item *calendar.Event) (*Eve
 	return evt, "created"
 }
 
-func (ec *eventCache) evictFromCache(ctx context.Context) {
+func (ec *googleEventCache) evictFromCache(ctx context.Context) {
 	ec.rw.Lock()
 	defer ec.rw.Unlock()
 
@@ -227,7 +227,7 @@ func (ec *eventCache) evictFromCache(ctx context.Context) {
 	log.From(ctx).V(7).Logf("evicted %d events from cache which now starts with %s and holds %d events", idx, ec.minTime.Format(time.RFC3339), len(ec.events))
 }
 
-func (ec *eventCache) tryLoadFromCache(ctx context.Context, search *EventSearchOptions) ([]Event, bool) {
+func (ec *googleEventCache) tryLoadFromCache(ctx context.Context, search *EventSearchOptions) ([]Event, bool) {
 	// check if it's even possible to serve the request from cache.
 	if search == nil {
 		log.From(ctx).V(8).Logf("not using cache: search == nil")

@@ -60,19 +60,19 @@ type Service interface {
 	DeleteEvent(ctx context.Context, calID, eventId string) error
 }
 
-type service struct {
+type googleCalendarBackend struct {
 	*calendar.Service
 	location *time.Location
 
 	cacheLock   sync.Mutex
-	eventsCache map[string]*eventCache
+	eventsCache map[string]*googleEventCache
 	loadGroup   singleflight.Group
 }
 
 // New creates a new calendar service from cfg.
 func New(cfg Config) (Service, error) {
 	if !cfg.Enabled {
-		return &noopService{}, nil
+		return &noopBackend{}, nil
 	}
 
 	creds, err := credsFromFile(cfg.CredentialsFile)
@@ -91,9 +91,9 @@ func New(cfg Config) (Service, error) {
 		return nil, err
 	}
 
-	svc := &service{
+	svc := &googleCalendarBackend{
 		Service:     calSvc,
-		eventsCache: make(map[string]*eventCache),
+		eventsCache: make(map[string]*googleEventCache),
 		location:    cfg.Location,
 	}
 	if svc.location == nil {
@@ -127,7 +127,7 @@ func Authenticate(cfg Config) error {
 	return nil
 }
 
-func (svc *service) ListCalendars(ctx context.Context) ([]Calendar, error) {
+func (svc *googleCalendarBackend) ListCalendars(ctx context.Context) ([]Calendar, error) {
 	res, err := svc.Service.CalendarList.List().Do()
 	if err != nil {
 		return nil, err
@@ -154,7 +154,7 @@ func (svc *service) ListCalendars(ctx context.Context) ([]Calendar, error) {
 	return list, nil
 }
 
-func (svc *service) ListEvents(ctx context.Context, calendarID string, searchOpts *EventSearchOptions) ([]Event, error) {
+func (svc *googleCalendarBackend) ListEvents(ctx context.Context, calendarID string, searchOpts *EventSearchOptions) ([]Event, error) {
 	cache, err := svc.cacheFor(ctx, calendarID)
 	if err != nil {
 		log.From(ctx).Errorf("failed to get event cache for calendar %s: %s", calendarID, err)
@@ -171,7 +171,7 @@ func (svc *service) ListEvents(ctx context.Context, calendarID string, searchOpt
 	return svc.loadEvents(ctx, calendarID, searchOpts)
 }
 
-func (svc *service) CreateEvent(ctx context.Context, calId, name, description string, startTime time.Time, duration time.Duration, data *StructuredEvent) error {
+func (svc *googleCalendarBackend) CreateEvent(ctx context.Context, calId, name, description string, startTime time.Time, duration time.Duration, data *StructuredEvent) error {
 	// convert structured event data to it's string representation
 	// and append to description.
 	if data != nil {
@@ -210,7 +210,7 @@ func (svc *service) CreateEvent(ctx context.Context, calId, name, description st
 	return nil
 }
 
-func (svc *service) DeleteEvent(ctx context.Context, calid, eventid string) error {
+func (svc *googleCalendarBackend) DeleteEvent(ctx context.Context, calid, eventid string) error {
 	err := svc.Service.Events.Delete(calid, eventid).Do()
 	if err != nil {
 		return err
@@ -218,7 +218,7 @@ func (svc *service) DeleteEvent(ctx context.Context, calid, eventid string) erro
 	return nil
 }
 
-func (svc *service) cacheFor(ctx context.Context, calid string) (*eventCache, error) {
+func (svc *googleCalendarBackend) cacheFor(ctx context.Context, calid string) (*googleEventCache, error) {
 	svc.cacheLock.Lock()
 	defer svc.cacheLock.Unlock()
 
@@ -241,7 +241,7 @@ func (svc *service) cacheFor(ctx context.Context, calid string) (*eventCache, er
 	return cache, nil
 }
 
-func (svc *service) loadEvents(ctx context.Context, calendarID string, searchOpts *EventSearchOptions) ([]Event, error) {
+func (svc *googleCalendarBackend) loadEvents(ctx context.Context, calendarID string, searchOpts *EventSearchOptions) ([]Event, error) {
 	call := svc.Events.List(calendarID).ShowDeleted(false).SingleEvents(true)
 
 	key := calendarID
