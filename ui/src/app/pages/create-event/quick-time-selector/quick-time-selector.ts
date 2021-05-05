@@ -1,12 +1,19 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, Renderer2 } from '@angular/core';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, combineLatest, forkJoin, Observable, of, Subject } from 'rxjs';
-import { bufferTime, catchError, debounceTime, mergeMap, takeUntil, tap } from 'rxjs/operators';
-import { CalendarAPI, Day, LocalEvent, OpeningHour, OpeningHoursAPI, ProfileWithAvatar, RosterAPI, UserService } from 'src/app/api';
+import { catchError, debounceTime, mergeMap, takeUntil, tap } from 'rxjs/operators';
+import { Calendar, CalendarAPI, ConfigAPI, Day, LocalEvent, OpeningHour, OpeningHoursAPI, ProfileWithAvatar, RosterAPI, UIConfig, UserService } from 'src/app/api';
 import { extractErrorMessage } from 'src/app/utils';
 import { Duration } from 'src/utils/duration';
 
-export interface TimeSlot {
+export interface SelectedTime {
+    date: Date;
+    duration: Duration;
+    user?: ProfileWithAvatar;
+    calendarID?: string;
+}
+
+interface TimeSlot {
     from: Date;
     to: Date;
     isOpeningHour: boolean;
@@ -22,12 +29,7 @@ export interface TimeSlot {
     allResourcesFree: boolean;
 }
 
-export interface SelectedTime {
-    date: Date;
-    duration: Duration;
-    user?: ProfileWithAvatar;
-    calendarID?: string;
-}
+type SlotUser = Partial<ProfileWithAvatar> & { isCalendar?: boolean };
 
 @Component({
     selector: 'app-quick-time-selector',
@@ -59,11 +61,13 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
         private rosterapi: RosterAPI,
         private calendarapi: CalendarAPI,
         private openinghoursapi: OpeningHoursAPI,
+        private configapi: ConfigAPI,
         private users: UserService,
         private cdr: ChangeDetectorRef,
         private nzMessageService: NzMessageService,
         private renderer: Renderer2,
     ) { }
+
     private destroy$ = new Subject();
     private onDate$ = new BehaviorSubject<Date>(new Date());
 
@@ -71,9 +75,10 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
     isHoliday: boolean | null = null;
     timeSlots: TimeSlot[] = [];
     loading = true;
-    allUsers: ProfileWithAvatar[] = [];
+    allUsers: SlotUser[] = [];
     highlightedUserSlot = '';
     selectedUser = '';
+    calendars: Calendar[] = [];
     tooltipTimeStart: Date | null = null;
     tooltipTimeEnd: Date | null = null;
     tooltipEvents: LocalEvent[] = [];
@@ -168,14 +173,17 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                         )
                     });
                 })),
-            this.onResourcesRequired$
+            this.loadOrNull(this.calendarapi.listCalendars()),
+            this.configapi.change,
+            this.onResourcesRequired$,
         ]).pipe(
             debounceTime(100),
             takeUntil(this.destroy$),
             tap(() => this.loading = false)
         )
-            .subscribe(([result]) => {
-                console.log(result);
+            .subscribe(([result, calendars, config]) => {
+                this.calendars = calendars || [];
+
                 this.resetView();
                 if (!result.openinghours) {
                     // TODO(ppacher): fall back to simple "create-event" mode
@@ -187,11 +195,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                 if (!!result.roster) {
                     day = result.roster.days[result.date.getDate()];
                 }
-                if (!day) {
-                    this.nzMessageService.error('Kein Dienstplan definiert');
-                    return;
-                }
-                this.updateTimeSlots(result.openinghours.openingHours, day, result.events);
+                this.updateTimeSlots(result.openinghours.openingHours, day, config, result.events);
                 this.cdr.markForCheck();
             });
     }
@@ -243,20 +247,8 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
         this.selectedTime.next(null);
     }
 
-    private updateTimeSlots(openinghours: OpeningHour[], day: Day, events?: LocalEvent[]) {
-        let earliestDate: Date | null = null;
-        let latestDate: Date | null = null;
-
-        openinghours.forEach(frame => {
-            if (earliestDate === null || frame.from.getTime() < earliestDate.getTime()) {
-                earliestDate = frame.from;
-            }
-
-            if (latestDate === null || frame.to.getTime() > latestDate.getTime()) {
-                latestDate = frame.to;
-            }
-        });
-
+    private updateTimeSlots(openinghours: OpeningHour[], day?: Day, config?: UIConfig, events?: LocalEvent[]) {
+        let [earliestDate, latestDate] = this.getEarliestAndLatestDate(openinghours);
         if (earliestDate === null) {
             // TODO(ppacher): no opening hour on that day
             return;
@@ -269,28 +261,16 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
 
         const eventMap = new Map<string, LocalEvent[]>();
         (events || []).forEach(event => {
-            if (!event.username) {
-                return;
-            }
-            console.log(event);
-            const arr = eventMap.get(event.username) || [];
-            arr.push(event),
-                eventMap.set(event.username, arr);
+            const arr = eventMap.get(event.username || event.calendarID) || [];
+            arr.push(event)
+            eventMap.set(event.username || event.calendarID, arr);
         });
 
         const slotSize = Duration.minutes(15);
         const threshold = new Date(earliestDate.getFullYear(), earliestDate.getMonth(), earliestDate.getDate(), 12, 0, 0).getTime();
 
-        this.allUsers = [];
-        const userSet = new Set([
-            ...day.forenoon,
-            ...day.afternoon,
-            ...day.onCall.day,
-            ...day.onCall.night,
-        ]);
-        userSet.forEach(user => {
-            this.allUsers.push(this.users.byName(user));
-        });
+        let [allUsers, unassignedCalendars, hasRoster] = this.getAllAvailableUsers(day, config);
+        this.allUsers = allUsers;
 
         const now = new Date().getTime();
 
@@ -300,13 +280,21 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
             const isOpeningHour = isInFrame(iter);
             const end = slotSize.addTo(iter);
 
-            if (!isOpeningHour) {
-                // FIXME(ppacher): expose day/night shift changes
-                usersSlot = [...day?.onCall.day, ...day?.onCall.night];
-            } else if (iter.getTime() <= threshold) {
-                usersSlot = day?.forenoon;
+            if (hasRoster) {
+                if (!isOpeningHour) {
+                    // FIXME(ppacher): expose day/night shift changes
+                    usersSlot = [...day?.onCall.day, ...day?.onCall.night];
+                } else if (iter.getTime() <= threshold) {
+                    usersSlot = day?.forenoon;
+                } else {
+                    usersSlot = day?.afternoon;
+                }
+                usersSlot = [
+                    ...usersSlot,
+                    ...unassignedCalendars,
+                ]
             } else {
-                usersSlot = day?.afternoon;
+                usersSlot = this.allUsers.map(u => u.name);
             }
 
             const users: TimeSlot['users'] = {};
@@ -342,5 +330,65 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                 allResourcesFree,
             });
         }
+    }
+
+    private getEarliestAndLatestDate(hours: OpeningHour[]): [Date, Date] {
+        let earliestDate: Date | null = null;
+        let latestDate: Date | null = null;
+        hours.forEach(frame => {
+            if (earliestDate === null || frame.from.getTime() < earliestDate.getTime()) {
+                earliestDate = frame.from;
+            }
+
+            if (latestDate === null || frame.to.getTime() > latestDate.getTime()) {
+                latestDate = frame.to;
+            }
+        });
+        return [earliestDate, latestDate]
+    }
+
+    private getAllAvailableUsers(day?: Day, config?: UIConfig): [SlotUser[], string[], boolean] {
+        let allUsers: SlotUser[] = [];
+        let userSet = new Set<string>();
+        if (!!day) {
+            userSet = new Set([
+                ...day.forenoon,
+                ...day.afternoon,
+                ...day.onCall.day,
+                ...day.onCall.night,
+            ]);
+        }
+
+        // check if we have a roster day and if there are acutually users
+        // assigned for the different shifts.
+        if (!!day && userSet.size > 0) {
+            userSet.forEach(user => {
+                allUsers.push(this.users.byName(user));
+            });
+
+            let unassignedCalendars: string[] = [];
+            (config.CreateEventAlwaysAllowCalendar || []).forEach(calID => {
+                const cal = this.calendars.find(cal => cal._id === calID);
+                if (!cal) {
+                    this.nzMessageService.error("Kalender mit ID " + calID + " nicht gefunden")
+                    return;
+                }
+                unassignedCalendars.push(cal._id);
+                allUsers.push({
+                    name: cal._id,
+                    fullname: cal.name,
+                    isCalendar: true,
+                })
+            })
+            return [allUsers, unassignedCalendars, true];
+        }
+
+        // we don't have a roster for that day so we need to fallback to all
+        // available calendars.
+        return [this.calendars.map(cal => ({
+            name: cal._id,
+            fullname: cal.name,
+            isCalendar: true,
+        })), [], false]
     }
 }

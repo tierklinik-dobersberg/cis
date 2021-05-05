@@ -7,7 +7,7 @@ import { NzCalendarMode } from 'ng-zorro-antd/calendar';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { Observable, Subject, Subscription, throwError } from 'rxjs';
 import { catchError, debounceTime, delay, map, retryWhen } from 'rxjs/operators';
-import { Comment as BaseComment, CommentAPI, Day, Holiday, HolidayAPI, IdentityAPI, Permission, ProfileWithAvatar, Roster, RosterAPI } from 'src/app/api';
+import { Comment as BaseComment, CommentAPI, Day, Holiday, HolidayAPI, IdentityAPI, OpeningHour, OpeningHoursAPI, OpeningHoursResponse, Permission, ProfileWithAvatar, Roster, RosterAPI } from 'src/app/api';
 import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage } from 'src/app/utils';
@@ -16,6 +16,12 @@ interface Comment extends BaseComment {
   date: Date;
   edited?: boolean;
   profile: ProfileWithAvatar;
+}
+
+interface OpeningHours {
+  frames: OpeningHour[];
+  hasForenoon: boolean;
+  hasAfternoon: boolean;
 }
 
 @Component({
@@ -70,7 +76,7 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
     [key: number]: Day;
   } = {};
 
-  /** All available holidays index by key YYYY/MM/DD */
+  /** All available holidays index by key Date().toDateString() */
   holidays: {
     [key: number]: Holiday;
   } = {};
@@ -95,6 +101,11 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
   /** Whether or not the user want's to configure a seaprate on-call employee for the day shift */
   differentOnCallDay = false;
 
+  /** Opening hours indexed by Date().toDateString() */
+  openingHours: {
+    [key: string]: OpeningHours;
+  } = {};
+
   constructor(
     elementRef: ElementRef,
     scrollDispatcher: ScrollDispatcher,
@@ -104,6 +115,7 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
     private holidayapi: HolidayAPI,
     private identityapi: IdentityAPI,
     private commentapi: CommentAPI,
+    private openinghoursapi: OpeningHoursAPI,
     private messageService: NzMessageService,
     private storage: StorageMap,
     private route: ActivatedRoute,
@@ -367,6 +379,7 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     this.header.set(`Dienstplan:  ${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`);
+
     const sub =
       this.rosterapi.forMonth(date.getFullYear(), date.getMonth() + 1)
         .pipe(
@@ -435,6 +448,27 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
     this.subscriptions.add(sub2);
 
     this.loadComments(date);
+
+    const officeHoursSub = this.openinghoursapi.getRange(
+      new Date(year, month - 1, 1),
+      new Date(year, month, 1),
+    ).subscribe(range => {
+      this.openingHours = {};
+      Object.keys(range.dates).forEach(key => {
+        const date = new Date(key);
+        const lunch = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0).getTime();
+        const hasForenoon = range.dates[key].openingHours.some(frame => frame.to.getTime() <= lunch);
+        const hasAfternoon = range.dates[key].openingHours.some(frame => frame.to.getTime() > lunch);
+        this.openingHours[key] = {
+          frames: range.dates[key].openingHours,
+          hasAfternoon: hasAfternoon,
+          hasForenoon: hasForenoon,
+        };
+      })
+
+      console.log(this.openingHours);
+    });
+    this.subscriptions.add(officeHoursSub);
   }
 
   loadComments(date = this.selectedDate): void {

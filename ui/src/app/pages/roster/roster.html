@@ -96,19 +96,29 @@
       </ng-template>
     </span>
 
-    <ng-container *ngTemplateOutlet="userDutyTemplate; context: {$implicit: getDay(date).forenoon}"></ng-container>
-    <ng-container *ngTemplateOutlet="userDutyTemplate; context: {$implicit: getDay(date).afternoon}"></ng-container>
-    <ng-container *ngTemplateOutlet="userDutyTemplate; context: {$implicit: getDay(date).onCall.day}"></ng-container>
-    <ng-container *ngTemplateOutlet="userDutyTemplate; context: {$implicit: getDay(date).onCall.night}"></ng-container>
+    <ng-container
+      *ngTemplateOutlet="userDutyTemplate; context: {$implicit: getDay(date).forenoon, hasOfficeHours: openingHours[date.toDateString()]?.hasForenoon}">
+    </ng-container>
+    <ng-container
+      *ngTemplateOutlet="userDutyTemplate; context: {$implicit: getDay(date).afternoon, hasOfficeHours: openingHours[date.toDateString()]?.hasAfternoon}">
+    </ng-container>
+    <ng-container
+      *ngTemplateOutlet="userDutyTemplate; context: {$implicit: getDay(date).onCall.day, hasOfficeHours: true}">
+    </ng-container>
+    <ng-container
+      *ngTemplateOutlet="userDutyTemplate; context: {$implicit: getDay(date).onCall.night, hasOfficeHours: true}">
+    </ng-container>
 
-    <ng-template #userDutyTemplate let-set>
+    <ng-template #userDutyTemplate let-set let-hasOfficeHours="hasOfficeHours">
       <li>
-        <span class="user-tag" *ngFor="let user of set" nz-tooltip [nzTooltipTitle]="userProfiles[user]?.fullname"
-          [class.highlight-user]="highlightUser === user" [style.backgroundColor]="userProfiles[user]?.color"
-          [style.color]="userProfiles[user]?.fontColor" (mouseenter)="highlightUserSubject.next(user)"
-          (mouseleave)="highlightUserSubject.next('')">
-          {{ userProfiles[user]?.fullname.slice(0, 2) || 'N/A' }}
-        </span>
+        <ng-template [ngIf]="hasOfficeHours || set?.length > 0">
+          <span class="user-tag" *ngFor="let user of set" nz-tooltip [nzTooltipTitle]="userProfiles[user]?.fullname"
+            [class.highlight-user]="highlightUser === user" [style.backgroundColor]="userProfiles[user]?.color"
+            [style.color]="userProfiles[user]?.fontColor" (mouseenter)="highlightUserSubject.next(user)"
+            (mouseleave)="highlightUserSubject.next('')">
+            {{ userProfiles[user]?.fullname.slice(0, 2) || 'N/A' }}
+          </span>
+        </ng-template>
       </li>
     </ng-template>
   </ul>
@@ -156,10 +166,14 @@
 
 <nz-dropdown-menu #userMenu="nzDropdownMenu">
   <div *ngIf="!!selectedDay" nz-menu class="user-menu">
-    <ng-container *ngTemplateOutlet="userSelection; context: {$implicit: 'forenoon', title: 'Vormittag'}">
-    </ng-container>
-    <ng-container *ngTemplateOutlet="userSelection; context: {$implicit: 'afternoon', title: 'Nachmittag'}">
-    </ng-container>
+    <ng-template [ngIf]="openingHours[selectedDate.toDateString()]?.hasForenoon">
+      <ng-container *ngTemplateOutlet="userSelection; context: {$implicit: 'forenoon', title: 'Vormittag'}">
+      </ng-container>
+    </ng-template>
+    <ng-template [ngIf]="openingHours[selectedDate.toDateString()]?.hasAfternoon">
+      <ng-container *ngTemplateOutlet="userSelection; context: {$implicit: 'afternoon', title: 'Nachmittag'}">
+      </ng-container>
+    </ng-template>
 
     <ng-container *ngIf="differentOnCallDay || onCallIsDifferent">
       <ng-container *ngTemplateOutlet="userSelectionOnCall; context: {$implicit: 'day', title: 'Tag Bereitschaft'}">

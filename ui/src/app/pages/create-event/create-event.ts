@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { animationFrameScheduler, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, debounceTime, filter, map, observeOn, share, switchMap, takeUntil } from 'rxjs/operators';
-import { CalendarAPI, CalllogAPI, LocalPatient, OpeningHoursAPI, PatientAPI, ProfileWithAvatar, Resource, ResourceAPI, RosterAPI, UserService } from 'src/app/api';
+import { CalendarAPI, CalllogAPI, ConfigAPI, LocalPatient, OpeningHoursAPI, PatientAPI, ProfileWithAvatar, Resource, ResourceAPI, RosterAPI, UserService } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { SelectedTime } from './quick-time-selector';

@@ -26,6 +26,7 @@ $qts-color-closed: grey;
         text-overflow: ellipsis;
         display: flex;
         align-items: center;
+        word-break: break-all;
 
         nz-avatar {
             margin-right: 6px;
