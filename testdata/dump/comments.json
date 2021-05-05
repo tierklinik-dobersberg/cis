@@ -1,0 +1,31 @@
+{
+    "_id": {
+        "$oid": "6092e75ab832d4592661eed7"
+    },
+    "key": "roster:2021-5",
+    "user": "alice",
+    "message": "Test Kommentar",
+    "createdAt": {
+        "$date": "2021-05-05T18:43:38.190Z"
+    },
+    "updatedAt": {
+        "$date": "2021-05-05T18:43:38.190Z"
+    }
+}
+{
+    "_id": {
+        "$oid": "6092e75fb832d4592661eed8"
+    },
+    "key": "roster:2021-5",
+    "parentID": {
+        "$oid": "6092e75ab832d4592661eed7"
+    },
+    "user": "bob",
+    "message": "Reply",
+    "createdAt": {
+        "$date": "2021-05-05T18:43:43.661Z"
+    },
+    "updatedAt": {
+        "$date": "2021-05-05T18:43:43.661Z"
+    }
+}
