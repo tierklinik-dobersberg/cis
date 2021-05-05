@@ -29,7 +29,7 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 		"Integration":    cfgspec.IntegrationConfigSpec,
 		"Voicemail":      cfgspec.VoiceMailSpec,
 		"MongoLog":       cfgspec.MongoLogSpec,
-		"GoogleCalendar": calendar.ConfigSpec,
+		"GoogleCalendar": calendar.GoogleConfigSpec,
 		"CORS":           server.CORSSpec,
 	},
 })

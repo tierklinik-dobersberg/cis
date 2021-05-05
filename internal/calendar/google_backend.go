@@ -23,7 +23,7 @@ import (
 
 var log = pkglog.New("calendar")
 
-var ConfigSpec = conf.SectionSpec{
+var GoogleConfigSpec = conf.SectionSpec{
 	{
 		Name:        "Enabled",
 		Type:        conf.BoolType,
@@ -42,12 +42,18 @@ var ConfigSpec = conf.SectionSpec{
 		Description: "Path to client token file",
 		Default:     "token.json",
 	},
+	{
+		Name:        "IgnoreCalendar",
+		Type:        conf.StringSliceType,
+		Description: "A list of Google calendar IDs to ingore",
+	},
 }
 
-type Config struct {
+type GoogleCalendarConfig struct {
 	Enabled         bool
 	CredentialsFile string
 	TokenFile       string
+	IgnoreCalendar  []string
 	Location        *time.Location
 }
 
@@ -62,7 +68,8 @@ type Service interface {
 
 type googleCalendarBackend struct {
 	*calendar.Service
-	location *time.Location
+	location        *time.Location
+	ignoreCalendars []string
 
 	cacheLock   sync.Mutex
 	eventsCache map[string]*googleEventCache
@@ -70,7 +77,7 @@ type googleCalendarBackend struct {
 }
 
 // New creates a new calendar service from cfg.
-func New(cfg Config) (Service, error) {
+func New(cfg GoogleCalendarConfig) (Service, error) {
 	if !cfg.Enabled {
 		return &noopBackend{}, nil
 	}
@@ -92,9 +99,10 @@ func New(cfg Config) (Service, error) {
 	}
 
 	svc := &googleCalendarBackend{
-		Service:     calSvc,
-		eventsCache: make(map[string]*googleEventCache),
-		location:    cfg.Location,
+		Service:         calSvc,
+		eventsCache:     make(map[string]*googleEventCache),
+		location:        cfg.Location,
+		ignoreCalendars: cfg.IgnoreCalendar,
 	}
 	if svc.location == nil {
 		svc.location = time.Local
@@ -110,7 +118,7 @@ func New(cfg Config) (Service, error) {
 }
 
 // Authenticate retrieves a new token and saves it under TokenFile.
-func Authenticate(cfg Config) error {
+func Authenticate(cfg GoogleCalendarConfig) error {
 	creds, err := credsFromFile(cfg.CredentialsFile)
 	if err != nil {
 		return fmt.Errorf("failed reading %s: %w", cfg.CredentialsFile, err)
@@ -133,18 +141,24 @@ func (svc *googleCalendarBackend) ListCalendars(ctx context.Context) ([]Calendar
 		return nil, err
 	}
 
-	var list = make([]Calendar, len(res.Items))
-	for idx, item := range res.Items {
+	var list = make([]Calendar, 0, len(res.Items))
+	for _, item := range res.Items {
 		loc, err := time.LoadLocation(item.TimeZone)
 		if err != nil {
 			log.From(ctx).Errorf("failed to parse timezone %s from calendar %s", item.TimeZone, item.Id)
 		}
-		list[idx] = Calendar{
+
+		// check if the calendar should be ingored based on IngoreCalendar=
+		if svc.shouldIngore(item) {
+			continue
+		}
+
+		list = append(list, Calendar{
 			ID:       item.Id,
 			Name:     item.Summary,
 			Timezone: item.TimeZone,
 			Location: loc,
-		}
+		})
 		// immediately prepare the calendar cache
 		if _, err = svc.cacheFor(ctx, item.Id); err != nil {
 			log.From(ctx).Errorf("failed to perpare calendar event cache for %s: %s", item.Id, err)
@@ -292,6 +306,15 @@ func (svc *googleCalendarBackend) loadEvents(ctx context.Context, calendarID str
 	}
 
 	return res.([]Event), err
+}
+
+func (svc *googleCalendarBackend) shouldIngore(item *calendar.CalendarListEntry) bool {
+	for _, value := range svc.ignoreCalendars {
+		if item.Id == value {
+			return true
+		}
+	}
+	return false
 }
 
 func tokenFromFile(path string) (*oauth2.Token, error) {

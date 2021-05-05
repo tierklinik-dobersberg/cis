@@ -18,7 +18,7 @@ type Config struct {
 
 	cfgspec.MongoLogConfig `section:"MongoLog"`
 
-	GoogleCalendar calendar.Config `section:"GoogleCalendar"`
+	GoogleCalendar calendar.GoogleCalendarConfig `section:"GoogleCalendar"`
 
 	OpeningHours   []cfgspec.OpeningHours           `section:"OpeningHour"`
 	UserProperties []cfgspec.UserPropertyDefinition `section:"UserProperty"`
