@@ -1,6 +1,6 @@
 import { Alice } from '../utils';
 
-fdescribe('VoiceMail API', () => {
+describe('VoiceMail API', () => {
     let getVoicemail = async (id: string) => {
         const response = await Alice.get('http://localhost:3000/api/voicemail/v1/search', {
             params: {
