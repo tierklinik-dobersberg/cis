@@ -198,6 +198,10 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 		}
 	}
 
+	if len(activeShift) == 0 {
+		return nil, nextChange, false, fmt.Errorf("no onCall shifts defined")
+	}
+
 	// convert all the usernames from the Emergency slice to their
 	// v1alpha.DoctorOnDuty API model.
 	doctorsOnDuty := make([]v1alpha.DoctorOnDuty, len(activeShift))
