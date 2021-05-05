@@ -40,6 +40,7 @@ export interface UIConfig {
   QuickRosterOverwrites?: QuickRosterOverwrite[];
   KnownPhoneExtensions?: KnownPhoneExtension[];
   UserPhoneExtensionProperties?: string[];
+  CreateEventAlwaysAllowCalendar?: string[];
 }
 
 @Injectable({

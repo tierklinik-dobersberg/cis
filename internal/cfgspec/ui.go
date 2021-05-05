@@ -7,8 +7,9 @@ import "github.com/ppacher/system-conf/conf"
 // Values here are made available through
 // /api/config/v1/ui
 type UI struct {
-	HideUsersWithRole            []string
-	UserPhoneExtensionProperties []string
+	HideUsersWithRole              []string
+	UserPhoneExtensionProperties   []string
+	CreateEventAlwaysAllowCalendar []string
 }
 
 // UISpec defines what configuration stanzas are supported
@@ -21,6 +22,11 @@ var UISpec = conf.SectionSpec{
 	{
 		Name:        "UserPhoneExtensionProperties",
 		Description: "A list of user properties that hold phone extensions and should be used to link from call log records to users",
+		Type:        conf.StringSliceType,
+	},
+	{
+		Name:        "CreateEventAlwaysAllowCalendar",
+		Description: "A list of calendar IDs that should always be displayed/allowed when creating new events.",
 		Type:        conf.StringSliceType,
 	},
 }

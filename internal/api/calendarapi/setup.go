@@ -9,6 +9,9 @@ import (
 func Setup(grp gin.IRouter) {
 	router := app.NewRouter(grp)
 
+	// GET /api/calendar/v1/
+	ListCalendarsEndpoint(router)
+
 	// GET /api/calendar/v1/events?for-day=2006-1-2&for-user=alice&for-user=bob
 	ListEventsEndpoint(router)
 
