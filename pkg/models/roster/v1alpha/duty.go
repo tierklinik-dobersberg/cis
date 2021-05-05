@@ -18,12 +18,12 @@ type OnCall struct {
 // day.
 type Day struct {
 	// Forenoon is a list of usernames that are in duty before lunch.
-	Forenoon []string `bson:"forenoon,omitempty" json:"forenoon,omitempty"`
+	Forenoon []string `bson:"forenoon,omitempty" json:"forenoon"`
 
 	// Afternoon is a list of usernames that are in duty after lunch.
-	Afternoon []string `bson:"afternoon,omitempty" json:"afternoon,omitempty"`
+	Afternoon []string `bson:"afternoon,omitempty" json:"afternoon"`
 
-	OnCall OnCall `bson:"onCall,omitempty" json:"onCall,omitempty"`
+	OnCall OnCall `bson:"onCall,omitempty" json:"onCall"`
 }
 
 // DutyRoster describes the doctors on duty for one month.

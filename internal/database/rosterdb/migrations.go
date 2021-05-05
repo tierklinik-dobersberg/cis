@@ -59,7 +59,7 @@ func init() {
 						if day.OnCall != nil {
 							continue L
 						}
-						newR.Days[idx] = v1alpha.Day{
+						newDay := v1alpha.Day{
 							Forenoon:  day.Forenoon,
 							Afternoon: day.Afternoon,
 							OnCall: v1alpha.OnCall{
@@ -67,6 +67,7 @@ func init() {
 								Night: day.Emergency,
 							},
 						}
+						newR.Days[idx] = newDay
 					}
 
 					upd, err := col.ReplaceOne(ctx, bson.M{"_id": r.ID}, newR)

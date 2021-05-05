@@ -102,6 +102,8 @@ func validateRoster(ctx context.Context, app *app.App, roster *v1alpha.DutyRoste
 		if err := validateUsers(day.Afternoon, lm, allowDisabled); err != nil {
 			return fmt.Errorf("afternoon: %s", err)
 		}
+		// TODO(ppacher): let the user configure if on-call shifts
+		// should be required!
 		if err := validateUsers(day.OnCall.Day, lm, allowDisabled); err != nil {
 			return fmt.Errorf("onCal.day: %s", err)
 		}
