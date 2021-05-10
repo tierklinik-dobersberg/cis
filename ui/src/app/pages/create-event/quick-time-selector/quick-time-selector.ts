@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, Renderer2 } from '@angular/core';
+import { valueFunctionProp } from 'ng-zorro-antd/core/util';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, combineLatest, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, debounceTime, mergeMap, takeUntil, tap } from 'rxjs/operators';
@@ -53,7 +54,6 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
         }
         this._date = d;
         this.onDate$.next(this._date);
-        console.log('new date selected');
     }
     get date() { return this._date; }
 
@@ -71,23 +71,71 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject();
     private onDate$ = new BehaviorSubject<Date>(new Date());
 
-    /** template variables */
+    /** Whether or not the current day is a public holiday */
     isHoliday: boolean | null = null;
+
+    /** The available time slots */
     timeSlots: TimeSlot[] = [];
+
+    /** Whether or not we are currently loading. */
     loading = true;
+
+    /** All available users/calendars */
     allUsers: SlotUser[] = [];
+
+    /** The currently hightlighted user slot */
     highlightedUserSlot = '';
+
+    /** The selected user name or calendar ID. */
     selectedUser = '';
+
+    /** All available calendars. */
     calendars: Calendar[] = [];
+
+    /** Start time for the tooltip */
     tooltipTimeStart: Date | null = null;
+
+    /** End time for the tooltip */
     tooltipTimeEnd: Date | null = null;
+
+    /** All events that should be displayed in the tooltip */
     tooltipEvents: LocalEvent[] = [];
+
+    /** A set of required resources. */
     _resourcesRequired = new Set<string>();
+
+    selectedStart: Date | null = null;
+    selectedEnd: Date | null = null;
+
+    /** Used to trigger a re-layouting/re-creating of time-slots if resources change */
     private onResourcesRequired$ = new BehaviorSubject<Set<string>>(new Set());
+
+    /** The current date displayed by this component. */
     private _date: Date = new Date();
 
     @Output()
-    selectedTime = new EventEmitter<SelectedTime>();
+    selectedTimeChange = new EventEmitter<SelectedTime>();
+
+    @Input()
+    set selectedTime(v: SelectedTime) {
+        if (this._done) {
+            return;
+        }
+
+        if (!v && !!this.selectedUser) {
+            this.selectedUser = '';
+            this.selectedStart = null;
+            this.selectedEnd = null;
+            this.date = new Date();
+            return;
+        }
+
+        this.selectedUser = v.user?.name || v.calendarID;
+        this.selectedStart = v.date;
+        this.selectedEnd = new Date(v.date.getTime() + v.duration.milliseconds);
+        this.date = v.date;
+    };
+    private _done = false;
 
     selectRangeStart(slot: TimeSlot, user: string, downEvent: MouseEvent) {
         if (slot.disabled) {
@@ -134,20 +182,8 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                 },
                 () => { },
                 () => {
-                    const selectedSlots = this.timeSlots.filter(s => s.selected);
-                    if (!selectedSlots || selectedSlots.length === 0) {
-                        this.selectedTime.next(null);
-                        return;
-                    }
-                    const from = selectedSlots[0].from;
-                    const to = selectedSlots[selectedSlots.length - 1].to;
-                    const duration = Duration.milliseconds(to.getTime() - from.getTime());
+                    this.emitSelectedTime();
 
-                    this.selectedTime.next({
-                        date: from,
-                        duration,
-                        user: this.users.byName(this.selectedUser),
-                    });
                     stopMouseMove();
                     stopMouseUp();
                 });
@@ -155,9 +191,31 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
         updateSlots$.next(downEvent);
     }
 
+    private emitSelectedTime() {
+        const selectedSlots = this.timeSlots.filter(s => s.selected);
+        if (!selectedSlots || selectedSlots.length === 0) {
+            this.selectedTimeChange.next(null);
+            return;
+        }
+        const from = selectedSlots[0].from;
+        const to = selectedSlots[selectedSlots.length - 1].to;
+        const duration = Duration.milliseconds(to.getTime() - from.getTime());
+
+        this.selectedStart = from;
+        this.selectedEnd = to;
+
+        this.selectedTimeChange.next({
+            date: from,
+            duration,
+            user: this.users.byName(this.selectedUser),
+        });
+    }
+
     ngOnInit() {
+        this._done = true;
         combineLatest([
             this.onDate$.pipe(
+                debounceTime(10),
                 mergeMap(d => {
                     this.loading = true;
                     return forkJoin({
@@ -196,6 +254,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                     day = result.roster.days[result.date.getDate()];
                 }
                 this.updateTimeSlots(result.openinghours.openingHours, day, config, result.events);
+                this.emitSelectedTime();
                 this.cdr.markForCheck();
             });
     }
@@ -244,7 +303,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
     private resetView() {
         this.isHoliday = null;
         this.timeSlots = [];
-        this.selectedTime.next(null);
+        //this.selectedTimeChange.next(null);
     }
 
     private updateTimeSlots(openinghours: OpeningHour[], day?: Day, config?: UIConfig, events?: LocalEvent[]) {
@@ -274,6 +333,8 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
 
         const now = new Date().getTime();
 
+        let startSelected = this.selectedStart?.getTime() || Infinity;
+        let endSelected = this.selectedEnd?.getTime() || 0
         this.timeSlots = [];
         for (let iter = earliestDate; iter.getTime() < latestDate.getTime(); iter = slotSize.addTo(iter)) {
             let usersSlot: string[];
@@ -318,6 +379,11 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                 return users[key].some(event => !!event.data?.requiredResources?.some(res => this._resourcesRequired.has(res)));
             });
 
+            const iterMs = iter.getTime();
+            const toMs = end.getTime();
+            const selected = startSelected <= iterMs && endSelected >= iterMs;
+
+
             this.timeSlots.push({
                 from: iter,
                 to: end,
@@ -325,7 +391,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                 available,
                 isOpeningHour,
                 highlighted: false,
-                selected: false,
+                selected: selected,
                 disabled: iter.getTime() < now,
                 allResourcesFree,
             });

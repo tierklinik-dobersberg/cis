@@ -1,0 +1,68 @@
+<div class="toolbar">
+    <div>
+        <nz-button-group>
+            <button nz-button (click)="prevDay()" nzType="text">
+                <i nz-icon nzType="left" nzTheme="outline"></i>
+            </button>
+            <nz-date-picker [nzAllowClear]="false" [(ngModel)]="date"></nz-date-picker>
+            <button nz-button (click)="nextDay()" nzType="text">
+                <i nz-icon nzType="right" nzTheme="outline"></i>
+            </button>
+        </nz-button-group>
+    </div>
+
+    <div class="filter">
+        <nz-button-group>
+            <button nz-button nzType="default" (click)="toggleAll()">
+                {{ filterButtonText }}
+            </button>
+
+            <button nz-button nzType="default" nz-dropdown [nzDropdownMenu]="dropdown" [nzClickHide]="false">
+                <i nz-icon nzType="table" nzTheme="outline"></i>
+            </button>
+        </nz-button-group>
+
+        <nz-dropdown-menu #dropdown="nzDropdownMenu">
+            <ul nz-menu>
+                <li nz-menu-item *ngFor="let cal of calendars; trackBy: trackCalendar" (click)="updateFilter(cal)"
+                    (dblclick)="onFilterDblClick(cal)">
+                    <i [style.opacity]="cal.displayed ? 1 : 0" nz-icon nzType="check" nzTheme="outline"></i>
+                    {{ cal.name }}
+                </li>
+            </ul>
+        </nz-dropdown-menu>
+
+        <button class="create" nz-button nzType="primary" routerLink="/create-event">
+            Neuer Termin
+        </button>
+    </div>
+</div>
+<div class="calendar-container" cdkScrollable #scrollContainer>
+    <ng-container="calendar" *ngFor="let cal of calendars; trackBy: trackCalendar; let last=last">
+        <div class="calendar" *ngIf="cal.displayed">
+            <div class="header" (dblclick)="onFilterDblClick(cal)">
+                {{ cal.user?.fullname || cal.user?.name || cal.name }}
+            </div>
+            <div class="times" (dblclick)="createEvent($event, cal)">
+                <div class="hours">
+                    <div *ngFor="let hour of hours" [ngStyle]="{height: hourHeight + 'px'}">
+                        <caption>{{hour < 10 ? '0' + hour : hour}}:00</caption>
+                    </div>
+                </div>
+
+                <span class="event" *ngFor="let event of cal.events; trackBy: trackEvent"
+                    [class.inactive]="activeEventID !== ''" (click)="onEventActivate(event)"
+                    [class.active]="activeEventID === event._id"
+                    [ngStyle]="{top: (event.top +  event.offsettop) + 'px', 'min-height': event.height + 'px', height: event.height + 'px', left: event.left + 'px', right: '0px', backgroundColor: event.color}">
+                    {{ event.startTime | date:'HH:mm'}}
+                    {{ event.summary }}
+                </span>
+                <div class="current-time" [ngStyle]="{top: todayOffset + 'px'}" *ngIf="isToday">
+                    <span *ngIf="last">
+                        {{ currentTime | date:'HH:mm' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        </ng-container>
+</div>

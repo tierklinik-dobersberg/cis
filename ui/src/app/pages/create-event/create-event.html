@@ -63,8 +63,8 @@
             </span>
         </div>
     </div>
-    <app-quick-time-selector *ngIf="!!selectedDate" [date]="selectedDate" (selectedTime)="selectedTime = $event"
-        [resourcesRequired]="selectedResources">
+    <app-quick-time-selector *ngIf="!!selectedDate" [date]="selectedDate" (selectedTimeChange)="onTimeSelected($event)"
+        [selectedTime]="selectedTime" [resourcesRequired]="selectedResources">
     </app-quick-time-selector>
 </div>
 

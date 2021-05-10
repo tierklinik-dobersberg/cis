@@ -1,9 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { animationFrameScheduler, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, debounceTime, filter, map, observeOn, share, switchMap, takeUntil } from 'rxjs/operators';
 import { CalendarAPI, CalllogAPI, ConfigAPI, LocalPatient, OpeningHoursAPI, PatientAPI, ProfileWithAvatar, Resource, ResourceAPI, RosterAPI, UserService } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
+import { Duration } from 'src/utils/duration';
 import { SelectedTime } from './quick-time-selector';
 
 interface ResourceModel extends Resource {
@@ -81,7 +83,13 @@ export class CreateEventComponent implements OnInit, OnDestroy {
         private patientapi: PatientAPI,
         private resourceapi: ResourceAPI,
         private userService: UserService,
+        private activeRoute: ActivatedRoute,
     ) { }
+
+    /** @private - callback when the user selects a time via quick-time-selector. */
+    onTimeSelected(time: SelectedTime) {
+        this.selectedTime = time;
+    }
 
     /**
      * Search and only display customers that match name.
@@ -148,6 +156,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
         this.resources.forEach(r => r.selected = false);
     }
 
+    /** @private - Emits onSelectedResources$ */
     updateResources() {
         this.onSelectedResources$.next();
     }
@@ -226,6 +235,25 @@ export class CreateEventComponent implements OnInit, OnDestroy {
             this.patientsLoading = false;
             this.customerPatients = patients;
         });
+
+        this.activeRoute.queryParamMap
+            .pipe(
+                takeUntil(this.destroy$)
+            )
+            .subscribe(params => {
+                const cal = params.get('calendar');
+                const start = params.get('start');
+
+                if (!!start && !!cal) {
+                    const startTime = new Date(start);
+                    this.selectedTime = {
+                        date: startTime,
+                        duration: Duration.minutes(15),
+                        calendarID: cal,
+                        user: this.userService.byCalendarID(cal)
+                    }
+                }
+            })
     }
 
     ngOnDestroy() {

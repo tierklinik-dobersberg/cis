@@ -259,3 +259,7 @@ nz-tag {
     flex-grow: 1;
   }
 }
+
+button, [nz-menu-item] {
+  user-select: none;
+}

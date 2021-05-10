@@ -1,0 +1,171 @@
+:host {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    height: 100%;
+    overflow: hidden;
+}
+
+.calendar-container {
+    display: flex;
+    flex-direction: row;
+    overflow: auto;
+}
+
+.toolbar {
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    background-color: #fafafa;
+    z-index: 3;
+    justify-content: space-between;
+
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    flex: 1 0 50px;
+
+    .filter {
+        label {
+            opacity: .9;
+        }
+
+        button.create {
+            margin-left: .5rem; 
+        }
+    }
+}
+
+.calendar {
+    flex: 1 1;
+    background-color: white;
+    display: flex;
+    flex-direction: column; 
+    border-right: solid 1px lightgray;
+    height: fit-content;
+
+    .header {
+        user-select: none;
+        cursor: pointer;
+        position: sticky;
+        top: 0px;
+        z-index: 3;
+        font-weight: 300;
+        font-family: 'Poppins';
+        flex: 0 0;
+        text-align: center;
+        padding-top: 12px;
+        padding-bottom: 12px;
+        padding-left: 12px;
+        padding-right: 12px;
+        background-color: white;
+        border-bottom: 2px solid gray;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .times {
+        flex: 1 0 auto;
+    }
+}
+
+.times {
+    position: relative;
+
+    .current-time {
+        border-top: 2px dashed rgb(243, 123, 107);
+        width: 100%;
+        position: absolute;
+        text-align: right;
+        line-height: .9rem;
+        z-index: 2;
+
+        span {
+            position: relative;
+            top: -0.5rem;
+            font-size: 0.85rem;
+            background-color: rgb(243, 123, 107);
+            color: white;
+            margin-right: 4px;
+            border-radius: 3px;
+            padding-left: 6px;
+            padding-right: 6px;
+            padding-top: 3px;
+            padding-bottom: 3px;
+        }
+    }
+
+    .hours {
+        div {
+            display: block;
+            border-bottom: 1px solid lightgray;
+            position: relative;
+
+            caption {
+                position: absolute;
+                font-size: .8rem;
+                opacity: .8;
+                left: 12px;
+                top: 12px;
+                padding: 0;
+            }
+
+            &:hover caption {
+                opacity: 1;
+                color: lightskyblue;
+            }
+        }
+    }
+
+    .event {
+        cursor: pointer;
+        font-family: 'Poppins';
+        font-size: 90%;
+        line-height: .8rem;
+        display: block;
+        position: absolute;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border: 1px solid gray;
+        border-radius: 2px;
+        padding: 2px;
+        box-shadow: 0px 0px 3px 0px rgb(32 32 32 / 30%);
+        transition: all .3s cubic-bezier(0.19, 1, 0.22, 1);
+
+        &.inactive {
+            opacity: .65;
+        }
+
+        &.active {
+            opacity: 1;
+            line-height: unset;
+            height: fit-content !important;
+            background-color: lightgreen;
+            z-index: 3;
+            box-shadow: 0px 2px 10px 0px rgb(32 32 32 / 60%);
+            //transform: translateY(-9px) translateX(-9px);
+            animation: activate .2s linear 0s 1 normal forwards;
+        }
+    }
+}
+
+@keyframes activate {
+    0% {
+        opacity: 0.65;
+        padding: 10px;
+        width: calc(100% + 10px);
+        font-size: 100%;
+    }
+    100% {
+        font-size: 100%;
+        padding: 10px;
+        width: calc(100% + 10px);
+        opacity: 1;
+        transform: translateY(-5px) translateX(-5px);
+        border-width: 2px;
+    }
+}
+
+

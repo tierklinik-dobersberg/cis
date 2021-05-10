@@ -142,6 +142,10 @@ export class IdentityAPI {
     return this.onLogin.asObservable();
   }
 
+  get currentProfile(): ProfileWithPermissions | null {
+    return this.onLogin.getValue();
+  }
+
   hasPermission(p: Permission): boolean {
     const profile = this.onLogin.getValue();
     return profile?.permissions[p] || false;

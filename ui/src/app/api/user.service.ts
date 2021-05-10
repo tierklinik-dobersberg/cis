@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable, OperatorFunction } from 'rxjs';
 import { delay, filter, map, mergeMap, retryWhen, take } from 'rxjs/operators';
-import { IdentityAPI, ProfileWithAvatar } from './identity.api';
+import { IdentityAPI, Profile, ProfileWithAvatar } from './identity.api';
 import { ConfigAPI } from './config.api';
 
 /**
@@ -18,8 +18,11 @@ export class UserService {
   /** Users indexed by name */
   private usersByName: Map<string, ProfileWithAvatar> = new Map();
 
-  /** Users index by phone-extension */
+  /** Users indexed by phone-extension */
   private usersByExtension: Map<string, ProfileWithAvatar> = new Map();
+
+  /** Users indexed by calendar ID */
+  private usersByCalendarID: Map<string, ProfileWithAvatar> = new Map();
 
   /** Emits whenever users have been reloaded */
   get updated(): Observable<void> {
@@ -69,6 +72,16 @@ export class UserService {
   }
 
   /**
+   * Returns the user by "calendar" id.
+   * 
+   * @param id The ID of the calendar
+   * @returns 
+   */
+  byCalendarID(id: string): ProfileWithAvatar | null {
+    return this.usersByCalendarID.get(id) || null;
+  }
+
+  /**
    * Updates the internal maps to search for users.
    *
    * @param users The list of users loaded from CIS.
@@ -76,11 +89,16 @@ export class UserService {
   private updateUsers(users: ProfileWithAvatar[]): void {
     this.usersByExtension = new Map();
     this.usersByName = new Map();
+    this.usersByCalendarID = new Map();
 
     const cfg = this.configapi.current;
     const phoneExtension = cfg?.UserPhoneExtensionProperties || [];
     users.forEach(user => {
       this.usersByName.set(user.name, user);
+      if (!!user.calendarID) {
+        this.usersByCalendarID.set(user.calendarID, user);
+      }
+
       phoneExtension.forEach(ext => {
         const value = user.properties[ext];
         if (!!value) {
