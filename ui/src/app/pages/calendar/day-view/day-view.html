@@ -53,7 +53,7 @@
                 <span class="event" *ngFor="let event of cal.events; trackBy: trackEvent"
                     [class.inactive]="activeEventID !== ''" (click)="onEventActivate(event)"
                     [class.active]="activeEventID === event._id"
-                    [ngStyle]="{top: (event.top +  event.offsettop) + 'px', 'min-height': event.height + 'px', height: event.height + 'px', left: event.left + 'px', right: '0px', backgroundColor: event.color}">
+                    [ngStyle]="{top: (event.top +  event.offsettop) + 'px', 'min-height': event.height + 'px', height: event.height + 'px', left: event.left + 'px', right: '0px', backgroundColor: event.color, color: cal.fontColor}">
                     {{ event.startTime | date:'HH:mm'}}
                     {{ event.summary }}
                 </span>
