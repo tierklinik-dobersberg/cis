@@ -27,7 +27,7 @@ type Event struct {
 type StructuredEvent struct {
 	CustomerSource    string   `json:"customerSource" bson:"customerSource,omitempty"`
 	CustomerID        int      `json:"customerID" bson:"customerID,omitempty"`
-	AnimalID          string   `json:"animalID" bson:"animalID,omitempty"`
+	AnimalID          []string `json:"animalID" bson:"animalID,omitempty"`
 	CreatedBy         string   `json:"createdBy" bson:"createdBy,omitempty"`
 	RequiredResources []string `json:"requiredResources,omitempty" bson:"requiredResources,omitempty"`
 }
@@ -46,7 +46,7 @@ var StructuredEventSpec = conf.SectionSpec{
 	{
 		Name:        "AnimalID",
 		Description: "ID of the customers animal",
-		Type:        conf.StringType,
+		Type:        conf.StringSliceType,
 	},
 	{
 		Name:        "CreatedBy",

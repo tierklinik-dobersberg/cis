@@ -82,21 +82,25 @@ func validateEventModel(ctx context.Context, app *app.App, event *v1alpha.Create
 			}
 		}
 		if event.Data.CustomerSource != "" {
+			// FIXME(ppacher): we should allow values for unknown customers too.
+			// But we might need a different [CIS] stanzs for the event description.
 			_, err := app.Customers.CustomerByCID(ctx, event.Data.CustomerSource, event.Data.CustomerID)
 			if err != nil {
 				return err
 			}
-			if event.Data.AnimalID != "" {
+			for _, animal := range event.Data.AnimalID {
+				// FIXME(ppacher): we should allow values for unknown animals too.
+				// See FIXME above.
 				if _, err := app.Patients.ByCustomerAndAnimalID(
 					ctx,
 					event.Data.CustomerSource,
 					event.Data.CustomerID,
-					event.Data.AnimalID,
+					animal,
 				); err != nil {
 					return err
 				}
 			}
-		} else if event.Data.AnimalID != "" {
+		} else if len(event.Data.AnimalID) > 0 {
 			return httperr.MissingField("customerSource and customerID")
 		}
 

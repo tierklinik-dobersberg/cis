@@ -136,7 +136,7 @@ func Authenticate(cfg GoogleCalendarConfig) error {
 }
 
 func (svc *googleCalendarBackend) ListCalendars(ctx context.Context) ([]Calendar, error) {
-	res, err := svc.Service.CalendarList.List().Do()
+	res, err := svc.Service.CalendarList.List().ShowHidden(true).Do()
 	if err != nil {
 		return nil, err
 	}

@@ -19,6 +19,7 @@ var (
 
 func calendarService() calendar.Service {
 	cfg := calendar.GoogleCalendarConfig{
+		Enabled:         true,
 		CredentialsFile: calendarCredFile,
 		TokenFile:       calendarTokenFile,
 	}
@@ -166,7 +167,7 @@ func getCreateEventCommand() *cobra.Command {
 		createdBy      string
 		customerID     int
 		customerSource string
-		animalID       string
+		animalID       []string
 		calID          string
 	)
 	cmd := &cobra.Command{
@@ -203,7 +204,7 @@ func getCreateEventCommand() *cobra.Command {
 		f.StringVar(&createdBy, "created-by", "", "User name that created the event")
 		f.IntVar(&customerID, "cid", 0, "Customer ID")
 		f.StringVar(&customerSource, "customer-source", "", "Customer source")
-		f.StringVar(&animalID, "animal-id", "", "Animal ID")
+		f.StringSliceVar(&animalID, "animal-id", nil, "Animal ID")
 		f.StringVar(&calID, "calendar", "", "Calendar ID")
 	}
 	cmd.MarkFlagRequired("at")
