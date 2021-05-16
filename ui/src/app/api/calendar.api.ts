@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
+import { Duration } from 'src/utils/duration';
 
 export interface RemoteEvent {
     _id: string;
@@ -14,9 +15,10 @@ export interface RemoteEvent {
     username?: string;
     calendarName?: string;
     data?: {
+        createdBy: string;
         customerSource: string;
-        customerID: string;
-        animalID?: string;
+        customerID: number;
+        animalID?: string[];
         requiredResources?: string[];
     };
 }
@@ -37,6 +39,23 @@ export interface LocalEvent extends Omit<Omit<RemoteEvent, 'startTime'>, 'endTim
 })
 export class CalendarAPI {
     constructor(private http: HttpClient) { }
+
+    createEvent(event: Partial<LocalEvent> & { duration: Duration }): Observable<void> {
+        let data: LocalEvent['data'] | null = null;
+        if (!!event.data) {
+            data = event.data;
+        }
+        return this.http.post<void>('/api/calendar/v1/events', {
+            summary: event.summary,
+            description: event.description,
+            startTime: event.startTime.toISOString(),
+            duration: event.duration.seconds + "s",
+            calendarID: event.calendarID,
+            fullDayEvent: event.fullDayEvent,
+            username: event.username,
+            data: data,
+        });
+    }
 
     listCalendars(): Observable<Calendar[]> {
         return this.http.get<Calendar[]>('/api/calendar/v1/');
