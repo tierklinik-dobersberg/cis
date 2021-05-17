@@ -2,10 +2,12 @@ import { CdkScrollable } from '@angular/cdk/scrolling';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, TrackByFunction, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { colorSets } from '@swimlane/ngx-charts';
+import { NzPopoverDirective } from 'ng-zorro-antd/popover';
 import { BehaviorSubject, combineLatest, forkJoin, interval, of, Subject } from 'rxjs';
 import { startWith, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import { CalendarAPI, IdentityAPI, LocalEvent, ProfileWithAvatar, UserService } from 'src/app/api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
+import { getContrastFontColor } from 'src/app/utils';
 import { Duration } from 'src/utils/duration';
 
 interface DisplayEvent extends LocalEvent {
@@ -14,6 +16,7 @@ interface DisplayEvent extends LocalEvent {
     height: number;
     left: number;
     color: string;
+    fontColor: string;
 }
 
 interface Calendar {
@@ -254,7 +257,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
                         displayed: wasDisplayed === undefined ? undefined : wasDisplayed,
                         events: [],
                         color: user?.color || '#90EE90',
-                        fontColor: user?.fontColor,
+                        fontColor: user?.fontColor || '#000000',
                     })
                 })
 
@@ -274,6 +277,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
                         height: event.endTime ? this.adjustToHours(this.offset(event.endTime) - this.offset(event.startTime)) : 1,
                         left: 0,
                         color: cal.color,
+                        fontColor: cal.fontColor,
                     });
                 });
 
@@ -364,6 +368,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
                             event.left = stack.length * (sizePerCalendar / 10);
                             event.offsettop = stack.filter(e => e.top === event.top).length * 5;
                             event.color = this.ligthenColor(event.color, stack.length * 5);
+                            event.fontColor = getContrastFontColor(event.color);
                         }
                         stack.push(event);
                         console.log(cal.name, event.summary, stack);

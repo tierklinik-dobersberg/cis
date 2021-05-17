@@ -13,7 +13,7 @@ import { DayViewComponent } from './day-view';
         SharedModule,
         CalendarRoutingModule,
         NzDatePickerModule,
-        NzDropDownModule
+        NzDropDownModule,
     ],
 })
 export class CalendarModule { }
