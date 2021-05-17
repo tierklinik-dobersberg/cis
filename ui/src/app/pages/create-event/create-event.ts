@@ -1,8 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { interval } from 'rxjs';
 import { animationFrameScheduler, forkJoin, Observable, of, Subject } from 'rxjs';
-import { catchError, debounceTime, map, observeOn, share, switchMap, takeUntil } from 'rxjs/operators';
+import { catchError, debounceTime, map, observeOn, share, startWith, switchMap, takeUntil } from 'rxjs/operators';
 import { CalendarAPI, CalllogAPI, LocalPatient, PatientAPI, ProfileWithAvatar, Resource, ResourceAPI, UserService } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
@@ -214,16 +215,24 @@ export class CreateEventComponent implements OnInit, OnDestroy {
                 selected: false,
             })));
 
-        this.calllogapi.forToday()
+        interval(5000)
             .pipe(
                 takeUntil(this.destroy$),
+                startWith(-1),
+                switchMap(() => this.calllogapi.forToday()),
                 switchMap(calllogs => {
                     // TODO(ppacher): also accept calllogs where we don't know the number and
                     // ask the user to assign it. That's possible the easiest way to get phone - customer
                     // assignments done.
                     const recent = calllogs.filter(call => !!call.customerSource && call.customerSource !== 'unknown').slice(0, 10);
                     return forkJoin(
-                        recent.map(call => this.customerapi.byId(call.customerSource!, call.customerID!))
+                        recent.map(call => {
+                            return this.customerapi.byId(call.customerSource!, call.customerID!)
+                                .pipe(catchError(err => {
+                                    console.log(err);
+                                    return of(null as Customer);
+                                }));
+                        })
                     );
                 })
             )
@@ -231,10 +240,23 @@ export class CreateEventComponent implements OnInit, OnDestroy {
                 if (result === null) {
                     return;
                 }
-                this.calllogSuggestions = result.map(customer => ({
-                    ...customer,
-                    display: `${customer.name} ${customer.firstname}, ${customer.street}, ${customer.city}`
-                }));
+                const seen = new Set<string>();
+                this.calllogSuggestions = result
+                    .filter(customer => {
+                        if (!customer) {
+                            return false;
+                        }
+                        const key = `${customer.source}/${customer.cid}`;
+                        if (seen.has(key)) {
+                            return false;
+                        }
+                        seen.add(key);
+                        return true;
+                    })
+                    .map(customer => ({
+                        ...customer,
+                        display: `${customer.name} ${customer.firstname}, ${customer.street}, ${customer.city}`
+                    }));
                 if (this.customerSearchResult.length === 0) {
                     this.customerSearchResult = this.calllogSuggestions;
                 }
