@@ -1,9 +1,8 @@
 <div class="user-row">
     <span class="profile"></span>
-    <div class="slot-header">
-        <span class="slot" *ngFor="let slot of timeSlots">
-            {{ slot.from | date:"HH:mm" }}
-        </span>
+    <div class="buttons">
+        <span>{{ firstSlot?.from | date: 'HH:mm' }}</span>
+        <span>{{ lastSlot?.to | date: 'HH:mm' }}</span>
     </div>
 </div>
 <div *ngFor="let user of allUsers" class="user-row">
@@ -37,7 +36,7 @@
         </ng-template>
     </div>
 </div>
-<div class="user-row buttons">
+<div class="user-row">
     <span class="profile"></span>
     <div class="buttons">
         <button nz-button nzType="default" (click)="earlier()">

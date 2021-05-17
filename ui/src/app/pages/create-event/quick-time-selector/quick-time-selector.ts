@@ -314,8 +314,6 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
 
         this.tooltipTimeStart = highlightdSlots[0].from;
         this.tooltipTimeEnd = highlightdSlots[highlightdSlots.length - 1].to;
-        const m = new Map<string, LocalEvent>();
-
         this.tooltipEvents = slot.users[user];
     }
 
@@ -375,8 +373,21 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
     }
 
     private updateTimeSlots(openinghours: OpeningHour[], day?: Day, config?: UIConfig, events?: LocalEvent[]) {
-        // filter out all full day-events
-        events = (events || []).filter(e => !e.fullDayEvent);
+        let [allUsers, unassignedCalendars, hasRoster] = this.getAllAvailableUsers(day, config);
+        this.allUsers = allUsers;
+        let calendarIds = new Set<string>();
+        allUsers.forEach(user => {
+            if (!!user.calendarID) {
+                calendarIds.add(user.calendarID);
+            }
+        })
+
+        // filter out all full day-events and events for staff that is not
+        // working according to duty roster.
+        // TODO(ppacher): allow overwritting this behavior.
+        events = (events || []).filter(e => {
+            return !e.fullDayEvent && calendarIds.has(e.calendarID);
+        });
 
         let [earliestDate, latestDate] = this.getEarliestAndLatestDate(openinghours, events);
         if (earliestDate === null) {
@@ -398,9 +409,6 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
 
         const threshold = new Date(earliestDate.getFullYear(), earliestDate.getMonth(), earliestDate.getDate(), 12, 0, 0).getTime();
 
-        let [allUsers, unassignedCalendars, hasRoster] = this.getAllAvailableUsers(day, config);
-        this.allUsers = allUsers;
-
         const now = new Date().getTime();
 
         let startSelected = this.selectedStart?.getTime() || Infinity;
@@ -408,8 +416,8 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
         this.timeSlots = [];
         for (let iter = earliestDate; iter.getTime() < latestDate.getTime(); iter = this.slotSize.addTo(iter)) {
             let usersSlot: string[];
-            const isOpeningHour = isInFrame(iter);
             const end = this.slotSize.addTo(iter);
+            const isOpeningHour = isInFrame(end);
 
             if (hasRoster) {
                 if (!isOpeningHour) {
@@ -445,6 +453,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                 available[user] = true;
             });
 
+            // FIXME(ppacher): add support for MaxConcurrentUse!
             const allResourcesFree = !Object.keys(users).some(key => {
                 return users[key].some(event => !!event.data?.requiredResources?.some(res => this._resourcesRequired.has(res)));
             });
@@ -493,6 +502,9 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                 latestDate = frame.to;
             }
         });
+        if (earliestDate === null) {
+            return [null, null];
+        }
         const neg = Duration.seconds(this.slotSize.seconds * -1);
         return [neg.addTo(earliestDate), this.slotSize.addTo(latestDate)];
     }
@@ -526,6 +538,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                 unassignedCalendars.push(cal._id);
                 allUsers.push({
                     name: cal._id,
+                    calendarID: cal._id,
                     fullname: cal.name,
                     isCalendar: true,
                 })
@@ -538,6 +551,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
         return [this.calendars.map(cal => ({
             name: cal._id,
             fullname: cal.name,
+            calendarID: cal._id,
             isCalendar: true,
         })), [], false]
     }
