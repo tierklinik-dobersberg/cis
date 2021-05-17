@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, Renderer2 } from '@angular/core';
-import { valueFunctionProp } from 'ng-zorro-antd/core/util';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, combineLatest, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, debounceTime, mergeMap, takeUntil, tap } from 'rxjs/operators';
@@ -39,11 +38,14 @@ type SlotUser = Partial<ProfileWithAvatar> & { isCalendar?: boolean };
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
+    readonly slotSize = Duration.minutes(15);
 
     @Input()
     set resourcesRequired(v: string[]) {
         this._resourcesRequired = new Set<string>(v);
-        this.onResourcesRequired$.next(this._resourcesRequired);
+        Promise.resolve(() => {
+            this.onResourcesRequired$.next(this._resourcesRequired);
+        })
     }
     get resourcesRequired() { return Array.from(this._resourcesRequired); }
 
@@ -113,6 +115,19 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
     /** The current date displayed by this component. */
     private _date: Date = new Date();
 
+    /** Whether or not we should skip the next emit */
+    private skipEmit = false;
+
+    /** The very first time slot displayed */
+    get firstSlot() {
+        return this.timeSlots[0];
+    }
+
+    /** The last displayed timeslot */
+    get lastSlot() {
+        return this.timeSlots[this.timeSlots.length - 1]
+    }
+
     @Output()
     selectedTimeChange = new EventEmitter<SelectedTime>();
 
@@ -122,11 +137,14 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
             return;
         }
 
-        if (!v && !!this.selectedUser) {
-            this.selectedUser = '';
-            this.selectedStart = null;
-            this.selectedEnd = null;
-            this.date = new Date();
+        this.skipEmit = true;
+        if (!v) {
+            if (!!this.selectedUser) {
+                this.selectedUser = '';
+                this.selectedStart = null;
+                this.selectedEnd = null;
+                this.date = new Date();
+            }
             return;
         }
 
@@ -179,6 +197,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                             s.selected = true;
                         }
                     });
+                    this.emitSelectedTime();
                 },
                 () => { },
                 () => {
@@ -192,8 +211,13 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
     }
 
     private emitSelectedTime() {
+        if (this.skipEmit) {
+            this.skipEmit = false;
+            return
+        }
         const selectedSlots = this.timeSlots.filter(s => s.selected);
         if (!selectedSlots || selectedSlots.length === 0) {
+            console.log("emitting null selected time")
             this.selectedTimeChange.next(null);
             return;
         }
@@ -204,10 +228,12 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
         this.selectedStart = from;
         this.selectedEnd = to;
 
+        const user = this.users.byName(this.selectedUser);
         this.selectedTimeChange.next({
             date: from,
             duration,
-            user: this.users.byName(this.selectedUser),
+            user: user,
+            calendarID: user?.calendarID || this.selectedUser,
         });
     }
 
@@ -215,8 +241,12 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
         this._done = true;
         combineLatest([
             this.onDate$.pipe(
-                debounceTime(10),
                 mergeMap(d => {
+                    if (!!this.selectedStart && this.selectedStart.toDateString() !== d.toDateString()) {
+                        this.selectedStart = null;
+                        this.selectedEnd = null;
+                    }
+
                     this.loading = true;
                     return forkJoin({
                         date: of(d),
@@ -289,6 +319,45 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
         this.tooltipEvents = slot.users[user];
     }
 
+    earlier() {
+        const now = (new Date()).getTime();
+        const slotSize = Duration.seconds(-1 * this.slotSize.seconds)
+        for (let i = 0; i < 4; i++) {
+            let first = this.firstSlot;
+            let from = slotSize.addTo(first.from)
+            this.timeSlots.splice(0, 0, {
+                allResourcesFree: true,
+                available: {},
+                disabled: from.getTime() < now,
+                to: first.from,
+                from: from,
+                highlighted: false,
+                isOpeningHour: false,
+                selected: false,
+                users: {},
+            })
+        }
+    }
+
+    later() {
+        const now = (new Date()).getTime();
+        for (let i = 0; i < 4; i++) {
+            let last = this.lastSlot;
+            this.timeSlots.push({
+                allResourcesFree: true,
+                available: {},
+                disabled: last.to.getTime() < now,
+                from: last.to,
+                to: this.slotSize.addTo(last.to),
+                highlighted: false,
+                isOpeningHour: false,
+                selected: false,
+                users: {},
+            })
+        }
+
+    }
+
     private loadOrNull<T>(obs: Observable<T>): Observable<T | null> {
         return obs.pipe(catchError(err => {
             if (err.status !== 404) {
@@ -303,11 +372,13 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
     private resetView() {
         this.isHoliday = null;
         this.timeSlots = [];
-        //this.selectedTimeChange.next(null);
     }
 
     private updateTimeSlots(openinghours: OpeningHour[], day?: Day, config?: UIConfig, events?: LocalEvent[]) {
-        let [earliestDate, latestDate] = this.getEarliestAndLatestDate(openinghours);
+        // filter out all full day-events
+        events = (events || []).filter(e => !e.fullDayEvent);
+
+        let [earliestDate, latestDate] = this.getEarliestAndLatestDate(openinghours, events);
         if (earliestDate === null) {
             // TODO(ppacher): no opening hour on that day
             return;
@@ -325,7 +396,6 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
             eventMap.set(event.username || event.calendarID, arr);
         });
 
-        const slotSize = Duration.minutes(15);
         const threshold = new Date(earliestDate.getFullYear(), earliestDate.getMonth(), earliestDate.getDate(), 12, 0, 0).getTime();
 
         let [allUsers, unassignedCalendars, hasRoster] = this.getAllAvailableUsers(day, config);
@@ -336,10 +406,10 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
         let startSelected = this.selectedStart?.getTime() || Infinity;
         let endSelected = this.selectedEnd?.getTime() || 0
         this.timeSlots = [];
-        for (let iter = earliestDate; iter.getTime() < latestDate.getTime(); iter = slotSize.addTo(iter)) {
+        for (let iter = earliestDate; iter.getTime() < latestDate.getTime(); iter = this.slotSize.addTo(iter)) {
             let usersSlot: string[];
             const isOpeningHour = isInFrame(iter);
-            const end = slotSize.addTo(iter);
+            const end = this.slotSize.addTo(iter);
 
             if (hasRoster) {
                 if (!isOpeningHour) {
@@ -381,7 +451,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
 
             const iterMs = iter.getTime();
             const toMs = end.getTime();
-            const selected = startSelected <= iterMs && endSelected >= iterMs;
+            const selected = startSelected <= iterMs && endSelected >= toMs;
 
 
             this.timeSlots.push({
@@ -398,9 +468,22 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
         }
     }
 
-    private getEarliestAndLatestDate(hours: OpeningHour[]): [Date, Date] {
-        let earliestDate: Date | null = null;
-        let latestDate: Date | null = null;
+    private getEarliestAndLatestDate(hours: OpeningHour[], events?: LocalEvent[]): [Date, Date] {
+        let earliestDate: Date | null = this.selectedStart;
+        let latestDate: Date | null = this.selectedEnd
+            ? this.slotSize.addTo(this.selectedEnd)
+            : null;
+
+        events?.forEach(event => {
+            if (earliestDate === null || event.startTime.getTime() < earliestDate.getTime()) {
+                earliestDate = event.startTime
+            }
+
+            if (latestDate === null || event.endTime?.getTime() > latestDate.getTime()) {
+                latestDate = event.endTime;
+            }
+        })
+
         hours.forEach(frame => {
             if (earliestDate === null || frame.from.getTime() < earliestDate.getTime()) {
                 earliestDate = frame.from;
@@ -410,7 +493,8 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
                 latestDate = frame.to;
             }
         });
-        return [earliestDate, latestDate]
+        const neg = Duration.seconds(this.slotSize.seconds * -1);
+        return [neg.addTo(earliestDate), this.slotSize.addTo(latestDate)];
     }
 
     private getAllAvailableUsers(day?: Day, config?: UIConfig): [SlotUser[], string[], boolean] {

@@ -1,10 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { animationFrameScheduler, forkJoin, Observable, of, Subject } from 'rxjs';
-import { catchError, debounceTime, filter, map, observeOn, share, switchMap, takeUntil } from 'rxjs/operators';
-import { CalendarAPI, CalllogAPI, ConfigAPI, LocalPatient, OpeningHoursAPI, PatientAPI, ProfileWithAvatar, Resource, ResourceAPI, RosterAPI, UserService } from 'src/app/api';
+import { catchError, debounceTime, map, observeOn, share, switchMap, takeUntil } from 'rxjs/operators';
+import { CalendarAPI, CalllogAPI, LocalPatient, PatientAPI, ProfileWithAvatar, Resource, ResourceAPI, UserService } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
+import { extractErrorMessage } from 'src/app/utils';
 import { Duration } from 'src/utils/duration';
 import { SelectedTime } from './quick-time-selector';
 
@@ -78,12 +80,14 @@ export class CreateEventComponent implements OnInit, OnDestroy {
 
     constructor(
         private headerService: HeaderTitleService,
+        private calendarapi: CalendarAPI,
         private customerapi: CustomerAPI,
         private calllogapi: CalllogAPI,
         private patientapi: PatientAPI,
         private resourceapi: ResourceAPI,
         private userService: UserService,
         private activeRoute: ActivatedRoute,
+        private nzMessageService: NzMessageService,
     ) { }
 
     /** @private - callback when the user selects a time via quick-time-selector. */
@@ -104,6 +108,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
      * @param customer The customer to select
      */
     selectCustomer(customer: DisplayCustomer | null) {
+        this.selectedPatients = [];
         this.loadPatient$.next(customer);
     }
 
@@ -154,6 +159,36 @@ export class CreateEventComponent implements OnInit, OnDestroy {
         this.selectedCustomer = null;
         this.selectedPatients = [];
         this.resources.forEach(r => r.selected = false);
+    }
+
+    createEvent() {
+        this.calendarapi.createEvent({
+            summary: this.summary,
+            description: this.description,
+            duration: this.selectedTime.duration,
+            calendarID: this.selectedTime.calendarID,
+            startTime: this.selectedTime.date,
+            data: {
+                customerID: this.selectedCustomer.cid,
+                customerSource: this.selectedCustomer.source,
+                animalID: this.selectedPatients.map(p => {
+                    if (typeof p === 'string') {
+                        return p
+                    }
+                    return p.animalID
+                }),
+                requiredResources: this.selectedResources,
+                createdBy: this.createdBy
+            }
+        }).subscribe({
+            next: () => {
+                this.nzMessageService.success('Termin erfolgreich erstellt');
+                this.resetView();
+            },
+            error: err => {
+                this.nzMessageService.error(extractErrorMessage(err, 'Termin konnte nicht erstellt werden'))
+            }
+        })
     }
 
     /** @private - Emits onSelectedResources$ */

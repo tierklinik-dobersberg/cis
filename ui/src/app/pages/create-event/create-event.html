@@ -56,7 +56,9 @@
             <nz-date-picker [(ngModel)]="selectedDate" [nzDisabledDate]="disabledDate"></nz-date-picker>
             <button nz-button nzType="text" (click)="nextDay()"><i nz-icon nzType="right"></i></button>
             <span *ngIf="!!selectedTime" class="selected-time">
-                <nz-avatar nzIcon="user" [nzSrc]="selectedTime.user?.avatar" nzSize="small"></nz-avatar>
+                <nz-avatar nzIcon="user" [nzSrc]="selectedTime.user?.avatar" nz-tooltip
+                    [nzTooltipTitle]="selectedTime.user?.fullname || selectedTime.calendarID" nzSize="small">
+                </nz-avatar>
                 {{ selectedTime.user?.fullname || selectedTime.user?.name }}: <b>{{ selectedTime.date | date:"HH:mm"
                     }}</b> für
                 <b>{{ selectedTime.duration.toString() }}</b>
@@ -69,6 +71,6 @@
 </div>
 
 <div class="save-event content-section">
-    <button nz-button nzType="primary">Erstellen</button>
+    <button nz-button nzType="primary" (click)="createEvent()">Erstellen</button>
     <button nz-button nzType="danger" (click)="resetView()">Abbrechen</button>
 </div>
