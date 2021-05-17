@@ -106,18 +106,20 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     this.checkReachability();
 
-    this.updates.available.subscribe(event => {
-      this.modal.info({
-        nzTitle: 'Neue Version verfügbar',
-        nzContent: 'Einen neue Version von CIS ist verfügbar!',
-        nzOkText: 'Update',
-        nzOnOk: async () => {
-          await this.updates.activateUpdate();
-          document.location.reload();
-        },
-        nzClosable: false,
+    this.updates.available
+      .pipe(take(1))
+      .subscribe(event => {
+        this.modal.info({
+          nzTitle: 'Neue Version verfügbar',
+          nzContent: 'Einen neue Version von CIS ist verfügbar!',
+          nzOkText: 'Update',
+          nzOnOk: async () => {
+            await this.updates.activateUpdate();
+            document.location.reload();
+          },
+          nzClosable: false,
+        });
       });
-    });
 
     this.updates.activated.subscribe(event => {
       this.nzMessage.info('Gratuliere! Du verwendest nun die neuste Version von CIS');
