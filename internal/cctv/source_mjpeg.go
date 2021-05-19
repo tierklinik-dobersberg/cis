@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
+	"strings"
 	"sync"
 	"time"
 
@@ -41,36 +42,59 @@ var MJPEGSourceSpec = conf.SectionSpec{
 
 // Attach implements Source.Attach.
 func (src *MJPEGSource) Attach(ctx context.Context, c *gin.Context) error {
+	// start pulling frames and send them to ch.
 	ch, key, err := src.attach()
 	if err != nil {
 		return err
 	}
 
+	// remove our ch from handlers once we're done
 	defer func() {
 		src.l.Lock()
 		defer src.l.Unlock()
 		delete(src.handlers, key)
 	}()
 
-	b := "test-boundary"
-	c.Writer.Header().Set("Content-Type", "multipart/x-mixed-replace;boundary="+b)
-
-	// flush headers to make sure frames are transmitted in chunks.
-	c.Writer.Flush()
-
+	// hijack the connection as we need to clear
+	// read/write timeouts.
 	conn, _, err := c.Writer.Hijack()
 	if err != nil {
 		return fmt.Errorf("failed to hijack: %w", err)
 	}
 	defer conn.Close()
 
-	if err := conn.SetWriteDeadline(time.Time{}); err != nil {
-		return fmt.Errorf("failed to clear write deadline: %s", err)
-	}
-
+	// perpare a multipart writer and the HTTP response
+	// header
 	client := utils.RealClientIP(c.Request)
 	writer := multipart.NewWriter(conn)
-	writer.SetBoundary(b)
+	res := http.Response{
+		StatusCode:    http.StatusOK,
+		ProtoMajor:    c.Request.ProtoMajor,
+		ProtoMinor:    c.Request.ProtoMinor,
+		ContentLength: -1, // unknown
+		Header:        http.Header{},
+	}
+
+	// We must quote the boundary if it contains any of the
+	// specials characters defined by RFC 2045, or space.
+	b := writer.Boundary()
+	if strings.ContainsAny(b, `()<>@,;:\"/[]?= `) {
+		b = `"` + b + `"`
+	}
+	res.Header.Set("Content-Type", "multipart/x-mixed-replace;boundary="+b)
+
+	// write the headers to the client
+	if err := res.Write(conn); err != nil {
+		return fmt.Errorf("failed to write response header: %w", err)
+	}
+
+	// clear any write and read-dealines
+	if err := conn.SetReadDeadline(time.Time{}); err != nil {
+		return fmt.Errorf("failed to clear read deadline: %w", err)
+	}
+	if err := conn.SetWriteDeadline(time.Time{}); err != nil {
+		return fmt.Errorf("failed to clear write deadline: %w", err)
+	}
 
 	// forward JPEG frames
 	for msg := range ch {
@@ -81,6 +105,11 @@ func (src *MJPEGSource) Attach(ctx context.Context, c *gin.Context) error {
 		part, err := writer.CreatePart(header)
 		if err != nil {
 			logger.From(ctx).Errorf("failed to create part for %s: %s", client.String(), err)
+			return err
+		}
+
+		if err := conn.SetWriteDeadline(time.Now().Add(time.Second)); err != nil {
+			logger.From(ctx).Errorf("failed to set write deadline to %s: %s", client.String(), err)
 			return err
 		}
 
@@ -131,27 +160,37 @@ func (src *MJPEGSource) pull() error {
 		return err
 	}
 
+	// we currently only support MJPEG streams that use multipart
+	// streaming with x-mixed-replace. Better make sure this is
+	// really a supported cam.
 	if parsed != "multipart/x-mixed-replace" {
 		return fmt.Errorf("unsupported content type: %s", ct)
 	}
+
+	// get a new multipart reader from the returned body
+	// and start pulling frames.
 	boundary := params["boundary"]
 	if boundary == "" {
 		return fmt.Errorf("missing boundary in content type: %s", err)
 	}
-
 	reader := multipart.NewReader(resp.Body, boundary)
+	src.running = true
+
 	log := logger.From(context.Background())
 	go func() {
-		defer resp.Body.Close()
 		defer func() {
 			src.l.Lock()
 			defer src.l.Unlock()
+
+			// close all handler channels which will wake-up
+			// the pumps and close the streaming connections.
 			src.running = false
 			for _, ch := range src.handlers {
 				close(ch)
 			}
 			src.handlers = make(map[string]chan []byte)
 		}()
+		defer resp.Body.Close()
 
 		for {
 			part, err := reader.NextPart()
