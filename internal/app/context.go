@@ -14,6 +14,7 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
+	"github.com/tierklinik-dobersberg/cis/internal/cctv"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
@@ -54,6 +55,7 @@ type App struct {
 	MQTTClient  mqtt.Client
 	Calendar    calendar.Service
 	Resources   *resourcedb.Registry
+	CCTV        *cctv.Manager
 
 	loadLocationOnce sync.Once
 	location         *time.Location
@@ -82,6 +84,7 @@ func NewApp(
 	mqttClient mqtt.Client,
 	calendarEvents calendar.Service,
 	resourceRegistry *resourcedb.Registry,
+	cctvmng *cctv.Manager,
 ) *App {
 	return &App{
 		Instance:    inst,
@@ -101,6 +104,7 @@ func NewApp(
 		MQTTClient:  mqttClient,
 		Calendar:    calendarEvents,
 		Resources:   resourceRegistry,
+		CCTV:        cctvmng,
 	}
 }
 

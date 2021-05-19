@@ -1,0 +1,10 @@
+<div class="content">
+  <ul>
+    <li *ngFor="let cam of cameras; trackBy: trackByCam">
+      <label>{{cam.name}}</label>
+      <caption>{{cam.description}}</caption>
+
+      <img class="preview" [attr.src]="cam.streamUrl">
+    </li>
+  </ul>
+</div>

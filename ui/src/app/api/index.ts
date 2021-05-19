@@ -15,3 +15,4 @@ export * from './patient.api';
 export * from './calendar.api';
 export * from './openinghours.api';
 export * from './resources.api';
+export * from './cctv.api';

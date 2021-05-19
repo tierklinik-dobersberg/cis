@@ -1,0 +1,8 @@
+[Camera]
+Name=Cat Cage Space
+Description=Käfigraum Katzen
+Type=Maginon IPC-1
+Location=Main Building
+
+[MJPEGSource]
+URL= http://192.168.0.50/videostream.cgi?user=admin&pwd=

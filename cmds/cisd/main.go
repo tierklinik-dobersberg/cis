@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tierklinik-dobersberg/cis/internal/api/calendarapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/calllogapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/cctvapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/commentapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/configapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/customerapi"
@@ -29,6 +30,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/autologin"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
+	"github.com/tierklinik-dobersberg/cis/internal/cctv"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
@@ -162,6 +164,8 @@ func getApp(ctx context.Context) *app.App {
 				openinghoursapi.Setup(apis.Group("openinghours", session.Require()))
 				// resourceapi provides access to limited resource definitions
 				resourceapi.Setup(apis.Group("resources", session.Require()))
+				// cctv allows streaming access to security cameras
+				cctvapi.Setup(apis.Group("cctv", session.Require()))
 			}
 
 			return nil
@@ -363,6 +367,14 @@ func getApp(ctx context.Context) *app.App {
 	autoLoginManager = autologin.NewManager(ctx, identities, httpcond.DefaultRegistry)
 
 	//
+	// prepare
+	//
+	cctvManager := &cctv.Manager{}
+	if err := cctvManager.LoadDefinitions(svcenv.Env().ConfigurationDirectory); err != nil {
+		logger.Fatalf(ctx, "cctv-manager: %s", err.Error())
+	}
+
+	//
 	// Create a new application context and make sure it's added
 	// to each incoming HTTP Request.
 	//
@@ -384,6 +396,7 @@ func getApp(ctx context.Context) *app.App {
 		mqttClient,
 		calendarService,
 		resources,
+		cctvManager,
 	)
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 

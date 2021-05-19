@@ -15,6 +15,7 @@ const routes: Routes = [
   { path: 'voicemail', loadChildren: () => import('./pages/voicemails/voicemails.module').then(m => m.VoiceMailsModule) },
   { path: 'create-event', loadChildren: () => import('./pages/create-event/create-event.module').then(m => m.CreateEventModule) },
   { path: 'calendar', loadChildren: () => import('./pages/calendar/calendar.module').then(m => m.CalendarModule) },
+  { path: 'cctv', loadChildren: () => import('./pages/cctv/cctv.module').then(m => m.CctvModule) },
 ];
 
 @NgModule({

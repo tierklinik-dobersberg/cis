@@ -43,6 +43,11 @@
       </ul>
     </li>
 
+    <li routerLink="/cctv" nzMatchRouter nz-menu-item>
+      <i nz-icon nzType="video-camera" nzTheme="outline"></i>
+      <span>Video-Kameras</span>
+    </li>
+
     <li nz-submenu nzTitle="Links" nzIcon="link">
       <ul>
         <li *ngFor="let menu of subMenus" nz-submenu [nzTitle]="menu.Text">
