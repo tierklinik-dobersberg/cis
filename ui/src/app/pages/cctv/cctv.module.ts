@@ -3,6 +3,7 @@ import { CctvRoutingModule } from './cctv-routing.module';
 import { SharedModule } from '../../shared/shared.module';
 import { CameraListComponent } from './camera-list';
 import { NzImageModule } from 'ng-zorro-antd/image';
+import { CameraViewComponent } from './camera-view';
 
 @NgModule({
   imports: [
@@ -12,6 +13,7 @@ import { NzImageModule } from 'ng-zorro-antd/image';
   ],
   declarations: [
     CameraListComponent,
+    CameraViewComponent,
   ],
 })
 export class CctvModule { }

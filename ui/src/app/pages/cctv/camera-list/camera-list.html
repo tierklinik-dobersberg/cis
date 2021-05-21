@@ -1,10 +1,10 @@
 <div class="content">
   <ul>
-    <li *ngFor="let cam of cameras; trackBy: trackByCam">
+    <li *ngFor="let cam of cameras; trackBy: trackByCam" [routerLink]="[cam.id]">
       <label>{{cam.name}}</label>
       <caption>{{cam.description}}</caption>
 
-      <img nz-image class="preview" [nzSrc]="cam.streamUrl" [nzFallback]="fallback">
+      <img nz-image class="preview" [nzDisablePreview]="true" [nzSrc]="cam.streamUrl" [nzFallback]="fallback">
     </li>
   </ul>
 </div>
