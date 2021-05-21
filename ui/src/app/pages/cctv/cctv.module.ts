@@ -10,6 +10,7 @@ import { CameraViewComponent } from './camera-view';
     CctvRoutingModule,
     SharedModule,
     NzImageModule,
+
   ],
   declarations: [
     CameraListComponent,

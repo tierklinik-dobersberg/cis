@@ -3,7 +3,19 @@
   width  : 100%;
 }
 
+.content {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+nz-empty {
+  margin-top: 24px;
+}
+
 ul {
+  width: 100%;
   padding              : 32px;
   list-style           : none;
   display              : grid;
