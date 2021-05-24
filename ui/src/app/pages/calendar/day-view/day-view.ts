@@ -30,6 +30,8 @@ interface Calendar {
     fontColor: string;
 }
 
+type CalendarMode = 'auto' | 'mine' | 'all' | 'selected';
+
 @Component({
     selector: 'app-calendar-day-view',
     templateUrl: './day-view.html',
@@ -63,11 +65,19 @@ export class DayViewComponent implements OnInit, OnDestroy {
     /** The currently active event id */
     activeEventID: string = '';
 
-    /** The text for the filter button */
-    filterButtonText = 'Alle'
-
     @ViewChild('scrollContainer', { static: true })
     scrollable: ElementRef;
+
+    /** The curent calendar mode */
+    calendarMode: CalendarMode = 'auto';
+
+    /** Display text for the current calendar mode */
+    calendarModeText = {
+        'auto': 'Automatisch',
+        'mine': 'Mein Kalendar',
+        'all': 'Alle Kalendar',
+        'selected': 'Nur ausgewählte'
+    };
 
     /** track by function for all calendars */
     trackCalendar: TrackByFunction<Calendar> = (_: number, item: Calendar) => {
@@ -96,21 +106,21 @@ export class DayViewComponent implements OnInit, OnDestroy {
         // click than display all again
         if (!all.filter(cal => cal.id !== id).some(cal => cal.displayed)) {
             all.forEach(cal => cal.displayed = true);
-            this.updateFilterButtonText();
+            this.updateCalendarMode();
             return;
         }
 
         all.forEach(val => {
             val.displayed = val.id === id;
         });
-        this.updateFilterButtonText();
+        this.updateCalendarMode();
         this.cdr.markForCheck();
     }
 
     /** Toggle visibility of cal */
     updateFilter(cal: Calendar) {
         cal.displayed = !cal.displayed;
-        this.updateFilterButtonText();
+        this.updateCalendarMode();
     }
 
     createEvent(event: MouseEvent, cal: Calendar) {
@@ -147,29 +157,42 @@ export class DayViewComponent implements OnInit, OnDestroy {
     }
 
     toggleAll() {
-        const all = !this.calendars.some(cal => !cal.displayed);
-        if (!all) {
-            this.calendars.forEach(cal => cal.displayed = true);
-        } else {
-            if (this.identityapi.currentProfile?.calendarID) {
-                // only display the calendar that belongs to the current user
-                this.calendars.forEach(cal => cal.displayed = cal.id === this.identityapi.currentProfile?.calendarID)
-                // if there's no calendar anymore to be displayed
-                // toggle once more so we display all of them
+        switch (this.calendarMode) {
+            case 'all': // => mine
+                if (this.identityapi.currentProfile?.calendarID) {
+                    this.calendarMode = 'mine';
+                    // only display the calendar that belongs to the current user
+                    this.calendars.forEach(cal => cal.displayed = cal.id === this.identityapi.currentProfile?.calendarID)
+                    // if there's no calendar anymore to be displayed
+                    // toggle once more so we display all of them
+                    if (!this.calendars.some(cal => cal.displayed)) {
+                        this.toggleAll();
+                        return;
+                    }
+                    break;
+                }
+            // fallthrough if there's no calendar for this profile
+            case 'mine':
+                this.calendarMode = 'auto';
+                this.calendars.forEach(cal => cal.displayed = cal.events?.length > 0)
                 if (!this.calendars.some(cal => cal.displayed)) {
                     this.toggleAll();
                     return;
                 }
-            }
+                // do not call updateCalendarMode in "auto".
+                return;
+            default:
+                this.calendars.forEach(cal => cal.displayed = true);
         }
-        this.updateFilterButtonText();
+
+        this.updateCalendarMode();
     }
 
-    private updateFilterButtonText() {
+    private updateCalendarMode() {
         this._layouting$.next();
         const all = !this.calendars.some(cal => !cal.displayed);
         if (all) {
-            this.filterButtonText = 'Alle Kalender'
+            this.calendarMode = 'all';
         } else {
             const onlyMine = !this.calendars.some(cal => {
                 if (cal.id === this.identityapi.currentProfile?.calendarID) {
@@ -178,9 +201,9 @@ export class DayViewComponent implements OnInit, OnDestroy {
                 return cal.displayed;
             })
             if (onlyMine) {
-                this.filterButtonText = 'Mein Kalender'
+                this.calendarMode = 'mine';
             } else {
-                this.filterButtonText = 'Ausgewählte Kalender';
+                this.calendarMode = 'selected';
             }
         }
     }
@@ -318,11 +341,24 @@ export class DayViewComponent implements OnInit, OnDestroy {
                         return 0;
                     });
 
-
-                    if (cal.displayed !== undefined) {
-                        return;
+                    switch (this.calendarMode) {
+                        case 'all':
+                            cal.displayed = true;
+                            break;
+                        case 'auto':
+                            cal.displayed = cal.events?.length > 0;
+                            break;
+                        case 'mine':
+                            cal.displayed = cal.user?.name === this.identityapi.currentProfile?.name;
+                            break;
+                        case 'selected':
+                            // for "selected", we keep the current setting and only update
+                            // it if it's a new calendar.
+                            if (cal.displayed === undefined) {
+                                cal.displayed = false;
+                            }
+                            break;
                     }
-                    cal.displayed = cal.events.length > 0;
                 })
                 this._layouting$.next();
 
@@ -338,7 +374,15 @@ export class DayViewComponent implements OnInit, OnDestroy {
                     this.todayOffset = 0;
                     this.headerService.set('Kalender: ' + this._currentDate$.getValue().toLocaleDateString())
                 }
-                this.updateFilterButtonText();
+
+                // if we are in "auto" mode and no calendars are displayed that we should
+                // switch to the next one
+                if (this.calendarMode === 'auto' && !this.calendars.some(cal => cal.displayed)) {
+                    // start at "all" and find the next view that works.
+                    // this actually skips "all" and will use it as a last resort.
+                    this.calendarMode = 'all';
+                    this.updateCalendarMode()
+                }
 
                 if (first && !!this.scrollable) {
                     let offset = this.isToday

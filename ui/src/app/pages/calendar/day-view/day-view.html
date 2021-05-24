@@ -14,7 +14,7 @@
     <div class="filter">
         <nz-button-group>
             <button nz-button nzType="default" (click)="toggleAll()">
-                {{ filterButtonText }}
+                {{ calendarModeText[calendarMode] }}
             </button>
 
             <button nz-button nzType="default" nz-dropdown [nzDropdownMenu]="dropdown" [nzClickHide]="false">
