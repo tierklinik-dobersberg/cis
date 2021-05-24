@@ -58,6 +58,7 @@ func getCustomerImporter(app *app.App, exporter *Exporter) *importer.Instance {
 					// TODO(ppacher): if we use "shadow-delete" we might need to update
 					// as well.
 					customer.ID = existing.ID
+					log.V(7).Logf("hashes of customer %d differ: %s != %s: \n\texisting: %+v\n\timported: %+v", customer.ID, existing.Hash(), customer.Hash(), existing, customer)
 					err = app.Customers.UpdateCustomer(ctx, &customer.Customer)
 					if err == nil {
 						countUpdated++
