@@ -74,8 +74,8 @@ export class DayViewComponent implements OnInit, OnDestroy {
     /** Display text for the current calendar mode */
     calendarModeText = {
         'auto': 'Automatisch',
-        'mine': 'Mein Kalendar',
-        'all': 'Alle Kalendar',
+        'mine': 'Mein Kalender',
+        'all': 'Alle Kalender',
         'selected': 'Nur ausgewählte'
     };
 
