@@ -39,22 +39,17 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 				}
 			}
 
-			doctorsOnDuty, until, isOverwrite, err := getDoctorOnDuty(ctx, app, d)
+			response, err := getDoctorOnDuty(ctx, app, d)
 			if err != nil {
 				return err
 			}
-
-			c.JSON(http.StatusOK, gin.H{
-				"doctors":     doctorsOnDuty,
-				"until":       until,
-				"isOverwrite": isOverwrite,
-			})
+			c.JSON(http.StatusOK, response)
 			return nil
 		},
 	)
 }
 
-func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.DoctorOnDuty, time.Time, bool, error) {
+func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) (*v1alpha.DoctorOnDutyResponse, error) {
 	log := log.From(ctx)
 	t = t.In(app.Location())
 
@@ -95,7 +90,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 		identitydb.WithScope(ctx, identitydb.Public),
 	)
 	if err != nil {
-		return nil, nextChange, false, httperr.InternalError(err)
+		return nil, httperr.InternalError(err)
 	}
 
 	// build a small lookup map by username.
@@ -112,7 +107,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 	// first check if we have an active overwrite for today
 	overwrite, err := app.DutyRosters.GetOverwrite(ctx, t)
 	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, nextChange, false, err
+		return nil, err
 	}
 
 	if err == nil {
@@ -148,35 +143,43 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 			user, ok := lm[overwrite.Username]
 			if !ok || overwrite.Username == "" {
 				log.Errorf("found invalid emergency duty overwrite for day %s", key)
-				return nil, nextChange, true, fmt.Errorf("invalid overwrite")
+				return nil, fmt.Errorf("invalid overwrite")
 			}
 
 			if len(user.PhoneNumber) > 0 {
 				phone = user.PhoneNumber[0]
 			}
 
-			return []v1alpha.DoctorOnDuty{
-				{
-					FullName:   user.Fullname,
-					Phone:      phone,
-					Username:   user.Name,
-					Properties: user.Properties,
+			return &v1alpha.DoctorOnDutyResponse{
+				Doctors: []v1alpha.DoctorOnDuty{
+					{
+						FullName:   user.Fullname,
+						Phone:      phone,
+						Username:   user.Name,
+						Properties: user.Properties,
+					},
 				},
-			}, nextChange, true, nil
+				Until:       nextChange,
+				IsOverwrite: true,
+			}, nil
 		}
 
-		return []v1alpha.DoctorOnDuty{
-			{
-				FullName: overwrite.DisplayName,
-				Phone:    overwrite.PhoneNumber,
-				Username: overwrite.Username,
+		return &v1alpha.DoctorOnDutyResponse{
+			Doctors: []v1alpha.DoctorOnDuty{
+				{
+					FullName: overwrite.DisplayName,
+					Phone:    overwrite.PhoneNumber,
+					Username: overwrite.Username,
+				},
 			},
-		}, nextChange, true, nil
+			Until:       nextChange,
+			IsOverwrite: true,
+		}, nil
 	}
 
 	day, err := app.DutyRosters.ForDay(ctx, t)
 	if err != nil {
-		return nil, nextChange, false, err
+		return nil, err
 	}
 
 	// Get the correct username slice. If there's no "day-shift"
@@ -199,7 +202,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 	}
 
 	if len(activeShift) == 0 {
-		return nil, nextChange, false, fmt.Errorf("no onCall shifts defined")
+		return nil, fmt.Errorf("no onCall shifts defined")
 	}
 
 	// convert all the usernames from the Emergency slice to their
@@ -224,5 +227,9 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) ([]v1alpha.
 		}
 	}
 
-	return doctorsOnDuty, nextChange, false, nil
+	return &v1alpha.DoctorOnDutyResponse{
+		Doctors:     doctorsOnDuty,
+		Until:       nextChange,
+		IsOverwrite: false,
+	}, nil
 }
