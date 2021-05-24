@@ -463,7 +463,6 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
             const toMs = end.getTime();
             const selected = startSelected <= iterMs && endSelected >= toMs;
 
-
             this.timeSlots.push({
                 from: iter,
                 to: end,

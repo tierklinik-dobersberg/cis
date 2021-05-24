@@ -17,6 +17,7 @@ interface DisplayEvent extends LocalEvent {
     left: number;
     color: string;
     fontColor: string;
+    overlapping: number;
 }
 
 interface Calendar {
@@ -278,6 +279,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
                         left: 0,
                         color: cal.color,
                         fontColor: cal.fontColor,
+                        overlapping: 0,
                     });
                 });
 
@@ -364,10 +366,20 @@ export class DayViewComponent implements OnInit, OnDestroy {
                     for (let i = 0; i < cal.events.length; i++) {
                         const event = cal.events[i];
                         stack = stack.filter(e => (e.top + e.height) > event.top)
-                        if (stack.length > 0) {
-                            event.left = stack.length * (sizePerCalendar / 10);
+                        let overlapping = stack.length;
+
+                        while (true) {
+                            if (!stack.some(event => event.overlapping === overlapping)) {
+                                break;
+                            }
+                            overlapping++;
+                        }
+
+                        if (overlapping > 0) {
+                            event.overlapping = overlapping;
+                            event.left = overlapping * (sizePerCalendar / 10);
                             event.offsettop = stack.filter(e => e.top === event.top).length * 5;
-                            event.color = this.ligthenColor(event.color, stack.length * 5);
+                            event.color = this.ligthenColor(event.color, overlapping * 5);
                             event.fontColor = getContrastFontColor(event.color);
                         }
                         stack.push(event);
