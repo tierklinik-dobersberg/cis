@@ -395,9 +395,10 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
             return;
         }
 
-        const isInFrame = (d: Date) => {
-            const ts = d.getTime();
-            return openinghours.some(frame => frame.from.getTime() <= ts && frame.to.getTime() >= ts);
+        const isInFrame = (start: Date, end: Date) => {
+            const tsStart = start.getTime();
+            const tsEnd = end.getTime();
+            return openinghours.some(frame => frame.from.getTime() <= tsStart && frame.to.getTime() >= tsEnd);
         };
 
         const eventMap = new Map<string, LocalEvent[]>();
@@ -417,7 +418,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
         for (let iter = earliestDate; iter.getTime() < latestDate.getTime(); iter = this.slotSize.addTo(iter)) {
             let usersSlot: string[];
             const end = this.slotSize.addTo(iter);
-            const isOpeningHour = isInFrame(end);
+            const isOpeningHour = isInFrame(iter, end);
 
             if (hasRoster) {
                 if (!isOpeningHour) {
