@@ -44,7 +44,7 @@ export class CameraListComponent implements OnInit, OnDestroy {
           if (dir.getElement().nativeElement.src === this.fallback) {
             const cam = this.cameras.find(c => c.streamUrl === dir.nzSrc);
             if (!!cam) {
-              cam.streamUrl = this.cctvapi.getCameraStreamURL(cam.id) + `?nocache=${new Date().getTime()}`;
+              cam.streamUrl = this.cctvapi.getCameraStreamURL(cam.id);
             }
           }
         })

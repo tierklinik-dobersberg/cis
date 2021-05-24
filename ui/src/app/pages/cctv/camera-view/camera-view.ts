@@ -52,7 +52,7 @@ export class CameraViewComponent implements OnInit, OnDestroy {
             )
             .subscribe(() => {
                 if (this.streamImage.getElement().nativeElement.src === this.fallback) {
-                    this.cam.streamUrl = this.cctvapi.getCameraStreamURL(this.cam.id) + `?nocache=${new Date().getTime()}`
+                    this.cam.streamUrl = this.cctvapi.getCameraStreamURL(this.cam.id);
                 }
             })
     }

@@ -82,6 +82,7 @@ func (src *MJPEGSource) Attach(ctx context.Context, c *gin.Context) error {
 		b = `"` + b + `"`
 	}
 	res.Header.Set("Content-Type", "multipart/x-mixed-replace;boundary="+b)
+	res.Header.Set("Cache-Control", "no-cache")
 
 	// write the headers to the client
 	if err := res.Write(conn); err != nil {

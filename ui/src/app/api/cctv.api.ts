@@ -35,6 +35,6 @@ export class CctvAPI {
   }
 
   getCameraStreamURL(camID: string): string {
-    return `/api/cctv/v1/camera/${camID}/stream`;
+    return `/api/cctv/v1/camera/${camID}/stream?nocache=${new Date().getTime()}`;
   }
 }
