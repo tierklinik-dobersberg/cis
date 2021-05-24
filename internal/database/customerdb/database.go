@@ -27,7 +27,7 @@ type Database interface {
 	// CreateCustomer creates a new customer.
 	CreateCustomer(ctx context.Context, cu *Customer) error
 
-	// UpdateCustomer updates an existing customer
+	// UpdateCustomer replaces an existing customer
 	UpdateCustomer(ctx context.Context, cu *Customer) error
 
 	// CustomerByCID returns the customer by it's customer-id
@@ -157,21 +157,19 @@ func (db *database) CreateCustomer(ctx context.Context, cu *Customer) error {
 
 func (db *database) UpdateCustomer(ctx context.Context, cu *Customer) error {
 	if cu.ID.IsZero() {
-		return fmt.Errorf("Cannot update customer without object ID")
+		return fmt.Errorf("cannot update customer without object ID")
 	}
 
 	metaphone1, metaphone2 := matchr.DoubleMetaphone(cu.Name)
 	cu.NameMetaphone = metaphone1 + " " + metaphone2
 
-	result, err := db.customers.UpdateOne(ctx, bson.M{"_id": cu.ID}, bson.M{
-		"$set": cu,
-	})
+	result, err := db.customers.ReplaceOne(ctx, bson.M{"_id": cu.ID}, cu)
 	if err != nil {
 		return err
 	}
 
 	if result.ModifiedCount != 1 || result.MatchedCount != 1 {
-		return fmt.Errorf("Expected to update one customer but matched %d and modified %d", result.MatchedCount, result.ModifiedCount)
+		return fmt.Errorf("expected to update one customer but matched %d and modified %d", result.MatchedCount, result.ModifiedCount)
 	}
 
 	return nil

@@ -83,17 +83,17 @@ func (db *database) UpdatePatient(ctx context.Context, record *v1alpha.PatientRe
 		return httperr.BadRequest(nil, "cannot update without ID")
 	}
 
-	result, err := db.collection.UpdateOne(
+	result, err := db.collection.ReplaceOne(
 		ctx,
 		bson.M{"_id": record.ID},
-		bson.M{"$set": record},
+		record,
 	)
 	if err != nil {
 		return err
 	}
 
 	if result.ModifiedCount != 1 || result.MatchedCount != 1 {
-		return fmt.Errorf("Expected to update one patient but matched %d and modified %d", result.MatchedCount, result.ModifiedCount)
+		return fmt.Errorf("expected to update one patient but matched %d and modified %d", result.MatchedCount, result.ModifiedCount)
 	}
 	return nil
 }
