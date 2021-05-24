@@ -43,7 +43,7 @@ var MJPEGSourceSpec = conf.SectionSpec{
 // Attach implements Source.Attach.
 func (src *MJPEGSource) Attach(ctx context.Context, c *gin.Context) error {
 	// start pulling frames and send them to ch.
-	ch, key, err := src.attach()
+	ch, key, err := src.attach(ctx)
 	if err != nil {
 		return err
 	}
@@ -97,6 +97,10 @@ func (src *MJPEGSource) Attach(ctx context.Context, c *gin.Context) error {
 		return fmt.Errorf("failed to clear write deadline: %w", err)
 	}
 
+	log := logger.From(ctx).WithFields(logger.Fields{
+		"client": client.String(),
+	})
+
 	// forward JPEG frames
 	for msg := range ch {
 		header := textproto.MIMEHeader{}
@@ -105,29 +109,31 @@ func (src *MJPEGSource) Attach(ctx context.Context, c *gin.Context) error {
 
 		part, err := writer.CreatePart(header)
 		if err != nil {
-			logger.From(ctx).Errorf("failed to create part for %s: %s", client.String(), err)
+			log.V(1).Logf("failed to create part: %s", err)
 			return err
 		}
 
 		if err := conn.SetWriteDeadline(time.Now().Add(time.Second)); err != nil {
-			logger.From(ctx).Errorf("failed to set write deadline to %s: %s", client.String(), err)
+			log.V(1).Logf("failed to set write deadline: %s", err)
 			return err
 		}
 
 		if _, err := part.Write(msg); err != nil {
-			logger.From(ctx).Errorf("failed to write part to %s: %s", client.String(), err)
+			log.V(1).Logf("failed to write part: %s", err)
 			return err
 		}
 	}
 
 	if err := writer.Close(); err != nil {
-		logger.From(ctx).Errorf("failed to close mutlipart writer: %s", err)
+		log.V(1).Logf("failed to close mutlipart writer: %s", err)
 	}
 
 	return nil
 }
 
-func (src *MJPEGSource) attach() (chan []byte, string, error) {
+func (src *MJPEGSource) attach(ctx context.Context) (chan []byte, string, error) {
+	meta := metaFromCtx(ctx)
+
 	src.l.Lock()
 	defer src.l.Unlock()
 
@@ -141,7 +147,7 @@ func (src *MJPEGSource) attach() (chan []byte, string, error) {
 	src.handlers[key] = ch
 
 	if !src.running {
-		if err := src.pull(); err != nil {
+		if err := src.pull(meta); err != nil {
 			close(ch)
 			return ch, key, err
 		}
@@ -149,7 +155,7 @@ func (src *MJPEGSource) attach() (chan []byte, string, error) {
 	return ch, key, nil
 }
 
-func (src *MJPEGSource) pull() error {
+func (src *MJPEGSource) pull(meta CameraMeta) error {
 	resp, err := http.Get(src.URL)
 	if err != nil {
 		return err
@@ -177,7 +183,11 @@ func (src *MJPEGSource) pull() error {
 	reader := multipart.NewReader(resp.Body, boundary)
 	src.running = true
 
-	log := logger.From(context.Background())
+	log := logger.From(context.Background()).WithFields(logger.Fields{
+		"camera":     meta.ID,
+		"cameraName": meta.Name,
+	})
+
 	go func() {
 		defer func() {
 			src.l.Lock()

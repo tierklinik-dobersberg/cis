@@ -11,6 +11,7 @@ type Camera struct {
 
 // CameraMeta holds meta-information about security/IP cameras.
 type CameraMeta struct {
+	ID          string `json:"id" option:"-"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Location    string `json:"location"`

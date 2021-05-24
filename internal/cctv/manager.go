@@ -12,6 +12,19 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
 )
 
+// contextKeyCameraMeta is used to attach the camera meta data to
+// a request context key before the request is attached to the source.
+var contextKeyCameraMeta = struct{ S string }{"camera-meta"}
+
+// metaFromCtx returns the CameraMeta attached to ctx.
+func metaFromCtx(ctx context.Context) CameraMeta {
+	val, ok := ctx.Value(contextKeyCameraMeta).(*CameraMeta)
+	if !ok {
+		return CameraMeta{}
+	}
+	return *val
+}
+
 // Manager manages cameras and distributes images
 // to all subscribers.
 type Manager struct {
@@ -42,6 +55,7 @@ func (mng *Manager) LoadDefinitions(dir string) error {
 			return fmt.Errorf("%s: %w", f.Path, err)
 		}
 
+		cam.Meta.ID = name
 		mng.cameras[name] = &cam
 	}
 	return nil
@@ -68,6 +82,9 @@ func (mng *Manager) AttachToStream(ctx context.Context, camID string, c *gin.Con
 	if !ok {
 		return httperr.NotFound("camera", camID, nil)
 	}
+
+	ctx = context.WithValue(ctx, contextKeyCameraMeta, &cam.Meta)
+
 	// use the first source available
 	if cam.MJPEGSource != nil {
 		return cam.MJPEGSource.Attach(ctx, c)
