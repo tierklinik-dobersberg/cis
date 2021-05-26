@@ -173,7 +173,9 @@ describe("Duty roster API:", () => {
 
     describe("doctor-on-duty", () => {
         // there's roster loaded for 2021/04 with one week
-        // see testdata/dumps/dutyRosters.json
+        // see testdata/dump/dutyRosters.json
+
+        // TODO(ppacher): assert isDayShift and isNightShift in response
 
         let get = (day: number, hour: number, min: number) => {
             let d = new Date(Date.UTC(2021, 3, day, hour, min));

@@ -375,7 +375,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
                     this.headerService.set('Kalender: ' + this._currentDate$.getValue().toLocaleDateString())
                 }
 
-                // if we are in "auto" mode and no calendars are displayed that we should
+                // if we are in "auto" mode and no calendars are displayed we should
                 // switch to the next one
                 if (this.calendarMode === 'auto' && !this.calendars.some(cal => cal.displayed)) {
                     // start at "all" and find the next view that works.

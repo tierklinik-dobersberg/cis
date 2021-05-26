@@ -36,6 +36,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
   onDutyUntil: Date | null = null;
   firstLoad = true;
   primaryOnDuty: ProfileWithAvatar | null = null;
+  shiftKind: string = 'Bereitschaftsdienst';
 
   overwritePhone = '';
   drawerVisible = false;
@@ -165,6 +166,19 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
           this.onDuty = result.onDuty.doctors || [];
           this.onDutyUntil = result.onDuty.until;
           this.isOverwritten = result.onDuty.isOverwrite;
+
+          if (result.onDuty.isOverwrite) {
+            this.shiftKind = 'Bereitschaftsdienst (überschrieben)'
+          } else
+            if (result.onDuty.isDayShift && result.onDuty.isNightShift) {
+              this.shiftKind = 'Bereitschaft (ganzer Tag)';
+            } else if (result.onDuty.isDayShift) {
+              this.shiftKind = 'Tag-Bereitschaft';
+            } else if (result.onDuty.isNightShift) {
+              this.shiftKind = 'Nacht-Bereitschaft';
+            } else {
+              this.shiftKind = 'Bereitschaftsdienst (unbekannt)'
+            }
 
           this.rosterDay = null;
           if (!!result.roster) {

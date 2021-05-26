@@ -9,7 +9,7 @@
   [nzWidth]="layout.drawerWidth | async">
   <ng-template [nzDrawerContent]>
     <div class="user-dropdown">
-      <h2>Nachtdienst überschreiben</h2>
+      <h2>Bereitschaftsdienst überschreiben</h2>
 
       <div class="drawer-actions">
         <ng-container *ngIf="quickOverwrites.length === 1">
@@ -64,7 +64,7 @@
 
 <ng-template #titleTemplate>
   <span class="header">
-    Nachtdienst
+    {{ shiftKind }}
     <i nz-dropdown *ngIf="canSetOverwrite" nzTrigger="click" nz-icon nzType="edit" nzTheme="outline"
       style="cursor: pointer" nz-tooltip nzTooltipTitle="Nachdienst ändern" (click)="toggleDrawer()"></i>
   </span>
@@ -75,7 +75,7 @@
       <span *ngIf="!!primaryOnDuty" [nzTooltipTitle]="'bis ' + (onDutyUntil?.toLocaleString() || 'N/A')"
         nz-tooltip><u>{{
           primaryOnDuty.fullname || primaryOnDuty.name }}</u></span>
-      <span class="phone" *ngIf="!!primaryOnDuty">
+      <span class="phone" *ngIf="!!primaryOnDuty && onDuty[0].phone">
         <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
         {{ onDuty[0].phone }}</span>
     </div>

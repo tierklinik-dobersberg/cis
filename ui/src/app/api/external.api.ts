@@ -17,6 +17,8 @@ export interface DoctorOnDutyResponse<T = Date> {
   doctors: DoctorOnDuty[];
   until: T;
   isOverwrite: boolean;
+  isNightShift: boolean;
+  isDayShift: boolean;
 }
 
 @Injectable({
