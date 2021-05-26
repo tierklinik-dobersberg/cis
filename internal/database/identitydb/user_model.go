@@ -78,7 +78,7 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, autologinCondi
 	}
 
 	var u user
-	if err := spec.Decode(f, &u); err != nil {
+	if err := conf.DecodeFile(f, &u, spec); err != nil {
 		return nil, nil, err
 	}
 

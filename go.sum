@@ -328,6 +328,8 @@ github.com/ppacher/system-conf v0.6.0/go.mod h1:UTcn/7lTkcZaCjXpWCz/d1iYG0nn5CnO
 github.com/ppacher/system-conf v0.7.4/go.mod h1:UTcn/7lTkcZaCjXpWCz/d1iYG0nn5CnOryTImTlA/BY=
 github.com/ppacher/system-conf v0.7.5 h1:Y4dR+sxam8/1YASolUtDFMe2YkaVC28X32kpbenbRL8=
 github.com/ppacher/system-conf v0.7.5/go.mod h1:UTcn/7lTkcZaCjXpWCz/d1iYG0nn5CnOryTImTlA/BY=
+github.com/ppacher/system-conf v0.8.0 h1:51EsQVTgaLrXMyPd36QUnhYYATWwe1puWHsHzgadDxQ=
+github.com/ppacher/system-conf v0.8.0/go.mod h1:UTcn/7lTkcZaCjXpWCz/d1iYG0nn5CnOryTImTlA/BY=
 github.com/prometheus/client_golang v0.9.1/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=
 github.com/prometheus/client_golang v0.9.3/go.mod h1:/TN21ttK/J9q6uSwhBd54HahCDft0ttaMvbicHlPoso=
 github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910/go.mod h1:MbSGuTsp3dbXC40dX6PRTWyKYBIrTGTE9sqQNg2J8bo=
@@ -401,6 +403,8 @@ github.com/tierklinik-dobersberg/mailbox v0.0.4 h1:x5iNX1ARiCXW05PY/0dgxESOw8jHB
 github.com/tierklinik-dobersberg/mailbox v0.0.4/go.mod h1:b11ERiacP9Jt7kkn/B1+N0EADQVXlE/jLJq4iz7YIBI=
 github.com/tierklinik-dobersberg/service v0.2.1 h1:k62uYzwezq10I1XUNGQYAANOCsvIolkzLooGz05N6I4=
 github.com/tierklinik-dobersberg/service v0.2.1/go.mod h1:GScDqGvBrH88tmgx9WHGiuuIWhILtp3okGL7g4YRfn8=
+github.com/tierklinik-dobersberg/service v0.3.0 h1:D7I1HgOnTF1TPCjhzwE7z2zV8oKc1eOOynsHQ9rzaAY=
+github.com/tierklinik-dobersberg/service v0.3.0/go.mod h1:d7XR2uEqTV3x4iZ3PldCrhEoY7Z7n5s2onpSW/3/KuY=
 github.com/tj/assert v0.0.0-20171129193455-018094318fb0/go.mod h1:mZ9/Rh9oLWpLLDRpvE+3b7gP/C2YyLFYxNmcLnPTMe0=
 github.com/tj/assert v0.0.3 h1:Df/BlaZ20mq6kuai7f5z2TvPFiwC3xaWJSDQNiIS3Rk=
 github.com/tj/assert v0.0.3/go.mod h1:Ne6X72Q+TB1AteidzQncjw9PabbMp4PBMZ1k+vd1Pvk=

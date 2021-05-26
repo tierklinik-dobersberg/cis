@@ -109,7 +109,7 @@ func getApp(ctx context.Context) *app.App {
 
 	instance, err := service.Boot(service.Config{
 		ConfigFileName: "cis.conf",
-		ConfigFileSpec: globalConfigFile.Sections,
+		ConfigFileSpec: globalConfigFile,
 		ConfigTarget:   &cfg,
 		RouteSetupFunc: func(grp gin.IRouter) error {
 			apis := grp.Group(

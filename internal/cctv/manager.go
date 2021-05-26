@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
 )
@@ -51,7 +52,7 @@ func (mng *Manager) LoadDefinitions(dir string) error {
 			base = filepath.Base(f.Path)
 			name = strings.TrimSuffix(base, filepath.Ext(base))
 		)
-		if err := CameraUnit.Sections.Decode(f, &cam); err != nil {
+		if err := conf.DecodeFile(f, &cam, CameraUnit); err != nil {
 			return fmt.Errorf("%s: %w", f.Path, err)
 		}
 

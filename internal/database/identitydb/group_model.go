@@ -66,7 +66,7 @@ func decodeRole(f *conf.File, cond *httpcond.Registry) (*role, *conf.Section, er
 
 	var grp role
 
-	if err := spec.Decode(f, &grp); err != nil {
+	if err := conf.DecodeFile(f, &grp, spec); err != nil {
 		return nil, nil, err
 	}
 

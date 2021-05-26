@@ -5,7 +5,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/autodoc"
 )
 
-var ResourceFileSpec = autodoc.MustRegister(autodoc.File{
+var ResourceUnit = autodoc.MustRegister(autodoc.File{
 	Name:        ".resource",
 	Multiple:    true,
 	Description: "Resource definitions",
