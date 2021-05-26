@@ -114,7 +114,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) (*v1alpha.D
 		// TODO(ppacher):
 		// 		Overwrites always affect the day and the night shift.
 		//		To make sure the users see the correct end-of-overwrite
-		//		we might need switch nextChange to the end of the night
+		//		we might need to switch nextChange to the end of the night
 		//		shift the next day. If we are already in the night shift
 		// 		there is nothing to do.
 		if isDayShift {
@@ -159,8 +159,10 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) (*v1alpha.D
 						Properties: user.Properties,
 					},
 				},
-				Until:       nextChange,
-				IsOverwrite: true,
+				Until:        nextChange,
+				IsOverwrite:  true,
+				IsDayShift:   isDayShift,
+				IsNightShift: !isDayShift,
 			}, nil
 		}
 
@@ -172,8 +174,10 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) (*v1alpha.D
 					Username: overwrite.Username,
 				},
 			},
-			Until:       nextChange,
-			IsOverwrite: true,
+			Until:        nextChange,
+			IsOverwrite:  true,
+			IsDayShift:   isDayShift,
+			IsNightShift: !isDayShift,
 		}, nil
 	}
 
@@ -186,7 +190,10 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) (*v1alpha.D
 	// configured we fallback to the night shift.
 	// TODO(ppacher): make this configurable or at least make sure
 	// everyone knows that!
-	var activeShift []string
+	var (
+		activeShift  []string
+		isNightShift = !isDayShift
+	)
 	if isDayShift && len(day.OnCall.Day) > 0 {
 		activeShift = day.OnCall.Day
 		log.WithFields(logger.Fields{
@@ -194,6 +201,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) (*v1alpha.D
 		}).Infof("using day shift")
 	} else {
 		activeShift = day.OnCall.Night
+		isNightShift = true
 		if isDayShift {
 			log.WithFields(logger.Fields{
 				"users": activeShift,
@@ -228,8 +236,10 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) (*v1alpha.D
 	}
 
 	return &v1alpha.DoctorOnDutyResponse{
-		Doctors:     doctorsOnDuty,
-		Until:       nextChange,
-		IsOverwrite: false,
+		Doctors:      doctorsOnDuty,
+		Until:        nextChange,
+		IsOverwrite:  false,
+		IsDayShift:   isDayShift,
+		IsNightShift: isNightShift,
 	}, nil
 }

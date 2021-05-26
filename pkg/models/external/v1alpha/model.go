@@ -10,7 +10,9 @@ type DoctorOnDuty struct {
 }
 
 type DoctorOnDutyResponse struct {
-	Doctors     []DoctorOnDuty `json:"doctors"`
-	Until       time.Time      `json:"until"`
-	IsOverwrite bool           `json:"isOverwrite"`
+	Doctors      []DoctorOnDuty `json:"doctors"`
+	Until        time.Time      `json:"until"`
+	IsOverwrite  bool           `json:"isOverwrite"`
+	IsDayShift   bool           `json:"isDayShift"`
+	IsNightShift bool           `json:"isNightShift"`
 }
