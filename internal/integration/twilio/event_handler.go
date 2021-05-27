@@ -12,36 +12,17 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/event"
 	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/internal/trigger"
+	"github.com/tierklinik-dobersberg/cis/internal/utils"
 )
 
 var log = pkglog.New("twilio")
 
 var Spec = conf.SectionSpec{
 	{
-		Name:        "From",
-		Type:        conf.StringType,
-		Required:    true,
-		Description: "The sender number or alphanumeric sender ID",
-	},
-	{
 		Name:        "To",
 		Type:        conf.StringSliceType,
 		Required:    true,
 		Description: "Numbers that should be notified via SMS",
-	},
-	{
-		Name:        "AccountSid",
-		Type:        conf.StringType,
-		Required:    true,
-		Internal:    true,
-		Description: "The twilio accound SID",
-	},
-	{
-		Name:        "Token",
-		Type:        conf.StringType,
-		Required:    true,
-		Internal:    true,
-		Description: "The twilio authentication token",
 	},
 	{
 		Name:        "AcceptBuffered",
@@ -69,7 +50,14 @@ func init() {
 
 func RegisterTriggerOn(reg *trigger.Registry) error {
 	return reg.RegisterHandlerType("twilio", &trigger.Type{
-		OptionRegistry: Spec,
+		OptionRegistry: utils.MultiOptionRegistry{
+			// Within the trigger file all stanzas for the account
+			// are optional.
+			&utils.OptionalOptionRegistry{
+				OptionRegistry: AccountSpec,
+			},
+			Spec,
+		},
 		CreateFunc: func(c context.Context, s *conf.Section) (trigger.Handler, error) {
 			var ev = new(EventHandler)
 			if err := conf.DecodeSections([]conf.Section{*s}, Spec, ev); err != nil {
