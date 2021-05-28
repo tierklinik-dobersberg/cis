@@ -281,7 +281,7 @@ func (dc *DoorController) Overwrite(ctx context.Context, state DoorState, untilT
 	{
 		dc.manualOverwrite = &stateOverwrite{
 			state:       state,
-			sessionUser: utils.GetUser(ctx),
+			sessionUser: "", // FIXME(ppacher)
 			until:       untilTime,
 		}
 	}
