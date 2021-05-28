@@ -1,3 +1,38 @@
+// Package trigger adds a ppacher/system-conf based trigger system
+// that listens for events from cis/runtime/events. It provides
+// basic debouncing and buffering of events per trigger definition.
+// The package itself does not contain actual event handlers but
+// supports a simple registry-style pattern to register your own
+// trigger types.
+//
+//   func init() {
+//     	trigger.RegisterType(trigger.Type{
+//        OptionRegistry: conf.SectionSpec{
+//        	{
+//        		Name: "SomeConfig",
+//        		Type: conf.StringType,
+//        	},
+//        },
+//        Name: "MyHandler",
+//        CreateFunc: func(ctx context.Context, _ *runtime.ConfigSchema, sec *conf.Section) (trigger.Handler, error) {
+//           return &MyHandler{}, nil
+//        }
+//      })
+//   }
+//
+// The above example might later be used in a .trigger file definition
+// like so:
+//
+//   [Match]
+//   EventFilter=event/topic/#
+//   DebounceUntil=12:00
+//   DebounceUntil=17:00
+//
+//   [MyHandler]
+//   SomeConfig=some value
+//
+// The trigger package also registers an autodoc.File for the DefaultRegistry
+// so documentation for available trigger types is built into the final binary.
 package trigger
 
 import (
@@ -5,8 +40,11 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
 )
 
-// MatchSpec defines all configuration stanzas that
-// are available in each [Match] section
+// MatchSpec defines all configuration stanzas that can be used
+// to configure event matching for trigger instances. MatchSpec
+// is only used with file based trigger configuration.
+// See Registry for more information on file based trigger
+// configuration.
 var MatchSpec = conf.SectionSpec{
 	{
 		Name:        "EventFilter",

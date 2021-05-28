@@ -36,7 +36,7 @@ var Spec = conf.SectionSpec{
 
 // RegisterTriggerOn registeres the MQTT trigger on the registry reg.
 func RegisterTriggerOn(reg *trigger.Registry) error {
-	return reg.RegisterHandlerType("mqtt-publish", &trigger.Type{
+	return reg.RegisterType("mqtt-publish", &trigger.Type{
 		OptionRegistry: Spec,
 		CreateFunc: func(ctx context.Context, globalCfg *runtime.ConfigSchema, sec *conf.Section) (trigger.Handler, error) {
 			app := app.FromContext(ctx)
@@ -61,7 +61,5 @@ func RegisterTriggerOn(reg *trigger.Registry) error {
 }
 
 func init() {
-	if err := RegisterTriggerOn(trigger.DefaultRegistry); err != nil {
-		panic(err)
-	}
+	runtime.Must(RegisterTriggerOn(trigger.DefaultRegistry))
 }

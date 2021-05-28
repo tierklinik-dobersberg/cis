@@ -45,13 +45,11 @@ var Spec = conf.SectionSpec{
 }
 
 func init() {
-	if err := RegisterTriggerOn(trigger.DefaultRegistry); err != nil {
-		panic(err)
-	}
+	runtime.Must(RegisterTriggerOn(trigger.DefaultRegistry))
 }
 
 func RegisterTriggerOn(reg *trigger.Registry) error {
-	return reg.RegisterHandlerType("twilio", &trigger.Type{
+	return reg.RegisterType("twilio", &trigger.Type{
 		OptionRegistry: utils.MultiOptionRegistry{
 			// Within the trigger file all stanzas for the account
 			// are optional.

@@ -16,23 +16,38 @@ import (
 
 var log = pkglog.New("trigger")
 
-// MatchConfig is the parsed form of a [Match] section in
-// .trigger files.
+// MatchConfig holds meta configuration for trigger instances
+// when file-based trigger configuration is being used. MatchConfig
+// defines the configuration that can be specified in the [Match]
+// section of .trigger files. Refer to MatchSpec and Registry for
+// more information about file-based trigger configuration.
 type MatchConfig struct {
-	EventFilter   []string
-	BufferUntil   []string
+	// EventFitler may hold multiple event topic subscriptions.
+	// The trigger instance created from this MatchConfig handles
+	// each event that matches one of the specified filters.
+	EventFilter []string
+	// BufferUntil configures the day-times until which events should
+	// be buffered and emitted at once. Refer to the documentation of
+	// InstanceConfig for more information on event buffering.
+	//
+	// Note that BufferUntil and DebounceUntil are mutally exclusive.
+	BufferUntil []string
+	// Debounce configures the day-times until which events should
+	// be debounced and only the last one should be emitted.
+	// Refer to the documentation of InstanceConfig for more information
+	// on event debouncing.
+	//
+	// Note that BufferUntil and DebounceUntil are mutally exclusive.
 	DebounceUntil []string
 }
 
-// Handler handles events fired by the event registry.
-type Handler interface {
-	// HanldeEvents is called for each set of events fired. There might
-	// be multiple events if the users configures a BufferUntil or BufferTime.
-	HandleEvents(ctx context.Context, event ...*event.Event)
-}
-
+// Type is a trigger type with a set of supported configuration stanzas
+// and a factory function. Type is a convenience type and implements Factory.
 type Type struct {
+	// OptionRegistry defines all supported configuration stanzas of the trigger
+	// type.
 	conf.OptionRegistry
+	// CreateFunc should create a new handler. See Factory for more information.
 	CreateFunc func(context.Context, *runtime.ConfigSchema, *conf.Section) (Handler, error)
 }
 
@@ -42,13 +57,38 @@ func (t *Type) Create(ctx context.Context, globalCfg *runtime.ConfigSchema, sec 
 }
 
 type Factory interface {
+	// OptionRegistry defines all supported configuration stanzas of the trigger
+	// type.
 	conf.OptionRegistry
 
-	// Create creates a new trigger handler from the given
-	// section.
+	// Create should create a new handler. It's called for each section of
+	// this trigger type in a .trigger configuration file. It may also use
+	// configuration values from the runtime config schema (if any).
 	Create(ctx context.Context, globalConfig *runtime.ConfigSchema, sec *conf.Section) (Handler, error)
 }
 
+// Registry manages trigger type factories and supports file based trigger
+// configuration using ppacher/system-conf. It loads trigger configuration
+// units (<name>.trigger) from the filesystem and creates a trigger instance
+// for each file loaded. The trigger file must have a [Match] section that
+// follows MatchSpec and one or more handler sections where the section is
+// named after the handler type (passed to RegisterType). For example, the
+// following .trigger file creates a new instance that will execute two
+// different handles when a matching event is fired:
+//   [Match]
+//   EventFilter=events/notifications/#
+//
+//   [SendMail]
+//   To=that@guy.mail
+//   From=noc@example.com
+//   Subject=A new notification arrived
+//
+//   [Exec]
+//   StreamEventToStdin=json
+//   Exec=/usr/local/bin/handle-event.sh $1
+//
+// Registry also implements conf.SectionRegistry and may be directly used
+// to validate .trigger files.
 type Registry struct {
 	event     *event.Registry
 	location  *time.Location
@@ -56,7 +96,14 @@ type Registry struct {
 	factories map[string]Factory
 }
 
+// NewRegistry creates a new trigger registry that places and event subscriptions and
+// eventReg. The optional timezone (location) is used for event deboucing and buffering.
+// If location is nil it defaults to time.Local. Refer to InstanceConfig or MatchConfig
+// for more information on debouncing and buffering of events.
 func NewRegistry(eventReg *event.Registry, location *time.Location) *Registry {
+	if location == nil {
+		location = time.Local
+	}
 	return &Registry{
 		factories: make(map[string]Factory),
 		event:     eventReg,
@@ -80,7 +127,14 @@ func (reg *Registry) TypeCount() int {
 	return len(reg.factories)
 }
 
-// LoadFiles loads all .trigger files from path.
+// LoadFiles loads all .trigger files from path and creates new
+// trigger instances. globalConfig is passed to each factory
+// factory and may contain shared or optional configuration data.
+// Note that LoadFiles aborts creating trigger instances as soon
+// as an error is encountered.
+//
+// Note that any event subscriptions will be canceled together
+// with ctx and automatic processing of events will be stopped.
 func (reg *Registry) LoadFiles(ctx context.Context, globalConfig *runtime.ConfigSchema, path string) ([]*Instance, error) {
 	files, err := conf.ReadDir(path, ".trigger", reg)
 	if err != nil {
@@ -91,7 +145,7 @@ func (reg *Registry) LoadFiles(ctx context.Context, globalConfig *runtime.Config
 	for idx, file := range files {
 		i, err := reg.CreateTrigger(ctx, globalConfig, file)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %s", file.Path, err)
+			return instances, fmt.Errorf("%s: %s", file.Path, err)
 		}
 		instances[idx] = i
 	}
@@ -100,7 +154,8 @@ func (reg *Registry) LoadFiles(ctx context.Context, globalConfig *runtime.Config
 }
 
 // OptionsForSection returns the option registry for the trigger file
-// section sec. It implements the conf.SectionRegistry interface.
+// section sec. It implements the conf.SectionRegistry interface. Note that
+// the MatchSpec is automatically added for [Match] sections.
 func (reg *Registry) OptionsForSection(sec string) (conf.OptionRegistry, bool) {
 	if sec == "match" {
 		return MatchSpec, true
@@ -108,7 +163,6 @@ func (reg *Registry) OptionsForSection(sec string) (conf.OptionRegistry, bool) {
 
 	reg.l.RLock()
 	defer reg.l.RUnlock()
-
 	factory, ok := reg.factories[sec]
 	if !ok {
 		return nil, false
@@ -117,7 +171,10 @@ func (reg *Registry) OptionsForSection(sec string) (conf.OptionRegistry, bool) {
 	return factory, true
 }
 
-// CreateTrigger creates a new trigger from a file defintion.
+// CreateTrigger creates a new trigger instance from the configuration file f.
+// It will create a new handler for each handler section found in the configuration
+// and will subscribe to all event topics specified in the [Match] section. The
+// event subscription will be cancelled as soon as ctx is cancelled.
 func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.ConfigSchema, f *conf.File) (*Instance, error) {
 	matchSecs := f.Sections.GetAll("Match")
 	if len(matchSecs) != 1 {
@@ -188,8 +245,10 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 	return instance, nil
 }
 
-// RegisterHandlerType registers a new handler type.
-func (reg *Registry) RegisterHandlerType(name string, factory Factory) error {
+// RegisterType registers a new handler type under name. The name is
+// used to as the handlers section name and must be unique. If another
+// handler with name is already registered an error is returned.
+func (reg *Registry) RegisterType(name string, factory Factory) error {
 	reg.l.Lock()
 	defer reg.l.Unlock()
 
@@ -202,9 +261,9 @@ func (reg *Registry) RegisterHandlerType(name string, factory Factory) error {
 	return nil
 }
 
-// RegisterHandlerType is a shortcut for using DefaultRegistry.RegisterHandlerType.
-func RegisterHandlerType(name string, factory Factory) error {
-	return DefaultRegistry.RegisterHandlerType(name, factory)
+// RegisterType is a shortcut for using DefaultRegistry.RegisterType.
+func RegisterType(name string, factory Factory) error {
+	return DefaultRegistry.RegisterType(name, factory)
 }
 
 // DefaultRegistry is a trigger registry that is configured for the
