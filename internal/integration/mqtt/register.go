@@ -8,6 +8,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/internal/trigger"
+	"github.com/tierklinik-dobersberg/service/runtime"
 )
 
 var log = pkglog.New("mqtt")
@@ -37,7 +38,7 @@ var Spec = conf.SectionSpec{
 func RegisterTriggerOn(reg *trigger.Registry) error {
 	return reg.RegisterHandlerType("mqtt-publish", &trigger.Type{
 		OptionRegistry: Spec,
-		CreateFunc: func(ctx context.Context, sec *conf.Section) (trigger.Handler, error) {
+		CreateFunc: func(ctx context.Context, globalCfg *runtime.ConfigSchema, sec *conf.Section) (trigger.Handler, error) {
 			app := app.FromContext(ctx)
 			if app == nil {
 				return nil, fmt.Errorf("expected App to be set on ctx")

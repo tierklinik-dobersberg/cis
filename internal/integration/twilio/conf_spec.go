@@ -2,7 +2,7 @@ package twilio
 
 import (
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/service/runtime"
 )
 
 type AccountConfig struct {
@@ -34,10 +34,13 @@ var AccountSpec = conf.SectionSpec{
 	},
 }
 
-// RegisterGlobalSpec registers the global twilio section
-// on reg.
-func RegisterGlobalSpec(reg *cfgspec.GlobalConfigRegistry) {
-	reg.RegisterSection(
+var (
+	ConfigBuilder = runtime.NewConfigSchemaBuilder(addtoSchema)
+	AddToSchema   = ConfigBuilder.AddToScheme
+)
+
+func addtoSchema(schema *runtime.ConfigSchema) error {
+	return schema.RegisterSection(
 		"Twilio",
 		"Configure a twilio account to use for programmable messaging.",
 		AccountSpec,
@@ -45,5 +48,5 @@ func RegisterGlobalSpec(reg *cfgspec.GlobalConfigRegistry) {
 }
 
 func init() {
-	RegisterGlobalSpec(cfgspec.DefaultRegistry)
+	AddToSchema(runtime.GlobalSchema)
 }

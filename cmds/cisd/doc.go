@@ -5,7 +5,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/autodoc"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/service/server"
+	"github.com/tierklinik-dobersberg/cis/internal/utils"
 	"github.com/tierklinik-dobersberg/service/svcenv"
 )
 
@@ -16,21 +16,19 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 		svcenv.Env().ConfigurationDirectory,
 	},
 	Sections: conf.FileSpec{
-		"Global": autodoc.MergeOptions(
+		"Global": utils.MultiOptionRegistry{
 			cfgspec.ConfigSpec,
 			cfgspec.DatabaseSpec,
 			cfgspec.IdentityConfigSpec,
 			cfgspec.MqttSpec,
-		),
+		},
 		"Import":         cfgspec.VetInfSpec,
-		"Listener":       server.ListenerSpec,
 		"UserProperty":   cfgspec.UserSchemaExtension,
 		"OpeningHour":    cfgspec.OpeningHoursSpec,
 		"Integration":    cfgspec.IntegrationConfigSpec,
 		"Voicemail":      cfgspec.VoiceMailSpec,
 		"MongoLog":       cfgspec.MongoLogSpec,
 		"GoogleCalendar": calendar.GoogleConfigSpec,
-		"CORS":           server.CORSSpec,
 	},
 })
 

@@ -121,9 +121,9 @@ func (optreg *OptionalOptionRegistry) All() []conf.OptionSpec {
 	return r
 }
 
-// OptionalOptions makes all options form reg optional by resetting the
+// MakeOptional makes all options form reg optional by resetting the
 // Required field to false.
-func OptionalOptions(reg conf.OptionRegistry) conf.OptionRegistry {
+func MakeOptional(reg conf.OptionRegistry) conf.OptionRegistry {
 	return &OptionalOptionRegistry{
 		OptionRegistry: reg,
 	}

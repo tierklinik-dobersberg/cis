@@ -31,7 +31,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/autologin"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/cctv"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
@@ -55,6 +54,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
 	"github.com/tierklinik-dobersberg/logger"
+	"github.com/tierklinik-dobersberg/service/runtime"
 	"github.com/tierklinik-dobersberg/service/service"
 	"github.com/tierklinik-dobersberg/service/svcenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -105,9 +105,7 @@ func getApp(ctx context.Context) *app.App {
 	logAdapter := errorlog.New(&logger.StdlibAdapter{})
 	logger.SetDefaultAdapter(logAdapter)
 
-	cfg := &app.Config{
-		GlobalConfigRegistry: cfgspec.DefaultRegistry,
-	}
+	var cfg app.Config
 
 	var autoLoginManager *autologin.Manager
 	sessionManager := new(session.Manager)
@@ -117,9 +115,9 @@ func getApp(ctx context.Context) *app.App {
 		ConfigDirectory: "conf.d",
 		ConfigSchema: utils.MultiSectionRegistry{
 			globalConfigFile,
-			cfgspec.DefaultRegistry,
+			runtime.GlobalSchema,
 		},
-		ConfigTarget: cfg,
+		ConfigTarget: &cfg,
 		RouteSetupFunc: func(grp gin.IRouter) error {
 			apis := grp.Group(
 				"/api/",
@@ -389,7 +387,7 @@ func getApp(ctx context.Context) *app.App {
 	//
 	appCtx := app.NewApp(
 		instance,
-		cfg,
+		&cfg,
 		matcher,
 		identities,
 		customers,
@@ -417,7 +415,7 @@ func getApp(ctx context.Context) *app.App {
 	//
 	ctx = app.With(ctx, appCtx)
 	logger.Infof(ctx, "%d trigger types available so far", trigger.DefaultRegistry.TypeCount())
-	if err := trigger.DefaultRegistry.LoadFiles(ctx, instance.ConfigurationDirectory); err != nil {
+	if err := trigger.DefaultRegistry.LoadFiles(ctx, runtime.GlobalSchema, instance.ConfigurationDirectory); err != nil {
 		logger.Fatalf(ctx, "triggers: %s", err)
 	}
 

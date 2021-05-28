@@ -3,13 +3,10 @@ package app
 import (
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/service/server"
 )
 
 // Config holds the complete cisd configuration.
 type Config struct {
-	*cfgspec.GlobalConfigRegistry `section:"-"`
-
 	cfgspec.IdentityConfig `section:"Global"`
 	cfgspec.Config         `section:"Global"`
 	cfgspec.DatabaseConfig `section:"Global"`
@@ -24,7 +21,6 @@ type Config struct {
 
 	OpeningHours   []cfgspec.OpeningHours           `section:"OpeningHour"`
 	UserProperties []cfgspec.UserPropertyDefinition `section:"UserProperty"`
-	Listeners      []server.Listener                `section:"Listener"`
 	VoiceMails     []cfgspec.VoiceMail              `section:"VoiceMail"`
 
 	UI UIConfig `section:"-"`

@@ -11,6 +11,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/event"
 	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
+	"github.com/tierklinik-dobersberg/service/runtime"
 )
 
 var log = pkglog.New("trigger")
@@ -32,12 +33,12 @@ type Handler interface {
 
 type Type struct {
 	conf.OptionRegistry
-	CreateFunc func(context.Context, *conf.Section) (Handler, error)
+	CreateFunc func(context.Context, *runtime.ConfigSchema, *conf.Section) (Handler, error)
 }
 
 // Create calls CreateFunc and implements Factory.
-func (t *Type) Create(ctx context.Context, sec *conf.Section) (Handler, error) {
-	return t.CreateFunc(ctx, sec)
+func (t *Type) Create(ctx context.Context, globalCfg *runtime.ConfigSchema, sec *conf.Section) (Handler, error) {
+	return t.CreateFunc(ctx, globalCfg, sec)
 }
 
 type Factory interface {
@@ -45,7 +46,7 @@ type Factory interface {
 
 	// Create creates a new trigger handler from the given
 	// section.
-	Create(ctx context.Context, sec *conf.Section) (Handler, error)
+	Create(ctx context.Context, globalConfig *runtime.ConfigSchema, sec *conf.Section) (Handler, error)
 }
 
 type Registry struct {
@@ -72,14 +73,14 @@ func (reg *Registry) TypeCount() int {
 }
 
 // LoadFiles loads all .trigger files from path.
-func (reg *Registry) LoadFiles(ctx context.Context, path string) error {
+func (reg *Registry) LoadFiles(ctx context.Context, globalConfig *runtime.ConfigSchema, path string) error {
 	files, err := conf.ReadDir(path, ".trigger", reg)
 	if err != nil {
 		return err
 	}
 
 	for _, file := range files {
-		if err := reg.CreateTrigger(ctx, file); err != nil {
+		if err := reg.CreateTrigger(ctx, globalConfig, file); err != nil {
 			return fmt.Errorf("%s: %s", file.Path, err)
 		}
 	}
@@ -106,7 +107,7 @@ func (reg *Registry) OptionsForSection(sec string) (conf.OptionRegistry, bool) {
 }
 
 // CreateTrigger creates a new trigger from a file defintion.
-func (reg *Registry) CreateTrigger(ctx context.Context, f *conf.File) error {
+func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.ConfigSchema, f *conf.File) error {
 	matchSecs := f.Sections.GetAll("Match")
 	if len(matchSecs) != 1 {
 		return fmt.Errorf("expected exactly one [Match] section but found %d", len(matchSecs))
@@ -145,7 +146,7 @@ func (reg *Registry) CreateTrigger(ctx context.Context, f *conf.File) error {
 			return fmt.Errorf("found unknown trigger action %q", sec.Name)
 		}
 
-		handler, err := factory.Create(ctx, &sec)
+		handler, err := factory.Create(ctx, globalConfig, &sec)
 		if err != nil {
 			return fmt.Errorf("failed creating trigger handler for %s: %w", sec.Name, err)
 		}
@@ -181,7 +182,7 @@ func (reg *Registry) RegisterHandlerType(name string, factory Factory) error {
 	defer reg.l.Unlock()
 
 	if _, ok := reg.factories[name]; ok {
-		return fmt.Errorf("Trigger handler type %s already registered", name)
+		return fmt.Errorf("trigger handler type %s already registered", name)
 	}
 
 	reg.factories[name] = factory
@@ -189,22 +190,9 @@ func (reg *Registry) RegisterHandlerType(name string, factory Factory) error {
 	return nil
 }
 
-// MustRegisterHandlerType is like RegisterHandlerType but panics in case
-// of an error.
-func (reg *Registry) MustRegisterHandlerType(name string, factory Factory) {
-	if err := reg.RegisterHandlerType(name, factory); err != nil {
-		panic(err)
-	}
-}
-
 // RegisterHandlerType is a shortcut for using DefaultRegistry.RegisterHandlerType.
 func RegisterHandlerType(name string, factory Factory) error {
 	return DefaultRegistry.RegisterHandlerType(name, factory)
-}
-
-// MustRegisterHandlerType is a shortcut for using DefaultRegistry.MustRegisterHandlerType.
-func MustRegisterHandlerType(name string, factory Factory) {
-	DefaultRegistry.MustRegisterHandlerType(name, factory)
 }
 
 // DefaultRegistry is a trigger registry that is configured for the

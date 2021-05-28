@@ -20,7 +20,7 @@ type IdentityConfig struct {
 
 // IdentityConfigSpec defines the available configuration values for the
 // [Identity] configuration section.
-var IdentityConfigSpec = []conf.OptionSpec{
+var IdentityConfigSpec = conf.SectionSpec{
 	{
 		Name:        "AccessTokenCookie",
 		Default:     "cis-session",

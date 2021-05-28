@@ -15,7 +15,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/cctv"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
@@ -58,16 +57,8 @@ type App struct {
 	Resources   *resourcedb.Registry
 	CCTV        *cctv.Manager
 
-	GlobalConfig *cfgspec.GlobalConfigRegistry
-
 	loadLocationOnce sync.Once
 	location         *time.Location
-}
-
-// GetGlobalSection decodes the global configuration section
-// name into receiver.
-func (app *App) GetGlobalSection(name string, receiver interface{}) error {
-	return app.Config.Get(app.Instance.ConfigFile(), name, receiver)
 }
 
 func (app *App) String() string {
