@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/tierklinik-dobersberg/cis/internal/event"
+	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

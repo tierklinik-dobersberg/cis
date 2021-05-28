@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tierklinik-dobersberg/cis/internal/event"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
+	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/logger"
 )
 

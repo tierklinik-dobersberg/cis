@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tierklinik-dobersberg/cis/internal/event"
+	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/googleapi"
 )

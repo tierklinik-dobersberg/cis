@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tierklinik-dobersberg/cis/internal/event"
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
