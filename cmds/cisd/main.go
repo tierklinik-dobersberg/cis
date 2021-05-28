@@ -26,6 +26,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/patientapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/resourceapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/triggerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/voicemailapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/autologin"
@@ -101,10 +102,12 @@ func getRootCommand() *cobra.Command {
 
 func getApp(ctx context.Context) *app.App {
 
-	var cfg app.Config
-
-	var autoLoginManager *autologin.Manager
-	sessionManager := new(session.Manager)
+	var (
+		cfg              app.Config
+		autoLoginManager *autologin.Manager
+		sessionManager   = new(session.Manager)
+		triggerInstances = &([]*trigger.Instance{})
+	)
 
 	instance, err := service.Boot(service.Config{
 		ConfigFileName:  "cis.conf",
@@ -169,6 +172,8 @@ func getApp(ctx context.Context) *app.App {
 				resourceapi.Setup(apis.Group("resources", session.Require()))
 				// cctv allows streaming access to security cameras
 				cctvapi.Setup(apis.Group("cctv", session.Require()))
+				// direct access to trigger instances
+				triggerapi.Setup(apis.Group("triggers", session.Require()), triggerInstances)
 			}
 
 			return nil
@@ -415,12 +420,16 @@ func getApp(ctx context.Context) *app.App {
 
 	// TODO(ppacher): this currently requires app.App to have been associated with ctx.
 	// I'm somewhat unhappy with that requirement so make it go away in the future.
-	//
 	ctx = app.With(ctx, appCtx)
 	logger.Infof(ctx, "%d trigger types available so far", trigger.DefaultRegistry.TypeCount())
-	if _, err := trigger.DefaultRegistry.LoadFiles(ctx, runtime.GlobalSchema, instance.ConfigurationDirectory); err != nil {
+	triggers, err := trigger.DefaultRegistry.LoadFiles(ctx, runtime.GlobalSchema, instance.ConfigurationDirectory)
+	if err != nil {
 		logger.Fatalf(ctx, "triggers: %s", err)
 	}
+	// copy the slice pointer to make triggers available in
+	// the triggerapi.
+	// TODO(ppacher): this feels more like a workaround than a real solution.
+	*triggerInstances = triggers
 
 	return appCtx
 }

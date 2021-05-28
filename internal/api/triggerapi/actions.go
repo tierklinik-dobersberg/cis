@@ -1,6 +1,8 @@
 package triggerapi
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
@@ -17,6 +19,9 @@ var (
 		"Permission to execute a trigger",
 		func(c *gin.Context) (string, error) {
 			name := c.Param("trigger")
+			if name == "" {
+				return "", fmt.Errorf("permssion not applicable")
+			}
 			return name, nil
 		},
 	)

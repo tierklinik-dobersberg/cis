@@ -33,6 +33,13 @@ export interface KnownPhoneExtension {
   ExtensionNumber: string;
 }
 
+export interface TriggerAction {
+  Name: string;
+  Trigger: string;
+  ActionText: string;
+  PendingText: string;
+}
+
 export interface UIConfig {
   HideUsersWithRole?: string[];
   ExternalLinks?: ExternalLink[];
@@ -40,6 +47,7 @@ export interface UIConfig {
   QuickRosterOverwrites?: QuickRosterOverwrite[];
   KnownPhoneExtensions?: KnownPhoneExtension[];
   UserPhoneExtensionProperties?: string[];
+  TriggerActions?: TriggerAction[];
   CreateEventAlwaysAllowCalendar?: string[];
 }
 
