@@ -418,7 +418,7 @@ func getApp(ctx context.Context) *app.App {
 	//
 	ctx = app.With(ctx, appCtx)
 	logger.Infof(ctx, "%d trigger types available so far", trigger.DefaultRegistry.TypeCount())
-	if err := trigger.DefaultRegistry.LoadFiles(ctx, runtime.GlobalSchema, instance.ConfigurationDirectory); err != nil {
+	if _, err := trigger.DefaultRegistry.LoadFiles(ctx, runtime.GlobalSchema, instance.ConfigurationDirectory); err != nil {
 		logger.Fatalf(ctx, "triggers: %s", err)
 	}
 

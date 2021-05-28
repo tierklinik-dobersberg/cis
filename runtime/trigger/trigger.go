@@ -81,19 +81,22 @@ func (reg *Registry) TypeCount() int {
 }
 
 // LoadFiles loads all .trigger files from path.
-func (reg *Registry) LoadFiles(ctx context.Context, globalConfig *runtime.ConfigSchema, path string) error {
+func (reg *Registry) LoadFiles(ctx context.Context, globalConfig *runtime.ConfigSchema, path string) ([]*Instance, error) {
 	files, err := conf.ReadDir(path, ".trigger", reg)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	for _, file := range files {
-		if err := reg.CreateTrigger(ctx, globalConfig, file); err != nil {
-			return fmt.Errorf("%s: %s", file.Path, err)
+	instances := make([]*Instance, len(files))
+	for idx, file := range files {
+		i, err := reg.CreateTrigger(ctx, globalConfig, file)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %s", file.Path, err)
 		}
+		instances[idx] = i
 	}
 
-	return nil
+	return instances, nil
 }
 
 // OptionsForSection returns the option registry for the trigger file
@@ -115,20 +118,20 @@ func (reg *Registry) OptionsForSection(sec string) (conf.OptionRegistry, bool) {
 }
 
 // CreateTrigger creates a new trigger from a file defintion.
-func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.ConfigSchema, f *conf.File) error {
+func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.ConfigSchema, f *conf.File) (*Instance, error) {
 	matchSecs := f.Sections.GetAll("Match")
 	if len(matchSecs) != 1 {
-		return fmt.Errorf("expected exactly one [Match] section but found %d", len(matchSecs))
+		return nil, fmt.Errorf("expected exactly one [Match] section but found %d", len(matchSecs))
 	}
 
 	var match MatchConfig
 	if err := conf.DecodeSections(matchSecs, MatchSpec, &match); err != nil {
-		return fmt.Errorf("failed to parse [Match] section: %w", err)
+		return nil, fmt.Errorf("failed to parse [Match] section: %w", err)
 	}
 
 	instanceCfg, err := matchToInstanceConfig(match)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// copy over the configured location.
@@ -140,9 +143,9 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 	reg.l.RLock()
 	defer reg.l.RUnlock()
 
-	var instances []*Instance
-
-	// now iterate over all sections and call the associated factory
+	// now iterate over all sections, call the associated factory and collect
+	// the created handlers.
+	var handlers []Handler
 	for _, sec := range f.Sections {
 		// we already parsed the [Match] section so we can skip
 		// it.
@@ -152,15 +155,17 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 
 		factory, ok := reg.factories[strings.ToLower(sec.Name)]
 		if !ok {
-			return fmt.Errorf("found unknown trigger action %q", sec.Name)
+			return nil, fmt.Errorf("found unknown trigger action %q", sec.Name)
 		}
 
 		handler, err := factory.Create(ctx, globalConfig, &sec)
 		if err != nil {
-			return fmt.Errorf("failed creating trigger handler for %s: %w", sec.Name, err)
+			return nil, fmt.Errorf("failed creating trigger handler for %s: %w", sec.Name, err)
 		}
-		instances = append(instances, NewInstance(fileBase+"-"+sec.Name, handler, instanceCfg))
+		handlers = append(handlers, handler)
 	}
+
+	instance := NewInstance(fileBase, handlers, instanceCfg)
 
 	// finally, subscribe to events and dispatch them to the handlers
 	for idx, filter := range match.EventFilter {
@@ -172,9 +177,7 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 			for {
 				select {
 				case msg := <-ch:
-					for _, instance := range instances {
-						go instance.Handle(ctx, msg)
-					}
+					go instance.Handle(ctx, msg)
 				case <-ctx.Done():
 					return
 				}
@@ -182,7 +185,7 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 		}(filter)
 	}
 
-	return nil
+	return instance, nil
 }
 
 // RegisterHandlerType registers a new handler type.

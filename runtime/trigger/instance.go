@@ -50,9 +50,9 @@ func matchToInstanceConfig(match MatchConfig) (*InstanceConfig, error) {
 // additional methods like buffering and debouncing
 // of events.
 type Instance struct {
-	cfg     *InstanceConfig
-	handler Handler
-	name    string
+	cfg      *InstanceConfig
+	handlers []Handler
+	name     string
 
 	l         sync.Mutex
 	buffer    []*event.Event
@@ -60,11 +60,11 @@ type Instance struct {
 }
 
 // NewInstance creates a new trigger instance for handler.
-func NewInstance(instanceName string, handler Handler, instanceCfg *InstanceConfig) *Instance {
+func NewInstance(instanceName string, handlers []Handler, instanceCfg *InstanceConfig) *Instance {
 	return &Instance{
-		cfg:     instanceCfg,
-		name:    instanceName,
-		handler: handler,
+		cfg:      instanceCfg,
+		name:     instanceName,
+		handlers: handlers,
 	}
 }
 
@@ -90,7 +90,9 @@ func (inst *Instance) Handle(ctx context.Context, evt *event.Event) {
 
 	// Direct passthrough to the handler if neither BufferUntil= or
 	// DebounceUntil= is set.
-	inst.handler.HandleEvents(ctx, evt)
+	for _, handler := range inst.handlers {
+		handler.HandleEvents(ctx, evt)
+	}
 }
 
 func (inst *Instance) waitAndFire(ctx context.Context) {
@@ -139,6 +141,8 @@ func (inst *Instance) fireBuffer(ctx context.Context) {
 	}
 
 	log.V(7).Logf("fireing %d buffered events", len(inst.buffer))
-	inst.handler.HandleEvents(context.Background(), inst.buffer...)
+	for _, handler := range inst.handlers {
+		handler.HandleEvents(context.Background(), inst.buffer...)
+	}
 	inst.buffer = nil
 }
