@@ -11,8 +11,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
-	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 )
 
 var log = pkglog.New("autologin")

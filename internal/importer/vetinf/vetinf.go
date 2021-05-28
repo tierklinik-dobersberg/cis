@@ -12,8 +12,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
-	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/patient/v1alpha"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/go-vetinf/vetinf"
 	"github.com/tierklinik-dobersberg/logger"
 )

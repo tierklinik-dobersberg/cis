@@ -9,7 +9,7 @@ import (
 
 	"github.com/antzucaro/matchr"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
-	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

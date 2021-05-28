@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 )
 
 var log = pkglog.New("httperr")

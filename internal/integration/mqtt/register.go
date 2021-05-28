@@ -6,8 +6,8 @@ import (
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/internal/trigger"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/service/runtime"
 )
 

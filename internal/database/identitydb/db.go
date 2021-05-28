@@ -15,7 +15,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/passwd"
-	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"golang.org/x/crypto/bcrypt"
 )
 

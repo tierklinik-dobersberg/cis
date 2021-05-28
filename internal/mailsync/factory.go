@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/mailbox"
 	"go.mongodb.org/mongo-driver/bson"

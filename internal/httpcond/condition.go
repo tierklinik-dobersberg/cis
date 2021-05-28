@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 )
 
 var log = pkglog.New("httpcond")

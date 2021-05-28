@@ -9,7 +9,7 @@ import (
 	"github.com/robfig/cron/v3"
 	"github.com/tevino/abool"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/logger"
 )
 

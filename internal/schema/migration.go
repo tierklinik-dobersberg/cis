@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/hashicorp/go-version"
-	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 

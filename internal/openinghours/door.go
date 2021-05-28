@@ -14,8 +14,8 @@ import (
 
 	"github.com/tevino/abool"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 )
 
 var log = pkglog.New("openinghours")

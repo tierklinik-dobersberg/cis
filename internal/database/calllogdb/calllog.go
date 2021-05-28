@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/nyaruka/phonenumbers"
-	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/calllog/v1alpha"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

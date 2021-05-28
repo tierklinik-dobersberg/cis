@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
