@@ -22,6 +22,11 @@ func MatchSubscription(topic string, subscription string) bool {
 		// * is a "this-field only" wildcard so we need to continue
 		// checking the next field
 		if part == "*" {
+			// if there's another part in the subscription
+			// but the topic ended this is a no-match
+			if idx+1 < len(subscriptionParts) && len(topicParts) <= idx+1 {
+				return false
+			}
 			continue
 		}
 
