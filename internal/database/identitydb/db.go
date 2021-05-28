@@ -244,7 +244,8 @@ func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo str
 
 	// create a shallow copy of u
 	// so we don't modify u in place.
-	u = &(*u)
+	var cu = *u
+	u = &cu
 
 	u.PasswordAlgo = algo
 	u.PasswordHash = hash
