@@ -28,14 +28,17 @@ func (db *identDB) loadUsers(identityDir string) error {
 		"Permission": cfgspec.PermissionSpec,
 	}
 	if db.httpConditionRegistry != nil {
-		spec["AutoLogin"] = newAutologinRegistry(db.httpConditionRegistry, conf.SectionSpec{
-			{
-				Name:        "CreateSession",
-				Type:        conf.BoolType,
-				Description: "Whether or not a new session should be created or if only this request should be authorized",
-				Default:     "no",
+		spec["AutoLogin"] = utils.MultiOptionRegistry{
+			db.httpConditionRegistry,
+			conf.SectionSpec{
+				{
+					Name:        "CreateSession",
+					Type:        conf.BoolType,
+					Description: "Whether or not a new session should be created or if only this request should be authorized",
+					Default:     "no",
+				},
 			},
-		})
+		}
 	}
 
 	userFiles, err := utils.LoadFiles(identityDir, ".user", spec)
