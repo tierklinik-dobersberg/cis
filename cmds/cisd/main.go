@@ -39,7 +39,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
-	"github.com/tierklinik-dobersberg/cis/internal/errorlog"
 	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
 	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
@@ -101,9 +100,6 @@ func getRootCommand() *cobra.Command {
 }
 
 func getApp(ctx context.Context) *app.App {
-	// prepare logging
-	logAdapter := errorlog.New(&logger.StdlibAdapter{})
-	logger.SetDefaultAdapter(logAdapter)
 
 	var cfg app.Config
 
@@ -199,7 +195,10 @@ func getApp(ctx context.Context) *app.App {
 			logger.Fatalf(ctx, "failed to configure rocketchat integration: %s", err)
 		}
 
-		logAdapter.AddErrorAdapter(logger.AdapterFunc(func(t time.Time, s logger.Severity, msg string, f logger.Fields) {
+		instance.AddLogger(logger.AdapterFunc(func(t time.Time, s logger.Severity, msg string, f logger.Fields) {
+			if s != logger.Error {
+				return
+			}
 			content := rocket.WebhookContent{
 				Text: msg,
 				Attachments: []rocket.Attachment{
@@ -237,7 +236,7 @@ func getApp(ctx context.Context) *app.App {
 		if err != nil {
 			logger.Fatalf(ctx, "mongolog: %s", err.Error())
 		}
-		logAdapter.AddDefaultAdapter(mongoLogger)
+		instance.AddLogger(mongoLogger)
 	}
 
 	//
