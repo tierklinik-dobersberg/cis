@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/service/runtime"
@@ -50,17 +50,25 @@ type Factory interface {
 }
 
 type Registry struct {
-	event *event.Registry
-
+	event     *event.Registry
+	location  *time.Location
 	l         sync.RWMutex
 	factories map[string]Factory
 }
 
-func NewRegistry(eventReg *event.Registry) *Registry {
+func NewRegistry(eventReg *event.Registry, location *time.Location) *Registry {
 	return &Registry{
 		factories: make(map[string]Factory),
 		event:     eventReg,
+		location:  location,
 	}
+}
+
+// SetLocation changes the timezone for the trigger registry.
+// Note that SetLocation does not lock the registry and must not
+// be called concurrently with CreateTrigger or LoadFiles.
+func (reg *Registry) SetLocation(loc *time.Location) {
+	reg.location = loc
 }
 
 // TypeCount returns the number of trigger types that have been
@@ -123,7 +131,8 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 		return err
 	}
 
-	instanceCfg.Location = app.FromContext(ctx).Location()
+	// copy over the configured location.
+	instanceCfg.Location = reg.location
 
 	fileBase := filepath.Base(f.Path)
 	fileBase = strings.TrimSuffix(fileBase, filepath.Ext(fileBase))
@@ -197,4 +206,4 @@ func RegisterHandlerType(name string, factory Factory) error {
 
 // DefaultRegistry is a trigger registry that is configured for the
 // default event registry.
-var DefaultRegistry = NewRegistry(event.DefaultRegistry)
+var DefaultRegistry = NewRegistry(event.DefaultRegistry, time.Local)

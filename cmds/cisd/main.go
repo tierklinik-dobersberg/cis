@@ -409,6 +409,10 @@ func getApp(ctx context.Context) *app.App {
 	//
 	// Prepare triggers
 	//
+
+	// update the timezone of the default trigger registry
+	trigger.DefaultRegistry.SetLocation(appCtx.Location())
+
 	// TODO(ppacher): this currently requires app.App to have been associated with ctx.
 	// I'm somewhat unhappy with that requirement so make it go away in the future.
 	//
