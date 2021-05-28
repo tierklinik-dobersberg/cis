@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
+	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 )
 
 func init() {

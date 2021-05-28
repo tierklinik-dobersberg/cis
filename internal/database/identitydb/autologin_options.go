@@ -2,7 +2,7 @@ package identitydb
 
 import (
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
+	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 )
 
 // autologinRegistry wraps a httpcond.Registry and adds additional custom
