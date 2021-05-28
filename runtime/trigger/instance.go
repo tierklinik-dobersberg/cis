@@ -53,6 +53,8 @@ type InstanceConfig struct {
 	// Location may defined the timezone the instance should operate in. The
 	// timezone is mainly required if DebounceUntil or BufferUntil is configured.
 	Location *time.Location
+	// Description holds an optional, human-readable description
+	Description string
 }
 
 // Instance is a dedicated trigger instance that handles a set of events
@@ -84,6 +86,17 @@ func NewInstance(instanceName string, handlers []Handler, instanceCfg *InstanceC
 		pending:  false,
 		flush:    make(chan struct{}),
 	}
+}
+
+// Name returns the name of the instance.
+func (inst *Instance) Name() string {
+	return inst.name
+}
+
+// Description returns the description of the trigger
+// instance or an empty string.
+func (inst *Instance) Description() string {
+	return inst.cfg.Description
 }
 
 // Pending returns true if events are pending to be handled
@@ -253,6 +266,7 @@ func matchToInstanceConfig(match MatchConfig) (*InstanceConfig, error) {
 
 	instanceCfg.Location = time.Local
 	instanceCfg.EventFilters = match.EventFilter
+	instanceCfg.Description = match.Description
 
 	return instanceCfg, nil
 }

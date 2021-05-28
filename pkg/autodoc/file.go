@@ -31,7 +31,11 @@ type File struct {
 	DropinsAllowed bool `json:"dropinsAllowed"`
 
 	// Sections holds a list of all sections that are allowed
-	// to exist in this file type.
+	// to exist in this file type. This must be conf.FileSpec
+	// instead of conf.SectionRegistry because autodoc must be
+	// able to iterate over all available sections.
+	// If dynamic sections are required use LazySectionsFunc
+	// that's lazily evaluated when required.
 	Sections conf.FileSpec `json:"-"`
 
 	// LazySectionsFunc can be set if some section cannot be determined

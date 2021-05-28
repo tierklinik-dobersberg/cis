@@ -39,6 +39,8 @@ type MatchConfig struct {
 	//
 	// Note that BufferUntil and DebounceUntil are mutally exclusive.
 	DebounceUntil []string
+	// Description holds an optional, human-readable description
+	Description string
 }
 
 // Type is a trigger type with a set of supported configuration stanzas

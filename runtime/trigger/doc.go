@@ -63,6 +63,11 @@ var MatchSpec = conf.SectionSpec{
 		Type:        conf.StringSliceType,
 		Description: "Like BufferUntil but only remembers the last event emitted.",
 	},
+	{
+		Name:        "Description",
+		Type:        conf.StringType,
+		Description: "A human readable description of the trigger",
+	},
 }
 
 func init() {
