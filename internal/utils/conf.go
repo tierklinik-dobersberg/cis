@@ -109,3 +109,22 @@ func (optreg *OptionalOptionRegistry) GetOption(opt string) (conf.OptionSpec, bo
 	spec.Required = false
 	return spec, true
 }
+
+// All wraps OptionRegistry.All and marks al options as "optional".
+func (optreg *OptionalOptionRegistry) All() []conf.OptionSpec {
+	all := optreg.OptionRegistry.All()
+	r := make([]conf.OptionSpec, len(all))
+	for idx, opt := range all {
+		opt.Required = false
+		r[idx] = opt
+	}
+	return r
+}
+
+// OptionalOptions makes all options form reg optional by resetting the
+// Required field to false.
+func OptionalOptions(reg conf.OptionRegistry) conf.OptionRegistry {
+	return &OptionalOptionRegistry{
+		OptionRegistry: reg,
+	}
+}

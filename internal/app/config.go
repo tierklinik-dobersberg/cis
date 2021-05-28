@@ -8,6 +8,8 @@ import (
 
 // Config holds the complete cisd configuration.
 type Config struct {
+	*cfgspec.GlobalConfigRegistry `section:"-"`
+
 	cfgspec.IdentityConfig `section:"Global"`
 	cfgspec.Config         `section:"Global"`
 	cfgspec.DatabaseConfig `section:"Global"`

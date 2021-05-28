@@ -1,6 +1,15 @@
 package twilio
 
-import "github.com/ppacher/system-conf/conf"
+import (
+	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+)
+
+type AccountConfig struct {
+	From       string
+	AccountSid string
+	Token      string
+}
 
 var AccountSpec = conf.SectionSpec{
 	{
@@ -23,4 +32,18 @@ var AccountSpec = conf.SectionSpec{
 		Internal:    true,
 		Description: "The twilio authentication token",
 	},
+}
+
+// RegisterGlobalSpec registers the global twilio section
+// on reg.
+func RegisterGlobalSpec(reg *cfgspec.GlobalConfigRegistry) {
+	reg.RegisterSection(
+		"Twilio",
+		"Configure a twilio account to use for programmable messaging.",
+		AccountSpec,
+	)
+}
+
+func init() {
+	RegisterGlobalSpec(cfgspec.DefaultRegistry)
 }

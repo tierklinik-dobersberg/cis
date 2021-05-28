@@ -31,6 +31,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/autologin"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/cctv"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
@@ -51,6 +52,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
 	"github.com/tierklinik-dobersberg/cis/internal/trigger"
+	"github.com/tierklinik-dobersberg/cis/internal/utils"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/service"
@@ -103,14 +105,21 @@ func getApp(ctx context.Context) *app.App {
 	logAdapter := errorlog.New(&logger.StdlibAdapter{})
 	logger.SetDefaultAdapter(logAdapter)
 
-	var cfg app.Config
+	cfg := &app.Config{
+		GlobalConfigRegistry: cfgspec.DefaultRegistry,
+	}
+
 	var autoLoginManager *autologin.Manager
 	sessionManager := new(session.Manager)
 
 	instance, err := service.Boot(service.Config{
-		ConfigFileName: "cis.conf",
-		ConfigFileSpec: globalConfigFile,
-		ConfigTarget:   &cfg,
+		ConfigFileName:  "cis.conf",
+		ConfigDirectory: "conf.d",
+		ConfigSchema: utils.MultiSectionRegistry{
+			globalConfigFile,
+			cfgspec.DefaultRegistry,
+		},
+		ConfigTarget: cfg,
 		RouteSetupFunc: func(grp gin.IRouter) error {
 			apis := grp.Group(
 				"/api/",
@@ -380,7 +389,7 @@ func getApp(ctx context.Context) *app.App {
 	//
 	appCtx := app.NewApp(
 		instance,
-		&cfg,
+		cfg,
 		matcher,
 		identities,
 		customers,

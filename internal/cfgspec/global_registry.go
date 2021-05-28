@@ -11,12 +11,13 @@ import (
 // GlobalConfigRegistry keeps track of global
 // configuration sections.
 type GlobalConfigRegistry struct {
-	rw       sync.RWMutex
-	sections conf.FileSpec
+	rw           sync.RWMutex
+	sections     conf.FileSpec
+	descriptions map[string]string
 }
 
 // RegisterSection registers a section at the global config registry.
-func (gcr *GlobalConfigRegistry) RegisterSection(name string, sec conf.OptionRegistry) error {
+func (gcr *GlobalConfigRegistry) RegisterSection(name string, descr string, sec conf.OptionRegistry) error {
 	lowerName := strings.ToLower(name)
 
 	gcr.rw.Lock()
@@ -26,8 +27,10 @@ func (gcr *GlobalConfigRegistry) RegisterSection(name string, sec conf.OptionReg
 	}
 	if gcr.sections == nil {
 		gcr.sections = make(conf.FileSpec)
+		gcr.descriptions = make(map[string]string)
 	}
 	gcr.sections[lowerName] = sec
+	gcr.descriptions[lowerName] = descr
 	return nil
 }
 
@@ -50,10 +53,12 @@ func (gcr *GlobalConfigRegistry) Get(f *conf.File, section string, target interf
 	return conf.DecodeSections(f.GetAll(section), spec, target)
 }
 
-// RegisterSection registers the configuration section sec with name
+// RegisterGlobalSection registers the configuration section sec with name
 // at DefaultRegistry.
-func RegisterSection(name string, sec conf.OptionRegistry) error {
-	return DefaultRegistry.RegisterSection(name, sec)
+func RegisterGlobalSection(name string, descr string, sec conf.OptionRegistry) error {
+	return DefaultRegistry.RegisterSection(name, descr, sec)
 }
 
 var DefaultRegistry = new(GlobalConfigRegistry)
+
+var regContextKey = struct{ S string }{"globalRegistry"}
