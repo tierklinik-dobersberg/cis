@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/tierklinik-dobersberg/cis/internal/autodoc"
-	_ "github.com/tierklinik-dobersberg/cis/internal/autodoc/renderers"
+	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
+	_ "github.com/tierklinik-dobersberg/cis/pkg/autodoc/renderers"
 )
 
 func getManCommand() *cobra.Command {

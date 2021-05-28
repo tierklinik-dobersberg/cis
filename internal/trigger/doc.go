@@ -2,7 +2,7 @@ package trigger
 
 import (
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/autodoc"
+	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
 )
 
 // MatchSpec defines all configuration stanzas that

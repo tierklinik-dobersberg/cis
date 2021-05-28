@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/tierklinik-dobersberg/cis/internal/autodoc"
+	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
 )
 
 func init() {
