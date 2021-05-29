@@ -11,4 +11,5 @@ func Setup(grp gin.IRouter, triggers *[]*trigger.Instance) {
 
 	ListTriggerEndpoint(router, triggers)
 	ExecuteTriggerEndpoint(router, triggers)
+	ExecuteTriggerGroupEndpoint(router, triggers)
 }

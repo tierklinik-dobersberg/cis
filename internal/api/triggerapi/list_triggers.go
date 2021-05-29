@@ -13,9 +13,10 @@ import (
 )
 
 type TriggerInstance struct {
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	Pending     bool   `json:"pending"`
+	Name        string   `json:"name"`
+	Description string   `json:"description,omitempty"`
+	Pending     bool     `json:"pending"`
+	Groups      []string `json:"groups"`
 }
 
 type TriggerListResponse struct {
@@ -48,6 +49,7 @@ func ListTriggerEndpoint(router *app.Router, triggers *[]*trigger.Instance) {
 						Name:        i.Name(),
 						Description: i.Description(),
 						Pending:     i.Pending(),
+						Groups:      i.Groups(),
 					})
 				}
 			}

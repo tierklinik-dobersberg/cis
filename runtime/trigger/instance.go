@@ -38,7 +38,7 @@ type InstanceConfig struct {
 	// will never fire more than one event at the specified day times and never
 	// fire in between.
 	//
-	// Note that DebounceUntil and BufferUntnil are mutually exclusive.
+	// Note that DebounceUntil and BufferUntil are mutually exclusive.
 	// Configuring both will cause NewInstance to return an error.
 	DebounceUntil []utils.DayTime
 	// BufferUntil works similar to DebounceUntil but instead of dropping older
@@ -55,6 +55,12 @@ type InstanceConfig struct {
 	Location *time.Location
 	// Description holds an optional, human-readable description
 	Description string
+	// Group is a list of group names the trigger instance belongs to.
+	// Groups have no special meaning in this package but may be used
+	// by package users for different purposes. I.e. in CIS the trigger
+	// group is used to allow execution of multiple trigger instances via
+	// the API.
+	Groups []string
 }
 
 // Instance is a dedicated trigger instance that handles a set of events
@@ -91,6 +97,12 @@ func NewInstance(instanceName string, handlers []Handler, instanceCfg *InstanceC
 // Name returns the name of the instance.
 func (inst *Instance) Name() string {
 	return inst.name
+}
+
+// Groups returns list of trigger group names this instance belongs
+// to.
+func (inst *Instance) Groups() []string {
+	return inst.cfg.Groups
 }
 
 // Description returns the description of the trigger
@@ -267,6 +279,7 @@ func matchToInstanceConfig(match MatchConfig) (*InstanceConfig, error) {
 	instanceCfg.Location = time.Local
 	instanceCfg.EventFilters = match.EventFilter
 	instanceCfg.Description = match.Description
+	instanceCfg.Groups = match.Group
 
 	return instanceCfg, nil
 }

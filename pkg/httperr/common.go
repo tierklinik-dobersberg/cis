@@ -106,3 +106,7 @@ func Forbidden(err error, msg ...string) *Error {
 	}
 	return New(http.StatusForbidden, err, errorMsg)
 }
+
+func PreconditionFailed(msg string) *Error {
+	return New(http.StatusPreconditionFailed, errors.New(msg), nil)
+}

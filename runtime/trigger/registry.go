@@ -41,6 +41,8 @@ type MatchConfig struct {
 	DebounceUntil []string
 	// Description holds an optional, human-readable description
 	Description string
+	// Group is a list of group names the trigger instance belongs to
+	Group []string
 }
 
 // Type is a trigger type with a set of supported configuration stanzas

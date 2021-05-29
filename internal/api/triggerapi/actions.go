@@ -7,6 +7,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
+const externalTriggerID = "__external"
+
 var (
 	ReadTriggerAction = permission.MustDefineAction(
 		"trigger:read",

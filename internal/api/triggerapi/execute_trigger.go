@@ -27,12 +27,15 @@ func ExecuteTriggerEndpoint(router *app.Router, instances *[]*trigger.Instance) 
 				return httperr.BadRequest(nil, "trigger "+trigger)
 			}
 			// TODO(ppacher): we may add support for custom event IDs instead
-			// of the hard-coded __external. if we do, we should also consider
-			// using instance.Wants() before executing the trigger.
-			instance.Handle(ctx, &event.Event{
-				ID:      "__external",
-				Created: time.Now(),
-			})
+			// of the hard-coded __external.
+			if instance.Wants(externalTriggerID) {
+				instance.Handle(ctx, &event.Event{
+					ID:      externalTriggerID,
+					Created: time.Now(),
+				})
+			} else {
+				return httperr.PreconditionFailed("trigger does not support being triggered via API")
+			}
 			c.Status(http.StatusAccepted)
 
 			return nil

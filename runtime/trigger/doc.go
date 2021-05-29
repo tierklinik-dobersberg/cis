@@ -68,6 +68,11 @@ var MatchSpec = conf.SectionSpec{
 		Type:        conf.StringType,
 		Description: "A human readable description of the trigger",
 	},
+	{
+		Name:        "Group",
+		Type:        conf.StringSliceType,
+		Description: "A list of groups this trigger belongs to",
+	},
 }
 
 func init() {
@@ -92,6 +97,8 @@ func init() {
 		Example: `
 			[Match]
 			EventFilter=event/roster/#
+			Description=Forward updates to the dutyroster to MQTT
+			Group=some-group-name
 
 			[MQTT-Publish]
 			EventAsTopic=yes
