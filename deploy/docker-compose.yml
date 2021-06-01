@@ -16,7 +16,7 @@ services:
     restart: on-failure
     volumes:
       - ../:/project
-    command: bash /project/integration/import-data.sh
+    command: bash /project/deploy/import-data.sh
 
   mongo-express:
     image: mongo-express
