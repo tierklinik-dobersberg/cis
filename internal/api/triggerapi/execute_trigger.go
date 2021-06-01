@@ -15,7 +15,7 @@ import (
 
 func ExecuteTriggerEndpoint(router *app.Router, instances *[]*trigger.Instance) {
 	router.POST(
-		"v1/:trigger",
+		"v1/instance/:trigger",
 		permission.OneOf{
 			ExecuteTriggerAction,
 		},

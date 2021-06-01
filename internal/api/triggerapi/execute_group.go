@@ -2,7 +2,6 @@ package triggerapi
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -98,7 +97,7 @@ func findAllowedGroupMembers(ctx context.Context, username string, app *app.App,
 		return nil, httperr.NotFound("trigger group", groupName, nil)
 	}
 	if len(result) == 0 {
-		return nil, httperr.Forbidden(nil, fmt.Sprintf("permission denied"))
+		return nil, httperr.Forbidden(nil, "permission denied")
 	}
 	return result, nil
 }
