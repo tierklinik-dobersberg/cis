@@ -35,7 +35,8 @@ export interface KnownPhoneExtension {
 
 export interface TriggerAction {
   Name: string;
-  Trigger: string;
+  PrimaryTrigger: string;
+  TriggerGroup: string[];
   ActionText: string;
   PendingText: string;
 }

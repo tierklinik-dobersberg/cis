@@ -39,6 +39,7 @@ import { VoiceMailCardComponent } from './mail-card';
 import { UpcomingEventsCardComponent } from './upcoming-events-card';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { SharedModule } from 'src/app/shared/shared.module';
+import { TriggerActionCardComponent } from './trigger-action-card';
 
 @NgModule({
   imports: [
@@ -80,6 +81,7 @@ import { SharedModule } from 'src/app/shared/shared.module';
     RosterCardComponent,
     VoiceMailCardComponent,
     UpcomingEventsCardComponent,
+    TriggerActionCardComponent,
   ],
   exports: [WelcomeComponent]
 })

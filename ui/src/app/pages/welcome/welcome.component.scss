@@ -63,6 +63,10 @@
       grid-row: 1 / span 4;
     }
   }
+
+  app-trigger-action-card {
+    grid-column: 1;
+  }
 }
 
 .top-row {

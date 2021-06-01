@@ -7,6 +7,7 @@ export interface TriggerInstance {
     name: string;
     description?: string;
     pending: boolean;
+    groups?: string[];
 }
 
 interface TriggerListResponse {
@@ -25,6 +26,11 @@ export class TriggerAPI {
 
     /** Executes the trigger */
     executeInstance(trigger: string): Observable<void> {
-        return this.http.post<void>(`/api/triggers/v1/${trigger}`, null)
+        return this.http.post<void>(`/api/triggers/v1/instance/${trigger}`, null)
+    }
+
+    /** Executes the trigger group */
+    executeGroup(grpName: string): Observable<void> {
+        return this.http.post<void>(`/api/triggers/v1/group/${grpName}`, null)
     }
 }
