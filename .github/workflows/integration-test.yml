@@ -5,12 +5,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
       - name: Building cisd
-        run: cd integration && docker-compose build cisd
+        run: cd deploy && docker-compose build cisd
       - name: Setup environment
-        run: cd integration && docker-compose up -d
+        run: cd deploy && docker-compose up -d
       - name: Run Jasmine tests
-        run: cd spec && npm install && CI=true npm test || ( cd ../integration ; docker-compose logs cisd ; exit -1 )
+        run: cd spec && npm install && CI=true npm test || ( cd ../deploy ; docker-compose logs cisd ; exit -1 )
       - name: Teardown environment
         run: cd integration && docker-compose down
