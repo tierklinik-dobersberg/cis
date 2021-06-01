@@ -43,5 +43,6 @@ var uiConfigFile = autodoc.MustRegister(autodoc.File{
 		"ExternalLink":         cfgspec.ExternalLinkSpec,
 		"QuickRosterOverwrite": cfgspec.QuickRosterOverwriteSpec,
 		"KnownPhoneExtension":  cfgspec.KnownPhoneExtensionSpec,
+		"TriggerAction":        cfgspec.TriggerActionSpec,
 	},
 })

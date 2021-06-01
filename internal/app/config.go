@@ -34,5 +34,5 @@ type UIConfig struct {
 	ExternalLinks         []cfgspec.ExternalLink         `section:"ExternalLink"`
 	QuickRosterOverwrites []cfgspec.QuickRosterOverwrite `section:"QuickRosterOverwrite"`
 	KnownPhoneExtensions  []cfgspec.KnownPhoneExtension  `section:"KnownPhoneExtension"`
-	TriggerActions        []cfgspec.TriggerAction        `json:"TriggerAction"`
+	TriggerActions        []cfgspec.TriggerAction        `section:"TriggerAction"`
 }

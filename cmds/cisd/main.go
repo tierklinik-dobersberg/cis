@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -180,8 +181,9 @@ func getApp(ctx context.Context) *app.App {
 		},
 	})
 	if err != nil {
-		logger.Fatalf(ctx, "failed to boot service: %s", err)
+		log.Fatalf("failed to boot service: %s", err)
 	}
+	instance.AddLogger(&logger.StdlibAdapter{})
 
 	//
 	// There might be a ui.conf file so try to load it.
@@ -414,7 +416,6 @@ func getApp(ctx context.Context) *app.App {
 	//
 	// Prepare triggers
 	//
-
 	// update the timezone of the default trigger registry
 	trigger.DefaultRegistry.SetLocation(appCtx.Location())
 
@@ -430,7 +431,6 @@ func getApp(ctx context.Context) *app.App {
 	// the triggerapi.
 	// TODO(ppacher): this feels more like a workaround than a real solution.
 	*triggerInstances = triggers
-
 	return appCtx
 }
 
