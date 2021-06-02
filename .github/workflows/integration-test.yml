@@ -12,4 +12,4 @@ jobs:
       - name: Run Jasmine tests
         run: cd spec && npm install && CI=true npm test || ( cd ../deploy ; docker-compose logs cisd ; exit -1 )
       - name: Teardown environment
-        run: cd integration && docker-compose down
+        run: cd deploy && docker-compose down
