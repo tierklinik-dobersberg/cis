@@ -9,14 +9,8 @@ import (
 	"github.com/mxk/go-imap/imap"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/mailbox"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
-
-// CollectionName is the name of the mail-sync mongodb
-// collection.
-const CollectionName = "mail-sync-state"
 
 // State is the state of a mail syncer.
 type State struct {
@@ -54,7 +48,7 @@ type Syncer struct {
 	rw           sync.Mutex
 	state        State
 	close        chan struct{}
-	syncState    *mongo.Collection
+	syncState    Store
 	cfg          *mailbox.Config
 	handler      MessageHandler
 	pollInterval time.Duration
@@ -78,9 +72,10 @@ func (sync *Syncer) Start() error {
 	if sync.close != nil {
 		return fmt.Errorf("already running")
 	}
+
 	sync.close = make(chan struct{})
 	closeCh := sync.close
-	defer sync.log.Infof("polling loop stopped")
+	defer sync.log.Infof("syncer stopped")
 
 	sync.wg.Add(1)
 	go func() {
@@ -132,10 +127,13 @@ func (sync *Syncer) poll() {
 
 	if cli.IMAP.Mailbox.UIDValidity != sync.state.UIDValidity {
 		sync.log.Infof("mailbox UID validity changed from %d to %d", sync.state.UIDValidity, cli.IMAP.Mailbox.UIDValidity)
+		// If UIDValidity changed we cannot continue to sync using the last retrieved
+		// UID as it might be invalid now. We MUST start from scratch and re-sync all mails.
 		sync.state.LastUIDFetched = 0
 		sync.state.UIDValidity = cli.IMAP.Mailbox.UIDValidity
 
-		// TODO(ppacher):
+		// TODO(ppacher): we should somehow notify the MessageHandler about
+		// this situation.
 	}
 
 	seqset := new(imap.SeqSet)
@@ -182,20 +180,8 @@ func (sync *Syncer) updateState(ctx context.Context, uidvalidtity uint32, lastUI
 	sync.state.LastUIDFetched = lastUID
 	sync.state.UIDValidity = uidvalidtity
 
-	if sync.state.ID.IsZero() {
-		result, err := sync.syncState.InsertOne(ctx, sync.state)
-		if err != nil {
-			sync.log.Errorf("failed to create sync state: %s", err)
-			return
-		}
-
-		sync.state.ID = result.InsertedID.(primitive.ObjectID)
-	} else {
-		_, err := sync.syncState.ReplaceOne(ctx, bson.M{"_id": sync.state.ID}, sync.state)
-		if err != nil {
-			sync.log.Errorf("failed to update sync state: %s", err)
-			return
-		}
+	if err := sync.syncState.SaveState(ctx, sync.state); err != nil {
+		sync.log.Errorf("failed to persist sync state: %s", err)
 	}
 }
 

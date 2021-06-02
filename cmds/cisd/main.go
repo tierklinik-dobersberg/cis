@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -58,6 +59,7 @@ import (
 	"github.com/tierklinik-dobersberg/service/runtime"
 	"github.com/tierklinik-dobersberg/service/service"
 	"github.com/tierklinik-dobersberg/service/svcenv"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
@@ -305,7 +307,8 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "commentdb: %s", err.Error())
 	}
 
-	mailsyncManager, err := mailsync.NewManagerWithClient(ctx, cfg.DatabaseName, mongoClient)
+	store := mailSyncStore(mongoClient, cfg.DatabaseName)
+	mailsyncManager, err := mailsync.NewManager(ctx, store)
 	if err != nil {
 		logger.Fatalf(ctx, "mailsync: %s", err.Error())
 	}
@@ -489,4 +492,36 @@ func runMain() {
 	}
 
 	logger.Infof(ctx, "Service stopped successfully")
+}
+
+// CollectionName is the name of the mail-sync mongodb
+// collection.
+func mailSyncStore(mongoClient *mongo.Client, dbName string) mailsync.Store {
+	const collectionName = "mail-sync-state"
+	col := mongoClient.Database(dbName).Collection(collectionName)
+
+	return &mailsync.SimpleStore{
+		Load: func(ctx context.Context, name string) (*mailsync.State, error) {
+			result := col.FindOne(ctx, bson.M{"name": name})
+			if result.Err() != nil && !errors.Is(result.Err(), mongo.ErrNoDocuments) {
+				return nil, fmt.Errorf("loading state: %w", result.Err())
+			}
+
+			if result.Err() == nil {
+				var state mailsync.State
+				if err := result.Decode(&state); err != nil {
+					return nil, fmt.Errorf("decoding state: %w", err)
+				}
+				return &state, nil
+			}
+			return nil, nil
+		},
+		Save: func(ctx context.Context, state mailsync.State) error {
+			opts := options.Replace().SetUpsert(true)
+			if _, err := col.ReplaceOne(ctx, bson.M{"name": state.Name}, state, opts); err != nil {
+				return err
+			}
+			return nil
+		},
+	}
 }
