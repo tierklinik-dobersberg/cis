@@ -67,6 +67,8 @@ import (
 	// underscore imports that register themself somewhere
 	//
 
+	// SendMail trigger type and SMTP support
+	_ "github.com/tierklinik-dobersberg/cis/runtime/mailer"
 	// MQTT trigger type
 	_ "github.com/tierklinik-dobersberg/cis/internal/integration/mqtt"
 	// Twilio trigger type
