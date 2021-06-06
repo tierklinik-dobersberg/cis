@@ -21,8 +21,12 @@ func addToSchema(schema *runtime.ConfigSchema) error {
 
 func init() {
 	// create a global [Mailer] configuration section
-	AddToSchema(runtime.GlobalSchema)
+	runtime.Must(
+		AddToSchema(runtime.GlobalSchema),
+	)
 	// Register the mailer as a trigger type at the default
 	// registry as [SendMail]
-	AddTriggerType("SendMail", trigger.DefaultRegistry)
+	runtime.Must(
+		AddTriggerType("SendMail", trigger.DefaultRegistry),
+	)
 }
