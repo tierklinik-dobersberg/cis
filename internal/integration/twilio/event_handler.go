@@ -9,7 +9,6 @@ import (
 
 	"github.com/kevinburke/twilio-go"
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
@@ -57,11 +56,6 @@ func RegisterTriggerOn(reg *trigger.Registry) error {
 			Spec,
 		},
 		CreateFunc: func(ctx context.Context, globalCfg *runtime.ConfigSchema, s *conf.Section) (trigger.Handler, error) {
-			app := app.FromContext(ctx)
-			if app == nil {
-				return nil, fmt.Errorf("expected app to exist in ctx")
-			}
-
 			var ev = new(EventHandler)
 			if err := conf.DecodeSections([]conf.Section{*s}, Spec, ev); err != nil {
 				return nil, fmt.Errorf("failed to parse section: %w", err)
