@@ -19,7 +19,7 @@ type eventHandler struct {
 // HandleEvents implements trigger.Handler.
 func (eh *eventHandler) HandleEvents(ctx context.Context, events ...*event.Event) {
 	// TODO(ppacher): consider adding something similar to AcceptBuffered= from
-	// integration/twilio.
+	// runtime/twilio.
 	// For now, we just send emails for each matching event.
 	for _, evt := range events {
 		if err := eh.mailer.Send(ctx, eh.msg, evt); err != nil {

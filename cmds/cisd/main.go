@@ -69,10 +69,10 @@ import (
 
 	// SendMail trigger type and SMTP support
 	_ "github.com/tierklinik-dobersberg/cis/runtime/mailer"
+	// Twilio trigger type
+	_ "github.com/tierklinik-dobersberg/cis/runtime/twilio"
 	// MQTT trigger type
 	_ "github.com/tierklinik-dobersberg/cis/internal/integration/mqtt"
-	// Twilio trigger type
-	_ "github.com/tierklinik-dobersberg/cis/internal/integration/twilio"
 	// VetInf importer
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/neumayr"
 	// Neumayr importer
