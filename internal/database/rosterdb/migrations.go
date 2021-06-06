@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-version"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
+	"github.com/tierklinik-dobersberg/cis/runtime/schema"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

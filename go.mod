@@ -13,15 +13,16 @@ require (
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/google/renameio v1.0.0
 	github.com/google/uuid v1.1.2
-	github.com/hashicorp/go-version v1.3.0 // indirect
+	github.com/hashicorp/go-version v1.3.0
 	github.com/kevinburke/go-types v0.0.0-20201208005256-aee49f568a20 // indirect
-	github.com/kevinburke/go.uuid v1.2.0 // indirect
+	github.com/kevinburke/go.uuid v1.2.0
 	github.com/kevinburke/rest v0.0.0-20210222204520-f7a2e216372f // indirect
 	github.com/kevinburke/twilio-go v0.0.0-20210327194925-1623146bcf73
 	github.com/klauspost/compress v1.11.4 // indirect
 	github.com/mxk/go-imap v0.0.0-20150429134902-531c36c3f12d
 	github.com/nbutton23/zxcvbn-go v0.0.0-20201221231540-e56b841a3c88
 	github.com/nyaruka/phonenumbers v1.0.61
+	github.com/ory/mail/v3 v3.0.0 // indirect
 	github.com/ppacher/system-conf v0.8.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/afero v1.5.1
@@ -31,13 +32,13 @@ require (
 	github.com/tierklinik-dobersberg/go-vetinf v0.1.5
 	github.com/tierklinik-dobersberg/logger v0.3.0
 	github.com/tierklinik-dobersberg/mailbox v0.0.4
-	github.com/tierklinik-dobersberg/service v0.3.0
+	github.com/tierklinik-dobersberg/service v0.4.0
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.2.1 // indirect
 	github.com/yuin/goldmark v1.2.1 // indirect
 	go.mongodb.org/mongo-driver v1.4.4
 	golang.org/x/crypto v0.0.0-20201217014255-9d1352758620
-	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1
+	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1 // indirect
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210403161142-5e06dd20ab57 // indirect

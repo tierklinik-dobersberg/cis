@@ -9,8 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nyaruka/phonenumbers"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	v1 "github.com/tierklinik-dobersberg/cis/pkg/models/customer/v1alpha"
 	"go.mongodb.org/mongo-driver/bson"
 )

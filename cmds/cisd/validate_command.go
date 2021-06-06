@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/tierklinik-dobersberg/cis/internal/autodoc"
+	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
 )
 
 func getValidateCommand() *cobra.Command {

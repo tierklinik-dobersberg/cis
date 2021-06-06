@@ -9,7 +9,7 @@ import (
 	"github.com/robfig/cron/v3"
 	"github.com/tevino/abool"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
@@ -53,7 +53,7 @@ func (inst *Instance) Run() {
 	inst.log.Info("Starting import")
 	start := time.Now()
 	defer func() {
-		inst.log.Infof("Import finished after %s", time.Now().Sub(start))
+		inst.log.Infof("Import finished after %s", time.Since(start))
 	}()
 
 	err := inst.Handler.Import()
@@ -87,7 +87,6 @@ func Register(factory Factory) {
 
 // Importer imports data from external systems
 type Importer struct {
-	handlers  []Handler
 	cron      *cron.Cron
 	instances []*Instance
 }

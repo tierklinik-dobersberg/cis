@@ -122,3 +122,43 @@ var QuickRosterOverwriteSpec = conf.SectionSpec{
 		Required:    true,
 	},
 }
+
+// TriggerAction defines a custom trigger action that can be executed via the user
+// interface.
+type TriggerAction struct {
+	Name           string
+	PrimaryTrigger string
+	TriggerGroup   []string
+	ActionText     string
+	PendingText    string
+}
+
+// TriggerActionSpec defines the configuration spec that can be used for the custom
+// trigger actions.
+var TriggerActionSpec = conf.SectionSpec{
+	{
+		Name:        "Name",
+		Description: "The name of the action",
+		Type:        conf.StringType,
+	},
+	{
+		Name:        "PrimaryTrigger",
+		Description: "The name of the primary trigger used to detect if the action is already pending.",
+		Type:        conf.StringType,
+	},
+	{
+		Name:        "TriggerGroup",
+		Description: "The name of the trigger group to execute. If set, PrimaryTrigger is expected to be part of the group",
+		Type:        conf.StringSliceType,
+	},
+	{
+		Name:        "ActionText",
+		Description: "The text for the action button",
+		Type:        conf.StringType,
+	},
+	{
+		Name:        "PendingText",
+		Description: "The text to display if the trigger is already pending.",
+		Type:        conf.StringType,
+	},
+}

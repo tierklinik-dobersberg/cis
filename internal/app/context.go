@@ -23,10 +23,10 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
-	"github.com/tierklinik-dobersberg/cis/internal/mailsync"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
+	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/service/service"
@@ -139,7 +139,7 @@ func From(c *gin.Context) *App {
 	val, _ := c.Request.Context().Value(appContextKey).(*App)
 
 	if val == nil {
-		server.AbortRequest(c, http.StatusInternalServerError, errors.New("No AppCtx available"))
+		server.AbortRequest(c, http.StatusInternalServerError, errors.New("no AppCtx available"))
 		return nil
 	}
 

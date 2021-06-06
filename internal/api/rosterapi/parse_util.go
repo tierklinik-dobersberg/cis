@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/cis/internal/httperr"
+	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
 func getYearAndMonth(c *gin.Context) (time.Month, int, error) {

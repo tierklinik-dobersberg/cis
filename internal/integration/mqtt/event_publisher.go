@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/tierklinik-dobersberg/cis/internal/event"
+	"github.com/tierklinik-dobersberg/cis/runtime/event"
 )
 
 type EventPublisher struct {

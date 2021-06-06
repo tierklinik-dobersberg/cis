@@ -12,10 +12,10 @@ import (
 	"github.com/google/renameio"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
-	"github.com/tierklinik-dobersberg/cis/internal/httperr"
-	"github.com/tierklinik-dobersberg/cis/internal/passwd"
-	"github.com/tierklinik-dobersberg/cis/internal/pkglog"
+	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
+	"github.com/tierklinik-dobersberg/cis/pkg/passwd"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
+	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -244,7 +244,8 @@ func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo str
 
 	// create a shallow copy of u
 	// so we don't modify u in place.
-	u = &(*u)
+	var cu = *u
+	u = &cu
 
 	u.PasswordAlgo = algo
 	u.PasswordHash = hash

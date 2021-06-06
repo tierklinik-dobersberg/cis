@@ -2,7 +2,7 @@ package cctv
 
 import (
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/autodoc"
+	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
 )
 
 var CameraUnit = autodoc.MustRegister(autodoc.File{

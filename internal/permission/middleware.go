@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
+	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
 // SetType fines if one or all actions of a set

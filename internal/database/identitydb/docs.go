@@ -2,9 +2,10 @@ package identitydb
 
 import (
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/autodoc"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
+	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
+	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 )
 
 func init() {
@@ -55,14 +56,17 @@ func init() {
 			"User":       cfgspec.UserSpec,
 			"Permission": cfgspec.PermissionSpec,
 			// FIXME(ppacher): see comment above.
-			"AutoLogin": newAutologinRegistry(httpcond.DefaultRegistry, conf.SectionSpec{
-				{
-					Name:        "CreateSession",
-					Type:        conf.BoolType,
-					Description: "Whether or not a new session should be created or if only this request should be authorized",
-					Default:     "no",
+			"AutoLogin": utils.MultiOptionRegistry{
+				httpcond.DefaultRegistry,
+				conf.SectionSpec{
+					{
+						Name:        "CreateSession",
+						Type:        conf.BoolType,
+						Description: "Whether or not a new session should be created or if only this request should be authorized",
+						Default:     "no",
+					},
 				},
-			}),
+			},
 		},
 		Example: `
 		[User]

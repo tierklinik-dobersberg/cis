@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -26,6 +28,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/patientapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/resourceapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/triggerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/voicemailapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/autologin"
@@ -39,22 +42,24 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
-	"github.com/tierklinik-dobersberg/cis/internal/errorlog"
-	"github.com/tierklinik-dobersberg/cis/internal/httpcond"
-	"github.com/tierklinik-dobersberg/cis/internal/httperr"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/internal/integration/mongolog"
 	"github.com/tierklinik-dobersberg/cis/internal/integration/rocket"
-	"github.com/tierklinik-dobersberg/cis/internal/mailsync"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/cis/internal/schema"
 	"github.com/tierklinik-dobersberg/cis/internal/session"
-	"github.com/tierklinik-dobersberg/cis/internal/trigger"
+	"github.com/tierklinik-dobersberg/cis/internal/utils"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
+	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
+	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
+	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
+	"github.com/tierklinik-dobersberg/cis/runtime/schema"
+	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 	"github.com/tierklinik-dobersberg/logger"
+	"github.com/tierklinik-dobersberg/service/runtime"
 	"github.com/tierklinik-dobersberg/service/service"
 	"github.com/tierklinik-dobersberg/service/svcenv"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
@@ -99,18 +104,22 @@ func getRootCommand() *cobra.Command {
 }
 
 func getApp(ctx context.Context) *app.App {
-	// prepare logging
-	logAdapter := errorlog.New(&logger.StdlibAdapter{})
-	logger.SetDefaultAdapter(logAdapter)
 
-	var cfg app.Config
-	var autoLoginManager *autologin.Manager
-	sessionManager := new(session.Manager)
+	var (
+		cfg              app.Config
+		autoLoginManager *autologin.Manager
+		sessionManager   = new(session.Manager)
+		triggerInstances = &([]*trigger.Instance{})
+	)
 
 	instance, err := service.Boot(service.Config{
-		ConfigFileName: "cis.conf",
-		ConfigFileSpec: globalConfigFile,
-		ConfigTarget:   &cfg,
+		ConfigFileName:  "cis.conf",
+		ConfigDirectory: "conf.d",
+		ConfigSchema: utils.MultiSectionRegistry{
+			globalConfigFile,
+			runtime.GlobalSchema,
+		},
+		ConfigTarget: &cfg,
 		RouteSetupFunc: func(grp gin.IRouter) error {
 			apis := grp.Group(
 				"/api/",
@@ -166,14 +175,17 @@ func getApp(ctx context.Context) *app.App {
 				resourceapi.Setup(apis.Group("resources", session.Require()))
 				// cctv allows streaming access to security cameras
 				cctvapi.Setup(apis.Group("cctv", session.Require()))
+				// direct access to trigger instances
+				triggerapi.Setup(apis.Group("triggers", session.Require()), triggerInstances)
 			}
 
 			return nil
 		},
 	})
 	if err != nil {
-		logger.Fatalf(ctx, "failed to boot service: %s", err)
+		log.Fatalf("failed to boot service: %s", err)
 	}
+	instance.AddLogger(&logger.StdlibAdapter{})
 
 	//
 	// There might be a ui.conf file so try to load it.
@@ -192,7 +204,10 @@ func getApp(ctx context.Context) *app.App {
 			logger.Fatalf(ctx, "failed to configure rocketchat integration: %s", err)
 		}
 
-		logAdapter.AddErrorAdapter(logger.AdapterFunc(func(t time.Time, s logger.Severity, msg string, f logger.Fields) {
+		instance.AddLogger(logger.AdapterFunc(func(t time.Time, s logger.Severity, msg string, f logger.Fields) {
+			if s != logger.Error {
+				return
+			}
 			content := rocket.WebhookContent{
 				Text: msg,
 				Attachments: []rocket.Attachment{
@@ -230,7 +245,7 @@ func getApp(ctx context.Context) *app.App {
 		if err != nil {
 			logger.Fatalf(ctx, "mongolog: %s", err.Error())
 		}
-		logAdapter.AddDefaultAdapter(mongoLogger)
+		instance.AddLogger(mongoLogger)
 	}
 
 	//
@@ -292,7 +307,8 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "commentdb: %s", err.Error())
 	}
 
-	mailsyncManager, err := mailsync.NewManagerWithClient(ctx, cfg.DatabaseName, mongoClient)
+	store := mailSyncStore(mongoClient, cfg.DatabaseName)
+	mailsyncManager, err := mailsync.NewManager(ctx, store)
 	if err != nil {
 		logger.Fatalf(ctx, "mailsync: %s", err.Error())
 	}
@@ -403,15 +419,21 @@ func getApp(ctx context.Context) *app.App {
 	//
 	// Prepare triggers
 	//
+	// update the timezone of the default trigger registry
+	trigger.DefaultRegistry.SetLocation(appCtx.Location())
+
 	// TODO(ppacher): this currently requires app.App to have been associated with ctx.
 	// I'm somewhat unhappy with that requirement so make it go away in the future.
-	//
 	ctx = app.With(ctx, appCtx)
 	logger.Infof(ctx, "%d trigger types available so far", trigger.DefaultRegistry.TypeCount())
-	if err := trigger.DefaultRegistry.LoadFiles(ctx, instance.ConfigurationDirectory); err != nil {
+	triggers, err := trigger.DefaultRegistry.LoadFiles(ctx, runtime.GlobalSchema, instance.ConfigurationDirectory)
+	if err != nil {
 		logger.Fatalf(ctx, "triggers: %s", err)
 	}
-
+	// copy the slice pointer to make triggers available in
+	// the triggerapi.
+	// TODO(ppacher): this feels more like a workaround than a real solution.
+	*triggerInstances = triggers
 	return appCtx
 }
 
@@ -470,4 +492,36 @@ func runMain() {
 	}
 
 	logger.Infof(ctx, "Service stopped successfully")
+}
+
+// CollectionName is the name of the mail-sync mongodb
+// collection.
+func mailSyncStore(mongoClient *mongo.Client, dbName string) mailsync.Store {
+	const collectionName = "mail-sync-state"
+	col := mongoClient.Database(dbName).Collection(collectionName)
+
+	return &mailsync.SimpleStore{
+		Load: func(ctx context.Context, name string) (*mailsync.State, error) {
+			result := col.FindOne(ctx, bson.M{"name": name})
+			if result.Err() != nil && !errors.Is(result.Err(), mongo.ErrNoDocuments) {
+				return nil, fmt.Errorf("loading state: %w", result.Err())
+			}
+
+			if result.Err() == nil {
+				var state mailsync.State
+				if err := result.Decode(&state); err != nil {
+					return nil, fmt.Errorf("decoding state: %w", err)
+				}
+				return &state, nil
+			}
+			return nil, nil
+		},
+		Save: func(ctx context.Context, state mailsync.State) error {
+			opts := options.Replace().SetUpsert(true)
+			if _, err := col.ReplaceOne(ctx, bson.M{"name": state.Name}, state, opts); err != nil {
+				return err
+			}
+			return nil
+		},
+	}
 }

@@ -6,6 +6,7 @@
   </app-roster-card>
   <app-voicemail-card class="dash-card" *ngFor="let name of mailboxes" [mailboxName]="name"></app-voicemail-card>
   <app-upcoming-events-card #upcomingEvents class="dash-card"></app-upcoming-events-card>
+  <app-trigger-action-card></app-trigger-action-card>
 </div>
 <!--
   <h2 *ngIf="isDevMode" class="ant-row">Terminvergabe</h2>

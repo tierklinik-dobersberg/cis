@@ -1,0 +1,17 @@
+nz-card {
+    height: 100%;
+}
+
+ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 12px;
+    li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        button {
+            min-width: 50px;
+        }
+    }
+}
