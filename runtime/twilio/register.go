@@ -1,38 +1,9 @@
 package twilio
 
 import (
-	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 	"github.com/tierklinik-dobersberg/service/runtime"
 )
-
-type AccountConfig struct {
-	From       string
-	AccountSid string
-	Token      string
-}
-
-var AccountSpec = conf.SectionSpec{
-	{
-		Name:        "From",
-		Type:        conf.StringType,
-		Required:    true,
-		Description: "The sender number or alphanumeric sender ID",
-	},
-	{
-		Name:        "AccountSid",
-		Type:        conf.StringType,
-		Required:    true,
-		Internal:    true,
-		Description: "The twilio accound SID",
-	},
-	{
-		Name:        "Token",
-		Type:        conf.StringType,
-		Required:    true,
-		Internal:    true,
-		Description: "The twilio authentication token",
-	},
-}
 
 var (
 	ConfigBuilder = runtime.NewConfigSchemaBuilder(addtoSchema)
@@ -48,5 +19,13 @@ func addtoSchema(schema *runtime.ConfigSchema) error {
 }
 
 func init() {
-	AddToSchema(runtime.GlobalSchema)
+	// Declare a global [Twilio] section for the account
+	// configuration.
+	runtime.Must(
+		AddToSchema(runtime.GlobalSchema),
+	)
+	// Add a [SendSMS] trigger type
+	runtime.Must(
+		AddTriggerType("SendSMS", trigger.DefaultRegistry),
+	)
 }
