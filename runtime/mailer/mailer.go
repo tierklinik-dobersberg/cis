@@ -114,7 +114,8 @@ func New(account Account) (Mailer, error) {
 
 	// TODO(ppacher): should we try to connect to verify the credentials?
 	return &mailer{
-		dialer:      d,
-		defaultFrom: account.From,
+		dialer:        d,
+		defaultFrom:   account.From,
+		templateCache: make(map[string]templater),
 	}, nil
 }
