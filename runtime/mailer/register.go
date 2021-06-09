@@ -7,7 +7,7 @@ import (
 
 var (
 	ConfigBuilder = runtime.NewConfigSchemaBuilder(addToSchema)
-	AddToSchema   = ConfigBuilder.AddToScheme
+	AddToSchema   = ConfigBuilder.AddToSchema
 )
 
 func addToSchema(schema *runtime.ConfigSchema) error {

@@ -405,6 +405,8 @@ github.com/tierklinik-dobersberg/mailbox v0.0.4 h1:x5iNX1ARiCXW05PY/0dgxESOw8jHB
 github.com/tierklinik-dobersberg/mailbox v0.0.4/go.mod h1:b11ERiacP9Jt7kkn/B1+N0EADQVXlE/jLJq4iz7YIBI=
 github.com/tierklinik-dobersberg/service v0.4.0 h1:6CI1EpepOzZwpNMkM+mXAcEZSos7yxJ5dT7GqzXUvZo=
 github.com/tierklinik-dobersberg/service v0.4.0/go.mod h1:d7XR2uEqTV3x4iZ3PldCrhEoY7Z7n5s2onpSW/3/KuY=
+github.com/tierklinik-dobersberg/service v0.4.1 h1:nTZ7kPTnKZ2dYBGadR8JA0V5aL+wTdBpV69Pj25WFbU=
+github.com/tierklinik-dobersberg/service v0.4.1/go.mod h1:d7XR2uEqTV3x4iZ3PldCrhEoY7Z7n5s2onpSW/3/KuY=
 github.com/tj/assert v0.0.0-20171129193455-018094318fb0/go.mod h1:mZ9/Rh9oLWpLLDRpvE+3b7gP/C2YyLFYxNmcLnPTMe0=
 github.com/tj/assert v0.0.3 h1:Df/BlaZ20mq6kuai7f5z2TvPFiwC3xaWJSDQNiIS3Rk=
 github.com/tj/assert v0.0.3/go.mod h1:Ne6X72Q+TB1AteidzQncjw9PabbMp4PBMZ1k+vd1Pvk=

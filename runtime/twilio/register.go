@@ -6,11 +6,11 @@ import (
 )
 
 var (
-	ConfigBuilder = runtime.NewConfigSchemaBuilder(addtoSchema)
-	AddToSchema   = ConfigBuilder.AddToScheme
+	ConfigBuilder = runtime.NewConfigSchemaBuilder(addToSchema)
+	AddToSchema   = ConfigBuilder.AddToSchema
 )
 
-func addtoSchema(schema *runtime.ConfigSchema) error {
+func addToSchema(schema *runtime.ConfigSchema) error {
 	return schema.RegisterSection(
 		"Twilio",
 		"Configure a twilio account to use for programmable messaging.",
