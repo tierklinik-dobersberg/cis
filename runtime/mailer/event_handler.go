@@ -54,6 +54,8 @@ func AddTriggerType(typeName string, reg *trigger.Registry) error {
 			if err := conf.DecodeSections([]conf.Section{*s}, MessageSpec, &msg); err != nil {
 				return nil, fmt.Errorf("parsing message: %w", err)
 			}
+			msg.BodyFile = utils.AbsConfig(msg.BodyFile)
+
 			// TODO(ppacher): validate account
 			mailer, err := New(acc)
 			if err != nil {

@@ -30,11 +30,17 @@ func AddTriggerType(name string, reg *trigger.Registry) error {
 			eventTriggerSpec,
 		},
 		CreateFunc: func(ctx context.Context, globalCfg *runtime.ConfigSchema, s *conf.Section) (trigger.Handler, error) {
+			spec := utils.MultiOptionRegistry{
+				eventTriggerSpec,
+				MessageSpec,
+			}
 			// Decode the Message and eventHandlerSpec into ev
 			var ev = new(EventHandler)
-			if err := conf.DecodeSections([]conf.Section{*s}, eventTriggerSpec, ev); err != nil {
+			if err := conf.DecodeSections([]conf.Section{*s}, spec, ev); err != nil {
 				return nil, fmt.Errorf("failed to parse section: %w", err)
 			}
+
+			ev.Message.TemplateFile = utils.AbsConfig(ev.Message.TemplateFile)
 
 			// detect the twilio account configuration. if AccountSid is defined
 			// in the Twilio trigger section we'll use that one. If not, we'll
