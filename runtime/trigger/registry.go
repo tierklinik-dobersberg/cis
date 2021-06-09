@@ -253,6 +253,8 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 // used to as the handlers section name and must be unique. If another
 // handler with name is already registered an error is returned.
 func (reg *Registry) RegisterType(name string, factory Factory) error {
+	name = strings.ToLower(name)
+
 	reg.l.Lock()
 	defer reg.l.Unlock()
 
