@@ -7,6 +7,7 @@ import { extractErrorMessage } from 'src/app/utils';
 
 interface Action extends TriggerAction {
     trigger: TriggerInstance;
+    running: boolean;
 }
 
 @Component({
@@ -56,7 +57,8 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
                 cfg[0].TriggerActions?.forEach(a => {
                     this.actions.push({
                         ...a,
-                        trigger: instances.get(a.PrimaryTrigger)
+                        trigger: instances.get(a.PrimaryTrigger),
+                        running: false,
                     })
                 });
                 console.log(this.actions);
@@ -70,6 +72,7 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
     }
 
     executeAction(action: Action) {
+        action.running = true;
         let exec: Observable<any>;
         if (!action.TriggerGroup || action.TriggerGroup?.length == 0) {
             exec = this.triggerapi.executeInstance(action.trigger.name);
@@ -86,6 +89,10 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
             error: err => {
                 this.reload$.next();
                 this.nzMessageService.error(extractErrorMessage(err, action.Name + " fehlgeschlagen"))
+                action.running = false;
+            },
+            complete: () => {
+                action.running = false;
             }
         })
     }

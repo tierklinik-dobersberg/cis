@@ -6,8 +6,8 @@
                 <label>
                     {{ action.Name }}
                 </label>
-                <button nz-button nzType="primary" (click)="executeAction(action)" [disabled]="action?.trigger?.pending"
-                    [nzLoading]="action?.trigger?.pending">
+                <button nz-button nzType="primary" [nzLoading]="action.running" (click)="executeAction(action)"
+                    [disabled]="action?.trigger?.pending" [nzLoading]="action?.trigger?.pending">
                     {{
                     action?.trigger?.pending
                     ? action.PendingText
