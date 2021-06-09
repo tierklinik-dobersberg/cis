@@ -2,3 +2,6 @@
 ./testdata
 ./integration
 ./cisd
+./testdata
+./spec
+./ui
