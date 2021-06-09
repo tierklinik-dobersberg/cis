@@ -22,7 +22,7 @@ require (
 	github.com/mxk/go-imap v0.0.0-20150429134902-531c36c3f12d
 	github.com/nbutton23/zxcvbn-go v0.0.0-20201221231540-e56b841a3c88
 	github.com/nyaruka/phonenumbers v1.0.61
-	github.com/ory/mail/v3 v3.0.0 // indirect
+	github.com/ory/mail/v3 v3.0.0
 	github.com/ppacher/system-conf v0.8.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/afero v1.5.1
@@ -32,7 +32,7 @@ require (
 	github.com/tierklinik-dobersberg/go-vetinf v0.1.5
 	github.com/tierklinik-dobersberg/logger v0.3.0
 	github.com/tierklinik-dobersberg/mailbox v0.0.4
-	github.com/tierklinik-dobersberg/service v0.4.1
+	github.com/tierklinik-dobersberg/service v0.4.6
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.2.1 // indirect
 	github.com/yuin/goldmark v1.2.1 // indirect

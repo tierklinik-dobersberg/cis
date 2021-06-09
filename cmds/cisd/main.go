@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"time"
 
+	goruntime "runtime"
+
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
@@ -106,7 +108,6 @@ func getRootCommand() *cobra.Command {
 }
 
 func getApp(ctx context.Context) *app.App {
-
 	var (
 		cfg              app.Config
 		autoLoginManager *autologin.Manager
@@ -114,9 +115,12 @@ func getApp(ctx context.Context) *app.App {
 		triggerInstances = &([]*trigger.Instance{})
 	)
 
+	log.Printf("CIS - running on %s (%s)", goruntime.GOOS, goruntime.GOARCH)
+
 	instance, err := service.Boot(service.Config{
-		ConfigFileName:  "cis.conf",
-		ConfigDirectory: "conf.d",
+		UseStdlibLogAdapter: true,
+		ConfigFileName:      "cis.conf",
+		ConfigDirectory:     "conf.d",
 		ConfigSchema: utils.MultiSectionRegistry{
 			globalConfigFile,
 			runtime.GlobalSchema,
@@ -187,7 +191,6 @@ func getApp(ctx context.Context) *app.App {
 	if err != nil {
 		log.Fatalf("failed to boot service: %s", err)
 	}
-	instance.AddLogger(&logger.StdlibAdapter{})
 
 	// add the configuration file to the global schema
 	// so packages can decode from it.
