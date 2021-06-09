@@ -25,8 +25,9 @@ type SMSSender interface {
 func New(acc Account) (SMSSender, error) {
 	client := twilio.NewClient(acc.AccountSid, acc.Token, nil)
 	return &sender{
-		defaultFrom: acc.From,
-		client:      client,
+		defaultFrom:   acc.From,
+		client:        client,
+		templateCache: make(map[string]*template.Template),
 	}, nil
 }
 
