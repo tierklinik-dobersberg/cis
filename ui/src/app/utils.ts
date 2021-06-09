@@ -42,7 +42,7 @@ export function extractErrorMessage(err: any, prefix: string = ''): string {
   } else if ('error' in err && typeof err.error === 'string') {
     msg = err.error;
   } else if ('error' in err && typeof err.error?.error === 'string') {
-    msg = err.err.error;
+    msg = err.error.error;
   } else if ('statusText' in err && typeof err.statusText === 'string') {
     msg = err.statusText;
   } else if ('message' in err && typeof err.message === 'string') {

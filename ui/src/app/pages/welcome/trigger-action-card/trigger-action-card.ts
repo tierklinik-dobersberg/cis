@@ -80,6 +80,7 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
         }
         exec.subscribe({
             next: () => {
+                this.nzMessageService.success('Aktion ' + action.Name + ' gestartet')
                 this.reload$.next();
             },
             error: err => {
