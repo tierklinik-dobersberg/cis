@@ -51,13 +51,13 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
             )
             .subscribe(cfg => {
                 let instances = new Map<string, TriggerInstance>();
-                cfg[1].forEach(i => instances.set(i.name, i));
+                cfg[1].forEach(i => instances.set(stripTriggerSuffix(i.name), i));
 
                 this.actions = [];
                 cfg[0].TriggerActions?.forEach(a => {
                     this.actions.push({
                         ...a,
-                        trigger: instances.get(a.PrimaryTrigger),
+                        trigger: instances.get(stripTriggerSuffix(a.PrimaryTrigger)),
                         running: false,
                     })
                 });
@@ -97,3 +97,7 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
         })
     }
 }
+function stripTriggerSuffix(name: string): string {
+    return name.replace(/\.trigger$/, '')
+}
+
