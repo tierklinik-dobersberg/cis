@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, Subject } from 'rxjs';
-import { delay, distinctUntilChanged, map, mergeMap, retry, retryWhen, startWith, switchMap, takeUntil } from 'rxjs/operators';
-import { ConfigAPI, TriggerAction, TriggerAPI, TriggerInstance } from 'src/app/api';
+import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, Subject } from 'rxjs';
+import { delay, distinctUntilChanged, map, mergeMap, retry, retryWhen, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { ConfigAPI, IdentityAPI, TriggerAction, TriggerAPI, TriggerInstance, PermissionRequest, Permission, PermissionTestResult } from 'src/app/api';
 import { extractErrorMessage } from 'src/app/utils';
 
 interface Action extends TriggerAction {
     trigger: TriggerInstance;
     running: boolean;
+    canExecute: boolean;
 }
 
 @Component({
@@ -25,15 +26,49 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
     constructor(
         private triggerapi: TriggerAPI,
         private config: ConfigAPI,
+        private identityapi: IdentityAPI,
         private nzMessageService: NzMessageService,
         private cdr: ChangeDetectorRef,
     ) { }
 
     ngOnInit() {
+        let checkedPermissions = new Set<string>();
+        let cachedPermissionResponse: { [key: string]: PermissionTestResult } | null = null;
+
         let loadTriggers = interval(5000)
             .pipe(
                 startWith(-1),
-                switchMap(() => this.triggerapi.listInstances())
+                switchMap(() => this.triggerapi.listInstances()),
+                switchMap(triggers => {
+                    const permRequest: { [key: string]: PermissionRequest } = {};
+                    let foundUnchecked = false;
+                    const newCheckedPermissions = new Set<string>();
+                    triggers.forEach(instance => {
+                        const name = stripTriggerSuffix(instance.name)
+                        if (!checkedPermissions.has(name)) {
+                            foundUnchecked = true;
+                        }
+                        newCheckedPermissions.add(name)
+                        permRequest[name] = {
+                            action: Permission.TriggerExecute,
+                        }
+                    })
+                    let findExecutables = this.identityapi.testPerimissions(permRequest)
+                        .pipe(
+                            tap(result => {
+                                checkedPermissions = newCheckedPermissions;
+                                cachedPermissionResponse = result
+                            })
+                        )
+                    if (!foundUnchecked) {
+                        findExecutables = of(cachedPermissionResponse!)
+                    }
+
+                    return forkJoin({
+                        triggers: of(triggers),
+                        allowed: findExecutables,
+                    })
+                })
             );
 
         combineLatest([
@@ -51,14 +86,16 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
             )
             .subscribe(cfg => {
                 let instances = new Map<string, TriggerInstance>();
-                cfg[1].forEach(i => instances.set(stripTriggerSuffix(i.name), i));
+                cfg[1].triggers.forEach(i => instances.set(stripTriggerSuffix(i.name), i));
 
                 this.actions = [];
                 cfg[0].TriggerActions?.forEach(a => {
+                    const name = stripTriggerSuffix(a.PrimaryTrigger)
                     this.actions.push({
                         ...a,
-                        trigger: instances.get(stripTriggerSuffix(a.PrimaryTrigger)),
+                        trigger: instances.get(name),
                         running: false,
+                        canExecute: cfg[1].allowed[name].allowed,
                     })
                 });
                 console.log(this.actions);

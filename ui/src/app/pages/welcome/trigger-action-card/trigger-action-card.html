@@ -6,8 +6,9 @@
                 <label>
                     {{ action.Name }}
                 </label>
-                <button nz-button nzType="primary" [nzLoading]="action.running" (click)="executeAction(action)"
-                    [disabled]="action?.trigger?.pending" [nzLoading]="action?.trigger?.pending">
+                <button *ngIf="action?.canExecute" nz-button nzType="primary" [nzLoading]="action.running"
+                    (click)="executeAction(action)" [disabled]="action?.trigger?.pending"
+                    [nzLoading]="action?.trigger?.pending">
                     {{
                     action?.trigger?.pending
                     ? action.PendingText
