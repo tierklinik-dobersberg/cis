@@ -3,6 +3,7 @@ package autologin
 import (
 	"context"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -154,6 +155,11 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 		log.Errorf("failed to get auto-assign roles: %s", err)
 		return
 	}
+	if len(roles) == 0 {
+		return
+	}
+
+	log.V(5).Logf("automatically assigning roles %s", strings.Join(roles, ", "))
 
 	lm := make(map[string]struct{}, len(sess.Roles))
 	for _, role := range sess.Roles {
