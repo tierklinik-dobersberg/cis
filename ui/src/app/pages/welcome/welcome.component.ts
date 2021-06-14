@@ -29,6 +29,10 @@ export class WelcomeComponent implements OnInit, OnDestroy {
     return this.identityapi.hasPermission(Permission.RosterRead);
   }
 
+  get hasTriggerAccess(): boolean {
+    return this.identityapi.hasPermission(Permission.TriggerRead)
+  }
+
   constructor(
     private header: HeaderTitleService,
     private identityapi: IdentityAPI,
