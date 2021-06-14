@@ -27,6 +27,8 @@ export enum Permission {
   CalendarRead = 'calendar:events:read',
   CalendarWrite = 'calendar:events:write',
   CalendarDelete = 'calendar:events:delete',
+  TriggerRead = 'trigger:read',
+  TriggerExecute = 'trigger:execute'
 }
 
 export interface Profile {
@@ -360,7 +362,8 @@ export class IdentityAPI {
             Permission.VoicemailRead,
             Permission.CalendarDelete,
             Permission.CalendarRead,
-            Permission.CalendarWrite
+            Permission.CalendarWrite,
+            Permission.TriggerRead
           ];
 
           actions.forEach(perm => {
