@@ -1,0 +1,18 @@
+{
+  "/api/dxray/v1": {
+    "target": "http://10.1.1.1:9000/",
+    "secure": false,
+    "pathRewrite": {
+      "^/api/dxray/v1": ""
+    }
+  },
+  "/wado": {
+    "target": "http://10.1.1.1:9000/",
+    "secure": false
+  },
+  "/api": {
+    "target": "http://cisd:3000/",
+    "changeOrigin": true,
+    "secure": false
+  }
+}

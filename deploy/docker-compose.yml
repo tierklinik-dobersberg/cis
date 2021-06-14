@@ -70,3 +70,16 @@ services:
       CONFIGURATION_DIRECTORY: /project/testdata/config
       STATE_DIRECTORY: /project/testdata/state
       TZ: ""
+
+  uidev:
+    image: node:latest
+    user: 1000:1000
+    ports:
+      - 4200:4200
+    volumes:
+      - ../ui:/project
+    environment:
+      TZ: ""
+    working_dir: /project
+    command: bash -c "npm install && ./node_modules/.bin/ng serve --configuration=compose --host=0.0.0.0 --port=4200 --proxy-config ./proxy.deploy.json"
+    
