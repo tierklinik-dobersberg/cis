@@ -51,17 +51,17 @@ func (inst *Instance) Run() {
 	}
 	defer inst.running.UnSet()
 
+	start := time.Now()
 	event.Fire(
 		context.Background(),
 		fmt.Sprintf("event/importer/%s/start", inst.ID),
 		ImportStartedEvent{
 			Importer: inst.ID,
-			Time:     time.Now(),
+			Time:     start,
 		},
 	)
 
 	inst.log.Info("Starting import")
-	start := time.Now()
 	defer func() {
 		inst.log.Infof("Import finished after %s", time.Since(start))
 	}()
@@ -79,6 +79,7 @@ func (inst *Instance) Run() {
 		ImportFinsihedEvent{
 			Importer: inst.ID,
 			Time:     time.Now(),
+			Duration: time.Since(start),
 			Data:     data,
 			Error:    errMsg,
 		},
