@@ -15,13 +15,13 @@ func getCustomerImporter(app *app.App, exporter *Exporter) *importer.Instance {
 		ID:             "vetinf-customer:" + app.Config.VetInfDirectory,
 		Schedule:       app.Config.VetInfImportSchedule,
 		RunImmediately: true,
-		Handler: importer.ImportFunc(func() error {
+		Handler: importer.ImportFunc(func() (interface{}, error) {
 			ctx := context.Background()
 			log := log.From(ctx)
 
 			ch, _, err := exporter.ExportCustomers(ctx)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			countNew := 0
@@ -81,7 +81,12 @@ func getCustomerImporter(app *app.App, exporter *Exporter) *importer.Instance {
 				"skippedDeleted": skippedDeleted,
 			}).Infof("Import finished")
 
-			return nil
+			return ImportResults{
+				New:      countNew,
+				Updated:  countUpdated,
+				Pristine: countUnchanged,
+				Deleted:  countDeleted,
+			}, nil
 		}),
 	}
 }

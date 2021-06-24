@@ -15,13 +15,13 @@ func getAnimalImporter(app *app.App, exporter *Exporter) *importer.Instance {
 		ID:             "vetinf-animals: " + app.Config.VetInfDirectory,
 		RunImmediately: true,
 		Schedule:       app.Config.VetInfImportSchedule,
-		Handler: importer.ImportFunc(func() error {
+		Handler: importer.ImportFunc(func() (interface{}, error) {
 			ctx := context.Background()
 			log := log.From(ctx)
 
 			ch, _, err := exporter.ExportAnimals(ctx)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			countNew := 0
@@ -79,7 +79,12 @@ func getAnimalImporter(app *app.App, exporter *Exporter) *importer.Instance {
 				"skippedDeleted": skippedDeleted,
 			}).Infof("Import finished")
 
-			return nil
+			return ImportResults{
+				New:      countNew,
+				Updated:  countUpdated,
+				Pristine: countUnchanged,
+				Deleted:  countDeleted,
+			}, nil
 		}),
 	}
 }

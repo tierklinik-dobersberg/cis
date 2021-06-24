@@ -46,6 +46,13 @@ type Exporter struct {
 	loadUsersOnce sync.Once
 }
 
+type ImportResults struct {
+	New      int
+	Pristine int
+	Updated  int
+	Deleted  int
+}
+
 // NewExporter creates a new exporter for vetinf.
 func NewExporter(cfg cfgspec.VetInf, country string, users identitydb.Database) (*Exporter, error) {
 	stat, err := os.Stat(cfg.VetInfDirectory)

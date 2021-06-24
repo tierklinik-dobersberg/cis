@@ -10,6 +10,7 @@ import (
 	"github.com/tevino/abool"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
+	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
@@ -18,14 +19,14 @@ var log = pkglog.New("importer")
 // Handler is capable of importing data from an external source.
 type Handler interface {
 	// Import should import data from the external source.
-	Import() error
+	Import() (interface{}, error)
 }
 
 // ImportFunc implements Importer.
-type ImportFunc func() error
+type ImportFunc func() (interface{}, error)
 
 // Import imports data.
-func (fn ImportFunc) Import() error {
+func (fn ImportFunc) Import() (interface{}, error) {
 	return fn()
 }
 
@@ -50,16 +51,38 @@ func (inst *Instance) Run() {
 	}
 	defer inst.running.UnSet()
 
+	event.Fire(
+		context.Background(),
+		fmt.Sprintf("event/importer/%s/start", inst.ID),
+		ImportStartedEvent{
+			Importer: inst.ID,
+			Time:     time.Now(),
+		},
+	)
+
 	inst.log.Info("Starting import")
 	start := time.Now()
 	defer func() {
 		inst.log.Infof("Import finished after %s", time.Since(start))
 	}()
 
-	err := inst.Handler.Import()
+	data, err := inst.Handler.Import()
+	errMsg := ""
 	if err != nil {
 		inst.log.Errorf("importer %s failed: %s", inst.ID, err)
+		errMsg = err.Error()
 	}
+
+	event.Fire(
+		context.Background(),
+		fmt.Sprintf("event/importer/%s/done", inst.ID),
+		ImportFinsihedEvent{
+			Importer: inst.ID,
+			Time:     time.Now(),
+			Data:     data,
+			Error:    errMsg,
+		},
+	)
 }
 
 // FactoryFunc creates a new import handler based on cfg.
