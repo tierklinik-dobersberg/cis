@@ -69,6 +69,8 @@ import (
 	// underscore imports that register themself somewhere
 	//
 
+	// Exec trigger type
+	_ "github.com/tierklinik-dobersberg/cis/runtime/execer"
 	// SendMail trigger type and SMTP support
 	_ "github.com/tierklinik-dobersberg/cis/runtime/mailer"
 	// Twilio trigger type
