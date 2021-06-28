@@ -1,4 +1,4 @@
-package cfgspec
+package session
 
 import (
 	"time"

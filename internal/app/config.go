@@ -3,11 +3,12 @@ package app
 import (
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/cis/internal/session"
 )
 
 // Config holds the complete cisd configuration.
 type Config struct {
-	cfgspec.IdentityConfig `section:"Global"`
+	session.IdentityConfig `section:"Global"`
 	cfgspec.Config         `section:"Global"`
 	cfgspec.DatabaseConfig `section:"Global"`
 	cfgspec.MqttConfig     `section:"Global"`

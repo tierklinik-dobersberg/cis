@@ -54,12 +54,12 @@ type Manager struct {
 	cookieFactory *CookieFactory
 
 	identities    UserProvider
-	identityConfg *cfgspec.IdentityConfig
+	identityConfg *IdentityConfig
 	global        *cfgspec.Config
 }
 
 // Configure configures the session manager.
-func (mng *Manager) Configure(identites UserProvider, identityConfig *cfgspec.IdentityConfig, globalConfig *cfgspec.Config) error {
+func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityConfig, globalConfig *cfgspec.Config) error {
 	mng.identities = identites
 	mng.identityConfg = identityConfig
 	mng.global = globalConfig
