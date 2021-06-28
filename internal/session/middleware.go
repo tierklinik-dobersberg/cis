@@ -103,31 +103,33 @@ func (mng *Manager) Middleware(c *gin.Context) {
 	// we can now check if there's an active session ID
 	// and reuse that. otherwise, we just create a new session
 	// object and continue with that.
-	sid, err := c.Cookie(mng.sessionIdCookie)
-	if err != nil && !errors.Is(err, http.ErrNoCookie) {
-		aborted = true
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-	if err == nil {
-		session = mng.getSessionByID(sid)
-		if session != nil {
-			// there's a session with that sid, make sure
-			// the user is the same ...
-			if session.User.Name != user.Name {
-				log.V(3).Log("request denied: sid-user does not match access token")
-				c.AbortWithStatus(http.StatusBadRequest)
-				return
-			}
+	if mng.sessionIdCookie != "" {
+		sid, err := c.Cookie(mng.sessionIdCookie)
+		if err != nil && !errors.Is(err, http.ErrNoCookie) {
+			aborted = true
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
 		}
+		if err == nil {
+			session = mng.getSessionByID(sid)
+			if session != nil {
+				// there's a session with that sid, make sure
+				// the user is the same ...
+				if session.User.Name != user.Name {
+					log.V(3).Log("request denied: sid-user does not match access token")
+					c.AbortWithStatus(http.StatusBadRequest)
+					return
+				}
+			}
 
-		// we do have an existing session here so let's update the request
-		// and make sure it has the sid set as a logging field
-		c.Request = c.Request.Clone(
-			logger.WithFields(c.Request.Context(), logger.Fields{
-				"httpSessionId": session.id,
-			}),
-		)
+			// we do have an existing session here so let's update the request
+			// and make sure it has the sid set as a logging field
+			c.Request = c.Request.Clone(
+				logger.WithFields(c.Request.Context(), logger.Fields{
+					"httpSessionId": session.id,
+				}),
+			)
+		}
 	}
 
 	if session == nil {

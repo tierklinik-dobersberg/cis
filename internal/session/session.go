@@ -10,11 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-<<<<<<< HEAD
 	"github.com/gofrs/uuid"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-=======
->>>>>>> migrate-session
 	"github.com/tierklinik-dobersberg/cis/pkg/jwt"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
@@ -95,7 +91,7 @@ type Manager struct {
 
 	identities      UserProvider
 	identityConfg   *IdentityConfig
-	secret        string
+	secret          string
 	sessionIdCookie string
 
 	sessionLock   sync.RWMutex
@@ -244,6 +240,11 @@ func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, 
 }
 
 func (mng *Manager) saveSession(sess *Session, w http.ResponseWriter) error {
+	// This is a NOOP if SessionIDCookie= is empty.
+	if mng.sessionIdCookie == "" {
+		return nil
+	}
+
 	// create a new sid for the session.
 	sid, err := uuid.NewV4()
 	if err != nil {
