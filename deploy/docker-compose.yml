@@ -29,7 +29,6 @@ services:
   mosquitto:
     image: eclipse-mosquitto
     hostname: mosquitto
-    container_name: mosquitto
     expose:
       - "1883"
       - "9001"

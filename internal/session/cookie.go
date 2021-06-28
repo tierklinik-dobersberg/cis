@@ -27,6 +27,10 @@ func (factory *CookieFactory) Clear(cookieName, relPath string, c *gin.Context) 
 
 // Create wraps value in a http cookie with name.
 func (factory *CookieFactory) Create(name, value, relPath string, ttl time.Duration) *http.Cookie {
+	var expires time.Time
+	if ttl > 0 {
+		expires = time.Now().Add(ttl)
+	}
 	return &http.Cookie{
 		Name:     name,
 		Value:    value,
@@ -34,6 +38,6 @@ func (factory *CookieFactory) Create(name, value, relPath string, ttl time.Durat
 		Domain:   factory.Domain,
 		HttpOnly: true,
 		Secure:   !factory.InsecureCookies,
-		Expires:  time.Now().Add(ttl),
+		Expires:  expires,
 	}
 }

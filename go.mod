@@ -10,6 +10,7 @@ require (
 	github.com/eclipse/paho.mqtt.golang v1.3.0
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/gin-gonic/gin v1.6.3
+	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/google/renameio v1.0.0

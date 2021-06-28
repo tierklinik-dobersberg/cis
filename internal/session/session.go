@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gofrs/uuid"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/pkg/jwt"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
@@ -22,6 +24,14 @@ var contextSessionKey = struct{ key string }{key: SessionKey}
 
 // Session represents an user session.
 type Session struct {
+	// id holds the ID of the session.
+	// IMPORTANT: the session ID (cis-sid cookie by default) does NOT
+	// PROVIDE ANY ADDITIONAL SECURITY. It's only meant to provide
+	// and support internal grouping of browser sessions. Do not
+	// rely on this value for anything that's important or must work
+	// outside of the browser!
+	id string
+
 	// User is the user of the session.
 	User v1alpha.User
 	// Roles holds the aggregated list of user roles.
@@ -35,6 +45,28 @@ type Session struct {
 	// token can be issued. That is, the session has a valid
 	// token with scope refresh.
 	RefreshUntil *time.Time
+
+	// lock protects all fields an members below it.
+	lock sync.Mutex
+
+	// lastAccess holds the last time the session has accessed
+	// the api.
+	lastAccess time.Time
+}
+
+// MarkActive marks the session as still being active.
+func (session *Session) MarkActive() {
+	session.lock.Lock()
+	defer session.lock.Unlock()
+	session.lastAccess = time.Now()
+}
+
+// LastAccess returns the time the session has talked to the
+// API the last time.
+func (session *Session) LastAccess() time.Time {
+	session.lock.Lock()
+	defer session.lock.Unlock()
+	return session.lastAccess
 }
 
 func (session *Session) String() string {
@@ -46,16 +78,25 @@ func (session *Session) String() string {
 		scopes = append(scopes, jwt.ScopeRefresh)
 	}
 
-	return fmt.Sprintf("session(%s:%s)", session.User.Name, strings.Join(scopes, ","))
+	sid := session.id
+	if sid == "" {
+		sid = "[api]"
+	}
+
+	return fmt.Sprintf("session(%s: %s:%s)", sid, session.User.Name, strings.Join(scopes, ","))
 }
 
 // Manager takes care of session management.
 type Manager struct {
 	cookieFactory *CookieFactory
 
-	identities    UserProvider
-	identityConfg *IdentityConfig
-	global        *cfgspec.Config
+	identities      UserProvider
+	identityConfg   *IdentityConfig
+	global          *cfgspec.Config
+	sessionIdCookie string
+
+	sessionLock   sync.RWMutex
+	activeSession map[string]*Session
 }
 
 // Configure configures the session manager.
@@ -63,6 +104,8 @@ func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityCo
 	mng.identities = identites
 	mng.identityConfg = identityConfig
 	mng.global = globalConfig
+	mng.activeSession = make(map[string]*Session)
+	mng.sessionIdCookie = identityConfig.SessionIDCookie
 
 	base := "/"
 	if globalConfig.BaseURL != "" {
@@ -153,6 +196,8 @@ func (mng *Manager) Delete(c *gin.Context) error {
 // Create creates a new session for user. The caller
 // must ensure user is properly authenticated before
 // issueing a new access and refresh token to the user.
+// Create will also create a new unique identifier for the
+// session and set that as the cis-sid cookie.
 func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, string, error) {
 	// Issue a new access token for user.
 	accessToken, _, err := mng.GenerateAccessToken(user)
@@ -180,12 +225,43 @@ func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, 
 	)
 	http.SetCookie(w, refreshCookie)
 
-	return &Session{
+	sess := &Session{
 		User:         user,
 		Roles:        user.Roles,
 		AccessUntil:  &accessCookie.Expires,
 		RefreshUntil: &refreshCookie.Expires,
-	}, accessToken, nil
+		lastAccess:   time.Now(),
+	}
+
+	if err := mng.saveSession(sess, w); err != nil {
+		return nil, "", fmt.Errorf("save: %s", err)
+	}
+
+	return sess, accessToken, nil
+}
+
+func (mng *Manager) saveSession(sess *Session, w http.ResponseWriter) error {
+	// create a new sid for the session.
+	sid, err := uuid.NewV4()
+	if err != nil {
+		return fmt.Errorf("failed to generate session id")
+	}
+	sess.id = sid.String()
+
+	// inform the browser about the session ID. this is best-effort only
+	// as the Set-Cookie header might just be ignored.
+	http.SetCookie(w, mng.cookieFactory.Create(
+		mng.sessionIdCookie,
+		sess.id,
+		"/",
+		0,
+	))
+
+	// store the session within activeSessions under sid.
+	mng.sessionLock.Lock()
+	defer mng.sessionLock.Unlock()
+	mng.activeSession[sid.String()] = sess
+	return nil
 }
 
 // GenerateRefreshToken generates a new refresh token.

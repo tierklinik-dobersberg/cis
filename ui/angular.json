@@ -103,6 +103,9 @@
             },
             "production": {
               "browserTarget": "console:build:production"
+            },
+            "compose": {
+              "browserTarget": "console:build:compose"
             }
           }
         },

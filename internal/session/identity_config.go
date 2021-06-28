@@ -16,6 +16,7 @@ type IdentityConfig struct {
 	RefreshTokenTTL    time.Duration
 	InsecureCookies    bool
 	AvatarDirectory    string
+	SessionIDCookie    string
 }
 
 // IdentityConfigSpec defines the available configuration values for the
@@ -61,5 +62,11 @@ var IdentityConfigSpec = conf.SectionSpec{
 		Description: "Duration a refresh token is considered valid",
 		Type:        conf.DurationType,
 		Default:     "24h",
+	},
+	{
+		Name:        "SessionIDCookie",
+		Default:     "cis-sid",
+		Type:        conf.StringType,
+		Description: "The cookie name for the session ID. Leave empty to disable sticky sessions.",
 	},
 }

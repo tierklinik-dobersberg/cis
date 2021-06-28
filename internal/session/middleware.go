@@ -13,6 +13,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/jwt"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 var log = pkglog.New("session")
@@ -98,34 +99,81 @@ func (mng *Manager) Middleware(c *gin.Context) {
 
 	// at this point we have a valid session
 	// (either access scope, refresh scope or both)
-	session = &Session{
-		User:  *user,
-		Roles: user.Roles,
-	}
 
-	// expires-at must still be in the future, otherwise
-	// the tokens would not have been valid and we wouldn't
-	// get here anyway.
-	if accessToken != nil {
-		t := time.Unix(accessToken.ExpiresAt, 0)
-		session.AccessUntil = &t
-	}
-	if refreshToken != nil {
-		t := time.Unix(refreshToken.ExpiresAt, 0)
-		session.RefreshUntil = &t
-	}
-
-	// if we don't have a valid access or refresh scope now
-	// return without setting a session on c.
-	if session.AccessUntil == nil && session.RefreshUntil == nil {
-		log.V(3).Logf("unauthenticated request: no valid access or refresh token found: %s", session)
+	// we can now check if there's an active session ID
+	// and reuse that. otherwise, we just create a new session
+	// object and continue with that.
+	sid, err := c.Cookie(mng.sessionIdCookie)
+	if err != nil && !errors.Is(err, http.ErrNoCookie) {
+		aborted = true
+		c.AbortWithStatus(http.StatusInternalServerError)
 		return
+	}
+	if err == nil {
+		session = mng.getSessionByID(sid)
+		if session != nil {
+			// there's a session with that sid, make sure
+			// the user is the same ...
+			if session.User.Name != user.Name {
+				log.V(3).Log("request denied: sid-user does not match access token")
+				c.AbortWithStatus(http.StatusBadRequest)
+				return
+			}
+		}
+
+		// we do have an existing session here so let's update the request
+		// and make sure it has the sid set as a logging field
+		c.Request = c.Request.Clone(
+			logger.WithFields(c.Request.Context(), logger.Fields{
+				"httpSessionId": session.id,
+			}),
+		)
+	}
+
+	if session == nil {
+		// there's no existing session (that did a /login)
+		// so just create a new one and use that
+		session = &Session{
+			User:  *user,
+			Roles: user.Roles,
+		}
+
+		// expires-at must still be in the future, otherwise
+		// the tokens would not have been valid and we wouldn't
+		// get here anyway.
+		if accessToken != nil {
+			t := time.Unix(accessToken.ExpiresAt, 0)
+			session.AccessUntil = &t
+		}
+		if refreshToken != nil {
+			t := time.Unix(refreshToken.ExpiresAt, 0)
+			session.RefreshUntil = &t
+		}
+
+		// if we don't have a valid access or refresh scope now
+		// return without setting a session on c.
+		if session.AccessUntil == nil && session.RefreshUntil == nil {
+			log.V(3).Logf("unauthenticated request: no valid access or refresh token found: %s", session)
+			return
+		}
+
+		// this is a new session without a sid. Let's create one and
+		// save it as active
+		if err := mng.saveSession(session, c.Writer); err != nil {
+			log.V(3).Logf("failed to save session: %s", err)
+		}
 	}
 
 	log.V(6).Logf("session %s valid", session)
 
 	// add the session to the gin context.
 	Set(c, session)
+}
+
+func (mng *Manager) getSessionByID(id string) *Session {
+	mng.sessionLock.Lock()
+	defer mng.sessionLock.Unlock()
+	return mng.activeSession[id]
 }
 
 // IssueAccessToken creates a new access token for the active session.
@@ -139,6 +187,10 @@ func (mng *Manager) IssueAccessToken(c *gin.Context) (string, error) {
 	if sess.RefreshUntil == nil || sess.RefreshUntil.Before(time.Now()) {
 		return "", httperr.New(http.StatusUnauthorized, errors.New("no or expired refresh token"), nil)
 	}
+
+	// mark the current session as active since we just created
+	// a new access token for it.
+	sess.MarkActive()
 
 	token, _, err := mng.GenerateAccessToken(sess.User)
 	if err != nil {
