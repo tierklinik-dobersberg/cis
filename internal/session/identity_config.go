@@ -9,6 +9,9 @@ import (
 // IdentityConfig groups configuration variables related to
 // identity handling and the api/identity endpoint.
 type IdentityConfig struct {
+	Audience           string
+	Issuer             string
+	SigningMethod      string
 	AccessTokenCookie  string
 	RefreshTokenCookie string
 	CookieDomain       string
@@ -22,6 +25,24 @@ type IdentityConfig struct {
 // IdentityConfigSpec defines the available configuration values for the
 // [Identity] configuration section.
 var IdentityConfigSpec = conf.SectionSpec{
+	{
+		Name:        "Issuer",
+		Description: "The issuer value to use for JWT tokens",
+		Type:        conf.StringType,
+		Default:     "cisd",
+	},
+	{
+		Name:        "Audience",
+		Description: "The value for the JWT token audience",
+		Type:        conf.StringType,
+		Default:     "cisd",
+	},
+	{
+		Name:        "SigningMethod",
+		Description: "The signing method for JWT. Valid valus are HS256, HS384, HS512",
+		Type:        conf.StringType,
+		Default:     "HS256",
+	},
 	{
 		Name:        "AccessTokenCookie",
 		Default:     "cis-session",
