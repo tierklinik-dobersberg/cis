@@ -10,6 +10,8 @@ interface LocalCallLog extends CallLog {
   localDate: string;
   localTime: string;
   customer?: Customer;
+  isToday: boolean;
+  outbound: boolean;
 }
 
 @Component({
@@ -151,11 +153,18 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
               cust = lm.get(l.caller);
             }
 
+            // TODO(ppacher): this is very specific to 3CX
+            // maybe this should be configurable?
+            const callType = l.callType?.toLocaleLowerCase() || '';
+            const isOutbound = callType === 'notanswered' || callType === 'outbound';
+
             const d = new Date(l.date);
             return {
               ...l,
+              outbound: isOutbound,
               localDate: d.toLocaleDateString(),
               localTime: d.toLocaleTimeString(),
+              isToday: d.toLocaleDateString() == (new Date()).toLocaleDateString(),
               customer: cust,
               agentProfile: l.agentProfile || this.knownExtensions.get(l.agent),
               transferToProfile: l.transferToProfile || this.knownExtensions.get(l.transferTarget)

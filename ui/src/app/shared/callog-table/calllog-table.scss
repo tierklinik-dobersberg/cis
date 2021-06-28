@@ -11,6 +11,10 @@ tr.error {
 }
 
 .transfer-target {
-  color: gray;
+  color    : gray;
   font-size: 95%;
+}
+
+.direction i {
+  transform: rotate(45deg);
 }
