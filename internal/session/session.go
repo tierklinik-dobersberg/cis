@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/pkg/jwt"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
@@ -55,18 +54,18 @@ type Manager struct {
 
 	identities    UserProvider
 	identityConfg *IdentityConfig
-	global        *cfgspec.Config
+	secret        string
 }
 
 // Configure configures the session manager.
-func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityConfig, globalConfig *cfgspec.Config) error {
+func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityConfig, secret, baseURL string) error {
 	mng.identities = identites
 	mng.identityConfg = identityConfig
-	mng.global = globalConfig
+	mng.secret = secret
 
 	base := "/"
-	if globalConfig.BaseURL != "" {
-		u, err := url.Parse(globalConfig.BaseURL)
+	if baseURL != "" {
+		u, err := url.Parse(baseURL)
 		if err != nil {
 			return fmt.Errorf("invalid base URL: %s", err)
 		}
@@ -209,7 +208,7 @@ func (mng *Manager) GenerateAccessToken(user v1alpha.User) (string, *jwt.Claims,
 // VerifyUserToken verifies a user token and returns the claims
 // encoded into the JWT.
 func (mng *Manager) VerifyUserToken(token string) (*jwt.Claims, error) {
-	return jwt.ParseAndVerify([]byte(mng.global.Secret), token)
+	return jwt.ParseAndVerify([]byte(mng.secret), token)
 }
 
 // CreateUserToken creates a new signed token for user including scopes
@@ -221,8 +220,8 @@ func (mng *Manager) CreateUserToken(user v1alpha.User, ttl time.Duration, scopes
 	}
 
 	claims := jwt.Claims{
-		Audience:  mng.global.Audience,
-		Issuer:    mng.global.Issuer,
+		Audience:  mng.identityConfg.Audience,
+		Issuer:    mng.identityConfg.Issuer,
 		IssuedAt:  time.Now().Unix(),
 		ExpiresAt: time.Now().Add(ttl).Unix(),
 		NotBefore: time.Now().Unix(),
@@ -239,8 +238,8 @@ func (mng *Manager) CreateUserToken(user v1alpha.User, ttl time.Duration, scopes
 	}
 
 	token, err := jwt.SignToken(
-		mng.global.SigningMethod,
-		[]byte(mng.global.Secret),
+		mng.identityConfg.SigningMethod,
+		[]byte(mng.secret),
 		claims,
 	)
 	if err != nil {

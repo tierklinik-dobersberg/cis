@@ -393,7 +393,12 @@ func getApp(ctx context.Context) *app.App {
 		}
 		return &u.User, nil
 	})
-	if err := sessionManager.Configure(userProvider, &cfg.IdentityConfig, &cfg.Config); err != nil {
+	if err := sessionManager.Configure(
+		userProvider,
+		&cfg.IdentityConfig,
+		cfg.Secret,
+		cfg.BaseURL,
+	); err != nil {
 		logger.Fatalf(ctx, "session-manager: %s", err.Error())
 	}
 

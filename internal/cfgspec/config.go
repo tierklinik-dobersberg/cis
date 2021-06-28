@@ -10,10 +10,7 @@ import (
 // of cisd.
 type Config struct {
 	Secret        string
-	Issuer        string
 	BaseURL       string
-	Audience      string
-	SigningMethod string // TODO(ppacher): add support for asymetric crypto and key-rotation!
 	Country       string
 	AccessLogFile string
 	TimeZone      string
@@ -40,24 +37,6 @@ var ConfigSpec = conf.SectionSpec{
 		Name:        "BaseURL",
 		Description: "The base URL on which CIS is reachable. If empty, it defaults to the Host header of each HTTP request.",
 		Type:        conf.StringType,
-	},
-	{
-		Name:        "Issuer",
-		Description: "The issuer value to use for JWT tokens",
-		Type:        conf.StringType,
-		Default:     "cisd",
-	},
-	{
-		Name:        "SigningMethod",
-		Description: "The signing method for JWT. Valid valus are HS256, HS384, HS512",
-		Type:        conf.StringType,
-		Default:     "HS256",
-	},
-	{
-		Name:        "Audience",
-		Description: "The value for the JWT token audience",
-		Type:        conf.StringType,
-		Default:     "cisd",
 	},
 	{
 		Name:        "Country",
