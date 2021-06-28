@@ -4,6 +4,7 @@ nz-card {
   height: 100%;
   flex-grow: 1;
 
+  border-top: 3px solid #93C5FD;
   @include for-phone-only {
     border: none;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
@@ -16,9 +17,6 @@ nz-card {
       margin-left: 12px;
       margin-right: 12px;
     }
-  }
-  @include for-tablet-landscape-up {
-    border-top: 3px solid #93C5FD;
   }
 }
 
