@@ -4,15 +4,16 @@ import "fmt"
 
 // User describes the user object.
 type User struct {
-	Name        string                 `json:"name"`
-	Fullname    string                 `json:"fullname"`
-	Mail        []string               `json:"mail"`
-	PhoneNumber []string               `json:"phoneNumbers"`
-	Roles       []string               `json:"roles" option:"Roles"`
-	Properties  map[string]interface{} `json:"properties" option:"-"`
-	Color       string                 `json:"color,omitempty"`
-	Disabled    bool                   `json:"disabled,omitempty"`
-	CalendarID  string                 `json:"calendarID,omitempty"`
+	Name                string                 `json:"name"`
+	Fullname            string                 `json:"fullname"`
+	Mail                []string               `json:"mail"`
+	PhoneNumber         []string               `json:"phoneNumbers"`
+	Roles               []string               `json:"roles" option:"Roles"`
+	Properties          map[string]interface{} `json:"properties" option:"-"`
+	Color               string                 `json:"color,omitempty"`
+	Disabled            bool                   `json:"disabled,omitempty"`
+	CalendarID          string                 `json:"calendarID,omitempty"`
+	NeedsPasswordChange bool                   `json:"needsPasswordChange,omitempty"`
 }
 
 // Role describes a role object. For security and privacy

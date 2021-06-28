@@ -74,4 +74,10 @@ var UserSpec = conf.SectionSpec{
 		Default:     "no",
 		Description: "Whether or not the user is disabled.",
 	},
+	{
+		Name:        "NeedsPasswordChange",
+		Type:        conf.BoolType,
+		Default:     "no",
+		Description: "Whether or not the user should be prompted to change it's password",
+	},
 }

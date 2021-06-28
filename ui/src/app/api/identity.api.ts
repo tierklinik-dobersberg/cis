@@ -43,6 +43,7 @@ export interface Profile {
   color?: string;
   disabled?: boolean;
   calendarID?: string;
+  needsPasswordChange?: boolean;
 }
 
 interface TokenReponse {
