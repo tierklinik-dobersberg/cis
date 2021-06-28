@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/session"
+	"github.com/tierklinik-dobersberg/cis/runtime/session"
 )
 
 // Config holds the complete cisd configuration.
