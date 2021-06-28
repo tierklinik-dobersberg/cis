@@ -98,6 +98,9 @@
             "browserTarget": "console:build"
           },
           "configurations": {
+            "compose": {
+              "browserTarget": "console:build:compose"
+            },
             "production": {
               "browserTarget": "console:build:production"
             }
