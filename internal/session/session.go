@@ -10,7 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/pkg/jwt"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
@@ -54,13 +53,13 @@ func (session *Session) String() string {
 type Manager struct {
 	cookieFactory *CookieFactory
 
-	identities    identitydb.Database
+	identities    UserProvider
 	identityConfg *cfgspec.IdentityConfig
 	global        *cfgspec.Config
 }
 
 // Configure configures the session manager.
-func (mng *Manager) Configure(identites identitydb.Database, identityConfig *cfgspec.IdentityConfig, globalConfig *cfgspec.Config) error {
+func (mng *Manager) Configure(identites UserProvider, identityConfig *cfgspec.IdentityConfig, globalConfig *cfgspec.Config) error {
 	mng.identities = identites
 	mng.identityConfg = identityConfig
 	mng.global = globalConfig

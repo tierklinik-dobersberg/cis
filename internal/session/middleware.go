@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/jwt"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
@@ -205,13 +204,12 @@ func (mng *Manager) getAccessToken(c *gin.Context) (*jwt.Claims, *v1alpha.User, 
 	}
 
 	if hasScope(claims.Scopes, jwt.ScopeAccess) {
-		ctx := identitydb.WithScope(c.Request.Context(), identitydb.Internal)
-		user, err := mng.identities.GetUser(ctx, claims.Subject)
+		user, err := mng.identities.GetUser(c.Request.Context(), claims.Subject)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		return claims, &user.User, nil
+		return claims, user, nil
 	}
 
 	// there's a token but it does not have the "access" scope.
@@ -230,13 +228,12 @@ func (mng *Manager) getRefreshToken(c *gin.Context) (*jwt.Claims, *v1alpha.User,
 	}
 
 	if hasScope(claims.Scopes, jwt.ScopeRefresh) {
-		ctx := identitydb.WithScope(c.Request.Context(), identitydb.Internal)
-		user, err := mng.identities.GetUser(ctx, claims.Subject)
+		user, err := mng.identities.GetUser(c.Request.Context(), claims.Subject)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		return claims, &user.User, nil
+		return claims, user, nil
 	}
 
 	// There's a token but it does not have the "refresh" scope.

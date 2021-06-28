@@ -53,6 +53,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
+	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
 	"github.com/tierklinik-dobersberg/cis/runtime/schema"
@@ -384,7 +385,15 @@ func getApp(ctx context.Context) *app.App {
 	//
 	// Configure the session manager
 	//
-	if err := sessionManager.Configure(identities, &cfg.IdentityConfig, &cfg.Config); err != nil {
+	userProvider := session.UserProviderFunc(func(ctx context.Context, name string) (*v1alpha.User, error) {
+		ctx = identitydb.WithScope(ctx, identitydb.Internal)
+		u, err := identities.GetUser(ctx, name)
+		if err != nil {
+			return nil, err
+		}
+		return &u.User, nil
+	})
+	if err := sessionManager.Configure(userProvider, &cfg.IdentityConfig, &cfg.Config); err != nil {
 		logger.Fatalf(ctx, "session-manager: %s", err.Error())
 	}
 
