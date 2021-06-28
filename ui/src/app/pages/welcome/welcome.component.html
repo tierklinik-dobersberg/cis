@@ -1,5 +1,6 @@
 <img class="placeholder-img" src="assets/vet.png">
 <div class="grid">
+  <app-mobile-welcome-card *ngIf="layout.isPhone"></app-mobile-welcome-card>
   <app-door-card *ngIf="hasDoorAccess" class="dash-card"></app-door-card>
   <app-emergency-card *ngIf="hasDoctorOnDutyAccess" class="dash-card"></app-emergency-card>
   <app-roster-card class="dash-card" *ngIf="hasRosterAccess" (userHover)="upcomingEvents.highlightUser = $event">

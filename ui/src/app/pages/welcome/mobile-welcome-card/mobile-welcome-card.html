@@ -1,0 +1,22 @@
+<h1>Hi <span class="username">{{ (user$ | async)?.fullname }}</span>,</h1>
+<p>
+  Schön das du hier bist! Die folgenden Punkte könnten dir helfen schneller an dein Ziel zu gelangen:
+</p>
+<ul class="action-list">
+  <li tabindex="0" *ngIf="(user$ | async)?.needsPasswordChange">
+    <i nz-icon nzType="exclamation-circle" nzTheme="outline" style="background-color: lightcoral;"></i>
+    <span>Ändere dein Passwort!</span>
+  </li>
+  <li tabindex="0" *ngFor="let item of unreadMailboxes" [routerLink]="['/voicemail', item.name]">
+    <i nz-icon nzType="customer-service" style="background-color: lightblue;"></i>
+    <span>{{ item.name }} abhören</span>
+  </li>
+  <li tabindex="0" routerLink="/calendar">
+    <i nz-icon nzType="calendar" style="background-color: lightgoldenrodyellow;"></i>
+    <span>Kalender öffnen</span>
+  </li>
+  <li tabindex="0" routerLink="/roster">
+    <i nz-icon nzType="clock-circle" style="background-color: lightgreen;"></i>
+    <span>Dienstplan anzeigen</span>
+  </li>
+</ul>

@@ -1,0 +1,67 @@
+:host {
+  background-color: white;
+  border-bottom   : 1px solid rgba(0, 0, 0, 0.05);
+  padding         : 12px;
+  padding-top     : 24px;
+  padding-bottom  : 24px;
+}
+
+h1 {
+  font-size  : 120%;
+  font-weight: 300;
+
+  .username {
+    font-weight: normal;
+  }
+}
+
+p {
+  font-weight  : 300;
+  margin-bottom: 24px;
+}
+
+ul.action-list {
+  list-style-type: none;
+  padding-left   : 0;
+
+  li {
+    display        : flex;
+    align-items    : center;
+    justify-content: flex-start;
+    max-width      : 300px;
+    width          : 100%;
+    margin-bottom  : 12px;
+
+    i {
+      border       : 1px solid rgba(0, 0, 0, 0.1);
+      display      : block;
+      margin-right : 6px;
+      padding      : 6px;
+      border-radius: 4px;
+      opacity      : .7;
+    }
+
+    span {
+      font-weight: normal;
+    }
+
+    &:hover,
+    &:active,
+    &:focus {
+      outline: none;
+
+      i {
+        opacity: 1;
+      }
+
+      span {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+nz-badge {
+  margin-left: 6px;
+  font-size  : 90%;
+}

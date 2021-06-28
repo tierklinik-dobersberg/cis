@@ -40,6 +40,8 @@ import { UpcomingEventsCardComponent } from './upcoming-events-card';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { TriggerActionCardComponent } from './trigger-action-card';
+import { MobileWelcomeCardComponent } from './mobile-welcome-card';
+import { NzBadgeModule } from 'ng-zorro-antd/badge';
 
 @NgModule({
   imports: [
@@ -71,6 +73,7 @@ import { TriggerActionCardComponent } from './trigger-action-card';
     NzSpinModule,
     NzStatisticModule,
     NzEmptyModule,
+    NzBadgeModule,
     SharedModule,
   ],
   declarations: [
@@ -82,6 +85,7 @@ import { TriggerActionCardComponent } from './trigger-action-card';
     VoiceMailCardComponent,
     UpcomingEventsCardComponent,
     TriggerActionCardComponent,
+    MobileWelcomeCardComponent
   ],
   exports: [WelcomeComponent]
 })

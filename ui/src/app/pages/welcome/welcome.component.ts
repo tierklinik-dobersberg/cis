@@ -2,6 +2,7 @@ import { Component, isDevMode, OnDestroy, OnInit, TemplateRef, ViewChild } from 
 import { BehaviorSubject, combineLatest, interval, Subscription } from 'rxjs';
 import { delay, mergeMap, repeatWhen, retryWhen, startWith } from 'rxjs/operators';
 import { DoorAPI, IdentityAPI, Permission, Roster, RosterAPI, State, VoiceMailAPI } from 'src/app/api';
+import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 
 interface Dummy {
@@ -37,7 +38,8 @@ export class WelcomeComponent implements OnInit, OnDestroy {
     private header: HeaderTitleService,
     private identityapi: IdentityAPI,
     private voicemailapi: VoiceMailAPI,
-    private rosterapi: RosterAPI
+    private rosterapi: RosterAPI,
+    public layout: LayoutService,
   ) { }
 
   readonly isDevMode = isDevMode();
