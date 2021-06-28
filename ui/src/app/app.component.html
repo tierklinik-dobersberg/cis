@@ -136,9 +136,6 @@
 
         <a class="header-logo" routerLink="/welcome">
           <img src="assets/logo.png" alt="logo">
-          <h2>
-            <span style="color: #1080cf">Tierklinik</span> <span style="color: #15377e">Dobersberg</span>
-          </h2>
         </a>
         <app-header-title-outlet></app-header-title-outlet>
 
@@ -187,6 +184,37 @@
       </div>
     </nz-content>
   </nz-layout>
+
+  <!--
+    On mobile we have an additional navigation bar at the bottom
+  -->
+  <nz-footer *ngIf="layout.isPhone" class="mobile-nav">
+    <!-- Dashboard -->
+    <li routerLink="/welcome" routerLinkActive="active">
+      <i nz-icon nzType="dashboard"></i>
+      <span>Dashboard</span>
+    </li>
+    <!-- Kalender -->
+    <li routerLink="/calendar" routerLinkActive="active">
+      <i nz-icon nzType="calendar"></i>
+      <span>Kalender</span>
+    </li>
+    <!-- Dienstplan -->
+    <li routerLink="/roster" routerLinkActive="active">
+      <i nz-icon nzType="clock-circle"></i>
+      <span>Dienstplan</span>
+    </li>
+    <!-- Röntgen -->
+    <li routerLink="/xray" routerLinkActive="active">
+      <i nz-icon nzType="expand" nzTheme="outline" [nzRotate]="95"></i>
+      <span>Röntgen</span>
+    </li>
+    <!-- Open menu -->
+    <li>
+      <i class="drawer-trigger" (click)="toggleMenu()" nz-icon nzType="menu" nzTheme="outline"></i>
+      <span>Mehr</span>
+    </li>
+  </nz-footer>
 </nz-layout>
 
 <div *ngIf="!isReachable" class="not-reachable-container">
