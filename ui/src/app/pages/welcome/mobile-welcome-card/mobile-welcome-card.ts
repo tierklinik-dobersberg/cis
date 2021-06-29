@@ -14,9 +14,7 @@ export class MobileWelcomeCardComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  unreadMailboxes: { name: string, count: number }[] = [
-    { name: "Visiten Anmeldungen", count: 5 },
-  ];
+  unreadMailboxes: { name: string, count: number }[] = [];
 
   constructor(
     private identityAPI: IdentityAPI,
@@ -47,7 +45,7 @@ export class MobileWelcomeCardComponent implements OnInit, OnDestroy {
       }),
     )
       .subscribe(mailboxes => {
-        //this.unreadMailboxes = [];
+        this.unreadMailboxes = [];
         Object.keys(mailboxes).map(key => {
           if (mailboxes[key] === 0) {
             return;

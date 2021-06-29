@@ -3,7 +3,7 @@
   Schön das du hier bist! Die folgenden Punkte könnten dir helfen schneller an dein Ziel zu gelangen:
 </p>
 <ul class="action-list">
-  <li tabindex="0" *ngIf="(user$ | async)?.needsPasswordChange">
+  <li tabindex="0" *ngIf="(user$ | async)?.needsPasswordChange" routerLink="/profile/change-password">
     <i nz-icon nzType="exclamation-circle" nzTheme="outline" style="background-color: lightcoral;"></i>
     <span>Ändere dein Passwort!</span>
   </li>
