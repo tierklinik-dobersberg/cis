@@ -12,6 +12,7 @@ interface LocalCallLog extends CallLog {
   customer?: Customer;
   isToday: boolean;
   outbound: boolean;
+  isLostOrUnanswared: boolean;
 }
 
 @Component({
@@ -167,7 +168,8 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
               isToday: d.toLocaleDateString() == (new Date()).toLocaleDateString(),
               customer: cust,
               agentProfile: l.agentProfile || this.knownExtensions.get(l.agent),
-              transferToProfile: l.transferToProfile || this.knownExtensions.get(l.transferTarget)
+              transferToProfile: l.transferToProfile || this.knownExtensions.get(l.transferTarget),
+              isLostOrUnanswared: callType === 'notanswered' || callType === ''
             };
           });
           this.changeDetector.detectChanges();

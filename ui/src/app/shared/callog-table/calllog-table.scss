@@ -2,6 +2,24 @@ tr.error {
   background-color: rgba(240, 128, 128, 0.671);
 }
 
+tr.inbound {
+  .direction {
+    color: green;
+  }
+}
+
+tr.outbound {
+  .direction {
+    color: blue;
+  }
+}
+
+tr.lost {
+  .direction {
+    color: red;
+  }
+}
+
 .data-container {
   padding: 0;
 }
@@ -13,8 +31,4 @@ tr.error {
 .transfer-target {
   color    : gray;
   font-size: 95%;
-}
-
-.direction i {
-  transform: rotate(45deg);
 }

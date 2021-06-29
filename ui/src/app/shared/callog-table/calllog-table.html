@@ -13,7 +13,8 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let data of basicTable.data; trackBy: trackLog" [class.error]="!!data.error">
+    <tr *ngFor="let data of basicTable.data; trackBy: trackLog" [class.error]="!!data.error"
+      [class.outbound]="data.outbound" [class.inbound]="!data.outbound" [class.lost]="data.isLostOrUnanswared">
       <td class="direction">
         <i nz-icon [nzType]="data.outbound ? 'arrow-up' : 'arrow-down'" nzTheme="outline"></i>
       </td>
