@@ -122,13 +122,6 @@ func (mng *Manager) Middleware(c *gin.Context) {
 				}
 			}
 
-			// we do have an existing session here so let's update the request
-			// and make sure it has the sid set as a logging field
-			c.Request = c.Request.Clone(
-				logger.WithFields(c.Request.Context(), logger.Fields{
-					"httpSessionId": session.id,
-				}),
-			)
 		}
 	}
 
@@ -165,6 +158,14 @@ func (mng *Manager) Middleware(c *gin.Context) {
 			log.V(3).Logf("failed to save session: %s", err)
 		}
 	}
+
+	// we do have an existing session here so let's update the request
+	// and make sure it has the sid set as a logging field
+	c.Request = c.Request.Clone(
+		logger.WithFields(c.Request.Context(), logger.Fields{
+			"httpSessionId": session.id,
+		}),
+	)
 
 	log.V(6).Logf("session %s valid", session)
 
