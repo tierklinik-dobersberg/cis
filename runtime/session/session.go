@@ -33,10 +33,6 @@ type Session struct {
 
 	// User is the user of the session.
 	User v1alpha.User
-	// ExtraRoles holds additional roles that are assigned to this
-	// session.
-	// Including auto-assigned roles (see autologin package).
-	ExtraRoles []string
 	// AccessUntil may be set to a time until the session has
 	// access scope. If no access token is provided it may be
 	// nil.
@@ -48,6 +44,11 @@ type Session struct {
 
 	// lock protects all fields an members below it.
 	lock sync.Mutex
+
+	// extraRoles holds additional roles that are assigned to this
+	// session.
+	// This also includes auto-assigned roles (see autologin package).
+	extraRoles []string
 
 	// lastAccess holds the last time the session has accessed
 	// the api.
@@ -89,11 +90,14 @@ func (session *Session) String() string {
 // DistinctRoles returns an aggregates list of roles
 // that apply to this session.
 func (session *Session) DistinctRoles() []string {
+	session.lock.Lock()
+	defer session.lock.Unlock()
+
 	var lm = make(map[string]struct{})
 	for _, r := range session.User.Roles {
 		lm[r] = struct{}{}
 	}
-	for _, r := range session.ExtraRoles {
+	for _, r := range session.extraRoles {
 		lm[r] = struct{}{}
 	}
 	var distinctRoles []string
@@ -101,6 +105,51 @@ func (session *Session) DistinctRoles() []string {
 		distinctRoles = append(distinctRoles, key)
 	}
 	return distinctRoles
+}
+
+// ExtraRoles holds additional roles that are assigned to this
+// session.
+// This also includes auto-assigned roles (see autologin package).
+func (session *Session) ExtraRoles() []string {
+	session.lock.Lock()
+	defer session.lock.Unlock()
+
+	sl := make([]string, len(session.extraRoles))
+	copy(sl, session.extraRoles)
+	return sl
+}
+
+// HasRole returns true if session has role either assigned
+// to the session user or as a part of the sessions extra
+// roles (like assigned by the autologin package).
+func (session *Session) HasRole(role string) bool {
+	added := session.addRole(role, true)
+	return !added
+}
+
+// AddRole adds role to the sessions extra roles if it's not
+// already part of the user or session role set.
+func (session *Session) AddRole(role string) bool {
+	return session.addRole(role, false)
+}
+
+func (session *Session) addRole(role string, dryRun bool) bool {
+	for _, r := range session.User.Roles {
+		if r == role {
+			return false
+		}
+	}
+	session.lock.Lock()
+	defer session.lock.Unlock()
+	for _, r := range session.extraRoles {
+		if r == role {
+			return false
+		}
+	}
+	if !dryRun {
+		session.extraRoles = append(session.extraRoles, role)
+	}
+	return true
 }
 
 // Manager takes care of session management.

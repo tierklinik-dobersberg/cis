@@ -159,20 +159,8 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 	}
 
 	log.V(5).Logf("automatically assigning roles %s", strings.Join(roles, ", "))
-
-	lm := make(map[string]struct{})
-	for _, role := range sess.DistinctRoles() {
-		lm[role] = struct{}{}
-	}
-
 	for _, role := range roles {
-		// enuser we don't have any duplicates in the result
-		if _, ok := lm[role]; ok {
-			continue
-		}
-		lm[role] = struct{}{}
-
-		sess.ExtraRoles = append(sess.ExtraRoles, role)
+		sess.AddRole(role)
 	}
 }
 

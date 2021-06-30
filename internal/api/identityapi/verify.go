@@ -45,7 +45,7 @@ func VerifyEndpoint(grp *app.Router) {
 				return httperr.InternalError(err)
 			}
 
-			allowed, err := app.Matcher.Decide(ctx, req, sess.ExtraRoles)
+			allowed, err := app.Matcher.Decide(ctx, req, sess.ExtraRoles())
 			if err != nil {
 				return httperr.InternalError(err)
 			}

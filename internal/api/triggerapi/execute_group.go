@@ -25,7 +25,7 @@ func ExecuteTriggerGroupEndpoint(router *app.Router, triggers *[]*trigger.Instan
 			instances, err := findAllowedGroupMembers(
 				ctx,
 				sess.User.Name,
-				sess.ExtraRoles,
+				sess.ExtraRoles(),
 				app,
 				*triggers,
 				groupName,
