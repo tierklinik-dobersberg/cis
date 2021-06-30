@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
+	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
@@ -24,7 +24,6 @@ type autologinRecord struct {
 
 // Manager manages and grants automatic user logins.
 type Manager struct {
-	identiy identitydb.Database
 	session *session.Manager
 
 	// conditionBuilder is used to build the conditions a
@@ -44,18 +43,17 @@ type Manager struct {
 // NewManager returns a new autologin manager that uses reg
 // to build the conditions a HTTP request must fullfill to be
 // granted an automatic session token.
-func NewManager(ctx context.Context, identity identitydb.Database, sessionManager *session.Manager, reg *httpcond.Registry) *Manager {
+func NewManager(ctx context.Context, sessionManager *session.Manager, reg *httpcond.Registry, users map[string]conf.Section, roles map[string]conf.Section) *Manager {
 	mng := &Manager{
-		identiy:          identity,
 		conditionBuilder: httpcond.NewBuilder(reg),
 		session:          sessionManager,
 	}
 
-	mng.buildConditions(ctx)
+	mng.buildConditions(ctx, users, roles)
 	return mng
 }
 
-func (mng *Manager) getUserLogin(r *http.Request) (*cfgspec.User, bool, error) {
+func (mng *Manager) getUserLogin(r *http.Request) (*v1alpha.User, bool, error) {
 	mng.rw.RLock()
 	defer mng.rw.RUnlock()
 
@@ -67,12 +65,12 @@ func (mng *Manager) getUserLogin(r *http.Request) (*cfgspec.User, bool, error) {
 		}
 
 		if matched {
-			u, err := mng.identiy.GetUser(r.Context(), user)
+			u, err := mng.session.GetUser(r.Context(), user)
 			if err != nil {
 				return nil, false, err
 			}
 
-			return &u, cond.createSession, nil
+			return u, cond.createSession, nil
 		}
 	}
 
@@ -122,13 +120,13 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 				// the client.
 				until := time.Now().Add(5 * time.Second)
 				sess = &session.Session{
-					User:        autologin.User,
+					User:        *autologin,
 					AccessUntil: &until,
 				}
 			} else {
 				// the user explicitly set CreateSession=yes in the autologin section
 				// of this user.
-				sess, _, err = mng.session.Create(autologin.User, c.Writer)
+				sess, _, err = mng.session.Create(*autologin, c.Writer)
 				if err != nil {
 					log.Errorf("failed to create autologin session: %s", err.Error())
 				}
@@ -160,8 +158,7 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 	}
 }
 
-func (mng *Manager) buildConditions(ctx context.Context) {
-	users := mng.identiy.GetAutologinUsers(ctx)
+func (mng *Manager) buildConditions(ctx context.Context, users map[string]conf.Section, roles map[string]conf.Section) {
 	userConditionMap := make(map[string]autologinRecord, len(users))
 	for user, section := range users {
 		cond, err := mng.conditionBuilder.Build(section)
@@ -176,7 +173,6 @@ func (mng *Manager) buildConditions(ctx context.Context) {
 		}
 	}
 
-	roles := mng.identiy.GetAutologinRoles(ctx)
 	roleConditionMap := make(map[string]httpcond.Condition, len(roles))
 	for role, section := range roles {
 		cond, err := mng.conditionBuilder.Build(section)

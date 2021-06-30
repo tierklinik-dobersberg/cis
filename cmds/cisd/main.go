@@ -405,7 +405,13 @@ func getApp(ctx context.Context) *app.App {
 	//
 	// Create the autologin manager
 	//
-	autoLoginManager = autologin.NewManager(ctx, identities, sessionManager, httpcond.DefaultRegistry)
+	autoLoginManager = autologin.NewManager(
+		ctx,
+		sessionManager,
+		httpcond.DefaultRegistry,
+		identities.GetAutologinUsers(ctx),
+		identities.GetAutologinRoles(ctx),
+	)
 
 	//
 	// prepare
