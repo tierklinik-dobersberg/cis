@@ -16,9 +16,10 @@ import (
 
 // Manager takes care of session management.
 type Manager struct {
+	UserProvider
+
 	cookieFactory *CookieFactory
 
-	identities      UserProvider
 	identityConfg   *IdentityConfig
 	secret          string
 	sessionIdCookie string
@@ -29,7 +30,7 @@ type Manager struct {
 
 // Configure configures the session manager.
 func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityConfig, secret, baseURL string) error {
-	mng.identities = identites
+	mng.UserProvider = identites
 	mng.identityConfg = identityConfig
 	mng.activeSession = make(map[string]*Session)
 	mng.sessionIdCookie = identityConfig.SessionIDCookie
@@ -60,54 +61,6 @@ func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityCo
 	return nil
 }
 
-// Set sets the session s on c. It also creates and assigns
-// a request copy with a new context to c.
-// If s is nil then Set is a no-op.
-func Set(c *gin.Context, s *Session) {
-	if s == nil {
-		return
-	}
-
-	c.Request = c.Request.Clone(
-		context.WithValue(c.Request.Context(), contextSessionKey, s),
-	)
-
-	c.Set(SessionKey, s)
-}
-
-// Get returns the session associated with c.
-func Get(c *gin.Context) *Session {
-	val, ok := c.Get(SessionKey)
-	if !ok {
-		return nil
-	}
-
-	session, _ := val.(*Session)
-	return session
-}
-
-// FromCtx returns the session associated with ctx.
-func FromCtx(ctx context.Context) *Session {
-	val := ctx.Value(contextSessionKey)
-	if val == nil {
-		return nil
-	}
-
-	s, _ := val.(*Session)
-	return s
-}
-
-// UserFromCtx returns the username associated with ctx.
-// It returns an empty name in case no session is available.
-func UserFromCtx(ctx context.Context) string {
-	s := FromCtx(ctx)
-	if s == nil {
-		return ""
-	}
-
-	return s.User.Name
-}
-
 // Delete the session associated with c.
 func (mng *Manager) Delete(c *gin.Context) error {
 	mng.cookieFactory.Clear(
@@ -126,6 +79,16 @@ func (mng *Manager) Delete(c *gin.Context) error {
 	c.Header("Clear-Site-Data", "*")
 
 	return nil
+}
+
+// CreateByName is like Create but uses the UserProvider to lookup the session
+// user by it's name.
+func (mng *Manager) CreateByName(ctx context.Context, name string, w http.ResponseWriter) (*Session, string, error) {
+	user, err := mng.GetUser(ctx, name)
+	if err != nil {
+		return nil, "", fmt.Errorf("user %s: %w", name, err)
+	}
+	return mng.Create(*user, w)
 }
 
 // Create creates a new session for user. The caller

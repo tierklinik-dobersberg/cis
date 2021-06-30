@@ -257,7 +257,7 @@ func (mng *Manager) getAccessToken(c *gin.Context) (*jwt.Claims, *v1alpha.User, 
 	}
 
 	if hasScope(claims.Scopes, jwt.ScopeAccess) {
-		user, err := mng.identities.GetUser(c.Request.Context(), claims.Subject)
+		user, err := mng.GetUser(c.Request.Context(), claims.Subject)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -281,7 +281,7 @@ func (mng *Manager) getRefreshToken(c *gin.Context) (*jwt.Claims, *v1alpha.User,
 	}
 
 	if hasScope(claims.Scopes, jwt.ScopeRefresh) {
-		user, err := mng.identities.GetUser(c.Request.Context(), claims.Subject)
+		user, err := mng.GetUser(c.Request.Context(), claims.Subject)
 		if err != nil {
 			return nil, nil, err
 		}

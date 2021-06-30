@@ -1,11 +1,13 @@
 package session
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/pkg/jwt"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
@@ -145,4 +147,52 @@ func (session *Session) addRole(role string, dryRun bool) bool {
 		session.extraRoles = append(session.extraRoles, role)
 	}
 	return true
+}
+
+// Set sets the session s on c. It also creates and assigns
+// a request copy with a new context to c.
+// If s is nil then Set is a no-op.
+func Set(c *gin.Context, s *Session) {
+	if s == nil {
+		return
+	}
+
+	c.Request = c.Request.Clone(
+		context.WithValue(c.Request.Context(), contextSessionKey, s),
+	)
+
+	c.Set(SessionKey, s)
+}
+
+// Get returns the session associated with c.
+func Get(c *gin.Context) *Session {
+	val, ok := c.Get(SessionKey)
+	if !ok {
+		return nil
+	}
+
+	session, _ := val.(*Session)
+	return session
+}
+
+// FromCtx returns the session associated with ctx.
+func FromCtx(ctx context.Context) *Session {
+	val := ctx.Value(contextSessionKey)
+	if val == nil {
+		return nil
+	}
+
+	s, _ := val.(*Session)
+	return s
+}
+
+// UserFromCtx returns the username associated with ctx.
+// It returns an empty name in case no session is available.
+func UserFromCtx(ctx context.Context) string {
+	s := FromCtx(ctx)
+	if s == nil {
+		return ""
+	}
+
+	return s.User.Name
 }
