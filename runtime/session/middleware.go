@@ -167,6 +167,9 @@ func (mng *Manager) Middleware(c *gin.Context) {
 
 	log.V(6).Logf("session %s valid", session)
 
+	// mark the session as active.
+	session.MarkActive()
+
 	// add the session to the gin context.
 	Set(c, session)
 }
