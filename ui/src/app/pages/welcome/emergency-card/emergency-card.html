@@ -55,8 +55,7 @@
       <input nz-input type="text" [(ngModel)]="overwritePhone" placeholder="+43660123456">
 
       <div class="drawer-actions">
-        <button nz-button nzType="danger" [disabled]="overwritePhone === ''"
-          (click)="configureOverwrite()">Speichern</button>
+        <button nz-button nzDanger [disabled]="overwritePhone === ''" (click)="configureOverwrite()">Speichern</button>
       </div>
     </div>
   </ng-template>

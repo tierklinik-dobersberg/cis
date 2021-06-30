@@ -58,7 +58,7 @@
           <i nz-icon nzType="close" nzTheme="outline"></i>
         </button>
 
-        <button nz-button nzType="danger" nzShape="circle" [nzLoading]="false" nz-popconfirm
+        <button nz-button nzDanger nzType="primary" nzShape="circle" [nzLoading]="false" nz-popconfirm
           *ngIf="canEditRoster && !editMode && !readonly" nzTooltipTitle="Dienstplan löschen" nz-tooltip
           nzPopconfirmTitle="Dienstplan sicher löschen?" nzPopconfirmPlacement="bottom" (nzOnConfirm)="deleteRoster()">
           <i nz-icon nzType="delete" nzTheme="outline"></i>
