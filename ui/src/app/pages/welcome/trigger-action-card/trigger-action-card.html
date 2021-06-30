@@ -1,21 +1,20 @@
 <nz-card>
-    <nz-card-meta nzTitle="Aktionen"></nz-card-meta>
-    <div class="card-content">
-        <ul>
-            <li *ngFor="let action of actions">
-                <label>
-                    {{ action.Name }}
-                </label>
-                <button *ngIf="action?.canExecute" nz-button nzType="primary" [nzLoading]="action.running"
-                    (click)="executeAction(action)" [disabled]="action?.trigger?.pending"
-                    [nzLoading]="action?.trigger?.pending">
-                    {{
-                    action?.trigger?.pending
-                    ? action.PendingText
-                    : action.ActionText
-                    }}
-                </button>
-            </li>
-        </ul>
-    </div>
+  <nz-card-meta nzTitle="Aktionen"></nz-card-meta>
+  <div class="card-content">
+    <ul>
+      <li *ngFor="let action of actions">
+        <label>
+          {{ action.Name }}
+        </label>
+        <button *ngIf="action?.canExecute" nz-button nzType="default" [nzLoading]="action.running"
+          (click)="executeAction(action)" [disabled]="action?.trigger?.pending">
+          {{
+          action?.trigger?.pending
+          ? action.PendingText
+          : action.ActionText
+          }}
+        </button>
+      </li>
+    </ul>
+  </div>
 </nz-card>
