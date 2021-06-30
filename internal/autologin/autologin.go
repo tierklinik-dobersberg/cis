@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
@@ -26,6 +25,7 @@ type autologinRecord struct {
 // Manager manages and grants automatic user logins.
 type Manager struct {
 	identiy identitydb.Database
+	session *session.Manager
 
 	// conditionBuilder is used to build the conditions a
 	// request must fullfill to be granted a session token.
@@ -44,10 +44,11 @@ type Manager struct {
 // NewManager returns a new autologin manager that uses reg
 // to build the conditions a HTTP request must fullfill to be
 // granted an automatic session token.
-func NewManager(ctx context.Context, identity identitydb.Database, reg *httpcond.Registry) *Manager {
+func NewManager(ctx context.Context, identity identitydb.Database, sessionManager *session.Manager, reg *httpcond.Registry) *Manager {
 	mng := &Manager{
 		identiy:          identity,
 		conditionBuilder: httpcond.NewBuilder(reg),
+		session:          sessionManager,
 	}
 
 	mng.buildConditions(ctx)
@@ -127,12 +128,7 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 			} else {
 				// the user explicitly set CreateSession=yes in the autologin section
 				// of this user.
-				app := app.From(c)
-				if app == nil {
-					return
-				}
-
-				sess, _, err = app.Sessions.Create(autologin.User, c.Writer)
+				sess, _, err = mng.session.Create(autologin.User, c.Writer)
 				if err != nil {
 					log.Errorf("failed to create autologin session: %s", err.Error())
 				}
