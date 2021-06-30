@@ -146,6 +146,23 @@ export class AppComponent implements OnInit {
       .subscribe({
         next: result => {
           this.profile = result;
+          if (this.profile?.needsPasswordChange) {
+            this.layout.change.pipe(take(1))
+              .subscribe(() => {
+                if (!this.layout.isPhone) {
+                  this.modal.info({
+                    nzTitle: 'Ändere dein Passwort',
+                    nzContent: 'Dein Passwort wurde noch nicht geändert. Aus Sicherheitsgründen solltest du dies unverzüglich nachholen.',
+                    nzOkText: 'Passwort Ändern',
+                    nzOnOk: async () => {
+                      this.router.navigate(['/profile/change-password'])
+                    },
+                    nzCancelText: 'Jetzt nicht',
+                    nzClosable: true,
+                  });
+                }
+              })
+          }
         },
         error: console.error,
       });

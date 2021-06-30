@@ -249,6 +249,7 @@ func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo str
 
 	u.PasswordAlgo = algo
 	u.PasswordHash = hash
+	u.NeedsPasswordChange = false
 
 	opts, err := conf.ConvertToFile(u, "")
 	if err != nil {
