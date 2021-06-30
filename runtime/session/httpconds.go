@@ -37,7 +37,7 @@ func init() {
 				return false, nil
 			}
 
-			for _, role := range sess.Roles {
+			for _, role := range sess.DistinctRoles() {
 				if role == value {
 					return true, nil
 				}

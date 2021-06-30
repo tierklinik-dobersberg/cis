@@ -23,11 +23,12 @@ func NewMatcher(resolver *Resolver) *Matcher {
 
 // Decide decides on the permission request and returns wether or not the
 // request is permitted or not. In case of an error, false and the error is
-// returned.
-func (match *Matcher) Decide(ctx context.Context, req *Request) (bool, error) {
+// returned. The caller may pass a slice of additional roles that are not directly
+// assigned to the user but should be evaluted as well.
+func (match *Matcher) Decide(ctx context.Context, req *Request, extraRoles []string) (bool, error) {
 	l := log.From(ctx).WithFields(req.AsFields())
 
-	permissions, err := match.resolver.ResolveUserPermissions(ctx, req.User)
+	permissions, err := match.resolver.ResolveUserPermissions(ctx, req.User, extraRoles)
 	if err != nil {
 		return false, err
 	}

@@ -80,7 +80,7 @@ func Require(matcher *Matcher, set Set) gin.HandlerFunc {
 					User:     sess.User.Name,
 				}
 
-				allowed, err := matcher.Decide(c.Request.Context(), &req)
+				allowed, err := matcher.Decide(c.Request.Context(), &req, sess.ExtraRoles)
 				if err != nil {
 					httperr.InternalError(err).AbortRequest(c)
 					return

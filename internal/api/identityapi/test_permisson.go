@@ -42,7 +42,7 @@ func TestPermissionEndpoint(grp *app.Router) {
 				// TODO(ppacher): add special permission to test all users.
 				req.User = sess.User.Name
 
-				allowed, err := app.Matcher.Decide(ctx, &req)
+				allowed, err := app.Matcher.Decide(ctx, &req, sess.ExtraRoles)
 				result[key] = &testResult{
 					Allowed: allowed,
 				}

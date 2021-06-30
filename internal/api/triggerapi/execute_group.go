@@ -25,6 +25,7 @@ func ExecuteTriggerGroupEndpoint(router *app.Router, triggers *[]*trigger.Instan
 			instances, err := findAllowedGroupMembers(
 				ctx,
 				sess.User.Name,
+				sess.ExtraRoles,
 				app,
 				*triggers,
 				groupName,
@@ -70,7 +71,7 @@ func isInSlice(needle string, haystack []string) bool {
 	return false
 }
 
-func findAllowedGroupMembers(ctx context.Context, username string, app *app.App, triggers []*trigger.Instance, groupName string) ([]*trigger.Instance, error) {
+func findAllowedGroupMembers(ctx context.Context, username string, extraRoles []string, app *app.App, triggers []*trigger.Instance, groupName string) ([]*trigger.Instance, error) {
 	var (
 		result     []*trigger.Instance
 		foundGroup bool
@@ -85,7 +86,7 @@ func findAllowedGroupMembers(ctx context.Context, username string, app *app.App,
 			Action:   ExecuteTriggerAction.Name,
 			Resource: i.Name(),
 		}
-		permitted, err := app.Matcher.Decide(ctx, req)
+		permitted, err := app.Matcher.Decide(ctx, req, extraRoles)
 		if err != nil {
 			return nil, err
 		}

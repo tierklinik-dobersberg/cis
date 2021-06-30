@@ -33,9 +33,10 @@ type Session struct {
 
 	// User is the user of the session.
 	User v1alpha.User
-	// Roles holds the aggregated list of user roles.
+	// ExtraRoles holds additional roles that are assigned to this
+	// session.
 	// Including auto-assigned roles (see autologin package).
-	Roles []string
+	ExtraRoles []string
 	// AccessUntil may be set to a time until the session has
 	// access scope. If no access token is provided it may be
 	// nil.
@@ -85,6 +86,23 @@ func (session *Session) String() string {
 	return fmt.Sprintf("session(%s: %s:%s)", sid, session.User.Name, strings.Join(scopes, ","))
 }
 
+// DistinctRoles returns an aggregates list of roles
+// that apply to this session.
+func (session *Session) DistinctRoles() []string {
+	var lm = make(map[string]struct{})
+	for _, r := range session.User.Roles {
+		lm[r] = struct{}{}
+	}
+	for _, r := range session.ExtraRoles {
+		lm[r] = struct{}{}
+	}
+	var distinctRoles []string
+	for key := range lm {
+		distinctRoles = append(distinctRoles, key)
+	}
+	return distinctRoles
+}
+
 // Manager takes care of session management.
 type Manager struct {
 	cookieFactory *CookieFactory
@@ -105,6 +123,13 @@ func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityCo
 	mng.activeSession = make(map[string]*Session)
 	mng.sessionIdCookie = identityConfig.SessionIDCookie
 	mng.secret = secret
+
+	// start cleaning orphand sessions
+	go func() {
+		for range time.Tick(time.Minute) {
+			mng.clearOrphandSessions()
+		}
+	}()
 
 	base := "/"
 	if baseURL != "" {
@@ -226,7 +251,6 @@ func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, 
 
 	sess := &Session{
 		User:         user,
-		Roles:        user.Roles,
 		AccessUntil:  &accessCookie.Expires,
 		RefreshUntil: &refreshCookie.Expires,
 		lastAccess:   time.Now(),
@@ -266,6 +290,22 @@ func (mng *Manager) saveSession(sess *Session, w http.ResponseWriter) error {
 	defer mng.sessionLock.Unlock()
 	mng.activeSession[sid.String()] = sess
 	return nil
+}
+
+func (mng *Manager) clearOrphandSessions() {
+	l := log.From(context.TODO()).V(4)
+
+	l.Logf("cleaning orphand sessions")
+	mng.sessionLock.Lock()
+	defer mng.sessionLock.Unlock()
+
+	for key, sess := range mng.activeSession {
+		// delete sessions that are unused for more than a week
+		if inactivity := time.Since(sess.LastAccess()); inactivity > time.Hour*24*7 {
+			l.Logf("deleting session for user %s after %s of inactivity", sess.User.Name, inactivity)
+			delete(mng.activeSession, key)
+		}
+	}
 }
 
 // GenerateRefreshToken generates a new refresh token.

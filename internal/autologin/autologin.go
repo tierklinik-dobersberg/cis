@@ -122,7 +122,6 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 				until := time.Now().Add(5 * time.Second)
 				sess = &session.Session{
 					User:        autologin.User,
-					Roles:       autologin.Roles,
 					AccessUntil: &until,
 				}
 			} else {
@@ -161,8 +160,8 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 
 	log.V(5).Logf("automatically assigning roles %s", strings.Join(roles, ", "))
 
-	lm := make(map[string]struct{}, len(sess.Roles))
-	for _, role := range sess.Roles {
+	lm := make(map[string]struct{})
+	for _, role := range sess.DistinctRoles() {
 		lm[role] = struct{}{}
 	}
 
@@ -171,8 +170,9 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 		if _, ok := lm[role]; ok {
 			continue
 		}
+		lm[role] = struct{}{}
 
-		sess.Roles = append(sess.Roles, role)
+		sess.ExtraRoles = append(sess.ExtraRoles, role)
 	}
 }
 

@@ -40,7 +40,7 @@ func ListTriggerEndpoint(router *app.Router, triggers *[]*trigger.Instance) {
 					Resource: i.Name(),
 					Action:   ReadTriggerAction.Name,
 				}
-				permitted, err := app.Matcher.Decide(ctx, req)
+				permitted, err := app.Matcher.Decide(ctx, req, sess.ExtraRoles)
 				if err != nil {
 					return httperr.InternalError(err)
 				}
