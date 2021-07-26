@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/antzucaro/matchr v0.0.0-20191224151129-ab6ba461ddec
+	github.com/apparentlymart/go-textseg/v12 v12.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.36.12 // indirect
 	github.com/charmbracelet/glamour v0.2.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -17,6 +18,8 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/go-version v1.3.0
+	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/hashicorp/hcl/v2 v2.10.1 // indirect
 	github.com/kevinburke/go-types v0.0.0-20201208005256-aee49f568a20 // indirect
 	github.com/kevinburke/go.uuid v1.2.0
 	github.com/kevinburke/rest v0.0.0-20210222204520-f7a2e216372f // indirect
