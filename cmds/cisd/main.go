@@ -26,6 +26,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/holidayapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/identityapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/importapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/infoscreenapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/openinghoursapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/patientapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/resourceapi"
@@ -39,11 +40,13 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/database/infoscreendb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
+	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/integration/mongolog"
 	"github.com/tierklinik-dobersberg/cis/internal/integration/rocket"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
@@ -186,6 +189,10 @@ func getApp(ctx context.Context) *app.App {
 				cctvapi.Setup(apis.Group("cctv", session.Require()))
 				// direct access to trigger instances
 				triggerapi.Setup(apis.Group("triggers", session.Require()), triggerInstances)
+				// access to the infoscreen management api
+				infoscreenapi.Setup(apis.Group("infoscreen", session.Require()))
+				// access to the infoscreen show player
+				infoscreenapi.SetupPlayer(apis.Group("infoscreen"))
 			}
 
 			return nil
@@ -335,6 +342,11 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "calendar: %s", err)
 	}
 
+	infoScreens, err := infoscreendb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
+	if err != nil {
+		logger.Fatalf(ctx, "infoscreendb: %s", err)
+	}
+
 	matcher := permission.NewMatcher(permission.NewResolver(identities))
 
 	//
@@ -422,6 +434,27 @@ func getApp(ctx context.Context) *app.App {
 	}
 
 	//
+	// Prepare infoscreen module
+	//
+	var layoutStore layouts.Store = new(layouts.NoopStore)
+	if cfg.InfoScreenConfig.Enabled {
+		// Make sure layout paths are relative to the CONFIGURATION_DIRECTORY
+		paths := make([]string, len(cfg.InfoScreenConfig.LayoutPaths))
+		for idx, path := range cfg.InfoScreenConfig.LayoutPaths {
+			if !filepath.IsAbs(path) {
+				path = filepath.Join(svcenv.Env().ConfigurationDirectory, path)
+			}
+			paths[idx] = path
+		}
+
+		var err error
+		layoutStore, err = layouts.NewFileStore(ctx, paths)
+		if err != nil {
+			logger.Fatalf(ctx, "layouts.NewFileStore: %w", err)
+		}
+	}
+
+	//
 	// Create a new application context and make sure it's added
 	// to each incoming HTTP Request.
 	//
@@ -444,6 +477,8 @@ func getApp(ctx context.Context) *app.App {
 		calendarService,
 		resources,
 		cctvManager,
+		layoutStore,
+		infoScreens,
 	)
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 

@@ -23,6 +23,7 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 			session.IdentityConfigSpec,
 			cfgspec.MqttSpec,
 		},
+		"InfoScreen":     cfgspec.InfoScreenConfigSpec,
 		"Import":         cfgspec.VetInfSpec,
 		"UserProperty":   cfgspec.UserSchemaExtension,
 		"OpeningHour":    cfgspec.OpeningHoursSpec,

@@ -110,3 +110,11 @@ func Forbidden(err error, msg ...string) *Error {
 func PreconditionFailed(msg string) *Error {
 	return New(http.StatusPreconditionFailed, errors.New(msg), nil)
 }
+
+func UnsupportedMediaType(msg string) *Error {
+	return New(http.StatusUnsupportedMediaType, errors.New(msg), nil)
+}
+
+func RequestToLarge(msg string, args ...interface{}) *Error {
+	return New(http.StatusRequestEntityTooLarge, fmt.Errorf(msg, args...), nil)
+}

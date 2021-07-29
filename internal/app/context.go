@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -19,10 +20,12 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/database/infoscreendb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
+	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
@@ -38,27 +41,32 @@ const appContextKey = contextKey("app:context")
 
 // App holds dependencies for cis API request handlers.
 type App struct {
-	Instance    *service.Instance
-	Config      *Config
-	Matcher     *permission.Matcher
-	DutyRosters rosterdb.Database
-	Identities  identitydb.Database
-	Customers   customerdb.Database
-	Patients    patientdb.Database
-	Comments    commentdb.Database
-	VoiceMails  voicemaildb.Database
-	Sessions    *session.Manager
-	MailSync    *mailsync.Manager
-	Door        *openinghours.DoorController
-	Holidays    openinghours.HolidayGetter
-	CallLogs    calllogdb.Database
-	MQTTClient  mqtt.Client
-	Calendar    calendar.Service
-	Resources   *resourcedb.Registry
-	CCTV        *cctv.Manager
+	Instance        *service.Instance
+	Config          *Config
+	Matcher         *permission.Matcher
+	DutyRosters     rosterdb.Database
+	Identities      identitydb.Database
+	Customers       customerdb.Database
+	Patients        patientdb.Database
+	Comments        commentdb.Database
+	VoiceMails      voicemaildb.Database
+	Sessions        *session.Manager
+	MailSync        *mailsync.Manager
+	Door            *openinghours.DoorController
+	Holidays        openinghours.HolidayGetter
+	CallLogs        calllogdb.Database
+	MQTTClient      mqtt.Client
+	Calendar        calendar.Service
+	Resources       *resourcedb.Registry
+	CCTV            *cctv.Manager
+	LayoutStore     layouts.Store
+	InfoScreenShows infoscreendb.Database
 
 	loadLocationOnce sync.Once
 	location         *time.Location
+
+	maxUploadSize     int64
+	maxUploadSizeOnce sync.Once
 }
 
 func (app *App) String() string {
@@ -85,26 +93,30 @@ func NewApp(
 	calendarEvents calendar.Service,
 	resourceRegistry *resourcedb.Registry,
 	cctvmng *cctv.Manager,
+	layoutStore layouts.Store,
+	infoScreens infoscreendb.Database,
 ) *App {
 	return &App{
-		Instance:    inst,
-		Config:      cfg,
-		Matcher:     matcher,
-		Identities:  identities,
-		Customers:   customers,
-		Patients:    patients,
-		DutyRosters: dutyRosters,
-		Comments:    comments,
-		VoiceMails:  voicemail,
-		MailSync:    mailsyncManager,
-		Door:        door,
-		Sessions:    sessionManager,
-		Holidays:    holidays,
-		CallLogs:    calllogs,
-		MQTTClient:  mqttClient,
-		Calendar:    calendarEvents,
-		Resources:   resourceRegistry,
-		CCTV:        cctvmng,
+		Instance:        inst,
+		Config:          cfg,
+		Matcher:         matcher,
+		Identities:      identities,
+		Customers:       customers,
+		Patients:        patients,
+		DutyRosters:     dutyRosters,
+		Comments:        comments,
+		VoiceMails:      voicemail,
+		MailSync:        mailsyncManager,
+		Door:            door,
+		Sessions:        sessionManager,
+		Holidays:        holidays,
+		CallLogs:        calllogs,
+		MQTTClient:      mqttClient,
+		Calendar:        calendarEvents,
+		Resources:       resourceRegistry,
+		CCTV:            cctvmng,
+		LayoutStore:     layoutStore,
+		InfoScreenShows: infoScreens,
 	}
 }
 
@@ -214,4 +226,37 @@ func (app *App) Location() *time.Location {
 // into the configured local timezone.
 func (app *App) ParseTime(layout string, str string) (time.Time, error) {
 	return time.ParseInLocation(layout, str, app.Location())
+}
+
+// MaxUploadSize returns the maximum upload size allowed for
+// infoscreen layout file uploads.
+// It parses InfoScreenConfig.MaxUploadSize and fallsback to 1MB
+// in case of an invalid setting.
+func (app *App) MaxUploadSize() int64 {
+	app.maxUploadSizeOnce.Do(func() {
+		suffix := ""
+		switch {
+		case strings.HasSuffix(app.Config.InfoScreenConfig.MaxUploadSize, "M"):
+			suffix = "M"
+		case strings.HasSuffix(app.Config.InfoScreenConfig.MaxUploadSize, "K"):
+			suffix = "K"
+		}
+
+		val := strings.TrimSuffix(app.Config.InfoScreenConfig.MaxUploadSize, suffix)
+		parsed, err := strconv.ParseInt(val, 0, 64)
+		if err != nil {
+			logger.Errorf(context.TODO(), "WARNING: invalid MaxUploadSize: %s", err)
+			app.maxUploadSize = 1 << 20 // 1MB
+			return
+		}
+
+		if suffix == "K" {
+			parsed = parsed << 10
+		}
+		if suffix == "M" {
+			parsed = parsed << 20
+		}
+		app.maxUploadSize = parsed
+	})
+	return app.maxUploadSize
 }

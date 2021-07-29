@@ -6,7 +6,9 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
+	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
@@ -19,7 +21,7 @@ type Store interface {
 }
 
 type fileStore struct {
-	path string
+	paths []string
 
 	l       sync.Mutex
 	layouts map[string]*Layout
@@ -27,20 +29,37 @@ type fileStore struct {
 
 // NewFileStore returns a new layout store that loads and persists
 // layouts in dir.
-func NewFileStore(dir string) (Store, error) {
-	if stat, err := os.Stat(dir); err != nil {
-		return nil, err
-	} else if !stat.IsDir() {
-		return nil, fmt.Errorf("%s is not a directory", dir)
+func NewFileStore(ctx context.Context, dirs []string) (Store, error) {
+	for _, dir := range dirs {
+		stat, err := os.Stat(dir)
+		if err != nil {
+			logger.From(ctx).Errorf("failed to stat layout directory %s: %s", dir, err)
+			continue
+		}
+		if err == nil && !stat.IsDir() {
+			return nil, fmt.Errorf("%s is not a directory", dir)
+		}
 	}
 
 	store := &fileStore{
-		path: dir,
+		paths:   dirs,
+		layouts: make(map[string]*Layout),
 	}
 
-	if err := store.findLayouts(context.TODO()); err != nil {
-		return nil, err
-	}
+	store.findLayouts(ctx)
+
+	// periodically scan for new layouts in the background
+	go func() {
+		for {
+			select {
+			case <-time.After(time.Second * 10):
+			case <-ctx.Done():
+				return
+			}
+
+			store.findLayouts(ctx)
+		}
+	}()
 
 	return store, nil
 }
@@ -51,7 +70,7 @@ func (fs *fileStore) Get(ctx context.Context, name string) (*Layout, error) {
 
 	l, ok := fs.layouts[name]
 	if !ok {
-		return nil, os.ErrNotExist
+		return nil, httperr.NotFound("layout", name, os.ErrNotExist)
 	}
 
 	copy := new(Layout)
@@ -70,48 +89,65 @@ func (fs *fileStore) ListNames(ctx context.Context) ([]string, error) {
 	return names, nil
 }
 
-func (fs *fileStore) findLayouts(ctx context.Context) error {
+func (fs *fileStore) findLayouts(ctx context.Context) {
+	log := logger.From(ctx)
+	log.V(7).Logf("scanning for new infoscreen layouts...")
+
 	fs.l.Lock()
 	defer fs.l.Unlock()
 
 	fs.layouts = make(map[string]*Layout)
 
-	log := logger.From(ctx)
+	for _, path := range fs.paths {
+		dirEntries, err := os.ReadDir(path)
+		if err != nil {
+			log.Errorf("failed to read directory %s: %w", path, err)
+			continue
+		}
 
-	dirEntries, err := os.ReadDir(fs.path)
-	if err != nil {
-		return err
+		for _, entry := range dirEntries {
+			// layouts must be placed in sub-directories
+			if !entry.IsDir() {
+				log.V(7).Logf("skipping %s as it's not a directory", entry.Name())
+				continue
+			}
+
+			// TODO(ppacher): should we add support for multiple layouts
+			// per directory?
+			indexPath := filepath.Join(
+				path,
+				entry.Name(),
+				"layout.hcl",
+			)
+			stat, err := os.Lstat(indexPath)
+			if err != nil {
+				log.V(7).Logf("skipping %s as we failed to lstat layout.hcl: %w", entry.Name(), err)
+				continue
+			}
+			if stat.IsDir() {
+				log.V(7).Logf("skipping %s as we failed to layout.hcl is a directory", entry.Name())
+				continue
+			}
+
+			l, err := ParseFile(indexPath)
+			if err != nil {
+				log.Errorf("failed to parse layout: %s", err)
+				continue
+			}
+
+			fs.layouts[l.Name] = l
+		}
 	}
 
-	for _, entry := range dirEntries {
-		// layouts must be placed in sub-directories
-		if !entry.IsDir() {
-			continue
-		}
+	log.V(5).Logf("found %d layouts across %d search paths", len(fs.layouts), len(fs.paths))
+}
 
-		// TODO(ppacher): should we add support for multiple layouts
-		// per directory?
-		indexPath := filepath.Join(
-			fs.path,
-			entry.Name(),
-			"index.layout",
-		)
-		stat, err := os.Lstat(indexPath)
-		if err != nil {
-			continue
-		}
-		if stat.IsDir() {
-			continue
-		}
+type NoopStore struct{}
 
-		l, err := ParseFile(indexPath)
-		if err != nil {
-			log.Errorf("failed to parse layout: %s", err)
-			continue
-		}
+func (*NoopStore) ListNames(context.Context) ([]string, error) {
+	return nil, httperr.PreconditionFailed("feature disabled")
+}
 
-		fs.layouts[l.Name] = l
-	}
-
-	return nil
+func (*NoopStore) Get(context.Context, string) (*Layout, error) {
+	return nil, httperr.PreconditionFailed("feature disabled")
 }
