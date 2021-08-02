@@ -77,7 +77,8 @@ func parseLayoutVars(l *layouts.Layout, query url.Values) (layouts.Vars, error) 
 	for key, values := range query {
 		def := l.Var(key)
 		if def == nil {
-			errors.Addf("unknown query parameter %s", key)
+			// we do allow unknown query parameters as they might control
+			// different behavior and are not meant as layout-vars
 			continue
 		}
 
@@ -94,7 +95,7 @@ func parseLayoutVars(l *layouts.Layout, query url.Values) (layouts.Vars, error) 
 		case layouts.TypeBool:
 			val, err = strconv.ParseBool(values[0])
 		case layouts.TypeString:
-			val = values[0]
+			val, _ = url.QueryUnescape(values[0])
 		case layouts.TypeStringList:
 			val = values
 		case layouts.TypeNumber:

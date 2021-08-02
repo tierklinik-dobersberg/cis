@@ -1,0 +1,15 @@
+<div class="shows">
+  <div class="show-entry" *ngFor="let show of shows; trackBy: trackShow">
+    <iframe [src]="show.preview" (mouseenter)="activate(show)" (mouseleave)="deactivate(show)"></iframe>
+    <div class="meta">
+      <div class="desc">
+        <a [href]="show.playUrl" target="_blank" class="name">{{ show.name }}</a>
+        <span class="description">{{ show?.description || 'Slide-Show' }}</span>
+      </div>
+      <div class="actions">
+        <i nz-icon nzType="edit" [routerLink]="['edit', show.name]" nzTheme="outline"></i>
+        <a [href]="show.playUrl" target="_blank"><i nz-icon nzType="eye" nzTheme="outline"></i></a>
+      </div>
+    </div>
+  </div>
+</div>

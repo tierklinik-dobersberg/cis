@@ -7,7 +7,7 @@ import (
 )
 
 type Slide struct {
-	Layout      string        `bson:"layout,omitempty" json:"layout,omitempty"`
+	Layout      string        `bson:"layout,omitempty" json:"layout"`
 	Duration    time.Duration `bson:"duration,omitempty" json:"duration,omitempty"`
 	Vars        layouts.Vars  `bson:"vars,omitempty" json:"vars,omitempty"`
 	AutoAnimate string        `bson:"autoAnimate,omitempty" json:"autoAnimate,omitempty"`
@@ -20,13 +20,15 @@ type Auth struct {
 }
 
 type Show struct {
-	Name   string  `bson:"name,omitempty" json:"name,omitempty"`
-	Slides []Slide `bson:"slides,omitempty" json:"slides,omitempty"`
-	Auth   Auth    `bson:"auth,omitempty" json:"auth,omitempty"`
+	Name        string  `bson:"name,omitempty" json:"name,omitempty"`
+	Description string  `bson:"description,omitempty" json:"description,omitempty"`
+	Slides      []Slide `bson:"slides,omitempty" json:"slides,omitempty"`
+	Auth        Auth    `bson:"auth,omitempty" json:"auth,omitempty"`
 }
 
 type ListShowEntry struct {
 	Name           string `json:"name"`
+	Description    string `json:"description,omitempty"`
 	NumberOfSlides int    `json:"numberOfSlides"`
 }
 

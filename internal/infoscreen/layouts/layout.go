@@ -24,9 +24,9 @@ type Variable struct {
 // Layout defines a new slide layout.
 type Layout struct {
 	Name        string     `hcl:"name,label" json:"name"`
-	File        string     `hcl:"file,optional" json:"file"`
-	Content     string     `hcl:"content,optional" json:"content"`
-	Description string     `hcl:"description,optional" json:"description"`
+	File        string     `hcl:"file,optional" json:"file,omitempty"`
+	Content     string     `hcl:"content,optional" json:"content,omitempty"`
+	Description string     `hcl:"description,optional" json:"description,omitempty"`
 	Variables   []Variable `hcl:"variable,block" json:"variables"`
 
 	// parentDir holds the path to the parent directory

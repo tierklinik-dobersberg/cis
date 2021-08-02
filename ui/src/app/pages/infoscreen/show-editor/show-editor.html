@@ -1,0 +1,20 @@
+<div class="meta">
+
+</div>
+
+<div class="editor">
+  <div class="slides">
+
+    <div class="slide" *ngFor="let slide of show?.slides; let index=index">
+      <iframe [src]="slide.preview"></iframe>
+      <div (click)="openSlide(slide, index)" class="cover"></div>
+    </div>
+
+  </div>
+
+  <div class="current-slide">
+    <ng-container *ngIf="layoutPreview">
+      <iframe [src]="layoutPreview" id="currentSlide"></iframe>
+    </ng-container>
+  </div>
+</div>

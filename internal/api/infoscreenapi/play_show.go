@@ -19,6 +19,7 @@ import (
 )
 
 const playTemplateContent = `
+{{ $preview := .Preview }}
 <!doctype html>
 <html lang="en">
 	<head>
@@ -37,8 +38,8 @@ const playTemplateContent = `
 		}
 {{ if .Embedded }}
 		.reveal {
-			height: 100%;
-			width: 100%;
+			height: 100vh;
+			width: 100vw;
 		}
 {{ end }}
 		</style>
@@ -46,7 +47,11 @@ const playTemplateContent = `
 		function start() {
 			Reveal.initialize({
 				loop: true,
-				autoSlide: 5000,
+				{{ if not $preview }}autoSlide: 5000,{{ end }}
+				{{ if $preview }}
+				controls: false,
+				progress: false,
+				{{end}}
 				display: 'flex',
 				margin: 0,
 				{{ if .Embedded }}embedded: true,{{ end }}
@@ -61,7 +66,7 @@ const playTemplateContent = `
 {{ range .Slides }}
 <section
 	{{ if .Duration }}data-autoslide="{{ .Duration }}"{{ end }}
-	{{ if .AutoAnimate }}data-auto-animate data-auto-animate-id="{{ .AutoAnimate }}"{{ end }}
+	{{ if and .AutoAnimate (not $preview) }}data-auto-animate data-auto-animate-id="{{ .AutoAnimate }}"{{ end }}
 	{{ if .Background }}data-background-color="{{ .Background }}"{{ end }}
 	>
 		{{ .Content }}
@@ -89,10 +94,12 @@ type PlaySlide struct {
 }
 
 type PlayContext struct {
-	ShowName string
-	Embedded bool
-	Theme    string
-	Slides   []PlaySlide
+	ShowName  string
+	Embedded  bool
+	Theme     string
+	Slides    []PlaySlide
+	AutoSlide bool
+	Preview   bool
 }
 
 func rendererPlayer(playCtx *PlayContext, w http.ResponseWriter) error {
@@ -154,6 +161,7 @@ func PlayShowEndpoint(router *app.Router) {
 				ShowName: showName,
 				Embedded: isEmbedded,
 				Theme:    theme,
+				Preview:  previewIndex >= 0,
 			}
 			for idx, slide := range show.Slides {
 				if previewIndex >= 0 && idx != previewIndex {

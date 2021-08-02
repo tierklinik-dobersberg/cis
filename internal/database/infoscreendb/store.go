@@ -69,24 +69,7 @@ func (db *database) setup(ctx context.Context) error {
 }
 
 func (db *database) ListShows(ctx context.Context) ([]v1alpha.ListShowEntry, error) {
-	result, err := db.shows.Aggregate(
-		ctx,
-		bson.A{
-			bson.M{
-				"$addFields": bson.M{
-					"numberOfSlides": bson.M{
-						"$count": "$slides",
-					},
-				},
-			},
-			bson.M{
-				"$project": bson.M{
-					"name":           1,
-					"numberOfSlides": 1,
-				},
-			},
-		},
-	)
+	result, err := db.shows.Find(ctx, bson.M{})
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
@@ -95,8 +78,17 @@ func (db *database) ListShows(ctx context.Context) ([]v1alpha.ListShowEntry, err
 	}
 
 	var entries []v1alpha.ListShowEntry
-	if err := result.All(ctx, &entries); err != nil {
-		return nil, err
+	for result.Next(ctx) {
+		var s v1alpha.Show
+		if err := result.Decode(&s); err != nil {
+			return nil, err
+		}
+
+		entries = append(entries, v1alpha.ListShowEntry{
+			Name:           s.Name,
+			NumberOfSlides: len(s.Slides),
+			Description:    s.Description,
+		})
 	}
 
 	return entries, nil

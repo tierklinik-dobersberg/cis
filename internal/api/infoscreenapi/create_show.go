@@ -3,6 +3,7 @@ package infoscreenapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -24,7 +25,12 @@ func CreateShowEndpoint(router *app.Router) {
 			if err := json.NewDecoder(c.Request.Body).Decode(&show); err != nil {
 				return err
 			}
-			show.Name = showName
+			if show.Name == "" {
+				show.Name = showName
+			} else if show.Name != showName {
+				// TODO(ppacher): this is a rename operation. handle it!
+				return errors.New("rename not yet supported")
+			}
 
 			if err := app.InfoScreenShows.SaveShow(ctx, show); err != nil {
 				return err

@@ -1,0 +1,87 @@
+@import 'src/utils';
+
+:host {
+  @include page-host;
+  overflow: auto;
+  padding : 24px;
+
+  @include for-phone-only {
+    padding: 12px;
+  }
+
+  display       : flex;
+  flex-direction: row;
+  flex-wrap     : wrap;
+
+  display              : grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+.show-entry {
+  display         : flex;
+  flex-direction  : column;
+  box-shadow      : 0px 0px 4px 1px rgb(0 21 41 / 8%);
+  background-color: white;
+  cursor          : pointer;
+
+  &:hover {
+    background-color: rgb(0 21 41 / 20%);
+  }
+
+  iframe {
+    width  : 100%;
+    height : 150px;
+    border : none;
+    outline: none;
+    opacity: 0.8;
+  }
+
+  div.meta {
+    a {
+      color: unset;
+    }
+
+    flex-grow       : 1;
+    padding-left    : 12px;
+    padding-right   : 12px;
+    padding-top     : 6px;
+    padding-bottom  : 6px;
+    background-color: white;
+    opacity         : 0.9;
+
+    display       : flex;
+    flex-direction: row;
+    align-items   : center;
+
+    div.desc {
+      flex-grow     : 1;
+      display       : flex;
+      flex-direction: column;
+
+      .name {
+        font-weight: bold;
+      }
+
+      .description {
+        font-weight: 300;
+        font-size  : 90%;
+        margin-top : -4px;
+      }
+    }
+
+    div.actions {
+
+      i {
+        &:not(:last-child) {
+          margin-right: 12px;
+        }
+
+        cursor : pointer;
+
+        &:hover {
+          color: steelblue;
+        }
+      }
+    }
+  }
+}
