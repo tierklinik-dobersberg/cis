@@ -63,7 +63,7 @@ registerLocaleData(de);
   providers: [
     { provide: NZ_I18N, useValue: de_DE },
     { provide: HTTP_INTERCEPTORS, useExisting: AuthorizationInterceptor, multi: true },
-    { provide: NZ_DATE_CONFIG, useValue: { firstDayOfWeek: 1 } }
+    { provide: NZ_DATE_CONFIG, useValue: { firstDayOfWeek: 1 } },
   ],
   bootstrap: [AppComponent]
 })

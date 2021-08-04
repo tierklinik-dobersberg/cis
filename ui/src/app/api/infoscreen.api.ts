@@ -14,6 +14,7 @@ export interface Layout {
   content?: string;
   description?: string;
   variables: Variable[];
+  choices?: string[];
 }
 
 export interface Variable {
@@ -72,7 +73,7 @@ export class InfoScreenAPI {
 
   /** Returns the definition of a given layout */
   getLayout(layout: string): Observable<Layout> {
-    return this.http.get<Layout>(`/api/infoscreen/v1/layouts/${layout}`)
+    return this.http.get<Layout>(`/api/infoscreen/v1/layout/${layout}`)
   }
 
   /** List all available shows */

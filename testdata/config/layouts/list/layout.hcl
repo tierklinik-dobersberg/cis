@@ -14,18 +14,22 @@ EOF
     variable "header" {
         type = string
         description = "The page header"
+        multiline = true
         format = plain
+        displayName = "Titel"
     }
 
     variable "items" {
         type = string_list
         description = "The list items to display"
         format = html
+        displayName = "Liste"
     }
     
     variable "listStyle" {
         type = string
         description = "The list style type"
+        displayName = "Listen-Style"
         choices = [
             "none",
             "circle",

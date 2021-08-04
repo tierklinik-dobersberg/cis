@@ -59,7 +59,7 @@ func (l *Layout) Var(name string) *Variable {
 }
 
 // Validate layout and return any errors encountered
-func Validate(layout Layout) error {
+func Validate(layout *Layout) error {
 	errors := &multierr.Error{}
 
 	if layout.Name == "" {
@@ -74,15 +74,18 @@ func Validate(layout Layout) error {
 		errors.Addf("No layout directory (internal).")
 	}
 
-	for _, def := range layout.Variables {
+	for idx, def := range layout.Variables {
 		if def.Name == "" {
 			errors.Addf("variable name is required")
 		}
 		if !IsKnownType(def.Type) {
 			errors.Addf("%s: unknown variable type %s", def.Name, def.Type)
 		}
-
 		if isStringLike(def) {
+			if def.Format == "" {
+				layout.Variables[idx].Format = FormatPlain
+				def.Format = FormatPlain
+			}
 			if !IsKnownFormat(def.Format) {
 				errors.Addf("%s: unknown format %s", def.Name, def.Format)
 			}
@@ -124,7 +127,7 @@ func ParseFile(fpath string) (*Layout, error) {
 	if err := hclsimple.DecodeFile(fpath, evalCtx, &file); err != nil {
 		return nil, err
 	}
-	if err := Validate(*file.Layout); err != nil {
+	if err := Validate(file.Layout); err != nil {
 		return nil, err
 	}
 	return file.Layout, nil

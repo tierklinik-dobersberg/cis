@@ -1,10 +1,12 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { SafeResourceUrl } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
-import { Subject } from "rxjs";
+import { forkJoin, of, Subject } from "rxjs";
 import { map, mergeMap, takeUntil } from "rxjs/operators";
-import { InfoScreenAPI, Show, Slide, Vars } from "src/app/api/infoscreen.api";
+import { InfoScreenAPI, Layout, Show, Slide, Vars } from "src/app/api/infoscreen.api";
 import { HeaderTitleService } from "src/app/shared/header-title";
+
+import * as ClassicEditor from 'ckeditor/build/ckeditor';
 
 interface SlideModel extends Slide {
   preview: SafeResourceUrl;
@@ -22,12 +24,19 @@ interface ShowModel extends Show {
 export class ShowEditorComponent implements OnInit, OnDestroy {
   private _destroy$ = new Subject<void>();
 
+  public Editor = ClassicEditor;
+
   show: ShowModel | null = null;
+
+  config = {
+    toolbar: ['heading', '|', 'fontColor', 'bold', 'italic', 'link', 'bulletedList', 'numberedList'],
+  }
 
   currentSlideIndex: number = -1;
   currentSlide: Slide | null = null;
   layoutPreview: SafeResourceUrl | null = null;
   layoutVars: Vars = {};
+  layouts: { [key: string]: Layout } = {};
 
   constructor(
     private headerService: HeaderTitleService,
@@ -37,6 +46,17 @@ export class ShowEditorComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.headerService.set('Slide-Show')
+
+    const allLayouts$ = this.showAPI.listLayouts()
+      .pipe(
+        mergeMap(layoutNames => forkJoin(layoutNames.map(l => this.showAPI.getLayout(l))))
+      )
+      .subscribe(layouts => {
+        console.log(layouts);
+        layouts.forEach(l => {
+          this.layouts[l.name] = l;
+        })
+      })
 
     this.activeRoute.paramMap
       .pipe(
@@ -59,6 +79,10 @@ export class ShowEditorComponent implements OnInit, OnDestroy {
 
         this.headerService.set('Slide-Show: ' + show.name);
       })
+  }
+
+  updatePreview() {
+    console.log("Updating preview", this.layoutVars);
   }
 
   ngOnDestroy() {

@@ -4,17 +4,67 @@
 
 <div class="editor">
   <div class="slides">
-
-    <div class="slide" *ngFor="let slide of show?.slides; let index=index">
-      <iframe [src]="slide.preview"></iframe>
-      <div (click)="openSlide(slide, index)" class="cover"></div>
+    <div cdkDropList>
+      <div class="slide" *ngFor="let slide of show?.slides; let index=index" cdkDrag
+        [class.active]="index === currentSlideIndex">
+        <iframe [src]="slide.preview"></iframe>
+        <div (click)="openSlide(slide, index)" cdkDragHandle class="cover"></div>
+      </div>
     </div>
 
+    <div class="slide">
+      <button nz-button nzType="dashed">
+        <i nz-icon nzType="plus-circle" nzTheme="outline"></i>
+        Neue Folie
+      </button>
+    </div>
   </div>
 
   <div class="current-slide">
     <ng-container *ngIf="layoutPreview">
       <iframe [src]="layoutPreview" id="currentSlide"></iframe>
     </ng-container>
+    <button nz-button nzType="default" nzSize="large" nzShape="round">
+      <i nz-icon nzType="caret-right" nzTheme="outline"></i>
+      Abspielen
+    </button>
+  </div>
+
+  <div class="vars">
+    <h2>Eigenschaften</h2>
+    <div class="var" *ngFor="let item of layouts[currentSlide?.layout]?.variables">
+      <label>{{ item.displayName || item.name }}</label>
+      <span class="description" *ngIf="item.description">{{ item.description }}</span>
+
+      <ng-template #textTemplate>
+        <input nz-input type="text" *ngIf="!item.multiline; else: multiLineTemplate" [(ngModel)]="layoutVars[item.name]"
+          (ngModelChange)="updatePreview()">
+        <ng-template #multiLineTemplate>
+          <textarea nz-input [(ngModel)]="layoutVars[item.name]" (ngModelChange)="updatePreview()"></textarea>
+        </ng-template>
+      </ng-template>
+
+      <!-- {{ item.type + ':' + (item.format || '') }} -->
+      <ng-container [ngSwitch]="item.type + ':' + (item.format || '')">
+        <ng-template ngSwitchCase="string:html">
+          <ckeditor [config]="config" [editor]="Editor" [(ngModel)]="layoutVars[item.name]"
+            (ngModelChange)="updatePreview()"></ckeditor>
+        </ng-template>
+        <ng-template ngSwitchCase="string:plain">
+          <ng-template [ngIf]="item.choices === undefined" [ngIfElse]="choicesTemplate">
+            <ng-container *ngTemplateOutlet="textTemplate"></ng-container>
+          </ng-template>
+          <ng-template #choicesTemplate>
+            <nz-select [(ngModel)]="layoutVars[item.name]" (ngModelChange)="updatePreview()">
+              <nz-option *ngFor="let choice of item.choices" [nzValue]="choice" [nzLabel]="choice"></nz-option>
+            </nz-select>
+          </ng-template>
+        </ng-template>
+        <ng-template ngSwitchCase="string:markdown">
+          <ng-container *ngTemplateOutlet="textTemplate"></ng-container>
+        </ng-template>
+      </ng-container>
+
+    </div>
   </div>
 </div>

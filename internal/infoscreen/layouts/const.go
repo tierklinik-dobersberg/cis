@@ -1,18 +1,18 @@
 package layouts
 
 const (
-	TypeString     = "dt:string"
-	TypeStringList = "dt:stringlist"
-	TypeNumber     = "dt:number"
-	TypeBool       = "dt:bool"
-	TypeImage      = "dt:image"
-	TypeVideo      = "dt:video"
+	TypeString     = "string"
+	TypeStringList = "stringlist"
+	TypeNumber     = "number"
+	TypeBool       = "bool"
+	TypeImage      = "image"
+	TypeVideo      = "video"
 )
 
 const (
-	FormatMarkdown = "fmt:markdown"
-	FormatHTML     = "fmt:html"
-	FormatPlain    = "fmt:plain"
+	FormatMarkdown = "markdown"
+	FormatHTML     = "html"
+	FormatPlain    = "plain"
 )
 
 func IsKnownType(d string) bool {
@@ -25,7 +25,7 @@ func IsKnownType(d string) bool {
 
 func IsKnownFormat(f string) bool {
 	switch f {
-	case FormatHTML, FormatMarkdown, FormatPlain, "": // empty == plain
+	case FormatHTML, FormatMarkdown, FormatPlain:
 		return true
 	}
 	return false
