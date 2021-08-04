@@ -39,6 +39,15 @@ type Session struct {
 	// token with scope refresh.
 	RefreshUntil *time.Time
 
+	// ephemeralDataLock protects the ephemeralData map from concurrent
+	// access.
+	ephemeralDataLock sync.RWMutex
+
+	// ephemeralData allows routes and API endpoints to store ephemeral data
+	// in a "sticky" session. Note that ephemeral data is only supported if
+	// the API client uses the cis-sid in addition to the session token.
+	ephemeralData map[string]interface{}
+
 	// lock protects all fields an members below it.
 	lock sync.Mutex
 
@@ -65,6 +74,40 @@ func (session *Session) LastAccess() time.Time {
 	session.lock.Lock()
 	defer session.lock.Unlock()
 	return session.lastAccess
+}
+
+// SetEphemeral stores data under key inside the ephemeral data store of the
+// session. Note that this only works for "sticky" sessions.
+func (session *Session) SetEphemeral(key string, data interface{}) error {
+	if session.id == "" {
+		return fmt.Errorf("session %s is not sticky", session)
+	}
+	session.ephemeralDataLock.Lock()
+	defer session.ephemeralDataLock.Unlock()
+
+	if session.ephemeralData == nil {
+		session.ephemeralData = make(map[string]interface{})
+	}
+	session.ephemeralData[key] = data
+	return nil
+}
+
+// GetEphemeral retrieves the data stored under key. This only works
+// for "sticky" sessions.
+func (session *Session) GetEphemeral(key string) (interface{}, error) {
+	if session.id == "" {
+		return nil, fmt.Errorf("session %s is not sticky", session)
+	}
+	if session.ephemeralData == nil {
+		return nil, nil
+	}
+	data := session.ephemeralData[key]
+	return data, nil
+}
+
+// IsSticky returns true if the session is sticky.
+func (session *Session) IsSticky() bool {
+	return session.id != ""
 }
 
 func (session *Session) String() string {
