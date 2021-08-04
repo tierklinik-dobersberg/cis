@@ -1,6 +1,7 @@
 package infoscreenapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -23,6 +24,10 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 )
 
+type slidePreview struct {
+	Content string
+}
+
 func RenderLayoutPreviewEndpoint(router *app.Router) {
 	router.POST(
 		"v1/preview",
@@ -43,7 +48,45 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 			if err != nil {
 				return err
 			}
-			if err := sess.SetEphemeral(key, slide, time.Minute); err != nil {
+
+			theme := c.Query("theme")
+			if theme == "" {
+				theme = "white"
+			}
+
+			l, err := app.LayoutStore.Get(ctx, slide.Layout)
+			if err != nil {
+				return err
+			}
+			content, err := layouts.Render(l, slide.Vars, &layouts.RenderContext{
+				Preview:  true,
+				Embedded: true,
+			})
+			if err != nil {
+				return err
+			}
+
+			var buf = new(bytes.Buffer)
+
+			playCtx := &PlayContext{
+				ShowName: "preview",
+				Embedded: true,
+				Theme:    theme,
+				Slides: []PlaySlide{
+					{
+						Content:     template.HTML(content),
+						AutoAnimate: slide.AutoAnimate,
+						Background:  slide.Background,
+					},
+				},
+			}
+			if err := playTemplate.Execute(buf, playCtx); err != nil {
+				return err
+			}
+			entry := &slidePreview{
+				Content: buf.String(),
+			}
+			if err := sess.SetEphemeral(key, entry, time.Minute); err != nil {
 				return err
 			}
 			c.JSON(http.StatusOK, gin.H{
@@ -60,10 +103,6 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			resource := strings.TrimPrefix(c.Param("resource"), "/")
-			theme := c.Query("theme")
-			if theme == "" {
-				theme = "white"
-			}
 
 			key := c.Param("key")
 			sess := session.Get(c)
@@ -78,14 +117,9 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 			if ttl.IsZero() {
 				return httperr.NotFound("slide-preview", key, nil)
 			}
-			s, ok := data.(v1alpha.Slide)
+			s, ok := data.(*slidePreview)
 			if !ok {
 				return httperr.InternalError(nil, "invalid data type for ephemeral key")
-			}
-
-			l, err := app.LayoutStore.Get(ctx, s.Layout)
-			if err != nil {
-				return err
 			}
 
 			if strings.HasPrefix(resource, "uploaded/") {
@@ -96,23 +130,9 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 				return nil
 			}
 
-			content, err := layouts.Render(l, s.Vars)
-			if err != nil {
-				return err
-			}
-
-			return renderPlayer(&PlayContext{
-				ShowName: "preview",
-				Embedded: true,
-				Theme:    theme,
-				Slides: []PlaySlide{
-					{
-						Content:     template.HTML(content),
-						AutoAnimate: s.AutoAnimate,
-						Background:  s.Background,
-					},
-				},
-			}, c.Writer)
+			c.Writer.Header().Set("Content-Type", "text/html; charset=utf-8")
+			_, err = c.Writer.Write([]byte(s.Content))
+			return err
 		},
 	)
 }

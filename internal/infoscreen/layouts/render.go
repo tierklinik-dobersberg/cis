@@ -30,6 +30,7 @@ func init() {
 type Vars map[string]interface{}
 
 type templateContext struct {
+	RenderContext
 	Vars map[string]interface{}
 }
 
@@ -37,8 +38,17 @@ var templateFuncs = template.FuncMap{
 	"html": func(s string) template.HTML { return template.HTML(s) },
 }
 
+type RenderContext struct {
+	Preview  bool
+	Embedded bool
+}
+
 // Render renders the layout l.
-func Render(l *Layout, vars Vars) ([]byte, error) {
+func Render(l *Layout, vars Vars, renderCtx *RenderContext) ([]byte, error) {
+	if renderCtx == nil {
+		renderCtx = new(RenderContext)
+	}
+
 	content, err := getLayoutContent(l)
 	if err != nil {
 		return nil, err
@@ -56,7 +66,8 @@ func Render(l *Layout, vars Vars) ([]byte, error) {
 	}
 	buf := new(bytes.Buffer)
 	if err := parsedTemplate.Execute(buf, templateContext{
-		Vars: data,
+		RenderContext: *renderCtx,
+		Vars:          data,
 	}); err != nil {
 		return nil, err
 	}

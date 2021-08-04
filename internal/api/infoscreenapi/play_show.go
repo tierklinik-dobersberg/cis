@@ -175,7 +175,10 @@ func PlayShowEndpoint(router *app.Router) {
 				}
 
 				var content []byte
-				content, err = layouts.Render(l, slide.Vars)
+				content, err = layouts.Render(l, slide.Vars, &layouts.RenderContext{
+					Preview:  previewIndex >= 0,
+					Embedded: isEmbedded,
+				})
 				if err != nil {
 					log.Errorf("failed to render layout %s: %s", slide.Layout, err)
 					continue

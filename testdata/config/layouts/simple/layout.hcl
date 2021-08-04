@@ -17,7 +17,7 @@ EOF
     variable "header" {
         type = string
         description = "The page header"
-        format = plain
+        format = html
     }
 
     variable "content" {

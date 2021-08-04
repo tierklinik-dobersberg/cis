@@ -21,12 +21,12 @@
   </div>
 
   <div class="current-slide">
-    <ng-container *ngIf="(layoutPreview | async) as url">
+    <ng-container *ngIf="layoutPreview as url">
       <iframe [src]="url" id="currentSlide"></iframe>
     </ng-container>
-    <button nz-button nzType="default" nzSize="large" nzShape="round">
-      <i nz-icon nzType="caret-right" nzTheme="outline"></i>
-      Abspielen
+    <button nz-button nzType="default" nzSize="large" nzShape="round" (click)="saveOrPlay()">
+      <i nz-icon [nzType]="unsaved ? 'save' : 'caret-right'" nzTheme="outline"></i>
+      {{ unsaved ? 'Speichern' : 'Abspielen'}}
     </button>
   </div>
 

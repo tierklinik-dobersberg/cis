@@ -91,7 +91,7 @@ export class InfoScreenAPI {
 
   /** Create or update a new show */
   saveShow(show: Show): Observable<Show> {
-    return this.http.post<Show>(`/api/infoscreen/v1/shows/${show.name}`, show);
+    return this.http.post<Show>(`/api/infoscreen/v1/show/${show.name}`, show);
   }
 
   /** Delete an existing show */
@@ -133,7 +133,7 @@ export class InfoScreenAPI {
   previewLayoutUrl(slide: Slide): Observable<SafeResourceUrl> {
     return this.http.post<{ key: string }>(`/api/infoscreen/v1/preview`, slide)
       .pipe(
-        map(key => this.san.bypassSecurityTrustResourceUrl(`/api/infoscreen/v1/preview/${key}/`))
+        map(key => this.san.bypassSecurityTrustResourceUrl(`/api/infoscreen/v1/preview/${key.key}/`))
       );
   }
 }
