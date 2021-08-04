@@ -21,8 +21,8 @@
   </div>
 
   <div class="current-slide">
-    <ng-container *ngIf="layoutPreview">
-      <iframe [src]="layoutPreview" id="currentSlide"></iframe>
+    <ng-container *ngIf="(layoutPreview | async) as url">
+      <iframe [src]="url" id="currentSlide"></iframe>
     </ng-container>
     <button nz-button nzType="default" nzSize="large" nzShape="round">
       <i nz-icon nzType="caret-right" nzTheme="outline"></i>

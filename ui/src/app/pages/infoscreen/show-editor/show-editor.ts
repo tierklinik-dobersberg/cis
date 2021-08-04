@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { SafeResourceUrl } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
-import { forkJoin, of, Subject } from "rxjs";
+import { forkJoin, Observable, of, Subject } from "rxjs";
 import { map, mergeMap, takeUntil } from "rxjs/operators";
 import { InfoScreenAPI, Layout, Show, Slide, Vars } from "src/app/api/infoscreen.api";
 import { HeaderTitleService } from "src/app/shared/header-title";
@@ -34,7 +34,7 @@ export class ShowEditorComponent implements OnInit, OnDestroy {
 
   currentSlideIndex: number = -1;
   currentSlide: Slide | null = null;
-  layoutPreview: SafeResourceUrl | null = null;
+  layoutPreview: Observable<SafeResourceUrl> | null = null;
   layoutVars: Vars = {};
   layouts: { [key: string]: Layout } = {};
 
@@ -82,7 +82,11 @@ export class ShowEditorComponent implements OnInit, OnDestroy {
   }
 
   updatePreview() {
-    console.log("Updating preview", this.layoutVars);
+    const slide = {
+      ...this.currentSlide,
+      vars: this.layoutVars,
+    }
+    this.layoutPreview = this.showAPI.previewLayoutUrl(slide)
   }
 
   ngOnDestroy() {
@@ -97,6 +101,6 @@ export class ShowEditorComponent implements OnInit, OnDestroy {
     this.layoutVars = {
       ...slide.vars,
     }
-    this.layoutPreview = this.showAPI.previewSlideUrl(this.show!.name, idx)
+    this.layoutPreview = this.showAPI.previewLayoutUrl(slide)
   }
 }

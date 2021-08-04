@@ -128,7 +128,9 @@ func (mng *Manager) Middleware(c *gin.Context) {
 		// there's no existing session (that did a /login)
 		// so just create a new one and use that
 		session = &Session{
-			User: *user,
+			User:       *user,
+			lastAccess: time.Now(),
+			destroyed:  make(chan struct{}),
 		}
 
 		// expires-at must still be in the future, otherwise

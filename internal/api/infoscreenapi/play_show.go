@@ -102,7 +102,7 @@ type PlayContext struct {
 	Preview   bool
 }
 
-func rendererPlayer(playCtx *PlayContext, w http.ResponseWriter) error {
+func renderPlayer(playCtx *PlayContext, w http.ResponseWriter) error {
 	buf := new(bytes.Buffer)
 	if err := playTemplate.Execute(buf, playCtx); err != nil {
 		return err
@@ -189,7 +189,7 @@ func PlayShowEndpoint(router *app.Router) {
 				})
 			}
 
-			return rendererPlayer(playCtx, c.Writer)
+			return renderPlayer(playCtx, c.Writer)
 		},
 	)
 }

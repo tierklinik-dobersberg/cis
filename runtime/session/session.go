@@ -18,6 +18,11 @@ const SessionKey = "http:session"
 
 var contextSessionKey = struct{ key string }{key: SessionKey}
 
+type ephemeralData struct {
+	value  interface{}
+	maxAge time.Time
+}
+
 // Session represents an user session.
 type Session struct {
 	// id holds the ID of the session.
@@ -46,7 +51,10 @@ type Session struct {
 	// ephemeralData allows routes and API endpoints to store ephemeral data
 	// in a "sticky" session. Note that ephemeral data is only supported if
 	// the API client uses the cis-sid in addition to the session token.
-	ephemeralData map[string]interface{}
+	ephemeralData map[string]*ephemeralData
+
+	// destroyed is closed when the session is destroyed and garbage collected.
+	destroyed chan struct{}
 
 	// lock protects all fields an members below it.
 	lock sync.Mutex
@@ -78,7 +86,7 @@ func (session *Session) LastAccess() time.Time {
 
 // SetEphemeral stores data under key inside the ephemeral data store of the
 // session. Note that this only works for "sticky" sessions.
-func (session *Session) SetEphemeral(key string, data interface{}) error {
+func (session *Session) SetEphemeral(key string, data interface{}, ttl time.Duration) error {
 	if session.id == "" {
 		return fmt.Errorf("session %s is not sticky", session)
 	}
@@ -86,23 +94,54 @@ func (session *Session) SetEphemeral(key string, data interface{}) error {
 	defer session.ephemeralDataLock.Unlock()
 
 	if session.ephemeralData == nil {
-		session.ephemeralData = make(map[string]interface{})
+		session.ephemeralData = make(map[string]*ephemeralData)
+		go session.collectEphemeralGarbage()
 	}
-	session.ephemeralData[key] = data
+	session.ephemeralData[key] = &ephemeralData{
+		value:  data,
+		maxAge: time.Now().Add(ttl),
+	}
 	return nil
 }
 
 // GetEphemeral retrieves the data stored under key. This only works
 // for "sticky" sessions.
-func (session *Session) GetEphemeral(key string) (interface{}, error) {
+func (session *Session) GetEphemeral(key string) (interface{}, time.Time, error) {
 	if session.id == "" {
-		return nil, fmt.Errorf("session %s is not sticky", session)
+		return nil, time.Time{}, fmt.Errorf("session %s is not sticky", session)
 	}
 	if session.ephemeralData == nil {
-		return nil, nil
+		return nil, time.Time{}, nil
 	}
-	data := session.ephemeralData[key]
-	return data, nil
+	entry := session.ephemeralData[key]
+	return entry.value, entry.maxAge, nil
+}
+
+func (session *Session) collectEphemeralGarbage() {
+	collect := func() {
+		session.ephemeralDataLock.Lock()
+		defer session.ephemeralDataLock.Unlock()
+
+		collected := 0
+		for key, value := range session.ephemeralData {
+			if time.Now().After(value.maxAge) {
+				collected++
+				delete(session.ephemeralData, key)
+			}
+		}
+
+		if collected > 0 {
+			log.From(context.TODO()).V(5).Logf("%s: collected %d ephemeral session data entries", session, collected)
+		}
+	}
+	for {
+		select {
+		case <-session.destroyed:
+			return
+		case <-time.After(time.Minute):
+		}
+		collect()
+	}
 }
 
 // IsSticky returns true if the session is sticky.

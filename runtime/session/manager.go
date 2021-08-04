@@ -128,6 +128,7 @@ func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, 
 		AccessUntil:  &accessCookie.Expires,
 		RefreshUntil: &refreshCookie.Expires,
 		lastAccess:   time.Now(),
+		destroyed:    make(chan struct{}),
 	}
 
 	if err := mng.saveSession(sess, w); err != nil {
@@ -178,6 +179,13 @@ func (mng *Manager) clearOrphandSessions() {
 		if inactivity := time.Since(sess.LastAccess()); inactivity > time.Hour*24*7 {
 			l.Logf("deleting session for user %s after %s of inactivity", sess.User.Name, inactivity)
 			delete(mng.activeSession, key)
+
+			func() {
+				defer func() {
+					recover()
+				}()
+				close(sess.destroyed)
+			}()
 		}
 	}
 }

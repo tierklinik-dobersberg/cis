@@ -129,23 +129,11 @@ export class InfoScreenAPI {
     )
   }
 
-  /** Get a preview-URL for a layout using the given vars. */
-  // TODO(ppacher): add support for theme and background.
-  previewLayoutUrl(layout: string, vars: Vars): SafeResourceUrl {
-    let urlVars = new HttpParams()
-      .set('no-cache', `${(new Date()).valueOf()}`);
-
-    for (let key in vars) {
-      let value = vars[key];
-      if (Array.isArray(value)) {
-        urlVars = urlVars.appendAll({
-          [key]: value,
-        })
-        continue
-      }
-      urlVars = urlVars.set(key, `${value}`)
-    }
-
-    return this.san.bypassSecurityTrustResourceUrl(`/api/infoscreen/v1/layout/${layout}/preview?${urlVars.toString()}`);
+  /** Generates a preview for the given slide */
+  previewLayoutUrl(slide: Slide): Observable<SafeResourceUrl> {
+    return this.http.post<{ key: string }>(`/api/infoscreen/v1/preview`, slide)
+      .pipe(
+        map(key => this.san.bypassSecurityTrustResourceUrl(`/api/infoscreen/v1/preview/${key}/`))
+      );
   }
 }

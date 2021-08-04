@@ -2,6 +2,7 @@ package infoscreenapi
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -9,30 +10,80 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
+	"github.com/tierklinik-dobersberg/cis/pkg/models/infoscreen/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
+	"github.com/tierklinik-dobersberg/cis/runtime/session"
 )
 
 func RenderLayoutPreviewEndpoint(router *app.Router) {
-	router.GET(
-		"v1/layout/:layout/preview/*resource",
+	router.POST(
+		"v1/preview",
 		permission.OneOf{
 			ActionLayoutPreview,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			lname := c.Param("layout")
+			sess := session.Get(c)
+			if sess == nil {
+				return httperr.InternalError(nil, "missing session")
+			}
+
+			var slide v1alpha.Slide
+			if err := json.NewDecoder(c.Request.Body).Decode(&slide); err != nil {
+				return err
+			}
+			key, err := utils.Nonce(32)
+			if err != nil {
+				return err
+			}
+			if err := sess.SetEphemeral(key, slide, time.Minute); err != nil {
+				return err
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"key": key,
+			})
+			return nil
+		},
+	)
+
+	router.GET(
+		"v1/preview/:key/*resource",
+		permission.OneOf{
+			ActionLayoutPreview,
+		},
+		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			resource := strings.TrimPrefix(c.Param("resource"), "/")
 			theme := c.Query("theme")
-			background := c.Query("background")
 			if theme == "" {
 				theme = "white"
 			}
 
-			l, err := app.LayoutStore.Get(ctx, lname)
+			key := c.Param("key")
+			sess := session.Get(c)
+			if sess == nil {
+				return httperr.InternalError(nil, "missing session")
+			}
+
+			data, ttl, err := sess.GetEphemeral(key)
+			if err != nil {
+				return err
+			}
+			if ttl.IsZero() {
+				return httperr.NotFound("slide-preview", key, nil)
+			}
+			s, ok := data.(v1alpha.Slide)
+			if !ok {
+				return httperr.InternalError(nil, "invalid data type for ephemeral key")
+			}
+
+			l, err := app.LayoutStore.Get(ctx, s.Layout)
 			if err != nil {
 				return err
 			}
@@ -45,24 +96,20 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 				return nil
 			}
 
-			vars, err := parseLayoutVars(l, c.Request.URL.Query())
+			content, err := layouts.Render(l, s.Vars)
 			if err != nil {
 				return err
 			}
 
-			content, err := layouts.Render(l, vars)
-			if err != nil {
-				return err
-			}
-
-			return rendererPlayer(&PlayContext{
+			return renderPlayer(&PlayContext{
 				ShowName: "preview",
 				Embedded: true,
 				Theme:    theme,
 				Slides: []PlaySlide{
 					{
-						Content:    template.HTML(content),
-						Background: background,
+						Content:     template.HTML(content),
+						AutoAnimate: s.AutoAnimate,
+						Background:  s.Background,
 					},
 				},
 			}, c.Writer)
