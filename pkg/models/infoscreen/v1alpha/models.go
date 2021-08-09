@@ -23,6 +23,7 @@ type Show struct {
 	Name        string  `bson:"name,omitempty" json:"name,omitempty"`
 	Description string  `bson:"description,omitempty" json:"description,omitempty"`
 	Slides      []Slide `bson:"slides,omitempty" json:"slides,omitempty"`
+	Theme       string  `bson:"theme,omitempty" json:"theme,omitempty"`
 	Auth        Auth    `bson:"auth,omitempty" json:"auth,omitempty"`
 }
 

@@ -1,19 +1,17 @@
-<div class="meta">
-
-</div>
-
 <div class="editor">
   <div class="slides">
     <div cdkDropList>
       <div class="slide" *ngFor="let slide of show?.slides; let index=index" cdkDrag
         [class.active]="index === currentSlideIndex">
         <iframe [src]="slide.preview"></iframe>
-        <div (click)="openSlide(slide, index)" cdkDragHandle class="cover"></div>
+        <div (click)="openSlide(slide, index)" cdkDragHandle class="cover">
+        </div>
+        <i (click)="deleteSlide(index)" class="delete" nz-icon nzType="delete" nzTheme="outline"></i>
       </div>
     </div>
 
     <div class="slide">
-      <button nz-button nzType="dashed">
+      <button nz-button nzType="dashed" (click)="selectLayout()">
         <i nz-icon nzType="plus-circle" nzTheme="outline"></i>
         Neue Folie
       </button>
@@ -24,47 +22,95 @@
     <ng-container *ngIf="layoutPreview as url">
       <iframe [src]="url" id="currentSlide"></iframe>
     </ng-container>
-    <button nz-button nzType="default" nzSize="large" nzShape="round" (click)="saveOrPlay()">
+    <button nz-button nzType="default" nzSize="large" nzShape="round" (click)="saveOrPlay()"
+      [nzLoading]="refreshPending">
       <i nz-icon [nzType]="unsaved ? 'save' : 'caret-right'" nzTheme="outline"></i>
-      {{ unsaved ? 'Speichern' : 'Abspielen'}}
+      {{ refreshPending ? 'Laden ...' : unsaved ? 'Speichern' : 'Abspielen'}}
     </button>
   </div>
 
-  <div class="vars">
-    <h2>Eigenschaften</h2>
-    <div class="var" *ngFor="let item of layouts[currentSlide?.layout]?.variables">
-      <label>{{ item.displayName || item.name }}</label>
-      <span class="description" *ngIf="item.description">{{ item.description }}</span>
+  <nz-collapse class="vars">
+    <nz-collapse-panel nzHeader="Slide-Show Einstellungen">
+      <ng-container *ngIf="!!show">
+        <div class="var">
+          <label>Name:</label>
+          <span class="description">Der Name für die Slide-Show. Sollte keine Sonderzeichen oder Leerzeichen
+            enthalten.</span>
+          <input nz-input type="text" [disabled]="true" [(ngModel)]="show.name">
+        </div>
 
-      <ng-template #textTemplate>
-        <input nz-input type="text" *ngIf="!item.multiline; else: multiLineTemplate" [(ngModel)]="layoutVars[item.name]"
-          (ngModelChange)="updatePreview()">
-        <ng-template #multiLineTemplate>
-          <textarea nz-input [(ngModel)]="layoutVars[item.name]" (ngModelChange)="updatePreview()"></textarea>
-        </ng-template>
-      </ng-template>
+        <div class="var">
+          <label>Beschreibung:</label>
+          <span class="description">Eine kurze Beschreibung für die Slide-Show.</span>
 
-      <!-- {{ item.type + ':' + (item.format || '') }} -->
-      <ng-container [ngSwitch]="item.type + ':' + (item.format || '')">
-        <ng-template ngSwitchCase="string:html">
-          <ckeditor [config]="config" [editor]="Editor" [(ngModel)]="layoutVars[item.name]"
-            (ngModelChange)="updatePreview()"></ckeditor>
-        </ng-template>
-        <ng-template ngSwitchCase="string:plain">
-          <ng-template [ngIf]="item.choices === undefined" [ngIfElse]="choicesTemplate">
-            <ng-container *ngTemplateOutlet="textTemplate"></ng-container>
-          </ng-template>
-          <ng-template #choicesTemplate>
-            <nz-select [(ngModel)]="layoutVars[item.name]" (ngModelChange)="updatePreview()">
-              <nz-option *ngFor="let choice of item.choices" [nzValue]="choice" [nzLabel]="choice"></nz-option>
-            </nz-select>
-          </ng-template>
-        </ng-template>
-        <ng-template ngSwitchCase="string:markdown">
-          <ng-container *ngTemplateOutlet="textTemplate"></ng-container>
-        </ng-template>
+          <input nz-input type="text" [(ngModel)]="show.description">
+        </div>
+
+        <div class="var">
+          <label>Theme:</label>
+          <span class="description">Das Theme for die Slide-Show</span>
+
+          <nz-select [(ngModel)]="show.theme" (ngModelChange)="updatePreview()">
+            <nz-option *ngFor="let choice of themes" [nzValue]="choice.value" [nzLabel]="choice.name"></nz-option>
+          </nz-select>
+        </div>
       </ng-container>
 
+    </nz-collapse-panel>
+    <nz-collapse-panel nzHeader="Folien Einstellungen" [nzDisabled]="!currentSlide">
+      <ng-container *ngIf="!!currentSlide">
+        <div class="var">
+          <label nz-checkbox [(ngModel)]="currentSlide.autoAnimate">Auto-Animation</label>
+        </div>
+        <div class="var">
+          <label>Hintergrund-Farbe</label>
+        </div>
+      </ng-container>
+    </nz-collapse-panel>
+    <nz-collapse-panel nzHeader="Layout Eigenschaften" [nzActive]="!!currentSlide" [nzDisabled]="!currentSlide">
+      <div class="var" *ngFor="let item of layouts[currentSlide?.layout]?.variables">
+        <label>{{ item.displayName || item.name }}</label>
+        <span class="description" *ngIf="item.description">{{ item.description }}</span>
+
+        <ng-template #textTemplate>
+          <input nz-input type="text" *ngIf="!item.multiline; else: multiLineTemplate"
+            [(ngModel)]="currentSlide?.vars[item.name]" (ngModelChange)="updatePreview()">
+          <ng-template #multiLineTemplate>
+            <textarea nz-input [(ngModel)]="currentSlide?.vars[item.name]" (ngModelChange)="updatePreview()"></textarea>
+          </ng-template>
+        </ng-template>
+
+        <!-- {{ item.type + ':' + (item.format || '') }} -->
+        <ng-container [ngSwitch]="item.type + ':' + (item.format || '')">
+          <ng-template ngSwitchCase="string:html">
+            <ckeditor [config]="config" [editor]="Editor" [(ngModel)]="currentSlide?.vars[item.name]"
+              (ngModelChange)="updatePreview()"></ckeditor>
+          </ng-template>
+          <ng-template ngSwitchCase="string:plain">
+            <ng-template [ngIf]="item.choices === undefined" [ngIfElse]="choicesTemplate">
+              <ng-container *ngTemplateOutlet="textTemplate"></ng-container>
+            </ng-template>
+            <ng-template #choicesTemplate>
+              <nz-select [(ngModel)]="currentSlide?.vars[item.name]" (ngModelChange)="updatePreview()">
+                <nz-option *ngFor="let choice of item.choices" [nzValue]="choice" [nzLabel]="choice"></nz-option>
+              </nz-select>
+            </ng-template>
+          </ng-template>
+          <ng-template ngSwitchCase="string:markdown">
+            <ng-container *ngTemplateOutlet="textTemplate"></ng-container>
+          </ng-template>
+        </ng-container>
+      </div>
+    </nz-collapse-panel>
+  </nz-collapse>
+</div>
+
+<ng-template #layoutSelector>
+  <div class="layouts">
+    <div class="layout" *ngFor="let layout of (layouts | keyvalue)" (click)="onLayoutSelected(layout.key)">
+      <img class="preview" src="/api/infoscreen/v1/layout/{{layout.value.name}}/icon">
+      <span class="name">{{ layout.value.displayName || layout.value.name }}</span>
+      <span class="description" *ngIf="layout.value.description">{{ layout.value.description }}</span>
     </div>
   </div>
-</div>
+</ng-template>

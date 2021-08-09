@@ -10,11 +10,11 @@ export interface Vars {
 
 export interface Layout {
   name: string;
+  displayName?: string;
   file?: string;
   content?: string;
   description?: string;
   variables: Variable[];
-  choices?: string[];
 }
 
 export interface Variable {
@@ -39,6 +39,7 @@ export interface Slide {
 export interface Show {
   name: string;
   slides: Slide[];
+  theme?: string;
   description?: string;
 }
 
@@ -116,7 +117,27 @@ export class InfoScreenAPI {
     return this.san.bypassSecurityTrustResourceUrl(`/api/infoscreen/v1/shows/${show}/play?${urlVars.toString()}`)
   }
 
+  playUrlString(show: string, renderOpts: RenderOptions = {}): string {
+    let urlVars = this.renderOptsToVars(renderOpts);
+    return `/api/infoscreen/v1/shows/${show}/play?${urlVars.toString()}`
+  }
+
   playUrl(show: string, renderOpts: RenderOptions = {}): SafeResourceUrl {
+    return this.san.bypassSecurityTrustResourceUrl(
+      this.playUrlString(show, renderOpts)
+    )
+  }
+
+  /** Generates a preview for the given slide */
+  previewLayoutUrl(slide: Slide, renderOpts?: RenderOptions): Observable<SafeResourceUrl> {
+    let urlVars = this.renderOptsToVars(renderOpts);
+    return this.http.post<{ key: string }>(`/api/infoscreen/v1/preview?${urlVars.toString()}`, slide)
+      .pipe(
+        map(key => this.san.bypassSecurityTrustResourceUrl(`/api/infoscreen/v1/preview/${key.key}/`))
+      );
+  }
+
+  private renderOptsToVars(renderOpts?: RenderOptions): HttpParams {
     let urlVars = new HttpParams();
     if (renderOpts?.embedded) {
       urlVars = urlVars.set('embedded', 'true')
@@ -124,16 +145,6 @@ export class InfoScreenAPI {
     if (renderOpts?.theme) {
       urlVars = urlVars.set('theme', renderOpts!.theme)
     }
-    return this.san.bypassSecurityTrustResourceUrl(
-      `/api/infoscreen/v1/shows/${show}/play?${urlVars.toString()}`
-    )
-  }
-
-  /** Generates a preview for the given slide */
-  previewLayoutUrl(slide: Slide): Observable<SafeResourceUrl> {
-    return this.http.post<{ key: string }>(`/api/infoscreen/v1/preview`, slide)
-      .pipe(
-        map(key => this.san.bypassSecurityTrustResourceUrl(`/api/infoscreen/v1/preview/${key.key}/`))
-      );
+    return urlVars
   }
 }

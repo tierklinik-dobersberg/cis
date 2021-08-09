@@ -5,6 +5,7 @@ import { ShowEditorComponent } from "./show-editor";
 import { ShowListComponent } from "./showlist";
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { NzSelectModule } from "ng-zorro-antd/select";
+import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { DragDropModule } from "@angular/cdk/drag-drop";
 
 @NgModule({
@@ -13,6 +14,7 @@ import { DragDropModule } from "@angular/cdk/drag-drop";
     SharedModule,
     CKEditorModule,
     NzSelectModule,
+    NzCollapseModule,
     DragDropModule,
   ],
   declarations: [

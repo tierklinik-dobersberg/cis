@@ -24,10 +24,12 @@ type Variable struct {
 // Layout defines a new slide layout.
 type Layout struct {
 	Name        string     `hcl:"name,label" json:"name"`
+	DisplayName string     `hcl:"displayName" json:"displayName"`
 	File        string     `hcl:"file,optional" json:"file,omitempty"`
 	Content     string     `hcl:"content,optional" json:"content,omitempty"`
 	Description string     `hcl:"description,optional" json:"description,omitempty"`
 	Variables   []Variable `hcl:"variable,block" json:"variables"`
+	PreviewIcon string     `hcl:"previewIcon" json:"previewIcon"`
 
 	// parentDir holds the path to the parent directory
 	// that contained the layout file. This directory should
@@ -45,6 +47,9 @@ func (l *Layout) ParentDir() string {
 
 // FilePath returns the absolute file path to fpath.
 func (l *Layout) FilePath(fpath string) string {
+	if filepath.IsAbs(fpath) {
+		return fpath
+	}
 	return filepath.Join(l.parentDir, fpath)
 }
 

@@ -133,10 +133,6 @@ func PlayShowEndpoint(router *app.Router) {
 				}
 			}
 
-			if theme == "" {
-				theme = "white"
-			}
-
 			// handle resource requests
 			resource := strings.TrimPrefix(c.Param("resource"), "/")
 			if strings.HasPrefix(resource, "uploaded/") {
@@ -155,6 +151,13 @@ func PlayShowEndpoint(router *app.Router) {
 			show, err := app.InfoScreenShows.GetShow(ctx, showName)
 			if err != nil {
 				return err
+			}
+
+			if theme == "" {
+				theme = show.Theme
+				if theme == "" {
+					theme = "white"
+				}
 			}
 
 			playCtx := &PlayContext{

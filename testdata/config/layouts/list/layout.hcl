@@ -1,4 +1,7 @@
 layout "list" {
+    displayName = "Liste"
+    previewIcon = "../../../../assets/icons/layout-list.svg"
+
     content = <<EOF
 {{ if .Vars.header }}
 <h2 data-id="header" style="color: #1080cf;">{{ .Vars.header | html }}</h2>
