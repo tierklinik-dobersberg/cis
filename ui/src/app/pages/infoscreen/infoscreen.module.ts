@@ -7,6 +7,7 @@ import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { NzSelectModule } from "ng-zorro-antd/select";
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { DragDropModule } from "@angular/cdk/drag-drop";
+import { ColorTwitterModule } from 'ngx-color/twitter';
 
 @NgModule({
   imports: [
@@ -16,6 +17,7 @@ import { DragDropModule } from "@angular/cdk/drag-drop";
     NzSelectModule,
     NzCollapseModule,
     DragDropModule,
+    ColorTwitterModule,
   ],
   declarations: [
     ShowListComponent,
