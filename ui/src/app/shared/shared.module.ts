@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
@@ -11,6 +12,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageServiceModule } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { MarkdownModule } from 'ngx-markdown';
@@ -18,6 +20,7 @@ import { CallLogTableComponent } from './callog-table';
 import { CommentComponent } from './comment';
 import { HeaderTitleOutletComponent } from './header-title';
 import { DurationPipe } from './pipes';
+import { TextInputComponent } from './text-input';
 
 @NgModule({
   imports: [
@@ -28,16 +31,19 @@ import { DurationPipe } from './pipes';
     NzMessageServiceModule,
     NzButtonModule,
     NzInputModule,
+    NzSelectModule,
     MarkdownModule.forChild(),
     CommonModule,
     FormsModule,
     RouterModule,
+    CKEditorModule,
   ],
   declarations: [
     DurationPipe,
     HeaderTitleOutletComponent,
     CallLogTableComponent,
     CommentComponent,
+    TextInputComponent,
   ],
   exports: [
     CommonModule,
@@ -53,12 +59,14 @@ import { DurationPipe } from './pipes';
     NzCheckboxModule,
     NzMessageServiceModule,
     NzEmptyModule,
+    NzSelectModule,
     ScrollingModule,
     NzModalModule,
     DurationPipe,
     HeaderTitleOutletComponent,
     CommentComponent,
     CallLogTableComponent,
+    TextInputComponent,
   ],
 })
 export class SharedModule { }

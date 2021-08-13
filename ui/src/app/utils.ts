@@ -37,7 +37,10 @@ export function extractErrorMessage(err: any, prefix: string = ''): string {
 
   console.error(err);
 
-  if (typeof err === 'string') {
+  if (err === null) {
+    msg = '<null>'
+  }
+  else if (typeof err === 'string') {
     msg = err;
   } else if ('error' in err && typeof err.error === 'string') {
     msg = err.error;

@@ -35,7 +35,7 @@ iframe {
     }
 
     .ant-collapse-header {
-      font-weight: bold;
+      font-weight: 300;
     }
   }
 
@@ -159,9 +159,7 @@ iframe {
       padding-bottom: 24px;
 
       label {
-        font-weight: bold;
-        display    : block;
-        font-size  : 105%;
+        font-size: 105%;
       }
 
       .description {
@@ -170,10 +168,20 @@ iframe {
         display  : block;
       }
 
-      input,
-      textarea,
-      nz-select {
-        width: 100%;
+      .upload-asset {
+        display       : flex;
+        flex-direction: column;
+
+        .meta {
+          display        : flex;
+          width          : 100%;
+          justify-content: space-between;
+          align-items    : center;
+        }
+
+        img {
+          width: calc(100% - 24px);
+        }
       }
 
       &:not(:last-of-type) {
@@ -221,5 +229,13 @@ iframe {
       font-size: 95%;
       opacity  : 0.9;
     }
+  }
+}
+
+.clear-value {
+  cursor: pointer;
+
+  &:hover {
+    color: red;
   }
 }

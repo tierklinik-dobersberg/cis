@@ -22,7 +22,7 @@ export interface Variable {
   type: string;
   description?: string;
   required?: boolean;
-  format?: string;
+  format?: '' | 'plain' | 'html';
   multiline?: boolean;
   displayName?: string;
   choices?: string[];
@@ -98,6 +98,17 @@ export class InfoScreenAPI {
   /** Delete an existing show */
   deleteShow(show: string): Observable<Show> {
     return this.http.delete<Show>(`/api/infoscreen/v1/shows/${show}`);
+  }
+
+  /** Upload an asset */
+  uploadAsset(layout: string, varName: string, file: File): Observable<string> {
+    const formData = new FormData();
+    formData.append('file', file)
+    interface response {
+      filename: string;
+    }
+    return this.http.post<response>(`/api/infoscreen/v1/upload/${layout}/${varName}`, formData)
+      .pipe(map(r => r.filename));
   }
 
   /** Get a slide-preview URL */

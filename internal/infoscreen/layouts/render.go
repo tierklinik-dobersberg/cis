@@ -239,6 +239,9 @@ func normalizeStringList(value interface{}) ([]string, error) {
 
 func normalizeFile(value interface{}) (string, error) {
 	if s, ok := value.(string); ok {
+		if s == "" {
+			return "", nil
+		}
 		return path.Join("uploaded/", s), nil
 	}
 	return "", fmt.Errorf("unsupported string value: %T", value)

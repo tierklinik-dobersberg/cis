@@ -1,14 +1,17 @@
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild, ɵSWITCH_VIEW_CONTAINER_REF_FACTORY__POST_R3__ } from "@angular/core";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
-import { BehaviorSubject, combineLatest, forkJoin, Observable, of, Subject, throwError } from "rxjs";
-import { catchError, debounceTime, filter, map, mergeMap, takeUntil } from "rxjs/operators";
-import { InfoScreenAPI, Layout, Show, Slide, Vars } from "src/app/api/infoscreen.api";
-import { HeaderTitleService } from "src/app/shared/header-title";
-
 import * as ClassicEditor from 'ckeditor/build/ckeditor';
+import { NzMessageService } from "ng-zorro-antd/message";
 import { NzModalRef, NzModalService } from "ng-zorro-antd/modal";
-import { HttpErrorResponse } from "@angular/common/http";
+import { BehaviorSubject, combineLatest, forkJoin, Subject } from "rxjs";
+import { debounceTime, filter, map, mergeMap, takeUntil } from "rxjs/operators";
+import { InfoScreenAPI, Layout, Show, Slide, Variable } from "src/app/api/infoscreen.api";
+import { HeaderTitleService } from "src/app/shared/header-title";
+import { extractErrorMessage } from "src/app/utils";
+import { Duration } from "src/utils/duration";
+
 
 interface SlideModel extends Slide {
   preview: SafeResourceUrl;
@@ -52,10 +55,6 @@ export class ShowEditorComponent implements OnInit, OnDestroy {
 
   show: ShowModel | null = null;
 
-  config = {
-    toolbar: ['heading', '|', 'fontColor', 'bold', 'italic', 'link', 'bulletedList', 'numberedList'],
-  }
-
   currentSlideIndex: number = -1;
   currentSlide: SlideModel | null = null;
   layoutPreview: SafeResourceUrl | null = null;
@@ -72,6 +71,7 @@ export class ShowEditorComponent implements OnInit, OnDestroy {
     private activeRoute: ActivatedRoute,
     public showAPI: InfoScreenAPI,
     private dialog: NzModalService,
+    private nzMessage: NzMessageService,
     private domSanitizer: DomSanitizer,
   ) { }
 
@@ -148,6 +148,34 @@ export class ShowEditorComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this._destroy$.next();
     this._destroy$.complete();
+  }
+
+  setDuration(duration: number) {
+    this.currentSlide!.duration = Duration.seconds(duration).nanoseconds
+    this.updatePreview();
+  }
+
+  uploadAsset(varDef: Variable, event?: Event) {
+    if (!this.currentSlide) {
+      return;
+    }
+
+    const file = (event?.target as HTMLInputElement)?.files[0];
+    if (!file) {
+      this.currentSlide.vars[varDef.name] = '';
+      return;
+    }
+
+    this.showAPI.uploadAsset(this.currentSlide.layout, varDef.name, file)
+      .subscribe({
+        next: name => {
+          this.currentSlide.vars[varDef.name] = name;
+          this.updatePreview();
+        },
+        error: err => {
+          this.nzMessage.error(extractErrorMessage(err, 'Datei konnte nicht hochgeladen werden'))
+        }
+      });
   }
 
   saveOrPlay() {
@@ -229,6 +257,14 @@ export class ShowEditorComponent implements OnInit, OnDestroy {
         }
       }
     })
+  }
+
+  drop(event: CdkDragDrop<SlideModel[]>) {
+    moveItemInArray(this.show.slides, event.previousIndex, event.currentIndex);
+    this.unsaved = true;
+    if (this.currentSlideIndex === event.previousIndex) {
+      this.openSlide(this.currentSlide, event.currentIndex);
+    }
   }
 
   handleUnsaved(ignoreChanges: boolean, next: () => void): boolean {

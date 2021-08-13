@@ -1,6 +1,6 @@
 <div class="editor">
   <div class="slides">
-    <div cdkDropList>
+    <div cdkDropList (cdkDropListDropped)="drop($event)">
       <div class="slide" *ngFor="let slide of show?.slides; let index=index" cdkDrag
         [class.active]="index === currentSlideIndex">
         <iframe [src]="slide.preview"></iframe>
@@ -43,7 +43,7 @@
           <label>Beschreibung:</label>
           <span class="description">Eine kurze Beschreibung für die Slide-Show.</span>
 
-          <input nz-input type="text" [(ngModel)]="show.description">
+          <input nz-input type="text" [(ngModel)]="show.description" (ngModelChange)="unsaved = true">
         </div>
 
         <div class="var">
@@ -60,47 +60,60 @@
     <nz-collapse-panel nzHeader="Folien Einstellungen" [nzDisabled]="!currentSlide">
       <ng-container *ngIf="!!currentSlide">
         <div class="var">
-          <label nz-checkbox [(ngModel)]="currentSlide.autoAnimate">Auto-Animation</label>
+          <label>Auto-Animation</label>
+          <input nz-input type="text" [(ngModel)]="currentSlide!.autoAnimate" (ngModelChange)="updatePreview()">
         </div>
         <div class="var">
-          <label>Hintergrund-Farbe</label>
-          <color-twitter triangle="hide" [(ngModel)]="currentSlide!.background"></color-twitter>
+          <label>
+            Hintergrund-Farbe
+            <i *ngIf="currentSlide!.background" class="clear-value"
+              (click)="currentSlide!.background = ''; updatePreview()" nz-icon nzType="close-circle"
+              nzTheme="outline"></i>
+          </label>
+          <color-twitter triangle="hide" [(ngModel)]="currentSlide!.background" (ngModelChange)="updatePreview()">
+          </color-twitter>
+        </div>
+        <div class="var">
+          <label>Dauer (in Sekunden)</label>
+          <input nz-input type="number" [ngModel]="(currentSlide!.duration || 0) / 1000 / 1000 / 1000"
+            (ngModelChange)="setDuration($event)">
         </div>
       </ng-container>
     </nz-collapse-panel>
     <nz-collapse-panel nzHeader="Layout Eigenschaften" [nzActive]="!!currentSlide" [nzDisabled]="!currentSlide">
+
       <div class="var" *ngFor="let item of layouts[currentSlide?.layout]?.variables">
         <label>{{ item.displayName || item.name }}</label>
         <span class="description" *ngIf="item.description">{{ item.description }}</span>
 
-        <ng-template #textTemplate>
-          <input nz-input type="text" *ngIf="!item.multiline; else: multiLineTemplate"
-            [(ngModel)]="currentSlide?.vars[item.name]" (ngModelChange)="updatePreview()">
-          <ng-template #multiLineTemplate>
-            <textarea nz-input [(ngModel)]="currentSlide?.vars[item.name]" (ngModelChange)="updatePreview()"></textarea>
-          </ng-template>
-        </ng-template>
+        <ng-container [ngSwitch]="item.type">
 
-        <!-- {{ item.type + ':' + (item.format || '') }} -->
-        <ng-container [ngSwitch]="item.type + ':' + (item.format || '')">
-          <ng-template ngSwitchCase="string:html">
-            <ckeditor [config]="config" [editor]="Editor" [(ngModel)]="currentSlide?.vars[item.name]"
-              (ngModelChange)="updatePreview()"></ckeditor>
+          <!-- Regular text (plain/html/markdown) input -->
+          <app-text-input *ngSwitchCase="'string'" [(ngModel)]="currentSlide.vars[item.name]"
+            (ngModelChange)="updatePreview()" [format]="item.format" [multiline]="item.multiline"
+            [choices]="item.choices || null"></app-text-input>
+
+          <!-- Image upload input -->
+          <ng-template ngSwitchCase="image">
+            <label class="ant-btn" nz-button *ngIf="!currentSlide.vars[item.name]" for="upload-{{item.name}}">
+              Upload
+            </label>
+            <input id="upload-{{item.name}}" style="display: none" type="file" (change)="uploadAsset(item, $event)">
+
+            <div *ngIf="currentSlide.vars[item.name] as fname" class="upload-asset">
+              <div class="meta">
+                <span>{{ fname }}</span>
+                <button nz-button nzType="primary" nzShape="circle" nzDanger (click)="uploadAsset(item)">
+                  <i nz-icon nzType="delete" nzTheme="outline"></i>
+                </button>
+              </div>
+              <img
+                src="/api/infoscreen/v1/shows/{{ show?.name }}/play/uploaded/{{ fname }}?preview={{ currentSlideIndex }}">
+            </div>
           </ng-template>
-          <ng-template ngSwitchCase="string:plain">
-            <ng-template [ngIf]="item.choices === undefined" [ngIfElse]="choicesTemplate">
-              <ng-container *ngTemplateOutlet="textTemplate"></ng-container>
-            </ng-template>
-            <ng-template #choicesTemplate>
-              <nz-select [(ngModel)]="currentSlide?.vars[item.name]" (ngModelChange)="updatePreview()">
-                <nz-option *ngFor="let choice of item.choices" [nzValue]="choice" [nzLabel]="choice"></nz-option>
-              </nz-select>
-            </ng-template>
-          </ng-template>
-          <ng-template ngSwitchCase="string:markdown">
-            <ng-container *ngTemplateOutlet="textTemplate"></ng-container>
-          </ng-template>
+
         </ng-container>
+
       </div>
     </nz-collapse-panel>
   </nz-collapse>

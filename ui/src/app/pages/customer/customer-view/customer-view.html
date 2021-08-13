@@ -74,8 +74,11 @@
         </ng-template>
 
         <nz-modal [(nzVisible)]="showCommentModal" nzTitle="Notiz bearbeiten" (nzOnCancel)="handleCommentCancel()"
-          (nzOnOk)="handleCommentOk()">
-          <textarea [(ngModel)]="commentText" rows="4" nz-input></textarea>
+          [nzWidth]="600" (nzOnOk)="handleCommentOk()">
+
+          <ng-container *nzModalContent>
+            <app-text-input *ngIf="showCommentModal" format="markdown" [(ngModel)]="commentText"></app-text-input>
+          </ng-container>
         </nz-modal>
       </div>
 
@@ -164,7 +167,7 @@
 
       <div class="create-comment-container">
         <h3>Erstelle einen neuen Kommentar:</h3>
-        <textarea nz-input [nzAutosize]="{ minRows: 3, maxRows: 5 }" [(ngModel)]="commentText"></textarea>
+        <app-text-input format="markdown" [(ngModel)]="commentText"></app-text-input>
         <button nz-button nzType="primary" (click)="handleCommentOk()">Kommentieren</button>
       </div>
     </div>

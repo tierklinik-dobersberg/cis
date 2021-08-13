@@ -246,7 +246,7 @@
 
       <div class="create-comment-container">
         <h3>Erstelle einen neuen Kommentar:</h3>
-        <textarea nz-input [nzAutosize]="{ minRows: 3, maxRows: 5 }" [(ngModel)]="newComment"></textarea>
+        <app-text-input format="markdown" [(ngModel)]="newComment"></app-text-input>
         <button nz-button nzType="primary" (click)="createComment()">Kommentieren</button>
       </div>
     </div>
