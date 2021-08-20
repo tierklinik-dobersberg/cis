@@ -76,7 +76,7 @@
 
 <nz-calendar (nzPanelChange)="onPanelChange($event)" (nzSelectChange)="onDateSelected($event)"
   *ngIf="layout.isTabletLandscapeUp; else mobileViewTemplate" class="content-section">
-  <ul *nzDateFullCell="let date" [class.other-month]="date.getMonth() != selectedDate.getMonth()"
+  <ul *nzDateFullCell="let date" [class.other-month]="date.getMonth() !== selectedDate.getMonth()"
     (click)="selectRosterDay(date)" nz-button nz-dropdown
     [(nzVisible)]="getVisibleProp(date.toLocaleString())[date.toLocaleString()]" [nzClickHide]="false"
     [nzDropdownMenu]="readonly ? null: userMenu" nzTrigger="click" class="selected-users"

@@ -14,7 +14,7 @@
         <ng-container *ngFor="let slot of timeSlots">
             <span class="slot" [class.closed]="!slot.isOpeningHour"
                 [class.highlighted]="slot.highlighted && highlightedUserSlot === user.name"
-                [class.selected]="slot.selected && user.name == selectedUser" [class.disabled]="slot.disabled"
+                [class.selected]="slot.selected && user.name === selectedUser" [class.disabled]="slot.disabled"
                 [class.resources-free]="slot.allResourcesFree && _resourcesRequired.size > 0"
                 (mousedown)="selectRangeStart(slot, user.name, $event)" (mouseenter)="highlightSlot(user.name, slot)"
                 (mouseleave)="highlightSlot(user.name, null)" [class.available]="!!slot.available[user.name]"
