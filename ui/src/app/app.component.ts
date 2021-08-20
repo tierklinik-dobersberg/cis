@@ -7,7 +7,9 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { interval, of } from 'rxjs';
 import { catchError, delay, filter, first, map, mergeMap, retryWhen, share, startWith, take, takeUntil, tap } from 'rxjs/operators';
 import { LayoutService } from 'src/app/services';
+import { Observable } from 'tinymce';
 import { ConfigAPI, IdentityAPI, Permission, ProfileWithAvatar, UIConfig, VoiceMailAPI } from './api';
+import { InfoScreenAPI } from './api/infoscreen.api';
 
 interface MenuEntry {
   Icon: string;
@@ -69,6 +71,11 @@ export class AppComponent implements OnInit {
     return this.identity.hasPermission(Permission.CustomerRead);
   }
 
+  get hasInfoScreen(): boolean {
+    return this.identity.hasPermission(Permission.InfoScreenShowWrite)
+      || this.identity.hasPermission(Permission.InfoScreenShowsRead)
+  }
+
   /**
    * Returns true if the user can create calendar events. For usability,
    * this also requires hasCustomer, hasCalllog and hasRoster
@@ -79,6 +86,8 @@ export class AppComponent implements OnInit {
       && this.hasCustomers
       && this.hasRoster;
   }
+
+  infoScreenEnabled = false;
 
   constructor(
     private identity: IdentityAPI,
@@ -91,6 +100,7 @@ export class AppComponent implements OnInit {
     public layout: LayoutService,
     private voice: VoiceMailAPI,
     private http: HttpClient,
+    private showAPI: InfoScreenAPI,
   ) {
   }
 
@@ -163,6 +173,9 @@ export class AppComponent implements OnInit {
                 }
               })
           }
+
+          this.showAPI.isEnabled()
+            .subscribe(res => this.infoScreenEnabled = res);
         },
         error: console.error,
       });

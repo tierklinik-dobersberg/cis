@@ -8,9 +8,9 @@
         <span class="description">{{ show?.description || 'Slide-Show' }}</span>
       </div>
       <div class="actions" *ngIf="layout.isTabletLandscapeUp">
-        <i nz-icon nzType="edit" [routerLink]="['edit', show.name]" nzTheme="outline"></i>
+        <i nz-icon nzType="edit" *ngIf="canEditShows" [routerLink]="['edit', show.name]" nzTheme="outline"></i>
         <a [href]="show.playUrl" target="_blank"><i nz-icon nzType="eye" nzTheme="outline"></i></a>
-        <a (click)="deleteShow(show)"><i nz-icon nzType="delete" nzTheme="outline"></i></a>
+        <a (click)="deleteShow(show)" *ngIf="canDeleteShows"><i nz-icon nzType="delete" nzTheme="outline"></i></a>
       </div>
     </div>
   </div>

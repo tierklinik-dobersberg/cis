@@ -87,6 +87,11 @@ export class InfoScreenAPI {
     return def;
   }
 
+  isEnabled(): Observable<boolean> {
+    return this.http.get<{ enabled: boolean }>('/api/infoscreen/v1')
+      .pipe(map(res => res.enabled));
+  }
+
   /** Lists all available layout names */
   listLayouts(): Observable<string[]> {
     return this.http.get<string[]>(`/api/infoscreen/v1/layouts`)

@@ -14,7 +14,8 @@ func GetLayoutEndpoint(router *app.Router) {
 	router.GET(
 		"v1/layout/:layout",
 		permission.OneOf{
-			ActionLayoutRead,
+			ActionShowsWrite,
+			ActionShowsRead,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			l, err := app.LayoutStore.Get(ctx, c.Param("layout"))
@@ -30,7 +31,8 @@ func GetLayoutEndpoint(router *app.Router) {
 	router.GET(
 		"v1/layout/:layout/icon",
 		permission.OneOf{
-			ActionLayoutRead,
+			ActionShowsRead,
+			ActionShowsWrite,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			layoutName := c.Param("layout")

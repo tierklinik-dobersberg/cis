@@ -6,20 +6,6 @@ import (
 )
 
 var (
-	ActionLayoutPreview = permission.MustDefineAction(
-		"infoscreen:layout:preview",
-		"Permission required to render previews of layouts",
-		func(c *gin.Context) (string, error) {
-			return c.Param("layout"), nil
-		},
-	)
-	ActionLayoutRead = permission.MustDefineAction(
-		"infoscreen:layout:read",
-		"Permission required to read layout definitions",
-		func(c *gin.Context) (string, error) {
-			return c.Param("layout"), nil
-		},
-	)
 	ActionUploadFiles = permission.MustDefineAction(
 		"infoscreen:upload",
 		"Permission required to upload files",

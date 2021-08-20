@@ -9,6 +9,8 @@ import (
 func Setup(grp gin.IRouter) {
 	router := app.NewRouter(grp)
 
+	EnabledEndpoint(router)
+
 	// Layout API
 	RenderLayoutPreviewEndpoint(router)
 	ListLayoutNamesEndpoint(router)

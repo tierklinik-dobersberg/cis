@@ -4,6 +4,7 @@ import { Router } from "@angular/router";
 import { NzModalRef, NzModalService } from "ng-zorro-antd/modal";
 import { Subject } from "rxjs";
 import { take } from "rxjs/operators";
+import { IdentityAPI, Permission } from "src/app/api";
 import { InfoScreenAPI, ListShowEntry } from "src/app/api/infoscreen.api";
 import { LayoutService } from "src/app/services";
 import { HeaderTitleService } from "src/app/shared/header-title";
@@ -32,7 +33,16 @@ export class ShowListComponent implements OnInit, OnDestroy {
     private nzModal: NzModalService,
     private router: Router,
     public layout: LayoutService,
+    private identity: IdentityAPI,
   ) { }
+
+  get canEditShows() {
+    return this.identity.hasPermission(Permission.InfoScreenShowWrite)
+  }
+
+  get canDeleteShows() {
+    return this.identity.hasPermission(Permission.InfoScreenShowDelete);
+  }
 
   ngOnInit() {
     this.headerService.set('Info-Screen Slide-Shows');

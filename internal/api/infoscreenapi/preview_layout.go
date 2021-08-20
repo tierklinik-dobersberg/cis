@@ -32,7 +32,8 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 	router.POST(
 		"v1/preview",
 		permission.OneOf{
-			ActionLayoutPreview,
+			ActionShowsRead,
+			ActionShowsWrite,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			sess := session.Get(c)
@@ -99,7 +100,8 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 	router.GET(
 		"v1/preview/:key/*resource",
 		permission.OneOf{
-			ActionLayoutPreview,
+			ActionShowsWrite,
+			ActionShowsRead,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			resource := strings.TrimPrefix(c.Param("resource"), "/")

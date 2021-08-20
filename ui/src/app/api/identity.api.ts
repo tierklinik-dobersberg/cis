@@ -28,7 +28,11 @@ export enum Permission {
   CalendarWrite = 'calendar:events:write',
   CalendarDelete = 'calendar:events:delete',
   TriggerRead = 'trigger:read',
-  TriggerExecute = 'trigger:execute'
+  TriggerExecute = 'trigger:execute',
+  InfoScreenUploadFile = 'infoscreen:upload',
+  InfoScreenShowsRead = 'infoscreen:show:read',
+  InfoScreenShowWrite = 'infoscreen:show:write',
+  InfoScreenShowDelete = 'infoscreen:show:delete',
 }
 
 export interface Profile {
@@ -364,7 +368,10 @@ export class IdentityAPI {
             Permission.CalendarDelete,
             Permission.CalendarRead,
             Permission.CalendarWrite,
-            Permission.TriggerRead
+            Permission.TriggerRead,
+            Permission.InfoScreenShowsRead,
+            Permission.InfoScreenShowWrite,
+            Permission.InfoScreenShowDelete,
           ];
 
           actions.forEach(perm => {

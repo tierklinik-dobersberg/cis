@@ -70,7 +70,8 @@
       <ul>
         <li nz-menu-item nzMatchRouter routerLink="/admin/users">Benutzer / Mitarbeiter</li>
         <li nz-menu-item nzMatchRouter routerLink="/admin/import">Daten Import</li>
-        <li nz-menu-item nzMatchRouter routerLink="/infoscreen">Info-Screen Shows</li>
+        <li nz-menu-item *ngIf="hasInfoScreen && infoScreenEnabled" nzMatchRouter routerLink="/infoscreen">Info-Screen
+          Shows</li>
       </ul>
     </li>
 
