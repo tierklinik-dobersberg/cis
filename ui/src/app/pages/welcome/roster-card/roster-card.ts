@@ -24,6 +24,21 @@ export class RosterCardComponent implements OnInit, OnDestroy {
   @Output()
   userHover = new EventEmitter<string>();
 
+  @Output()
+  userClick = new EventEmitter<string>();
+  private _lastUserClick = '';
+
+  userClicked(user: string) {
+    if (this._lastUserClick === user) {
+      this.userClick.next('');
+      this._lastUserClick = '';
+      return
+    }
+
+    this.userClick.next(user);
+    this._lastUserClick = user;
+  }
+
   constructor(
     private rosterapi: RosterAPI,
     private userService: UserService,

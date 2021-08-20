@@ -30,6 +30,25 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
     }
     get highlightUser() { return this._highlightUser; }
 
+    @Input()
+    set selectUserFilter(user: string) {
+        const all = Array.from(this.allCalendars.values());
+        if (user === '' && this._externalUserFilter !== '') {
+            all.forEach(cal => cal.displayed = true);
+            this._externalUserFilter = '';
+            this.changeDetectorRef.markForCheck();
+            return;
+        }
+
+        if (user !== '') {
+            all.forEach(cal => cal.displayed = cal.name === user);
+            this._externalUserFilter = user;
+            this.changeDetectorRef.markForCheck();
+            return;
+        }
+    }
+    private _externalUserFilter = '';
+
     constructor(
         private calendarapi: CalendarAPI,
         private userService: UserService,

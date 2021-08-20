@@ -34,7 +34,7 @@
   <nz-avatar-group>
     <ng-container *ngFor="let user of data">
       <nz-avatar nzIcon="user" [nzSrc]="user.avatar" [nzSize]="48" nz-tooltip [nzTooltipTitle]="tooltipTemplate"
-        (mouseenter)="userHover.next(user.name)" (mouseleave)="userHover.next('')">
+        (mouseenter)="userHover.next(user.name)" (mouseleave)="userHover.next('')" (click)="userClicked(user.name)">
       </nz-avatar>
       <ng-template #tooltipTemplate>
         {{ user.fullname }}<br />
