@@ -5,6 +5,7 @@ import { NzModalRef, NzModalService } from "ng-zorro-antd/modal";
 import { Subject } from "rxjs";
 import { take } from "rxjs/operators";
 import { InfoScreenAPI, ListShowEntry } from "src/app/api/infoscreen.api";
+import { LayoutService } from "src/app/services";
 import { HeaderTitleService } from "src/app/shared/header-title";
 
 interface ShowModel extends ListShowEntry {
@@ -30,6 +31,7 @@ export class ShowListComponent implements OnInit, OnDestroy {
     private headerService: HeaderTitleService,
     private nzModal: NzModalService,
     private router: Router,
+    public layout: LayoutService,
   ) { }
 
   ngOnInit() {

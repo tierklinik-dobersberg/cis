@@ -7,7 +7,7 @@
         <a [href]="show.playUrl" target="_blank" class="name">{{ show.name }}</a>
         <span class="description">{{ show?.description || 'Slide-Show' }}</span>
       </div>
-      <div class="actions">
+      <div class="actions" *ngIf="layout.isTabletLandscapeUp">
         <i nz-icon nzType="edit" [routerLink]="['edit', show.name]" nzTheme="outline"></i>
         <a [href]="show.playUrl" target="_blank"><i nz-icon nzType="eye" nzTheme="outline"></i></a>
         <a (click)="deleteShow(show)"><i nz-icon nzType="delete" nzTheme="outline"></i></a>
@@ -15,7 +15,7 @@
     </div>
   </div>
 
-  <div class="show-entry" (click)="createNew()">
+  <div class="show-entry" (click)="createNew()" *ngIf="layout.isTabletLandscapeUp">
     <div class="preview add-new">
       <i nz-icon nzType="plus-circle" nzTheme="outline"></i>
     </div>
