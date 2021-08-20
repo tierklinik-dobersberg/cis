@@ -141,6 +141,7 @@ func parseLayoutVars(l *layouts.Layout, query url.Values) (layouts.Vars, error) 
 	errors := new(multierr.Error)
 
 	vars := layouts.Vars{}
+L:
 	for key, values := range query {
 		def := l.Var(key)
 		if def == nil {
@@ -149,35 +150,53 @@ func parseLayoutVars(l *layouts.Layout, query url.Values) (layouts.Vars, error) 
 			continue
 		}
 
-		if len(values) != 1 && def.Type != layouts.TypeStringList {
+		if len(values) != 1 && !def.Multi {
 			errors.Addf("query parameter %s only allowed once", key)
 			continue
 		}
 
-		var (
-			val interface{}
-			err error
-		)
-		switch def.Type {
-		case layouts.TypeBool:
-			val, err = strconv.ParseBool(values[0])
-		case layouts.TypeString:
-			val, _ = url.QueryUnescape(values[0])
-		case layouts.TypeStringList:
-			val = values
-		case layouts.TypeNumber:
-			val, err = strconv.ParseFloat(values[0], 64)
-		case layouts.TypeImage, layouts.TypeVideo:
-			val = values[0]
-		default:
-			err = fmt.Errorf("unsupported variable type %s", def.Type)
-		}
-		if err != nil {
-			errors.Add(err)
-			continue
+		var val interface{}
+		if def.Multi {
+			var res []interface{}
+			for idx, sv := range values {
+				v, err := decodeVariable(def, sv)
+				if err != nil {
+					errors.Add(fmt.Errorf("index %d: %w", idx, err))
+					continue L
+				}
+				res = append(res, v)
+			}
+			val = res
+		} else {
+			var err error
+			val, err = decodeVariable(def, values[0])
+			if err != nil {
+				errors.Add(err)
+				continue
+			}
 		}
 
 		vars[key] = val
 	}
 	return vars, errors.ToError()
+}
+
+func decodeVariable(def *layouts.Variable, value string) (interface{}, error) {
+	var (
+		val interface{}
+		err error
+	)
+	switch def.Type {
+	case layouts.TypeBool:
+		val, err = strconv.ParseBool(value)
+	case layouts.TypeString, layouts.TypeColor:
+		val, _ = url.QueryUnescape(value)
+	case layouts.TypeNumber:
+		val, err = strconv.ParseFloat(value, 64)
+	case layouts.TypeImage, layouts.TypeVideo:
+		val = value
+	default:
+		err = fmt.Errorf("unsupported variable type %s", def.Type)
+	}
+	return val, err
 }

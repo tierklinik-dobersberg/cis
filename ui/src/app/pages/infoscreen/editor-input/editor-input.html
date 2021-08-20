@@ -1,0 +1,46 @@
+<ng-container *ngIf="!!item">
+    <div *ngFor="let value of values; trackBy: trackByIndex; let index=index">
+        <ng-container [ngSwitch]="item.type">
+
+            <!-- Regular text (plain/html/markdown) input -->
+            <app-text-input [disabled]="disabled" *ngSwitchCase="'string'" [(ngModel)]="values[index]"
+                (ngModelChange)="valueChanged()" [format]="item.format" [multiline]="item.multiline"
+                [choices]="item.choices || null"></app-text-input>
+
+            <!-- Boolean inputs -->
+            <ng-template ngSwitchCase="bool">
+                <label nz-checkbox [(ngModel)]="values[index]" (ngModelChange)="valueChanged()">{{item.displayName ||
+                    item.name}}</label>
+            </ng-template>
+
+            <!-- Color inputs -->
+            <ng-template ngSwitchCase="color">
+                <color-twitter triangle="hide" [(ngModel)]="values[index]" (ngModelChange)="valueChanged()">
+                </color-twitter>
+            </ng-template>
+
+            <!-- Image upload input -->
+            <ng-template ngSwitchCase="image">
+                <label class="ant-btn" nz-button *ngIf="!values[index]" for="upload-{{item.name}}">
+                    Upload
+                </label>
+                <input [disabled]="disabled" id="upload-{{item.name}}" style="display: none" type="file"
+                    (change)="uploadAsset(index, $event)">
+
+                <div *ngIf="values[index] as fname" class="upload-asset">
+                    <div class="meta">
+                        <span>{{ fname }}</span>
+                        <button nz-button nzType="primary" nzShape="circle" nzDanger (click)="uploadAsset(index)">
+                            <i nz-icon nzType="delete" nzTheme="outline"></i>
+                        </button>
+                    </div>
+                    <img *ngIf="!!showName && previewIndex > 0"
+                        src="/api/infoscreen/v1/shows/{{ showName }}/play/uploaded/{{ fname }}?preview={{ previewIndex }}">
+                </div>
+            </ng-template>
+        </ng-container>
+        <span *ngIf="item.multi" class="delete-btn" (click)="deleteValue(index)">Löschen</span>
+    </div>
+
+    <button *ngIf="!!item.multi && !hasEmptyValue()" nz-button nzType="primary" (click)="addValue()">Hinzufügen</button>
+</ng-container>

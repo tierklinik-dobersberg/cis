@@ -4,6 +4,7 @@ import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { ColorTwitterModule } from 'ngx-color/twitter';
 import { SharedModule } from "src/app/shared/shared.module";
 import { InfoScreenRoutingModule } from "./infoscreen-routing.module";
+import { LayoutVariableInputComponent } from "./editor-input";
 import { ShowEditorComponent } from "./show-editor";
 import { ShowListComponent } from "./showlist";
 
@@ -18,6 +19,7 @@ import { ShowListComponent } from "./showlist";
   declarations: [
     ShowListComponent,
     ShowEditorComponent,
+    LayoutVariableInputComponent,
   ],
   exports: [],
 })

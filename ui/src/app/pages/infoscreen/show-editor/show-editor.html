@@ -83,37 +83,13 @@
     <nz-collapse-panel nzHeader="Layout Eigenschaften" [nzActive]="!!currentSlide" [nzDisabled]="!currentSlide">
 
       <div class="var" *ngFor="let item of layouts[currentSlide?.layout]?.variables">
-        <label>{{ item.displayName || item.name }}</label>
+        <ng-container *ngIf="item.type !== 'bool'">
+          <label>{{ item.displayName || item.name }}</label>
+        </ng-container>
         <span class="description" *ngIf="item.description">{{ item.description }}</span>
 
-        <ng-container [ngSwitch]="item.type">
-
-          <!-- Regular text (plain/html/markdown) input -->
-          <app-text-input *ngSwitchCase="'string'" [(ngModel)]="currentSlide.vars[item.name]"
-            (ngModelChange)="updatePreview()" [format]="item.format" [multiline]="item.multiline"
-            [choices]="item.choices || null"></app-text-input>
-
-          <!-- Image upload input -->
-          <ng-template ngSwitchCase="image">
-            <label class="ant-btn" nz-button *ngIf="!currentSlide.vars[item.name]" for="upload-{{item.name}}">
-              Upload
-            </label>
-            <input id="upload-{{item.name}}" style="display: none" type="file" (change)="uploadAsset(item, $event)">
-
-            <div *ngIf="currentSlide.vars[item.name] as fname" class="upload-asset">
-              <div class="meta">
-                <span>{{ fname }}</span>
-                <button nz-button nzType="primary" nzShape="circle" nzDanger (click)="uploadAsset(item)">
-                  <i nz-icon nzType="delete" nzTheme="outline"></i>
-                </button>
-              </div>
-              <img
-                src="/api/infoscreen/v1/shows/{{ show?.name }}/play/uploaded/{{ fname }}?preview={{ currentSlideIndex }}">
-            </div>
-          </ng-template>
-
-        </ng-container>
-
+        <app-show-editor-input [(ngModel)]="currentSlide.vars[item.name]" (ngModelChange)="updatePreview()"
+          [item]="item" [showName]="show.name" [previewIndex]="currentSlideIndex"></app-show-editor-input>
       </div>
     </nz-collapse-panel>
   </nz-collapse>

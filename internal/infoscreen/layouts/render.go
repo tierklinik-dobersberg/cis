@@ -91,7 +91,7 @@ func prepareVars(l *Layout, vars Vars) (map[string]interface{}, error) {
 			errors.Addf("unknown variable with name %s", vn)
 			continue
 		}
-		value, err := validateAndNormalize(vv, def)
+		value, err := validateAndNormalize(vv, def, true)
 		if err != nil {
 			errors.Addf("variable %s: %w", vn, err)
 			continue
@@ -122,10 +122,56 @@ func isAllowedValue(val string, def *Variable) bool {
 	return false
 }
 
-func validateAndNormalize(value interface{}, def *Variable) (interface{}, error) {
+func getSlice(value interface{}) ([]interface{}, error) {
+	if sl, ok := value.([]interface{}); ok {
+		return sl, nil
+	}
+
+	// TODO(ppacher): the check for primitive.A makes a hard dependency to
+	// 				  mongodb which isn't actually required for the layouts package. It just
+	// 				  happens that shows are stored in mongo by CIS and arrays are thus decoded
+	// 				  as primitive.A.
+	//                Solution: Migrate the following to a reflect based conversion
+	//
+	if sl, ok := value.(primitive.A); ok {
+		res := make([]interface{}, len(sl))
+		for idx, v := range sl {
+			res[idx] = v
+		}
+		return res, nil
+	}
+	return nil, fmt.Errorf("unexpected type for slice: %T", value)
+}
+
+func validateAndNormalize(value interface{}, def *Variable, handleList bool) (interface{}, error) {
+	if handleList && def.Multi {
+		sl, err := getSlice(value)
+		if err != nil {
+			return nil, err
+		}
+
+		res := make([]interface{}, len(sl))
+		for idx, slv := range sl {
+			v, err := validateAndNormalize(slv, def, false)
+			if err != nil {
+				return nil, fmt.Errorf("index: %d: %w", idx, err)
+			}
+
+			res[idx] = v
+		}
+		return res, nil
+	}
+
 	switch def.Type {
 	case TypeBool:
 		return normalizeBool(value)
+	case TypeColor:
+		val, err := normalizeString(value)
+		if err != nil {
+			return nil, err
+		}
+		// FIXME(ppacher): validate that val is actually a color.
+		return val, nil
 	case TypeString:
 		val, err := normalizeString(value)
 		if err != nil {
@@ -141,20 +187,6 @@ func validateAndNormalize(value interface{}, def *Variable) (interface{}, error)
 			return nil, err
 		}
 		return val, nil
-		// finally, make sure we remove all dangerous HTML
-		//return bluemonday.UGCPolicy().Sanitize(val), nil
-	case TypeStringList:
-		ss, err := normalizeStringList(value)
-		if err != nil {
-			return nil, err
-		}
-		for idx := range ss {
-			ss[idx], err = formatString(ss[idx], def.Format)
-			if err != nil {
-				return nil, err
-			}
-		}
-		return ss, nil
 	case TypeImage, TypeVideo:
 		return normalizeFile(value)
 	case TypeNumber:
@@ -209,32 +241,6 @@ func normalizeString(value interface{}) (string, error) {
 		return s, nil
 	}
 	return "", fmt.Errorf("unsupported string value: %T", value)
-}
-
-func normalizeStringList(value interface{}) ([]string, error) {
-	if sv, ok := value.([]string); ok {
-		return sv, nil
-	}
-	var res []string
-	if is, ok := value.([]interface{}); ok {
-		for _, val := range is {
-			// TODO(ppacher): should we error out if !ok
-			if s, ok := val.(string); ok {
-				res = append(res, s)
-			}
-		}
-		return res, nil
-	}
-	if pa, ok := value.(primitive.A); ok {
-		for _, val := range pa {
-			// TODO(ppacher): should we error out if !ok
-			if s, ok := val.(string); ok {
-				res = append(res, s)
-			}
-		}
-		return res, nil
-	}
-	return nil, fmt.Errorf("unsupported stirng slice type: %T", value)
 }
 
 func normalizeFile(value interface{}) (string, error) {

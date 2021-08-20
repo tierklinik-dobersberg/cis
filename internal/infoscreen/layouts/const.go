@@ -1,12 +1,12 @@
 package layouts
 
 const (
-	TypeString     = "string"
-	TypeStringList = "stringlist"
-	TypeNumber     = "number"
-	TypeBool       = "bool"
-	TypeImage      = "image"
-	TypeVideo      = "video"
+	TypeString = "string"
+	TypeNumber = "number"
+	TypeBool   = "bool"
+	TypeImage  = "image"
+	TypeVideo  = "video"
+	TypeColor  = "color"
 )
 
 const (
@@ -17,7 +17,7 @@ const (
 
 func IsKnownType(d string) bool {
 	switch d {
-	case TypeBool, TypeNumber, TypeString, TypeStringList, TypeImage, TypeVideo:
+	case TypeBool, TypeNumber, TypeString, TypeImage, TypeVideo, TypeColor:
 		return true
 	}
 	return false

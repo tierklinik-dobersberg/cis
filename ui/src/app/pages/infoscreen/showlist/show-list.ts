@@ -41,14 +41,14 @@ export class ShowListComponent implements OnInit, OnDestroy {
     this.shows = [];
     this.showAPI.listShows()
       .subscribe(shows => {
-        this.shows = shows.map(s => {
+        this.shows = shows?.map(s => {
           return {
             ...s,
             preview: this.showAPI.previewSlideUrl(s.name, 0),
             previewUrl: this.showAPI.previewSlideUrl(s.name, 0),
             playUrl: this.showAPI.playUrl(s.name)
           }
-        });
+        }) || [];
       })
   }
 

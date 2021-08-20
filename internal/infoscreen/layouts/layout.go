@@ -19,6 +19,7 @@ type Variable struct {
 	Multiline   bool     `hcl:"multiline,optional" json:"multiline,omitempty"`
 	DisplayName string   `hcl:"displayName,optional" json:"displayName,omitempty"`
 	Choices     []string `hcl:"choices,optional" json:"choices,omitempty"`
+	Multi       bool     `hcl:"multi,optional" json:"multi,omitempty"`
 }
 
 // Layout defines a new slide layout.
@@ -111,7 +112,7 @@ func Validate(layout *Layout) error {
 }
 
 func isStringLike(def Variable) bool {
-	return def.Type == TypeString || def.Type == TypeStringList
+	return def.Type == TypeString
 }
 
 // ParseFile parses a layout from fpath. All files referenced in
@@ -141,16 +142,16 @@ func ParseFile(fpath string) (*Layout, error) {
 func getEvalContext(fpath string) (*hcl.EvalContext, error) {
 	return &hcl.EvalContext{
 		Variables: map[string]cty.Value{
-			"string":      cty.StringVal(TypeString),
-			"string_list": cty.StringVal(TypeStringList),
-			"number":      cty.StringVal(TypeNumber),
-			"bool":        cty.StringVal(TypeBool),
-			"image":       cty.StringVal(TypeImage),
-			"video":       cty.StringVal(TypeVideo),
-			"markdown":    cty.StringVal(FormatMarkdown),
-			"html":        cty.StringVal(FormatHTML),
-			"plain":       cty.StringVal(FormatPlain),
-			"root":        cty.StringVal(filepath.Dir(fpath)),
+			"string":   cty.StringVal(TypeString),
+			"color":    cty.StringVal(TypeColor),
+			"number":   cty.StringVal(TypeNumber),
+			"bool":     cty.StringVal(TypeBool),
+			"image":    cty.StringVal(TypeImage),
+			"video":    cty.StringVal(TypeVideo),
+			"markdown": cty.StringVal(FormatMarkdown),
+			"html":     cty.StringVal(FormatHTML),
+			"plain":    cty.StringVal(FormatPlain),
+			"root":     cty.StringVal(filepath.Dir(fpath)),
 		},
 	}, nil
 }

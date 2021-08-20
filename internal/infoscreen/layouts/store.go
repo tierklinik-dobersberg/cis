@@ -106,10 +106,13 @@ func (fs *fileStore) findLayouts(ctx context.Context) {
 		}
 
 		for _, entry := range dirEntries {
-			// layouts must be placed in sub-directories
-			if !entry.IsDir() {
-				log.V(7).Logf("skipping %s as it's not a directory", entry.Name())
+			if entry.IsDir() {
+				log.V(7).Logf("skipping %s as it's a directory", entry.Name())
 				continue
+			}
+
+			if filepath.Ext(entry.Name()) != ".hcl" {
+				log.V(7).Logf("skippping %s as it's not a .hcl file", entry.Name())
 			}
 
 			// TODO(ppacher): should we add support for multiple layouts
@@ -117,7 +120,6 @@ func (fs *fileStore) findLayouts(ctx context.Context) {
 			indexPath := filepath.Join(
 				path,
 				entry.Name(),
-				"layout.hcl",
 			)
 			stat, err := os.Lstat(indexPath)
 			if err != nil {

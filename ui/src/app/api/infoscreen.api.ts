@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { DomSanitizer, SafeResourceUrl, SafeUrl } from "@angular/platform-browser";
 import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
+import { catchError, map } from "rxjs/operators";
 
 export interface Vars {
   [key: string]: string | number | boolean | string[];
@@ -24,6 +24,7 @@ export interface Variable {
   required?: boolean;
   format?: '' | 'plain' | 'html';
   multiline?: boolean;
+  multi?: boolean;
   displayName?: string;
   choices?: string[];
 }
@@ -66,6 +67,25 @@ export class InfoScreenAPI {
     private http: HttpClient,
     private san: DomSanitizer,
   ) { }
+
+  emptyValue(variable: Variable) {
+    let def: any;
+    switch (variable.type) {
+      case "string": def = ''; break;
+      case "number": def = 0; break;
+      case 'boolean': def = false; break;
+    }
+    if (variable.multi) {
+      def = [];
+    }
+    // if there's only a limited set of allowed values we
+    // use the first one as the default since "" might not be
+    // allowed.
+    if (!!variable.choices) {
+      def = variable.choices[0];
+    }
+    return def;
+  }
 
   /** Lists all available layout names */
   listLayouts(): Observable<string[]> {
@@ -144,7 +164,7 @@ export class InfoScreenAPI {
     let urlVars = this.renderOptsToVars(renderOpts);
     return this.http.post<{ key: string }>(`/api/infoscreen/v1/preview?${urlVars.toString()}`, slide)
       .pipe(
-        map(key => this.san.bypassSecurityTrustResourceUrl(`/api/infoscreen/v1/preview/${key.key}/`))
+        map(key => this.san.bypassSecurityTrustResourceUrl(`/api/infoscreen/v1/preview/${key.key}/`)),
       );
   }
 

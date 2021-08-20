@@ -72,7 +72,6 @@ export class ShowEditorComponent implements OnInit, OnDestroy {
     public showAPI: InfoScreenAPI,
     private dialog: NzModalService,
     private nzMessage: NzMessageService,
-    private domSanitizer: DomSanitizer,
   ) { }
 
   ngOnInit() {
@@ -213,23 +212,14 @@ export class ShowEditorComponent implements OnInit, OnDestroy {
     }
 
     this.layouts[layout].variables.forEach(variable => {
-      let def: any;
-      switch (variable.type) {
-        case "string": def = ''; break;
-        case "number": def = 0; break;
-        case 'boolean': def = false; break;
-        case "stringlist": def = []; break;
-      }
-      // if there's only a limited set of allowed values we
-      // use the first one as the default since "" might not be
-      // allowed.
-      if (!!variable.choices) {
-        def = variable.choices[0];
-      }
-      slide.vars[variable.name] = def;
+      slide.vars[variable.name] = this.showAPI.emptyValue(variable);
     })
 
-    slide.preview = await this.showAPI.previewLayoutUrl(slide, { theme: this.show.theme }).toPromise();
+    try {
+      slide.preview = await this.showAPI.previewLayoutUrl(slide, { theme: this.show.theme }).toPromise();
+    } catch (err) {
+      this.nzMessage.error(extractErrorMessage(err, 'Folie konnte nicht gerendert werden'))
+    }
 
     this.show.slides.push(slide)
     this.openSlide(slide, this.show.slides.length - 1, true)

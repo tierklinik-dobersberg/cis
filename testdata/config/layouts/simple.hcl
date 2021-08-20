@@ -1,6 +1,6 @@
 layout "simple" {
     displayName = "Nur Text"
-    previewIcon = "../../../../assets/icons/layout-simple.svg"
+    previewIcon = "../../../assets/icons/layout-simple.svg"
     content = <<EOF
 {{ if .Vars.header }}
 <h2 data-id="header" style="color: #1080cf;">{{ .Vars.header | html }}</h2>
