@@ -27,6 +27,7 @@ jobs:
       - name: npm ci and npm run build
         run: |
           cd ui
+          npm run build-ckeditor
           npm ci
           npm run lint
           npm run build:ci

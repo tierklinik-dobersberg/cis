@@ -10,7 +10,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "build-ckeditor": "cd ckeditor && webpack --mode production"
+    "build-ckeditor": "cd ckeditor && npm install && npm run build"
   },
   "private": true,
   "dependencies": {
