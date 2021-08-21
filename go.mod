@@ -9,6 +9,8 @@ require (
 	github.com/charmbracelet/glamour v0.2.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.3.0
+	github.com/emersion/go-vcard v0.0.0-20191221110513-5f81fa0d3cc7 // indirect
+	github.com/emersion/go-webdav v0.3.1 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/gofrs/uuid v4.0.0+incompatible
