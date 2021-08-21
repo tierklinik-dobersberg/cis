@@ -16,6 +16,8 @@ var cfg = struct {
 	server   string
 	username string
 	password string
+	columns  []string
+	format   string
 }{}
 
 func getRootCmd() *cobra.Command {
@@ -34,6 +36,8 @@ func getRootCmd() *cobra.Command {
 		f.StringVarP(&cfg.server, "server", "s", "", "The address of the CardDAV server")
 		f.StringVarP(&cfg.username, "user", "u", "", "The username for the CardDAV server")
 		f.StringVarP(&cfg.password, "pass", "p", "", "The password for the CardDAV server. If set to -, the password will be prompted")
+		f.StringSliceVarP(&cfg.columns, "fields", "F", defaultFields, "Which columns to print")
+		f.StringVarP(&cfg.format, "format", "f", "table", "Configures the output format. Valid values are table and vcard")
 	}
 
 	return cmd

@@ -52,9 +52,7 @@ func listAll() {
 		}
 
 		fmt.Printf("=> %s: %d objects found\n", book.Path, len(objs))
-		for _, obj := range objs {
-			fmt.Printf("  -> %s - %s\n", getName(obj.Card), obj.Card.Value(vcard.FieldTelephone))
-		}
+		printObjects(objs)
 	}
 }
 

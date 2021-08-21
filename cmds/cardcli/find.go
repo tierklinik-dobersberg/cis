@@ -68,8 +68,5 @@ func find(book string, filter carddav.PropFilter) {
 	}
 
 	fmt.Printf("found %d results\n", len(res))
-	for _, r := range res {
-		name := getName(r.Card)
-		fmt.Printf("%s - %s\n", name, r.Card.Value(vcard.FieldTelephone))
-	}
+	printObjects(res)
 }
