@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/antzucaro/matchr"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -138,6 +139,15 @@ func (db *database) CreateCustomer(ctx context.Context, cu *Customer) error {
 
 	metaphone1, metaphone2 := matchr.DoubleMetaphone(cu.Name)
 	cu.NameMetaphone = metaphone1 + " " + metaphone2
+	if !cu.CreatedAt.IsZero() {
+		return fmt.Errorf("customer has createdAt set to %s already", cu.CreatedAt)
+	}
+	if !cu.ModifiedAt.IsZero() {
+		return fmt.Errorf("customer has modifiedAt set to %s already", cu.ModifiedAt)
+	}
+
+	cu.CreatedAt = time.Now()
+	cu.ModifiedAt = time.Now()
 
 	result, err := db.customers.InsertOne(ctx, cu)
 	if err != nil {
@@ -162,6 +172,11 @@ func (db *database) UpdateCustomer(ctx context.Context, cu *Customer) error {
 
 	metaphone1, metaphone2 := matchr.DoubleMetaphone(cu.Name)
 	cu.NameMetaphone = metaphone1 + " " + metaphone2
+
+	if cu.CreatedAt.IsZero() {
+		cu.CreatedAt = time.Now()
+	}
+	cu.ModifiedAt = time.Now()
 
 	result, err := db.customers.ReplaceOne(ctx, bson.M{"_id": cu.ID}, cu)
 	if err != nil {

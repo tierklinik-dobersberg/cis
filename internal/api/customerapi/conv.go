@@ -25,5 +25,7 @@ func CustomerModel(ctx context.Context, cu *customerdb.Customer) *v1.Customer {
 		Metadata:            cu.Metadata,
 		Source:              cu.Source,
 		VaccinationReminder: cu.VaccinationReminder,
+		CreatedAt:           cu.CreatedAt,
+		ModifiedAt:          cu.ModifiedAt,
 	}
 }

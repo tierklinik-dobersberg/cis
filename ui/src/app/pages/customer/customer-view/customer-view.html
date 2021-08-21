@@ -19,7 +19,12 @@
 
       <div class="info">
         <label>Ursprung</label>
-        <nz-tag [nzColor]="customer?.tagColor">{{ customer?.source }}</nz-tag>
+        <nz-tag [nzColor]="customer?.tagColor" nz-tooltip [nzTooltipTitle]="tooltipTemplate">{{ customer?.source }}
+        </nz-tag>
+        <ng-template #tooltipTemplate>
+          Erstellt am: {{ customer.createdAt | date: 'short' }}<br />
+          Zuletzt geändert am: {{ customer.modifiedAt | date: 'short' }}
+        </ng-template>
       </div>
 
       <div class="info">

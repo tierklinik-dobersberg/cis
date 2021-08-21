@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-export interface RemoteCustomer {
+export interface RemoteCustomer<T extends Date | string> {
   _id?: string;
   cid: number;
   group: string;
@@ -17,9 +17,13 @@ export interface RemoteCustomer {
   mailAddresses: string[];
   source: string;
   vaccinationReminder: boolean;
+  createdAt: T;
+  modifiedAt: T;
 }
-export interface Customer extends RemoteCustomer {
+export interface Customer extends RemoteCustomer<Date | string> {
   distinctPhoneNumbers: string[];
+  createdAt: Date;
+  modifiedAt: Date;
 }
 
 @Injectable({
@@ -38,7 +42,9 @@ export class CustomerAPI {
 
           return {
             ...customer,
-            distinctPhoneNumbers: distinctPhoneNumbers(customer.phoneNumbers)
+            distinctPhoneNumbers: distinctPhoneNumbers(customer.phoneNumbers),
+            createdAt: new Date(customer.createdAt),
+            modifiedAt: new Date(customer.modifiedAt),
           };
         }));
   }

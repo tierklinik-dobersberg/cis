@@ -1,5 +1,7 @@
 package v1alpha
 
+import "time"
+
 // Customer represents a customer model
 type Customer struct {
 	// TODO(ppacher): should we actually expose ID?
@@ -17,4 +19,6 @@ type Customer struct {
 	Metadata            map[string]interface{} `json:"metadata,omitempty" bson:"metadata,omitempty"`
 	Source              string                 `json:"source,omitempty" bson:"source,omitempty"`
 	VaccinationReminder bool                   `json:"vaccinationReminder" bson:"vaccinationReminder,omitempty"`
+	CreatedAt           time.Time              `json:"createdAt"`
+	ModifiedAt          time.Time              `json:"modifiedAt"`
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strconv"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -24,6 +25,22 @@ type Customer struct {
 	MailAddresses       []string           `bson:"mailAddresses,omitempty"`
 	NameMetaphone       string             `bson:"nameMetaphone,omitempty"`
 	VaccinationReminder bool               `bson:"vaccinationReminder,omitempty"`
+
+	// The following fields are not part of the hash
+	// calculation but should be updated by importers and
+	// may allow more sophisticated synchronization techniques
+
+	// CreateAt holds the time this customer has first been imported.
+	CreatedAt time.Time
+
+	// ModifiedAt holds the last time this customer has been updated
+	// or re-imported
+	ModifiedAt time.Time
+
+	// LinkedTo may be set to link customer or contact data from multiple
+	// sources. The format of should follow the typical <source>/<id> notation
+	// used in CIS.
+	LinkedTo string
 
 	// Metadata holds additional metadata for the customer.
 	// It is not part of the hash calculation.
