@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/emersion/go-vcard"
 	"github.com/emersion/go-webdav/carddav"
 	"github.com/spf13/cobra"
 )
@@ -14,18 +13,11 @@ func getFindCommand() *cobra.Command {
 		Use: "find",
 	}
 
-	filters := []struct {
-		name string
-		prop string
-	}{
-		{"phone", vcard.FieldTelephone},
-		{"name", vcard.FieldName},
-	}
-
-	for idx := range filters {
-		f := filters[idx]
+	for p, n := range fieldToName {
+		prop := p
+		name := n
 		subcmd := &cobra.Command{
-			Use:  f.name,
+			Use:  name,
 			Args: cobra.MinimumNArgs(1),
 			Run: func(cmd *cobra.Command, args []string) {
 				filter := []carddav.TextMatch{}
@@ -39,7 +31,7 @@ func getFindCommand() *cobra.Command {
 				find("", carddav.PropFilter{
 					Test:        carddav.FilterAnyOf,
 					TextMatches: filter,
-					Name:        f.prop,
+					Name:        prop,
 				})
 			},
 		}

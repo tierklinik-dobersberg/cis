@@ -40,5 +40,8 @@ func printObjects(objs []carddav.AddressObject) {
 				log.Printf("failed to encode %s: %s", obj.Path, err)
 			}
 		}
+		return
 	}
+
+	log.Fatalf("unsupported output format (--format/-f): %q", cfg.format)
 }
