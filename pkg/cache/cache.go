@@ -2,11 +2,16 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/tierklinik-dobersberg/logger"
+)
+
+var (
+	ErrNotFound = errors.New("cache record not found")
 )
 
 type Metadata struct {
