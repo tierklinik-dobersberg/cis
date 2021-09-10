@@ -160,7 +160,9 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
             }
 
             if (!cust) {
-              cust = lm.get(l.caller.replace(' ', ''));
+              const caller = l.caller.replace(' ', '')
+              console.log(`Searching for ${caller} in `, lm);
+              cust = lm.get(caller);
             }
 
             // TODO(ppacher): this is very specific to 3CX
