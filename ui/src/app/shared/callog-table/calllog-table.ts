@@ -160,7 +160,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
             }
 
             if (!cust) {
-              cust = lm.get(l.caller);
+              cust = lm.get(l.caller.replace(' ', ''));
             }
 
             // TODO(ppacher): this is very specific to 3CX
