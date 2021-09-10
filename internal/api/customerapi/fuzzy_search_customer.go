@@ -75,6 +75,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 					if phone == "" || phone == "anonymous" {
 						continue
 					}
+					logger.From(ctx).V(7).Logf("parsing phone number from query: %q", phone)
 					number, err := phonenumbers.Parse(phone, app.Config.Country)
 					if err != nil {
 						return httperr.InvalidParameter("phone", phone)
