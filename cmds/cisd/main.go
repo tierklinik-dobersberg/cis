@@ -53,6 +53,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
+	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
@@ -295,6 +296,20 @@ func getApp(ctx context.Context) *app.App {
 	//
 	// prepare databases and everything that requires MongoDB
 	//
+	cache, err := cache.NewCache(
+		ctx,
+		cache.Mount{
+			Store: cache.NewMongoStore(ctx, cfg.DatabaseName, "cache", mongoClient),
+			Path:  "persist",
+		},
+		cache.Mount{
+			Store: cache.NewMemoryStore(),
+			Path:  "ephemeral",
+		},
+	)
+	if err != nil {
+		logger.Fatalf(ctx, "cache: %s", err.Error())
+	}
 
 	customers, err := customerdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
@@ -410,6 +425,8 @@ func getApp(ctx context.Context) *app.App {
 		&cfg.IdentityConfig,
 		cfg.Secret,
 		cfg.BaseURL,
+		cache,
+		"ephemeral/",
 	); err != nil {
 		logger.Fatalf(ctx, "session-manager: %s", err.Error())
 	}
@@ -479,6 +496,7 @@ func getApp(ctx context.Context) *app.App {
 		cctvManager,
 		layoutStore,
 		infoScreens,
+		cache,
 	)
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 

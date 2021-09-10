@@ -61,7 +61,7 @@ func NewCache(ctx context.Context, mounts ...Mount) (Cache, error) {
 	}
 	for _, mount := range mounts {
 		path := trimPath(mount.Path)
-		if path == "" || len(strings.Split(path, "/")) > 2 {
+		if path == "" || len(strings.Split(path, "/")) > 1 {
 			return nil, fmt.Errorf("invalid mount path: %q", mount.Path)
 		}
 		c.mounts[path] = &mount
@@ -111,8 +111,10 @@ func (c *cache) cleanMount(ctx context.Context, s *Mount) {
 
 	deleted := 0
 	failed := 0
+	valid := 0
 	for _, record := range records {
 		if record.Record.IsValid() {
+			valid++
 			continue
 		}
 
@@ -127,6 +129,7 @@ func (c *cache) cleanMount(ctx context.Context, s *Mount) {
 	log.WithFields(logger.Fields{
 		"deleted": deleted,
 		"failed":  failed,
+		"valid":   valid,
 	}).V(6).Logf("finished garbage collection")
 }
 

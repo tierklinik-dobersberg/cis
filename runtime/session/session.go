@@ -2,12 +2,14 @@ package session
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/jwt"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
@@ -17,11 +19,6 @@ import (
 const SessionKey = "http:session"
 
 var contextSessionKey = struct{ key string }{key: SessionKey}
-
-type ephemeralData struct {
-	value  interface{}
-	maxAge time.Time
-}
 
 // Session represents an user session.
 type Session struct {
@@ -44,20 +41,18 @@ type Session struct {
 	// token with scope refresh.
 	RefreshUntil *time.Time
 
-	// ephemeralDataLock protects the ephemeralData map from concurrent
-	// access.
-	ephemeralDataLock sync.RWMutex
-
-	// ephemeralData allows routes and API endpoints to store ephemeral data
-	// in a "sticky" session. Note that ephemeral data is only supported if
-	// the API client uses the cis-sid in addition to the session token.
-	ephemeralData map[string]*ephemeralData
-
 	// destroyed is closed when the session is destroyed and garbage collected.
 	destroyed chan struct{}
 
 	// lock protects all fields an members below it.
 	lock sync.Mutex
+
+	// cache is used to store session related data under
+	// ephemeral/<session-id>/key
+	cache cache.Cache
+
+	// cacheKeyPrefix is the prefix used for cache keys.
+	cacheKeyPrefix string
 
 	// extraRoles holds additional roles that are assigned to this
 	// session.
@@ -86,62 +81,47 @@ func (session *Session) LastAccess() time.Time {
 
 // SetEphemeral stores data under key inside the ephemeral data store of the
 // session. Note that this only works for "sticky" sessions.
-func (session *Session) SetEphemeral(key string, data interface{}, ttl time.Duration) error {
+func (session *Session) SetEphemeral(ctx context.Context, key string, data interface{}, ttl time.Duration) error {
 	if session.id == "" {
 		return fmt.Errorf("session %s is not sticky", session)
 	}
-	session.ephemeralDataLock.Lock()
-	defer session.ephemeralDataLock.Unlock()
+	if session.cache == nil {
+		return fmt.Errorf("session %s does not have a cache", session)
+	}
+	dk := fmt.Sprintf("%s%s/%s", session.cacheKeyPrefix, session.id, key)
+	blob, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal data: %s", err)
+	}
 
-	if session.ephemeralData == nil {
-		session.ephemeralData = make(map[string]*ephemeralData)
-		go session.collectEphemeralGarbage()
-	}
-	session.ephemeralData[key] = &ephemeralData{
-		value:  data,
-		maxAge: time.Now().Add(ttl),
-	}
-	return nil
+	return session.cache.Write(ctx, dk, blob, cache.WithTTL(ttl))
 }
 
 // GetEphemeral retrieves the data stored under key. This only works
 // for "sticky" sessions.
-func (session *Session) GetEphemeral(key string) (interface{}, time.Time, error) {
+func (session *Session) GetEphemeral(ctx context.Context, key string, target interface{}) (time.Time, error) {
 	if session.id == "" {
-		return nil, time.Time{}, fmt.Errorf("session %s is not sticky", session)
+		return time.Time{}, fmt.Errorf("session %s is not sticky", session)
 	}
-	if session.ephemeralData == nil {
-		return nil, time.Time{}, nil
+	if session.cache == nil {
+		return time.Time{}, fmt.Errorf("session %s does not have a cache", session)
 	}
-	entry := session.ephemeralData[key]
-	return entry.value, entry.maxAge, nil
-}
 
-func (session *Session) collectEphemeralGarbage() {
-	collect := func() {
-		session.ephemeralDataLock.Lock()
-		defer session.ephemeralDataLock.Unlock()
-
-		collected := 0
-		for key, value := range session.ephemeralData {
-			if time.Now().After(value.maxAge) {
-				collected++
-				delete(session.ephemeralData, key)
-			}
-		}
-
-		if collected > 0 {
-			log.From(context.TODO()).V(5).Logf("%s: collected %d ephemeral session data entries", session, collected)
-		}
+	dk := fmt.Sprintf("%s%s/%s", session.cacheKeyPrefix, session.id, key)
+	blob, mt, err := session.cache.Read(ctx, dk)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("cache.Read: %w", err)
 	}
-	for {
-		select {
-		case <-session.destroyed:
-			return
-		case <-time.After(time.Minute):
-		}
-		collect()
+
+	if err := json.Unmarshal(blob, target); err != nil {
+		return time.Time{}, fmt.Errorf("json.Unmarshal: %w", err)
 	}
+
+	var eol time.Time
+	if mt.NotValidAfter != nil {
+		eol = *mt.NotValidAfter
+	}
+	return eol, nil
 }
 
 // IsSticky returns true if the session is sticky.

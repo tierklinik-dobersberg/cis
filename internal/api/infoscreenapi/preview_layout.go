@@ -4,12 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"net/http"
-	"net/url"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +17,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/utils"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/infoscreen/v1alpha"
-	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 )
 
@@ -87,7 +83,7 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 			entry := &slidePreview{
 				Content: buf.String(),
 			}
-			if err := sess.SetEphemeral(key, entry, time.Minute); err != nil {
+			if err := sess.SetEphemeral(ctx, key, entry, time.Minute); err != nil {
 				return err
 			}
 			c.JSON(http.StatusOK, gin.H{
@@ -112,16 +108,13 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 				return httperr.InternalError(nil, "missing session")
 			}
 
-			data, ttl, err := sess.GetEphemeral(key)
+			var slide slidePreview
+			ttl, err := sess.GetEphemeral(ctx, key, &slide)
 			if err != nil {
 				return err
 			}
 			if ttl.IsZero() {
 				return httperr.NotFound("slide-preview", key, nil)
-			}
-			s, ok := data.(*slidePreview)
-			if !ok {
-				return httperr.InternalError(nil, "invalid data type for ephemeral key")
 			}
 
 			if strings.HasPrefix(resource, "uploaded/") {
@@ -133,12 +126,13 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 			}
 
 			c.Writer.Header().Set("Content-Type", "text/html; charset=utf-8")
-			_, err = c.Writer.Write([]byte(s.Content))
+			_, err = c.Writer.Write([]byte(slide.Content))
 			return err
 		},
 	)
 }
 
+/*
 func parseLayoutVars(l *layouts.Layout, query url.Values) (layouts.Vars, error) {
 	errors := new(multierr.Error)
 
@@ -202,3 +196,4 @@ func decodeVariable(def *layouts.Variable, value string) (interface{}, error) {
 	}
 	return val, err
 }
+*/

@@ -28,6 +28,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/logger"
@@ -61,6 +62,7 @@ type App struct {
 	CCTV            *cctv.Manager
 	LayoutStore     layouts.Store
 	InfoScreenShows infoscreendb.Database
+	Cache           cache.Cache
 
 	loadLocationOnce sync.Once
 	location         *time.Location
@@ -95,6 +97,7 @@ func NewApp(
 	cctvmng *cctv.Manager,
 	layoutStore layouts.Store,
 	infoScreens infoscreendb.Database,
+	cache cache.Cache,
 ) *App {
 	return &App{
 		Instance:        inst,
@@ -117,6 +120,7 @@ func NewApp(
 		CCTV:            cctvmng,
 		LayoutStore:     layoutStore,
 		InfoScreenShows: infoScreens,
+		Cache:           cache,
 	}
 }
 

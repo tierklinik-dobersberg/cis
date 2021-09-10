@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
+	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/jwt"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
@@ -23,18 +24,22 @@ type Manager struct {
 	identityConfg   *IdentityConfig
 	secret          string
 	sessionIdCookie string
+	cache           cache.Cache
+	cachePrefix     string
 
 	sessionLock   sync.RWMutex
 	activeSession map[string]*Session
 }
 
 // Configure configures the session manager.
-func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityConfig, secret, baseURL string) error {
+func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityConfig, secret, baseURL string, cache cache.Cache, cachePrefix string) error {
 	mng.UserProvider = identites
 	mng.identityConfg = identityConfig
 	mng.activeSession = make(map[string]*Session)
 	mng.sessionIdCookie = identityConfig.SessionIDCookie
 	mng.secret = secret
+	mng.cache = cache
+	mng.cachePrefix = cachePrefix
 
 	// start cleaning orphand sessions
 	go func() {
@@ -150,6 +155,8 @@ func (mng *Manager) saveSession(sess *Session, w http.ResponseWriter) error {
 		return fmt.Errorf("failed to generate session id")
 	}
 	sess.id = sid.String()
+	sess.cache = mng.cache
+	sess.cacheKeyPrefix = mng.cachePrefix
 
 	// inform the browser about the session ID. this is best-effort only
 	// as the Set-Cookie header might just be ignored.
