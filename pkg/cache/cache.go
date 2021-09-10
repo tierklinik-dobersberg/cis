@@ -59,12 +59,16 @@ func NewCache(ctx context.Context, mounts ...Mount) (Cache, error) {
 	c := &cache{
 		mounts: make(map[string]*Mount),
 	}
-	for _, mount := range mounts {
+	for idx := range mounts {
+		mount := &mounts[idx]
 		path := trimPath(mount.Path)
 		if path == "" || len(strings.Split(path, "/")) > 1 {
 			return nil, fmt.Errorf("invalid mount path: %q", mount.Path)
 		}
-		c.mounts[path] = &mount
+		if _, ok := c.mounts[path]; ok {
+			return nil, fmt.Errorf("overlapping mounts on path %s", path)
+		}
+		c.mounts[path] = mount
 	}
 
 	go c.gcLoop(ctx)
