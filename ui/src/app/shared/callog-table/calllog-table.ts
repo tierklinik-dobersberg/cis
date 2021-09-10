@@ -93,7 +93,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
               }
 
               if (l.caller !== 'anonymous') {
-                distinctNumbers.add(l.caller.replace(' ', ''));
+                distinctNumbers.add(encodeURIComponent(l.caller.replace(' ', '')));
               }
             });
             const queryForNumbers = Array.from(distinctNumbers.values());
