@@ -79,10 +79,12 @@ func MissingField(name string) *Error {
 
 // InvalidParameter is a helper method for returning
 // 400 Bad Request for an invalid paramter value.
-func InvalidParameter(name string) *Error {
-	return BadRequest(
-		fmt.Errorf("invalid value for parameter %q", name),
-	)
+func InvalidParameter(name string, value ...string) *Error {
+	err := fmt.Errorf("invalid value for parameter %q", name)
+	if len(value) > 0 {
+		err = fmt.Errorf("invalid value for parameter %q with value %q", name, value[0])
+	}
+	return BadRequest(err)
 }
 
 // InvalidField is a helper method for returning

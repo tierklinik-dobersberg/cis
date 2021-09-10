@@ -77,7 +77,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 					}
 					number, err := phonenumbers.Parse(phone, app.Config.Country)
 					if err != nil {
-						return httperr.InvalidParameter("phone")
+						return httperr.InvalidParameter("phone", phone)
 					}
 					phoneNumbers = append(phoneNumbers, phonenumbers.Format(number, phonenumbers.NATIONAL))
 					phoneNumbers = append(phoneNumbers, phonenumbers.Format(number, phonenumbers.INTERNATIONAL))
