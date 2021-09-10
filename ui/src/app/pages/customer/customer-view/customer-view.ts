@@ -1,6 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { ScaleType } from '@swimlane/ngx-charts';
+import { Color } from '@swimlane/ngx-charts/lib/utils/color-sets';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, combineLatest, forkJoin, of, Subscription } from 'rxjs';
 import { catchError, mergeMap } from 'rxjs/operators';
@@ -50,7 +52,10 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
   xAxisLabel = 'Tag';
   yAxisLabel = 'Anrufe';
 
-  colorScheme = {
+  colorScheme: Color = {
+    name: 'group',
+    group: ScaleType.Linear,
+    selectable: false,
     domain: ['#5AA454', '#E44D25', '#CFC0BB', '#7aa3e5', '#a8385d', '#aae3f5']
   };
 
