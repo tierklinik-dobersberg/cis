@@ -96,11 +96,15 @@ func FuzzySearchEndpoint(grp *app.Router) {
 								logger.From(ctx).Errorf("failed to parse phone number from user %s: %s", u.Name, err)
 								continue
 							}
-							phoneToUser[phonenumbers.Format(number, phonenumbers.INTERNATIONAL)] = u
+							international := phonenumbers.Format(number, phonenumbers.INTERNATIONAL)
+							phoneToUser[international] = u
+							logger.From(ctx).V(7).Logf("adding %s with phone number %s", u.Name, international)
 						}
 					}
 
+					logger.From(ctx).V(7).Logf("built lookup map for user phone numbers (size=%d)", len(phoneToUser))
 					for _, p := range phoneNumbers {
+						logger.From(ctx).V(7).Logf("searching for user with phone number %s", p)
 						if u, ok := phoneToUser[p]; ok {
 							matchedUsers[u.Name] = u.User
 						}
@@ -158,6 +162,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 
 			models := make([]*v1.Customer, 0, len(customers))
 			if includeUsers {
+				logger.From(ctx).Infof("includeUsers: found %d matching users", len(matchedUsers))
 				for _, u := range matchedUsers {
 					models = append(models, &v1.Customer{
 						ID:            u.Name,
