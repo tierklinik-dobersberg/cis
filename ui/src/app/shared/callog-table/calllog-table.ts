@@ -93,7 +93,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
               }
 
               if (l.caller !== 'anonymous') {
-                let number = l.caller.replace(' ', '');
+                let number = l.caller.replaceAll(' ', '');
 
                 // Workaround for https://github.com/angular/angular/issues/11058
                 // here. thats pretty nasty angular ....
@@ -140,7 +140,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
           const lm = new Map<string, Customer>();
 
           logs.numbers?.forEach(cust => cust.phoneNumbers?.forEach(phoneNumber => {
-            phoneNumber = phoneNumber.replace(' ', '');
+            phoneNumber = phoneNumber.replaceAll(' ', '');
             if (phoneNumber === '') {
               return;
             }
@@ -160,7 +160,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
             }
 
             if (!cust) {
-              const caller = l.caller.replace(' ', '')
+              const caller = l.caller.replaceAll(' ', '')
               console.log(`Searching for ${caller} in `, lm);
               cust = lm.get(caller);
             }
