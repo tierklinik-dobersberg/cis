@@ -8,6 +8,11 @@ tr.inbound {
   }
 }
 
+tr.self-call {
+  background-color: rgba(33, 33, 33, 0.1);
+  opacity: 0.9;
+}
+
 tr.outbound {
   .direction {
     color: blue;

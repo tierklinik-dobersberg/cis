@@ -13,6 +13,7 @@ interface LocalCallLog extends CallLog {
   isToday: boolean;
   outbound: boolean;
   isLostOrUnanswared: boolean;
+  isSelf: boolean;
 }
 
 @Component({
@@ -104,6 +105,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
             if (queryForNumbers.length > 0) {
               numbersStream = this.customerapi.search({
                 phone: queryForNumbers,
+                includeUsers: 'yes',
               }).pipe(catchError(err => {
                 console.log(err);
                 return of([]);
@@ -159,6 +161,11 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
             const callType = l.callType?.toLocaleLowerCase() || '';
             const isOutbound = callType === 'notanswered' || callType === 'outbound';
 
+            let isSelf = false;
+            if (!!l.agentProfile && !!cust && l.agentProfile.name === cust._id && cust.source === "__identities") {
+              isSelf = true;
+            }
+
             const d = new Date(l.date);
             return {
               ...l,
@@ -169,7 +176,8 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
               customer: cust,
               agentProfile: l.agentProfile || this.knownExtensions.get(l.agent),
               transferToProfile: l.transferToProfile || this.knownExtensions.get(l.transferTarget),
-              isLostOrUnanswared: callType === 'notanswered' || callType === ''
+              isLostOrUnanswared: callType === 'notanswered' || callType === '',
+              isSelf: isSelf,
             };
           });
           this.changeDetector.detectChanges();
