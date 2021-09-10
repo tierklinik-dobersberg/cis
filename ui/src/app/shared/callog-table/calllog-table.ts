@@ -93,7 +93,14 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
               }
 
               if (l.caller !== 'anonymous') {
-                distinctNumbers.add(l.caller.replace(' ', ''));
+                let number = l.caller.replace(' ', '');
+
+                // Workaround for https://github.com/angular/angular/issues/11058
+                // here. thats pretty nasty angular ....
+                if (number.startsWith("+")) {
+                  number = "00" + number.slice(1);
+                }
+                distinctNumbers.add(number);
               }
             });
             const queryForNumbers = Array.from(distinctNumbers.values());
