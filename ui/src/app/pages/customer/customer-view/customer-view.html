@@ -142,15 +142,14 @@
       <ng-template nz-tab>
         <div class="content-section">
           <div class="chart-container">
-            <ngx-charts-line-chart [scheme]="colorScheme" [legend]="true" [showXAxisLabel]="true"
-              [showYAxisLabel]="true" [xAxis]="true" [yAxis]="true" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"
-              [timeline]="false" [results]="callLogSeries">
+            <ngx-charts-line-chart [scheme]="lineScheme" [legend]="true" [showXAxisLabel]="true" [showYAxisLabel]="true"
+              [xAxis]="true" [yAxis]="true" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]="false"
+              [results]="callLogSeries">
             </ngx-charts-line-chart>
           </div>
           <div class="chart-container">
             <ngx-charts-heat-map [results]="heatMapSeries" [legend]="false" xAxisLabel="Wochentag" yAxisLabel="Uhrzeit"
-              [scheme]="{domain: ['#5AA45410', '#A10A2850']}" [showXAxisLabel]="true" [showYAxisLabel]="true"
-              [xAxis]="true" [yAxis]="true">
+              [scheme]="areaScheme" [showXAxisLabel]="true" [showYAxisLabel]="true" [xAxis]="true" [yAxis]="true">
             </ngx-charts-heat-map>
           </div>
 

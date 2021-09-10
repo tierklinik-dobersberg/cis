@@ -52,12 +52,19 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
   xAxisLabel = 'Tag';
   yAxisLabel = 'Anrufe';
 
-  colorScheme: Color = {
+  lineScheme: Color = {
     name: 'group',
     group: ScaleType.Linear,
     selectable: false,
     domain: ['#5AA454', '#E44D25', '#CFC0BB', '#7aa3e5', '#a8385d', '#aae3f5']
   };
+
+  areaScheme: Color = {
+    name: 'group',
+    group: ScaleType.Linear,
+    selectable: false,
+    domain: ['#5AA45410', '#A10A2850']
+  }
 
   handleCommentCancel(): void {
     this.showCommentModal = false;
