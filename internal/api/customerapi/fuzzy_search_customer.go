@@ -9,9 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nyaruka/phonenumbers"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	v1 "github.com/tierklinik-dobersberg/cis/pkg/models/customer/v1alpha"
+	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
+	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -27,11 +30,41 @@ func FuzzySearchEndpoint(grp *app.Router) {
 			filter := bson.M{}
 			singleResponse := c.Query("single") != ""
 
+			// get a list of all users if we should also include
+			// users into the result.
+			_, includeUsers := c.GetQuery("includeUsers")
+			if includeUsers && singleResponse {
+				return httperr.BadRequest(nil, "cannot mix query parameters single and includeUsers")
+			}
+
+			var allUsers []cfgspec.User
+			if includeUsers {
+				var err error
+				allUsers, err = app.Identities.ListAllUsers(ctx)
+				if err != nil {
+					logger.From(ctx).Errorf("failed to load all users: %s", err)
+					// we only log the error here because we still want to
+					// search the customer database ...
+				} else {
+					logger.From(ctx).V(6).Logf("'includeUsers' enabled, loaded %d identities", len(allUsers))
+				}
+			}
+
+			matchedUsers := make(map[string]v1alpha.User)
 			if name := c.Query("name"); name != "" {
 				m1, m2 := matchr.DoubleMetaphone(name)
 				filter["$text"] = bson.M{
 					"$search":   m1 + " " + m2,
 					"$language": "de",
+				}
+
+				if includeUsers {
+					for _, u := range allUsers {
+						// TODO(ppacher): maybe search by doublemetaphone as well?
+						if u.Name == name || u.Fullname == name {
+							matchedUsers[u.Name] = u.User
+						}
+					}
 				}
 			}
 
@@ -48,6 +81,30 @@ func FuzzySearchEndpoint(grp *app.Router) {
 					}
 					phoneNumbers = append(phoneNumbers, phonenumbers.Format(number, phonenumbers.NATIONAL))
 					phoneNumbers = append(phoneNumbers, phonenumbers.Format(number, phonenumbers.INTERNATIONAL))
+				}
+
+				// if includeUsers is specified as a query parameter than
+				// we also try to search for users that have the given
+				// phone numbers.
+				if includeUsers {
+					// build a lookup map for phone -> user
+					phoneToUser := make(map[string]cfgspec.User)
+					for _, u := range allUsers {
+						for _, p := range u.PhoneNumber {
+							number, err := phonenumbers.Parse(p, app.Config.Country)
+							if err != nil {
+								logger.From(ctx).Errorf("failed to parse phone number from user %s: %s", u.Name, err)
+								continue
+							}
+							phoneToUser[phonenumbers.Format(number, phonenumbers.INTERNATIONAL)] = u
+						}
+					}
+
+					for _, p := range phoneNumbers {
+						if u, ok := phoneToUser[p]; ok {
+							matchedUsers[u.Name] = u.User
+						}
+					}
 				}
 
 				filter["phoneNumbers"] = bson.M{
@@ -70,6 +127,19 @@ func FuzzySearchEndpoint(grp *app.Router) {
 
 			if mail := c.Query("mail"); mail != "" {
 				filter["mailAddresses"] = mail
+
+				// search users by mail address
+				if includeUsers {
+				L:
+					for _, u := range allUsers {
+						for _, m := range u.Mail {
+							if m == mail {
+								matchedUsers[u.Name] = u.User
+								continue L
+							}
+						}
+					}
+				}
 			}
 
 			customers, err := app.Customers.FilterCustomer(ctx, filter)
@@ -86,10 +156,24 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				return nil
 			}
 
-			models := make([]*v1.Customer, len(customers))
-			for idx, cu := range customers {
+			models := make([]*v1.Customer, 0, len(customers))
+			if includeUsers {
+				for _, u := range matchedUsers {
+					models = append(models, &v1.Customer{
+						ID:            u.Name,
+						Source:        "__identities",
+						Group:         "Users",
+						Name:          u.Fullname,
+						PhoneNumbers:  u.PhoneNumber,
+						MailAddresses: u.Mail,
+						CustomerID:    -1,
+					})
+				}
+			}
+
+			for _, cu := range customers {
 				m := CustomerModel(ctx, cu)
-				models[idx] = m
+				models = append(models, m)
 			}
 
 			c.JSON(http.StatusOK, models)
