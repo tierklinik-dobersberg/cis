@@ -1,3 +1,4 @@
 /cisd
 node_modules
 /ui/ckeditor/build
+/cardcli
