@@ -9,8 +9,8 @@ require (
 	github.com/charmbracelet/glamour v0.2.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.3.0
-	github.com/emersion/go-vcard v0.0.0-20191221110513-5f81fa0d3cc7 // indirect
-	github.com/emersion/go-webdav v0.3.1 // indirect
+	github.com/emersion/go-vcard v0.0.0-20191221110513-5f81fa0d3cc7
+	github.com/emersion/go-webdav v0.3.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/gofrs/uuid v4.0.0+incompatible
@@ -30,10 +30,12 @@ require (
 	github.com/mxk/go-imap v0.0.0-20150429134902-531c36c3f12d
 	github.com/nbutton23/zxcvbn-go v0.0.0-20201221231540-e56b841a3c88
 	github.com/nyaruka/phonenumbers v1.0.61
-	github.com/olekukonko/tablewriter v0.0.5 // indirect
+	github.com/olekukonko/tablewriter v0.0.5
 	github.com/ory/mail/v3 v3.0.0
 	github.com/ppacher/system-conf v0.8.0
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/schollz/progressbar v1.0.0 // indirect
+	github.com/schollz/progressbar/v3 v3.8.2
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.6.1
@@ -47,7 +49,7 @@ require (
 	github.com/yuin/goldmark v1.2.1
 	github.com/zclconf/go-cty v1.8.0
 	go.mongodb.org/mongo-driver v1.4.4
-	golang.org/x/crypto v0.0.0-20201217014255-9d1352758620
+	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect

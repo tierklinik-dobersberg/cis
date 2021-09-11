@@ -29,6 +29,7 @@ func getRootCmd() *cobra.Command {
 	cmd.AddCommand(
 		getListCmd(),
 		getFindCommand(),
+		getSyncCommand(),
 	)
 
 	f := cmd.PersistentFlags()
