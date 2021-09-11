@@ -93,7 +93,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
               }
 
               if (l.caller !== 'anonymous') {
-                let number = l.caller.replaceAll(' ', '');
+                let number = normalizePhone(l.caller);
 
                 // Workaround for https://github.com/angular/angular/issues/11058
                 // here. thats pretty nasty angular ....
@@ -140,7 +140,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
           const lm = new Map<string, Customer>();
 
           logs.numbers?.forEach(cust => cust.phoneNumbers?.forEach(phoneNumber => {
-            phoneNumber = phoneNumber.replaceAll(' ', '');
+            phoneNumber = normalizePhone(phoneNumber)
             if (phoneNumber === '') {
               return;
             }
@@ -160,8 +160,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
             }
 
             if (!cust) {
-              const caller = l.caller.replaceAll(' ', '')
-              console.log(`Searching for ${caller} in `, lm);
+              const caller = normalizePhone(l.caller);
               cust = lm.get(caller);
             }
 
@@ -194,4 +193,8 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add(sub);
   }
+}
+
+function normalizePhone(phone: string): string {
+  return phone.replaceAll(' ', '');
 }
