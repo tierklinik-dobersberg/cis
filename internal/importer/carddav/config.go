@@ -15,6 +15,8 @@ type Config struct {
 	// authentication.
 	Password string
 	// AddressBook is the name of the adressbook to use.
+	// If left empty the default address book of the
+	// authenticated user discovered.
 	AddressBook string
 }
 
@@ -43,8 +45,7 @@ var Spec = conf.SectionSpec{
 	},
 	{
 		Name:        "AddressBook",
-		Description: "The name of the target address book.",
+		Description: "The name of the target address book. If unspecified, CIS will try to auto-detect the default address book of the authenticated user.",
 		Type:        conf.StringType,
-		Required:    true,
 	},
 }
