@@ -73,7 +73,7 @@ func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string, ad
 		"inherited": len(rolePermissions),
 		"extra":     len(extraRolePermissions),
 		"user":      user,
-	}).Infof("resolved permissions for user")
+	}).V(6).Logf("resolved permissions for user")
 
 	return permissions, nil
 }
