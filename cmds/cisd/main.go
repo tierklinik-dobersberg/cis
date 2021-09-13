@@ -51,9 +51,9 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/integration/rocket"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
+	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
@@ -133,7 +133,7 @@ func getApp(ctx context.Context) *app.App {
 		UseStdlibLogAdapter: true,
 		ConfigFileName:      "cis.conf",
 		ConfigDirectory:     "conf.d",
-		ConfigSchema: utils.MultiSectionRegistry{
+		ConfigSchema: confutil.MultiSectionRegistry{
 			globalConfigFile,
 			runtime.GlobalSchema,
 		},

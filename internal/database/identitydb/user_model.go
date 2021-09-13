@@ -8,7 +8,7 @@ import (
 	"github.com/nyaruka/phonenumbers"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 )
 
 type user struct {
@@ -28,7 +28,7 @@ func (db *identDB) loadUsers(identityDir string) error {
 		"Permission": cfgspec.PermissionSpec,
 	}
 	if db.httpConditionRegistry != nil {
-		spec["AutoLogin"] = utils.MultiOptionRegistry{
+		spec["AutoLogin"] = confutil.MultiOptionRegistry{
 			db.httpConditionRegistry,
 			conf.SectionSpec{
 				{
@@ -41,7 +41,7 @@ func (db *identDB) loadUsers(identityDir string) error {
 		}
 	}
 
-	userFiles, err := utils.LoadFiles(identityDir, ".user", spec)
+	userFiles, err := confutil.LoadFiles(identityDir, ".user", spec)
 	if err != nil {
 		return err
 	}

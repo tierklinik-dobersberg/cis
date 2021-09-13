@@ -3,8 +3,8 @@ package identitydb
 import (
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
 	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
+	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 )
 
@@ -56,7 +56,7 @@ func init() {
 			"User":       cfgspec.UserSpec,
 			"Permission": cfgspec.PermissionSpec,
 			// FIXME(ppacher): see comment above.
-			"AutoLogin": utils.MultiOptionRegistry{
+			"AutoLogin": confutil.MultiOptionRegistry{
 				httpcond.DefaultRegistry,
 				conf.SectionSpec{
 					{

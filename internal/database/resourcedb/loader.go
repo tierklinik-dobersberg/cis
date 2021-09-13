@@ -5,13 +5,13 @@ import (
 	"path/filepath"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 )
 
 // LoadFiles loads all resource files from dir. It returns the
 // first error encountered.roster
 func LoadFiles(reg *Registry, dir string) error {
-	files, err := utils.LoadFiles(dir, ".resource", ResourceUnit)
+	files, err := confutil.LoadFiles(dir, ".resource", ResourceUnit)
 	if err != nil {
 		return err
 	}

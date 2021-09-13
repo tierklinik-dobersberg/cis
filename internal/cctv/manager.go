@@ -9,7 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
@@ -36,7 +36,7 @@ type Manager struct {
 // LoadDefinitions loads all camera definitions (.camera) from
 // dir.
 func (mng *Manager) LoadDefinitions(dir string) error {
-	files, err := utils.LoadFiles(dir, ".camera", CameraUnit)
+	files, err := confutil.LoadFiles(dir, ".camera", CameraUnit)
 	if err != nil {
 		return err
 	}

@@ -4,8 +4,8 @@ import (
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
 	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
+	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/service/svcenv"
 )
@@ -17,7 +17,7 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 		svcenv.Env().ConfigurationDirectory,
 	},
 	Sections: conf.FileSpec{
-		"Global": utils.MultiOptionRegistry{
+		"Global": confutil.MultiOptionRegistry{
 			cfgspec.ConfigSpec,
 			cfgspec.DatabaseSpec,
 			session.IdentityConfigSpec,

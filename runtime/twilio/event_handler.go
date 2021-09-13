@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 	"github.com/tierklinik-dobersberg/service/runtime"
@@ -22,15 +22,15 @@ var eventTriggerSpec = conf.SectionSpec{
 
 func AddTriggerType(name string, reg *trigger.Registry) error {
 	return reg.RegisterType(name, &trigger.Type{
-		OptionRegistry: utils.MultiOptionRegistry{
+		OptionRegistry: confutil.MultiOptionRegistry{
 			// Within the trigger file all stanzas for the account
 			// are optional.
-			utils.MakeOptional(AccountSpec),
+			confutil.MakeOptional(AccountSpec),
 			MessageSpec,
 			eventTriggerSpec,
 		},
 		CreateFunc: func(ctx context.Context, globalCfg *runtime.ConfigSchema, s *conf.Section) (trigger.Handler, error) {
-			spec := utils.MultiOptionRegistry{
+			spec := confutil.MultiOptionRegistry{
 				eventTriggerSpec,
 				MessageSpec,
 			}
@@ -40,7 +40,7 @@ func AddTriggerType(name string, reg *trigger.Registry) error {
 				return nil, fmt.Errorf("failed to parse section: %w", err)
 			}
 
-			ev.Message.TemplateFile = utils.AbsConfig(ev.Message.TemplateFile)
+			ev.Message.TemplateFile = confutil.AbsConfig(ev.Message.TemplateFile)
 
 			// detect the twilio account configuration. if AccountSid is defined
 			// in the Twilio trigger section we'll use that one. If not, we'll

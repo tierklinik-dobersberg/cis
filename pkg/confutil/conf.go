@@ -1,11 +1,25 @@
-package utils
+package confutil
 
 import (
 	"path/filepath"
 	"strings"
 
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/service/svcenv"
 )
+
+// AbsConfig ensures that path is absolute and if not, prepends the
+// configuration directory. AbsConfig is a no-op if path is an empty
+// string.
+func AbsConfig(path string) string {
+	if path == "" {
+		return ""
+	}
+	if !filepath.IsAbs(path) {
+		return filepath.Join(svcenv.Env().ConfigurationDirectory, path)
+	}
+	return path
+}
 
 // LoadFiles loads all files in dir that have the extension ext and
 // parses them using spec.

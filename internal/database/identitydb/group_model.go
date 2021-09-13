@@ -6,7 +6,7 @@ import (
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 )
 
@@ -25,7 +25,7 @@ func (db *identDB) loadRoles(identityDir string) error {
 		spec["AutoAssign"] = db.httpConditionRegistry
 	}
 
-	roleFiles, err := utils.LoadFiles(identityDir, ".role", spec)
+	roleFiles, err := confutil.LoadFiles(identityDir, ".role", spec)
 	if err != nil {
 		return err
 	}

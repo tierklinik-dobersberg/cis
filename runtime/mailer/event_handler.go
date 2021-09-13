@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 	"github.com/tierklinik-dobersberg/service/runtime"
@@ -31,8 +31,8 @@ func (eh *eventHandler) HandleEvents(ctx context.Context, events ...*event.Event
 // AddTriggerType registeres a "SendMail" trigger on reg using typeName.
 func AddTriggerType(typeName string, reg *trigger.Registry) error {
 	return reg.RegisterType(typeName, &trigger.Type{
-		OptionRegistry: utils.MultiOptionRegistry{
-			utils.MakeOptional(AccountSpec),
+		OptionRegistry: confutil.MultiOptionRegistry{
+			confutil.MakeOptional(AccountSpec),
 			MessageSpec,
 		},
 		CreateFunc: func(c context.Context, cs *runtime.ConfigSchema, s *conf.Section) (trigger.Handler, error) {
@@ -54,7 +54,7 @@ func AddTriggerType(typeName string, reg *trigger.Registry) error {
 			if err := conf.DecodeSections([]conf.Section{*s}, MessageSpec, &msg); err != nil {
 				return nil, fmt.Errorf("parsing message: %w", err)
 			}
-			msg.BodyFile = utils.AbsConfig(msg.BodyFile)
+			msg.BodyFile = confutil.AbsConfig(msg.BodyFile)
 
 			// TODO(ppacher): validate account
 			mailer, err := New(acc)
