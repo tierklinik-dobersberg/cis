@@ -121,17 +121,15 @@ func Abort(c *gin.Context, err error) {
 func Middleware(c *gin.Context) {
 	c.Next()
 	log := log.From(c.Request.Context())
-	log.V(8).Logf("request %s finished errors=%d", c.Request.URL, len(c.Errors))
 
 	// nothing to do if the status has already been written.
 	if c.Writer.Written() || c.Writer.Status() != http.StatusOK {
 		return
 	}
 
-	// No error recorded and not status/content written,
+	// No error recorded and no status/content written,
 	// try to do it ourself.
 	if len(c.Errors) == 0 {
-		log.V(7).Logf("finishing request with 200 OK")
 		c.Status(http.StatusOK)
 		return
 	}

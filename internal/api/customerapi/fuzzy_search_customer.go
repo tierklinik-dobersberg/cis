@@ -75,7 +75,6 @@ func FuzzySearchEndpoint(grp *app.Router) {
 					if phone == "" || phone == "anonymous" {
 						continue
 					}
-					logger.From(ctx).V(7).Logf("parsing phone number from query: %q", phone)
 					number, err := phonenumbers.Parse(phone, app.Config.Country)
 					if err != nil {
 						return httperr.InvalidParameter("phone", phone)
@@ -105,7 +104,6 @@ func FuzzySearchEndpoint(grp *app.Router) {
 
 					logger.From(ctx).V(7).Logf("built lookup map for user phone numbers (size=%d)", len(phoneToUser))
 					for _, p := range phoneNumbers {
-						logger.From(ctx).V(7).Logf("searching for user with phone number %s", p)
 						if u, ok := phoneToUser[p]; ok {
 							matchedUsers[u.Name] = u.User
 						}
