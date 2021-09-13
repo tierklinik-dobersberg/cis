@@ -21,7 +21,7 @@ func init() {
 			MigrateFunc: func(ctx context.Context, from, to *version.Version, cli *mongo.Database) error {
 				type v0Record struct {
 					v1alpha.VoiceMailRecord `bson:",inline"`
-					CustomerID              int `bson:"cid"`
+					CustomerID              int `bson:"customerID"`
 				}
 
 				col := cli.Collection(voicemaildb.VoicemailCollection)
