@@ -148,6 +148,7 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *ExportedCustome
 		defer close(customers)
 		for customer := range dataCh {
 			if !isValidCustomer(&customer) {
+				log.Infof("vetinf: skipping customer record: %+v", customer)
 				continue
 			}
 
@@ -194,7 +195,7 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *ExportedCustome
 			}
 
 			if hasInvalidPhone {
-				log.V(3).Logf("customer %s has invalid phone number", key)
+				log.V(3).Logf("vetinf: customer %s has invalid phone number", key)
 				dbCustomer.Metadata["vetinfInvalidPhone"] = true
 			}
 
@@ -228,6 +229,11 @@ func (e *Exporter) ExportAnimals(ctx context.Context) (<-chan *ExportedAnimal, i
 	go func() {
 		defer close(records)
 		for animal := range dataCh {
+			if !isValidAnimal(&animal) {
+				log.Infof("vetinf: skipping animal record: %+v", animal)
+				continue
+			}
+
 			exported := &ExportedAnimal{
 				PatientRecord: v1alpha.PatientRecord{
 					AnimalID:       animal.AnimalID,
@@ -306,6 +312,19 @@ func isValidCustomer(c *vetinf.Customer) bool {
 		return false
 	}
 	if c.ID == 0 {
+		return false
+	}
+	return true
+}
+
+func isValidAnimal(c *vetinf.SmallAnimalRecord) bool {
+	if c == nil {
+		return false
+	}
+	if c.AnimalID == "" {
+		return false
+	}
+	if c.CustomerID == 0 {
 		return false
 	}
 	return true
