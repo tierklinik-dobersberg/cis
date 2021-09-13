@@ -41,6 +41,9 @@ func (match *Matcher) Decide(ctx context.Context, req *Request, extraRoles []str
 				if strings.ToLower(perm.Effect) == "allow" {
 					isAllowed = true
 					allowedDescr = perm.Description
+					if allowedDescr == "" {
+						allowedDescr = perm.String()
+					}
 				} else {
 					// default is deny and that's stronger than
 					// allow so we can abort and return immediately.
@@ -51,12 +54,12 @@ func (match *Matcher) Decide(ctx context.Context, req *Request, extraRoles []str
 		}
 
 		if isAllowed {
-			l.Infof("allowed by %q", allowedDescr)
+			l.V(7).Logf("allowed by %q", allowedDescr)
 			return true, nil
 		}
 	}
 
-	l.Infof("denied by default (no matching permissions)")
+	l.V(3).Logf("denied by default (no matching permissions)")
 	return false, nil
 }
 
