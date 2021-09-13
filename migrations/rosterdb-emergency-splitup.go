@@ -1,4 +1,4 @@
-package rosterdb
+package migrations
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-version"
+	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/runtime/schema"
 	"go.mongodb.org/mongo-driver/bson"
@@ -33,7 +34,7 @@ func init() {
 					Days  map[int]v0Day      `bson:"days,omitempty"`
 				}
 
-				col := cli.Collection(DutyRosterCollection)
+				col := cli.Collection(rosterdb.DutyRosterCollection)
 
 				records, err := col.Find(ctx, bson.M{})
 				if err != nil {

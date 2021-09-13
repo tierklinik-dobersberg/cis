@@ -148,11 +148,9 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *ExportedCustome
 	go func() {
 		defer close(customers)
 		for customer := range dataCh {
-			//textparse.PhoneNumber(ctx, customer.Phone)
-
 			dbCustomer := &ExportedCustomer{
 				Customer: customerdb.Customer{
-					CustomerID: customer.ID,
+					CustomerID: fmt.Sprintf("%d", customer.ID),
 					City:       customer.City,
 					CityCode:   customer.CityCode,
 					Firstname:  customer.Firstname,
@@ -169,7 +167,7 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *ExportedCustome
 				Deleted: customer.Meta.Deleted,
 			}
 
-			key := fmt.Sprintf("[%s %s <cid:%d>]", dbCustomer.Name, dbCustomer.Firstname, dbCustomer.CustomerID)
+			key := fmt.Sprintf("[%s %s <cid:%s>]", dbCustomer.Name, dbCustomer.Firstname, dbCustomer.CustomerID)
 
 			var hasInvalidPhone bool
 

@@ -13,7 +13,7 @@ import (
 type VoicemailEvent struct {
 	VoiceMail      string             `json:"voiceMail,omitempty" bson:"voiceMail,omitempty"`
 	From           string             `json:"from,omitempty" bson:"from,omitempty"`
-	CustomerID     int                `json:"customerID,omitempty" bson:"customerID,omitempty"`
+	CustomerID     string             `json:"customerID,omitempty" bson:"customerID,omitempty"`
 	CustomerSource string             `json:"customerSource,omitempty" bson:"customerSource,omitempty"`
 	Read           bool               `json:"read,omitempty" bson:"read,omitempty"`
 	ID             primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`

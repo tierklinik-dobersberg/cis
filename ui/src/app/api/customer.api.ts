@@ -1,11 +1,11 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 export interface RemoteCustomer<T extends Date | string> {
   _id?: string;
-  cid: number;
+  cid: string;
   group: string;
   name: string;
   firstname: string;

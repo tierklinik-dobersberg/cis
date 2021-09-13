@@ -172,7 +172,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 						Name:          u.Fullname,
 						PhoneNumbers:  u.PhoneNumber,
 						MailAddresses: u.Mail,
-						CustomerID:    -1,
+						CustomerID:    "-1",
 					})
 				}
 			}

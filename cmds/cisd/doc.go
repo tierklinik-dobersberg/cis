@@ -31,6 +31,7 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 		"Voicemail":      cfgspec.VoiceMailSpec,
 		"MongoLog":       cfgspec.MongoLogSpec,
 		"GoogleCalendar": calendar.GoogleConfigSpec,
+		"CardDAV Import": cfgspec.CardDAVSpec,
 	},
 })
 

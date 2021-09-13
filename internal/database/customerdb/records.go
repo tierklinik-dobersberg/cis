@@ -13,7 +13,7 @@ import (
 // Customer defines the customer record.
 type Customer struct {
 	ID                  primitive.ObjectID `bson:"_id,omitempty"`
-	CustomerID          int                `bson:"cid,omitempty"`
+	CustomerID          string             `bson:"cid,omitempty"`
 	Group               string             `bson:"group,omitempty"`
 	Name                string             `bson:"name,omitempty"`
 	Firstname           string             `bson:"firstname,omitempty"`
@@ -55,7 +55,7 @@ func (cu *Customer) Hash() string {
 		_, _ = h.Write([]byte(s))
 	}
 
-	w(fmt.Sprintf("%d", cu.CustomerID))
+	w(cu.CustomerID)
 	w(cu.City)
 	w(fmt.Sprintf("%d", cu.CityCode))
 	w(cu.Firstname)

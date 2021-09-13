@@ -83,9 +83,12 @@ import (
 	// MQTT trigger type
 	_ "github.com/tierklinik-dobersberg/cis/internal/integration/mqtt"
 	// VetInf importer
-	_ "github.com/tierklinik-dobersberg/cis/internal/importer/neumayr"
-	// Neumayr importer
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/vetinf"
+	// Neumayr importer
+	_ "github.com/tierklinik-dobersberg/cis/internal/importer/neumayr"
+
+	// Schema migrations
+	_ "github.com/tierklinik-dobersberg/cis/migrations"
 )
 
 func main() {

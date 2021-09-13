@@ -25,7 +25,7 @@ type Database interface {
 	Search(ctx context.Context, opts *SearchOptions) ([]v1alpha.PatientRecord, error)
 	UpdatePatient(ctx context.Context, record *v1alpha.PatientRecord) error
 	DeletePatient(ctx context.Context, id string) error
-	ByCustomerAndAnimalID(ctx context.Context, source string, cid int, aid string) (*v1alpha.PatientRecord, error)
+	ByCustomerAndAnimalID(ctx context.Context, source string, cid string, aid string) (*v1alpha.PatientRecord, error)
 }
 
 type database struct {
@@ -98,7 +98,7 @@ func (db *database) UpdatePatient(ctx context.Context, record *v1alpha.PatientRe
 	return nil
 }
 
-func (db *database) ByCustomerAndAnimalID(ctx context.Context, source string, cid int, aid string) (*v1alpha.PatientRecord, error) {
+func (db *database) ByCustomerAndAnimalID(ctx context.Context, source string, cid string, aid string) (*v1alpha.PatientRecord, error) {
 	result := db.collection.FindOne(ctx, bson.M{
 		"customerSource": source,
 		"customerID":     cid,
@@ -106,7 +106,7 @@ func (db *database) ByCustomerAndAnimalID(ctx context.Context, source string, ci
 	})
 	if result.Err() != nil {
 		if errors.Is(result.Err(), mongo.ErrNoDocuments) {
-			key := fmt.Sprintf("%s/%d/%s", source, cid, aid)
+			key := fmt.Sprintf("%s/%s/%s", source, cid, aid)
 			return nil, httperr.NotFound("patient", key, ErrNotFound)
 		}
 		return nil, result.Err()

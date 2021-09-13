@@ -3,6 +3,7 @@ package vetinf
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
@@ -34,7 +35,7 @@ func getAnimalImporter(app *app.App, exporter *Exporter) *importer.Instance {
 				existing, err := app.Patients.ByCustomerAndAnimalID(
 					ctx,
 					patient.CustomerSource,
-					patient.CustomerID,
+					fmt.Sprintf("%d", patient.CustomerID),
 					patient.AnimalID,
 				)
 

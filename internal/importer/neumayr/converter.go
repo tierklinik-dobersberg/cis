@@ -118,13 +118,7 @@ func (conv *Converter) Convert(ctx context.Context, mdb *os.File) ([]customerdb.
 		}
 
 		// ID
-		rawID := get("ID")
-		id, err := strconv.ParseInt(rawID, 10, 0)
-		if err != nil {
-			log.Errorf("failed to parse user ID %q: %s", rawID, err)
-			// We NEED an ID so skip this record.
-			continue
-		}
+		id := get("ID")
 
 		// Name
 		nameParts := strings.SplitN(get("Namen"), " ", 2)
@@ -164,7 +158,7 @@ func (conv *Converter) Convert(ctx context.Context, mdb *os.File) ([]customerdb.
 		customerNumber := get("Kundennummer")
 
 		customer := customerdb.Customer{
-			CustomerID: int(id),
+			CustomerID: id,
 			Source:     "neumayr",
 			City:       city,
 			CityCode:   int(cityCode),

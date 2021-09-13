@@ -56,11 +56,11 @@ func (sr *SchemaRegistry) ApplyMigrations(ctx context.Context, db Database, cli 
 	for key, migrations := range sr.migrates {
 		from, to, steps, err := sr.migrate(ctx, db, cli, key, migrations)
 		if err != nil {
-			return migrated, err
+			return migrated, fmt.Errorf("%s: %w", key, err)
 		}
 		if from != to {
 			migrated = true
-			log.From(ctx).Infof("migrated %s from %s to %s in %s steps", key, from, to, steps)
+			log.From(ctx).Infof("migrated %s from %s to %s in %d steps", key, from, to, steps)
 		}
 	}
 

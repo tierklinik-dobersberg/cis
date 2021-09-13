@@ -32,7 +32,7 @@ type Database interface {
 	UpdateCustomer(ctx context.Context, cu *Customer) error
 
 	// CustomerByCID returns the customer by it's customer-id
-	CustomerByCID(ctx context.Context, source string, cid int) (*Customer, error)
+	CustomerByCID(ctx context.Context, source string, cid string) (*Customer, error)
 
 	// FilterCustomer filters all customers according to filter.
 	FilterCustomer(ctx context.Context, filter bson.M) ([]*Customer, error)
@@ -134,7 +134,7 @@ func (db *database) setup(ctx context.Context) error {
 
 func (db *database) CreateCustomer(ctx context.Context, cu *Customer) error {
 	if !cu.ID.IsZero() {
-		return fmt.Errorf("customer %d already has an object ID: %s", cu.CustomerID, cu.ID.Hex())
+		return fmt.Errorf("customer %s already has an object ID: %s", cu.CustomerID, cu.ID.Hex())
 	}
 
 	metaphone1, metaphone2 := matchr.DoubleMetaphone(cu.Name)
@@ -223,7 +223,7 @@ func (db *database) FuzzySearchName(ctx context.Context, name string) ([]*Custom
 	return result, nil
 }
 
-func (db *database) CustomerByCID(ctx context.Context, source string, cid int) (*Customer, error) {
+func (db *database) CustomerByCID(ctx context.Context, source string, cid string) (*Customer, error) {
 	filter := bson.M{
 		"cid":            cid,
 		"customerSource": source,

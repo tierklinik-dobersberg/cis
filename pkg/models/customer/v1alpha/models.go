@@ -6,7 +6,7 @@ import "time"
 type Customer struct {
 	// TODO(ppacher): should we actually expose ID?
 	ID                  string                 `json:"_id,omitempty" bson:"_id,omitempty"`
-	CustomerID          int                    `json:"cid,omitempty" bson:"cid,omitempty"`
+	CustomerID          string                 `json:"cid,omitempty" bson:"cid,omitempty"`
 	Group               string                 `json:"group,omitempty" bson:"group,omitempty"`
 	Name                string                 `json:"name,omitempty" bson:"name,omitempty"`
 	Firstname           string                 `json:"firstname,omitempty" bson:"firstname,omitempty"`

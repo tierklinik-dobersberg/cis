@@ -10,7 +10,7 @@ import (
 type VoiceMailRecord struct {
 	ID             primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	From           string             `json:"from,omitempty" bson:"from,omitempty"`
-	CustomerID     int                `json:"customerID,omitempty" bson:"customerID,omitempty"`
+	CustomerID     string             `json:"customerID,omitempty" bson:"customerID,omitempty"`
 	CustomerSource string             `json:"customerSource,omitempty" bson:"customerSource,omitempty"`
 	Date           time.Time          `json:"date,omitempty" bson:"date,omitempty"`
 	DateStr        string             `json:"datestr,omitempty" bson:"datestr,omitempty"`

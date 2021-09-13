@@ -156,7 +156,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
             let cust: Customer | undefined;
             if (!!l.customerSource) {
               cust = logs.customers
-                .find(c => !!c && c.source === l.customerSource && c.cid === +l.customerID);
+                .find(c => !!c && c.source === l.customerSource && c.cid === l.customerID);
             }
 
             if (!cust) {

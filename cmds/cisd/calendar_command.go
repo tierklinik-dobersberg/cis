@@ -165,7 +165,7 @@ func getCreateEventCommand() *cobra.Command {
 		summary        string
 		description    string
 		createdBy      string
-		customerID     int
+		customerID     string
 		customerSource string
 		animalID       []string
 		calID          string
@@ -202,7 +202,7 @@ func getCreateEventCommand() *cobra.Command {
 		f.StringVar(&summary, "summary", "", "Event summary")
 		f.StringVar(&description, "description", "", "Event description")
 		f.StringVar(&createdBy, "created-by", "", "User name that created the event")
-		f.IntVar(&customerID, "cid", 0, "Customer ID")
+		f.StringVar(&customerID, "cid", "", "Customer ID")
 		f.StringVar(&customerSource, "customer-source", "", "Customer source")
 		f.StringSliceVar(&animalID, "animal-id", nil, "Animal ID")
 		f.StringVar(&calID, "calendar", "", "Calendar ID")
