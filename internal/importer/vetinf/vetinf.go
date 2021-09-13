@@ -15,7 +15,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/models/patient/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/go-vetinf/vetinf"
-	"github.com/tierklinik-dobersberg/logger"
 )
 
 var log = pkglog.New("vetinf")
@@ -195,7 +194,7 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *ExportedCustome
 			}
 
 			if hasInvalidPhone {
-				log.Infof("customer %s has invalid phone numer", key)
+				log.V(3).Logf("customer %s has invalid phone number", key)
 				dbCustomer.Metadata["vetinfInvalidPhone"] = true
 			}
 
@@ -293,8 +292,6 @@ func addNumber(id string, numbers []string, number, country string, hasError *bo
 	p, err := phonenumbers.Parse(number, country)
 	if err != nil {
 		*hasError = true
-		// FIXME(ppacher): provide logger
-		logger.DefaultLogger().Infof("%s failed to parse phone number: %q in country %s: %s", id, number, country, err)
 		return numbers
 	}
 
