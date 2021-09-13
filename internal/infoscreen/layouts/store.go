@@ -52,7 +52,7 @@ func NewFileStore(ctx context.Context, dirs []string) (Store, error) {
 	go func() {
 		for {
 			select {
-			case <-time.After(time.Second * 10):
+			case <-time.After(time.Minute * 10):
 			case <-ctx.Done():
 				return
 			}
