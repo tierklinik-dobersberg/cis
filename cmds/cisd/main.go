@@ -62,6 +62,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
 	"github.com/tierklinik-dobersberg/cis/runtime/schema"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
+	"github.com/tierklinik-dobersberg/cis/runtime/tasks"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/runtime"
@@ -515,6 +516,14 @@ func getApp(ctx context.Context) *app.App {
 	)
 	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 
+	ctx = app.With(ctx, appCtx)
+
+	//
+	// Start the task manager
+	// All tasks can get access to appCtx by using app.From(ctx).
+	//
+	tasks.DefaultManager.Start(ctx)
+
 	//
 	// Prepare triggers
 	//
@@ -523,7 +532,6 @@ func getApp(ctx context.Context) *app.App {
 
 	// TODO(ppacher): this currently requires app.App to have been associated with ctx.
 	// I'm somewhat unhappy with that requirement so make it go away in the future.
-	ctx = app.With(ctx, appCtx)
 	logger.Infof(ctx, "%d trigger types available so far", trigger.DefaultRegistry.TypeCount())
 	triggers, err := trigger.DefaultRegistry.LoadFiles(ctx, runtime.GlobalSchema, instance.ConfigurationDirectory)
 	if err != nil {
