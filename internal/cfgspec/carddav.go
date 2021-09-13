@@ -6,6 +6,8 @@ type CardDAVConfig struct {
 	// ID is used to uniquely identify the CardDAV config
 	// and is used to persist the sync-tokens.
 	ID string
+	// Source defines the customer source to use.
+	Source string
 	// Schedule describes the sync/import schedule using
 	// cron syntax.
 	Schedule string
@@ -32,6 +34,12 @@ var CardDAVSpec = conf.SectionSpec{
 		Description: "ID uniquely identifies this CardDAV configuration and is used to perist the sync tokens",
 		Type:        conf.StringType,
 		Required:    true,
+	},
+	{
+		Name:        "Source",
+		Description: "The label to use for the customer source.",
+		Type:        conf.StringType,
+		Default:     "carddav",
 	},
 	{
 		Name:        "Schedule",

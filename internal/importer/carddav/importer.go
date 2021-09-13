@@ -154,7 +154,7 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 					if !ok {
 						deleted = nil
 					} else {
-						if err := handleDelete(ctx, app, d, cfg.AddressBook); err != nil {
+						if err := handleDelete(ctx, &cfg, app, d); err != nil {
 							countFailedDelete++
 							log.Errorf("%s: failed to delete carddav contact %q: %s", id, d, err)
 						} else {
@@ -166,7 +166,7 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 					if !ok {
 						break L
 					}
-					if isNew, err := handleUpdate(ctx, app, upd, cfg.AddressBook); err != nil {
+					if isNew, err := handleUpdate(ctx, &cfg, app, upd); err != nil {
 						countFailedUpdate++
 						log.Errorf("%s: failed to handle carddav contact update %q: %s", id, upd.Path, err)
 					} else {
@@ -216,7 +216,7 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 	return i, nil
 }
 
-func handleDelete(ctx context.Context, app *app.App, path string, collectionPath string) error {
+func handleDelete(ctx context.Context, cfg *cfgspec.CardDAVConfig, app *app.App, path string) error {
 	cus, err := findByPath(ctx, app, path)
 	if err != nil {
 		return err
@@ -231,7 +231,7 @@ func handleDelete(ctx context.Context, app *app.App, path string, collectionPath
 	return nil
 }
 
-func handleUpdate(ctx context.Context, app *app.App, ao carddav.AddressObject, collectionPath string) (bool, error) {
+func handleUpdate(ctx context.Context, cfg *cfgspec.CardDAVConfig, app *app.App, ao carddav.AddressObject) (bool, error) {
 	if ao.Card == nil {
 		return false, fmt.Errorf("no VCARD data available")
 	}
@@ -245,20 +245,20 @@ func handleUpdate(ctx context.Context, app *app.App, ao carddav.AddressObject, c
 		// Create a new customer record
 		cus = &customerdb.Customer{
 			CustomerID: getID(ao.Path),
-			Source:     "carddav",
+			Source:     cfg.Source,
 		}
 	}
 
 	if n := ao.Card.Name(); n != nil {
-		cus.Firstname = n.GivenName
-		cus.Name = n.FamilyName
-		cus.Title = n.HonorificPrefix
+		cus.Firstname = strings.TrimSpace(n.GivenName)
+		cus.Name = strings.TrimSpace(n.FamilyName)
+		cus.Title = strings.TrimSpace(n.HonorificPrefix)
 	}
 
 	if addr := ao.Card.Address(); addr != nil {
-		cus.Street = addr.StreetAddress
-		cus.City = addr.Locality
-		if pos, err := strconv.ParseInt(addr.PostalCode, 10, 0); err == nil {
+		cus.Street = strings.TrimSpace(addr.StreetAddress)
+		cus.City = strings.TrimSpace(addr.Locality)
+		if pos, err := strconv.ParseInt(strings.TrimSpace(addr.PostalCode), 10, 0); err == nil {
 			cus.CityCode = int(pos)
 		} else {
 			log.From(ctx).Errorf("failed to parse postal code %q", addr.PostalCode)
@@ -280,7 +280,8 @@ func handleUpdate(ctx context.Context, app *app.App, ao carddav.AddressObject, c
 
 	cus.Metadata = map[string]interface{}{
 		"path":       ao.Path,
-		"collection": collectionPath,
+		"collection": cfg.AddressBook,
+		"id":         cfg.ID,
 		"uid":        ao.Card.Value(vcard.FieldUID),
 		"url":        ao.Card.Value(vcard.FieldURL),
 		"rev":        ao.Card.Value(vcard.FieldRevision),
@@ -302,7 +303,6 @@ func handleUpdate(ctx context.Context, app *app.App, ao carddav.AddressObject, c
 
 func findByPath(ctx context.Context, app *app.App, path string) (*customerdb.Customer, error) {
 	customers, err := app.Customers.FilterCustomer(ctx, bson.M{
-		"source":                "carddav",
 		"metadata.carddav.path": path,
 	})
 	if err != nil {
@@ -319,7 +319,6 @@ func findByPath(ctx context.Context, app *app.App, path string) (*customerdb.Cus
 
 func findByCollection(ctx context.Context, app *app.App, collectionPath string) ([]*customerdb.Customer, error) {
 	return app.Customers.FilterCustomer(ctx, bson.M{
-		"source":                      "carddav",
 		"metadata.carddav.collection": collectionPath,
 	})
 }
