@@ -92,6 +92,27 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 				return nil, fmt.Errorf("failed to retrieve sync-token: %w", err)
 			}
 
+			// we're doing a full re-sync so we can delete
+			// all customers that have been synced from this addressbook
+			// before. We log any errors we encounter but we do not abort
+			// the sync. We'll just throw away the sync-token and retry
+			// the next time
+			forceResync := string(syncToken) == ""
+			if forceResync {
+				customers, err := findByCollection(ctx, app, cfg.AddressBook)
+				if err != nil {
+					log.Errorf("%s: failed to find customers for CardDAV collection %s: %s", id, cfg.AddressBook, err)
+					forceResync = true
+				} else {
+					for _, c := range customers {
+						if err := app.Customers.DeleteCustomer(ctx, c.ID.Hex()); err != nil {
+							log.Errorf("%s: failed to delete customer %s: %s", id, c.ID.Hex(), err)
+							forceResync = true
+						}
+					}
+				}
+			}
+
 			var (
 				wg        sync.WaitGroup
 				nextToken string
@@ -129,7 +150,7 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 					if !ok {
 						deleted = nil
 					} else {
-						if err := handleDelete(ctx, app, d); err != nil {
+						if err := handleDelete(ctx, app, d, cfg.AddressBook); err != nil {
 							countFailedDelete++
 							log.Errorf("%s: failed to delete carddav contact %q: %s", id, d, err)
 						} else {
@@ -141,7 +162,7 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 					if !ok {
 						break L
 					}
-					if isNew, err := handleUpdate(ctx, app, upd); err != nil {
+					if isNew, err := handleUpdate(ctx, app, upd, cfg.AddressBook); err != nil {
 						countFailedUpdate++
 						log.Errorf("%s: failed to handle carddav contact update %q: %s", id, upd.Path, err)
 					} else {
@@ -170,8 +191,18 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 			if err != nil {
 				return nil, err
 			}
-			if err := app.Cache.Write(ctx, cacheKey, []byte(nextToken)); err != nil {
-				return nil, fmt.Errorf("failed to persist sync-token: %w", err)
+
+			if !forceResync {
+				if err := app.Cache.Write(
+					ctx,
+					cacheKey,
+					[]byte(nextToken),
+					cache.WithBurnAfterReading(), // sync-tokens are one-time use anyway so there's no need to keep them
+				); err != nil {
+					return nil, fmt.Errorf("failed to persist sync-token: %w", err)
+				}
+			} else {
+				log.Infof("%s: forgetting sync-token to force a complete re-sync")
 			}
 
 			return nil, err
@@ -181,7 +212,7 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 	return i, nil
 }
 
-func handleDelete(ctx context.Context, app *app.App, path string) error {
+func handleDelete(ctx context.Context, app *app.App, path string, collectionPath string) error {
 	cus, err := findByPath(ctx, app, path)
 	if err != nil {
 		return err
@@ -196,7 +227,7 @@ func handleDelete(ctx context.Context, app *app.App, path string) error {
 	return nil
 }
 
-func handleUpdate(ctx context.Context, app *app.App, ao carddav.AddressObject) (bool, error) {
+func handleUpdate(ctx context.Context, app *app.App, ao carddav.AddressObject, collectionPath string) (bool, error) {
 	if ao.Card == nil {
 		return false, fmt.Errorf("no VCARD data available")
 	}
@@ -244,10 +275,11 @@ func handleUpdate(ctx context.Context, app *app.App, ao carddav.AddressObject) (
 	}
 
 	cus.Metadata = map[string]interface{}{
-		"path": ao.Path,
-		"uid":  ao.Card.Value(vcard.FieldUID),
-		"url":  ao.Card.Value(vcard.FieldURL),
-		"rev":  ao.Card.Value(vcard.FieldRevision),
+		"path":       ao.Path,
+		"collection": collectionPath,
+		"uid":        ao.Card.Value(vcard.FieldUID),
+		"url":        ao.Card.Value(vcard.FieldURL),
+		"rev":        ao.Card.Value(vcard.FieldRevision),
 	}
 
 	isNew := cus.ID.IsZero()
@@ -279,6 +311,13 @@ func findByPath(ctx context.Context, app *app.App, path string) (*customerdb.Cus
 		return nil, fmt.Errorf("multiple customers matched %s", path)
 	}
 	return customers[0], nil
+}
+
+func findByCollection(ctx context.Context, app *app.App, collectionPath string) ([]*customerdb.Customer, error) {
+	return app.Customers.FilterCustomer(ctx, bson.M{
+		"source":                      "carddav",
+		"metadata.carddav.collection": collectionPath,
+	})
 }
 
 func getID(path string) string {
