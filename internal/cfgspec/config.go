@@ -1,9 +1,13 @@
 package cfgspec
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 // Config groups global configuration values that are used by various subsystems
@@ -14,6 +18,7 @@ type Config struct {
 	Country       string
 	AccessLogFile string
 	TimeZone      string
+	LogLevel      string
 
 	UnknownContactName   string
 	UnknownContactSource string
@@ -92,4 +97,37 @@ var ConfigSpec = conf.SectionSpec{
 		Type:        conf.StringType,
 		Default:     "1",
 	},
+	{
+		Name:        "LogLevel",
+		Description: "The maximum log level that should be printed to console. Should either be a number or the special values 'trace' (7), 'debug' (6), 'info' (5), 'warn' (3) or 'error' (0)",
+		Type:        conf.StringType,
+		Default:     "info",
+	},
+}
+
+// ParseLogLevel parses the string l and returns the respective logger.Severity.
+// l should either be a number or the special values 'trace' (7), 'debug' (6),
+// 'info' (5), 'warn' (3) or 'error' (0).
+func ParseLogLevel(l string) (logger.Severity, error) {
+	switch strings.ToLower(l) {
+	case "trace":
+		return 7, nil
+	case "debug":
+		return 6, nil
+	case "info":
+		return 5, nil
+	case "warn":
+		return 3, nil
+	case "error":
+		return 0, nil
+	default:
+		v, err := strconv.ParseInt(l, 10, 0)
+		if err != nil {
+			return 0, fmt.Errorf("failed to parse log-level %q: %w", l, err)
+		}
+		if v < 0 {
+			return 0, fmt.Errorf("invalid log level %q", l)
+		}
+		return logger.Severity(v), nil
+	}
 }

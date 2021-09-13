@@ -36,6 +36,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/cctv"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
@@ -207,6 +208,15 @@ func getApp(ctx context.Context) *app.App {
 	if err != nil {
 		log.Fatalf("failed to boot service: %s", err)
 	}
+
+	//
+	// configure the log-level as set by the user
+	//
+	lvl, err := cfgspec.ParseLogLevel(cfg.LogLevel)
+	if err != nil {
+		log.Fatalf("failed to parse log-level: %s", err)
+	}
+	instance.SetLogLevel(lvl)
 
 	// add the configuration file to the global schema
 	// so packages can decode from it.

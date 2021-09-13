@@ -43,7 +43,7 @@ require (
 	github.com/tierklinik-dobersberg/go-vetinf v0.1.5
 	github.com/tierklinik-dobersberg/logger v0.3.0
 	github.com/tierklinik-dobersberg/mailbox v0.0.4
-	github.com/tierklinik-dobersberg/service v0.4.6
+	github.com/tierklinik-dobersberg/service v0.5.0
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.2.1 // indirect
 	github.com/yuin/goldmark v1.2.1

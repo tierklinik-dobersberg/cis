@@ -5,7 +5,7 @@ import "github.com/ppacher/system-conf/conf"
 type MongoLogConfig struct {
 	Enabled      bool
 	PackageLevel []string
-	DefaultLevel int
+	DefaultLevel string
 }
 
 var MongoLogSpec = conf.SectionSpec{
@@ -22,8 +22,8 @@ var MongoLogSpec = conf.SectionSpec{
 	},
 	{
 		Name:        "DefaultLevel",
-		Type:        conf.IntType,
-		Default:     "0",
+		Type:        conf.StringType,
+		Default:     "error",
 		Description: "Minimum logging level used if not overwritten by PackageLevel.",
 	},
 }

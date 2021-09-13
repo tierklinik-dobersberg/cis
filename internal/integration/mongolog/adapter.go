@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -31,8 +30,8 @@ type Adapter struct {
 	lock          sync.Mutex
 	pendingLogs   *list.List
 	triggerWrite  chan struct{}
-	packageLevels map[string]int
-	defaultLevel  int
+	packageLevels map[string]logger.Severity
+	defaultLevel  logger.Severity
 }
 
 // NewWithClient returns a new mongolog Adapter using cli.
@@ -50,19 +49,24 @@ func NewWithClient(ctx context.Context, dbName string, cli *mongo.Client, cfg cf
 }
 
 func (adapter *Adapter) setup(ctx context.Context, cfg cfgspec.MongoLogConfig) error {
-	adapter.defaultLevel = cfg.DefaultLevel
-	adapter.packageLevels = make(map[string]int)
+	var err error
+	adapter.defaultLevel, err = cfgspec.ParseLogLevel(cfg.DefaultLevel)
+	if err != nil {
+		return err
+	}
+
+	adapter.packageLevels = make(map[string]logger.Severity)
 	for idx, value := range cfg.PackageLevel {
 		parts := strings.Split(value, "=")
 		if len(parts) != 2 {
 			return fmt.Errorf("invalid format for PackageLevel in %q (#%d)", value, idx)
 		}
 
-		level, err := strconv.ParseInt(parts[1], 10, 64)
+		level, err := cfgspec.ParseLogLevel(parts[1])
 		if err != nil {
-			return fmt.Errorf("invalid package log level in %q (#%d)", value, idx)
+			return fmt.Errorf("failed to parse log-level in %s", value)
 		}
-		adapter.packageLevels[parts[0]] = int(level)
+		adapter.packageLevels[parts[0]] = level
 	}
 
 	go adapter.writeLogs()
