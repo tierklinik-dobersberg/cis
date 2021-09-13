@@ -157,10 +157,16 @@
         </div>
       </ng-template>
     </nz-tab>
+
+    <nz-tab nzTitle="Erweitert">
+      <ng-template nz-tab>
+        <pre class="content-section">{{ customer | json }}</pre>
+      </ng-template>
+    </nz-tab>
   </nz-tabset>
 </div>
 
-<nz-drawer [nzClosable]="true" [nzVisible]="showCommentDrawer" nzPlacement="right" (nzOnClose)="toggleComments()"
+<nz-drawer [nzClosable]=" true" [nzVisible]="showCommentDrawer" nzPlacement="right" (nzOnClose)="toggleComments()"
   [nzWidth]="layout.isPhone ? '100vw' : layout.isDesktopUp ? '25vw' : '50vw'">
   <ng-template [nzDrawerContent]>
     <div class="comment-container">
