@@ -3,7 +3,6 @@ package vetinf
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
@@ -34,7 +33,7 @@ func getAnimalImporter(app *app.App, exporter *Exporter) *importer.Instance {
 				existing, err := app.Patients.ByCustomerAndAnimalID(
 					ctx,
 					patient.CustomerSource,
-					fmt.Sprintf("%d", patient.CustomerID),
+					patient.CustomerID,
 					patient.AnimalID,
 				)
 
@@ -42,21 +41,26 @@ func getAnimalImporter(app *app.App, exporter *Exporter) *importer.Instance {
 					err = nil
 				}
 
+				var operation string
 				switch {
 				case existing == nil && !patient.Deleted:
+					operation = "create"
 					err = app.Patients.CreatePatient(ctx, &patient.PatientRecord)
 					if err == nil {
 						countNew++
 					}
 				case existing == nil && patient.Deleted:
+					operation = "skip"
 					// TODO(ppacher): revisit if we add shadow-delete support
 					skippedDeleted++
 				case existing != nil && patient.Deleted:
+					operation = "delete"
 					err = app.Patients.DeletePatient(ctx, patient.PatientRecord.ID.Hex())
 					if err == nil {
 						countDeleted++
 					}
 				case existing != nil && patientdb.RecordHash(patient.PatientRecord) != patientdb.RecordHash(*existing):
+					operation = "update"
 					patient.ID = existing.ID
 					err = app.Patients.UpdatePatient(ctx, &patient.PatientRecord)
 					if err == nil {
@@ -68,7 +72,7 @@ func getAnimalImporter(app *app.App, exporter *Exporter) *importer.Instance {
 				}
 
 				if err != nil {
-					log.Errorf("failed to import patient: %s", err)
+					log.Errorf("failed to %s patient: %s", operation, err)
 				}
 			}
 			log.WithFields(logger.Fields{

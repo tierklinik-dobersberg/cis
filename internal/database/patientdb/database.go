@@ -127,9 +127,6 @@ func (db *database) DeletePatient(ctx context.Context, id string) error {
 
 	result, err := db.collection.DeleteOne(ctx, bson.M{"_id": dbid})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return ErrNotFound
-		}
 		return err
 	}
 
