@@ -12,7 +12,7 @@ import (
 
 func getCustomerImporter(app *app.App, exporter *Exporter) *importer.Instance {
 	return &importer.Instance{
-		ID:             "vetinf-customer:" + app.Config.VetInfDirectory,
+		ID:             "vetinf-customer:" + convertToID(app.Config.VetInfDirectory),
 		Schedule:       app.Config.VetInfImportSchedule,
 		RunImmediately: true,
 		Handler: importer.ImportFunc(func(ctx context.Context) (interface{}, error) {

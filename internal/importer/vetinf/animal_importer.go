@@ -12,7 +12,7 @@ import (
 
 func getAnimalImporter(app *app.App, exporter *Exporter) *importer.Instance {
 	return &importer.Instance{
-		ID:             "vetinf-animals: " + app.Config.VetInfDirectory,
+		ID:             "vetinf-animals: " + convertToID(app.Config.VetInfDirectory),
 		RunImmediately: true,
 		Schedule:       app.Config.VetInfImportSchedule,
 		Handler: importer.ImportFunc(func(ctx context.Context) (interface{}, error) {
