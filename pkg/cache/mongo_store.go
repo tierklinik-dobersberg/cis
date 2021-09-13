@@ -49,7 +49,7 @@ func (ms *mongoStore) Get(ctx context.Context, key string) (*KeyRecord, error) {
 	ms.assertLocked()
 
 	res := ms.collection.FindOne(ctx, bson.M{
-		"Key": key,
+		"key": key,
 	})
 	if res.Err() != nil {
 		if errors.Is(res.Err(), mongo.ErrNoDocuments) {
@@ -72,7 +72,7 @@ func (ms *mongoStore) Put(ctx context.Context, r KeyRecord) error {
 		SetUpsert(true)
 
 	_, err := ms.collection.ReplaceOne(ctx, bson.M{
-		"Key": r.Key,
+		"key": r.Key,
 	}, r, opts)
 	if err != nil {
 		return err
@@ -84,7 +84,7 @@ func (ms *mongoStore) Delete(ctx context.Context, key string) error {
 	ms.assertLocked()
 
 	res, err := ms.collection.DeleteOne(ctx, bson.M{
-		"Key": key,
+		"key": key,
 	})
 	if err != nil {
 		return err
@@ -98,7 +98,7 @@ func (ms *mongoStore) Delete(ctx context.Context, key string) error {
 func (ms *mongoStore) List(ctx context.Context, prefix string) ([]*KeyRecord, error) {
 	var res []*KeyRecord
 	cursor, err := ms.collection.Find(ctx, bson.M{
-		"Key": bson.M{
+		"key": bson.M{
 			"$regex":   "^" + prefix,
 			"$options": "i",
 		},
