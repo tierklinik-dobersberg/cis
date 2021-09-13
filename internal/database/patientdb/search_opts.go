@@ -6,7 +6,7 @@ type SearchOptions struct {
 	dbutils.SimpleQueryBuilder
 }
 
-func (opts *SearchOptions) ByCustomer(source string, id int) *SearchOptions {
+func (opts *SearchOptions) ByCustomer(source string, id string) *SearchOptions {
 	opts.WhereIn("customerSource", source)
 	opts.WhereIn("customerID", id)
 	return opts

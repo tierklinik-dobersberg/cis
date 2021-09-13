@@ -232,7 +232,7 @@ func (e *Exporter) ExportAnimals(ctx context.Context) (<-chan *ExportedAnimal, i
 				PatientRecord: v1alpha.PatientRecord{
 					AnimalID:       animal.AnimalID,
 					CustomerSource: "vetinf",
-					CustomerID:     animal.CustomerID,
+					CustomerID:     fmt.Sprintf("%d", animal.CustomerID),
 					Size:           animal.Size,
 					Species:        animal.Species,
 					Breed:          animal.Breed,

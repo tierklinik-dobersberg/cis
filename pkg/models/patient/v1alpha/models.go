@@ -5,7 +5,7 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 type PatientRecord struct {
 	ID             primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
 	CustomerSource string             `json:"customerSource" bson:"customerSource,omitempty"`
-	CustomerID     int                `json:"customerID" bson:"customerID,omitempty"`
+	CustomerID     string             `json:"customerID" bson:"customerID,omitempty"`
 	Size           string             `json:"size" bson:"size,omitempty"`
 	Species        string             `json:"species" bson:"species,omitempty"`
 	Breed          string             `json:"breed" bson:"breed,omitempty"`

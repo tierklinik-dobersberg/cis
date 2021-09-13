@@ -3,7 +3,6 @@ package patientdb
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"fmt"
 
 	"github.com/tierklinik-dobersberg/cis/pkg/models/patient/v1alpha"
 )
@@ -16,7 +15,7 @@ func RecordHash(r v1alpha.PatientRecord) string {
 		_, _ = h.Write([]byte(s))
 	}
 	w(r.CustomerSource)
-	w(fmt.Sprintf("%d", r.CustomerID))
+	w(r.CustomerID)
 	w(r.Size)
 	w(r.Species)
 	w(r.Breed)
