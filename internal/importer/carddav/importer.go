@@ -97,19 +97,23 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 			// before. We log any errors we encounter but we do not abort
 			// the sync. We'll just throw away the sync-token and retry
 			// the next time
-			forceResync := string(syncToken) == ""
-			if forceResync {
+			forceResync := false
+			if string(syncToken) == "" {
 				customers, err := findByCollection(ctx, app, cfg.AddressBook)
 				if err != nil {
 					log.Errorf("%s: failed to find customers for CardDAV collection %s: %s", id, cfg.AddressBook, err)
 					forceResync = true
 				} else {
+					purged := 0
 					for _, c := range customers {
 						if err := app.Customers.DeleteCustomer(ctx, c.ID.Hex()); err != nil {
 							log.Errorf("%s: failed to delete customer %s: %s", id, c.ID.Hex(), err)
 							forceResync = true
+						} else {
+							purged++
 						}
 					}
+					log.Infof("%s: purged %d customers from previous sync", id, purged)
 				}
 			}
 
@@ -202,7 +206,7 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 					return nil, fmt.Errorf("failed to persist sync-token: %w", err)
 				}
 			} else {
-				log.Infof("%s: forgetting sync-token to force a complete re-sync")
+				log.Infof("%s: forgetting sync-token to force a complete re-sync", id)
 			}
 
 			return nil, err

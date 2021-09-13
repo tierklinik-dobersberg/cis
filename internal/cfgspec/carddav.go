@@ -36,7 +36,7 @@ var CardDAVSpec = conf.SectionSpec{
 	{
 		Name:        "Schedule",
 		Description: "A cron-like schedule to import customers from CardDAV",
-		Default:     "@every 10m",
+		Default:     "@every 6h",
 		Type:        conf.StringType,
 	},
 	{
