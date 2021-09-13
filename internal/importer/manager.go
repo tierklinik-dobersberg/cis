@@ -19,15 +19,17 @@ var log = pkglog.New("importer")
 // Handler is capable of importing data from an external source.
 type Handler interface {
 	// Import should import data from the external source.
-	Import() (interface{}, error)
+	// The returned interface is published as an event to
+	// "event/importer/<instance>/done"
+	Import(ctx context.Context) (interface{}, error)
 }
 
-// ImportFunc implements Importer.
-type ImportFunc func() (interface{}, error)
+// ImportFunc implements Handler.
+type ImportFunc func(ctx context.Context) (interface{}, error)
 
 // Import imports data.
-func (fn ImportFunc) Import() (interface{}, error) {
-	return fn()
+func (fn ImportFunc) Import(ctx context.Context) (interface{}, error) {
+	return fn(ctx)
 }
 
 // Instance is a import handler instance that executes
@@ -51,6 +53,9 @@ func (inst *Instance) Run() {
 	}
 	defer inst.running.UnSet()
 
+	ctx := context.Background()
+	ctx = logger.With(ctx, inst.log)
+
 	start := time.Now()
 	event.Fire(
 		context.Background(),
@@ -66,7 +71,7 @@ func (inst *Instance) Run() {
 		inst.log.Infof("Import finished after %s", time.Since(start))
 	}()
 
-	data, err := inst.Handler.Import()
+	data, err := inst.Handler.Import(ctx)
 	errMsg := ""
 	if err != nil {
 		inst.log.Errorf("importer %s failed: %s", inst.ID, err)

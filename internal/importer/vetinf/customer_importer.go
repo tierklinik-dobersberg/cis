@@ -15,8 +15,7 @@ func getCustomerImporter(app *app.App, exporter *Exporter) *importer.Instance {
 		ID:             "vetinf-customer:" + app.Config.VetInfDirectory,
 		Schedule:       app.Config.VetInfImportSchedule,
 		RunImmediately: true,
-		Handler: importer.ImportFunc(func() (interface{}, error) {
-			ctx := context.Background()
+		Handler: importer.ImportFunc(func(ctx context.Context) (interface{}, error) {
 			log := log.From(ctx)
 
 			ch, _, err := exporter.ExportCustomers(ctx)

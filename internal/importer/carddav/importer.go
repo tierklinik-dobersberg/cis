@@ -19,9 +19,12 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 )
+
+var log = pkglog.New("carddav")
 
 func init() {
 	importer.Register(importer.Factory{
@@ -53,13 +56,13 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 		ID:             id,
 		Schedule:       cfg.Schedule,
 		RunImmediately: true,
-		Handler: importer.ImportFunc(func() (interface{}, error) {
-			ctx := context.Background()
+		Handler: importer.ImportFunc(func(ctx context.Context) (interface{}, error) {
+			log := log.From(ctx)
 
 			// determine the addressbook to use and update cfg.AddressBook so this
 			// importer instance always uses the same addressbook.
 			if cfg.AddressBook == "" {
-				logger.From(ctx).Errorf("%s: no address book configured. Trying to auto-detect the default addressbook", id)
+				log.Errorf("%s: no address book configured. Trying to auto-detect the default addressbook", id)
 
 				books, err := cli.ListAddressBooks(ctx)
 				if err != nil {
@@ -71,14 +74,14 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 				// try to find an address book with the name "default"
 				for _, b := range books {
 					if strings.ToLower(b.Name) == "default" {
-						logger.From(ctx).Infof("%s: using address book %s (%s)", id, b.Name, b.Path)
+						log.Infof("%s: using address book %s (%s)", id, b.Name, b.Path)
 						cfg.AddressBook = b.Path
 						break
 					}
 				}
 				if cfg.AddressBook == "" {
 					b := books[0]
-					logger.From(ctx).Infof("%s: using address book %s (%s)", id, b.Name, b.Path)
+					log.Infof("%s: using address book %s (%s)", id, b.Name, b.Path)
 					cfg.AddressBook = b.Path
 				}
 			}
@@ -128,7 +131,7 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 					} else {
 						if err := handleDelete(ctx, app, d); err != nil {
 							countFailedDelete++
-							logger.From(ctx).Errorf("%s: failed to delete carddav contact %q: %s", id, d, err)
+							log.Errorf("%s: failed to delete carddav contact %q: %s", id, d, err)
 						} else {
 							countDeleted++
 						}
@@ -140,7 +143,7 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 					}
 					if isNew, err := handleUpdate(ctx, app, upd); err != nil {
 						countFailedUpdate++
-						logger.From(ctx).Errorf("%s: failed to handle carddav contact update %q: %s", id, upd.Path, err)
+						log.Errorf("%s: failed to handle carddav contact update %q: %s", id, upd.Path, err)
 					} else {
 						if isNew {
 							countNew++
@@ -150,7 +153,7 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 					}
 
 				case <-ticker.C:
-					logger.From(ctx).WithFields(logger.Fields{
+					log.WithFields(logger.Fields{
 						"deleted": countDeleted,
 						"updated": countUpdated,
 						"new":     countNew,
@@ -223,7 +226,7 @@ func handleUpdate(ctx context.Context, app *app.App, ao carddav.AddressObject) (
 		if pos, err := strconv.ParseInt(addr.PostalCode, 10, 0); err == nil {
 			cus.CityCode = int(pos)
 		} else {
-			logger.From(ctx).Errorf("failed to parse postal code %q", addr.PostalCode)
+			log.From(ctx).Errorf("failed to parse postal code %q", addr.PostalCode)
 		}
 	}
 
@@ -231,7 +234,7 @@ func handleUpdate(ctx context.Context, app *app.App, ao carddav.AddressObject) (
 	for _, phone := range ao.Card.Values(vcard.FieldTelephone) {
 		number, err := phonenumbers.Parse(phone, app.Config.Country)
 		if err != nil {
-			logger.From(ctx).Errorf("failed to parse phone number %q: %s", phone, err)
+			log.From(ctx).Errorf("failed to parse phone number %q: %s", phone, err)
 			continue
 		}
 		cus.PhoneNumbers = append(cus.PhoneNumbers,

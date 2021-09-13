@@ -16,8 +16,7 @@ func getAnimalImporter(app *app.App, exporter *Exporter) *importer.Instance {
 		ID:             "vetinf-animals: " + app.Config.VetInfDirectory,
 		RunImmediately: true,
 		Schedule:       app.Config.VetInfImportSchedule,
-		Handler: importer.ImportFunc(func() (interface{}, error) {
-			ctx := context.Background()
+		Handler: importer.ImportFunc(func(ctx context.Context) (interface{}, error) {
 			log := log.From(ctx)
 
 			ch, _, err := exporter.ExportAnimals(ctx)
