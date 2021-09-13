@@ -148,6 +148,10 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *ExportedCustome
 	go func() {
 		defer close(customers)
 		for customer := range dataCh {
+			if !isValidCustomer(&customer) {
+				continue
+			}
+
 			dbCustomer := &ExportedCustomer{
 				Customer: customerdb.Customer{
 					CustomerID: fmt.Sprintf("%d", customer.ID),
@@ -298,4 +302,14 @@ func addNumber(id string, numbers []string, number, country string, hasError *bo
 		phonenumbers.Format(p, phonenumbers.NATIONAL),
 		phonenumbers.Format(p, phonenumbers.INTERNATIONAL),
 	}...)
+}
+
+func isValidCustomer(c *vetinf.Customer) bool {
+	if c == nil {
+		return false
+	}
+	if c.ID == 0 {
+		return false
+	}
+	return true
 }
