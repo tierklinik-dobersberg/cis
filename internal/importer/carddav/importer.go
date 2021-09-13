@@ -279,12 +279,16 @@ func handleUpdate(ctx context.Context, cfg *cfgspec.CardDAVConfig, app *app.App,
 	}
 
 	cus.Metadata = map[string]interface{}{
-		"path":       ao.Path,
-		"collection": cfg.AddressBook,
-		"id":         cfg.ID,
-		"uid":        ao.Card.Value(vcard.FieldUID),
-		"url":        ao.Card.Value(vcard.FieldURL),
-		"rev":        ao.Card.Value(vcard.FieldRevision),
+		"carddav": map[string]interface{}{
+			"id":         cfg.ID,
+			"path":       ao.Path,
+			"collection": cfg.AddressBook,
+		},
+		"vcard": map[string]interface{}{
+			"uid": ao.Card.Value(vcard.FieldUID),
+			"url": ao.Card.Value(vcard.FieldURL),
+			"rev": ao.Card.Value(vcard.FieldRevision),
+		},
 	}
 
 	isNew := cus.ID.IsZero()
