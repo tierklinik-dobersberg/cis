@@ -55,7 +55,7 @@ func getAnimalImporter(app *app.App, exporter *Exporter) *importer.Instance {
 					skippedDeleted++
 				case existing != nil && patient.Deleted:
 					operation = "delete"
-					err = app.Patients.DeletePatient(ctx, patient.PatientRecord.ID.Hex())
+					err = app.Patients.DeletePatient(ctx, existing.ID.Hex())
 					if err == nil {
 						countDeleted++
 					}
