@@ -14,7 +14,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
 )
@@ -89,7 +89,7 @@ func validateRoster(ctx context.Context, app *app.App, roster *v1alpha.DutyRoste
 		lm[strings.ToLower(user.Name)] = user
 	}
 
-	midnight := utils.Midnight(time.Now())
+	midnight := daytime.Midnight(time.Now())
 	for date, day := range roster.Days {
 		// we allow disabled users only for days that are already in the past.
 		// this is a simple work-around to allow users to edit the currently active

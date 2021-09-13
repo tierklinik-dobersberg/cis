@@ -1,34 +1,34 @@
-package utils_test
+package daytime_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
 )
 
 func TestDayTimeParse(t *testing.T) {
 	cases := []struct {
 		In  string
-		Out utils.DayTime
+		Out daytime.DayTime
 		Err bool
 	}{
 		{
 			In:  "08:00",
-			Out: utils.DayTime{8, 0},
+			Out: daytime.DayTime{8, 0},
 		},
 		{
 			In:  "12:15",
-			Out: utils.DayTime{12, 15},
+			Out: daytime.DayTime{12, 15},
 		},
 		{
 			In:  "00:00",
-			Out: utils.DayTime{0, 0},
+			Out: daytime.DayTime{0, 0},
 		},
 		{
 			In:  "23:59",
-			Out: utils.DayTime{23, 59},
+			Out: daytime.DayTime{23, 59},
 		},
 		{
 			In:  "24:00",
@@ -49,7 +49,7 @@ func TestDayTimeParse(t *testing.T) {
 	}
 
 	for idx, c := range cases {
-		r, err := utils.ParseDayTime(c.In)
+		r, err := daytime.ParseDayTime(c.In)
 		msg := fmt.Sprintf("in case %d (input: %s)", idx, c.In)
 		if c.Err {
 			assert.Error(t, err, msg)
@@ -64,21 +64,21 @@ func TestDayTimeParse(t *testing.T) {
 func TestParseTimeRange(t *testing.T) {
 	cases := []struct {
 		In  string
-		Out utils.DayTimeRange
+		Out daytime.DayTimeRange
 		Err bool
 	}{
 		{
 			In: "08:00 - 12:00",
-			Out: utils.DayTimeRange{
-				From: utils.DayTime{8, 0},
-				To:   utils.DayTime{12, 0},
+			Out: daytime.DayTimeRange{
+				From: daytime.DayTime{8, 0},
+				To:   daytime.DayTime{12, 0},
 			},
 		},
 		{
 			In: "14:30-17:45",
-			Out: utils.DayTimeRange{
-				From: utils.DayTime{14, 30},
-				To:   utils.DayTime{17, 45},
+			Out: daytime.DayTimeRange{
+				From: daytime.DayTime{14, 30},
+				To:   daytime.DayTime{17, 45},
 			},
 		},
 		{
@@ -88,7 +88,7 @@ func TestParseTimeRange(t *testing.T) {
 	}
 
 	for idx, c := range cases {
-		r, err := utils.ParseDayTimeRange(c.In)
+		r, err := daytime.ParseDayTimeRange(c.In)
 		msg := fmt.Sprintf("in case %d (input: %q)", idx, c.In)
 		if c.Err {
 			assert.Error(t, err, msg)

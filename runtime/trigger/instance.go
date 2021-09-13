@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -40,7 +40,7 @@ type InstanceConfig struct {
 	//
 	// Note that DebounceUntil and BufferUntil are mutually exclusive.
 	// Configuring both will cause NewInstance to return an error.
-	DebounceUntil []utils.DayTime
+	DebounceUntil []daytime.DayTime
 	// BufferUntil works similar to DebounceUntil but instead of dropping older
 	// events and just keeping the latest one BufferUntil keeps track of all
 	// events that occured between the configured day times. Once a day time is
@@ -49,7 +49,7 @@ type InstanceConfig struct {
 	//
 	// Note that DebounceUntil and BufferUntnil are mutually exclusive.
 	// Configuring both will cause NewInstance to return an error.
-	BufferUntil []utils.DayTime
+	BufferUntil []daytime.DayTime
 	// Location may defined the timezone the instance should operate in. The
 	// timezone is mainly required if DebounceUntil or BufferUntil is configured.
 	Location *time.Location
@@ -257,7 +257,7 @@ func (inst *Instance) fireBuffer(ctx context.Context) {
 func matchToInstanceConfig(match MatchConfig) (*InstanceConfig, error) {
 	instanceCfg := new(InstanceConfig)
 	for _, dt := range match.DebounceUntil {
-		val, err := utils.ParseDayTime(dt)
+		val, err := daytime.ParseDayTime(dt)
 		if err != nil {
 			return nil, fmt.Errorf("invalid value %q for DebounceUntil= : %w", dt, err)
 		}
@@ -265,7 +265,7 @@ func matchToInstanceConfig(match MatchConfig) (*InstanceConfig, error) {
 	}
 
 	for _, dt := range match.BufferUntil {
-		val, err := utils.ParseDayTime(dt)
+		val, err := daytime.ParseDayTime(dt)
 		if err != nil {
 			return nil, fmt.Errorf("invalid value %q for BufferUntil= : %w", dt, err)
 		}

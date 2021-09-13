@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -18,8 +18,8 @@ type GetOpeningHoursRangeResponse struct {
 }
 
 type GetOpeningHoursResponse struct {
-	Frames    []utils.TimeRange `json:"openingHours"`
-	IsHoliday bool              `json:"holiday"`
+	Frames    []daytime.TimeRange `json:"openingHours"`
+	IsHoliday bool                `json:"holiday"`
 }
 
 func GetOpeningHoursEndpoint(router *app.Router) {
@@ -70,7 +70,7 @@ func getSingleDayOpeningHours(ctx context.Context, app *app.App, at string, d ti
 		return nil, err
 	}
 
-	timeRanges := make([]utils.TimeRange, len(frames))
+	timeRanges := make([]daytime.TimeRange, len(frames))
 	for idx, frame := range frames {
 		timeRanges[idx] = *frame.At(d, app.Location())
 	}

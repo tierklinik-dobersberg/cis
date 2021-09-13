@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
 )
 
 // OpeningHour describes a single bussiness-open time range
 // with an additional OpenBefore and CloseAfter threshold for the
 // entry door.
 type OpeningHour struct {
-	utils.DayTimeRange
+	daytime.DayTimeRange
 
 	Holiday    bool          `json:"holiday"`
 	OpenBefore time.Duration `json:"closeBefore"`

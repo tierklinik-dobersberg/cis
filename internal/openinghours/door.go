@@ -14,7 +14,7 @@ import (
 
 	"github.com/tevino/abool"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 )
 
@@ -101,11 +101,11 @@ func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, ho
 		return nil, fmt.Errorf("Location: %w", err)
 	}
 
-	defaultOnCallDayStart, err := utils.ParseDayTime(cfg.DefaultOnCallDayStart)
+	defaultOnCallDayStart, err := daytime.ParseDayTime(cfg.DefaultOnCallDayStart)
 	if err != nil {
 		return nil, fmt.Errorf("DefaultOnCallDayStart: %w", err)
 	}
-	defaultOnCallNightStart, err := utils.ParseDayTime(cfg.DefaultOnCallNightStart)
+	defaultOnCallNightStart, err := daytime.ParseDayTime(cfg.DefaultOnCallNightStart)
 	if err != nil {
 		return nil, fmt.Errorf("DefaultOnCallNightStart: %w", err)
 	}
@@ -155,7 +155,7 @@ func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, ho
 					return nil, fmt.Errorf("multiple values for OnCallDayStart= at weekday %s", parsed)
 				}
 
-				dayStart, err := utils.ParseDayTime(c.OnCallDayStart)
+				dayStart, err := daytime.ParseDayTime(c.OnCallDayStart)
 				if err != nil {
 					return nil, fmt.Errorf("invalid OnCallDayStart: %w", err)
 				}
@@ -167,7 +167,7 @@ func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, ho
 					return nil, fmt.Errorf("multiple values for OnCallNightStart= at weekday %s", parsed)
 				}
 
-				nightStart, err := utils.ParseDayTime(c.OnCallNightStart)
+				nightStart, err := daytime.ParseDayTime(c.OnCallNightStart)
 				if err != nil {
 					return nil, fmt.Errorf("invalid OnCallNightStart: %w", err)
 				}
@@ -204,7 +204,7 @@ func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, ho
 
 		var ranges []OpeningHour
 		for _, r := range c.TimeRanges {
-			tr, err := utils.ParseDayTimeRange(r)
+			tr, err := daytime.ParseDayTimeRange(r)
 			if err != nil {
 				return nil, err
 			}
@@ -573,9 +573,9 @@ func (dc *DoorController) OpeningFramesForDay(ctx context.Context, t time.Time) 
 	return nil
 }
 
-func (dc *DoorController) findUpcomingFrames(ctx context.Context, t time.Time, limit int) []utils.TimeRange {
+func (dc *DoorController) findUpcomingFrames(ctx context.Context, t time.Time, limit int) []daytime.TimeRange {
 	log := log.From(ctx)
-	var result []utils.TimeRange
+	var result []daytime.TimeRange
 
 	// Nothing to search for if there aren't any regular opening hours.
 	// There could be some holiday-only or date-specific hours but that's rather a

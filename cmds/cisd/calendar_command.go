@@ -141,7 +141,7 @@ func getEventsCommand() *cobra.Command {
 
 				meta := ""
 				if event.Data != nil {
-					meta = fmt.Sprintf(" createdBy=%s cid=%s/%d", event.Data.CreatedBy, event.Data.CustomerSource, event.Data.CustomerID)
+					meta = fmt.Sprintf(" createdBy=%s cid=%s/%s", event.Data.CreatedBy, event.Data.CustomerSource, event.Data.CustomerID)
 				}
 
 				fmt.Fprintf(buf, "- _%s_ %s%s%s%s\n", event.StartTime.Format("15:04"), bold, event.Summary, bold, meta)

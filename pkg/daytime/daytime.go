@@ -1,4 +1,4 @@
-package utils
+package daytime
 
 import (
 	"fmt"
@@ -6,6 +6,11 @@ import (
 	"strings"
 	"time"
 )
+
+// Midnight returns a new time that represents midnight at t.
+func Midnight(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+}
 
 // DayTime represents a HH:MM time during the day.
 type DayTime [2]int

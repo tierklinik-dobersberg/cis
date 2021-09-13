@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
 )
 
 type ChangeOnCall struct {
-	dayStart   utils.DayTime
-	nightStart utils.DayTime
+	dayStart   daytime.DayTime
+	nightStart daytime.DayTime
 	loc        *time.Location
 	weekday    time.Weekday
 }

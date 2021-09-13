@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/utils"
+	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
 )
 
 // OpeningHours is used to describe the opening and office hours.
@@ -98,12 +98,12 @@ func (opt *OpeningHours) Validate() error {
 		}
 	}
 	if opt.OnCallDayStart != "" {
-		if _, err := utils.ParseDayTime(opt.OnCallDayStart); err != nil {
+		if _, err := daytime.ParseDayTime(opt.OnCallDayStart); err != nil {
 			return fmt.Errorf("OnCallDayStart: %w", err)
 		}
 	}
 	if opt.OnCallNightStart != "" {
-		if _, err := utils.ParseDayTime(opt.OnCallNightStart); err != nil {
+		if _, err := daytime.ParseDayTime(opt.OnCallNightStart); err != nil {
 			return fmt.Errorf("OnCallNightStart: %w", err)
 		}
 	}
