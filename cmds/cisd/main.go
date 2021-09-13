@@ -86,6 +86,8 @@ import (
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/vetinf"
 	// Neumayr importer
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/neumayr"
+	// CardDAV importer
+	_ "github.com/tierklinik-dobersberg/cis/internal/importer/carddav"
 
 	// Schema migrations
 	_ "github.com/tierklinik-dobersberg/cis/migrations"
