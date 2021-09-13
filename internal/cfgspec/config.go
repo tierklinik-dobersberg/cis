@@ -17,7 +17,7 @@ type Config struct {
 
 	UnknownContactName   string
 	UnknownContactSource string
-	UnknownContactID     int
+	UnknownContactID     string
 
 	DefaultOpenBefore time.Duration
 	DefaultCloseAfter time.Duration
@@ -89,7 +89,7 @@ var ConfigSpec = conf.SectionSpec{
 	{
 		Name:        "UnknownContactID",
 		Description: "The ID of the unknown contact",
-		Type:        conf.IntType,
+		Type:        conf.StringType,
 		Default:     "1",
 	},
 }

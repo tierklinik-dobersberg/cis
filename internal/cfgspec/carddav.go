@@ -1,8 +1,14 @@
-package carddav
+package cfgspec
 
 import "github.com/ppacher/system-conf/conf"
 
-type Config struct {
+type CardDAVConfig struct {
+	// ID is used to uniquely identify the CardDAV config
+	// and is used to persist the sync-tokens.
+	ID string
+	// Schedule describes the sync/import schedule using
+	// cron syntax.
+	Schedule string
 	// Server holds the URL of the CardDAV server.
 	Server string
 	// AllowInsecure can be set to true to disable
@@ -20,7 +26,19 @@ type Config struct {
 	AddressBook string
 }
 
-var Spec = conf.SectionSpec{
+var CardDAVSpec = conf.SectionSpec{
+	{
+		Name:        "ID",
+		Description: "ID uniquely identifies this CardDAV configuration and is used to perist the sync tokens",
+		Type:        conf.StringType,
+		Required:    true,
+	},
+	{
+		Name:        "Schedule",
+		Description: "A cron-like schedule to import customers from CardDAV",
+		Default:     "@every 10m",
+		Type:        conf.StringType,
+	},
 	{
 		Name:        "Server",
 		Description: "The URL of the CardDAV server.",
@@ -31,7 +49,6 @@ var Spec = conf.SectionSpec{
 		Name:        "AllowInsecure",
 		Description: "Wether or not insecure TLS server certificates should be accepted.",
 		Type:        conf.BoolType,
-		Required:    true,
 	},
 	{
 		Name:        "User",

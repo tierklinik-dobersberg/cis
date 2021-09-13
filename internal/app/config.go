@@ -8,16 +8,16 @@ import (
 
 // Config holds the complete cisd configuration.
 type Config struct {
-	session.IdentityConfig   `section:"Global"`
-	cfgspec.Config           `section:"Global"`
-	cfgspec.DatabaseConfig   `section:"Global"`
-	cfgspec.MqttConfig       `section:"Global"`
-	cfgspec.VetInf           `section:"Import"`
-	cfgspec.InfoScreenConfig `section:"InfoScreen"`
-
+	session.IdentityConfig    `section:"Global"`
+	cfgspec.Config            `section:"Global"`
+	cfgspec.DatabaseConfig    `section:"Global"`
+	cfgspec.MqttConfig        `section:"Global"`
+	cfgspec.VetInf            `section:"Import"`
+	cfgspec.InfoScreenConfig  `section:"InfoScreen"`
 	cfgspec.IntegrationConfig `section:"Integration"`
+	cfgspec.MongoLogConfig    `section:"MongoLog"`
 
-	cfgspec.MongoLogConfig `section:"MongoLog"`
+	CardDAVImports []cfgspec.CardDAVConfig `section:"CardDAV Import"`
 
 	GoogleCalendar calendar.GoogleCalendarConfig `section:"GoogleCalendar"`
 

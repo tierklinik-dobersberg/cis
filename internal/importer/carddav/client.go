@@ -7,16 +7,18 @@ import (
 
 	"github.com/emersion/go-webdav"
 	"github.com/emersion/go-webdav/carddav"
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 // Client supports basic CardDAV operations.
 type Client struct {
 	cli *carddav.Client
-	cfg *Config
+	cfg *cfgspec.CardDAVConfig
 }
 
 // NewClient returns a new CardDAV client.
-func NewClient(cfg Config) (*Client, error) {
+func NewClient(cfg cfgspec.CardDAVConfig) (*Client, error) {
 	var cli webdav.HTTPClient = http.DefaultClient
 
 	if cfg.User != "" {
@@ -38,13 +40,14 @@ func NewClient(cfg Config) (*Client, error) {
 	}, nil
 }
 
-func (cli *Client) Sync(ctx context.Context, syncToken string, deleted chan<- string, updated chan<- carddav.AddressObject) (string, error) {
-	syncResponse, err := cli.cli.SyncCollection(cli.cfg.AddressBook, &carddav.SyncQuery{
+func (cli *Client) Sync(ctx context.Context, col, syncToken string, deleted chan<- string, updated chan<- carddav.AddressObject) (string, error) {
+	syncResponse, err := cli.cli.SyncCollection(col, &carddav.SyncQuery{
 		SyncToken: syncToken,
 	})
 	if err != nil {
 		return "", err
 	}
+	logger.From(ctx).Infof("carddav: received sync response with %d deletes and %d updates", len(syncResponse.Deleted), len(syncResponse.Updated))
 
 	for _, d := range syncResponse.Deleted {
 		deleted <- d
@@ -54,13 +57,13 @@ func (cli *Client) Sync(ctx context.Context, syncToken string, deleted chan<- st
 	// or radicale is ingoring it. Nonetheless, we need to fetch all address objects in
 	// batches using MultiGet.
 	batchSize := 20
-	for i := 0; i < len(syncResponse.Updated); i++ {
-		paths := make([]string, batchSize)
-		for j := 0; j < batchSize; j++ {
-			paths[j] = syncResponse.Updated[i+j].Path
+	for i := 0; i < len(syncResponse.Updated); i += batchSize {
+		paths := make([]string, 0, batchSize)
+		for j := 0; j < batchSize && (i+j) < len(syncResponse.Updated); j++ {
+			paths = append(paths, syncResponse.Updated[i+j].Path)
 		}
 
-		objs, err := cli.cli.MultiGetAddressBook(cli.cfg.AddressBook, &carddav.AddressBookMultiGet{
+		objs, err := cli.cli.MultiGetAddressBook(col, &carddav.AddressBookMultiGet{
 			Paths: paths,
 			DataRequest: carddav.AddressDataRequest{
 				AllProp: true,
