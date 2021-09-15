@@ -9,7 +9,7 @@ import (
 func Setup(grp gin.IRouter) {
 	router := app.NewRouter(grp)
 
-	// GET /api/customer/v1/:id
+	// GET /api/customer/v1/:source/:id
 	GetByIDEndpoint(router)
 
 	// POST /api/customer/v1/search
