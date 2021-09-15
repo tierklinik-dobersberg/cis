@@ -34,10 +34,11 @@ func (task *Task) LastResult() (time.Time, error) {
 }
 
 type Manager struct {
-	l     sync.RWMutex
-	tasks []*Task
-	ctx   context.Context
-	cron  *cron.Cron
+	l       sync.RWMutex
+	tasks   []*Task
+	ctx     context.Context
+	cron    *cron.Cron
+	running bool
 }
 
 func NewManager(loc *time.Location) *Manager {
@@ -49,6 +50,14 @@ func NewManager(loc *time.Location) *Manager {
 }
 
 func (mng *Manager) Start(ctx context.Context) {
+	mng.l.Lock()
+	defer mng.l.Unlock()
+
+	if mng.running {
+		return
+	}
+
+	mng.running = true
 	mng.ctx = ctx
 	mng.cron.Start()
 
@@ -71,6 +80,13 @@ func (mng *Manager) Register(task *Task) error {
 	mng.l.Lock()
 	defer mng.l.Unlock()
 
+	if mng.running {
+		task.rootCtx = mng.ctx
+		if task.StartNow {
+			go task.Run()
+		}
+	}
+
 	task.cronEntry, err = mng.cron.AddJob(task.Schedule, task)
 	if err != nil {
 		return err
@@ -91,6 +107,8 @@ func (task *Task) Run() {
 		"start": start,
 	})
 
+	logger.From(ctx).Infof("starting task")
+
 	if task.Deadline > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithDeadline(ctx, time.Now().Add(task.Deadline))
@@ -107,10 +125,20 @@ func (task *Task) Run() {
 			}
 		}
 
+		errStr := ""
+		if execErr != nil {
+			errStr = execErr.Error()
+		}
+		logger.From(ctx).WithFields(logger.Fields{
+			"lastErr":  errStr,
+			"duration": time.Since(start),
+		}).Infof("task finished")
+
 		task.lastLock.Lock()
 		defer task.lastLock.Unlock()
 		task.lastErr = execErr
 		task.lastExecTime = start
+
 	}()
 
 	execErr = task.TaskFunc(ctx)

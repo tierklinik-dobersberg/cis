@@ -1,0 +1,93 @@
+<div class="card-container" *ngIf="!!nextSuggestion; else: nothingToDo">
+  <div class="card idx-0"></div>
+  <div class="card idx-1"></div>
+  <div class="card idx-2">
+    <ng-container [ngSwitch]="nextSuggestion.type">
+
+      <!-- Link Customers/Contacts -->
+      <ng-template ngSwitchCase="customer-link">
+        <h4>Kunden bereinigen</h4>
+
+        <p>Die folgenden Kontakte/Kunden scheinen zusammen zu gehören:</p>
+        <div class="customer-container">
+          <div class="customer-wrapper" *ngFor="let customer of nextSuggestion.customers"
+            (click)="nextSuggestion.data.primary = customer">
+            <div class="customer">
+              <span [routerLink]="['/customer/view', customer.source, customer.cid]" (click)="close($event)">
+                <span class="name">
+                  {{
+                  (customer.name || '') + ' ' +
+                  (customer.firstname || '') }}
+                </span>
+                <label class="id">ID: {{customer.cid}}</label>
+              </span>
+              <span class="address">
+                {{ (customer.street || 'N/A') + ', ' + (customer.cityCode || 'N/A') + ' ' + (customer.city || 'N/A') }}
+              </span>
+              <span class="phone">
+                <label>Telefon:</label>
+                <ul>
+                  <li *ngFor="let phone of customer.distinctPhoneNumbers"
+                    [class.reason]="nextSuggestion.data.value === phone">{{phone}}</li>
+                </ul>
+              </span>
+              <span class="mail">
+                <label>E-Mail:</label>
+                <ul>
+                  <li *ngFor="let mail of customer.mailAddresses" [class.reason]="nextSuggestion.data.value === mail">
+                    {{mail}}
+                  </li>
+                </ul>
+              </span>
+              <span class="group">
+                <label>Gruppe:</label> {{ customer.group || 'N/A' }}
+              </span>
+              <span class="last-call">
+                <label>Letzer Anruf:</label>
+                {{ (customer.lastCall?.date | date:'short':'':'de') || 'N/A'}}
+              </span>
+              <span class="source">
+                <label>Ursprung:</label>
+                <nz-tag [nzColor]="customerTagColor(customer)">
+                  {{ customer.source }}
+                </nz-tag>
+              </span>
+
+            </div>
+            <div class="primary"
+              *ngIf="customer.source == nextSuggestion.data.primary?.source && customer.cid == nextSuggestion.data.primary?.cid">
+              Hauptkontakt
+            </div>
+          </div>
+
+        </div>
+
+        <div class="actions">
+          <button nz-button nzType="link" (click)="dontAskAgain()">Nicht mehr fragen</button>
+          <button nz-button nzType="link" (click)="skip()">Überspringen</button>
+          <button nz-button nzType="link" (click)="apply()">Verlinken</button>
+        </div>
+      </ng-template>
+
+    </ng-container>
+  </div>
+</div>
+
+<ng-template #nothingToDo>
+  <nz-empty [nzNotFoundContent]="footerTpl">
+  </nz-empty>
+
+  <ng-template #footerTpl>
+    <h4 class="empty">
+      Alles erledigt!
+    </h4>
+    <br>
+    <span class="empty">
+      Danke für deine Mühe!<br>
+      Halte die Augen nach zukünftigen Vorschlägen offen!
+    </span>
+    <br>
+    <br>
+    <button nz-button nzType="primary" (click)="close($event)">Schließen</button>
+  </ng-template>
+</ng-template>

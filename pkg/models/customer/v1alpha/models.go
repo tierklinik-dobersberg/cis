@@ -1,6 +1,10 @@
 package v1alpha
 
-import "time"
+import (
+	"fmt"
+	"strings"
+	"time"
+)
 
 // Customer represents a customer model
 type Customer struct {
@@ -21,4 +25,24 @@ type Customer struct {
 	VaccinationReminder bool                   `json:"vaccinationReminder" bson:"vaccinationReminder,omitempty"`
 	CreatedAt           time.Time              `json:"createdAt"`
 	ModifiedAt          time.Time              `json:"modifiedAt"`
+}
+
+type CustomerRef struct {
+	CustomerID string `json:"cid,omitempty" bson:"cid,omitempty"`
+	Source     string `json:"source,omitempty" bson:"source,omitempty"`
+}
+
+func (ref CustomerRef) String() string {
+	return fmt.Sprintf("%s/%s", ref.Source, ref.CustomerID)
+}
+
+func ParseRef(s string) *CustomerRef {
+	parts := strings.Split(s, "/")
+	if len(parts) != 2 {
+		return nil
+	}
+	return &CustomerRef{
+		Source:     parts[0],
+		CustomerID: parts[1],
+	}
 }

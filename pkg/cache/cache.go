@@ -44,6 +44,9 @@ type Cache interface {
 
 	// Delete deletes any data stored under key.
 	Delete(ctx context.Context, key string) error
+
+	// List returns a list of keys matching prefix.
+	List(ctx context.Context, prefix string) ([]string, error)
 }
 
 type cache struct {
@@ -222,6 +225,33 @@ func (c *cache) Delete(ctx context.Context, key string) error {
 	defer unlock()
 
 	return mount.Delete(ctx, key)
+}
+
+func (c *cache) List(ctx context.Context, prefix string) ([]string, error) {
+	mount, err := c.findMount(prefix)
+	if err != nil {
+		return nil, err
+	}
+
+	unlock, ok := mount.Lock(ctx)
+	if !ok {
+		return nil, fmt.Errorf("failed to lock storage")
+	}
+	defer unlock()
+
+	records, err := mount.List(ctx, prefix)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve list: %w", err)
+	}
+
+	var keys []string
+	for _, r := range records {
+		if !r.Record.IsValid() {
+			continue
+		}
+		keys = append(keys, r.Key)
+	}
+	return keys, nil
 }
 
 func (c *cache) findMount(path string) (*Mount, error) {

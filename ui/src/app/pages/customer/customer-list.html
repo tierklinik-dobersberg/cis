@@ -75,7 +75,7 @@
             <a class="phonenumber" *ngIf="!!(customer.phoneNumbers || [])[0]"
               [attr.href]="'tel:' + (customer.phoneNumbers || [])[0]">
               <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
-              {{(customer.phoneNumbers || [])[0]}}
+              {{(customer.distinctPhoneNumbers || [])[0]}}
             </a>
 
             <nz-tag [nzColor]="customer.tagColor">{{ customer.source }}</nz-tag>

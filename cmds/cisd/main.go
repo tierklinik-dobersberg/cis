@@ -31,6 +31,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/patientapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/resourceapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/suggestionapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/triggerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/voicemailapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
@@ -90,7 +91,8 @@ import (
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/neumayr"
 	// CardDAV importer
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/carddav"
-
+	// Task: Find linkable customers
+	_ "github.com/tierklinik-dobersberg/cis/internal/tasks/linkable"
 	// Schema migrations
 	_ "github.com/tierklinik-dobersberg/cis/migrations"
 )
@@ -201,6 +203,8 @@ func getApp(ctx context.Context) *app.App {
 				infoscreenapi.Setup(apis.Group("infoscreen", session.Require()))
 				// access to the infoscreen show player
 				infoscreenapi.SetupPlayer(apis.Group("infoscreen"))
+				// access to the suggestion API
+				suggestionapi.Setup(apis.Group("suggestion", session.Require()))
 			}
 
 			return nil

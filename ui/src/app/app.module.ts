@@ -12,6 +12,7 @@ import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontaweso
 import { far } from '@fortawesome/free-regular-svg-icons';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
+import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -28,6 +29,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { IconsProviderModule } from './icons-provider.module';
 import { LoginModule } from './pages/login/login.module';
+import { SuggestionModule } from './pages/suggestions/suggestion.module';
 import { SharedModule } from './shared/shared.module';
 
 
@@ -51,6 +53,8 @@ registerLocaleData(de);
     FormsModule,
     HttpClientModule,
     NzMessageServiceModule,
+    SuggestionModule,
+    NzBadgeModule,
     BrowserAnimationsModule,
     NzModalModule,
     FontAwesomeModule,

@@ -85,7 +85,7 @@ import { NzBadgeModule } from 'ng-zorro-antd/badge';
     VoiceMailCardComponent,
     UpcomingEventsCardComponent,
     TriggerActionCardComponent,
-    MobileWelcomeCardComponent
+    MobileWelcomeCardComponent,
   ],
   exports: [WelcomeComponent]
 })

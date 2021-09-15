@@ -1,7 +1,23 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+
+export interface CustomerRef {
+  cid: string;
+  source: string;
+}
+
+export interface Suggestion {
+  id: string;
+  type: 'customer-link';
+  data: {
+    reason: 'same-name' | 'same-mail' | 'same-phone';
+    value: string;
+    refs: CustomerRef[];
+    primary?: CustomerRef;
+  }
+}
 
 export interface RemoteCustomer<T extends Date | string> {
   _id?: string;
@@ -32,8 +48,36 @@ export interface Customer extends RemoteCustomer<Date | string> {
 export class CustomerAPI {
   constructor(private http: HttpClient) { }
 
-  byId(source: string, id: number | string): Observable<Customer> {
-    return this.http.get<Customer | null>(`/api/customer/v1/${source}/${id}`)
+  getSuggestions({ limit }: { limit?: number } = {}): Observable<Suggestion[]> {
+    let params = new HttpParams();
+    if (!!limit && limit > 0) {
+      params = params.set("limit", limit)
+    }
+    return this.http.get<Suggestion[]>(`/api/suggestion/v1/suggestions`, {
+      params,
+    });
+  }
+
+  applySuggestion(s: Suggestion): Observable<void> {
+    return this.http.post(`/api/suggestion/v1/suggestions/${s.type}`, s)
+      .pipe(map(() => { }));
+  }
+
+  deleteSuggestion(id: string): Observable<void> {
+    return this.http.delete(`/api/suggestion/v1/suggestions/${id}`)
+      .pipe(map(() => { }));
+  }
+
+  byId(ref: CustomerRef): Observable<Customer>;
+  byId(source: string, id: number | string): Observable<Customer>;
+
+  byId(sourceOrRef: string | CustomerRef, id?: number | string): Observable<Customer> {
+    if (typeof sourceOrRef === 'object') {
+      id = sourceOrRef.cid;
+      sourceOrRef = sourceOrRef.source;
+    }
+
+    return this.http.get<Customer | null>(`/api/customer/v1/${sourceOrRef}/${id}`)
       .pipe(
         map(customer => {
           if (!customer) {
@@ -91,7 +135,7 @@ export function distinctPhoneNumbers(numbers: string[]): string[] {
   (numbers || []).forEach(phoneNumber => {
     const parts = phoneNumber.split(' ');
     const key = parts[parts.length - 1];
-    if (!distinct.has(key)) {
+    if (!distinct.has(key) || phoneNumber.startsWith('+')) {
       distinct.set(key, phoneNumber);
     }
   });

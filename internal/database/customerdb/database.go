@@ -46,6 +46,9 @@ type Database interface {
 
 	// DeleteCustomer deletes the customer identified by source and cid.
 	DeleteCustomer(ctx context.Context, id string) error
+
+	// Cursor returns a cursor for all objects in filter.
+	Cursor(ctx context.Context, filter bson.M) (*mongo.Cursor, error)
 }
 
 type database struct {
@@ -243,6 +246,10 @@ func (db *database) SearchCustomerByName(ctx context.Context, name string) ([]*C
 
 func (db *database) FilterCustomer(ctx context.Context, filter bson.M) ([]*Customer, error) {
 	return db.findCustomers(ctx, filter)
+}
+
+func (db *database) Cursor(ctx context.Context, filter bson.M) (*mongo.Cursor, error) {
+	return db.customers.Find(ctx, filter)
 }
 
 func (db *database) DeleteCustomer(ctx context.Context, id string) error {
