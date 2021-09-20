@@ -14,6 +14,7 @@ CIS also acts as a CRM and customer proxy to provides 3CX/mobile phones with con
 
 CIS currently provides the following features:
 
+- Works on any device: **mobile**, **table** and **desktop** (on **Linux**, **Windows** and **MacOS**)
 - Control the main entry door based on configured opening-hours
 - Integrated **user and permission management**
 - Customer and contact import:
@@ -31,6 +32,8 @@ CIS currently provides the following features:
 - create and manage **animated slide-shows** that can be displayed on info-screens using any capable web-browser
 - connect MJPEG based **camera streams** to monitor and **watch your cage rooms**
 - a **DICOM web-viewer** to check your medical images and show them to your customers (not for diagnostic purposes)
+- a **integrated comment** system to discuss vacations, customer issues or medical images
+- **integrated calendar system** (backed by google calendar) with support to attach customer/patient records
 
 ## Scope
 
