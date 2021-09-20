@@ -20,10 +20,16 @@ func init() {
 				return nil, err
 			}
 
-			return []*importer.Instance{
-				getCustomerImporter(app, exporter),
-				getAnimalImporter(app, exporter),
-			}, nil
+			ci, err := getCustomerImporter(app, exporter)
+			if err != nil {
+				return nil, err
+			}
+			ai, err := getAnimalImporter(app, exporter)
+			if err != nil {
+				return nil, err
+			}
+
+			return []*importer.Instance{ci, ai}, nil
 		},
 	})
 }

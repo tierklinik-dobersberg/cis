@@ -10,7 +10,7 @@ import (
 	"github.com/tierklinik-dobersberg/logger"
 )
 
-func getAnimalImporter(app *app.App, exporter *Exporter) *importer.Instance {
+func getAnimalImporter(app *app.App, exporter *Exporter) (*importer.Instance, error) {
 	return &importer.Instance{
 		ID:             "vetinf-animals: " + convertToID(app.Config.VetInfDirectory),
 		RunImmediately: true,
@@ -90,5 +90,5 @@ func getAnimalImporter(app *app.App, exporter *Exporter) *importer.Instance {
 				Deleted:  countDeleted,
 			}, nil
 		}),
-	}
+	}, nil
 }
