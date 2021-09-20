@@ -26,6 +26,34 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
 
+  #
+  # We use radicale as our upstream CardDAV server.
+  #
+  radicale:
+    image: tomsquest/docker-radicale:latest
+    ports:
+      - 8091:8091
+    volumes:
+      - ./radicale.conf:/config/config:ro
+      - ./radicale.users:/config/users:ro
+
+  #
+  # Import a collection for the admin user.
+  #
+  radicale-init:
+    image: curlimages/curl:latest
+    depends_on:
+      radicale:
+          condition: service_started
+    volumes:
+      - ../testdata/dump/carddav-collection.vcf:/tmp/addressbook.vcf
+    command:
+      - 'http://admin:password@radicale:8091/admin/2876ee8f-c693-8a49-bf95-25d41c97b674/' 
+      - -XPUT
+      - '-HContent-Type: text/vcard'
+      - --data-binary
+      - '@/tmp/addressbook.vcf'
+
   mosquitto:
     image: eclipse-mosquitto
     hostname: mosquitto

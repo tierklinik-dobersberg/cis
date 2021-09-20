@@ -1,0 +1,38 @@
+BEGIN:VCARD
+VERSION:3.0
+UID:ej2divlo2qhubdqunhd0soisf2zsaofuzw85
+EMAIL;TYPE=work:alice@example.com
+FN:Alice Musterfrau
+N:Musterfrau;Alice;;;
+NICKNAME:alice
+REV:20210920T210405Z
+TEL;TYPE=home:+4343214321
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+UID:ej2divlo2qhubdqunhd0soisf2zsaofuzw_2
+EMAIL;TYPE=work:alice@domain.tld
+FN:Alice Musterfrau
+N:Musterfrau;Alice;;;
+NICKNAME:alice
+REV:20210920T210405Z
+TEL;TYPE=home:+4343214321
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+UID:rua8g6iwtngdcjdfhrt64uxewk9gy2uigha5
+EMAIL;TYPE=home:max@example.com
+FN:Max Mustermann
+N:Mustermann;Max;;;
+NICKNAME:maxi
+REV:20210920T210324Z
+TEL;TYPE=cell:+4312341234
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+UID:rua8g6iwtngdcjdfhrt64uxewk9gy2uigh_2
+EMAIL;TYPE=home:max@example.com
+N:Mustermann;Max;;;
+NICKNAME:maxi
+REV:20210920T210324Z
+END:VCARD

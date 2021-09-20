@@ -1,0 +1,39 @@
+  {
+    "_id": {
+      "$oid": "60672029b801f66349752f99"
+    },
+    "cid": 0,
+    "name": "Test",
+    "firstname": "Testuser",
+    "street": "Teststree 1",
+    "cityCode": 1234,
+    "city": "Someplace",
+    "nameMetaphone": "TST TST",
+    "customerSource": "vetinf"
+  }
+  {
+    "_id": {
+      "$oid": "60672029b801f66349752f9e"
+    },
+    "cid": 1,
+    "name": "Customer2",
+    "street": "Customerstreet 61",
+    "cityCode": 1234,
+    "city": "Customcity",
+    "nameMetaphone": "LKKN LKKN",
+    "customerSource": "vetinf"
+  }
+  {
+    "_id": {
+      "$oid": "60672029b801f66349752fa1"
+    },
+    "cid": 2,
+    "group": "k",
+    "name": "Customer3",
+    "firstname": "Customer3",
+    "street": "Customerstreem 13",
+    "cityCode": 1111,
+    "city": "City",
+    "nameMetaphone": "XML SML",
+    "customerSource": "vetinf"
+  }
