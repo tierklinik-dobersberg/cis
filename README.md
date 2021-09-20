@@ -10,7 +10,27 @@ CIS also acts as a CRM and customer proxy to provides 3CX/mobile phones with con
 
 ## Features
 
-TBD
+### Overview
+
+CIS currently provides the following features:
+
+- Control the main entry door based on configured opening-hours
+- Integrated **user and permission management**
+- Customer and contact import:
+  - Import customer and (patitial) patient/animal records from **VetInf** (tierklinik-dobersberg/go-vetinf).
+  - Import customer data from **Neumayr**.
+  - Import/Manage customer data from **remote CardDAV servers** (like google contacts, radicale, ...)
+  - link and merge customers from multiple sources 
+- a **electronic duty roster** with support for working hours and emergency day/night shifts
+- tightly integrate with the **3CX telephone system** by
+  - managing **call records/journaling**
+  - providing **CRM lookups across all supported data sources** (see above)
+  - automatically handle **caller-forwarding to the doctor on duty** (see duty-roster)
+  - get **notified for new voicemails** and listen to them in the app.
+- send **notifications via rocket.chat, e-mail or SMS** (twilio subscription required)
+- create and manage **animated slide-shows** that can be displayed on info-screens using any capable web-browser
+- connect MJPEG based **camera streams** to monitor and **watch your cage rooms**
+- a **DICOM web-viewer** to check your medical images and show them to your customers (not for diagnostic purposes)
 
 ## Scope
 
