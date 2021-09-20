@@ -8,6 +8,7 @@ import (
 
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
+	"github.com/tierklinik-dobersberg/cis/internal/importer/importutils"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
@@ -41,7 +42,8 @@ func (imp *Importer) Import(ctx context.Context, mdb *os.File) (countNew, countU
 				countNew++
 			}
 		} else if existing != nil && existing.Hash() != customer.Hash() {
-			customer.ID = existing.ID
+			importutils.CopyCustomerAttributes(existing, &customer)
+
 			err = imp.app.Customers.UpdateCustomer(ctx, &customer)
 			if err == nil {
 				countUpdated++
@@ -62,4 +64,11 @@ func (imp *Importer) Import(ctx context.Context, mdb *os.File) (countNew, countU
 	}).Infof("import finished")
 
 	return
+}
+
+func init() {
+	customerdb.DefaultSourceManager.Register(customerdb.Source{
+		Name:        "neumayr",
+		Description: "Imports customer data from Neumayr .MDB files",
+	})
 }
