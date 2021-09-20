@@ -1,7 +1,7 @@
 import { AxiosResponse } from 'axios';
 import { Alice } from '../utils';
 
-fdescribe("CardDAV", () => {
+describe("CardDAV", () => {
     describe("importing customer data", () => {
         it("should have imported 2 contacts", async () => {
             const response = await Alice.post("http://localhost:3000/api/customer/v1/search", { "customerSource": "carddav" })
