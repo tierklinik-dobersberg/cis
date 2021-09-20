@@ -126,6 +126,11 @@ func (db *database) setup(ctx context.Context) error {
 				"customerSource": 1,
 			},
 		},
+		{
+			Keys: bson.M{
+				"linkedTo": 1,
+			},
+		},
 	})
 
 	if err != nil {

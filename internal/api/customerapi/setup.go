@@ -12,9 +12,15 @@ func Setup(grp gin.IRouter) {
 	// GET /api/customer/v1/:source/:id
 	GetByIDEndpoint(router)
 
+	// DELETE /api/customer/v1/:source/:id
+	DeleteCustomerEndpoint(router)
+
 	// POST /api/customer/v1/search
 	ExtendedSearchEndpoint(router)
 
 	// GET /api/customer/v1?name=XXX
 	FuzzySearchEndpoint(router)
+
+	// GET /api/customer/sources/v1
+	ListSourcesEndpoint(router)
 }
