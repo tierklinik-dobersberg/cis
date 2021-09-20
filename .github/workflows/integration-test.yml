@@ -3,13 +3,31 @@ on: push
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo
+        ports: 
+          - 27017:27017
+        env:
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: example
+
+      mosquitto:
+        image: eclipse-mosquitto
+        ports:
+          - 1883:1883
+          - 9001:9001
+        volumes:
+          - ./deploy/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
     steps:
       - uses: actions/checkout@v2
-      - name: Building cisd
-        run: cd deploy && docker-compose build cisd
-      - name: Setup environment
-        run: cd deploy && docker-compose up -d
+      - uses: actions/setup-go@v2
+      - name: Build cisd locally
+        run: go build ./cmds/cisd
       - name: Run Jasmine tests
-        run: cd spec && npm install && CI=true npm test || ( cd ../deploy ; docker-compose logs cisd ; exit -1 )
-      - name: Teardown environment
-        run: cd deploy && docker-compose down
+        run: |
+          export CONFIGURATION_DIRECTORY=/project/testdata/config
+          export STATE_DIRECTORY=/project/testdata/state
+          ./cisd &
+          cd spec && npm install && CI=true npm test || ( cd ../deploy ; docker-compose logs cisd ; exit -1 )
