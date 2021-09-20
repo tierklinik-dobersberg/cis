@@ -19,6 +19,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
+	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
@@ -46,7 +47,7 @@ func init() {
 }
 
 func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, error) {
-	cli, err := NewClient(cfg)
+	cli, err := NewClient(&cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +214,44 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 		}),
 	}
 
+	if err := customerdb.DefaultSourceManager.Register(customerdb.Source{
+		Name:        "carddav",
+		Description: "Imports contact data from a CardDAV server",
+		Metadata: map[string]interface{}{
+			"Server":      cfg.Server,
+			"AddressBook": cfg.AddressBook,
+			"User":        cfg.User,
+		},
+		DeleteFunc: func(ctx context.Context, cus *customerdb.Customer) error {
+			return deleteContact(ctx, cus, cli)
+		},
+	}); err != nil {
+		return nil, err
+	}
+
 	return i, nil
+}
+
+func deleteContact(ctx context.Context, cus *customerdb.Customer, cli *Client) error {
+	carddavMd := cus.Metadata["carddav"]
+	if carddavMd == nil {
+		logger.From(ctx).Infof("Metadata: %+v", cus.Metadata)
+		return httperr.InternalError(nil, "customer does not have carddav metadata record")
+	}
+	md, _ := carddavMd.(map[string]interface{})
+	if md == nil {
+		return httperr.InternalError(fmt.Errorf("customer carddav record has invalid type %T", carddavMd))
+	}
+	ab, _ := md["collection"].(string)
+	path, _ := md["path"].(string)
+
+	if ab == "" || path == "" {
+		return httperr.InternalError(nil, "customer does not have collection or path metadata records")
+	}
+	if ab != cli.cfg.AddressBook {
+		return httperr.InternalError(fmt.Errorf("customer has a different carddav addressbook record: %q != %q", cli.cfg.AddressBook, ab))
+	}
+	return cli.DeleteObject(ctx, path)
 }
 
 func handleDelete(ctx context.Context, cfg *cfgspec.CardDAVConfig, app *app.App, path string) error {
@@ -279,12 +317,12 @@ func handleUpdate(ctx context.Context, cfg *cfgspec.CardDAVConfig, app *app.App,
 	}
 
 	cus.Metadata = map[string]interface{}{
-		"carddav": map[string]interface{}{
+		"carddav": bson.M{
 			"id":         cfg.ID,
 			"path":       ao.Path,
 			"collection": cfg.AddressBook,
 		},
-		"vcard": map[string]interface{}{
+		"vcard": bson.M{
 			"uid": ao.Card.Value(vcard.FieldUID),
 			"url": ao.Card.Value(vcard.FieldURL),
 			"rev": ao.Card.Value(vcard.FieldRevision),

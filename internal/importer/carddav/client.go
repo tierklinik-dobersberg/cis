@@ -18,7 +18,7 @@ type Client struct {
 }
 
 // NewClient returns a new CardDAV client.
-func NewClient(cfg cfgspec.CardDAVConfig) (*Client, error) {
+func NewClient(cfg *cfgspec.CardDAVConfig) (*Client, error) {
 	var cli webdav.HTTPClient = http.DefaultClient
 
 	if cfg.User != "" {
@@ -35,7 +35,7 @@ func NewClient(cfg cfgspec.CardDAVConfig) (*Client, error) {
 	}
 
 	return &Client{
-		cfg: &cfg,
+		cfg: cfg,
 		cli: davcli,
 	}, nil
 }
@@ -77,6 +77,13 @@ func (cli *Client) Sync(ctx context.Context, col, syncToken string, deleted chan
 		}
 	}
 	return syncResponse.SyncToken, nil
+}
+
+func (cli *Client) DeleteObject(ctx context.Context, path string) error {
+	if err := cli.cli.RemoveAll(path); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (cli *Client) ListAddressBooks(ctx context.Context) ([]carddav.AddressBook, error) {
