@@ -113,14 +113,21 @@ func DeleteSuggestionEndpoint(r *app.Router) {
 			ApplySuggestionsAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
+			delete := c.Request.URL.Query().Has("delete")
 			b64id := c.Param("id")
 			id, err := base64.RawStdEncoding.DecodeString(b64id)
 			if err != nil {
 				return httperr.InvalidParameter("id")
 			}
 
-			if err := linkable.MarkFalsePositive(ctx, app, string(id)); err != nil {
-				return err
+			if delete {
+				if err := linkable.DeleteSuggestion(ctx, app, string(id)); err != nil {
+					return err
+				}
+			} else {
+				if err := linkable.MarkFalsePositive(ctx, app, string(id)); err != nil {
+					return err
+				}
 			}
 
 			c.Status(http.StatusNoContent)
