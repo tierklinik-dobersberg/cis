@@ -41,6 +41,18 @@ func (sug *Suggestion) cacheKey() string {
 
 const CachePrefix = "persist/suggestions/linkable/"
 
+// DeleteSuggestion actually deletes a cache entry for the suggestion identified by
+// suggestionKey. Note that the suggestion is likely to get re-created the next time
+// FindLinkableCustomers is executed if the root cause of the suggestion did not change.
+func DeleteSuggestion(ctx context.Context, app *app.App, suggestionKey string) error {
+	if err := app.Cache.Delete(ctx, suggestionKey); err != nil {
+		if !errors.Is(err, cache.ErrNotFound) {
+			return err
+		}
+	}
+	return nil
+}
+
 // MarkFalsePositive marks a customer-link suggestion as false-positive.
 func MarkFalsePositive(ctx context.Context, app *app.App, suggestionKey string) error {
 	blob, _, err := app.Cache.Read(ctx, suggestionKey)
@@ -81,7 +93,7 @@ func LinkCustomers(ctx context.Context, app *app.App, suggestion Suggestion) err
 	// fail to link the customers further down the same suggestion
 	// should be created the next time the task is executed.
 	if err := app.Cache.Delete(ctx, suggestion.cacheKey()); err != nil {
-		return fmt.Errorf("failed to delete suggestion from cache: %w", err)
+		return fmt.Errorf("failed to delete suggestion %q from cache: %w", suggestion.cacheKey(), err)
 	}
 
 	// try to find the primary customer. If that fails the suggestion cannot
@@ -158,9 +170,16 @@ func FindLinkableCustomers(ctx context.Context) error {
 		m[val] = append(m[val], ref)
 	}
 
+	var i int
 	// iterate over all customers and group them by mail, name and
 	// phone number
 	for cursor.Next(ctx) {
+		i++
+
+		if i%100 == 0 {
+			logger.From(ctx).Infof("processed %d customer records so far", i)
+		}
+
 		var c customerdb.Customer
 		if err := cursor.Decode(&c); err != nil {
 			return fmt.Errorf("failed to decode customer: %w", err)
