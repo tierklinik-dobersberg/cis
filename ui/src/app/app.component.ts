@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { ApplicationRef, ChangeDetectorRef, Component, HostListener, isDevMode, OnInit } from '@angular/core';
+import { ApplicationRef, Component, HostListener, isDevMode, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -8,9 +8,9 @@ import { interval } from 'rxjs';
 import { delay, filter, first, map, mergeMap, retryWhen, share, startWith, take } from 'rxjs/operators';
 import { LayoutService } from 'src/app/services';
 import { ConfigAPI, IdentityAPI, Permission, ProfileWithAvatar, UIConfig, VoiceMailAPI } from './api';
-import { CustomerAPI } from './api/customer.api';
 import { InfoScreenAPI } from './api/infoscreen.api';
 import { SuggestionCardComponent } from './pages/suggestions/suggestion-card';
+import { SuggestionService } from './pages/suggestions/suggestion.service';
 import { toggleRouteQueryParamFunc } from './utils';
 
 interface MenuEntry {
@@ -89,7 +89,6 @@ export class AppComponent implements OnInit {
       && this.hasRoster;
   }
 
-  suggestionCount = 0;
   infoScreenEnabled = false;
 
   constructor(
@@ -105,8 +104,7 @@ export class AppComponent implements OnInit {
     private voice: VoiceMailAPI,
     private http: HttpClient,
     private showAPI: InfoScreenAPI,
-    private cdr: ChangeDetectorRef,
-    private customerAPI: CustomerAPI,
+    private suggestionService: SuggestionService,
   ) {
   }
 
@@ -126,20 +124,13 @@ export class AppComponent implements OnInit {
     })
   }
 
+  get suggestionCount() { return this.suggestionService.count$ }
+
   ngOnInit(): void {
     this.checkReachability();
     this.activeRoute.queryParamMap
       .subscribe(params => {
         this.isCollapsed = !params.has('show-menu');
-      })
-
-    interval(10 * 1000 * 60)
-      .pipe(
-        startWith(-1),
-        mergeMap(() => this.customerAPI.getSuggestions({ limit: 11 }))
-      )
-      .subscribe(sug => {
-        this.suggestionCount = (sug || []).length;
       })
 
     this.updates.available

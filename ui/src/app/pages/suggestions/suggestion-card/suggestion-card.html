@@ -11,12 +11,18 @@
         <p>Die folgenden Kontakte/Kunden scheinen zusammen zu gehören:</p>
         <div class="customer-container">
           <div class="customer-wrapper" *ngFor="let customer of nextSuggestion.customers"
-            (click)="nextSuggestion.data.primary = customer">
+            (click)="setPrimary(customer)">
+
+            <!-- we only allow deletion of customers if there's more than one per source -->
+            <i class="delete" *ngIf="sourceCounts[customer.source] > 1 && customer | canDeleteCustomer" nz-popconfirm
+              nzPopconfirmTitle="Soll dieser Kunde sicher gelöscht werden?" (click)="$event.stopPropagation()"
+              (nzOnConfirm)="deleteCustomer(customer)" nz-icon nzType="delete" nzTheme="outline"></i>
+
             <div class="customer">
               <span [routerLink]="['/customer/view', customer.source, customer.cid]" (click)="close($event)">
                 <span class="name">
                   {{
-                  (customer.name || '') + ' ' +
+                  (customer.name || '') + ', ' +
                   (customer.firstname || '') }}
                 </span>
                 <label class="id">ID: {{customer.cid}}</label>
@@ -54,8 +60,7 @@
               </span>
 
             </div>
-            <div class="primary"
-              *ngIf="customer.source == nextSuggestion.data.primary?.source && customer.cid == nextSuggestion.data.primary?.cid">
+            <div class="primary" *ngIf="customer.source == primarySource && customer.cid == primaryCid">
               Hauptkontakt
             </div>
           </div>
@@ -74,20 +79,22 @@
 </div>
 
 <ng-template #nothingToDo>
-  <nz-empty [nzNotFoundContent]="footerTpl">
-  </nz-empty>
+  <ng-container *ngIf="loaded">
+    <nz-empty [nzNotFoundContent]="footerTpl">
+    </nz-empty>
 
-  <ng-template #footerTpl>
-    <h4 class="empty">
-      Alles erledigt!
-    </h4>
-    <br>
-    <span class="empty">
-      Danke für deine Mühe!<br>
-      Halte die Augen nach zukünftigen Vorschlägen offen!
-    </span>
-    <br>
-    <br>
-    <button nz-button nzType="primary" (click)="close($event)">Schließen</button>
-  </ng-template>
+    <ng-template #footerTpl>
+      <h4 class="empty">
+        Alles erledigt!
+      </h4>
+      <br>
+      <span class="empty">
+        Danke für deine Mühe!<br>
+        Halte die Augen nach zukünftigen Vorschlägen offen!
+      </span>
+      <br>
+      <br>
+      <button nz-button nzType="primary" (click)="close($event)">Schließen</button>
+    </ng-template>
+  </ng-container>
 </ng-template>

@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 export interface CustomerRef {
   cid: string;
@@ -17,6 +17,13 @@ export interface Suggestion {
     refs: CustomerRef[];
     primary?: CustomerRef;
   }
+}
+
+export interface CustomerSource {
+  name: string;
+  description?: string;
+  metadata?: object;
+  supportsDelete: boolean;
 }
 
 export interface RemoteCustomer<T extends Date | string> {
@@ -46,7 +53,34 @@ export interface Customer extends RemoteCustomer<Date | string> {
   providedIn: 'root'
 })
 export class CustomerAPI {
-  constructor(private http: HttpClient) { }
+  private sources = new Map<string, CustomerSource>();
+
+  constructor(private http: HttpClient) {
+    // customer sources will likely never change during
+    // runtime as it can only happen with new CIS releases.
+    // that's why we load them at startup and keep the in-mem.
+    // It requires customer:read permission.
+    this.loadSources();
+  }
+
+  private loadSources() {
+    this.http.get<CustomerSource[]>(`/api/customer/sources/v1`)
+      .pipe(catchError(err => of([])))
+      .subscribe(sources => {
+        sources.forEach(source => {
+          this.sources.set(source.name.toLocaleLowerCase(), source);
+        })
+      })
+  }
+
+  getSource(sourceName: string): CustomerSource | null;
+  getSource(customer: CustomerRef): CustomerSource | null;
+  getSource(sourceOrRef: string | CustomerRef): CustomerSource {
+    if (typeof sourceOrRef === 'object') {
+      sourceOrRef = sourceOrRef.source;
+    }
+    return this.sources.get(sourceOrRef.toLocaleLowerCase());
+  }
 
   getSuggestions({ limit }: { limit?: number } = {}): Observable<Suggestion[]> {
     let params = new HttpParams();
@@ -59,12 +93,17 @@ export class CustomerAPI {
   }
 
   applySuggestion(s: Suggestion): Observable<void> {
-    return this.http.post(`/api/suggestion/v1/suggestions/${s.type}`, s)
+    return this.http.post(`/api/suggestion/v1/suggestions/${s.type}`, s.data)
       .pipe(map(() => { }));
   }
 
-  deleteSuggestion(id: string): Observable<void> {
-    return this.http.delete(`/api/suggestion/v1/suggestions/${id}`)
+  /** Deletes or marks a suggestion as false-positive */
+  deleteSuggestion(id: string, del = false): Observable<void> {
+    let params = new HttpParams();
+    if (del) {
+      params = params.set("delete", "")
+    }
+    return this.http.delete(`/api/suggestion/v1/suggestions/${id}`, { params })
       .pipe(map(() => { }));
   }
 
@@ -91,6 +130,16 @@ export class CustomerAPI {
             modifiedAt: new Date(customer.modifiedAt),
           };
         }));
+  }
+
+  deleteCustomer(ref: CustomerRef): Observable<void>;
+  deleteCustomer(source: string, cid: string): Observable<void>;
+  deleteCustomer(sourceOrRef: string | CustomerRef, cid?: string): Observable<void> {
+    if (typeof sourceOrRef === 'object') {
+      cid = sourceOrRef.cid;
+      sourceOrRef = sourceOrRef.source;
+    }
+    return this.http.delete<void>(`/api/customer/v1/${sourceOrRef}/${cid}`);
   }
 
   searchName(name: string): Observable<Customer[]> {

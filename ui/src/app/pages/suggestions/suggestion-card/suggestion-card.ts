@@ -1,11 +1,13 @@
-import { NullTemplateVisitor } from "@angular/compiler";
 import { Component, OnDestroy, OnInit } from "@angular/core";
+import { NzMessageService } from "ng-zorro-antd/message";
 import { NzModalRef } from "ng-zorro-antd/modal";
 import { forkJoin, of, Subject } from "rxjs";
-import { catchError, map, mergeMap } from "rxjs/operators";
+import { catchError, map, mergeMap, take } from "rxjs/operators";
 import { CallLog, CalllogAPI } from "src/app/api";
-import { Customer, CustomerAPI, Suggestion } from "src/app/api/customer.api";
+import { Customer, CustomerAPI, CustomerRef, Suggestion } from "src/app/api/customer.api";
+import { extractErrorMessage } from "src/app/utils";
 import { customerTagColor } from "../../customer/utils";
+import { SuggestionService } from "../suggestion.service";
 
 interface LocalSuggestion extends Suggestion {
   customers: LocalCustomer[];
@@ -28,27 +30,36 @@ export class SuggestionCardComponent implements OnInit, OnDestroy {
   _suggestions: Suggestion[] = [];
 
   nextSuggestion: LocalSuggestion | null = null;
+  primaryRef: CustomerRef | null = null;
+  loaded = false;
+
+  sourceCounts: { [key: string]: number } = {};
 
   constructor(
     private customerAPI: CustomerAPI,
     private calllogAPI: CalllogAPI,
     private nzModalRef: NzModalRef,
+    private nzMessageService: NzMessageService,
+    private suggestionService: SuggestionService,
   ) { }
 
   ngOnInit() {
-    this.customerAPI.getSuggestions({ limit: 100 })
-      .subscribe(res => {
-        this._suggestions = res;
+    this.nzModalRef.afterClose
+      .pipe(take(1))
+      .subscribe(() => this.suggestionService.reload());
 
-        this.nextSuggestion = null;
-        if (!!res && res.length > 0) {
-          this.loadNext(res[0]);
-          this._suggestions = res.slice(1);
-        }
-      })
+    this.suggestionService.first$
+      .subscribe(sug => this.loadNext(sug));
   }
 
-  private loadNext(s: Suggestion) {
+  private loadNext(s: Suggestion | null) {
+    this.sourceCounts = {};
+    this.loaded = true;
+    if (!s) {
+      this.nextSuggestion = null;
+      return;
+    }
+    this.primaryRef = s.data.primary || null;
     forkJoin(
       s.data.refs.map(r => this.customerAPI.byId(r)
         .pipe(
@@ -71,7 +82,41 @@ export class SuggestionCardComponent implements OnInit, OnDestroy {
           ...s,
           customers: customers,
         }
+        customers.forEach(cus => {
+          this.sourceCounts[cus.source] = (this.sourceCounts[cus.source] || 0) + 1;
+        })
+      }, err => {
+        // there was an error loading the customers of this
+        // suggestion so skip over to the next one.
+        this.skip();
       })
+  }
+
+  get primarySource() {
+    return this.primaryRef?.source;
+  }
+
+  get primaryCid() {
+    return this.primaryRef?.cid;
+  }
+
+  deleteCustomer(customer: Customer) {
+    const loading = this.nzMessageService.loading("Kunde wird gelöscht ...");
+    this.customerAPI.deleteCustomer(customer)
+      .subscribe({
+        next: () => {
+          this.nzMessageService.remove(loading.messageId);
+          this.suggestionService.discardCurrent(true);
+        },
+        error: err => {
+          this.nzMessageService.remove(loading.messageId);
+          this.nzMessageService.error(extractErrorMessage(err, 'Kunde konnte nicht gelöscht werden'))
+        }
+      })
+  }
+
+  setPrimary(ref: CustomerRef) {
+    this.primaryRef = ref;
   }
 
   close(event: MouseEvent) {
@@ -88,21 +133,14 @@ export class SuggestionCardComponent implements OnInit, OnDestroy {
   }
 
   dontAskAgain() {
-    this.customerAPI.deleteSuggestion(this.nextSuggestion.id)
-      .subscribe(() => this.skip())
+    this.suggestionService.discardCurrent();
   }
 
   skip() {
-    if (!!this._suggestions[0]) {
-      this.loadNext(this._suggestions[0]);
-    } else {
-      this.nextSuggestion = null;
-    }
-    this._suggestions = this._suggestions.slice(1);
+    this.suggestionService.skipCurrent();
   }
 
   apply() {
-    this.customerAPI.applySuggestion(this.nextSuggestion)
-      .subscribe(() => this.skip())
+    this.suggestionService.applyCurrent(this.primaryRef);
   }
 }

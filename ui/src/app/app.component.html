@@ -144,11 +144,14 @@
         <div class="right-container">
           <i class="drawer-trigger" (click)="toggleMenu()" nz-icon nzType="menu" nzTheme="outline"></i>
 
-          <nz-badge (click)="openSuggestionDialog()" [nzCount]="suggestionCount" [nzOverflowCount]="10"
-            [nzStyle]="{cursor: 'pointer', backgroundColor: 'transparent', color: 'orange', boxShadow: 'none', fontSize: '9px'}">
-            <i nz-icon nzType="bell" nzTheme="outline" style="font-size: 20px"
-              [style.color]="suggestionCount > 0 ? 'orange' : 'inherit'"></i>
-          </nz-badge>
+          <ng-container *ngIf="(suggestionCount | async) as count">
+
+            <nz-badge (click)="openSuggestionDialog()" [nzCount]="count" [nzOverflowCount]="10"
+              [nzStyle]="{cursor: 'pointer', backgroundColor: 'transparent', color: 'orange', boxShadow: 'none', fontSize: '9px'}">
+              <i nz-icon nzType="bell" nzTheme="outline" style="font-size: 20px"
+                [style.color]="count > 0 ? 'orange' : 'inherit'"></i>
+            </nz-badge>
+          </ng-container>
 
           <span *ngIf="!layout.isPhone" class="current-user" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click">
             <nz-avatar nzIcon="user" [nzSrc]="profile?.avatar">
