@@ -2,3 +2,4 @@
 node_modules
 /ui/ckeditor/build
 /cardcli
+testdata/config/conf.d/carddav.conf
