@@ -150,7 +150,7 @@ func LoginEndpoint(grp *app.Router) {
 					// If the cookie is still valid just return immediately without
 					// creating a new session cookie.
 					// TODO(ppacher): make configurable
-					if sess.AccessUntil != nil && sess.AccessUntil.Sub(time.Now()) > 5*time.Minute {
+					if sess.AccessUntil != nil && time.Until(*sess.AccessUntil) > 5*time.Minute {
 						log.Infof("accepting request as cookie is still valid until %s", sess.AccessUntil)
 						c.Status(http.StatusOK)
 						return nil
@@ -158,10 +158,6 @@ func LoginEndpoint(grp *app.Router) {
 
 					log.Infof("session expiration at %s, auto-renewing token", sess.AccessUntil)
 				}
-			} else {
-				log = log.WithFields(logger.Fields{
-					"user": user.Name,
-				})
 			}
 
 			if user == nil {
