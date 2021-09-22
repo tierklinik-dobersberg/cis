@@ -11,6 +11,8 @@ type memory struct {
 	records map[string]Record
 }
 
+// NewMemoryStore returns a new cache.Store that keeps all records
+// in memory. Only use for really ephemeral data!
 func NewMemoryStore() Store {
 	return &memory{
 		records: make(map[string]Record),
@@ -43,6 +45,9 @@ func (mem *memory) Get(_ context.Context, key string) (*KeyRecord, error) {
 }
 
 func (mem *memory) Delete(_ context.Context, key string) error {
+	if _, ok := mem.records[key]; !ok {
+		return ErrNotFound
+	}
 	delete(mem.records, key)
 	return nil
 }
@@ -60,3 +65,6 @@ func (mem *memory) List(_ context.Context, prefix string) ([]*KeyRecord, error) 
 	}
 	return res, nil
 }
+
+// Compile time check
+var _ Store = new(memory)

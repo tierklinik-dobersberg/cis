@@ -10,16 +10,35 @@ import (
 	"github.com/tierklinik-dobersberg/logger"
 )
 
+// Common errors when working with the cache package:
 var (
-	ErrNotFound = errors.New("cache record not found")
+	ErrNotFound         = errors.New("cache record not found")
+	ErrNoMounts         = errors.New("no mounts specified")
+	ErrLockFailed       = errors.New("failed to lock storage")
+	ErrNoMatchingMount  = errors.New("no storage mounted for path")
+	ErrInvalidMount     = errors.New("invalid mount")
+	ErrOverlappingMount = errors.New("overlapping mount")
 )
 
+// Metadata holds additional metadata for a cache entry.
 type Metadata struct {
-	NotValidAfter    *time.Time
-	CreatedAt        time.Time
+	// NotValidAfter may hold the time at which the cache entry
+	// expires and must not be used anymore.
+	NotValidAfter *time.Time
+
+	// CreatedAt holds the timestamp the cache entry has been
+	// created.
+	CreatedAt time.Time
+
+	// BurnAfterReading is set to true if the cache entry should
+	// be evicted/expired as soon as a call to Read() happened.
+	// Note that List()ing cache keys does not burn a cache item.
 	BurnAfterReading bool
 }
 
+// IsValid returns true if the cache entry of md is still valid.
+// If the cache entry has already reached it's end-of-life false
+// is returned.
 func (md *Metadata) IsValid() bool {
 	if md.NotValidAfter == nil {
 		return true
@@ -31,34 +50,62 @@ func (md *Metadata) IsValid() bool {
 // Users of Cache should not care about the Record struct as it'
 // mainly exported for Store interface implementers.
 type Record struct {
+	// Metadata holds additional metadata for the cache record
 	Metadata
+
+	// Data is the actual payload of the cache record. The cache package
+	// does not make any assumptions about the content stored here.
 	Data []byte
 }
 
 type Cache interface {
-	// Write stores data under key.
+	// Write stores data under key. The cache package does not make any assumptions
+	// about the data stored in the cache. Callers must make sure to not modify data
+	// after calling write as the underlying cache store might keep a reference to
+	// the slice (like the in-memory store). Callers should rather create a copy
+	// of the data if later modifications of the slice are likely to happen.
 	Write(ctx context.Context, key string, data []byte, opts ...Option) error
 
 	// Read returns the data and associated metadata stored under key.
+	// If callers want to manipulate the data returned they are adviced
+	// to create a copy as the underlying cache store (like the in-memory store)
+	// might keep a reference to the returned byte slice. It is safe to
+	// manipulate the returned Metadata though.
 	Read(ctx context.Context, key string) ([]byte, *Metadata, error)
 
-	// Delete deletes any data stored under key.
+	// Delete deletes any data stored under key. It returns ErrNotFound
+	// if the cache entry to be deleted does not exist.
 	Delete(ctx context.Context, key string) error
 
-	// List returns a list of keys matching prefix.
+	// List returns a list of keys matching prefix. Note that List does not
+	// remove cache entries that used WithBurnAfterReading(). List will hide
+	// any cache items that are not valid anymore (i.e. exceeded their end-of-
+	// live).
 	List(ctx context.Context, prefix string) ([]string, error)
+}
+
+// Mount describes a store being "mounted" on a given path. All cache items
+// stored as children of that path will be passed to the mounted store.
+type Mount struct {
+	// Store is the actual store that keeps track of all cache records
+	// under Path.
+	Store
+
+	// Path describes the base path of the mount. All items prefixed with
+	// this path will be stored in Store.
+	Path string
 }
 
 type cache struct {
 	mounts map[string]*Mount
 }
 
-type Mount struct {
-	Store
-	Path string
-}
-
+// NewCache returns a new cache instance with the given mounts. If no
+// mounts are specified an error is returned.
 func NewCache(ctx context.Context, mounts ...Mount) (Cache, error) {
+	if len(mounts) == 0 {
+		return nil, ErrNoMounts
+	}
 	c := &cache{
 		mounts: make(map[string]*Mount),
 	}
@@ -66,10 +113,10 @@ func NewCache(ctx context.Context, mounts ...Mount) (Cache, error) {
 		mount := &mounts[idx]
 		path := trimPath(mount.Path)
 		if path == "" || len(strings.Split(path, "/")) > 1 {
-			return nil, fmt.Errorf("invalid mount path: %q", mount.Path)
+			return nil, fmt.Errorf("%q: %w", mount.Path, ErrInvalidMount)
 		}
 		if _, ok := c.mounts[path]; ok {
-			return nil, fmt.Errorf("overlapping mounts on path %s", path)
+			return nil, fmt.Errorf("%s: %w", path, ErrOverlappingMount)
 		}
 		c.mounts[path] = mount
 	}
@@ -168,7 +215,7 @@ func (c *cache) Write(ctx context.Context, key string, data []byte, opts ...Opti
 
 	unlock, ok := mount.Lock(ctx)
 	if !ok {
-		return fmt.Errorf("failed to lock storage")
+		return ErrLockFailed
 	}
 	defer unlock()
 
@@ -183,7 +230,7 @@ func (c *cache) Read(ctx context.Context, key string) ([]byte, *Metadata, error)
 
 	unlock, ok := mount.Lock(ctx)
 	if !ok {
-		return nil, nil, fmt.Errorf("failed to lock storage")
+		return nil, nil, ErrLockFailed
 	}
 	defer unlock()
 
@@ -220,7 +267,7 @@ func (c *cache) Delete(ctx context.Context, key string) error {
 
 	unlock, ok := mount.Lock(ctx)
 	if !ok {
-		return fmt.Errorf("failed to lock storage")
+		return ErrLockFailed
 	}
 	defer unlock()
 
@@ -235,7 +282,7 @@ func (c *cache) List(ctx context.Context, prefix string) ([]string, error) {
 
 	unlock, ok := mount.Lock(ctx)
 	if !ok {
-		return nil, fmt.Errorf("failed to lock storage")
+		return nil, ErrLockFailed
 	}
 	defer unlock()
 
@@ -261,7 +308,7 @@ func (c *cache) findMount(path string) (*Mount, error) {
 			return store, nil
 		}
 	}
-	return nil, fmt.Errorf("key %s: no storage mounted", path)
+	return nil, ErrNoMatchingMount
 }
 
 func cloneRecord(r *Record) Record {
