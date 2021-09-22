@@ -20,6 +20,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
+	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
@@ -57,161 +58,7 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 		ID:             id,
 		Schedule:       cfg.Schedule,
 		RunImmediately: true,
-		Handler: importer.ImportFunc(func(ctx context.Context) (interface{}, error) {
-			log := log.From(ctx)
-
-			// determine the addressbook to use and update cfg.AddressBook so this
-			// importer instance always uses the same addressbook.
-			if cfg.AddressBook == "" {
-				log.Errorf("%s: no address book configured. Trying to auto-detect the default addressbook", id)
-
-				books, err := cli.ListAddressBooks(ctx)
-				if err != nil {
-					return nil, fmt.Errorf("failed to enumerate address books: %w", err)
-				}
-				if len(books) == 0 {
-					return nil, fmt.Errorf("no address books available")
-				}
-				// try to find an address book with the name "default"
-				for _, b := range books {
-					if strings.ToLower(b.Name) == "default" {
-						log.Infof("%s: using address book %s (%s)", id, b.Name, b.Path)
-						cfg.AddressBook = b.Path
-						break
-					}
-				}
-				if cfg.AddressBook == "" {
-					b := books[0]
-					log.Infof("%s: using address book %s (%s)", id, b.Name, b.Path)
-					cfg.AddressBook = b.Path
-				}
-			}
-
-			cacheKey := fmt.Sprintf("persist/carddav/%s/syncToken", cfg.ID)
-			syncToken, _, err := app.Cache.Read(ctx, cacheKey)
-			if err != nil && !errors.Is(err, cache.ErrNotFound) {
-				return nil, fmt.Errorf("failed to retrieve sync-token: %w", err)
-			}
-
-			// we're doing a full re-sync so we can delete
-			// all customers that have been synced from this addressbook
-			// before. We log any errors we encounter but we do not abort
-			// the sync. We'll just throw away the sync-token and retry
-			// the next time
-			forceResync := false
-			if string(syncToken) == "" {
-				customers, err := findByCollection(ctx, app, cfg.AddressBook)
-				if err != nil {
-					log.Errorf("%s: failed to find customers for CardDAV collection %s: %s", id, cfg.AddressBook, err)
-					forceResync = true
-				} else {
-					purged := 0
-					for _, c := range customers {
-						if err := app.Customers.DeleteCustomer(ctx, c.ID.Hex()); err != nil {
-							log.Errorf("%s: failed to delete customer %s: %s", id, c.ID.Hex(), err)
-							forceResync = true
-						} else {
-							purged++
-						}
-					}
-					log.Infof("%s: purged %d customers from previous sync", id, purged)
-				}
-			}
-
-			var (
-				wg        sync.WaitGroup
-				nextToken string
-				deleted   = make(chan string)
-				updated   = make(chan carddav.AddressObject)
-			)
-
-			wg.Add(1)
-			go func() {
-				defer close(deleted)
-				defer close(updated)
-				defer wg.Done()
-
-				nextToken, err = cli.Sync(ctx, cfg.AddressBook, string(syncToken), deleted, updated)
-			}()
-
-			ticker := time.NewTicker(10 * time.Second)
-			defer func() {
-				ticker.Stop()
-				select {
-				case <-ticker.C:
-				default:
-				}
-			}()
-
-			countFailedDelete := 0
-			countFailedUpdate := 0
-			countDeleted := 0
-			countUpdated := 0
-			countNew := 0
-		L:
-			for {
-				select {
-				case d, ok := <-deleted:
-					if !ok {
-						deleted = nil
-					} else {
-						if err := handleDelete(ctx, &cfg, app, d); err != nil {
-							countFailedDelete++
-							log.Errorf("%s: failed to delete carddav contact %q: %s", id, d, err)
-						} else {
-							countDeleted++
-						}
-					}
-
-				case upd, ok := <-updated:
-					if !ok {
-						break L
-					}
-					if isNew, err := handleUpdate(ctx, &cfg, app, upd); err != nil {
-						countFailedUpdate++
-						log.Errorf("%s: failed to handle carddav contact update %q: %s", id, upd.Path, err)
-					} else {
-						if isNew {
-							countNew++
-						} else {
-							countUpdated++
-						}
-					}
-
-				case <-ticker.C:
-					log.WithFields(logger.Fields{
-						"deleted": countDeleted,
-						"updated": countUpdated,
-						"new":     countNew,
-						"failed":  countFailedDelete + countFailedUpdate,
-					}).Infof("%s: import in progress", id)
-
-				case <-ctx.Done():
-					return nil, ctx.Err()
-				}
-			}
-
-			// wait for the goroutine to exit and populate nextToken and err
-			wg.Wait()
-			if err != nil {
-				return nil, err
-			}
-
-			if !forceResync {
-				if err := app.Cache.Write(
-					ctx,
-					cacheKey,
-					[]byte(nextToken),
-					cache.WithBurnAfterReading(), // sync-tokens are one-time use anyway so there's no need to keep them
-				); err != nil {
-					return nil, fmt.Errorf("failed to persist sync-token: %w", err)
-				}
-			} else {
-				log.Infof("%s: forgetting sync-token to force a complete re-sync", id)
-			}
-
-			return nil, err
-		}),
+		Handler:        getImportFunc(id, cli, app, &cfg),
 	}
 
 	if err := customerdb.DefaultSourceManager.Register(customerdb.Source{
@@ -230,6 +77,194 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 	}
 
 	return i, nil
+}
+
+func getImportFunc(id string, cli *Client, app *app.App, cfg *cfgspec.CardDAVConfig) importer.ImportFunc {
+	return func(ctx context.Context) (interface{}, error) {
+		log := log.From(ctx)
+
+		// determine the addressbook to use and update cfg.AddressBook so this
+		// importer instance always uses the same addressbook.
+		if err := findAddressBook(ctx, id, cli, cfg); err != nil {
+			return nil, err
+		}
+
+		cacheKey := fmt.Sprintf("persist/carddav/%s/syncToken", cfg.ID)
+		syncToken, _, err := app.Cache.Read(ctx, cacheKey)
+		if err != nil && !errors.Is(err, cache.ErrNotFound) {
+			return nil, fmt.Errorf("failed to retrieve sync-token: %w", err)
+		}
+
+		// we're doing a full re-sync so we can delete
+		// all customers that have been synced from this addressbook
+		// before. We log any errors we encounter but we do not abort
+		// the sync. We'll just throw away the sync-token and retry
+		// the next time
+		forceResync := false
+		if string(syncToken) == "" {
+			if err := purgeLocalCustomers(ctx, id, app, cfg); err != nil {
+				log.Errorf("failed to purge customers from last sync: %s", err)
+				forceResync = true
+			}
+		}
+
+		var (
+			wg        sync.WaitGroup
+			nextToken string
+			deleted   = make(chan string)
+			updated   = make(chan carddav.AddressObject)
+		)
+
+		wg.Add(1)
+		go func() {
+			defer close(deleted)
+			defer close(updated)
+			defer wg.Done()
+
+			nextToken, err = cli.Sync(ctx, cfg.AddressBook, string(syncToken), deleted, updated)
+		}()
+
+		// process all updates streamed from sync to the 'deleted' and 'updated' channels.
+		if err := processUpdates(ctx, app, id, cfg, deleted, updated); err != nil {
+			return nil, err
+		}
+
+		// wait for the goroutine to exit and populate nextToken and err
+		wg.Wait()
+		if err != nil {
+			return nil, err
+		}
+
+		if !forceResync {
+			if err := app.Cache.Write(
+				ctx,
+				cacheKey,
+				[]byte(nextToken),
+				cache.WithBurnAfterReading(), // sync-tokens are one-time use anyway so there's no need to keep them
+			); err != nil {
+				return nil, fmt.Errorf("failed to persist sync-token: %w", err)
+			}
+		} else {
+			log.Infof("%s: forgetting sync-token to force a complete re-sync", id)
+		}
+
+		return nil, err
+	}
+}
+
+func findAddressBook(ctx context.Context, id string, cli *Client, cfg *cfgspec.CardDAVConfig) error {
+	if cfg.AddressBook != "" {
+		return nil
+	}
+
+	log := logger.From(ctx)
+	log.Errorf("%s: no address book configured. Trying to auto-detect the default addressbook", id)
+	books, err := cli.ListAddressBooks(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to enumerate address books: %w", err)
+	}
+	if len(books) == 0 {
+		return fmt.Errorf("no address books available")
+	}
+	// try to find an address book with the name "default"
+	for _, b := range books {
+		if strings.ToLower(b.Name) == "default" {
+			log.Infof("%s: using address book %s (%s)", id, b.Name, b.Path)
+			cfg.AddressBook = b.Path
+			break
+		}
+	}
+	if cfg.AddressBook == "" {
+		b := books[0]
+		log.Infof("%s: using address book %s (%s)", id, b.Name, b.Path)
+		cfg.AddressBook = b.Path
+	}
+	return nil
+}
+
+func purgeLocalCustomers(ctx context.Context, id string, app *app.App, cfg *cfgspec.CardDAVConfig) error {
+	var (
+		errors = new(multierr.Error)
+		log    = logger.From(ctx)
+	)
+	customers, err := findByCollection(ctx, app, cfg.AddressBook)
+	if err != nil {
+		return fmt.Errorf("%s: failed to find customers for CardDAV collection %s: %s", id, cfg.AddressBook, err)
+	} else {
+		purged := 0
+		for _, c := range customers {
+			if err := app.Customers.DeleteCustomer(ctx, c.ID.Hex()); err != nil {
+				errors.Add(
+					fmt.Errorf("%s: failed to delete customer %s: %s", id, c.ID.Hex(), err),
+				)
+			} else {
+				purged++
+			}
+		}
+		log.Infof("%s: purged %d customers from previous sync", id, purged)
+	}
+	return errors.ToError()
+}
+
+func processUpdates(ctx context.Context, app *app.App, id string, cfg *cfgspec.CardDAVConfig, deleted <-chan string, updated <-chan carddav.AddressObject) error {
+	log := logger.From(ctx)
+	ticker := time.NewTicker(10 * time.Second)
+	defer func() {
+		ticker.Stop()
+		select {
+		case <-ticker.C:
+		default:
+		}
+	}()
+
+	countFailedDelete := 0
+	countFailedUpdate := 0
+	countDeleted := 0
+	countUpdated := 0
+	countNew := 0
+L:
+	for {
+		select {
+		case d, ok := <-deleted:
+			if !ok {
+				deleted = nil
+			} else {
+				if err := handleDelete(ctx, cfg, app, d); err != nil {
+					countFailedDelete++
+					log.Errorf("%s: failed to delete carddav contact %q: %s", id, d, err)
+				} else {
+					countDeleted++
+				}
+			}
+
+		case upd, ok := <-updated:
+			if !ok {
+				break L
+			}
+			if isNew, err := handleUpdate(ctx, cfg, app, upd); err != nil {
+				countFailedUpdate++
+				log.Errorf("%s: failed to handle carddav contact update %q: %s", id, upd.Path, err)
+			} else {
+				if isNew {
+					countNew++
+				} else {
+					countUpdated++
+				}
+			}
+
+		case <-ticker.C:
+			log.WithFields(logger.Fields{
+				"deleted": countDeleted,
+				"updated": countUpdated,
+				"new":     countNew,
+				"failed":  countFailedDelete + countFailedUpdate,
+			}).Infof("%s: import in progress", id)
+
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	return nil
 }
 
 func deleteContact(ctx context.Context, cus *customerdb.Customer, cli *Client) error {

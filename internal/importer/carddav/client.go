@@ -50,7 +50,11 @@ func (cli *Client) Sync(ctx context.Context, col, syncToken string, deleted chan
 	logger.From(ctx).Infof("carddav: received sync response with %d deletes and %d updates", len(syncResponse.Deleted), len(syncResponse.Updated))
 
 	for _, d := range syncResponse.Deleted {
-		deleted <- d
+		select {
+		case deleted <- d:
+		case <-ctx.Done():
+			return "", ctx.Err()
+		}
 	}
 
 	// either emersion/webdav does not correctly handle AllProps: true in the sync-query
@@ -73,7 +77,11 @@ func (cli *Client) Sync(ctx context.Context, col, syncToken string, deleted chan
 			return "", fmt.Errorf("failed to retreive batch: %w", err)
 		}
 		for idx := range objs {
-			updated <- objs[idx]
+			select {
+			case updated <- objs[idx]:
+			case <-ctx.Done():
+				return "", ctx.Err()
+			}
 		}
 	}
 	return syncResponse.SyncToken, nil
