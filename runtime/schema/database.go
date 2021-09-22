@@ -11,21 +11,34 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// Common error messages when working with the schema package:
 var (
 	ErrNotFound = errors.New("not found")
 )
 
+// CollectionName is the name of the mongo-db collection used
+// to store schema migrations.
 const CollectionName = "cis:schema"
 
+// MigrationRecord defines the record stored in the mongodb schema
+// collection and represents a successfully applied migration.
 type MigrationRecord struct {
-	Key        string    `json:"key" bson:"key"`
-	Version    string    `json:"version" bson:"version"`
+	// Key is the key of the subsystem the migration applies to.
+	Key string `json:"key" bson:"key"`
+	// Version is the version of the subsystem after this migration
+	// executed.
+	Version string `json:"version" bson:"version"`
+	// MigratedAt holds the time the migration was applied.
 	MigratedAt time.Time `json:"migratedAt" bson:"migratedAt"`
 }
 
-// Database stores schema and migrations applied.
+// Database stores schema and applied migrations.
 type Database interface {
+	// Load should return the migration record stored at key.
 	Load(ctx context.Context, key string) (*MigrationRecord, error)
+	// Save should create a new migration record for key and version
+	// overwritting any previously created migration record with the
+	// same key.
 	Save(ctx context.Context, key, version string) error
 }
 
