@@ -35,7 +35,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/triggerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/voicemailapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/calendar"
+	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
 	"github.com/tierklinik-dobersberg/cis/internal/cctv"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
@@ -372,7 +372,7 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "voicemaildb: %s", err)
 	}
 
-	calendarService, err := calendar.New(cfg.GoogleCalendar)
+	calendarService, err := google.New(ctx, cfg.GoogleCalendar)
 	if err != nil {
 		logger.Fatalf(ctx, "calendar: %s", err)
 	}

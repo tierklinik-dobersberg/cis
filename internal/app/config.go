@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/tierklinik-dobersberg/cis/internal/calendar"
+	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 )
@@ -19,7 +19,7 @@ type Config struct {
 
 	CardDAVImports []cfgspec.CardDAVConfig `section:"CardDAV Import"`
 
-	GoogleCalendar calendar.GoogleCalendarConfig `section:"GoogleCalendar"`
+	GoogleCalendar google.GoogleCalendarConfig `section:"GoogleCalendar"`
 
 	OpeningHours   []cfgspec.OpeningHours           `section:"OpeningHour"`
 	UserProperties []cfgspec.UserPropertyDefinition `section:"UserProperty"`

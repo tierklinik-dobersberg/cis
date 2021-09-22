@@ -57,7 +57,7 @@ type App struct {
 	Holidays        openinghours.HolidayGetter
 	CallLogs        calllogdb.Database
 	MQTTClient      mqtt.Client
-	Calendar        calendar.Service
+	Calendar        calendar.Backend
 	Resources       *resourcedb.Registry
 	CCTV            *cctv.Manager
 	LayoutStore     layouts.Store
@@ -92,7 +92,7 @@ func NewApp(
 	holidays openinghours.HolidayGetter,
 	calllogs calllogdb.Database,
 	mqttClient mqtt.Client,
-	calendarEvents calendar.Service,
+	calendarEvents calendar.Backend,
 	resourceRegistry *resourcedb.Registry,
 	cctvmng *cctv.Manager,
 	layoutStore layouts.Store,

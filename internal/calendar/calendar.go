@@ -61,17 +61,17 @@ var StructuredEventSpec = conf.SectionSpec{
 }
 
 type EventSearchOptions struct {
-	from *time.Time
-	to   *time.Time
+	FromTime *time.Time
+	ToTime   *time.Time
 }
 
 func (s *EventSearchOptions) From(t time.Time) *EventSearchOptions {
-	s.from = &t
+	s.FromTime = &t
 	return s
 }
 
 func (s *EventSearchOptions) To(t time.Time) *EventSearchOptions {
-	s.to = &t
+	s.ToTime = &t
 	return s
 }
 

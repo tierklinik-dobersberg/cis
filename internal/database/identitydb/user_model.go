@@ -114,7 +114,7 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, autologinCondi
 
 			// TODO(ppacher): update sec.GetAs to return a boolean as well.
 			for _, opt := range sec.Options {
-				if strings.ToLower(opt.Name) == strings.ToLower(spec.Name) {
+				if strings.EqualFold(opt.Name, spec.Name) {
 					hasValue = true
 					break
 				}

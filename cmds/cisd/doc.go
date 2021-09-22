@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/calendar"
+	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
@@ -30,7 +30,7 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 		"Integration":    cfgspec.IntegrationConfigSpec,
 		"Voicemail":      cfgspec.VoiceMailSpec,
 		"MongoLog":       cfgspec.MongoLogSpec,
-		"GoogleCalendar": calendar.GoogleConfigSpec,
+		"GoogleCalendar": google.GoogleConfigSpec,
 		"CardDAV Import": cfgspec.CardDAVSpec,
 	},
 })

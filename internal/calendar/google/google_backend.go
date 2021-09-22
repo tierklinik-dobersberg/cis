@@ -1,4 +1,4 @@
-package calendar
+package google
 
 import (
 	"bytes"
@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/ppacher/system-conf/conf"
+	ciscal "github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/svcenv"
@@ -19,6 +20,7 @@ import (
 	"golang.org/x/oauth2/google"
 	"golang.org/x/sync/singleflight"
 	"google.golang.org/api/calendar/v3"
+	"google.golang.org/api/option"
 )
 
 var log = pkglog.New("calendar")
@@ -60,9 +62,9 @@ type GoogleCalendarConfig struct {
 // Service allows to read and manipulate google
 // calendar events.
 type Service interface {
-	ListCalendars(ctx context.Context) ([]Calendar, error)
-	ListEvents(ctx context.Context, calendarID string, filter *EventSearchOptions) ([]Event, error)
-	CreateEvent(ctx context.Context, calId, name, description string, startTime time.Time, duration time.Duration, data *StructuredEvent) error
+	ListCalendars(ctx context.Context) ([]ciscal.Calendar, error)
+	ListEvents(ctx context.Context, calendarID string, filter *ciscal.EventSearchOptions) ([]ciscal.Event, error)
+	CreateEvent(ctx context.Context, calId, name, description string, startTime time.Time, duration time.Duration, data *ciscal.StructuredEvent) error
 	DeleteEvent(ctx context.Context, calID, eventId string) error
 }
 
@@ -77,7 +79,7 @@ type googleCalendarBackend struct {
 }
 
 // New creates a new calendar service from cfg.
-func New(cfg GoogleCalendarConfig) (Service, error) {
+func New(ctx context.Context, cfg GoogleCalendarConfig) (Service, error) {
 	if !cfg.Enabled {
 		return &noopBackend{}, nil
 	}
@@ -92,8 +94,8 @@ func New(cfg GoogleCalendarConfig) (Service, error) {
 		return nil, fmt.Errorf("failed to read token from %s: %w", cfg.TokenFile, err)
 	}
 
-	client := creds.Client(context.Background(), token)
-	calSvc, err := calendar.New(client)
+	client := creds.Client(ctx, token)
+	calSvc, err := calendar.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +111,6 @@ func New(cfg GoogleCalendarConfig) (Service, error) {
 	}
 
 	// create a new eventCache for each calendar right now
-	ctx := context.TODO()
 	if _, err := svc.ListCalendars(ctx); err != nil {
 		log.From(ctx).Errorf("failed to start watching calendars: %s", err)
 	}
@@ -135,13 +136,13 @@ func Authenticate(cfg GoogleCalendarConfig) error {
 	return nil
 }
 
-func (svc *googleCalendarBackend) ListCalendars(ctx context.Context) ([]Calendar, error) {
+func (svc *googleCalendarBackend) ListCalendars(ctx context.Context) ([]ciscal.Calendar, error) {
 	res, err := svc.Service.CalendarList.List().ShowHidden(true).Do()
 	if err != nil {
 		return nil, err
 	}
 
-	var list = make([]Calendar, 0, len(res.Items))
+	var list = make([]ciscal.Calendar, 0, len(res.Items))
 	for _, item := range res.Items {
 		loc, err := time.LoadLocation(item.TimeZone)
 		if err != nil {
@@ -153,7 +154,7 @@ func (svc *googleCalendarBackend) ListCalendars(ctx context.Context) ([]Calendar
 			continue
 		}
 
-		list = append(list, Calendar{
+		list = append(list, ciscal.Calendar{
 			ID:       item.Id,
 			Name:     item.Summary,
 			Timezone: item.TimeZone,
@@ -168,7 +169,7 @@ func (svc *googleCalendarBackend) ListCalendars(ctx context.Context) ([]Calendar
 	return list, nil
 }
 
-func (svc *googleCalendarBackend) ListEvents(ctx context.Context, calendarID string, searchOpts *EventSearchOptions) ([]Event, error) {
+func (svc *googleCalendarBackend) ListEvents(ctx context.Context, calendarID string, searchOpts *ciscal.EventSearchOptions) ([]ciscal.Event, error) {
 	cache, err := svc.cacheFor(ctx, calendarID)
 	if err != nil {
 		log.From(ctx).Errorf("failed to get event cache for calendar %s: %s", calendarID, err)
@@ -185,12 +186,12 @@ func (svc *googleCalendarBackend) ListEvents(ctx context.Context, calendarID str
 	return svc.loadEvents(ctx, calendarID, searchOpts)
 }
 
-func (svc *googleCalendarBackend) CreateEvent(ctx context.Context, calId, name, description string, startTime time.Time, duration time.Duration, data *StructuredEvent) error {
+func (svc *googleCalendarBackend) CreateEvent(ctx context.Context, calId, name, description string, startTime time.Time, duration time.Duration, data *ciscal.StructuredEvent) error {
 	// convert structured event data to it's string representation
 	// and append to description.
 	if data != nil {
 		metaFile, err := conf.ConvertToFile(struct {
-			Data *StructuredEvent `section:"CIS"`
+			Data *ciscal.StructuredEvent `section:"CIS"`
 		}{data}, "")
 		if err != nil {
 			return err
@@ -255,23 +256,23 @@ func (svc *googleCalendarBackend) cacheFor(ctx context.Context, calid string) (*
 	return cache, nil
 }
 
-func (svc *googleCalendarBackend) loadEvents(ctx context.Context, calendarID string, searchOpts *EventSearchOptions) ([]Event, error) {
+func (svc *googleCalendarBackend) loadEvents(ctx context.Context, calendarID string, searchOpts *ciscal.EventSearchOptions) ([]ciscal.Event, error) {
 	call := svc.Events.List(calendarID).ShowDeleted(false).SingleEvents(true)
 
 	key := calendarID
 	if searchOpts != nil {
-		if searchOpts.from != nil {
-			call = call.TimeMin(searchOpts.from.Format(time.RFC3339))
-			key += fmt.Sprintf("-%s", searchOpts.from.Format(time.RFC3339))
+		if searchOpts.FromTime != nil {
+			call = call.TimeMin(searchOpts.FromTime.Format(time.RFC3339))
+			key += fmt.Sprintf("-%s", searchOpts.FromTime.Format(time.RFC3339))
 		}
-		if searchOpts.to != nil {
-			call = call.TimeMax(searchOpts.to.Format(time.RFC3339))
-			key += fmt.Sprintf("-%s", searchOpts.to.Format(time.RFC3339))
+		if searchOpts.ToTime != nil {
+			call = call.TimeMax(searchOpts.ToTime.Format(time.RFC3339))
+			key += fmt.Sprintf("-%s", searchOpts.ToTime.Format(time.RFC3339))
 		}
 	}
 
 	res, err, shared := svc.loadGroup.Do(key, func() (interface{}, error) {
-		var events []Event
+		var events []ciscal.Event
 		var pageToken string
 		for {
 			if pageToken != "" {
@@ -305,7 +306,7 @@ func (svc *googleCalendarBackend) loadEvents(ctx context.Context, calendarID str
 		log.From(ctx).V(7).Logf("shared calendar load between multiple callers")
 	}
 
-	return res.([]Event), err
+	return res.([]ciscal.Event), err
 }
 
 func (svc *googleCalendarBackend) shouldIngore(item *calendar.CalendarListEntry) bool {

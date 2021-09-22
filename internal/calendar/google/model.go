@@ -1,4 +1,4 @@
-package calendar
+package google
 
 import (
 	"context"
@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/ppacher/system-conf/conf"
+	ciscal "github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/logger"
 	"google.golang.org/api/calendar/v3"
 )
 
-func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*Event, error) {
+func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*ciscal.Event, error) {
 	var (
 		err   error
 		start time.Time
@@ -60,7 +61,7 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*E
 		item.Description = newDescription
 	}
 
-	return &Event{
+	return &ciscal.Event{
 		ID:           item.Id,
 		Summary:      strings.TrimSpace(item.Summary),
 		Description:  strings.TrimSpace(item.Description),
@@ -72,7 +73,7 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*E
 	}, nil
 }
 
-func parseDescription(desc string) (string, *StructuredEvent, error) {
+func parseDescription(desc string) (string, *ciscal.StructuredEvent, error) {
 	allLines := strings.Split(desc, "\n")
 	var (
 		sectionLines      []string
@@ -98,8 +99,8 @@ func parseDescription(desc string) (string, *StructuredEvent, error) {
 		return "", nil, err
 	}
 
-	var data StructuredEvent
-	if err := conf.DecodeSections(f.Sections, StructuredEventSpec, &data); err != nil {
+	var data ciscal.StructuredEvent
+	if err := conf.DecodeSections(f.Sections, ciscal.StructuredEventSpec, &data); err != nil {
 		return "", nil, err
 	}
 
