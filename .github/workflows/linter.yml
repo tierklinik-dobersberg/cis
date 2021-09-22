@@ -8,8 +8,3 @@ jobs:
       - uses: actions/checkout@v2
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
-  reportcard:
-    name: report-card
-    runs-on: ubuntu-latest
-    steps:
-      - uses: afarbos/go-report-card-action@v1
