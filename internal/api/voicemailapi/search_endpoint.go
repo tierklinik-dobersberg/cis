@@ -12,7 +12,10 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
-// SearchEndpoint allows loading voicemail records for a given date.
+// SearchEndpoint allows searching voicemail records by
+// the name of the containing mailbox ('name' query parameter),
+// the date of the recording ('date' query parameter) and by
+// seen/read status ('seen' query parameter).
 func SearchEndpoint(router *app.Router) {
 	router.GET(
 		"v1/search",

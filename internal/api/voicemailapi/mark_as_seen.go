@@ -9,10 +9,11 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
+// MarkAsSeenEndpoint allows to mark voicemail records as seen.
 func MarkAsSeenEndpoint(grp *app.Router) {
 	grp.PUT(
 		"v1/recording/:id/seen",
-		permission.Anyone,
+		permission.OneOf{ReadVoicemailsAction},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			id := c.Param("id")
 

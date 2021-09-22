@@ -12,11 +12,12 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
+// LoadRecordingEndpoint serves audio content of a voicemail
+// recording.
 func LoadRecordingEndpoint(router *app.Router) {
 	router.GET(
 		"v1/recording/:id",
-		// FIXME(ppacher): anyone is not a good permission here!
-		permission.Anyone,
+		permission.OneOf{ReadVoicemailsAction},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			id := c.Param("id")
 

@@ -9,10 +9,12 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
+// MarkAsUnseenEndpoint allows to mark voicemail records as
+// unseen.
 func MarkAsUnseenEndpoint(grp *app.Router) {
 	grp.DELETE(
 		"v1/recording/:id/seen",
-		permission.Anyone,
+		permission.OneOf{ReadVoicemailsAction},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			id := c.Param("id")
 
