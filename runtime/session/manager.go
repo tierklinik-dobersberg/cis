@@ -189,7 +189,9 @@ func (mng *Manager) clearOrphandSessions() {
 
 			func() {
 				defer func() {
-					recover()
+					if x := recover(); x != nil {
+						l.Logf("recovered from panic when closing session.destroyed channel")
+					}
 				}()
 				close(sess.destroyed)
 			}()
