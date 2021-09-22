@@ -39,10 +39,10 @@ type Exporter struct {
 	cfg      cfgspec.VetInf
 	db       *vetinf.Infdat
 	country  string
-	usersMap map[int]string
+	usersMap map[int]string // nolint:unused,staticcheck
 
 	identities    identitydb.Database
-	loadUsersOnce sync.Once
+	loadUsersOnce sync.Once // nolint:unused
 }
 
 type ImportResults struct {
@@ -73,6 +73,7 @@ func NewExporter(cfg cfgspec.VetInf, country string, users identitydb.Database) 
 	}, nil
 }
 
+// nolint:unused
 func (e *Exporter) buildUsersMap() error {
 	// create a lookup map for converting vetinf user identifiers to
 	// user names CIS knows.
@@ -110,6 +111,7 @@ func (e *Exporter) buildUsersMap() error {
 	return nil
 }
 
+// nolint:unused
 func (e *Exporter) getUserNameById(userId int) string {
 	e.loadUsersOnce.Do(func() {
 		if err := e.buildUsersMap(); err != nil {

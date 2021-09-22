@@ -10,6 +10,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/importer/importutils"
 	"github.com/tierklinik-dobersberg/logger"
+	"github.com/tierklinik-dobersberg/service/runtime"
 )
 
 type Importer struct {
@@ -67,8 +68,10 @@ func (imp *Importer) Import(ctx context.Context, mdb *os.File) (countNew, countU
 }
 
 func init() {
-	customerdb.DefaultSourceManager.Register(customerdb.Source{
-		Name:        "neumayr",
-		Description: "Imports customer data from Neumayr .MDB files",
-	})
+	runtime.Must(
+		customerdb.DefaultSourceManager.Register(customerdb.Source{
+			Name:        "neumayr",
+			Description: "Imports customer data from Neumayr .MDB files",
+		}),
+	)
 }
