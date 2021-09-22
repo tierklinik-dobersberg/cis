@@ -8,11 +8,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/calendar/v1alpha"
 )
 
+// CreateEventEndpoint can be used to create new calendar events.
+// The event should be transmitted in the POST body.
 func CreateEventEndpoint(router *app.Router) {
 	router.POST(
 		"v1/events",
@@ -75,41 +78,48 @@ func validateEventModel(ctx context.Context, app *app.App, event *v1alpha.Create
 	event.EndTime = &end
 
 	if event.Data != nil {
-		if event.Data.CreatedBy != "" {
-			_, err := app.Identities.GetUser(ctx, event.Data.CreatedBy)
-			if err != nil {
-				return err
-			}
-		}
-		if event.Data.CustomerSource != "" {
-			// FIXME(ppacher): we should allow values for unknown customers too.
-			// But we might need a different [CIS] stanzs for the event description.
-			_, err := app.Customers.CustomerByCID(ctx, event.Data.CustomerSource, event.Data.CustomerID)
-			if err != nil {
-				return err
-			}
-			for _, animal := range event.Data.AnimalID {
-				// FIXME(ppacher): we should allow values for unknown animals too.
-				// See FIXME above.
-				if _, err := app.Patients.ByCustomerAndAnimalID(
-					ctx,
-					event.Data.CustomerSource,
-					event.Data.CustomerID,
-					animal,
-				); err != nil {
-					return err
-				}
-			}
-		} else if len(event.Data.AnimalID) > 0 {
-			return httperr.MissingField("customerSource and customerID")
-		}
-
-		for _, requiredResource := range event.Data.RequiredResources {
-			if _, err := app.Resources.Get(requiredResource); err != nil {
-				return err
-			}
+		if err := validateStructuredEvent(ctx, app, event.Data); err != nil {
+			return err
 		}
 	}
 
+	return nil
+}
+
+func validateStructuredEvent(ctx context.Context, app *app.App, data *calendar.StructuredEvent) error {
+	if data.CreatedBy != "" {
+		_, err := app.Identities.GetUser(ctx, data.CreatedBy)
+		if err != nil {
+			return err
+		}
+	}
+	if data.CustomerSource != "" {
+		// FIXME(ppacher): we should allow values for unknown customers too.
+		// But we might need a different [CIS] stanza for the event description.
+		_, err := app.Customers.CustomerByCID(ctx, data.CustomerSource, data.CustomerID)
+		if err != nil {
+			return err
+		}
+		for _, animal := range data.AnimalID {
+			// FIXME(ppacher): we should allow values for unknown animals too.
+			// See FIXME above.
+			if _, err := app.Patients.ByCustomerAndAnimalID(
+				ctx,
+				data.CustomerSource,
+				data.CustomerID,
+				animal,
+			); err != nil {
+				return err
+			}
+		}
+	} else if len(data.AnimalID) > 0 {
+		return httperr.MissingField("customerSource and customerID")
+	}
+
+	for _, requiredResource := range data.RequiredResources {
+		if _, err := app.Resources.Get(requiredResource); err != nil {
+			return err
+		}
+	}
 	return nil
 }

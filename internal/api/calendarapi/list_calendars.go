@@ -9,6 +9,10 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
+// ListCalendarsEndpoint returns a list of all avaiable
+// and configured calendars. Calendars that are marked as
+// hidden by the configuration are filtered and not returned
+// to the caller.
 func ListCalendarsEndpoint(router *app.Router) {
 	router.GET(
 		"v1/",
