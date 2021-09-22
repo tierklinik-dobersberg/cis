@@ -11,12 +11,11 @@ var (
 )
 
 func addToSchema(schema *runtime.ConfigSchema) error {
-	schema.RegisterSection(
+	return schema.RegisterSection(
 		"Mailer",
 		"Configure a SMTP server to allow sending emails.",
 		AccountSpec,
 	)
-	return nil
 }
 
 func init() {
