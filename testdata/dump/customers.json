@@ -9,6 +9,10 @@
     "cityCode": 1234,
     "city": "Someplace",
     "nameMetaphone": "TST TST",
+    "phoneNumbers": [
+      "+43 1111 1111",
+      "1111 1111"
+    ],
     "customerSource": "vetinf"
   }
   {
@@ -21,6 +25,10 @@
     "cityCode": 1234,
     "city": "Customcity",
     "nameMetaphone": "LKKN LKKN",
+    "phoneNumbers": [
+      "+43 2222 2222",
+      "2222 2222"
+    ],
     "customerSource": "vetinf"
   }
   {
@@ -35,5 +43,9 @@
     "cityCode": 1111,
     "city": "City",
     "nameMetaphone": "XML SML",
+    "phoneNumbers": [
+      "+43 3333 3333",
+      "3333 3333"
+    ],
     "customerSource": "vetinf"
   }
