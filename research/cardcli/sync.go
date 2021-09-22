@@ -52,7 +52,7 @@ func getSyncCommand() *cobra.Command {
 						AllProp: true,
 					},
 				})
-				bar.Add(batchSize)
+				_ = bar.Add(batchSize)
 				if err != nil {
 					log.Fatal(err)
 				}

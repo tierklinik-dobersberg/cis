@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/emersion/go-vcard"
 	"github.com/emersion/go-webdav/carddav"
 	"github.com/spf13/cobra"
 )
@@ -54,15 +53,4 @@ func listAll() {
 		fmt.Printf("=> %s: %d objects found\n", book.Path, len(objs))
 		printObjects(objs)
 	}
-}
-
-func getName(card vcard.Card) string {
-	name := card.Name().FamilyName
-	if first := card.Name().GivenName; first != "" {
-		if name != "" {
-			name += " "
-		}
-		name += first
-	}
-	return name
 }
