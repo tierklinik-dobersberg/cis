@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 import { issue, issueCommand } from '@actions/core/lib/command';
+import { join } from 'path';
 import axios from "axios";
-import path = require('node:path');
 
 export class GHActionsReporter implements jasmine.CustomReporter {
     private failes: jasmine.CustomReporterResult[] = [];
@@ -75,7 +75,7 @@ async function testAPI(): Promise<any> {
 
 function dockerCompose(args: string) {
     execSync(`sh -c 'yes | docker-compose ${args}'`, {
-        cwd: path.join('..', 'deploy'),
+        cwd: join('..', 'deploy'),
     })
 }
 
