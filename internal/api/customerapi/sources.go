@@ -27,6 +27,8 @@ func ListSourcesEndpoint(r *app.Router) {
 				Description    string                 `json:"description,omitempty"`
 				Metadata       map[string]interface{} `json:"metadata,omitempty"`
 				SupportsDelete bool                   `json:"supportsDelete"`
+				SupportsUpdate bool                   `json:"supportsUpdate"`
+				SupportsCreate bool                   `json:"supportsCreate"`
 			}
 
 			var res []model
@@ -36,6 +38,8 @@ func ListSourcesEndpoint(r *app.Router) {
 					Description:    s.Description,
 					Metadata:       s.Metadata,
 					SupportsDelete: s.DeleteFunc != nil,
+					SupportsUpdate: s.UpdateFunc != nil,
+					SupportsCreate: s.CreateFunc != nil,
 				})
 			}
 

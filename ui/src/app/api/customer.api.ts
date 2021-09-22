@@ -24,6 +24,8 @@ export interface CustomerSource {
   description?: string;
   metadata?: object;
   supportsDelete: boolean;
+  supportsUpdate: boolean;
+  supportsCreate: boolean;
 }
 
 export interface RemoteCustomer<T extends Date | string> {

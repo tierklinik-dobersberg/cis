@@ -34,6 +34,17 @@ type Source struct {
 	// DeleteFunc should delete the customer from source. Upon successful
 	// deletion the customer is also deleted from the internal database.
 	DeleteFunc func(ctx context.Context, cus *Customer) error
+
+	// UpdateFunc should update the representation of cus in the source.
+	UpdateFunc func(ctx context.Context, cus *Customer) error
+
+	// CreateFunc should create a new customer in source that mirrors the
+	// data stored in cus. cus is a new customer object that is not yet
+	// associated with any other customer source. CreateFunc should update
+	// the customer metadata as it needs. Upon successful return
+	// cus is actually created by the database inside the local collection.
+	// Note that cus does not yet have an ID property specified.
+	CreateFunc func(ctx context.Context, cus *Customer) error
 }
 
 // SourceManager manages registered customer sources.
