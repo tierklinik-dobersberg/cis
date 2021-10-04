@@ -69,10 +69,10 @@ describe('APIs for 3CX', () => {
         })
 
         it("should replace an unidentified record with an identified one", async () => {
+            const now = new Date();
             const response = await Alice.post(`http://localhost:3000/api/external/v1/calllog?ani=88888888&did=99`)
             expect(response.status).toBe(204);
 
-            const now = new Date();
             const [year, month, day] = [now.getFullYear(), now.getMonth() + 1, now.getDate()]
             let callLogsFromToday = await Alice.get(`http://localhost:3000/api/calllogs/v1/date/${year}/${month}/${day}`)
             expect(callLogsFromToday.status).toBe(200)
