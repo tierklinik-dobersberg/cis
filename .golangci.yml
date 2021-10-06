@@ -5,6 +5,12 @@ linters:
     - gomnd # we do have a lot of "magic-numbers" in our V() loggers
     - exhaustivestruct # I just don't like it  ...
     - gochecknoglobals # we really try to avoid globals but sometimes we need to ...
+    - tagliatelle
+    # The following checkers/linters are deprecated.
+    - golint
+    - maligned
+    - scopelint
+    - interfacer
 
 linters-settings:
   godox:
