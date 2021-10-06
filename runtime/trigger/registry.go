@@ -180,17 +180,7 @@ func (reg *Registry) OptionsForSection(sec string) (conf.OptionRegistry, bool) {
 // and will subscribe to all event topics specified in the [Match] section. The
 // event subscription will be cancelled as soon as ctx is cancelled.
 func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.ConfigSchema, f *conf.File) (*Instance, error) {
-	matchSecs := f.Sections.GetAll("Match")
-	if len(matchSecs) != 1 {
-		return nil, fmt.Errorf("expected exactly one [Match] section but found %d", len(matchSecs))
-	}
-
-	var match MatchConfig
-	if err := conf.DecodeSections(matchSecs, MatchSpec, &match); err != nil {
-		return nil, fmt.Errorf("failed to parse [Match] section: %w", err)
-	}
-
-	instanceCfg, err := matchToInstanceConfig(match)
+	instanceCfg, err := reg.getInstanceCfg(f)
 	if err != nil {
 		return nil, err
 	}
@@ -228,9 +218,31 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 
 	instance := NewInstance(fileBase, handlers, instanceCfg)
 
+	reg.subscribeAndDispatch(ctx, instance, fileBase)
+
+	return instance, nil
+}
+
+func (reg *Registry) getInstanceCfg(f *conf.File) (*InstanceConfig, error) {
+	matchSecs := f.Sections.GetAll("Match")
+	if len(matchSecs) != 1 {
+		return nil, fmt.Errorf("expected exactly one [Match] section but found %d", len(matchSecs))
+	}
+	var match MatchConfig
+	if err := conf.DecodeSections(matchSecs, MatchSpec, &match); err != nil {
+		return nil, fmt.Errorf("failed to parse [Match] section: %w", err)
+	}
+	instanceCfg, err := matchToInstanceConfig(match)
+	if err != nil {
+		return nil, err
+	}
+	return instanceCfg, nil
+}
+
+func (reg *Registry) subscribeAndDispatch(ctx context.Context, instance *Instance, namePrefix string) {
 	// finally, subscribe to events and dispatch them to the handlers
-	for idx, filter := range match.EventFilter {
-		instanceName := fmt.Sprintf("%s-%02d", filepath.Base(f.Path), idx)
+	for idx, filter := range instance.cfg.EventFilters {
+		instanceName := fmt.Sprintf("%s-%02d", namePrefix, idx)
 		ch := reg.event.Subscribe(instanceName, filter)
 
 		go func(filter string) {
@@ -245,8 +257,6 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 			}
 		}(filter)
 	}
-
-	return instance, nil
 }
 
 // RegisterType registers a new handler type under name. The name is
