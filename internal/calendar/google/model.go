@@ -96,12 +96,12 @@ func parseDescription(desc string) (string, *ciscal.StructuredEvent, error) {
 	reader := strings.NewReader(strings.Join(sectionLines, "\n"))
 	f, err := conf.Deserialize("", reader)
 	if err != nil {
-		return "", nil, err
+		return "", nil, fmt.Errorf("failed to deserialize data section: %w", err)
 	}
 
 	var data ciscal.StructuredEvent
 	if err := conf.DecodeSections(f.Sections, ciscal.StructuredEventSpec, &data); err != nil {
-		return "", nil, err
+		return "", nil, fmt.Errorf("failed to decode structured event data: %w", err)
 	}
 
 	return strippedDescr, &data, nil

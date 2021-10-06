@@ -97,7 +97,7 @@ func New(ctx context.Context, cfg GoogleCalendarConfig) (Service, error) {
 	client := creds.Client(ctx, token)
 	calSvc, err := calendar.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create calendar client: %w", err)
 	}
 
 	svc := &googleCalendarBackend{
@@ -139,7 +139,7 @@ func Authenticate(cfg GoogleCalendarConfig) error {
 func (svc *googleCalendarBackend) ListCalendars(ctx context.Context) ([]ciscal.Calendar, error) {
 	res, err := svc.Service.CalendarList.List().ShowHidden(true).Do()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to retrieve list of calendars: %w", err)
 	}
 
 	var list = make([]ciscal.Calendar, 0, len(res.Items))
@@ -194,11 +194,11 @@ func (svc *googleCalendarBackend) CreateEvent(ctx context.Context, calId, name, 
 			Data *ciscal.StructuredEvent `section:"CIS"`
 		}{data}, "")
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to marshal as config: %w", err)
 		}
 		buf := new(bytes.Buffer)
 		if err := conf.WriteSectionsTo(metaFile.Sections, buf); err != nil {
-			return err
+			return fmt.Errorf("failed to write sections: %w", err)
 		}
 		description = strings.TrimSpace(description) + "\n\n" + buf.String()
 	}
@@ -215,7 +215,7 @@ func (svc *googleCalendarBackend) CreateEvent(ctx context.Context, calId, name, 
 		Status: "confirmed",
 	}).Do()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to insert event upstream: %w", err)
 	}
 	log.From(ctx).Infof("created event with id %s", res.Id)
 
@@ -228,7 +228,7 @@ func (svc *googleCalendarBackend) CreateEvent(ctx context.Context, calId, name, 
 func (svc *googleCalendarBackend) DeleteEvent(ctx context.Context, calid, eventid string) error {
 	err := svc.Service.Events.Delete(calid, eventid).Do()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to delete event upstream: %w", err)
 	}
 	return nil
 }
@@ -280,7 +280,7 @@ func (svc *googleCalendarBackend) loadEvents(ctx context.Context, calendarID str
 			}
 			res, err := call.Do()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to retreive page from upstream: %w", err)
 			}
 
 			for _, item := range res.Items {
@@ -306,7 +306,7 @@ func (svc *googleCalendarBackend) loadEvents(ctx context.Context, calendarID str
 		log.From(ctx).V(7).Logf("shared calendar load between multiple callers")
 	}
 
-	return res.([]ciscal.Event), err
+	return res.([]ciscal.Event), err // nolint:errwrap // this one is already wrapped
 }
 
 func (svc *googleCalendarBackend) shouldIngore(item *calendar.CalendarListEntry) bool {
@@ -325,12 +325,12 @@ func tokenFromFile(path string) (*oauth2.Token, error) {
 
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
 	var token oauth2.Token
 	if err := json.Unmarshal(content, &token); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal JSON token: %w", err)
 	}
 	return &token, nil
 }
@@ -342,7 +342,7 @@ func saveTokenFile(token *oauth2.Token, path string) error {
 
 	blob, err := json.Marshal(token)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal JSON token: %w", err)
 	}
 
 	return ioutil.WriteFile(path, blob, 0600)
@@ -355,12 +355,12 @@ func credsFromFile(path string) (*oauth2.Config, error) {
 
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
 	config, err := google.ConfigFromJSON(content, calendar.CalendarScope, "https://www.googleapis.com/auth/userinfo.profile")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get configuration from JSON: %w", err)
 	}
 	return config, nil
 }

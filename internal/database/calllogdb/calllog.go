@@ -90,7 +90,7 @@ func (db *database) CreateUnidentified(ctx context.Context, record v1alpha.CallL
 
 	result, err := db.callogs.InsertOne(ctx, record)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to insert document: %w", err)
 	}
 
 	// Just make sure the result is what we expect.
@@ -120,7 +120,7 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 	log.Infof("searching for %+v", filter)
 	cursor, err := db.callogs.Find(ctx, filter, opts)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to retrieve documents: %w", err)
 	}
 	defer cursor.Close(ctx)
 
@@ -152,14 +152,14 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 
 		result := db.callogs.FindOneAndReplace(ctx, bson.M{"_id": record.ID}, record)
 		if result.Err() != nil {
-			return result.Err()
+			return fmt.Errorf("failed to find and replace document %s: %w", record.ID, result.Err())
 		}
 
 		log.Infof("replaced unidentified calllog for %s with customer-record for %s:%s", record.Caller, record.CustomerSource, record.CustomerID)
 	} else {
 		_, err := db.callogs.InsertOne(ctx, record)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to insert document: %w", err)
 		}
 
 		log.Infof("created new customer-record for %s:%s with phone number %s", record.CustomerSource, record.CustomerID, record.Caller)
@@ -175,13 +175,13 @@ func (db *database) Search(ctx context.Context, query *SearchQuery) ([]v1alpha.C
 	opts := options.Find().SetSort(bson.M{"date": -1})
 	cursor, err := db.callogs.Find(ctx, filter, opts)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to retrieve documents: %w", err)
 	}
 	defer cursor.Close(ctx)
 
 	var records []v1alpha.CallLog
 	if err := cursor.All(ctx, &records); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode documents: %w", err)
 	}
 
 	return records, nil

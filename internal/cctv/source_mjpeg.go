@@ -158,13 +158,13 @@ func (src *MJPEGSource) attach(ctx context.Context) (chan []byte, string, error)
 func (src *MJPEGSource) pull(meta CameraMeta) error {
 	resp, err := http.Get(src.URL)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open HTTP stream: %w", err)
 	}
 
 	ct := resp.Header.Get("content-type")
 	parsed, params, err := mime.ParseMediaType(ct)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse content-type header: %w", err)
 	}
 
 	// we currently only support MJPEG streams that use multipart

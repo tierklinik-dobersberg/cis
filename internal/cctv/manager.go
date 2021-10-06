@@ -38,7 +38,7 @@ type Manager struct {
 func (mng *Manager) LoadDefinitions(dir string) error {
 	files, err := confutil.LoadFiles(dir, ".camera", CameraUnit)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load .camera files: %w", err)
 	}
 
 	mng.rl.Lock()
