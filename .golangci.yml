@@ -1,5 +1,8 @@
 linters:
   enable-all: true
+  disable:
+      - funlen # TODO(ppacher): re-enable ASAP
+      - gomnd # we do have a lot of "magic-numbers" in our V() loggers
 
 linters-settings:
   godox:
