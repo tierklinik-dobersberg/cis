@@ -43,7 +43,7 @@ type InstanceConfig struct {
 	DebounceUntil []daytime.DayTime
 	// BufferUntil works similar to DebounceUntil but instead of dropping older
 	// events and just keeping the latest one BufferUntil keeps track of all
-	// events that occured between the configured day times. Once a day time is
+	// events that occurred between the configured day times. Once a day time is
 	// reached with minute resolution, the complete buffer of events is handed to
 	// each handler of the instance.
 	//

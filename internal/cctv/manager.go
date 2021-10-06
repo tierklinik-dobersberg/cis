@@ -62,7 +62,7 @@ func (mng *Manager) LoadDefinitions(dir string) error {
 	return nil
 }
 
-// ListDefinitions returns a map of all camera defintions known
+// ListDefinitions returns a map of all camera definitions known
 // by the manager.
 func (mng *Manager) ListDefinitions() map[string]CameraMeta {
 	mng.rl.RLock()

@@ -31,11 +31,11 @@ type Manager struct {
 	conditionBuilder *httpcond.Builder
 
 	rw sync.RWMutex
-	// users holds all conditions that must be fullfilled for a request
+	// users holds all conditions that must be fulfilled for a request
 	// to be granted a session token using automatic-login.
 	users map[string]autologinRecord
 
-	// roleAssignment holds all conditions that must be fullfilled for a
+	// roleAssignment holds all conditions that must be fulfilled for a
 	// request to be granted an additional role.
 	roleAssignment map[string]httpcond.Condition
 }

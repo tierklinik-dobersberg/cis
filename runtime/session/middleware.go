@@ -19,7 +19,7 @@ import (
 var log = pkglog.New("session")
 
 // Middleware extracts session data from incoming HTTP requests
-// and handles automatic issueing of new access tokens for
+// and handles automatic issuing of new access tokens for
 // provided refresh tokens.
 func (mng *Manager) Middleware(c *gin.Context) {
 	log := log.From(c.Request.Context())

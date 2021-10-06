@@ -16,7 +16,7 @@ type Registry struct {
 	renderers map[string]Renderer
 }
 
-// RegisterFile registeres a new configuratin file type.
+// RegisterFile registers a new configuratin file type.
 func (reg *Registry) RegisterFile(f File) (*File, error) {
 	reg.l.Lock()
 	defer reg.l.Unlock()

@@ -74,7 +74,7 @@ func (cli *Client) Sync(ctx context.Context, col, syncToken string, deleted chan
 			},
 		})
 		if err != nil {
-			return "", fmt.Errorf("failed to retreive batch: %w", err)
+			return "", fmt.Errorf("failed to retrieve batch: %w", err)
 		}
 		for idx := range objs {
 			select {

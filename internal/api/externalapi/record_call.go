@@ -61,7 +61,7 @@ func RecordCallEndpoint(grp *app.Router) {
 					return httperr.InternalError(err)
 				}
 			} else {
-				// otherwise, we should have a body containg a calllog record
+				// otherwise, we should have a body containing a calllog record
 				// for an identified customer
 				var payload recordCallRequest
 				if err := json.NewDecoder(c.Request.Body).Decode(&payload); err != nil {

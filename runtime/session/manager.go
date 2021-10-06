@@ -98,7 +98,7 @@ func (mng *Manager) CreateByName(ctx context.Context, name string, w http.Respon
 
 // Create creates a new session for user. The caller
 // must ensure user is properly authenticated before
-// issueing a new access and refresh token to the user.
+// issuing a new access and refresh token to the user.
 // Create will also create a new unique identifier for the
 // session and set that as the cis-sid cookie.
 func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, string, error) {

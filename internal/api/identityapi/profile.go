@@ -27,7 +27,7 @@ func ProfileEndpoint(grp *app.Router) {
 			}
 
 			// the user/request might be granted roles by auto-assignment (see autologin)
-			// so make sure we send the complete set of availabe roles here,
+			// so make sure we send the complete set of available roles here,
 			user.User.Roles = sess.DistinctRoles()
 
 			c.JSON(http.StatusOK, user.User)

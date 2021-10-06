@@ -29,7 +29,7 @@ type Condition interface {
 // are used together.
 type ConcatFunc func(...Condition) Condition
 
-// Type describes a condition that may be fullfilled by a HTTP request.
+// Type describes a condition that may be fulfilled by a HTTP request.
 type Type struct {
 	// Name holds the name of the condition. The name is also
 	// used to build the configuration stanza that is used for
@@ -40,10 +40,10 @@ type Type struct {
 	// Type defaults to conf.StringSliceType.
 	Type conf.OptionType
 	// Match is called to evaluate the condition
-	// agianst a value.
+	// against a value.
 	Match MatchFunc
 	// ConcatFunc defines how multipel conditions of the same type
-	// are concatinated together. Only required if Type is a slice.
+	// are concatenated together. Only required if Type is a slice.
 	// Defaults to NewAnd
 	ConcatFunc ConcatFunc
 }

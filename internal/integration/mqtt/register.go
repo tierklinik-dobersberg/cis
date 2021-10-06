@@ -34,7 +34,7 @@ var Spec = conf.SectionSpec{
 	},
 }
 
-// RegisterTriggerOn registeres the MQTT trigger on the registry reg.
+// RegisterTriggerOn registers the MQTT trigger on the registry reg.
 func RegisterTriggerOn(reg *trigger.Registry) error {
 	return reg.RegisterType("mqtt-publish", &trigger.Type{
 		OptionRegistry: Spec,

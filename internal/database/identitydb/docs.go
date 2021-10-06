@@ -91,7 +91,7 @@ func init() {
 		Action=.*
 		Effect=allow	
 		`,
-		ExampleDescription: "A user defintion must custom user properties.",
+		ExampleDescription: "A user definition must custom user properties.",
 		Template: `
 		[User]
 		Name=

@@ -109,7 +109,7 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 		return err
 	}
 
-	// load all records that happend on the same date with the same caller
+	// load all records that happened on the same date with the same caller
 	opts := options.Find().SetSort(bson.M{
 		"date": -1,
 	})
@@ -124,7 +124,7 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 	}
 	defer cursor.Close(ctx)
 
-	// we accept any records that happend +- 2 minutes
+	// we accept any records that happened +- 2 minutes
 	lower := record.Date.Add(-2 * time.Minute)
 	upper := record.Date.Add(+2 * time.Minute)
 	found := false
@@ -146,7 +146,7 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 	}
 
 	if found {
-		// copy exising values to the new record
+		// copy existing values to the new record
 		record.ID = existing.ID
 		record.InboundNumber = existing.InboundNumber
 

@@ -33,7 +33,7 @@ func (b *Builder) Build(sec conf.Section) (Condition, error) {
 		var values []string
 		if t.Type.IsSliceType() {
 			// get all values for name but only add them to groups
-			// if it's acutally used.
+			// if it's actually used.
 			values = sec.GetStringSlice(name)
 			if len(values) == 0 {
 				continue

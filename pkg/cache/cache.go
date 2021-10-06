@@ -67,7 +67,7 @@ type Cache interface {
 	Write(ctx context.Context, key string, data []byte, opts ...Option) error
 
 	// Read returns the data and associated metadata stored under key.
-	// If callers want to manipulate the data returned they are adviced
+	// If callers want to manipulate the data returned they are advised
 	// to create a copy as the underlying cache store (like the in-memory store)
 	// might keep a reference to the returned byte slice. It is safe to
 	// manipulate the returned Metadata though.

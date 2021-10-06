@@ -202,7 +202,7 @@ func Add(m ...Migration) {
 }
 
 // ApplyMigrations applies all migrations added to the default schema
-// registy. See SchemaRegistry.ApplyMigrations for more information.
+// registry. See SchemaRegistry.ApplyMigrations for more information.
 func ApplyMigrations(ctx context.Context, db Database, cli *mongo.Database) (bool, error) {
 	return Default.ApplyMigrations(ctx, db, cli)
 }

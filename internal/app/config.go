@@ -28,7 +28,7 @@ type Config struct {
 	UI UIConfig `section:"-"`
 }
 
-// UIConfig holds the configuration that is soley important for the
+// UIConfig holds the configuration that is solely important for the
 // user interface.
 type UIConfig struct {
 	cfgspec.UI `section:"UI"`

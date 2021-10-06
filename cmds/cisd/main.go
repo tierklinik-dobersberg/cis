@@ -590,7 +590,7 @@ func runMain() {
 		logger.Fatalf(ctx, "failed to start door scheduler: %s", err)
 	}
 
-	// we log on error so this one get's forwarded to error reportes.
+	// we log on error so this one get's forwarded to error reporters.
 	logger.Errorf(ctx, "CIS starting ....")
 
 	// run the server.

@@ -51,7 +51,7 @@ type OpeningHours struct {
 	Unofficial bool
 }
 
-// OpeningHoursSpec describes the different configuratoin stanzas for the OpeningHours struct.
+// OpeningHoursSpec describes the different configuration stanzas for the OpeningHours struct.
 var OpeningHoursSpec = conf.SectionSpec{
 	{
 		Name:        "OnWeekday",
