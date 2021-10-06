@@ -368,7 +368,7 @@ func credsFromFile(path string) (*oauth2.Config, error) {
 func getTokenFromWeb(config *oauth2.Config) (*oauth2.Token, error) {
 	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
 	fmt.Printf("Go to the following link in your browser then type the "+
-		"authorization code: \n%v\n", authURL)
+		"authorization code: \n%v\n", authURL) //nolint:forbidigo
 
 	var authCode string
 	if _, err := fmt.Scan(&authCode); err != nil {
