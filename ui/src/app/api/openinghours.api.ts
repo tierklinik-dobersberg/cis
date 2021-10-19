@@ -19,6 +19,7 @@ export type DayTime = [number, number];
 export interface OpeningHour<T = Date> {
     from: T;
     to: T;
+    unofficial: boolean;
 }
 
 @Injectable({
@@ -43,6 +44,7 @@ export class OpeningHoursAPI {
                         openingHours: res.dates[key].openingHours.map(frame => ({
                             from: new Date(frame.from),
                             to: new Date(frame.to),
+                            unofficial: frame.unofficial,
                         }))
                     }
                 })
@@ -74,6 +76,7 @@ export class OpeningHoursAPI {
                 openingHours: res.openingHours.map(frame => ({
                     from: new Date(frame.from),
                     to: new Date(frame.to),
+                    unofficial: frame.unofficial,
                 }))
             }))
         );

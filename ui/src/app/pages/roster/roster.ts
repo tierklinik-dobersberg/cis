@@ -457,8 +457,8 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
       Object.keys(range.dates).forEach(key => {
         const date = new Date(key);
         const lunch = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0).getTime();
-        const hasForenoon = range.dates[key].openingHours.some(frame => frame.to.getTime() <= lunch);
-        const hasAfternoon = range.dates[key].openingHours.some(frame => frame.to.getTime() > lunch);
+        const hasForenoon = range.dates[key].openingHours.some(frame => frame.to.getTime() <= lunch && !frame.unofficial);
+        const hasAfternoon = range.dates[key].openingHours.some(frame => frame.to.getTime() > lunch && !frame.unofficial);
         this.openingHours[key] = {
           frames: range.dates[key].openingHours,
           hasAfternoon: hasAfternoon,
