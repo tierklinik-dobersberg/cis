@@ -17,9 +17,14 @@ type GetOpeningHoursRangeResponse struct {
 	Dates map[string] /*2006-01-02*/ GetOpeningHoursResponse `json:"dates"`
 }
 
+type TimeRange struct {
+	daytime.TimeRange
+	Unofficial bool `json:"unofficial"`
+}
+
 type GetOpeningHoursResponse struct {
-	Frames    []daytime.TimeRange `json:"openingHours"`
-	IsHoliday bool                `json:"holiday"`
+	Frames    []TimeRange `json:"openingHours"`
+	IsHoliday bool        `json:"holiday"`
 }
 
 func GetOpeningHoursEndpoint(router *app.Router) {
@@ -70,9 +75,12 @@ func getSingleDayOpeningHours(ctx context.Context, app *app.App, at string, d ti
 		return nil, err
 	}
 
-	timeRanges := make([]daytime.TimeRange, len(frames))
+	timeRanges := make([]TimeRange, len(frames))
 	for idx, frame := range frames {
-		timeRanges[idx] = *frame.At(d, app.Location())
+		timeRanges[idx] = TimeRange{
+			TimeRange:  *frame.At(d, app.Location()),
+			Unofficial: frame.Unofficial,
+		}
 	}
 
 	return &GetOpeningHoursResponse{

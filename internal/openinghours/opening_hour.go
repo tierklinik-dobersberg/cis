@@ -13,6 +13,7 @@ import (
 type OpeningHour struct {
 	daytime.DayTimeRange
 
+	Unofficial bool          `json:"unofficial"`
 	Holiday    bool          `json:"holiday"`
 	OpenBefore time.Duration `json:"closeBefore"`
 	CloseAfter time.Duration `json:"closeAfter"`
