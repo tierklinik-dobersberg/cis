@@ -143,7 +143,7 @@
         </ng-container>
       </div>
       <div class="selection-row">
-        <span class="title">Tag Bereitschaft</span>
+        <span class="title">Tag Bereitschaft </span>
         <ng-container *ngTemplateOutlet="mobileUserDutyTemplate; context: {$implicit: getDay(date).onCall.day}">
         </ng-container>
       </div>
@@ -176,7 +176,8 @@
     </ng-template>
 
     <ng-container *ngIf="differentOnCallDay || onCallIsDifferent">
-      <ng-container *ngTemplateOutlet="userSelectionOnCall; context: {$implicit: 'day', title: 'Tag Bereitschaft'}">
+      <ng-container
+        *ngTemplateOutlet="userSelectionOnCall; context: {$implicit: 'day', title: 'Tag Bereitschaft', placeholder: 'Bitte auswählen, sonst gleich wie Nacht-Bereitschaft'}">
       </ng-container>
     </ng-container>
 
@@ -217,11 +218,11 @@
       </div>
     </ng-template>
 
-    <ng-template #userSelectionOnCall let-model let-title="title">
+    <ng-template #userSelectionOnCall let-model let-placeholder="placeholder" let-title="title">
       <div class="selection-row">
         <span nz-menu-group class="title">{{title}}</span>
         <nz-select *ngIf="editMode && isDropDownVisible" [(ngModel)]="selectedDay.onCall[model]" nzMode="multiple"
-          (ngModelChange)="rosterChanged()" nzPlaceHolder="Bitte auswählen">
+          (ngModelChange)="rosterChanged()" [nzPlaceHolder]="placeholder || 'Bitte auswählen'">
           <nz-option *ngFor="let option of selectableUserNames" [nzLabel]="userProfiles[option]?.fullname"
             [nzValue]="option">
           </nz-option>

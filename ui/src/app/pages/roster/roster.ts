@@ -98,7 +98,7 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
   /** two-way binded value for the create-comment textarea */
   newComment = '';
 
-  /** Whether or not the user want's to configure a seaprate on-call employee for the day shift */
+  /** Whether or not the user want's to configure a separate on-call employee for the day shift */
   differentOnCallDay = false;
 
   /** Opening hours indexed by Date().toDateString() */
@@ -128,10 +128,17 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
 
   onCallIsDifferent = false;
 
-  private updateOnCallIsDifferent() {
+  private updateOnCallIsDifferent(date?: Date) {
     this.onCallIsDifferent = false;
     if (!this.selectedDay) {
       return;
+    }
+    if (!!date) {
+      // if there is not a single opening hour for date the user will likely want to
+      // configure a different on-day-call shift.
+      this.differentOnCallDay = !this.openingHours[date.toDateString()].frames.some(frame => !frame.unofficial)
+    } else {
+      this.differentOnCallDay = false;
     }
     if (!this.selectedDay.onCall) {
       return;
@@ -233,7 +240,7 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
   /** Callback when the user clicks on a roster date- */
   selectRosterDay(date: Date): void {
     this.selectedDay = this.getDay(date);
-    this.updateOnCallIsDifferent();
+    this.updateOnCallIsDifferent(date);
   }
 
   shouldHighlightDay(date: Date): boolean {
