@@ -45,7 +45,13 @@ describe("OpeningHours", () => {
                         "holiday": false
                     },
                     "2021-10-24T00:00:00+02:00": {
-                        "openingHours": [],
+                        "openingHours": [
+                            {
+                                from: "2021-10-24T09:00:00+02:00",
+                                to: "2021-10-24T12:00:00+02:00",
+                                unofficial: true
+                            }
+                        ],
                         "holiday": false
                     },
                     "2021-10-25T00:00:00+02:00": {
@@ -68,7 +74,7 @@ describe("OpeningHours", () => {
                             {
                                 "from": "2021-10-26T09:00:00+02:00",
                                 "to": "2021-10-26T12:00:00+02:00",
-                                "unofficial": false
+                                "unofficial": true
                             }
                         ],
                         "holiday": true
