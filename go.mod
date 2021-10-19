@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	github.com/antzucaro/matchr v0.0.0-20191224151129-ab6ba461ddec
-	github.com/apex/log v1.9.0 // indirect
 	github.com/aws/aws-sdk-go v1.36.12 // indirect
 	github.com/charmbracelet/glamour v0.2.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -12,7 +11,7 @@ require (
 	github.com/emersion/go-vcard v0.0.0-20191221110513-5f81fa0d3cc7
 	github.com/emersion/go-webdav v0.3.1
 	github.com/ghodss/yaml v1.0.0
-	github.com/gin-gonic/gin v1.6.3
+	github.com/gin-gonic/gin v1.7.0
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.2 // indirect
@@ -26,7 +25,7 @@ require (
 	github.com/kevinburke/rest v0.0.0-20210222204520-f7a2e216372f // indirect
 	github.com/kevinburke/twilio-go v0.0.0-20210327194925-1623146bcf73
 	github.com/klauspost/compress v1.11.4 // indirect
-	github.com/microcosm-cc/bluemonday v1.0.15
+	github.com/microcosm-cc/bluemonday v1.0.15 // indirect
 	github.com/mxk/go-imap v0.0.0-20150429134902-531c36c3f12d
 	github.com/nbutton23/zxcvbn-go v0.0.0-20201221231540-e56b841a3c88
 	github.com/nyaruka/phonenumbers v1.0.61
@@ -34,7 +33,6 @@ require (
 	github.com/ory/mail/v3 v3.0.0
 	github.com/ppacher/system-conf v0.8.0
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/schollz/progressbar v1.0.0 // indirect
 	github.com/schollz/progressbar/v3 v3.8.2
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cobra v1.1.1
