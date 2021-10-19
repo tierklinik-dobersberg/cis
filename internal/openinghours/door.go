@@ -223,6 +223,7 @@ func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, ho
 				DayTimeRange: tr,
 				CloseAfter:   closeAfter,
 				OpenBefore:   openBefore,
+				Unofficial:   c.Unofficial,
 			})
 		}
 

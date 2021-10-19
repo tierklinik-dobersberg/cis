@@ -43,6 +43,12 @@ type OpeningHours struct {
 
 	// Holiday controls whether this setting is in effect on holidays.
 	Holiday string
+
+	// Unofficial can be set to true if the opening hour is unofficial. That is,
+	// the entry door will be opened but no "work shift" is assigned for that specific
+	// time frame and the doctor-on-duty is responsible instead.
+	// TODO(ppacher): rework/rethink this together with tkd/cis#2.
+	Unofficial bool
 }
 
 // OpeningHoursSpec describes the different configuratoin stanzas for the OpeningHours struct.
@@ -86,6 +92,12 @@ var OpeningHoursSpec = conf.SectionSpec{
 		Name:        "OnCallNightStart",
 		Type:        conf.StringType,
 		Description: "Defines the time the night-shift for the on-call doctor starts. This also denotes the end of the prvious day shift. Format is HH:MM in the configured timezone.",
+	},
+	{
+		Name:        "Unofficial",
+		Type:        conf.BoolType,
+		Description: "can be set to true if the opening hour is unofficial. That is, the entry door will be opened but no 'work shift' is assigned for that specific time frame and the doctor-on-duty is responsible instead.",
+		Default:     "no",
 	},
 }
 
