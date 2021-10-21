@@ -9,18 +9,18 @@ import { SearchParserResult } from 'search-query-parser';
  * @param key The name of the query parameter to toggle
  * @returns the promise returned from router.navigate
  */
-export function toggleRouteQueryParam(router: Router, activeRoute: ActivatedRouteSnapshot, key: string): Promise<boolean> {
+export function toggleRouteQueryParam(router: Router, activeRoute: ActivatedRouteSnapshot, key: string, value = '1'): Promise<boolean> {
   let params = { ...activeRoute.queryParams };
   if (params[key] !== undefined) {
     delete (params[key])
   } else {
-    params[key] = '1'
+    params[key] = value;
   }
   return router.navigate([], { queryParams: params })
 }
 
-export function toggleRouteQueryParamFunc(router: Router, activeRoute: ActivatedRoute, key: string): () => Promise<boolean> {
-  return () => toggleRouteQueryParam(router, activeRoute.snapshot, key)
+export function toggleRouteQueryParamFunc(router: Router, activeRoute: ActivatedRoute, key: string, value = '1'): () => Promise<boolean> {
+  return () => toggleRouteQueryParam(router, activeRoute.snapshot, key, value)
 }
 
 export function parseColor(input: string): number[] {
