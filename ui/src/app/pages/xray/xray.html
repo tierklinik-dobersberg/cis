@@ -30,7 +30,7 @@
 
   <cdk-virtual-scroll-viewport itemSize="73" class="infinite-container content-section">
     <nz-list nzSize="small">
-      <nz-list-item *cdkVirtualFor="let study of ds; trackBy: trackBy" (click)="openDrawer($event, study)">
+      <nz-list-item *cdkVirtualFor="let study of ds; trackBy: trackBy" (click)="toggleDrawer(study.studyInstanceUid)">
         <nz-list-item-meta>
           <nz-list-item-meta-title>
             <a *ngIf="!!study.vetinfCID && layout.isTabletLandscapeUp"
@@ -77,7 +77,7 @@
   </cdk-virtual-scroll-viewport>
 </div>
 
-<nz-drawer [nzVisible]="drawerVisible" [nzClosable]="true" nzPlacement="right" (nzOnClose)="closeDrawer()"
+<nz-drawer [nzVisible]="drawerVisible" [nzClosable]="true" nzPlacement="right" (nzOnClose)="toggleDrawer()"
   [nzWidth]="layout.drawerWidth | async">
   <ng-template [nzDrawerContent]>
     <div class="drawer-container">
