@@ -1,15 +1,16 @@
 import { HttpClient } from '@angular/common/http';
-import { ApplicationRef, Component, HostListener, isDevMode, OnInit } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
+import { ApplicationRef, ChangeDetectorRef, Component, HostListener, isDevMode, OnInit } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { interval, of } from 'rxjs';
-import { catchError, delay, filter, first, map, mergeMap, retryWhen, share, startWith, take, takeUntil, tap } from 'rxjs/operators';
+import { catchError, delay, filter, first, ignoreElements, map, mergeMap, retryWhen, share, startWith, take, takeUntil, tap } from 'rxjs/operators';
 import { LayoutService } from 'src/app/services';
 import { Observable } from 'tinymce';
 import { ConfigAPI, IdentityAPI, Permission, ProfileWithAvatar, UIConfig, VoiceMailAPI } from './api';
 import { InfoScreenAPI } from './api/infoscreen.api';
+import { toggleRouteQueryParam, toggleRouteQueryParamFunc } from './utils';
 
 interface MenuEntry {
   Icon: string;
@@ -93,6 +94,7 @@ export class AppComponent implements OnInit {
     private identity: IdentityAPI,
     private configapi: ConfigAPI,
     private router: Router,
+    private activeRoute: ActivatedRoute,
     private nzMessage: NzMessageService,
     private modal: NzModalService,
     private appRef: ApplicationRef,
@@ -101,6 +103,7 @@ export class AppComponent implements OnInit {
     private voice: VoiceMailAPI,
     private http: HttpClient,
     private showAPI: InfoScreenAPI,
+    private cdr: ChangeDetectorRef
   ) {
   }
 
@@ -109,12 +112,14 @@ export class AppComponent implements OnInit {
       .subscribe(() => this.router.navigate(['/', 'login']));
   }
 
-  toggleMenu(): void {
-    this.isCollapsed = !this.isCollapsed;
-  }
+  readonly toggleMenu = toggleRouteQueryParamFunc(this.router, this.activeRoute, 'show-menu')
 
   ngOnInit(): void {
     this.checkReachability();
+    this.activeRoute.queryParamMap
+      .subscribe(params => {
+        this.isCollapsed = !params.has('show-menu');
+      })
 
     this.updates.available
       .pipe(take(1))
@@ -181,13 +186,6 @@ export class AppComponent implements OnInit {
       });
 
     this.isCollapsed = this.layout.isPhone;
-
-    this.router.events
-      .subscribe(event => {
-        if (event instanceof NavigationEnd && this.layout.isPhone) {
-          this.isCollapsed = true;
-        }
-      });
   }
 
   @HostListener('window:focus')
