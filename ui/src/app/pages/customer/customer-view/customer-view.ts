@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ScaleType } from '@swimlane/ngx-charts';
 import { Color } from '@swimlane/ngx-charts/lib/utils/color-sets';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -10,7 +10,7 @@ import { CallLog, CalllogAPI, CallLogModel, Comment, CommentAPI, LocalPatient, P
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
-import { extractErrorMessage } from 'src/app/utils';
+import { extractErrorMessage, toggleRouteQueryParamFunc } from 'src/app/utils';
 import { customerTagColor, ExtendedCustomer } from '../utils';
 
 @Component({
@@ -29,7 +29,8 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     private activatedRoute: ActivatedRoute,
     private commentapi: CommentAPI,
     private nzMessageService: NzMessageService,
-    private changeDetector: ChangeDetectorRef
+    private router: Router,
+    private changeDetector: ChangeDetectorRef,
   ) { }
 
   private subscriptions = Subscription.EMPTY;
@@ -94,10 +95,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     this.commentText = this.customerComment?.message || '';
   }
 
-  toggleComments(): void {
-    this.showCommentDrawer = !this.showCommentDrawer;
-    this.commentText = '';
-  }
+  readonly toggleComments = toggleRouteQueryParamFunc(this.router, this.activatedRoute, 'show-comments')
 
   ngOnInit(): void {
     this.subscriptions = new Subscription();
@@ -111,6 +109,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
 
     const routerSub = combineLatest([
       this.activatedRoute.paramMap,
+      this.activatedRoute.queryParamMap,
       this.userService.updated,
       this.reload,
     ])
@@ -135,6 +134,11 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe((result: ForkJoinResult | null) => {
+        const showCommets = this.activatedRoute.snapshot.queryParamMap.has('show-comments')
+        if (showCommets !== this.showCommentDrawer) {
+          this.commentText = '';
+        }
+        this.showCommentDrawer = showCommets;
         if (!result) {
           this.header.set(`Kunde: N/A`);
           return;
