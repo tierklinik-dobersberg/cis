@@ -1,9 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { BehaviorSubject, combineLatest, forkJoin, interval, of, Subscription, throwError } from 'rxjs';
-import { catchError, delay, mergeMap, retryWhen, startWith, switchMap } from 'rxjs/operators';
+import { catchError, delay, mergeMap, retryWhen, startWith } from 'rxjs/operators';
 import {
   ConfigAPI,
   Day,
@@ -19,7 +20,7 @@ import {
   UserService
 } from 'src/app/api';
 import { LayoutService } from 'src/app/services';
-import { extractErrorMessage } from 'src/app/utils';
+import { extractErrorMessage, toggleRouteQueryParamFunc } from 'src/app/utils';
 
 @Component({
   selector: 'app-emergency-card',
@@ -56,13 +57,12 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
     private nzMessageService: NzMessageService,
     private changeDetector: ChangeDetectorRef,
     private modal: NzModalService,
+    private router: Router,
+    private activeRoute: ActivatedRoute,
     public layout: LayoutService,
   ) { }
 
-  toggleDrawer(): void {
-    this.drawerVisible = !this.drawerVisible;
-    this.overwritePhone = '';
-  }
+  readonly toggleDrawer = toggleRouteQueryParamFunc(this.router, this.activeRoute, 'roster-overwrite');
 
   get canSetOverwrite(): boolean {
     return this.identityapi.hasPermission(Permission.RosterSetOverwrite);
@@ -105,6 +105,16 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.subscriptions = new Subscription();
+
+    // watch route changes for "?roster-overwrite" query parameter
+    // and open the drawer accordingly.
+    const routerSub = this.activeRoute.queryParamMap
+      .subscribe(params => {
+        this.drawerVisible = params.has("roster-overwrite");
+        this.overwritePhone = '';
+        this.changeDetector.markForCheck();
+      });
+    this.subscriptions.add(routerSub);
 
     // get a list of all users including their avatars.
     const allUsersSub = this.userService.users
