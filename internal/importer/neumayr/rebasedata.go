@@ -79,7 +79,7 @@ func ConvertMDB(mdb *os.File) (*os.File, error) {
 	}
 
 	if _, err := tmpFile.Seek(0, 0); err != nil {
-		return nil, fmt.Errorf("failed to seek back in respones file: %w", err)
+		return nil, fmt.Errorf("failed to seek back in response file: %w", err)
 	}
 
 	return tmpFile, nil

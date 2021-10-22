@@ -12,7 +12,7 @@ import (
 
 var log = pkglog.New("httpcond")
 
-// MatchFunc is the func that validates if a request fullfills
+// MatchFunc is the func that validates if a request fulfills
 // a condition. Its passed the incoming HTTP request and the
 // conditions value. MatchFunc should not care about negating
 // or otherwise complex boolean logic (AND/OR) as this is

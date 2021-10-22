@@ -111,7 +111,7 @@ func init() {
 			# BufferUntil=
 			# DebounceUntil=
 
-			# Add trigger actions as seperate section below.
+			# Add trigger actions as separate section below.
 			`,
 	})
 }

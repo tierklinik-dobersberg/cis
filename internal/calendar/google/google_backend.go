@@ -280,7 +280,7 @@ func (svc *googleCalendarBackend) loadEvents(ctx context.Context, calendarID str
 			}
 			res, err := call.Do()
 			if err != nil {
-				return nil, fmt.Errorf("failed to retreive page from upstream: %w", err)
+				return nil, fmt.Errorf("failed to retrieve page from upstream: %w", err)
 			}
 
 			for _, item := range res.Items {
