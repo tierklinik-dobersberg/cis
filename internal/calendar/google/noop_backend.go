@@ -21,10 +21,10 @@ func (*noopBackend) ListEvents(ctx context.Context, calendarID string, filter *c
 	return nil, ErrCalendarDisabled
 }
 
-func (*noopBackend) CreateEvent(ctx context.Context, calId, name, description string, startTime time.Time, duration time.Duration, data *calendar.StructuredEvent) error {
+func (*noopBackend) CreateEvent(ctx context.Context, calID, name, description string, startTime time.Time, duration time.Duration, data *calendar.StructuredEvent) error {
 	return ErrCalendarDisabled
 }
 
-func (*noopBackend) DeleteEvent(ctx context.Context, calID, eventId string) error {
+func (*noopBackend) DeleteEvent(ctx context.Context, calID, eventID string) error {
 	return ErrCalendarDisabled
 }

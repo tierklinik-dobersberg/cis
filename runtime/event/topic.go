@@ -27,6 +27,7 @@ func MatchSubscription(topic string, subscription string) bool {
 			if idx+1 < len(subscriptionParts) && len(topicParts) <= idx+1 {
 				return false
 			}
+
 			continue
 		}
 

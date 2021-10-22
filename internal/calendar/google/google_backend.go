@@ -51,7 +51,7 @@ var GoogleConfigSpec = conf.SectionSpec{
 	},
 }
 
-type GoogleCalendarConfig struct {
+type CalendarConfig struct {
 	Enabled         bool
 	CredentialsFile string
 	TokenFile       string
@@ -64,7 +64,7 @@ type GoogleCalendarConfig struct {
 type Service interface {
 	ListCalendars(ctx context.Context) ([]ciscal.Calendar, error)
 	ListEvents(ctx context.Context, calendarID string, filter *ciscal.EventSearchOptions) ([]ciscal.Event, error)
-	CreateEvent(ctx context.Context, calId, name, description string, startTime time.Time, duration time.Duration, data *ciscal.StructuredEvent) error
+	CreateEvent(ctx context.Context, calID, name, description string, startTime time.Time, duration time.Duration, data *ciscal.StructuredEvent) error
 	DeleteEvent(ctx context.Context, calID, eventId string) error
 }
 
@@ -79,7 +79,7 @@ type googleCalendarBackend struct {
 }
 
 // New creates a new calendar service from cfg.
-func New(ctx context.Context, cfg GoogleCalendarConfig) (Service, error) {
+func New(ctx context.Context, cfg CalendarConfig) (Service, error) {
 	if !cfg.Enabled {
 		return &noopBackend{}, nil
 	}
@@ -119,7 +119,7 @@ func New(ctx context.Context, cfg GoogleCalendarConfig) (Service, error) {
 }
 
 // Authenticate retrieves a new token and saves it under TokenFile.
-func Authenticate(cfg GoogleCalendarConfig) error {
+func Authenticate(cfg CalendarConfig) error {
 	creds, err := credsFromFile(cfg.CredentialsFile)
 	if err != nil {
 		return fmt.Errorf("failed reading %s: %w", cfg.CredentialsFile, err)
@@ -186,7 +186,7 @@ func (svc *googleCalendarBackend) ListEvents(ctx context.Context, calendarID str
 	return svc.loadEvents(ctx, calendarID, searchOpts)
 }
 
-func (svc *googleCalendarBackend) CreateEvent(ctx context.Context, calId, name, description string, startTime time.Time, duration time.Duration, data *ciscal.StructuredEvent) error {
+func (svc *googleCalendarBackend) CreateEvent(ctx context.Context, calID, name, description string, startTime time.Time, duration time.Duration, data *ciscal.StructuredEvent) error {
 	// convert structured event data to it's string representation
 	// and append to description.
 	if data != nil {
@@ -203,7 +203,7 @@ func (svc *googleCalendarBackend) CreateEvent(ctx context.Context, calId, name, 
 		description = strings.TrimSpace(description) + "\n\n" + buf.String()
 	}
 
-	res, err := svc.Service.Events.Insert(calId, &calendar.Event{
+	res, err := svc.Service.Events.Insert(calID, &calendar.Event{
 		Summary:     name,
 		Description: description,
 		Start: &calendar.EventDateTime{
@@ -219,40 +219,40 @@ func (svc *googleCalendarBackend) CreateEvent(ctx context.Context, calId, name, 
 	}
 	log.From(ctx).Infof("created event with id %s", res.Id)
 
-	if cache, _ := svc.cacheFor(ctx, calId); cache != nil {
+	if cache, _ := svc.cacheFor(ctx, calID); cache != nil {
 		cache.triggerSync()
 	}
 	return nil
 }
 
-func (svc *googleCalendarBackend) DeleteEvent(ctx context.Context, calid, eventid string) error {
-	err := svc.Service.Events.Delete(calid, eventid).Do()
+func (svc *googleCalendarBackend) DeleteEvent(ctx context.Context, calID, eventID string) error {
+	err := svc.Service.Events.Delete(calID, eventID).Do()
 	if err != nil {
 		return fmt.Errorf("failed to delete event upstream: %w", err)
 	}
 	return nil
 }
 
-func (svc *googleCalendarBackend) cacheFor(ctx context.Context, calid string) (*googleEventCache, error) {
+func (svc *googleCalendarBackend) cacheFor(ctx context.Context, calID string) (*googleEventCache, error) {
 	svc.cacheLock.Lock()
 	defer svc.cacheLock.Unlock()
 
-	cache, ok := svc.eventsCache[calid]
+	cache, ok := svc.eventsCache[calID]
 	if ok {
-		log.From(ctx).V(8).Logf("using existing event cache for %s", calid)
+		log.From(ctx).V(8).Logf("using existing event cache for %s", calID)
 		return cache, nil
 	}
 
 	ctx = logger.WithFields(ctx, logger.Fields{
-		"calendarID": calid,
+		"calendarID": calID,
 	})
-	cache, err := newCache(ctx, calid, svc.location, svc.Service)
+	cache, err := newCache(ctx, calID, svc.location, svc.Service)
 	if err != nil {
 		return nil, err
 	}
 
-	svc.eventsCache[calid] = cache
-	log.From(ctx).V(7).Logf("created new event cache for calendar %s", calid)
+	svc.eventsCache[calID] = cache
+	log.From(ctx).V(7).Logf("created new event cache for calendar %s", calID)
 	return cache, nil
 }
 

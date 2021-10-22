@@ -3,6 +3,7 @@ package voicemaildb
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/voicemail/v1alpha"
@@ -77,7 +78,11 @@ func (db *database) Create(ctx context.Context, record *v1alpha.VoiceMailRecord)
 		return err
 	}
 
-	record.ID = result.InsertedID.(primitive.ObjectID)
+	var ok bool
+	record.ID, ok = result.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return fmt.Errorf("invalid insert-ID type: %T", result.InsertedID)
+	}
 
 	go db.fireEvent(context.Background(), record.ID.Hex(), true)
 

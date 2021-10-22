@@ -21,7 +21,7 @@ var (
 )
 
 func calendarService() google.Service {
-	cfg := google.GoogleCalendarConfig{
+	cfg := google.CalendarConfig{
 		Enabled:         true,
 		CredentialsFile: calendarCredFile,
 		TokenFile:       calendarTokenFile,
@@ -58,7 +58,7 @@ func getCalendarAuthCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "authenticate",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := google.Authenticate(google.GoogleCalendarConfig{
+			if err := google.Authenticate(google.CalendarConfig{
 				CredentialsFile: calendarCredFile,
 				TokenFile:       calendarTokenFile,
 			}); err != nil {

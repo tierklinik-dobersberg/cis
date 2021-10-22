@@ -44,6 +44,7 @@ func (reg *Registry) Fire(ctx context.Context, id string, payload Data) {
 		})
 		if !MatchSubscription(id, sub.topic) {
 			l.Infof("skipping subscriber %s, topic %s does not match %s.", sub.subscriber, sub.topic, id)
+
 			continue
 		}
 

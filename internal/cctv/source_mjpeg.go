@@ -239,6 +239,7 @@ func (src *MJPEGSource) pull(meta CameraMeta) error {
 			src.l.Unlock()
 			if refcount == 0 {
 				log.Infof("no stream subscribers. Aborting ...")
+
 				break
 			}
 		}

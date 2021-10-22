@@ -19,7 +19,7 @@ type Config struct {
 
 	CardDAVImports []cfgspec.CardDAVConfig `section:"CardDAV Import"`
 
-	GoogleCalendar google.GoogleCalendarConfig `section:"GoogleCalendar"`
+	GoogleCalendar google.CalendarConfig `section:"GoogleCalendar"`
 
 	OpeningHours   []cfgspec.OpeningHours           `section:"OpeningHour"`
 	UserProperties []cfgspec.UserPropertyDefinition `section:"UserProperty"`
