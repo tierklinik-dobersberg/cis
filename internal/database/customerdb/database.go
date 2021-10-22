@@ -103,24 +103,24 @@ func (db *database) setup(ctx context.Context) error {
 	// Create a text index for $text search support.
 	_, err := db.customers.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
-			Keys: bson.M{
-				"nameMetaphone": "text",
+			Keys: bson.D{
+				{Key: "nameMetaphone", Value: "text"},
 			},
 		},
 		{
-			Keys: bson.M{
-				"phoneNumbers": 1,
+			Keys: bson.D{
+				{Key: "phoneNumbers", Value: 1},
 			},
 		},
 		{
-			Keys: bson.M{
-				"mailAddresses": 1,
+			Keys: bson.D{
+				{Key: "mailAddresses", Value: 1},
 			},
 		},
 		{
-			Keys: bson.M{
-				"cid":            1,
-				"customerSource": 1,
+			Keys: bson.D{
+				{Key: "cid", Value: 1},
+				{Key: "customerSource", Value: 1},
 			},
 		},
 	})

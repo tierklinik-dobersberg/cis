@@ -47,9 +47,9 @@ func NewWithClient(ctx context.Context, dbName string, cli *mongo.Client) (Datab
 func (db *database) setup(ctx context.Context) error {
 	if _, err := db.collection.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
-			Keys: bson.M{
-				"customerSource": 1,
-				"customerID":     1,
+			Keys: bson.D{
+				{Key: "customerSource", Value: 1},
+				{Key: "customerID", Value: 1},
 			},
 		},
 	}); err != nil {
