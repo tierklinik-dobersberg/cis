@@ -41,18 +41,18 @@ type Migration struct {
 	BackupCollections []string
 }
 
-type SchemaRegistry struct {
+type Registry struct {
 	lock     sync.Mutex
 	migrates map[string][]Migration
 }
 
-func NewSchemaRegistry() *SchemaRegistry {
-	return &SchemaRegistry{
+func NewRegistry() *Registry {
+	return &Registry{
 		migrates: make(map[string][]Migration),
 	}
 }
 
-func (sr *SchemaRegistry) Add(migration ...Migration) {
+func (sr *Registry) Add(migration ...Migration) {
 	sr.lock.Lock()
 	defer sr.lock.Unlock()
 
@@ -61,7 +61,7 @@ func (sr *SchemaRegistry) Add(migration ...Migration) {
 	}
 }
 
-func (sr *SchemaRegistry) ApplyMigrations(ctx context.Context, db Database, cli *mongo.Database) (bool, error) {
+func (sr *Registry) ApplyMigrations(ctx context.Context, db Database, cli *mongo.Database) (bool, error) {
 	sr.lock.Lock()
 	defer sr.lock.Unlock()
 
@@ -82,7 +82,7 @@ func (sr *SchemaRegistry) ApplyMigrations(ctx context.Context, db Database, cli 
 
 // backupCollections creates a backup of all 'collections' storing them at the StateDirectory using t
 // for the filename.
-func (sr *SchemaRegistry) backupCollections(ctx context.Context, cli *mongo.Database, key string, collections []string, t time.Time) error {
+func (sr *Registry) backupCollections(ctx context.Context, cli *mongo.Database, key string, collections []string, t time.Time) error {
 	if len(collections) == 0 {
 		return nil
 	}
@@ -131,7 +131,7 @@ func (sr *SchemaRegistry) backupCollections(ctx context.Context, cli *mongo.Data
 	return nil
 }
 
-func (sr *SchemaRegistry) migrate(ctx context.Context, db Database, cli *mongo.Database, key string, migrations []Migration) (
+func (sr *Registry) migrate(ctx context.Context, db Database, cli *mongo.Database, key string, migrations []Migration) (
 	from,
 	to *version.Version,
 	steps int, err error) {
@@ -194,7 +194,7 @@ func (sr *SchemaRegistry) migrate(ctx context.Context, db Database, cli *mongo.D
 
 // Default is the default schema registry and used by package level
 // functions Add and ApplyMigrations
-var Default = NewSchemaRegistry()
+var Default = NewRegistry()
 
 // Add adds m to the default schema registry.
 func Add(m ...Migration) {

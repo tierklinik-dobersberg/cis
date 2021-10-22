@@ -315,7 +315,7 @@ func cloneRecord(r *Record) Record {
 	c := new(Record)
 	c.Metadata = r.Metadata
 	if r.Metadata.NotValidAfter != nil {
-		var v time.Time = *r.Metadata.NotValidAfter
+		v := *r.Metadata.NotValidAfter
 		c.Metadata.NotValidAfter = &v
 	}
 	c.Data = make([]byte, len(r.Data))
