@@ -4,7 +4,7 @@
   "description": "Integration and system tests for CIS",
   "main": "index.js",
   "scripts": {
-    "test": "node -r ts-node/register/type-check test.ts"
+    "test": "TZ=Europe/Vienna node -r ts-node/register/type-check test.ts"
   },
   "author": "",
   "license": "MIT",
