@@ -1,7 +1,7 @@
 import { CdkScrollable, ScrollDispatcher } from '@angular/cdk/overlay';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, NgZone, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { StorageMap } from '@ngx-pwa/local-storage';
 import { NzCalendarMode } from 'ng-zorro-antd/calendar';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -10,7 +10,7 @@ import { catchError, debounceTime, delay, map, retryWhen } from 'rxjs/operators'
 import { Comment as BaseComment, CommentAPI, Day, Holiday, HolidayAPI, IdentityAPI, OpeningHour, OpeningHoursAPI, OpeningHoursResponse, Permission, ProfileWithAvatar, Roster, RosterAPI } from 'src/app/api';
 import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
-import { extractErrorMessage } from 'src/app/utils';
+import { extractErrorMessage, toggleRouteQueryParamFunc } from 'src/app/utils';
 
 interface Comment extends BaseComment {
   date: Date;
@@ -118,7 +118,8 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
     private openinghoursapi: OpeningHoursAPI,
     private messageService: NzMessageService,
     private storage: StorageMap,
-    private route: ActivatedRoute,
+    private activeRoute: ActivatedRoute,
+    private router: Router,
     public layout: LayoutService,
   ) {
     super(elementRef, scrollDispatcher, ngZone);
@@ -177,6 +178,8 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
 
     this.subscriptions = new Subscription();
 
+
+
     // Load all users and keep retrying until we got them.
     const sub =
       this.identityapi.listUsers()
@@ -215,10 +218,11 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
     this.subscriptions.add(layoutSub);
 
     // Subscribe to changes to the "show" query parameter.
-    const routeSub = this.route.queryParamMap
+    const routeSub = this.activeRoute.queryParamMap
       .subscribe(params => {
         this.defaultHightlightUser = params.get('show');
         this.highlightUser = this.defaultHightlightUser;
+        this.showComments = params.has('show-comments')
       });
     this.subscriptions.add(routeSub);
 
@@ -375,9 +379,7 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
       .subscribe(() => this.loadRoster());
   }
 
-  toggleComments(): void {
-    this.showComments = !this.showComments;
-  }
+  readonly toggleComments = toggleRouteQueryParamFunc(this.router, this.activeRoute, 'show-comments');
 
   /**
    * Loads the roster for date.

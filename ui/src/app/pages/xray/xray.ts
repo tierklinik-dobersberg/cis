@@ -1,6 +1,6 @@
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
 import { Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -8,7 +8,7 @@ import { DxrService, Instance, Series, Study } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
-import { splitCombinedCustomerAnimalIDs } from 'src/app/utils';
+import { splitCombinedCustomerAnimalIDs, toggleRouteQueryParam } from 'src/app/utils';
 
 interface InstancePreview {
   previewUrl: string;
@@ -28,15 +28,15 @@ interface StudyWithMeta extends Study {
   styleUrls: ['./xray.scss']
 })
 export class XRayComponent implements OnInit, OnDestroy {
-
   constructor(
     private header: HeaderTitleService,
     private router: Router,
     private dxrapi: DxrService,
     private customerapi: CustomerAPI,
-    private nzMessage: NzMessageService,
+    private activeRoute: ActivatedRoute,
     public layout: LayoutService,
   ) { }
+
   private subscriptions = Subscription.EMPTY;
 
   offset = 0;
@@ -90,18 +90,26 @@ export class XRayComponent implements OnInit, OnDestroy {
       );
   }
 
-  openDrawer(event: MouseEvent, study: StudyWithMeta): void {
-    this.drawerStudy = study;
-    this.drawerVisible = true;
-  }
-
-  closeDrawer(): void {
-    this.drawerVisible = false;
-    this.drawerStudy = null;
+  toggleDrawer(uid?: string) {
+    toggleRouteQueryParam(this.router, this.activeRoute.snapshot, 'study', uid || '');
   }
 
   ngOnInit(): void {
     this.header.set('Röntgen');
+    this.subscriptions = new Subscription();
+
+    const routeSub = this.activeRoute.queryParamMap
+      .subscribe(params => {
+        const studyUID = params.get('study')
+        if (!!studyUID) {
+          this.drawerStudy = this.studies.find(study => study.studyInstanceUid === studyUID);
+          this.drawerVisible = !!this.drawerStudy;
+        } else {
+          this.drawerStudy = null;
+          this.drawerVisible = false;
+        }
+      });
+    this.subscriptions.add(routeSub);
   }
 
   ngOnDestroy(): void {
