@@ -127,7 +127,7 @@ func PlayShowEndpoint(router *app.Router) {
 
 			var previewIndex int = -1
 			if previewStr := c.Query("preview"); previewStr != "" {
-				if idx, err := strconv.ParseInt(previewStr, 0, 64); err == nil {
+				if idx, err := strconv.ParseInt(previewStr, 0, 0); err == nil {
 					previewIndex = int(idx)
 				} else {
 					log.Errorf("invalid parameter for preview: %q (error=%s)", previewStr, err)

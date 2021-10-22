@@ -97,7 +97,7 @@ func (e *Exporter) buildUsersMap() error {
 			case int:
 				e.usersMap[v] = u.Name
 			case string:
-				d, err := strconv.ParseInt(v, 10, 64)
+				d, err := strconv.ParseInt(v, 10, 0)
 				if err != nil {
 					return fmt.Errorf("failed to parse VetInf user ID %q for user %s: %w", u.Name, v, err)
 				}
