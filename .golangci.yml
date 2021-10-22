@@ -13,6 +13,7 @@ linters:
     - funlen # TODO(ppacher): re-enable ASAP
     - goerr113
     - wrapcheck
+    - wsl
     # The following checkers/linters are deprecated.
     - golint
     - maligned
