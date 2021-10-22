@@ -6,6 +6,9 @@ linters:
     - exhaustivestruct # I just don't like it  ...
     - gochecknoglobals # we really try to avoid globals but sometimes we need to ...
     - tagliatelle
+    - lll
+    - gochecknoinits # runtime package is designed to use init() functions
+    - gci # I'm fine with goimports
     # The following checkers/linters are deprecated.
     - golint
     - maligned
