@@ -149,7 +149,7 @@ func (reg *Registry) LoadFiles(ctx context.Context, globalConfig *runtime.Config
 	for idx, file := range files {
 		i, err := reg.CreateTrigger(ctx, globalConfig, file)
 		if err != nil {
-			return instances, fmt.Errorf("%s: %s", file.Path, err)
+			return instances, fmt.Errorf("%s: %w", file.Path, err)
 		}
 		instances[idx] = i
 	}

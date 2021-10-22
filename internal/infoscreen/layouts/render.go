@@ -71,6 +71,7 @@ func Render(l *Layout, vars Vars, renderCtx *RenderContext) ([]byte, error) {
 	}); err != nil {
 		return nil, err
 	}
+
 	return buf.Bytes(), nil
 }
 
@@ -78,6 +79,7 @@ func getLayoutContent(l *Layout) ([]byte, error) {
 	if l.File != "" {
 		return ioutil.ReadFile(l.FilePath(l.File))
 	}
+
 	return []byte(l.Content), nil
 }
 

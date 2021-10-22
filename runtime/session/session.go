@@ -91,7 +91,7 @@ func (session *Session) SetEphemeral(ctx context.Context, key string, data inter
 	dk := fmt.Sprintf("%s%s/%s", session.cacheKeyPrefix, session.id, key)
 	blob, err := json.Marshal(data)
 	if err != nil {
-		return fmt.Errorf("failed to marshal data: %s", err)
+		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
 	return session.cache.Write(ctx, dk, blob, cache.WithTTL(ttl))

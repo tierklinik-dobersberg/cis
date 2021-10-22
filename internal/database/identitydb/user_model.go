@@ -91,6 +91,7 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, autologinCondi
 		parsed, err := phonenumbers.Parse(phone, country)
 		if err != nil {
 			log.From(context.TODO()).Errorf("Failed to parse phone number %s from user %s: %s", phone, u.Name, err)
+
 			continue
 		}
 

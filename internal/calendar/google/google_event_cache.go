@@ -31,6 +31,7 @@ func (ec *googleEventCache) String() string {
 	return fmt.Sprintf("Cache<%s>", ec.calID)
 }
 
+// nolint:unparam
 func newCache(ctx context.Context, id string, loc *time.Location, svc *calendar.Service) (*googleEventCache, error) {
 	cache := &googleEventCache{
 		calID:         id,
@@ -43,7 +44,7 @@ func newCache(ctx context.Context, id string, loc *time.Location, svc *calendar.
 	go cache.watch(ctx)
 	<-cache.firstLoadDone
 
-	return cache, nil // nolint:unparam
+	return cache, nil
 }
 
 func (ec *googleEventCache) triggerSync() {
@@ -108,10 +109,12 @@ func (ec *googleEventCache) loadEvents(ctx context.Context, emit bool) bool {
 				// start over without a sync token
 				// return "success" so we retry in a minute
 				ec.syncToken = ""
+
 				return true
 			}
 
 			log.From(ctx).Errorf("failed to sync events: %s", err)
+
 			return false
 		}
 
@@ -122,6 +125,7 @@ func (ec *googleEventCache) loadEvents(ctx context.Context, emit bool) bool {
 
 		if res.NextPageToken != "" {
 			pageToken = res.NextPageToken
+
 			continue
 		}
 		if res.NextSyncToken != "" {
@@ -138,6 +142,7 @@ func (ec *googleEventCache) loadEvents(ctx context.Context, emit bool) bool {
 		ec.syncToken = ""
 		ec.events = nil
 		ec.minTime = time.Time{}
+
 		return false
 	}
 	if updatesProcessed > 0 {

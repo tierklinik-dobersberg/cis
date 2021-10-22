@@ -125,7 +125,7 @@ func PlayShowEndpoint(router *app.Router) {
 			isEmbedded := c.Query("embedded") != ""
 			theme := c.Query("theme")
 
-			var previewIndex int = -1
+			previewIndex := -1
 			if previewStr := c.Query("preview"); previewStr != "" {
 				if idx, err := strconv.ParseInt(previewStr, 0, 0); err == nil {
 					previewIndex = int(idx)

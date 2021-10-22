@@ -112,17 +112,17 @@ func (e *Exporter) buildUsersMap() error {
 }
 
 // nolint:unused
-func (e *Exporter) getUserNameById(userId int) string {
+func (e *Exporter) getUserNameByID(userID int) string {
 	e.loadUsersOnce.Do(func() {
 		if err := e.buildUsersMap(); err != nil {
 			log.From(context.Background()).Errorf("failed to build vetinf user lookup map: %s", err)
 		}
 	})
 
-	if u, ok := e.usersMap[userId]; ok {
+	if u, ok := e.usersMap[userID]; ok {
 		return u
 	}
-	return fmt.Sprintf("<%d>", userId)
+	return fmt.Sprintf("<%d>", userID)
 }
 
 // ExportCustomers exports all vetinf customers and streams them to

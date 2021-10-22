@@ -180,6 +180,7 @@ func findAddressBook(ctx context.Context, id string, cli *Client, cfg *cfgspec.C
 		log.Infof("%s: using address book %s (%s)", id, b.Name, b.Path)
 		cfg.AddressBook = b.Path
 	}
+
 	return nil
 }
 
@@ -191,19 +192,20 @@ func purgeLocalCustomers(ctx context.Context, id string, app *app.App, cfg *cfgs
 	customers, err := findByCollection(ctx, app, cfg.AddressBook)
 	if err != nil {
 		return fmt.Errorf("%s: failed to find customers for CardDAV collection %s: %s", id, cfg.AddressBook, err)
-	} else {
-		purged := 0
-		for _, c := range customers {
-			if err := app.Customers.DeleteCustomer(ctx, c.ID.Hex()); err != nil {
-				errors.Add(
-					fmt.Errorf("%s: failed to delete customer %s: %s", id, c.ID.Hex(), err),
-				)
-			} else {
-				purged++
-			}
-		}
-		log.Infof("%s: purged %d customers from previous sync", id, purged)
 	}
+
+	purged := 0
+	for _, c := range customers {
+		if err := app.Customers.DeleteCustomer(ctx, c.ID.Hex()); err != nil {
+			errors.Add(
+				fmt.Errorf("%s: failed to delete customer %s: %s", id, c.ID.Hex(), err),
+			)
+		} else {
+			purged++
+		}
+	}
+	log.Infof("%s: purged %d customers from previous sync", id, purged)
+
 	return errors.ToError()
 }
 
@@ -265,6 +267,7 @@ L:
 			return ctx.Err()
 		}
 	}
+
 	return nil
 }
 
@@ -284,9 +287,11 @@ func deleteContact(ctx context.Context, cus *customerdb.Customer, cli *Client) e
 	if ab == "" || path == "" {
 		return httperr.InternalError(nil, "customer does not have collection or path metadata records")
 	}
+
 	if ab != cli.cfg.AddressBook {
 		return httperr.InternalError(fmt.Errorf("customer has a different carddav addressbook record: %q != %q", cli.cfg.AddressBook, ab))
 	}
+
 	return cli.DeleteObject(ctx, path)
 }
 
@@ -302,6 +307,7 @@ func handleDelete(ctx context.Context, cfg *cfgspec.CardDAVConfig, app *app.App,
 	if err := app.Customers.DeleteCustomer(ctx, cus.ID.Hex()); err != nil {
 		return fmt.Errorf("failed to delete customer %s: %w", cus.ID, err)
 	}
+
 	return nil
 }
 
@@ -392,6 +398,7 @@ func findByPath(ctx context.Context, app *app.App, path string) (*customerdb.Cus
 	if len(customers) > 1 {
 		return nil, fmt.Errorf("multiple customers matched %s", path)
 	}
+
 	return customers[0], nil
 }
 
@@ -404,5 +411,6 @@ func findByCollection(ctx context.Context, app *app.App, collectionPath string) 
 func getID(path string) string {
 	s := sha256.New()
 	_, _ = s.Write([]byte(path))
+
 	return hex.EncodeToString(s.Sum(nil))[:16]
 }
