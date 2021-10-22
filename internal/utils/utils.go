@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-// Nonce returns a random nonce of the given size
+// Nonce returns a random nonce of the given size.
 func Nonce(size int) (string, error) {
 	nonce := make([]byte, size)
 	_, err := rand.Read(nonce)
@@ -19,7 +19,7 @@ func Nonce(size int) (string, error) {
 	return fmt.Sprintf("%x", nonce), nil
 }
 
-// Signature returns a signature for the given parts
+// Signature returns a signature for the given parts.
 func Signature(secret string, parts ...string) string {
 	hash := hmac.New(sha256.New, []byte(secret))
 	for _, p := range parts {

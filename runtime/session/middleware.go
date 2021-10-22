@@ -63,7 +63,7 @@ func (mng *Manager) Middleware(c *gin.Context) {
 			log.Errorf("failed to dump request: %s", err)
 			return
 		}
-		if err := ioutil.WriteFile("/log/request.dump", reqBlob, 0700); err != nil {
+		if err := ioutil.WriteFile("/log/request.dump", reqBlob, 0600); err != nil {
 			log.Errorf("failed to dump request: %s", err)
 		}
 

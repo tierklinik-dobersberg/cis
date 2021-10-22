@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Customer represents a customer model
+// Customer represents a customer model.
 type Customer struct {
 	// TODO(ppacher): should we actually expose ID?
 	ID                  string                 `json:"_id,omitempty" bson:"_id,omitempty"`

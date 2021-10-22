@@ -265,7 +265,7 @@ func FindLinkableCustomers(ctx context.Context) error {
 	// to use the name similarity (https://github.com/adrg/strutil)
 	// to increase the score.
 	//
-	//createSuggestions(SameName, name)
+	// createSuggestions(SameName, name)
 
 	return nil
 }

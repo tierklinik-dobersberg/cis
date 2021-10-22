@@ -54,7 +54,9 @@ func (mem *memory) Delete(_ context.Context, key string) error {
 
 func (mem *memory) List(_ context.Context, prefix string) ([]*KeyRecord, error) {
 	var res []*KeyRecord
-	for key, r := range mem.records {
+	for key := range mem.records {
+		r := mem.records[key]
+
 		if strings.HasPrefix(key, prefix) {
 			c := cloneRecord(&r)
 			res = append(res, &KeyRecord{

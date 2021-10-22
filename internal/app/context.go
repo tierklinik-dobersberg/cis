@@ -178,7 +178,7 @@ func (app *App) BaseURL(c *gin.Context) string {
 	}
 
 	if !strings.HasSuffix(url, "/") {
-		url = url + "/"
+		url += "/"
 	}
 	return url
 }
@@ -197,7 +197,7 @@ func (app *App) BasePath() string {
 
 	path := u.Path
 	if !strings.HasSuffix(path, "/") {
-		path = path + "/"
+		path += "/"
 	}
 	return path
 }
@@ -255,10 +255,10 @@ func (app *App) MaxUploadSize() int64 {
 		}
 
 		if suffix == "K" {
-			parsed = parsed << 10
+			parsed <<= 10
 		}
 		if suffix == "M" {
-			parsed = parsed << 20
+			parsed <<= 20
 		}
 		app.maxUploadSize = parsed
 	})

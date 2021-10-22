@@ -9,7 +9,5 @@ import (
 var log = pkglog.New("execer")
 
 func init() {
-	runtime.Must(
-		AddTriggerType("Exec", trigger.DefaultRegistry),
-	)
+	runtime.Must(AddTriggerType("Exec", trigger.DefaultRegistry))
 }

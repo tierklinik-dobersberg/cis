@@ -37,19 +37,21 @@ func (imp *Importer) Import(ctx context.Context, mdb *os.File) (countNew, countU
 
 	for _, customer := range customers {
 		existing, err := imp.app.Customers.CustomerByCID(ctx, "neumayr", customer.CustomerID)
-		if errors.Is(err, customerdb.ErrNotFound) {
+
+		switch {
+		case errors.Is(err, customerdb.ErrNotFound):
 			err = imp.app.Customers.CreateCustomer(ctx, &customer)
 			if err == nil {
 				countNew++
 			}
-		} else if existing != nil && existing.Hash() != customer.Hash() {
+		case existing != nil && existing.Hash() != customer.Hash():
 			importutils.CopyCustomerAttributes(existing, &customer)
 
 			err = imp.app.Customers.UpdateCustomer(ctx, &customer)
 			if err == nil {
 				countUpdated++
 			}
-		} else if existing != nil {
+		case existing != nil:
 			countUnchanged++
 		}
 

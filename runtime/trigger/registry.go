@@ -197,7 +197,9 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 	// now iterate over all sections, call the associated factory and collect
 	// the created handlers.
 	var handlers []Handler
-	for _, sec := range f.Sections {
+	for idx := range f.Sections {
+		sec := f.Sections[idx]
+
 		// we already parsed the [Match] section so we can skip
 		// it.
 		if strings.EqualFold(sec.Name, "Match") {

@@ -116,7 +116,7 @@ func MustRegister(f File) *File {
 	return file
 }
 
-// RegisterRenderer calls DefaultRegistry.RegisterRenderer
+// RegisterRenderer calls DefaultRegistry.RegisterRenderer.
 func RegisterRenderer(kind string, renderer Renderer) error {
 	return DefaultRegistry.RegisterRenderer(kind, renderer)
 }
