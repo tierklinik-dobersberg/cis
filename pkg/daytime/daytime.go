@@ -1,10 +1,17 @@
 package daytime
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
+)
+
+// Common error messages.
+var (
+	ErrInvalidFormat = errors.New("invalid format")
+	ErrInvalidValue  = errors.New("invalid value")
 )
 
 // Midnight returns a new time that represents midnight at t.
@@ -16,7 +23,7 @@ func Midnight(t time.Time) time.Time {
 type DayTime [2]int
 
 // AsMinutes returns dt as a absolute number of minutes starting from
-// midnight (00:00)
+// midnight (00:00).
 func (dt DayTime) AsMinutes() int {
 	return dt[0]*60 + dt[1]
 }
@@ -45,11 +52,11 @@ func ParseDayTime(str string) (DayTime, error) {
 
 	parts := strings.Split(str, ":")
 	if len(parts) != 2 {
-		return dt, fmt.Errorf("invalid format in %q", str)
+		return dt, fmt.Errorf("%q: %w", str, ErrInvalidFormat)
 	}
 
 	if parts[0] == "" || parts[1] == "" {
-		return dt, fmt.Errorf("invalid format: %q", str)
+		return dt, fmt.Errorf("%q: %w", str, ErrInvalidFormat)
 	}
 
 	hourStr := strings.TrimLeft(parts[0], "0")
@@ -58,10 +65,10 @@ func ParseDayTime(str string) (DayTime, error) {
 	}
 	hour, err := strconv.ParseInt(hourStr, 0, 64)
 	if err != nil {
-		return dt, fmt.Errorf("invalid hour: %q: %w", parts[0], err)
+		return dt, fmt.Errorf("hour %q: %w", parts[0], ErrInvalidValue)
 	}
 	if hour < 0 || hour > 23 {
-		return dt, fmt.Errorf("hour out of range: %d", hour)
+		return dt, fmt.Errorf("hour %d: %w", hour, ErrInvalidValue)
 	}
 	dt[0] = int(hour)
 
@@ -71,17 +78,17 @@ func ParseDayTime(str string) (DayTime, error) {
 	}
 	min, err := strconv.ParseInt(minStr, 0, 64)
 	if err != nil {
-		return dt, fmt.Errorf("invalid minute: %q: %w", parts[1], err)
+		return dt, fmt.Errorf("minute: %q: %w", parts[1], ErrInvalidValue)
 	}
 	if min < 0 || min > 59 {
-		return dt, fmt.Errorf("minute out of range: %d", min)
+		return dt, fmt.Errorf("minute %d: %w", min, ErrInvalidValue)
 	}
 	dt[1] = int(min)
 
 	return dt, nil
 }
 
-// DayTimeRange represents a range at any day
+// DayTimeRange represents a range at any day.
 type DayTimeRange struct {
 	From DayTime `json:"from"`
 	To   DayTime `json:"to"`
@@ -115,7 +122,7 @@ func (tr *TimeRange) Covers(t time.Time) bool {
 func ParseDayTimeRange(str string) (r DayTimeRange, err error) {
 	parts := strings.Split(str, "-")
 	if len(parts) != 2 {
-		return r, fmt.Errorf("invalid format in %q", str)
+		return r, fmt.Errorf("%q: %w", str, ErrInvalidFormat)
 	}
 
 	r.From, err = ParseDayTime(strings.TrimSpace(parts[0]))
@@ -129,7 +136,7 @@ func ParseDayTimeRange(str string) (r DayTimeRange, err error) {
 	}
 
 	if r.From.AsMinutes() >= r.To.AsMinutes() {
-		return r, fmt.Errorf("start time after end time")
+		return r, fmt.Errorf("%w: start time after end time", ErrInvalidValue)
 	}
 
 	return r, nil

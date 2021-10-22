@@ -9,6 +9,8 @@ import (
 )
 
 func TestDayTimeParse(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		In  string
 		Out daytime.DayTime
@@ -62,6 +64,8 @@ func TestDayTimeParse(t *testing.T) {
 }
 
 func TestParseTimeRange(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		In  string
 		Out daytime.DayTimeRange

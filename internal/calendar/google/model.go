@@ -2,6 +2,7 @@ package google
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -12,6 +13,8 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
+var ErrInvalidEvent = errors.New("invalid event")
+
 func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*ciscal.Event, error) {
 	var (
 		err   error
@@ -20,7 +23,7 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*c
 	)
 
 	if item == nil {
-		return nil, fmt.Errorf("received nil item")
+		return nil, fmt.Errorf("%w: received nil item", ErrInvalidEvent)
 	}
 
 	if item.Start == nil {
@@ -28,7 +31,7 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*c
 			"event": item,
 		}).Errorf("failed to process google calendar event: event.Start == nil")
 
-		return nil, fmt.Errorf("event with ID %s does not have start time", item.Id)
+		return nil, fmt.Errorf("%w: event with ID %s does not have start time", ErrInvalidEvent, item.Id)
 	}
 
 	if item.Start.DateTime != "" {
@@ -37,7 +40,7 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*c
 		start, err = time.Parse("2006-01-02", item.Start.Date)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse event start time: %s", err)
+		return nil, fmt.Errorf("failed to parse event start time: %w", err)
 	}
 
 	if !item.EndTimeUnspecified {
@@ -48,7 +51,7 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*c
 			t, err = time.Parse("2006-01-02", item.End.Date)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse event end time: %s", err)
+			return nil, fmt.Errorf("failed to parse event end time: %w", err)
 		}
 		end = &t
 	}

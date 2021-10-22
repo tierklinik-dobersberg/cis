@@ -188,7 +188,7 @@ func (db *database) Search(ctx context.Context, query *SearchQuery) ([]v1alpha.C
 }
 
 func (db *database) perpareRecord(ctx context.Context, record *v1alpha.CallLog) error {
-	formattedNumber := ""
+	var formattedNumber string
 	if record.Caller != "Anonymous" {
 		parsed, err := phonenumbers.Parse(record.Caller, db.country)
 		if err != nil {

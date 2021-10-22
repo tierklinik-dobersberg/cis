@@ -220,7 +220,7 @@ func (db *identDB) GetAutologinRoles(_ context.Context) map[string]conf.Section 
 }
 
 func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo string) error {
-	hash := ""
+	var hash string
 	switch algo {
 	case "plain":
 		hash = password

@@ -73,9 +73,9 @@ func (fs *fileStore) Get(ctx context.Context, name string) (*Layout, error) {
 		return nil, httperr.NotFound("layout", name, os.ErrNotExist)
 	}
 
-	copy := new(Layout)
-	*copy = *l
-	return copy, nil
+	cpy := new(Layout)
+	*cpy = *l
+	return cpy, nil
 }
 
 func (fs *fileStore) ListNames(ctx context.Context) ([]string, error) {

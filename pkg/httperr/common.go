@@ -1,3 +1,5 @@
+// nolint:goerr13
+
 package httperr
 
 import (
