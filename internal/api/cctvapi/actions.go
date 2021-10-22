@@ -5,7 +5,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
-// Permissions defined by the cctvapi:
+// Permissions defined by the cctvapi:.
 var (
 	ReadCameraAction = permission.MustDefineAction(
 		"camera:read",

@@ -1,4 +1,4 @@
-//nolint:dupl
+
 package migrations
 
 import (

@@ -64,7 +64,7 @@ func (l *Layout) Var(name string) *Variable {
 	return nil
 }
 
-// Validate layout and return any errors encountered
+// Validate layout and return any errors encountered.
 func Validate(layout *Layout) error {
 	errors := &multierr.Error{}
 

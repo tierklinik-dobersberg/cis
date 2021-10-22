@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 )
 
-// Creates a new file upload http request with optional extra params
+// Creates a new file upload http request with optional extra params.
 func newfileUploadRequest(uri string, params map[string]string, paramName, path string, f *os.File) (*http.Request, error) {
 	if f == nil {
 		file, err := os.Open(path)

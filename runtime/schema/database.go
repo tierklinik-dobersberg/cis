@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Common error messages when working with the schema package:
+// Common error messages when working with the schema package:.
 var (
 	ErrNotFound = errors.New("not found")
 )

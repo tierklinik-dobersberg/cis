@@ -285,7 +285,6 @@ func (db *database) SetOverwrite(ctx context.Context, d time.Time, user, phone, 
 	go db.fireOverwriteEvent(ctx, d, user, phone, displayName)
 
 	return nil
-
 }
 
 func (db *database) GetOverwrite(ctx context.Context, d time.Time) (*v1alpha.Overwrite, error) {

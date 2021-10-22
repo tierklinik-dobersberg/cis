@@ -5,7 +5,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 )
 
-// Setup creates all resource endpoints
+// Setup creates all resource endpoints.
 func Setup(grp gin.IRouter) {
 	router := app.NewRouter(grp)
 

@@ -115,5 +115,5 @@ func (ms *mongoStore) List(ctx context.Context, prefix string) ([]*KeyRecord, er
 	return res, nil
 }
 
-// Compile time check
+// Compile time check.
 var _ Store = new(mongoStore)

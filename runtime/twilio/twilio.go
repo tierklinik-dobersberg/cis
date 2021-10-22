@@ -93,5 +93,5 @@ func (s *sender) cacheTemplate(ctx context.Context, msg Message) (*template.Temp
 	return t, nil
 }
 
-// compile time check
+// compile time check.
 var _ SMSSender = new(sender)

@@ -28,7 +28,7 @@ func NewManager(ctx context.Context, store Store) (*Manager, error) {
 	return mng, nil
 }
 
-// NewSyncer returns a new
+// NewSyncer returns a new.
 func (mng *Manager) NewSyncer(ctx context.Context, name string, interval time.Duration, cfg *mailbox.Config) (*Syncer, error) {
 	log := log.From(ctx)
 

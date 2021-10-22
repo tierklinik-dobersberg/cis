@@ -51,7 +51,6 @@ func init() {
 				default:
 					return false, nil
 				}
-
 			} else if h := r.URL.Query().Get("access_token"); h != "" {
 				token = h
 			} else if h := r.Header.Get("Content-Type"); strings.Contains(h, "application/x-www-form-urlencoded") {

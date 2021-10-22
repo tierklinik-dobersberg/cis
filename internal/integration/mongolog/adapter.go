@@ -144,5 +144,5 @@ func (adapter *Adapter) Write(t time.Time, severity logger.Severity, msg string,
 	}
 }
 
-// Compile time check
+// Compile time check.
 var _ logger.Adapter = new(Adapter)

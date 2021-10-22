@@ -23,13 +23,13 @@ var log = pkglog.New("openinghours")
 // DoorState describes the current state of the entry door.
 type DoorState string
 
-// Possible door states
+// Possible door states.
 const (
 	Locked   = DoorState("locked")
 	Unlocked = DoorState("unlocked")
 )
 
-// Reset types
+// Reset types.
 var (
 	resetSoft = (*struct{})(nil)
 	resetHard = &struct{}{}
@@ -389,7 +389,6 @@ func (dc *DoorController) resetDoor(ctx context.Context) {
 	if err := dc.door.Unlock(ctx); err != nil {
 		log.Errorf("failed to unlock door: %s", err)
 	}
-
 }
 
 func (dc *DoorController) scheduler() {
@@ -472,7 +471,6 @@ func (dc *DoorController) scheduler() {
 			} else {
 				lastState = state
 			}
-
 		}
 		cancel()
 	}

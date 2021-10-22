@@ -68,7 +68,7 @@ type Registry struct {
 	providers map[string]*Type
 }
 
-// Compile time check
+// Compile time check.
 var _ conf.OptionRegistry = new(Registry)
 
 // Register registers a new condition type at the registry.
@@ -84,7 +84,7 @@ func (reg *Registry) Register(cond Type) error {
 	lowerName := strings.ToLower(cond.Name)
 
 	if _, ok := reg.providers[lowerName]; ok {
-		return errors.New("condition type already registerd")
+		return errors.New("condition type already registered")
 	}
 
 	reg.providers[lowerName] = &cond

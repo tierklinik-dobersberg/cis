@@ -5,14 +5,14 @@ import "github.com/ppacher/system-conf/conf"
 // UI groups settings that only relate to the user
 // interface and are not directly used by cisd.
 // Values here are made available through
-// /api/config/v1/ui
+// /api/config/v1/ui.
 type UI struct {
 	HideUsersWithRole              []string
 	UserPhoneExtensionProperties   []string
 	CreateEventAlwaysAllowCalendar []string
 }
 
-// UISpec defines what configuration stanzas are supported
+// UISpec defines what configuration stanzas are supported.
 var UISpec = conf.SectionSpec{
 	{
 		Name:        "HideUsersWithRole",

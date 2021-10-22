@@ -35,7 +35,7 @@ type MessageHandler interface {
 }
 
 // MessageHandlerFunc is a convenience type for implementing
-// MessageHandler
+// MessageHandler.
 type MessageHandlerFunc func(context.Context, *mailbox.EMail)
 
 // HandleMail implements MessageHandler.

@@ -110,7 +110,6 @@ func LoginEndpoint(grp *app.Router) {
 					password = req.Password
 				} else if strings.Contains(contentType, "x-www-form-urlencoded") ||
 					strings.Contains(contentType, "multipart/form-data") {
-
 					log.Infof("performing authentication from x-www-form-urlencoded or multipart/form-data payload.")
 					username = c.Request.FormValue("username")
 					password = c.Request.FormValue("password")

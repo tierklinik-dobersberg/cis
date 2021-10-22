@@ -74,26 +74,26 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	//
-	// underscore imports that register themself somewhere
+	// underscore imports that register themself somewhere.
 	//
 
-	// Exec trigger type
+	// Exec trigger type.
 	_ "github.com/tierklinik-dobersberg/cis/runtime/execer"
-	// SendMail trigger type and SMTP support
+	// SendMail trigger type and SMTP support.
 	_ "github.com/tierklinik-dobersberg/cis/runtime/mailer"
-	// Twilio trigger type
+	// Twilio trigger type.
 	_ "github.com/tierklinik-dobersberg/cis/runtime/twilio"
-	// MQTT trigger type
+	// MQTT trigger type.
 	_ "github.com/tierklinik-dobersberg/cis/internal/integration/mqtt"
-	// VetInf importer
+	// VetInf importer.
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/vetinf"
-	// Neumayr importer
+	// Neumayr importer.
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/neumayr"
-	// CardDAV importer
+	// CardDAV importer.
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/carddav"
-	// Task: Find linkable customers
+	// Task: Find linkable customers.
 	_ "github.com/tierklinik-dobersberg/cis/internal/tasks/linkable"
-	// Schema migrations
+	// Schema migrations.
 	_ "github.com/tierklinik-dobersberg/cis/migrations"
 )
 

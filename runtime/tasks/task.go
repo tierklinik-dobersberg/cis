@@ -138,7 +138,6 @@ func (task *Task) Run() {
 		defer task.lastLock.Unlock()
 		task.lastErr = execErr
 		task.lastExecTime = start
-
 	}()
 
 	execErr = task.TaskFunc(ctx)

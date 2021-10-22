@@ -135,7 +135,6 @@ func (sr *Registry) migrate(ctx context.Context, db Database, cli *mongo.Databas
 	from,
 	to *version.Version,
 	steps int, err error) {
-
 	// split them up by version
 	lm := make(map[string][]Migration)
 	versions := version.Collection{}
@@ -193,7 +192,7 @@ func (sr *Registry) migrate(ctx context.Context, db Database, cli *mongo.Databas
 }
 
 // Default is the default schema registry and used by package level
-// functions Add and ApplyMigrations
+// functions Add and ApplyMigrations.
 var Default = NewRegistry()
 
 // Add adds m to the default schema registry.

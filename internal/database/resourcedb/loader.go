@@ -9,7 +9,7 @@ import (
 )
 
 // LoadFiles loads all resource files from dir. It returns the
-// first error encountered.roster
+// first error encountered.roster.
 func LoadFiles(reg *Registry, dir string) error {
 	files, err := confutil.LoadFiles(dir, ".resource", ResourceUnit)
 	if err != nil {

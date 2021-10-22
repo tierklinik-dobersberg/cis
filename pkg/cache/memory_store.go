@@ -68,5 +68,5 @@ func (mem *memory) List(_ context.Context, prefix string) ([]*KeyRecord, error) 
 	return res, nil
 }
 
-// Compile time check
+// Compile time check.
 var _ Store = new(memory)

@@ -10,7 +10,7 @@ import (
 	"github.com/tierklinik-dobersberg/logger"
 )
 
-// Common errors when working with the cache package:
+// Common errors when working with the cache package:.
 var (
 	ErrNotFound         = errors.New("cache record not found")
 	ErrNoMounts         = errors.New("no mounts specified")

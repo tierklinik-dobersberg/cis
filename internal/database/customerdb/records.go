@@ -47,7 +47,7 @@ type Customer struct {
 	Source   string                 `bson:"customerSource,omitempty"`
 }
 
-// Hash returns a hash of the customer
+// Hash returns a hash of the customer.
 func (cu *Customer) Hash() string {
 	h := sha1.New()
 	w := func(s string) {

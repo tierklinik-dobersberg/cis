@@ -5,7 +5,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
 
-// Role defines the structure of a user role
+// Role defines the structure of a user role.
 type Role struct {
 	v1alpha.Role
 }
