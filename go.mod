@@ -46,7 +46,7 @@ require (
 	github.com/ttacon/libphonenumber v1.2.1 // indirect
 	github.com/yuin/goldmark v1.2.1
 	github.com/zclconf/go-cty v1.8.0
-	go.mongodb.org/mongo-driver v1.4.4
+	go.mongodb.org/mongo-driver v1.5.1
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
