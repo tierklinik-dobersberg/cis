@@ -11,7 +11,7 @@ import (
 // with an additional OpenBefore and CloseAfter threshold for the
 // entry door.
 type OpeningHour struct {
-	daytime.DayTimeRange
+	daytime.Range
 
 	Unofficial bool          `json:"unofficial"`
 	Holiday    bool          `json:"holiday"`

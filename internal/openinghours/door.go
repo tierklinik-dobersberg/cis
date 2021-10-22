@@ -204,7 +204,7 @@ func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, ho
 
 		var ranges []OpeningHour
 		for _, r := range c.TimeRanges {
-			tr, err := daytime.ParseDayTimeRange(r)
+			tr, err := daytime.ParseRange(r)
 			if err != nil {
 				return nil, err
 			}
@@ -220,10 +220,10 @@ func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, ho
 			}
 
 			ranges = append(ranges, OpeningHour{
-				DayTimeRange: tr,
-				CloseAfter:   closeAfter,
-				OpenBefore:   openBefore,
-				Unofficial:   c.Unofficial,
+				Range:      tr,
+				CloseAfter: closeAfter,
+				OpenBefore: openBefore,
+				Unofficial: c.Unofficial,
 			})
 		}
 
@@ -403,7 +403,7 @@ func (dc *DoorController) scheduler() {
 	retries := 0
 	maxTries := maxTriesLocked
 	// trigger immediately
-	var until time.Time = time.Now().Add(time.Second)
+	until := time.Now().Add(time.Second)
 
 	for {
 		ctx := context.Background()

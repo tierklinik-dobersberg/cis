@@ -88,18 +88,18 @@ func ParseDayTime(str string) (DayTime, error) {
 	return dt, nil
 }
 
-// DayTimeRange represents a range at any day.
-type DayTimeRange struct {
+// Range represents a range at any day.
+type Range struct {
 	From DayTime `json:"from"`
 	To   DayTime `json:"to"`
 }
 
-func (dtr *DayTimeRange) String() string {
+func (dtr *Range) String() string {
 	return fmt.Sprintf("<%s - %s>", dtr.From.String(), dtr.To.String())
 }
 
 // At returns a the TimeRange that results when adding dtr to d.
-func (dtr *DayTimeRange) At(d time.Time, loc *time.Location) *TimeRange {
+func (dtr *Range) At(d time.Time, loc *time.Location) *TimeRange {
 	return &TimeRange{
 		From: dtr.From.At(d, loc),
 		To:   dtr.To.At(d, loc),
@@ -117,9 +117,9 @@ func (tr *TimeRange) Covers(t time.Time) bool {
 	return (tr.From.Before(t) || tr.From.Equal(t)) && (tr.To.After(t) || tr.To.Equal(t))
 }
 
-// ParseDayTimeRange parses a day time range in the format of "HH:MM - HH:MM"
+// ParseRange parses a day time range in the format of "HH:MM - HH:MM"
 // and returns the result.
-func ParseDayTimeRange(str string) (r DayTimeRange, err error) {
+func ParseRange(str string) (r Range, err error) {
 	parts := strings.Split(str, "-")
 	if len(parts) != 2 {
 		return r, fmt.Errorf("%q: %w", str, ErrInvalidFormat)

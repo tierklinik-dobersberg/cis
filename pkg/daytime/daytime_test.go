@@ -68,19 +68,19 @@ func TestParseTimeRange(t *testing.T) {
 
 	cases := []struct {
 		In  string
-		Out daytime.DayTimeRange
+		Out daytime.Range
 		Err bool
 	}{
 		{
 			In: "08:00 - 12:00",
-			Out: daytime.DayTimeRange{
+			Out: daytime.Range{
 				From: daytime.DayTime{8, 0},
 				To:   daytime.DayTime{12, 0},
 			},
 		},
 		{
 			In: "14:30-17:45",
-			Out: daytime.DayTimeRange{
+			Out: daytime.Range{
 				From: daytime.DayTime{14, 30},
 				To:   daytime.DayTime{17, 45},
 			},
@@ -92,7 +92,7 @@ func TestParseTimeRange(t *testing.T) {
 	}
 
 	for idx, c := range cases {
-		r, err := daytime.ParseDayTimeRange(c.In)
+		r, err := daytime.ParseRange(c.In)
 		msg := fmt.Sprintf("in case %d (input: %q)", idx, c.In)
 		if c.Err {
 			assert.Error(t, err, msg)
