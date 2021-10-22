@@ -29,6 +29,7 @@ describe("CardDAV", () => {
             const response = await Alice.get("http://localhost:3000/api/customer/v1?phone=004312341234")
             expect(response.status).toBe(200);
             expect(response.data).toHaveSize(1);
+            expect(response.data[0].cid).toBeTruthy()
             max = response.data[0].cid
         })
 

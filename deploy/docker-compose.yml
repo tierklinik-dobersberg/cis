@@ -88,6 +88,8 @@ services:
         condition: service_started
       mongo-import:
         condition: service_completed_successfully
+      radicale-init:
+        condition: service_completed_successfully
     ports:
       - 3000:3000
     volumes:
