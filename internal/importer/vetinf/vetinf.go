@@ -39,7 +39,7 @@ type Exporter struct {
 	cfg      cfgspec.VetInf
 	db       *vetinf.Infdat
 	country  string
-	usersMap map[int]string // nolint:unused,staticcheck
+	usersMap map[int]string // nolint:unused
 
 	identities    identitydb.Database
 	loadUsersOnce sync.Once // nolint:unused

@@ -9,6 +9,7 @@ linters:
     - lll
     - gochecknoinits # runtime package is designed to use init() functions
     - gci # I'm fine with goimports
+    - gofumpt # I'm fine with gofmt
     # The following checkers/linters are deprecated.
     - golint
     - maligned

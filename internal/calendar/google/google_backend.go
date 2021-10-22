@@ -306,7 +306,7 @@ func (svc *googleCalendarBackend) loadEvents(ctx context.Context, calendarID str
 		log.From(ctx).V(7).Logf("shared calendar load between multiple callers")
 	}
 
-	return res.([]ciscal.Event), err // nolint:errwrap // this one is already wrapped
+	return res.([]ciscal.Event), err // nolint:wrapcheck // this one is already wrapped
 }
 
 func (svc *googleCalendarBackend) shouldIngore(item *calendar.CalendarListEntry) bool {
