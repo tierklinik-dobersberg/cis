@@ -23,7 +23,7 @@ type Registry struct {
 }
 
 // Fire fires a new event of the given ID to all subscribers.
-func (reg *Registry) Fire(ctx context.Context, id string, payload EventData) {
+func (reg *Registry) Fire(ctx context.Context, id string, payload Data) {
 	reg.l.RLock()
 	defer reg.l.RUnlock()
 
@@ -95,7 +95,7 @@ func Subscribe(client, eventID string) <-chan *Event {
 }
 
 // Fire fires an event on the DefaultRegistry.
-func Fire(ctx context.Context, id string, payload EventData) {
+func Fire(ctx context.Context, id string, payload Data) {
 	DefaultRegistry.Fire(ctx, id, payload)
 }
 
