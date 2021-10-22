@@ -164,6 +164,7 @@ func (src *MJPEGSource) pull(meta CameraMeta) error {
 	ct := resp.Header.Get("content-type")
 	parsed, params, err := mime.ParseMediaType(ct)
 	if err != nil {
+		resp.Body.Close()
 		return fmt.Errorf("failed to parse content-type header: %w", err)
 	}
 
@@ -171,6 +172,7 @@ func (src *MJPEGSource) pull(meta CameraMeta) error {
 	// streaming with x-mixed-replace. Better make sure this is
 	// really a supported cam.
 	if parsed != "multipart/x-mixed-replace" {
+		resp.Body.Close()
 		return fmt.Errorf("unsupported content type: %s", ct)
 	}
 
@@ -178,6 +180,7 @@ func (src *MJPEGSource) pull(meta CameraMeta) error {
 	// and start pulling frames.
 	boundary := params["boundary"]
 	if boundary == "" {
+		resp.Body.Close()
 		return fmt.Errorf("missing boundary in content type: %s", err)
 	}
 	reader := multipart.NewReader(resp.Body, boundary)

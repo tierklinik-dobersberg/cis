@@ -291,7 +291,7 @@ func (c *cache) List(ctx context.Context, prefix string) ([]string, error) {
 		return nil, fmt.Errorf("failed to retrieve list: %w", err)
 	}
 
-	var keys []string
+	keys := make([]string, 0, len(records))
 	for _, r := range records {
 		if !r.Record.IsValid() {
 			continue

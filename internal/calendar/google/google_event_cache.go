@@ -43,7 +43,7 @@ func newCache(ctx context.Context, id string, loc *time.Location, svc *calendar.
 	go cache.watch(ctx)
 	<-cache.firstLoadDone
 
-	return cache, nil
+	return cache, nil // nolint:unparam
 }
 
 func (ec *googleEventCache) triggerSync() {
@@ -126,6 +126,7 @@ func (ec *googleEventCache) loadEvents(ctx context.Context, emit bool) bool {
 		}
 		if res.NextSyncToken != "" {
 			ec.syncToken = res.NextSyncToken
+
 			break
 		}
 
@@ -163,6 +164,7 @@ func (ec *googleEventCache) syncEvent(ctx context.Context, item *calendar.Event)
 	for idx, evt := range ec.events {
 		if evt.ID == item.Id {
 			foundAtIndex = idx
+
 			break
 		}
 	}

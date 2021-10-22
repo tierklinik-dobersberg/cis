@@ -127,17 +127,20 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 	// we accept any records that happened +- 2 minutes
 	lower := record.Date.Add(-2 * time.Minute)
 	upper := record.Date.Add(+2 * time.Minute)
-	found := false
+	var found bool
 	var existing v1alpha.CallLog
 
 	for cursor.Next(ctx) {
 		if err := cursor.Decode(&existing); err != nil {
 			log.Errorf("failed to decode existing calllog record: %s", err)
-		} else {
-			if lower.Before(existing.Date) && upper.After(existing.Date) {
-				found = true
-				break
-			}
+
+			continue
+		}
+
+		if lower.Before(existing.Date) && upper.After(existing.Date) {
+			found = true
+
+			break
 		}
 	}
 	// we only log error here and still create the record.

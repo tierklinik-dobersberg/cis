@@ -3,8 +3,8 @@ package resourcedb
 import "errors"
 
 var (
-	ErrEmptyID                 = errors.New("ID is empty")
-	ErrEmptyName               = errors.New("Name is empty")
+	ErrEmptyID                 = errors.New("resource ID is empty")
+	ErrEmptyName               = errors.New("resource Name is empty")
 	ErrInvalidMaxConcurrentUse = errors.New("invalid MaxConcurrentUse")
 	ErrDuplicateID             = errors.New("duplicate resource ID")
 	ErrUnknownID               = errors.New("unknown resource ID")

@@ -24,7 +24,7 @@ func (db *identDB) loadUsers(identityDir string) error {
 	}
 
 	spec := conf.FileSpec{
-		"User":       conf.SectionSpec(append(cfgspec.UserSpec, userPropertySpecs...)),
+		"User":       append(cfgspec.UserSpec, userPropertySpecs...),
 		"Permission": cfgspec.PermissionSpec,
 	}
 	if db.httpConditionRegistry != nil {
@@ -116,6 +116,7 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, autologinCondi
 			for _, opt := range sec.Options {
 				if strings.EqualFold(opt.Name, spec.Name) {
 					hasValue = true
+
 					break
 				}
 			}

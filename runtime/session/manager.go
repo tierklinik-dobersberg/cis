@@ -52,7 +52,7 @@ func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityCo
 	if baseURL != "" {
 		u, err := url.Parse(baseURL)
 		if err != nil {
-			return fmt.Errorf("invalid base URL: %s", err)
+			return fmt.Errorf("invalid base URL: %w", err)
 		}
 
 		base = u.Path
@@ -137,7 +137,7 @@ func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, 
 	}
 
 	if err := mng.saveSession(sess, w); err != nil {
-		return nil, "", fmt.Errorf("save: %s", err)
+		return nil, "", fmt.Errorf("save: %w", err)
 	}
 
 	return sess, accessToken, nil

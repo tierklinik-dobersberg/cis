@@ -11,8 +11,7 @@ import (
 // Nonce returns a random nonce of the given size.
 func Nonce(size int) (string, error) {
 	nonce := make([]byte, size)
-	_, err := rand.Read(nonce)
-	if err != nil {
+	if _, err := rand.Read(nonce); err != nil {
 		return "", err
 	}
 

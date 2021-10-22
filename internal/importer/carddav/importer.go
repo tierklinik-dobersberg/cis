@@ -171,6 +171,7 @@ func findAddressBook(ctx context.Context, id string, cli *Client, cfg *cfgspec.C
 		if strings.ToLower(b.Name) == "default" {
 			log.Infof("%s: using address book %s (%s)", id, b.Name, b.Path)
 			cfg.AddressBook = b.Path
+
 			break
 		}
 	}

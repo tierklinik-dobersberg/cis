@@ -67,16 +67,19 @@ type EventSearchOptions struct {
 
 func (s *EventSearchOptions) From(t time.Time) *EventSearchOptions {
 	s.FromTime = &t
+
 	return s
 }
 
 func (s *EventSearchOptions) To(t time.Time) *EventSearchOptions {
 	s.ToTime = &t
+
 	return s
 }
 
 func (s *EventSearchOptions) ForDay(t time.Time) *EventSearchOptions {
 	s.From(time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()))
 	s.To(time.Date(t.Year(), t.Month(), t.Day()+1, 0, 0, 0, 0, t.Location()))
+
 	return s
 }

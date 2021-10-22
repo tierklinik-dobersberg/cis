@@ -75,6 +75,7 @@ func FilterProperties(scope Scope, defs []cfgspec.UserPropertyDefinition, props 
 			if scope != Private {
 				continue
 			}
+
 			fallthrough
 		case "public":
 			cpy[key] = value

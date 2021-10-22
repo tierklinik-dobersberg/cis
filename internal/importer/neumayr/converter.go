@@ -106,7 +106,7 @@ func (conv *Converter) Convert(ctx context.Context, mdb *os.File) ([]customerdb.
 			}
 			for header, index := range wantedHeaders {
 				if index == -1 {
-					return nil, fmt.Errorf("Failed to determine column index for %q", header)
+					return nil, fmt.Errorf("failed to determine column index for %q", header)
 				}
 			}
 			isHeader = false

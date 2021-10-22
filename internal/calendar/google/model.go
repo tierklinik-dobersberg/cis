@@ -89,6 +89,7 @@ func parseDescription(desc string) (string, *ciscal.StructuredEvent, error) {
 			foundSectionStart = true
 			sectionLines = allLines[idx:]
 			strippedDescr = strings.TrimSpace(strings.Join(allLines[:idx], "\n"))
+
 			break
 		}
 	}

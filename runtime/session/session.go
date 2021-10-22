@@ -159,7 +159,7 @@ func (session *Session) DistinctRoles() []string {
 	for _, r := range session.extraRoles {
 		lm[r] = struct{}{}
 	}
-	var distinctRoles []string
+	distinctRoles := make([]string, 0, len(lm))
 	for key := range lm {
 		distinctRoles = append(distinctRoles, key)
 	}

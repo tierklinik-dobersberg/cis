@@ -416,6 +416,7 @@ func getApp(ctx context.Context) *app.App {
 			time.Sleep(time.Second)
 			continue
 		}
+
 		break
 	}
 

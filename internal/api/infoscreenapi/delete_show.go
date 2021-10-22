@@ -19,7 +19,7 @@ func DeleteShowEndpoint(router *app.Router) {
 			showName := c.Param("show")
 
 			if err := app.InfoScreenShows.DeleteShow(ctx, showName); err != nil {
-				return nil
+				return err
 			}
 
 			c.Status(http.StatusAccepted)

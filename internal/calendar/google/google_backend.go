@@ -65,7 +65,7 @@ type Service interface {
 	ListCalendars(ctx context.Context) ([]ciscal.Calendar, error)
 	ListEvents(ctx context.Context, calendarID string, filter *ciscal.EventSearchOptions) ([]ciscal.Event, error)
 	CreateEvent(ctx context.Context, calID, name, description string, startTime time.Time, duration time.Duration, data *ciscal.StructuredEvent) error
-	DeleteEvent(ctx context.Context, calID, eventId string) error
+	DeleteEvent(ctx context.Context, calID, eventID string) error
 }
 
 type googleCalendarBackend struct {
@@ -287,6 +287,7 @@ func (svc *googleCalendarBackend) loadEvents(ctx context.Context, calendarID str
 				evt, err := convertToEvent(ctx, calendarID, item)
 				if err != nil {
 					log.From(ctx).Errorf(err.Error())
+
 					continue
 				}
 				events = append(events, *evt)
@@ -294,8 +295,10 @@ func (svc *googleCalendarBackend) loadEvents(ctx context.Context, calendarID str
 
 			if res.NextPageToken != "" {
 				pageToken = res.NextPageToken
+
 				continue
 			}
+
 			break
 		}
 
@@ -315,6 +318,7 @@ func (svc *googleCalendarBackend) shouldIngore(item *calendar.CalendarListEntry)
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -332,6 +336,7 @@ func tokenFromFile(path string) (*oauth2.Token, error) {
 	if err := json.Unmarshal(content, &token); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal JSON token: %w", err)
 	}
+
 	return &token, nil
 }
 

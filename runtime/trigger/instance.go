@@ -212,6 +212,7 @@ func (inst *Instance) waitAndFire(ctx context.Context) {
 				fireTime := frame.At(now, inst.cfg.Location).Format("2006-01-02 15:04")
 				if fireTime == nowStr {
 					shouldFire = true
+
 					break
 				}
 			}

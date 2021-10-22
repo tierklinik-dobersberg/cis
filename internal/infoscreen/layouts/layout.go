@@ -126,10 +126,7 @@ func ParseFile(fpath string) (*Layout, error) {
 		},
 	}
 
-	evalCtx, err := getEvalContext(fpath)
-	if err != nil {
-		return nil, err
-	}
+	evalCtx := getEvalContext(fpath)
 	if err := hclsimple.DecodeFile(fpath, evalCtx, &file); err != nil {
 		return nil, err
 	}
@@ -139,7 +136,7 @@ func ParseFile(fpath string) (*Layout, error) {
 	return file.Layout, nil
 }
 
-func getEvalContext(fpath string) (*hcl.EvalContext, error) {
+func getEvalContext(fpath string) *hcl.EvalContext {
 	return &hcl.EvalContext{
 		Variables: map[string]cty.Value{
 			"string":   cty.StringVal(TypeString),
@@ -153,5 +150,5 @@ func getEvalContext(fpath string) (*hcl.EvalContext, error) {
 			"plain":    cty.StringVal(FormatPlain),
 			"root":     cty.StringVal(filepath.Dir(fpath)),
 		},
-	}, nil
+	}
 }
