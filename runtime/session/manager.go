@@ -23,7 +23,7 @@ type Manager struct {
 
 	identityConfg   *IdentityConfig
 	secret          string
-	sessionIdCookie string
+	sessionIDCookie string
 	cache           cache.Cache
 	cachePrefix     string
 
@@ -36,7 +36,7 @@ func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityCo
 	mng.UserProvider = identites
 	mng.identityConfg = identityConfig
 	mng.activeSession = make(map[string]*Session)
-	mng.sessionIdCookie = identityConfig.SessionIDCookie
+	mng.sessionIDCookie = identityConfig.SessionIDCookie
 	mng.secret = secret
 	mng.cache = cache
 	mng.cachePrefix = cachePrefix
@@ -145,7 +145,7 @@ func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, 
 
 func (mng *Manager) saveSession(sess *Session, w http.ResponseWriter) error {
 	// This is a NOOP if SessionIDCookie= is empty.
-	if mng.sessionIdCookie == "" {
+	if mng.sessionIDCookie == "" {
 		return nil
 	}
 
@@ -161,7 +161,7 @@ func (mng *Manager) saveSession(sess *Session, w http.ResponseWriter) error {
 	// inform the browser about the session ID. this is best-effort only
 	// as the Set-Cookie header might just be ignored.
 	http.SetCookie(w, mng.cookieFactory.Create(
-		mng.sessionIdCookie,
+		mng.sessionIDCookie,
 		sess.id,
 		"/",
 		0,

@@ -103,8 +103,8 @@ func (mng *Manager) Middleware(c *gin.Context) {
 	// we can now check if there's an active session ID
 	// and reuse that. otherwise, we just create a new session
 	// object and continue with that.
-	if mng.sessionIdCookie != "" {
-		sid, err := c.Cookie(mng.sessionIdCookie)
+	if mng.sessionIDCookie != "" {
+		sid, err := c.Cookie(mng.sessionIDCookie)
 		if err != nil && !errors.Is(err, http.ErrNoCookie) {
 			aborted = true
 			c.AbortWithStatus(http.StatusInternalServerError)
