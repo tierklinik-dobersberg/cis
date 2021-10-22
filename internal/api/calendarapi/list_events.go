@@ -34,7 +34,7 @@ func ListEventsEndpoint(router *app.Router) {
 
 			filter := new(calendar.EventSearchOptions).ForDay(day)
 
-			calendars, calIdToCal, err := getCalendars(ctx, app)
+			calendars, calIDtoCal, err := getCalendars(ctx, app)
 			if err != nil {
 				return err
 			}
@@ -45,11 +45,11 @@ func ListEventsEndpoint(router *app.Router) {
 				return err
 			}
 			userNameToUser := make(map[string]cfgspec.User)
-			calIdToUser := make(map[string]cfgspec.User)
+			calIDtoUser := make(map[string]cfgspec.User)
 			for _, user := range users {
 				userNameToUser[user.Name] = user
 				if user.CalendarID != "" {
-					calIdToUser[user.CalendarID] = user
+					calIDtoUser[user.CalendarID] = user
 				}
 			}
 
@@ -108,11 +108,11 @@ func ListEventsEndpoint(router *app.Router) {
 			// with the username where known.
 			modelEvents := make([]v1alpha.Event, len(events))
 			for idx, evt := range events {
-				u := calIdToUser[evt.CalendarID]
+				u := calIDtoUser[evt.CalendarID]
 				modelEvents[idx] = v1alpha.Event{
 					Event:        evt,
 					Username:     u.Name,
-					CalendarName: calIdToCal[evt.CalendarID].Name,
+					CalendarName: calIDtoCal[evt.CalendarID].Name,
 				}
 			}
 
@@ -141,9 +141,9 @@ func getCalendars(ctx context.Context, app *app.App) ([]calendar.Calendar, map[s
 	if err != nil {
 		return nil, nil, err
 	}
-	calIdToCal := make(map[string]calendar.Calendar)
+	idToCal := make(map[string]calendar.Calendar)
 	for _, cal := range calendars {
-		calIdToCal[cal.ID] = cal
+		idToCal[cal.ID] = cal
 	}
-	return calendars, calIdToCal, nil
+	return calendars, idToCal, nil
 }

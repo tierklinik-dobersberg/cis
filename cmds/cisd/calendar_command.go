@@ -121,10 +121,10 @@ func getEventsCommand() *cobra.Command {
 			}
 
 			var allEvents []calendar.Event
-			for _, calId := range args {
+			for _, calID := range args {
 				events, err := svc.ListEvents(
 					context.Background(),
-					calId,
+					calID,
 					opts,
 				)
 				if err != nil {
