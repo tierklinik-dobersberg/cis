@@ -86,18 +86,18 @@ func NewWithClient(ctx context.Context, dbName string, client *mongo.Client) (Da
 func (db *database) setup(ctx context.Context) error {
 	_, err := db.comments.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
-			Keys: bson.M{
-				"parentID": 1,
+			Keys: bson.D{
+				{Key: "parentID", Value: 1},
 			},
 		},
 		{
-			Keys: bson.M{
-				"key": 1,
+			Keys: bson.D{
+				{Key: "key", Value: 1},
 			},
 		},
 		{
-			Keys: bson.M{
-				"user": 1,
+			Keys: bson.D{
+				{Key: "user", Value: 1},
 			},
 		},
 	})

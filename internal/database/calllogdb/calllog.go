@@ -51,27 +51,27 @@ func NewWithClient(ctx context.Context, dbName, country string, cli *mongo.Clien
 func (db *database) setup(ctx context.Context) error {
 	_, err := db.callogs.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
-			Keys: bson.M{
-				"datestr": 1,
+			Keys: bson.D{
+				{Key: "datestr", Value: 1},
 			},
 			Options: options.Index().SetSparse(false),
 		},
 		{
-			Keys: bson.M{
-				"caller": 1,
+			Keys: bson.D{
+				{Key: "caller", Value: 1},
 			},
 			Options: options.Index().SetSparse(false),
 		},
 		{
-			Keys: bson.M{
-				"customerID":     1,
-				"customerSource": 1,
+			Keys: bson.D{
+				{Key: "customerID", Value: 1},
+				{Key: "customerSource", Value: 1},
 			},
 			Options: options.Index().SetSparse(true),
 		},
 		{
-			Keys: bson.M{
-				"agent": 1,
+			Keys: bson.D{
+				{Key: "agent", Value: 1},
 			},
 			Options: options.Index().SetSparse(true),
 		},

@@ -108,9 +108,9 @@ func NewWithClient(ctx context.Context, dbName string, client *mongo.Client) (Da
 func (db *database) setup(ctx context.Context) error {
 	// we use a compound index on month and year that must be unique.
 	_, err := db.rosters.Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.M{
-			"month": 1,
-			"year":  1,
+		Keys: bson.D{
+			{Key: "month", Value: 1},
+			{Key: "year", Value: 1},
 		},
 		Options: options.Index().SetUnique(true).SetSparse(false),
 	})
@@ -125,8 +125,8 @@ func (db *database) setup(ctx context.Context) error {
 	}
 
 	_, err = db.overwrites.Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.M{
-			"date": 1,
+		Keys: bson.D{
+			{Key: "date", Value: 1},
 		},
 		// we don't use a unique index here because we only "mark" overwrites
 		// as deleted instead of actually deleting them.
