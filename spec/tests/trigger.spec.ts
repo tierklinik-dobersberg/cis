@@ -15,6 +15,10 @@ async function getMails(): Promise<AxiosResponse<any[]>> {
 
 describe("Triggers", () => {
     it("should support listing available triggers", async () => {
+        // TODO(ppacher): add test case that trigger instances are filtered
+        // based on permissions checks. I.e. add a user that only has access to one
+        // following triggers.
+
         const response = await Alice.get("http://localhost:3000/api/triggers/v1")
         expect(response.status).toBe(200)
         expect(response.data).toEqual({
