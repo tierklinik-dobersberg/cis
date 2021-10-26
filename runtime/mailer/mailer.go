@@ -2,6 +2,7 @@ package mailer
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -111,6 +112,17 @@ func (m *mailer) cacheBodyTemplate(ctx context.Context, email Message) (template
 // New returns a new mailer that sends mail through account.
 func New(account Account) (Mailer, error) {
 	d := mail.NewDialer(account.Host, account.Port, account.Username, account.Password)
+
+	if account.AllowInsecure {
+		if d.TLSConfig == nil {
+			d.TLSConfig = new(tls.Config)
+		}
+		d.TLSConfig.InsecureSkipVerify = true
+	}
+
+	if account.UseSSL != nil {
+		d.SSL = *account.UseSSL
+	}
 
 	// TODO(ppacher): should we try to connect to verify the credentials?
 	return &mailer{
