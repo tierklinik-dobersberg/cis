@@ -27,6 +27,15 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
 
   #
+  # Fake SMTP server to test mail delivery
+  #
+  smtp:
+    image: reachfive/fake-smtp-server
+    ports:
+      - 8092:1080
+    command: node index.js --auth mailuser:mailpass
+
+  #
   # We use radicale as our upstream CardDAV server.
   #
   radicale:
