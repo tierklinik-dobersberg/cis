@@ -5,8 +5,8 @@ import "github.com/ppacher/system-conf/conf"
 type Message struct {
 	From            string
 	To              []string
-	CC              []string
-	BCC             []string
+	Cc              []string
+	Bcc             []string
 	Subject         string // text/template
 	BodyContentType string
 	Body            string // text/template
@@ -26,14 +26,14 @@ var MessageSpec = conf.SectionSpec{
 		Required:    true,
 	},
 	{
-		Name:        "CC",
+		Name:        "Cc",
 		Type:        conf.StringSliceType,
-		Description: "Additional CC receipients for the message. E-Mail addresses will be exposed to all receipients.",
+		Description: "Additional Cc receipients for the message. E-Mail addresses will be exposed to all receipients.",
 	},
 	{
-		Name:        "BCC",
+		Name:        "Bcc",
 		Type:        conf.StringSliceType,
-		Description: "Additional blind CC receipients for the message.",
+		Description: "Additional blind Cc receipients for the message.",
 	},
 	{
 		Name:        "Subject",

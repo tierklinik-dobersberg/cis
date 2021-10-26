@@ -44,9 +44,12 @@ func (m *mailer) Send(ctx context.Context, email Message, context interface{}) e
 	msg.SetHeaders(map[string][]string{
 		"From":    {email.From},
 		"To":      email.To,
-		"CC":      email.CC,
+		"Cc":      email.Cc,
+		"Bcc":     email.Bcc,
 		"Subject": {email.Subject},
 	})
+
+	log.From(ctx).V(7).Logf("Sending mail %q to %s, cc=%v and bcc=%v", email.Subject, email.To, email.Cc, email.Bcc)
 
 	t, err := m.cacheBodyTemplate(ctx, email)
 	if err != nil {
