@@ -14,6 +14,30 @@ async function getMails(): Promise<AxiosResponse<any[]>> {
 }
 
 describe("Triggers", () => {
+    it("should support listing available triggers", async () => {
+        const response = await Alice.get("http://localhost:3000/api/triggers/v1")
+        expect(response.status).toBe(200)
+        expect(response.data).toEqual({
+            "instances": [
+                {
+                    "name": "test-mail-file",
+                    "pending": false,
+                    "groups": ["test-mail-file"]
+                },
+                {
+                    "name": "test-mail-inline",
+                    "pending": false,
+                    "groups": ["test-mail-inline"]
+                },
+                {
+                    "name": "test-mqtt",
+                    "pending": false,
+                    "groups": null
+                }
+            ]
+        })
+    })
+
     describe("Mail action", () => {
         beforeEach(async () => {
             await axios.delete("http://localhost:8092/api/emails", {
