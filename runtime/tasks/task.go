@@ -212,7 +212,7 @@ func (task *Task) Run() {
 // of other packages. For safety, users are adviced to use
 // NewManager on their own and register all required tasks
 // manually.
-// Creators of tasks are adivced to export a RegisterOn(mng *Manager)
+// Creators of tasks are adviced to export a RegisterOn(mng *Manager)
 // method that can be used to register a task on a certain
 // manager.
 var DefaultManager = NewManager(time.Local)

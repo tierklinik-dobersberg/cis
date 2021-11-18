@@ -527,7 +527,12 @@ func getApp(ctx context.Context) *app.App {
 	// Start the task manager
 	// All tasks can get access to appCtx by using app.From(ctx).
 	//
-	tasks.DefaultManager.Start(ctx)
+	if !cfg.DisableTaskSystem {
+		logger.Infof(ctx, "starting internal task system ...")
+		tasks.DefaultManager.Start(ctx)
+	} else {
+		logger.Infof(ctx, "Internal task system disabled")
+	}
 
 	//
 	// Prepare triggers

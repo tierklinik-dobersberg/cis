@@ -274,7 +274,7 @@ func FindLinkableCustomers(ctx context.Context) error {
 // mng.
 func RegisterOn(mng *tasks.Manager) (*tasks.Task, error) {
 	t := &tasks.Task{
-		Name:     "find-linkable-customers",
+		Name:     "FindLinkableCustomers",
 		TaskFunc: FindLinkableCustomers,
 		Deadline: 10 * time.Minute,
 		StartNow: true,

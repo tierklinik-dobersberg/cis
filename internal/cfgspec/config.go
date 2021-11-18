@@ -13,12 +13,13 @@ import (
 // Config groups global configuration values that are used by various subsystems
 // of cisd.
 type Config struct {
-	Secret        string
-	BaseURL       string
-	Country       string
-	AccessLogFile string
-	TimeZone      string
-	LogLevel      string
+	Secret            string
+	BaseURL           string
+	Country           string
+	AccessLogFile     string
+	TimeZone          string
+	LogLevel          string
+	DisableTaskSystem bool
 
 	UnknownContactName   string
 	UnknownContactSource string
@@ -102,6 +103,12 @@ var ConfigSpec = conf.SectionSpec{
 		Description: "The maximum log level that should be printed to console. Should either be a number or the special values 'trace' (7), 'debug' (6), 'info' (5), 'warn' (3) or 'error' (0)",
 		Type:        conf.StringType,
 		Default:     "info",
+	},
+	{
+		Name:        "DisableTaskSystem",
+		Description: "Whether or not the internal task system should be disabled",
+		Type:        conf.BoolType,
+		Default:     "no",
 	},
 }
 
