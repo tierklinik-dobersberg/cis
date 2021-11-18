@@ -9,12 +9,18 @@ import (
 func Setup(grp gin.IRouter) {
 	router := app.NewRouter(grp)
 
-	// GET /api/customer/v1/:id
+	// GET /api/customer/v1/:source/:id
 	GetByIDEndpoint(router)
+
+	// DELETE /api/customer/v1/:source/:id
+	DeleteCustomerEndpoint(router)
 
 	// POST /api/customer/v1/search
 	ExtendedSearchEndpoint(router)
 
 	// GET /api/customer/v1?name=XXX
 	FuzzySearchEndpoint(router)
+
+	// GET /api/customer/sources/v1
+	ListSourcesEndpoint(router)
 }

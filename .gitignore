@@ -2,3 +2,5 @@
 node_modules
 /ui/ckeditor/build
 /cardcli
+/testdata/state/radicale
+/testdata/**/private-*

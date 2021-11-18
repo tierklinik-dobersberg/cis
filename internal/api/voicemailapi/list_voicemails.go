@@ -9,10 +9,12 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
-func ListMailboxes(router *app.Router) {
+// ListMailboxesEndpoint returns a list of all configured voice-
+// mail endpoints.
+func ListMailboxesEndpoint(router *app.Router) {
 	router.GET(
 		"v1/list",
-		permission.Anyone,
+		permission.OneOf{ReadVoicemailsAction},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			names := make([]string, len(app.Config.VoiceMails))
 

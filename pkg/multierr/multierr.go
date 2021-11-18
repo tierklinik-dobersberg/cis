@@ -9,15 +9,14 @@ type Error struct {
 	Errors []error
 }
 
-func (err *Error) Add(another error) *Error {
+func (err *Error) Add(another error) {
 	if another != nil {
 		err.Errors = append(err.Errors, another)
 	}
-	return err
 }
 
-func (err *Error) Addf(msg string, args ...interface{}) *Error {
-	return err.Add(fmt.Errorf(msg, args...))
+func (err *Error) Addf(msg string, args ...interface{}) {
+	err.Add(fmt.Errorf(msg, args...))
 }
 
 func (err *Error) ToError() error {

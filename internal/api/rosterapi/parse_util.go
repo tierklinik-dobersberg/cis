@@ -14,12 +14,12 @@ func getYearAndMonth(c *gin.Context) (time.Month, int, error) {
 	monthStr := c.Param("month")
 	monthStr = strings.TrimPrefix(monthStr, "0")
 
-	year, err := strconv.ParseInt(yearStr, 10, 64)
+	year, err := strconv.ParseInt(yearStr, 10, 0)
 	if err != nil {
 		return 0, 0, httperr.InvalidParameter("year")
 	}
 
-	month, err := strconv.ParseInt(monthStr, 10, 64)
+	month, err := strconv.ParseInt(monthStr, 10, 0)
 	if err != nil {
 		return 0, 0, httperr.InvalidParameter("month")
 	}

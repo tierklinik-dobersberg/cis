@@ -19,7 +19,7 @@ func GetForYearEndpoint(grp *app.Router) {
 		"v1/:year",
 		permission.Anyone, // public domain
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			year, err := strconv.ParseInt(c.Param("year"), 10, 64)
+			year, err := strconv.ParseInt(c.Param("year"), 10, 0)
 			if err != nil {
 				return httperr.InvalidParameter("year")
 			}

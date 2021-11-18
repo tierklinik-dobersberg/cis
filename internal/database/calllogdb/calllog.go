@@ -90,7 +90,7 @@ func (db *database) CreateUnidentified(ctx context.Context, record v1alpha.CallL
 
 	result, err := db.callogs.InsertOne(ctx, record)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to insert document: %w", err)
 	}
 
 	// Just make sure the result is what we expect.
@@ -109,7 +109,7 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 		return err
 	}
 
-	// load all records that happend on the same date with the same caller
+	// load all records that happened on the same date with the same caller
 	opts := options.Find().SetSort(bson.M{
 		"date": -1,
 	})
@@ -120,24 +120,27 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 	log.Infof("searching for %+v", filter)
 	cursor, err := db.callogs.Find(ctx, filter, opts)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to retrieve documents: %w", err)
 	}
 	defer cursor.Close(ctx)
 
-	// we accept any records that happend +- 2 minutes
+	// we accept any records that happened +- 2 minutes
 	lower := record.Date.Add(-2 * time.Minute)
 	upper := record.Date.Add(+2 * time.Minute)
-	found := false
+	var found bool
 	var existing v1alpha.CallLog
 
 	for cursor.Next(ctx) {
 		if err := cursor.Decode(&existing); err != nil {
 			log.Errorf("failed to decode existing calllog record: %s", err)
-		} else {
-			if lower.Before(existing.Date) && upper.After(existing.Date) {
-				found = true
-				break
-			}
+
+			continue
+		}
+
+		if lower.Before(existing.Date) && upper.After(existing.Date) {
+			found = true
+
+			break
 		}
 	}
 	// we only log error here and still create the record.
@@ -146,20 +149,20 @@ func (db *database) RecordCustomerCall(ctx context.Context, record v1alpha.CallL
 	}
 
 	if found {
-		// copy exising values to the new record
+		// copy existing values to the new record
 		record.ID = existing.ID
 		record.InboundNumber = existing.InboundNumber
 
 		result := db.callogs.FindOneAndReplace(ctx, bson.M{"_id": record.ID}, record)
 		if result.Err() != nil {
-			return result.Err()
+			return fmt.Errorf("failed to find and replace document %s: %w", record.ID, result.Err())
 		}
 
 		log.Infof("replaced unidentified calllog for %s with customer-record for %s:%s", record.Caller, record.CustomerSource, record.CustomerID)
 	} else {
 		_, err := db.callogs.InsertOne(ctx, record)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to insert document: %w", err)
 		}
 
 		log.Infof("created new customer-record for %s:%s with phone number %s", record.CustomerSource, record.CustomerID, record.Caller)
@@ -175,20 +178,20 @@ func (db *database) Search(ctx context.Context, query *SearchQuery) ([]v1alpha.C
 	opts := options.Find().SetSort(bson.M{"date": -1})
 	cursor, err := db.callogs.Find(ctx, filter, opts)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to retrieve documents: %w", err)
 	}
 	defer cursor.Close(ctx)
 
 	var records []v1alpha.CallLog
 	if err := cursor.All(ctx, &records); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode documents: %w", err)
 	}
 
 	return records, nil
 }
 
 func (db *database) perpareRecord(ctx context.Context, record *v1alpha.CallLog) error {
-	formattedNumber := ""
+	var formattedNumber string
 	if record.Caller != "Anonymous" {
 		parsed, err := phonenumbers.Parse(record.Caller, db.country)
 		if err != nil {

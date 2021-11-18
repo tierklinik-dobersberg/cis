@@ -97,18 +97,18 @@ func validateRoster(ctx context.Context, app *app.App, roster *v1alpha.DutyRoste
 		allowDisabled := time.Date(roster.Year, roster.Month, date, 0, 0, 0, 0, app.Location()).Before(midnight)
 
 		if err := validateUsers(day.Forenoon, lm, allowDisabled); err != nil {
-			return fmt.Errorf("forenoon: %s", err)
+			return fmt.Errorf("forenoon: %w", err)
 		}
 		if err := validateUsers(day.Afternoon, lm, allowDisabled); err != nil {
-			return fmt.Errorf("afternoon: %s", err)
+			return fmt.Errorf("afternoon: %w", err)
 		}
 		// TODO(ppacher): let the user configure if on-call shifts
 		// should be required!
 		if err := validateUsers(day.OnCall.Day, lm, allowDisabled); err != nil {
-			return fmt.Errorf("onCal.day: %s", err)
+			return fmt.Errorf("onCal.day: %w", err)
 		}
 		if err := validateUsers(day.OnCall.Night, lm, allowDisabled); err != nil {
-			return fmt.Errorf("oncall.Night: %s", err)
+			return fmt.Errorf("oncall.Night: %w", err)
 		}
 	}
 

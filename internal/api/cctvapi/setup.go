@@ -5,6 +5,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 )
 
+// Setup adds all cctvapi routes to grp.
 func Setup(grp gin.IRouter) {
 	router := app.NewRouter(grp)
 

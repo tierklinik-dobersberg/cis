@@ -256,7 +256,7 @@ func (db *database) SetOverwrite(ctx context.Context, d time.Time, user, phone, 
 		"phone": phone,
 	})
 
-	// update any exsiting entry  as "deleted"
+	// update any existing entry  as "deleted"
 	// although there should only ever be one document with dstr and delete=false
 	// but make sure we mark every other one as well.
 	_, err := db.overwrites.UpdateMany(
@@ -285,7 +285,6 @@ func (db *database) SetOverwrite(ctx context.Context, d time.Time, user, phone, 
 	go db.fireOverwriteEvent(ctx, d, user, phone, displayName)
 
 	return nil
-
 }
 
 func (db *database) GetOverwrite(ctx context.Context, d time.Time) (*v1alpha.Overwrite, error) {

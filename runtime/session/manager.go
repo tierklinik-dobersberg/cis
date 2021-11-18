@@ -23,7 +23,7 @@ type Manager struct {
 
 	identityConfg   *IdentityConfig
 	secret          string
-	sessionIdCookie string
+	sessionIDCookie string
 	cache           cache.Cache
 	cachePrefix     string
 
@@ -36,7 +36,7 @@ func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityCo
 	mng.UserProvider = identites
 	mng.identityConfg = identityConfig
 	mng.activeSession = make(map[string]*Session)
-	mng.sessionIdCookie = identityConfig.SessionIDCookie
+	mng.sessionIDCookie = identityConfig.SessionIDCookie
 	mng.secret = secret
 	mng.cache = cache
 	mng.cachePrefix = cachePrefix
@@ -52,7 +52,7 @@ func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityCo
 	if baseURL != "" {
 		u, err := url.Parse(baseURL)
 		if err != nil {
-			return fmt.Errorf("invalid base URL: %s", err)
+			return fmt.Errorf("invalid base URL: %w", err)
 		}
 
 		base = u.Path
@@ -98,7 +98,7 @@ func (mng *Manager) CreateByName(ctx context.Context, name string, w http.Respon
 
 // Create creates a new session for user. The caller
 // must ensure user is properly authenticated before
-// issueing a new access and refresh token to the user.
+// issuing a new access and refresh token to the user.
 // Create will also create a new unique identifier for the
 // session and set that as the cis-sid cookie.
 func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, string, error) {
@@ -137,7 +137,7 @@ func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, 
 	}
 
 	if err := mng.saveSession(sess, w); err != nil {
-		return nil, "", fmt.Errorf("save: %s", err)
+		return nil, "", fmt.Errorf("save: %w", err)
 	}
 
 	return sess, accessToken, nil
@@ -145,7 +145,7 @@ func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, 
 
 func (mng *Manager) saveSession(sess *Session, w http.ResponseWriter) error {
 	// This is a NOOP if SessionIDCookie= is empty.
-	if mng.sessionIdCookie == "" {
+	if mng.sessionIDCookie == "" {
 		return nil
 	}
 
@@ -161,7 +161,7 @@ func (mng *Manager) saveSession(sess *Session, w http.ResponseWriter) error {
 	// inform the browser about the session ID. this is best-effort only
 	// as the Set-Cookie header might just be ignored.
 	http.SetCookie(w, mng.cookieFactory.Create(
-		mng.sessionIdCookie,
+		mng.sessionIDCookie,
 		sess.id,
 		"/",
 		0,
@@ -189,7 +189,9 @@ func (mng *Manager) clearOrphandSessions() {
 
 			func() {
 				defer func() {
-					recover()
+					if x := recover(); x != nil {
+						l.Logf("recovered from panic when closing session.destroyed channel")
+					}
 				}()
 				close(sess.destroyed)
 			}()

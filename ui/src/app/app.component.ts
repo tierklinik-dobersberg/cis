@@ -1,16 +1,17 @@
 import { HttpClient } from '@angular/common/http';
-import { ApplicationRef, ChangeDetectorRef, Component, HostListener, isDevMode, OnInit } from '@angular/core';
+import { ApplicationRef, Component, HostListener, isDevMode, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { interval, of } from 'rxjs';
-import { catchError, delay, filter, first, ignoreElements, map, mergeMap, retryWhen, share, startWith, take, takeUntil, tap } from 'rxjs/operators';
+import { interval } from 'rxjs';
+import { delay, filter, first, map, mergeMap, retryWhen, share, startWith, take } from 'rxjs/operators';
 import { LayoutService } from 'src/app/services';
-import { Observable } from 'tinymce';
 import { ConfigAPI, IdentityAPI, Permission, ProfileWithAvatar, UIConfig, VoiceMailAPI } from './api';
 import { InfoScreenAPI } from './api/infoscreen.api';
-import { toggleRouteQueryParam, toggleRouteQueryParamFunc } from './utils';
+import { SuggestionCardComponent } from './pages/suggestions/suggestion-card';
+import { SuggestionService } from './pages/suggestions/suggestion.service';
+import { toggleRouteQueryParamFunc } from './utils';
 
 interface MenuEntry {
   Icon: string;
@@ -103,7 +104,7 @@ export class AppComponent implements OnInit {
     private voice: VoiceMailAPI,
     private http: HttpClient,
     private showAPI: InfoScreenAPI,
-    private cdr: ChangeDetectorRef
+    private suggestionService: SuggestionService,
   ) {
   }
 
@@ -113,6 +114,17 @@ export class AppComponent implements OnInit {
   }
 
   readonly toggleMenu = toggleRouteQueryParamFunc(this.router, this.activeRoute, 'show-menu')
+
+  openSuggestionDialog() {
+    this.modal.create({
+      nzContent: SuggestionCardComponent,
+      nzWidth: '50vw',
+      nzTitle: "Vorschläge",
+      nzFooter: null,
+    })
+  }
+
+  get suggestionCount() { return this.suggestionService.count$ }
 
   ngOnInit(): void {
     this.checkReachability();
@@ -197,6 +209,7 @@ export class AppComponent implements OnInit {
     this.http.get('/api/')
       .pipe(retryWhen(d => {
         this.isReachable = false;
+        this.modal.closeAll();
         return d.pipe(delay(2000));
       }))
       .subscribe({

@@ -1,4 +1,6 @@
+import { execSync } from 'child_process';
 import { issue, issueCommand } from '@actions/core/lib/command';
+import { join } from 'path';
 import axios from "axios";
 
 export class GHActionsReporter implements jasmine.CustomReporter {
@@ -71,10 +73,24 @@ async function testAPI(): Promise<any> {
     }
 }
 
+function dockerCompose(args: string) {
+    execSync(`sh -c 'yes | docker-compose ${args}'`, {
+        cwd: join('..', 'deploy'),
+    })
+}
+
 async function main() {
     const Jasmine = require("jasmine")
     const runner = new Jasmine();
     const reporter = require("jasmine-console-reporter");
+
+    // if we're not running on CI we might need to restart cisd
+    // so import tasks get re-executed immediately
+    if (!process.env['CI']) {
+        dockerCompose('down -v')
+        dockerCompose('up -d')
+        await waitForApi()
+    }
 
     runner.loadConfig({
         spec_dir: "tests",

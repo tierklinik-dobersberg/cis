@@ -23,7 +23,7 @@ type Registry struct {
 }
 
 // Fire fires a new event of the given ID to all subscribers.
-func (reg *Registry) Fire(ctx context.Context, id string, payload EventData) {
+func (reg *Registry) Fire(ctx context.Context, id string, payload Data) {
 	reg.l.RLock()
 	defer reg.l.RUnlock()
 
@@ -44,6 +44,7 @@ func (reg *Registry) Fire(ctx context.Context, id string, payload EventData) {
 		})
 		if !MatchSubscription(id, sub.topic) {
 			l.Infof("skipping subscriber %s, topic %s does not match %s.", sub.subscriber, sub.topic, id)
+
 			continue
 		}
 
@@ -95,7 +96,7 @@ func Subscribe(client, eventID string) <-chan *Event {
 }
 
 // Fire fires an event on the DefaultRegistry.
-func Fire(ctx context.Context, id string, payload EventData) {
+func Fire(ctx context.Context, id string, payload Data) {
 	DefaultRegistry.Fire(ctx, id, payload)
 }
 

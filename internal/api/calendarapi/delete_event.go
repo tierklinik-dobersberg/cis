@@ -9,6 +9,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
+// DeleteEventEndpoint can be used to delete a calendar event.
 func DeleteEventEndpoint(router *app.Router) {
 	router.DELETE(
 		"v1/events/:calid/:id",

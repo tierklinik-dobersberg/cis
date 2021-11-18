@@ -8,7 +8,9 @@ import (
 
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
+	"github.com/tierklinik-dobersberg/cis/internal/importer/importutils"
 	"github.com/tierklinik-dobersberg/logger"
+	"github.com/tierklinik-dobersberg/service/runtime"
 )
 
 type Importer struct {
@@ -35,18 +37,21 @@ func (imp *Importer) Import(ctx context.Context, mdb *os.File) (countNew, countU
 
 	for _, customer := range customers {
 		existing, err := imp.app.Customers.CustomerByCID(ctx, "neumayr", customer.CustomerID)
-		if errors.Is(err, customerdb.ErrNotFound) {
+
+		switch {
+		case errors.Is(err, customerdb.ErrNotFound):
 			err = imp.app.Customers.CreateCustomer(ctx, &customer)
 			if err == nil {
 				countNew++
 			}
-		} else if existing != nil && existing.Hash() != customer.Hash() {
-			customer.ID = existing.ID
+		case existing != nil && existing.Hash() != customer.Hash():
+			importutils.CopyCustomerAttributes(existing, &customer)
+
 			err = imp.app.Customers.UpdateCustomer(ctx, &customer)
 			if err == nil {
 				countUpdated++
 			}
-		} else if existing != nil {
+		case existing != nil:
 			countUnchanged++
 		}
 
@@ -62,4 +67,13 @@ func (imp *Importer) Import(ctx context.Context, mdb *os.File) (countNew, countU
 	}).Infof("import finished")
 
 	return
+}
+
+func init() {
+	runtime.Must(
+		customerdb.DefaultSourceManager.Register(customerdb.Source{
+			Name:        "neumayr",
+			Description: "Imports customer data from Neumayr .MDB files",
+		}),
+	)
 }

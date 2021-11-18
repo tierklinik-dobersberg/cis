@@ -39,7 +39,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/tevino/abool v1.2.0
 	github.com/tierklinik-dobersberg/go-vetinf v0.1.5
-	github.com/tierklinik-dobersberg/logger v0.3.0
+	github.com/tierklinik-dobersberg/logger v0.4.0
 	github.com/tierklinik-dobersberg/mailbox v0.0.4
 	github.com/tierklinik-dobersberg/service v0.5.0
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
@@ -50,6 +50,7 @@ require (
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/api v0.13.0
 )

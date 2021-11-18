@@ -1,3 +1,4 @@
+//nolint:forbidigo
 package main
 
 import (
@@ -10,6 +11,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
+	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
+	"github.com/tierklinik-dobersberg/service/runtime"
 )
 
 var (
@@ -17,14 +20,14 @@ var (
 	calendarTokenFile string
 )
 
-func calendarService() calendar.Service {
-	cfg := calendar.GoogleCalendarConfig{
+func calendarService() google.Service {
+	cfg := google.CalendarConfig{
 		Enabled:         true,
 		CredentialsFile: calendarCredFile,
 		TokenFile:       calendarTokenFile,
 	}
 
-	svc, err := calendar.New(cfg)
+	svc, err := google.New(context.Background(), cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,7 +58,7 @@ func getCalendarAuthCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "authenticate",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := calendar.Authenticate(calendar.GoogleCalendarConfig{
+			if err := google.Authenticate(google.CalendarConfig{
 				CredentialsFile: calendarCredFile,
 				TokenFile:       calendarTokenFile,
 			}); err != nil {
@@ -118,10 +121,10 @@ func getEventsCommand() *cobra.Command {
 			}
 
 			var allEvents []calendar.Event
-			for _, calId := range args {
+			for _, calID := range args {
 				events, err := svc.ListEvents(
 					context.Background(),
-					calId,
+					calID,
 					opts,
 				)
 				if err != nil {
@@ -207,8 +210,8 @@ func getCreateEventCommand() *cobra.Command {
 		f.StringSliceVar(&animalID, "animal-id", nil, "Animal ID")
 		f.StringVar(&calID, "calendar", "", "Calendar ID")
 	}
-	cmd.MarkFlagRequired("at")
-	cmd.MarkFlagRequired("summary")
-	cmd.MarkFlagRequired("calendar")
+	runtime.Must(cmd.MarkFlagRequired("at"))
+	runtime.Must(cmd.MarkFlagRequired("summary"))
+	runtime.Must(cmd.MarkFlagRequired("calendar"))
 	return cmd
 }

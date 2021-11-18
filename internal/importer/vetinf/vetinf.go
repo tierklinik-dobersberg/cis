@@ -39,10 +39,10 @@ type Exporter struct {
 	cfg      cfgspec.VetInf
 	db       *vetinf.Infdat
 	country  string
-	usersMap map[int]string
+	usersMap map[int]string // nolint:unused
 
 	identities    identitydb.Database
-	loadUsersOnce sync.Once
+	loadUsersOnce sync.Once // nolint:unused
 }
 
 type ImportResults struct {
@@ -73,6 +73,7 @@ func NewExporter(cfg cfgspec.VetInf, country string, users identitydb.Database) 
 	}, nil
 }
 
+// nolint:unused
 func (e *Exporter) buildUsersMap() error {
 	// create a lookup map for converting vetinf user identifiers to
 	// user names CIS knows.
@@ -96,7 +97,7 @@ func (e *Exporter) buildUsersMap() error {
 			case int:
 				e.usersMap[v] = u.Name
 			case string:
-				d, err := strconv.ParseInt(v, 10, 64)
+				d, err := strconv.ParseInt(v, 10, 0)
 				if err != nil {
 					return fmt.Errorf("failed to parse VetInf user ID %q for user %s: %w", u.Name, v, err)
 				}
@@ -110,17 +111,18 @@ func (e *Exporter) buildUsersMap() error {
 	return nil
 }
 
-func (e *Exporter) getUserNameById(userId int) string {
+// nolint:unused
+func (e *Exporter) getUserNameByID(userID int) string {
 	e.loadUsersOnce.Do(func() {
 		if err := e.buildUsersMap(); err != nil {
 			log.From(context.Background()).Errorf("failed to build vetinf user lookup map: %s", err)
 		}
 	})
 
-	if u, ok := e.usersMap[userId]; ok {
+	if u, ok := e.usersMap[userID]; ok {
 		return u
 	}
-	return fmt.Sprintf("<%d>", userId)
+	return fmt.Sprintf("<%d>", userID)
 }
 
 // ExportCustomers exports all vetinf customers and streams them to

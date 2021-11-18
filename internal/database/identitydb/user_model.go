@@ -24,7 +24,7 @@ func (db *identDB) loadUsers(identityDir string) error {
 	}
 
 	spec := conf.FileSpec{
-		"User":       conf.SectionSpec(append(cfgspec.UserSpec, userPropertySpecs...)),
+		"User":       append(cfgspec.UserSpec, userPropertySpecs...),
 		"Permission": cfgspec.PermissionSpec,
 	}
 	if db.httpConditionRegistry != nil {
@@ -91,6 +91,7 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, autologinCondi
 		parsed, err := phonenumbers.Parse(phone, country)
 		if err != nil {
 			log.From(context.TODO()).Errorf("Failed to parse phone number %s from user %s: %s", phone, u.Name, err)
+
 			continue
 		}
 
@@ -114,8 +115,9 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, autologinCondi
 
 			// TODO(ppacher): update sec.GetAs to return a boolean as well.
 			for _, opt := range sec.Options {
-				if strings.ToLower(opt.Name) == strings.ToLower(spec.Name) {
+				if strings.EqualFold(opt.Name, spec.Name) {
 					hasValue = true
+
 					break
 				}
 			}

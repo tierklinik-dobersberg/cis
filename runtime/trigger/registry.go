@@ -149,7 +149,7 @@ func (reg *Registry) LoadFiles(ctx context.Context, globalConfig *runtime.Config
 	for idx, file := range files {
 		i, err := reg.CreateTrigger(ctx, globalConfig, file)
 		if err != nil {
-			return instances, fmt.Errorf("%s: %s", file.Path, err)
+			return instances, fmt.Errorf("%s: %w", file.Path, err)
 		}
 		instances[idx] = i
 	}
@@ -180,17 +180,7 @@ func (reg *Registry) OptionsForSection(sec string) (conf.OptionRegistry, bool) {
 // and will subscribe to all event topics specified in the [Match] section. The
 // event subscription will be cancelled as soon as ctx is cancelled.
 func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.ConfigSchema, f *conf.File) (*Instance, error) {
-	matchSecs := f.Sections.GetAll("Match")
-	if len(matchSecs) != 1 {
-		return nil, fmt.Errorf("expected exactly one [Match] section but found %d", len(matchSecs))
-	}
-
-	var match MatchConfig
-	if err := conf.DecodeSections(matchSecs, MatchSpec, &match); err != nil {
-		return nil, fmt.Errorf("failed to parse [Match] section: %w", err)
-	}
-
-	instanceCfg, err := matchToInstanceConfig(match)
+	instanceCfg, err := reg.getInstanceCfg(f)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +197,9 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 	// now iterate over all sections, call the associated factory and collect
 	// the created handlers.
 	var handlers []Handler
-	for _, sec := range f.Sections {
+	for idx := range f.Sections {
+		sec := f.Sections[idx]
+
 		// we already parsed the [Match] section so we can skip
 		// it.
 		if strings.EqualFold(sec.Name, "Match") {
@@ -228,9 +220,31 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 
 	instance := NewInstance(fileBase, handlers, instanceCfg)
 
+	reg.subscribeAndDispatch(ctx, instance, fileBase)
+
+	return instance, nil
+}
+
+func (reg *Registry) getInstanceCfg(f *conf.File) (*InstanceConfig, error) {
+	matchSecs := f.Sections.GetAll("Match")
+	if len(matchSecs) != 1 {
+		return nil, fmt.Errorf("expected exactly one [Match] section but found %d", len(matchSecs))
+	}
+	var match MatchConfig
+	if err := conf.DecodeSections(matchSecs, MatchSpec, &match); err != nil {
+		return nil, fmt.Errorf("failed to parse [Match] section: %w", err)
+	}
+	instanceCfg, err := matchToInstanceConfig(match)
+	if err != nil {
+		return nil, err
+	}
+	return instanceCfg, nil
+}
+
+func (reg *Registry) subscribeAndDispatch(ctx context.Context, instance *Instance, namePrefix string) {
 	// finally, subscribe to events and dispatch them to the handlers
-	for idx, filter := range match.EventFilter {
-		instanceName := fmt.Sprintf("%s-%02d", filepath.Base(f.Path), idx)
+	for idx, filter := range instance.cfg.EventFilters {
+		instanceName := fmt.Sprintf("%s-%02d", namePrefix, idx)
 		ch := reg.event.Subscribe(instanceName, filter)
 
 		go func(filter string) {
@@ -245,8 +259,6 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 			}
 		}(filter)
 	}
-
-	return instance, nil
 }
 
 // RegisterType registers a new handler type under name. The name is

@@ -23,13 +23,13 @@ var log = pkglog.New("openinghours")
 // DoorState describes the current state of the entry door.
 type DoorState string
 
-// Possible door states
+// Possible door states.
 const (
 	Locked   = DoorState("locked")
 	Unlocked = DoorState("unlocked")
 )
 
-// Reset types
+// Reset types.
 var (
 	resetSoft = (*struct{})(nil)
 	resetHard = &struct{}{}
@@ -98,16 +98,16 @@ type DoorController struct {
 func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, holidays HolidayGetter, door DoorInterfacer) (*DoorController, error) {
 	loc, err := time.LoadLocation(cfg.TimeZone)
 	if err != nil {
-		return nil, fmt.Errorf("Location: %w", err)
+		return nil, fmt.Errorf("option Location: %w", err)
 	}
 
 	defaultOnCallDayStart, err := daytime.ParseDayTime(cfg.DefaultOnCallDayStart)
 	if err != nil {
-		return nil, fmt.Errorf("DefaultOnCallDayStart: %w", err)
+		return nil, fmt.Errorf("option DefaultOnCallDayStart: %w", err)
 	}
 	defaultOnCallNightStart, err := daytime.ParseDayTime(cfg.DefaultOnCallNightStart)
 	if err != nil {
-		return nil, fmt.Errorf("DefaultOnCallNightStart: %w", err)
+		return nil, fmt.Errorf("option DefaultOnCallNightStart: %w", err)
 	}
 
 	dc := &DoorController{
@@ -204,7 +204,7 @@ func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, ho
 
 		var ranges []OpeningHour
 		for _, r := range c.TimeRanges {
-			tr, err := daytime.ParseDayTimeRange(r)
+			tr, err := daytime.ParseRange(r)
 			if err != nil {
 				return nil, err
 			}
@@ -220,10 +220,10 @@ func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, ho
 			}
 
 			ranges = append(ranges, OpeningHour{
-				DayTimeRange: tr,
-				CloseAfter:   closeAfter,
-				OpenBefore:   openBefore,
-				Unofficial:   c.Unofficial,
+				Range:      tr,
+				CloseAfter: closeAfter,
+				OpenBefore: openBefore,
+				Unofficial: c.Unofficial,
 			})
 		}
 
@@ -242,7 +242,7 @@ func NewDoorController(cfg cfgspec.Config, timeRanges []cfgspec.OpeningHours, ho
 				dc.regularOpeningHours[d] = append(dc.regularOpeningHours[d], ranges...)
 			}
 		} else if len(days) > 0 {
-			return nil, fmt.Errorf("Days= stanza not allowed with Holiday=only")
+			return nil, fmt.Errorf("stanza Days= not allowed with Holiday=only")
 		}
 
 		// regardless of the holiday setting it's always possible to directly set
@@ -389,7 +389,6 @@ func (dc *DoorController) resetDoor(ctx context.Context) {
 	if err := dc.door.Unlock(ctx); err != nil {
 		log.Errorf("failed to unlock door: %s", err)
 	}
-
 }
 
 func (dc *DoorController) scheduler() {
@@ -403,7 +402,7 @@ func (dc *DoorController) scheduler() {
 	retries := 0
 	maxTries := maxTriesLocked
 	// trigger immediately
-	var until time.Time = time.Now().Add(time.Second)
+	until := time.Now().Add(time.Second)
 
 	for {
 		ctx := context.Background()
@@ -472,7 +471,6 @@ func (dc *DoorController) scheduler() {
 			} else {
 				lastState = state
 			}
-
 		}
 		cancel()
 	}
@@ -599,6 +597,7 @@ func (dc *DoorController) findUpcomingFrames(ctx context.Context, t time.Time, l
 
 			if tr.From.After(t) || tr.Covers(t) {
 				found = true
+
 				break
 			}
 		}

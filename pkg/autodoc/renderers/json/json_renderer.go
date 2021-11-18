@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	autodoc.MustRegisterRenderer("json", new(JSONRenderer))
+	autodoc.MustRegisterRenderer("json", new(Renderer))
 }
 
 type File struct {
@@ -19,10 +19,10 @@ type File struct {
 	Template string
 }
 
-// JSONRenderer renders (autodoc.File)s as JSON.
-type JSONRenderer struct{}
+// Renderer renders (autodoc.File)s as JSON.
+type Renderer struct{}
 
-func (js *JSONRenderer) RenderFile(f autodoc.File) (string, error) {
+func (js *Renderer) RenderFile(f autodoc.File) (string, error) {
 	file := File{
 		File:     f,
 		Sections: f.GetSections(),

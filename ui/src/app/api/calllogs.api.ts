@@ -3,6 +3,7 @@ import { ArrayType } from '@angular/compiler';
 import { Injectable } from '@angular/core';
 import { Observable, ObservedValueOf } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+import { CustomerRef } from './customer.api';
 import { ProfileWithAvatar } from './identity.api';
 import { UserService } from './user.service';
 
@@ -62,8 +63,14 @@ export class CalllogAPI {
    * @param source The source of the customer
    * @param id The ID of the customer
    */
-  forCustomer(source: string, id: string): Observable<CallLog[]> {
-    return this.http.get<CallLogModel[]>(`/api/calllogs/v1/customer/${source}/${id}`)
+  forCustomer(ref: CustomerRef): Observable<CallLog[]>;
+  forCustomer(source: string, id: string): Observable<CallLog[]>;
+  forCustomer(sourceOrRef: string | CustomerRef, id?: string): Observable<CallLog[]> {
+    if (typeof sourceOrRef === 'object') {
+      id = sourceOrRef.cid;
+      sourceOrRef = sourceOrRef.source;
+    }
+    return this.http.get<CallLogModel[]>(`/api/calllogs/v1/customer/${sourceOrRef}/${id}`)
       .pipe(
         map(result => result || []),
         this.userService.withUserByExt('agent', 'agentProfile'),

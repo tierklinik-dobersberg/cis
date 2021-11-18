@@ -23,12 +23,12 @@ func GetForMonthEndpoint(grp *app.Router) {
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			log := log.From(ctx)
 
-			year, err := strconv.ParseInt(c.Param("year"), 10, 64)
+			year, err := strconv.ParseInt(c.Param("year"), 10, 0)
 			if err != nil {
 				return httperr.InvalidParameter("year")
 			}
 
-			month, err := strconv.ParseInt(c.Param("month"), 10, 64)
+			month, err := strconv.ParseInt(c.Param("month"), 10, 0)
 			if err != nil {
 				return httperr.InvalidParameter("month")
 			}

@@ -10,6 +10,8 @@ import (
 )
 
 func TestMatcher_IsApplicable(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		r permission.Request
 		p cfgspec.Permission

@@ -7,11 +7,12 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
+	"github.com/tierklinik-dobersberg/cis/internal/importer/importutils"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
-func getCustomerImporter(app *app.App, exporter *Exporter) *importer.Instance {
-	return &importer.Instance{
+func getCustomerImporter(app *app.App, exporter *Exporter) (*importer.Instance, error) {
+	i := &importer.Instance{
 		ID:             "vetinf-customer:" + convertToID(app.Config.VetInfDirectory),
 		Schedule:       app.Config.VetInfImportSchedule,
 		RunImmediately: true,
@@ -56,7 +57,8 @@ func getCustomerImporter(app *app.App, exporter *Exporter) *importer.Instance {
 				case existing != nil && existing.Hash() != customer.Hash():
 					// TODO(ppacher): if we use "shadow-delete" we might need to update
 					// as well.
-					customer.ID = existing.ID
+					importutils.CopyCustomerAttributes(existing, &customer.Customer)
+
 					log.V(7).Logf("hashes of customer %d differ: %s != %s: \n\texisting: %+v\n\timported: %+v", customer.ID, existing.Hash(), customer.Hash(), existing, customer.Customer)
 					err = app.Customers.UpdateCustomer(ctx, &customer.Customer)
 					if err == nil {
@@ -88,4 +90,16 @@ func getCustomerImporter(app *app.App, exporter *Exporter) *importer.Instance {
 			}, nil
 		}),
 	}
+
+	if err := customerdb.DefaultSourceManager.Register(customerdb.Source{
+		Name:        "vetinf",
+		Description: "Imports customer data from a VetInf installation",
+		Metadata: map[string]interface{}{
+			"Path": exporter.cfg.VetInfDirectory,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	return i, nil
 }

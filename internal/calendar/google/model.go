@@ -1,17 +1,21 @@
-package calendar
+package google
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/ppacher/system-conf/conf"
+	ciscal "github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/logger"
 	"google.golang.org/api/calendar/v3"
 )
 
-func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*Event, error) {
+var ErrInvalidEvent = errors.New("invalid event")
+
+func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*ciscal.Event, error) {
 	var (
 		err   error
 		start time.Time
@@ -19,7 +23,7 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*E
 	)
 
 	if item == nil {
-		return nil, fmt.Errorf("received nil item")
+		return nil, fmt.Errorf("%w: received nil item", ErrInvalidEvent)
 	}
 
 	if item.Start == nil {
@@ -27,7 +31,7 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*E
 			"event": item,
 		}).Errorf("failed to process google calendar event: event.Start == nil")
 
-		return nil, fmt.Errorf("event with ID %s does not have start time", item.Id)
+		return nil, fmt.Errorf("%w: event with ID %s does not have start time", ErrInvalidEvent, item.Id)
 	}
 
 	if item.Start.DateTime != "" {
@@ -36,7 +40,7 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*E
 		start, err = time.Parse("2006-01-02", item.Start.Date)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse event start time: %s", err)
+		return nil, fmt.Errorf("failed to parse event start time: %w", err)
 	}
 
 	if !item.EndTimeUnspecified {
@@ -47,7 +51,7 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*E
 			t, err = time.Parse("2006-01-02", item.End.Date)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse event end time: %s", err)
+			return nil, fmt.Errorf("failed to parse event end time: %w", err)
 		}
 		end = &t
 	}
@@ -60,7 +64,7 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*E
 		item.Description = newDescription
 	}
 
-	return &Event{
+	return &ciscal.Event{
 		ID:           item.Id,
 		Summary:      strings.TrimSpace(item.Summary),
 		Description:  strings.TrimSpace(item.Description),
@@ -72,7 +76,7 @@ func convertToEvent(ctx context.Context, calid string, item *calendar.Event) (*E
 	}, nil
 }
 
-func parseDescription(desc string) (string, *StructuredEvent, error) {
+func parseDescription(desc string) (string, *ciscal.StructuredEvent, error) {
 	allLines := strings.Split(desc, "\n")
 	var (
 		sectionLines      []string
@@ -85,6 +89,7 @@ func parseDescription(desc string) (string, *StructuredEvent, error) {
 			foundSectionStart = true
 			sectionLines = allLines[idx:]
 			strippedDescr = strings.TrimSpace(strings.Join(allLines[:idx], "\n"))
+
 			break
 		}
 	}
@@ -95,12 +100,12 @@ func parseDescription(desc string) (string, *StructuredEvent, error) {
 	reader := strings.NewReader(strings.Join(sectionLines, "\n"))
 	f, err := conf.Deserialize("", reader)
 	if err != nil {
-		return "", nil, err
+		return "", nil, fmt.Errorf("failed to deserialize data section: %w", err)
 	}
 
-	var data StructuredEvent
-	if err := conf.DecodeSections(f.Sections, StructuredEventSpec, &data); err != nil {
-		return "", nil, err
+	var data ciscal.StructuredEvent
+	if err := conf.DecodeSections(f.Sections, ciscal.StructuredEventSpec, &data); err != nil {
+		return "", nil, fmt.Errorf("failed to decode structured event data: %w", err)
 	}
 
 	return strippedDescr, &data, nil

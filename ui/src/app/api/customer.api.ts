@@ -1,7 +1,32 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+
+export interface CustomerRef {
+  cid: string;
+  source: string;
+}
+
+export interface Suggestion {
+  id: string;
+  type: 'customer-link';
+  data: {
+    reason: 'same-name' | 'same-mail' | 'same-phone';
+    value: string;
+    refs: CustomerRef[];
+    primary?: CustomerRef;
+  }
+}
+
+export interface CustomerSource {
+  name: string;
+  description?: string;
+  metadata?: object;
+  supportsDelete: boolean;
+  supportsUpdate: boolean;
+  supportsCreate: boolean;
+}
 
 export interface RemoteCustomer<T extends Date | string> {
   _id?: string;
@@ -30,10 +55,70 @@ export interface Customer extends RemoteCustomer<Date | string> {
   providedIn: 'root'
 })
 export class CustomerAPI {
-  constructor(private http: HttpClient) { }
+  private sources = new Map<string, CustomerSource>();
 
-  byId(source: string, id: number | string): Observable<Customer> {
-    return this.http.get<Customer | null>(`/api/customer/v1/${source}/${id}`)
+  constructor(private http: HttpClient) {
+    // customer sources will likely never change during
+    // runtime as it can only happen with new CIS releases.
+    // that's why we load them at startup and keep the in-mem.
+    // It requires customer:read permission.
+    this.loadSources();
+  }
+
+  private loadSources() {
+    this.http.get<CustomerSource[]>(`/api/customer/sources/v1`)
+      .pipe(catchError(err => of([])))
+      .subscribe(sources => {
+        sources.forEach(source => {
+          this.sources.set(source.name.toLocaleLowerCase(), source);
+        })
+      })
+  }
+
+  getSource(sourceName: string): CustomerSource | null;
+  getSource(customer: CustomerRef): CustomerSource | null;
+  getSource(sourceOrRef: string | CustomerRef): CustomerSource {
+    if (typeof sourceOrRef === 'object') {
+      sourceOrRef = sourceOrRef.source;
+    }
+    return this.sources.get(sourceOrRef.toLocaleLowerCase());
+  }
+
+  getSuggestions({ limit }: { limit?: number } = {}): Observable<Suggestion[]> {
+    let params = new HttpParams();
+    if (!!limit && limit > 0) {
+      params = params.set("limit", limit)
+    }
+    return this.http.get<Suggestion[]>(`/api/suggestion/v1/suggestions`, {
+      params,
+    });
+  }
+
+  applySuggestion(s: Suggestion): Observable<void> {
+    return this.http.post(`/api/suggestion/v1/suggestions/${s.type}`, s.data)
+      .pipe(map(() => { }));
+  }
+
+  /** Deletes or marks a suggestion as false-positive */
+  deleteSuggestion(id: string, del = false): Observable<void> {
+    let params = new HttpParams();
+    if (del) {
+      params = params.set("delete", "")
+    }
+    return this.http.delete(`/api/suggestion/v1/suggestions/${id}`, { params })
+      .pipe(map(() => { }));
+  }
+
+  byId(ref: CustomerRef): Observable<Customer>;
+  byId(source: string, id: number | string): Observable<Customer>;
+
+  byId(sourceOrRef: string | CustomerRef, id?: number | string): Observable<Customer> {
+    if (typeof sourceOrRef === 'object') {
+      id = sourceOrRef.cid;
+      sourceOrRef = sourceOrRef.source;
+    }
+
+    return this.http.get<Customer | null>(`/api/customer/v1/${sourceOrRef}/${id}`)
       .pipe(
         map(customer => {
           if (!customer) {
@@ -47,6 +132,16 @@ export class CustomerAPI {
             modifiedAt: new Date(customer.modifiedAt),
           };
         }));
+  }
+
+  deleteCustomer(ref: CustomerRef): Observable<void>;
+  deleteCustomer(source: string, cid: string): Observable<void>;
+  deleteCustomer(sourceOrRef: string | CustomerRef, cid?: string): Observable<void> {
+    if (typeof sourceOrRef === 'object') {
+      cid = sourceOrRef.cid;
+      sourceOrRef = sourceOrRef.source;
+    }
+    return this.http.delete<void>(`/api/customer/v1/${sourceOrRef}/${cid}`);
   }
 
   searchName(name: string): Observable<Customer[]> {
@@ -91,7 +186,7 @@ export function distinctPhoneNumbers(numbers: string[]): string[] {
   (numbers || []).forEach(phoneNumber => {
     const parts = phoneNumber.split(' ');
     const key = parts[parts.length - 1];
-    if (!distinct.has(key)) {
+    if (!distinct.has(key) || phoneNumber.startsWith('+')) {
       distinct.set(key, phoneNumber);
     }
   });

@@ -14,6 +14,8 @@ export enum Permission {
   CommentRead = 'comment:read',
   CommentReply = 'comment:reply',
   CustomerRead = 'customer:read',
+  SuggestionRead = 'suggestion:read',
+  SuggestionApply = 'suggestion:apply',
   DoorGet = 'door:get',
   DoorSet = 'door:set',
   ExternalReadOnDuty = 'external:read-on-duty',
@@ -372,6 +374,8 @@ export class IdentityAPI {
             Permission.InfoScreenShowsRead,
             Permission.InfoScreenShowWrite,
             Permission.InfoScreenShowDelete,
+            Permission.SuggestionRead,
+            Permission.SuggestionApply,
           ];
 
           actions.forEach(perm => {

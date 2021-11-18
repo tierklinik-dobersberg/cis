@@ -12,7 +12,7 @@ import (
 
 var log = pkglog.New("httpcond")
 
-// MatchFunc is the func that validates if a request fullfills
+// MatchFunc is the func that validates if a request fulfills
 // a condition. Its passed the incoming HTTP request and the
 // conditions value. MatchFunc should not care about negating
 // or otherwise complex boolean logic (AND/OR) as this is
@@ -29,7 +29,7 @@ type Condition interface {
 // are used together.
 type ConcatFunc func(...Condition) Condition
 
-// Type describes a condition that may be fullfilled by a HTTP request.
+// Type describes a condition that may be fulfilled by a HTTP request.
 type Type struct {
 	// Name holds the name of the condition. The name is also
 	// used to build the configuration stanza that is used for
@@ -40,10 +40,10 @@ type Type struct {
 	// Type defaults to conf.StringSliceType.
 	Type conf.OptionType
 	// Match is called to evaluate the condition
-	// agianst a value.
+	// against a value.
 	Match MatchFunc
 	// ConcatFunc defines how multipel conditions of the same type
-	// are concatinated together. Only required if Type is a slice.
+	// are concatenated together. Only required if Type is a slice.
 	// Defaults to NewAnd
 	ConcatFunc ConcatFunc
 }
@@ -68,7 +68,7 @@ type Registry struct {
 	providers map[string]*Type
 }
 
-// Compile time check
+// Compile time check.
 var _ conf.OptionRegistry = new(Registry)
 
 // Register registers a new condition type at the registry.
@@ -84,7 +84,7 @@ func (reg *Registry) Register(cond Type) error {
 	lowerName := strings.ToLower(cond.Name)
 
 	if _, ok := reg.providers[lowerName]; ok {
-		return errors.New("condition type already registerd")
+		return errors.New("condition type already registered")
 	}
 
 	reg.providers[lowerName] = &cond

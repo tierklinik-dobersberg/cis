@@ -5,7 +5,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 )
 
-// Setup configures all calendarpi routes
+// Setup configures all calendarpi routes.
 func Setup(grp gin.IRouter) {
 	router := app.NewRouter(grp)
 

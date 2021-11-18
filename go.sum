@@ -447,6 +447,8 @@ github.com/tierklinik-dobersberg/go-vetinf v0.1.5/go.mod h1:eGt2HDnpDCGub7UKEK0Z
 github.com/tierklinik-dobersberg/logger v0.2.0/go.mod h1:5xiqHfUncsmSw5X/nkWI39Xw1GP3Km3CDNPq5lU68HE=
 github.com/tierklinik-dobersberg/logger v0.3.0 h1:lMHPx/GjRqnnn9Wq3zFdYuG+C5HfCShCIm/4Rjcux5M=
 github.com/tierklinik-dobersberg/logger v0.3.0/go.mod h1:5xiqHfUncsmSw5X/nkWI39Xw1GP3Km3CDNPq5lU68HE=
+github.com/tierklinik-dobersberg/logger v0.4.0 h1:uD7lFkkTDeqOngjF7ybSUbuk6MFgwNSajwBAZJaEMVw=
+github.com/tierklinik-dobersberg/logger v0.4.0/go.mod h1:5xiqHfUncsmSw5X/nkWI39Xw1GP3Km3CDNPq5lU68HE=
 github.com/tierklinik-dobersberg/mailbox v0.0.4 h1:x5iNX1ARiCXW05PY/0dgxESOw8jHBtpFpuqvnCWjdSo=
 github.com/tierklinik-dobersberg/mailbox v0.0.4/go.mod h1:b11ERiacP9Jt7kkn/B1+N0EADQVXlE/jLJq4iz7YIBI=
 github.com/tierklinik-dobersberg/service v0.5.0 h1:tKv2doBeLikH8Idao9wxfb+M03EUT2HsAOVj1VMkLyw=

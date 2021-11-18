@@ -38,9 +38,8 @@ type Customer struct {
 	ModifiedAt time.Time
 
 	// LinkedTo may be set to link customer or contact data from multiple
-	// sources. The format of should follow the typical <source>/<id> notation
-	// used in CIS.
-	LinkedTo string
+	// sources.
+	LinkedTo string `bson:"linkedTo,omitempty"`
 
 	// Metadata holds additional metadata for the customer.
 	// It is not part of the hash calculation.
@@ -48,7 +47,7 @@ type Customer struct {
 	Source   string                 `bson:"customerSource,omitempty"`
 }
 
-// Hash returns a hash of the customer
+// Hash returns a hash of the customer.
 func (cu *Customer) Hash() string {
 	h := sha1.New()
 	w := func(s string) {

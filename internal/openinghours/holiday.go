@@ -28,7 +28,7 @@ type HolidayGetter interface {
 	IsHoliday(ctx context.Context, country string, d time.Time) (bool, error)
 }
 
-// PublicHoliday represents a public holiday record returned by date.nager.at
+// PublicHoliday represents a public holiday record returned by date.nager.at.
 type PublicHoliday struct {
 	Date        string `json:"date"`
 	LocalName   string `json:"localName"`

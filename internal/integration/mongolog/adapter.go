@@ -99,7 +99,7 @@ func (adapter *Adapter) writeLogs() {
 }
 
 func (adapter *Adapter) canWrite(severity logger.Severity, fields logger.Fields) bool {
-	defaultResult := severity <= logger.Severity(adapter.defaultLevel)
+	defaultResult := severity <= adapter.defaultLevel
 
 	pkg, ok := fields["package"]
 	if !ok {
@@ -116,7 +116,7 @@ func (adapter *Adapter) canWrite(severity logger.Severity, fields logger.Fields)
 		return defaultResult
 	}
 
-	return severity <= logger.Severity(lvl)
+	return severity <= lvl
 }
 
 func (adapter *Adapter) Write(t time.Time, severity logger.Severity, msg string, fields logger.Fields) {
@@ -144,5 +144,5 @@ func (adapter *Adapter) Write(t time.Time, severity logger.Severity, msg string,
 	}
 }
 
-// Compile time check
+// Compile time check.
 var _ logger.Adapter = new(Adapter)

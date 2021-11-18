@@ -20,6 +20,7 @@ import { CallLogTableComponent } from './callog-table';
 import { CommentComponent } from './comment';
 import { HeaderTitleOutletComponent } from './header-title';
 import { DurationPipe } from './pipes';
+import { CanDeleteCustomerPipe } from './pipes/can-delete-customer';
 import { TextInputComponent } from './text-input';
 
 @NgModule({
@@ -44,6 +45,7 @@ import { TextInputComponent } from './text-input';
     CallLogTableComponent,
     CommentComponent,
     TextInputComponent,
+    CanDeleteCustomerPipe,
   ],
   exports: [
     CommonModule,
@@ -67,6 +69,7 @@ import { TextInputComponent } from './text-input';
     CommentComponent,
     CallLogTableComponent,
     TextInputComponent,
+    CanDeleteCustomerPipe,
   ],
 })
 export class SharedModule { }

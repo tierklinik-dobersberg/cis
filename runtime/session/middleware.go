@@ -19,7 +19,7 @@ import (
 var log = pkglog.New("session")
 
 // Middleware extracts session data from incoming HTTP requests
-// and handles automatic issueing of new access tokens for
+// and handles automatic issuing of new access tokens for
 // provided refresh tokens.
 func (mng *Manager) Middleware(c *gin.Context) {
 	log := log.From(c.Request.Context())
@@ -63,7 +63,7 @@ func (mng *Manager) Middleware(c *gin.Context) {
 			log.Errorf("failed to dump request: %s", err)
 			return
 		}
-		if err := ioutil.WriteFile("/log/request.dump", reqBlob, 0700); err != nil {
+		if err := ioutil.WriteFile("/log/request.dump", reqBlob, 0600); err != nil {
 			log.Errorf("failed to dump request: %s", err)
 		}
 
@@ -103,8 +103,8 @@ func (mng *Manager) Middleware(c *gin.Context) {
 	// we can now check if there's an active session ID
 	// and reuse that. otherwise, we just create a new session
 	// object and continue with that.
-	if mng.sessionIdCookie != "" {
-		sid, err := c.Cookie(mng.sessionIdCookie)
+	if mng.sessionIDCookie != "" {
+		sid, err := c.Cookie(mng.sessionIDCookie)
 		if err != nil && !errors.Is(err, http.ErrNoCookie) {
 			aborted = true
 			c.AbortWithStatus(http.StatusInternalServerError)

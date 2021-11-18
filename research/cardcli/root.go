@@ -1,3 +1,4 @@
+//nolint:forbidigo
 package main
 
 import (
@@ -9,7 +10,7 @@ import (
 	"github.com/emersion/go-webdav"
 	"github.com/emersion/go-webdav/carddav"
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 var cfg = struct {
@@ -85,7 +86,7 @@ func getClient() *carddav.Client {
 func getPassword() string {
 	if cfg.password == "-" {
 		fmt.Print("Password: ")
-		pwd, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+		pwd, err := term.ReadPassword(int(os.Stdin.Fd()))
 		if err != nil {
 			log.Fatal(err.Error())
 		}

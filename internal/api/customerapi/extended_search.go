@@ -18,7 +18,7 @@ import (
 // WARNING: this endpoint gives direct FindMany access to the
 // mongodb collection! Make sure users are properly authenticated!
 //
-// POST /api/v1/customer/search
+// POST /api/v1/customer/search.
 func ExtendedSearchEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/search",

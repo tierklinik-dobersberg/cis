@@ -22,7 +22,7 @@ var (
 	supportedAlgo map[string]CompareFunc
 )
 
-// Register registeres a new compare function for algo.
+// Register registers a new compare function for algo.
 func Register(algo string, fn CompareFunc) {
 	lock.Lock()
 	defer lock.Unlock()

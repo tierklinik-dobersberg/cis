@@ -79,7 +79,7 @@ func main() {
 	flags := cmd.Flags()
 	{
 		flags.StringVarP(&info.Host, "server", "s", "", "IMAP server address")
-		flags.BoolVar(&info.TLS, "tls", true, "Enable or disbale TLS")
+		flags.BoolVar(&info.TLS, "tls", true, "Enable or disable TLS")
 		flags.BoolVar(&info.InsecureSkipVerify, "insecure", false, "Disable TLS certificate validation")
 		flags.StringVarP(&info.User, "user", "u", "", "The username")
 		flags.StringVarP(&info.Password, "password", "p", "", "The password")

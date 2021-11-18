@@ -32,7 +32,7 @@ func (and *And) Match(req *http.Request) (bool, error) {
 }
 
 // Or is a simple condition that represents a boolean
-// OR between Left and Right
+// OR between Left and Right.
 type Or struct {
 	conds []Condition
 }

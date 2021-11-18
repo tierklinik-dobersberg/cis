@@ -18,7 +18,7 @@ type Client struct {
 }
 
 // NewClient returns a new CardDAV client.
-func NewClient(cfg cfgspec.CardDAVConfig) (*Client, error) {
+func NewClient(cfg *cfgspec.CardDAVConfig) (*Client, error) {
 	var cli webdav.HTTPClient = http.DefaultClient
 
 	if cfg.User != "" {
@@ -35,7 +35,7 @@ func NewClient(cfg cfgspec.CardDAVConfig) (*Client, error) {
 	}
 
 	return &Client{
-		cfg: &cfg,
+		cfg: cfg,
 		cli: davcli,
 	}, nil
 }
@@ -50,7 +50,11 @@ func (cli *Client) Sync(ctx context.Context, col, syncToken string, deleted chan
 	logger.From(ctx).Infof("carddav: received sync response with %d deletes and %d updates", len(syncResponse.Deleted), len(syncResponse.Updated))
 
 	for _, d := range syncResponse.Deleted {
-		deleted <- d
+		select {
+		case deleted <- d:
+		case <-ctx.Done():
+			return "", ctx.Err()
+		}
 	}
 
 	// either emersion/webdav does not correctly handle AllProps: true in the sync-query
@@ -70,13 +74,24 @@ func (cli *Client) Sync(ctx context.Context, col, syncToken string, deleted chan
 			},
 		})
 		if err != nil {
-			return "", fmt.Errorf("failed to retreive batch: %w", err)
+			return "", fmt.Errorf("failed to retrieve batch: %w", err)
 		}
 		for idx := range objs {
-			updated <- objs[idx]
+			select {
+			case updated <- objs[idx]:
+			case <-ctx.Done():
+				return "", ctx.Err()
+			}
 		}
 	}
 	return syncResponse.SyncToken, nil
+}
+
+func (cli *Client) DeleteObject(ctx context.Context, path string) error {
+	if err := cli.cli.RemoveAll(path); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (cli *Client) ListAddressBooks(ctx context.Context) ([]carddav.AddressBook, error) {

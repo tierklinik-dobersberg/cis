@@ -118,15 +118,16 @@ func PlayShowEndpoint(router *app.Router) {
 		"v1/shows/:show/play/*resource",
 		permission.Anyone, // we handle authorization for this endpoint on our own
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
+			// TODO(ppacher): add authorization
 			log := logger.From(ctx)
 
 			showName := c.Param("show")
 			isEmbedded := c.Query("embedded") != ""
 			theme := c.Query("theme")
 
-			var previewIndex int = -1
+			previewIndex := -1
 			if previewStr := c.Query("preview"); previewStr != "" {
-				if idx, err := strconv.ParseInt(previewStr, 0, 64); err == nil {
+				if idx, err := strconv.ParseInt(previewStr, 0, 0); err == nil {
 					previewIndex = int(idx)
 				} else {
 					log.Errorf("invalid parameter for preview: %q (error=%s)", previewStr, err)

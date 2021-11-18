@@ -18,6 +18,8 @@ type mongoStore struct {
 	collection *mongo.Collection
 }
 
+// NewMongoStore returns a new cache.Store that perists all cache items it
+// a mongo db collection.
 func NewMongoStore(ctx context.Context, dbName, collectionName string, cli *mongo.Client) Store {
 	s := &mongoStore{
 		collection: cli.Database(dbName).Collection(collectionName),
@@ -112,3 +114,6 @@ func (ms *mongoStore) List(ctx context.Context, prefix string) ([]*KeyRecord, er
 	}
 	return res, nil
 }
+
+// Compile time check.
+var _ Store = new(mongoStore)

@@ -3,7 +3,7 @@ package cfgspec
 import "github.com/ppacher/system-conf/conf"
 
 // IntegrationConfig bundles configuration values required for
-// integration with other services
+// integration with other services.
 type IntegrationConfig struct {
 	RocketChatAddress string
 }

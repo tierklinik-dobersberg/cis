@@ -43,12 +43,12 @@ func New(ctx context.Context, url, dbName string) (Database, error) {
 	clientConfig := options.Client().ApplyURI(url)
 	client, err := mongo.NewClient(clientConfig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create client: %w", err)
 	}
 
 	// Try to connect
 	if err := client.Connect(ctx); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to server %s: %w", url, err)
 	}
 
 	db, err := NewWithClient(ctx, dbName, client)
@@ -118,7 +118,7 @@ func (db *database) Create(ctx context.Context, key string, user, message string
 
 	result, err := db.comments.InsertOne(ctx, c)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to insert comment: %w", err)
 	}
 
 	id, ok := result.InsertedID.(primitive.ObjectID)
@@ -175,7 +175,7 @@ func (db *database) ByID(ctx context.Context, id string) (*v1alpha.Comment, erro
 
 	var c v1alpha.Comment
 	if err := result.Decode(&c); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode comment: %w", err)
 	}
 
 	return &c, nil
@@ -208,13 +208,13 @@ func (db *database) ByKey(ctx context.Context, key string, prefix bool) ([]v1alp
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, httperr.NotFound("comments", key, err)
 		}
-		return nil, err
+		return nil, fmt.Errorf("failed to query comments: %w", err)
 	}
 	defer results.Close(ctx)
 
 	var comments []v1alpha.Comment
 	if err := results.All(ctx, &comments); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode comments: %w", err)
 	}
 
 	return comments, nil

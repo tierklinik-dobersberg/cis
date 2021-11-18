@@ -26,7 +26,7 @@ type DoorInterfacer interface {
 
 // MqttDoor interfaces with an door controller via
 // mqtt. It's meant to work with
-// github.com/tierklinik-dobersberg/door-controller.git
+// github.com/tierklinik-dobersberg/door-controller.git.
 type MqttDoor struct {
 	cli mqtt.Client
 }

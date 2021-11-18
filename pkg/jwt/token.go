@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	jwtlib "github.com/dgrijalva/jwt-go"
 )
 
 // Scope defines the scope of a JWT token.
@@ -87,8 +86,8 @@ func SignToken(method string, secret []byte, claims Claims) (string, error) {
 		return "", fmt.Errorf("missing secret")
 	}
 
-	sm := jwtlib.GetSigningMethod(method)
-	token := jwtlib.NewWithClaims(sm, claims)
+	sm := jwt.GetSigningMethod(method)
+	token := jwt.NewWithClaims(sm, claims)
 	signedToken, err := token.SignedString(secret)
 
 	if err != nil {
@@ -101,7 +100,7 @@ func SignToken(method string, secret []byte, claims Claims) (string, error) {
 func ParseAndVerify(secret []byte, token string) (*Claims, error) {
 	var c Claims
 
-	_, err := jwtlib.ParseWithClaims(token, &c, func(t *jwtlib.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(token, &c, func(t *jwt.Token) (interface{}, error) {
 		return secret, nil
 	})
 	if err != nil {

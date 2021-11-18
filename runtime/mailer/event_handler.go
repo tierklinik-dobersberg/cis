@@ -28,7 +28,7 @@ func (eh *eventHandler) HandleEvents(ctx context.Context, events ...*event.Event
 	}
 }
 
-// AddTriggerType registeres a "SendMail" trigger on reg using typeName.
+// AddTriggerType registers a "SendMail" trigger on reg using typeName.
 func AddTriggerType(typeName string, reg *trigger.Registry) error {
 	return reg.RegisterType(typeName, &trigger.Type{
 		OptionRegistry: confutil.MultiOptionRegistry{

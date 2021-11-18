@@ -1,4 +1,4 @@
-package calendar
+package google
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	ciscal "github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/googleapi"
@@ -22,7 +23,7 @@ type googleEventCache struct {
 	trigger       chan struct{}
 
 	calID  string
-	events []Event
+	events []ciscal.Event
 	svc    *calendar.Service
 }
 
@@ -30,6 +31,7 @@ func (ec *googleEventCache) String() string {
 	return fmt.Sprintf("Cache<%s>", ec.calID)
 }
 
+// nolint:unparam
 func newCache(ctx context.Context, id string, loc *time.Location, svc *calendar.Service) (*googleEventCache, error) {
 	cache := &googleEventCache{
 		calID:         id,
@@ -107,10 +109,12 @@ func (ec *googleEventCache) loadEvents(ctx context.Context, emit bool) bool {
 				// start over without a sync token
 				// return "success" so we retry in a minute
 				ec.syncToken = ""
+
 				return true
 			}
 
 			log.From(ctx).Errorf("failed to sync events: %s", err)
+
 			return false
 		}
 
@@ -121,10 +125,12 @@ func (ec *googleEventCache) loadEvents(ctx context.Context, emit bool) bool {
 
 		if res.NextPageToken != "" {
 			pageToken = res.NextPageToken
+
 			continue
 		}
 		if res.NextSyncToken != "" {
 			ec.syncToken = res.NextSyncToken
+
 			break
 		}
 
@@ -136,13 +142,14 @@ func (ec *googleEventCache) loadEvents(ctx context.Context, emit bool) bool {
 		ec.syncToken = ""
 		ec.events = nil
 		ec.minTime = time.Time{}
+
 		return false
 	}
 	if updatesProcessed > 0 {
 		log.From(ctx).Infof("processed %d updates", updatesProcessed)
 	}
 
-	sort.Sort(ByStartTime(ec.events))
+	sort.Sort(ciscal.ByStartTime(ec.events))
 
 	return true
 }
@@ -157,11 +164,12 @@ func (ec *googleEventCache) syncAndEmit(ctx context.Context, item *calendar.Even
 	}
 }
 
-func (ec *googleEventCache) syncEvent(ctx context.Context, item *calendar.Event) (*Event, string) {
+func (ec *googleEventCache) syncEvent(ctx context.Context, item *calendar.Event) (*ciscal.Event, string) {
 	foundAtIndex := -1
 	for idx, evt := range ec.events {
 		if evt.ID == item.Id {
 			foundAtIndex = idx
+
 			break
 		}
 	}
@@ -227,30 +235,30 @@ func (ec *googleEventCache) evictFromCache(ctx context.Context) {
 	log.From(ctx).V(7).Logf("evicted %d events from cache which now starts with %s and holds %d events", idx, ec.minTime.Format(time.RFC3339), len(ec.events))
 }
 
-func (ec *googleEventCache) tryLoadFromCache(ctx context.Context, search *EventSearchOptions) ([]Event, bool) {
+func (ec *googleEventCache) tryLoadFromCache(ctx context.Context, search *ciscal.EventSearchOptions) ([]ciscal.Event, bool) {
 	// check if it's even possible to serve the request from cache.
 	if search == nil {
 		log.From(ctx).V(8).Logf("not using cache: search == nil")
 		return nil, false
 	}
-	if search.from == nil {
+	if search.FromTime == nil {
 		log.From(ctx).V(8).Logf("not using cache: search.from == nil")
 		return nil, false
 	}
 
 	ec.rw.RLock()
 	defer ec.rw.RUnlock()
-	if search.from.Before(ec.minTime) && !ec.minTime.IsZero() {
-		log.From(ctx).V(8).Logf("not using cache: search.from (%s) is before minTime (%s)", search.from, ec.minTime)
+	if search.FromTime.Before(ec.minTime) && !ec.minTime.IsZero() {
+		log.From(ctx).V(8).Logf("not using cache: search.from (%s) is before minTime (%s)", search.FromTime, ec.minTime)
 		return nil, false
 	}
 
-	var res []Event
+	var res []ciscal.Event
 
 	for _, evt := range ec.events {
-		startInRange := search.from.Equal(evt.StartTime) || search.from.Before(evt.StartTime)
-		if search.to != nil {
-			startInRange = startInRange && (search.to.Equal(evt.StartTime) || search.to.After(evt.StartTime))
+		startInRange := search.FromTime.Equal(evt.StartTime) || search.FromTime.Before(evt.StartTime)
+		if search.ToTime != nil {
+			startInRange = startInRange && (search.ToTime.Equal(evt.StartTime) || search.ToTime.After(evt.StartTime))
 		}
 		if startInRange {
 			res = append(res, evt)

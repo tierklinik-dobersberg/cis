@@ -156,21 +156,25 @@ func (src *MJPEGSource) attach(ctx context.Context) (chan []byte, string, error)
 }
 
 func (src *MJPEGSource) pull(meta CameraMeta) error {
-	resp, err := http.Get(src.URL)
+	resp, err := http.Get(src.URL) // nolint:bodyclose // false positive
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open HTTP stream: %w", err)
 	}
 
 	ct := resp.Header.Get("content-type")
 	parsed, params, err := mime.ParseMediaType(ct)
 	if err != nil {
-		return err
+		resp.Body.Close()
+
+		return fmt.Errorf("failed to parse content-type header: %w", err)
 	}
 
 	// we currently only support MJPEG streams that use multipart
 	// streaming with x-mixed-replace. Better make sure this is
 	// really a supported cam.
 	if parsed != "multipart/x-mixed-replace" {
+		resp.Body.Close()
+
 		return fmt.Errorf("unsupported content type: %s", ct)
 	}
 
@@ -178,7 +182,9 @@ func (src *MJPEGSource) pull(meta CameraMeta) error {
 	// and start pulling frames.
 	boundary := params["boundary"]
 	if boundary == "" {
-		return fmt.Errorf("missing boundary in content type: %s", err)
+		resp.Body.Close()
+
+		return fmt.Errorf("missing boundary in content type: %w", err)
 	}
 	reader := multipart.NewReader(resp.Body, boundary)
 	src.running = true
@@ -239,6 +245,7 @@ func (src *MJPEGSource) pull(meta CameraMeta) error {
 			src.l.Unlock()
 			if refcount == 0 {
 				log.Infof("no stream subscribers. Aborting ...")
+
 				break
 			}
 		}

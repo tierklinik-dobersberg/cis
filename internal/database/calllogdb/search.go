@@ -20,7 +20,7 @@ func (q *SearchQuery) AtDate(d time.Time) *SearchQuery {
 	return q
 }
 
-// After matches all calllog records that happend after d.
+// After matches all calllog records that happened after d.
 func (q *SearchQuery) After(d time.Time) *SearchQuery {
 	q.Where("date", "$gt", d)
 	return q

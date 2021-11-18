@@ -3,10 +3,16 @@
 package autodoc
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
 	"sync"
+)
+
+var (
+	ErrAlreadyRegistered = errors.New("already registered")
+	ErrUnknownRenderer   = errors.New("unknown renderer")
 )
 
 // Registry keeps track of configuration files.
@@ -16,13 +22,13 @@ type Registry struct {
 	renderers map[string]Renderer
 }
 
-// RegisterFile registeres a new configuratin file type.
+// RegisterFile registers a new configuration file type.
 func (reg *Registry) RegisterFile(f File) (*File, error) {
 	reg.l.Lock()
 	defer reg.l.Unlock()
 
 	if _, ok := reg.files[f.Name]; ok {
-		return nil, fmt.Errorf("configuration file %q already registered", f.Name)
+		return nil, fmt.Errorf("%q: %w", f.Name, ErrAlreadyRegistered)
 	}
 
 	reg.files[f.Name] = &f
@@ -37,7 +43,7 @@ func (reg *Registry) RegisterRenderer(kind string, renderer Renderer) error {
 
 	kind = strings.ToLower(kind)
 	if _, ok := reg.renderers[kind]; ok {
-		return fmt.Errorf("renderer for %s already registered", kind)
+		return fmt.Errorf("%s: %w", kind, ErrAlreadyRegistered)
 	}
 	reg.renderers[kind] = renderer
 	return nil
@@ -62,7 +68,7 @@ func (reg *Registry) Render(kind string, f *File) (string, error) {
 
 	renderer, ok := reg.renderers[strings.ToLower(kind)]
 	if !ok {
-		return "", fmt.Errorf("no renderer for %q registered", kind)
+		return "", fmt.Errorf("%s: %w", kind, ErrUnknownRenderer)
 	}
 
 	return renderer.RenderFile(*f)
@@ -110,7 +116,7 @@ func MustRegister(f File) *File {
 	return file
 }
 
-// RegisterRenderer calls DefaultRegistry.RegisterRenderer
+// RegisterRenderer calls DefaultRegistry.RegisterRenderer.
 func RegisterRenderer(kind string, renderer Renderer) error {
 	return DefaultRegistry.RegisterRenderer(kind, renderer)
 }

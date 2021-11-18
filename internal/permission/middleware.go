@@ -31,10 +31,10 @@ type Set interface {
 // the annotated API endpoint.
 type OneOf []*Action
 
-// Type implements Set
+// Type implements Set.
 func (oneof OneOf) Type() SetType { return Or }
 
-// Actions implements Set
+// Actions implements Set.
 func (oneof OneOf) Actions() []*Action { return ([]*Action)(oneof) }
 
 // Union is a list of actions from which the session must
@@ -42,10 +42,10 @@ func (oneof OneOf) Actions() []*Action { return ([]*Action)(oneof) }
 // the annotated API endpoint.
 type Union []*Action
 
-// Type implements Set
+// Type implements Set.
 func (union Union) Type() SetType { return And }
 
-// Actions implements Set
+// Actions implements Set.
 func (union Union) Actions() []*Action { return ([]*Action)(union) }
 
 // Anyone defines that anyone can use the annotated API.

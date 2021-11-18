@@ -220,7 +220,7 @@ func (db *identDB) GetAutologinRoles(_ context.Context) map[string]conf.Section 
 }
 
 func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo string) error {
-	hash := ""
+	var hash string
 	switch algo {
 	case "plain":
 		hash = password
@@ -283,7 +283,7 @@ func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo str
 
 	path := filepath.Join(db.dir, "identity", user+".user")
 	if err := renameio.WriteFile(path, buf.Bytes(), 0600); err != nil {
-		return nil
+		return err
 	}
 
 	db.users[user] = u

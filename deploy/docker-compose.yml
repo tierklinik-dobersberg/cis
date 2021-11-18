@@ -26,6 +26,44 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
 
+  #
+  # Fake SMTP server to test mail delivery
+  #
+  smtp:
+    image: reachfive/fake-smtp-server
+    ports:
+      - 8092:1080
+    command: node index.js --auth mailuser:mailpass
+
+  #
+  # We use radicale as our upstream CardDAV server.
+  #
+  radicale:
+    image: tomsquest/docker-radicale:latest
+    ports:
+      - 8091:8091
+    volumes:
+      - ../testdata/state/radicale:/data
+      - ./radicale.conf:/config/config:ro
+      - ./radicale.users:/config/users:ro
+
+  #
+  # Import a collection for the admin user.
+  #
+  radicale-init:
+    image: curlimages/curl:latest
+    depends_on:
+      radicale:
+          condition: service_started
+    volumes:
+      - ../testdata/dump/carddav-collection.vcf:/tmp/addressbook.vcf
+    command:
+      - 'http://admin:password@radicale:8091/admin/2876ee8f-c693-8a49-bf95-25d41c97b674/' 
+      - -XPUT
+      - '-HContent-Type: text/vcard'
+      - --data-binary
+      - '@/tmp/addressbook.vcf'
+
   mosquitto:
     image: eclipse-mosquitto
     hostname: mosquitto
@@ -58,6 +96,8 @@ services:
       mosquitto:
         condition: service_started
       mongo-import:
+        condition: service_completed_successfully
+      radicale-init:
         condition: service_completed_successfully
     ports:
       - 3000:3000

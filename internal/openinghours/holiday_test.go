@@ -10,6 +10,8 @@ import (
 )
 
 func TestLoadHolidays(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	cache := openinghours.NewHolidayCache()

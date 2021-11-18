@@ -86,7 +86,7 @@ func GetContactEndpoint(grp *app.Router) {
 				we handle contact merging correctly before.
 			*/
 			if len(customers) > 1 {
-				//return httperr.WithCode(http.StatusMultipleChoices, errors.New("to many matches for "+phone))
+				// return httperr.WithCode(http.StatusMultipleChoices, errors.New("to many matches for "+phone))
 				log.From(ctx).Errorf("multiple (%d) results found for %s", len(customers), phone)
 			}
 

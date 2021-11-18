@@ -18,7 +18,6 @@ type EventPublisher struct {
 // HandleEvent implements (event.Handler).
 func (pub *EventPublisher) HandleEvents(ctx context.Context, evts ...*event.Event) {
 	for _, evt := range evts {
-
 		blob, err := json.Marshal(evt)
 		if err != nil {
 			log.From(ctx).Errorf("failed to publish event: json: %s", err)

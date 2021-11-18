@@ -45,7 +45,7 @@ type Instance struct {
 	running  *abool.AtomicBool
 }
 
-// Run implements cron.Job
+// Run implements cron.Job.
 func (inst *Instance) Run() {
 	if !inst.running.SetToIf(false, true) {
 		inst.log.Infof("Import still running, skipping scheudle")
@@ -100,7 +100,7 @@ type Factory struct {
 	Setup FactoryFunc
 }
 
-// Factories holds all available import factories
+// Factories holds all available import factories.
 var (
 	factoriesLock sync.RWMutex
 	factories     []Factory
@@ -114,7 +114,7 @@ func Register(factory Factory) {
 	factories = append(factories, factory)
 }
 
-// Importer imports data from external systems
+// Importer imports data from external systems.
 type Importer struct {
 	cron      *cron.Cron
 	instances []*Instance

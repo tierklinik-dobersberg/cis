@@ -91,7 +91,7 @@ func (session *Session) SetEphemeral(ctx context.Context, key string, data inter
 	dk := fmt.Sprintf("%s%s/%s", session.cacheKeyPrefix, session.id, key)
 	blob, err := json.Marshal(data)
 	if err != nil {
-		return fmt.Errorf("failed to marshal data: %s", err)
+		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
 	return session.cache.Write(ctx, dk, blob, cache.WithTTL(ttl))
@@ -159,7 +159,7 @@ func (session *Session) DistinctRoles() []string {
 	for _, r := range session.extraRoles {
 		lm[r] = struct{}{}
 	}
-	var distinctRoles []string
+	distinctRoles := make([]string, 0, len(lm))
 	for key := range lm {
 		distinctRoles = append(distinctRoles, key)
 	}

@@ -23,6 +23,7 @@ func metaFromCtx(ctx context.Context) CameraMeta {
 	if !ok {
 		return CameraMeta{}
 	}
+
 	return *val
 }
 
@@ -38,7 +39,7 @@ type Manager struct {
 func (mng *Manager) LoadDefinitions(dir string) error {
 	files, err := confutil.LoadFiles(dir, ".camera", CameraUnit)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load .camera files: %w", err)
 	}
 
 	mng.rl.Lock()
@@ -59,10 +60,11 @@ func (mng *Manager) LoadDefinitions(dir string) error {
 		cam.Meta.ID = name
 		mng.cameras[name] = &cam
 	}
+
 	return nil
 }
 
-// ListDefinitions returns a map of all camera defintions known
+// ListDefinitions returns a map of all camera definitions known
 // by the manager.
 func (mng *Manager) ListDefinitions() map[string]CameraMeta {
 	mng.rl.RLock()
@@ -72,6 +74,7 @@ func (mng *Manager) ListDefinitions() map[string]CameraMeta {
 	for key, cam := range mng.cameras {
 		res[key] = cam.Meta
 	}
+
 	return res
 }
 
@@ -90,6 +93,7 @@ func (mng *Manager) AttachToStream(ctx context.Context, camID string, c *gin.Con
 	if cam.MJPEGSource != nil {
 		return cam.MJPEGSource.Attach(ctx, c)
 	}
+
 	return httperr.InternalError(
 		fmt.Errorf("no usable source for camera %s", camID),
 	)

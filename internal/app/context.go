@@ -57,7 +57,7 @@ type App struct {
 	Holidays        openinghours.HolidayGetter
 	CallLogs        calllogdb.Database
 	MQTTClient      mqtt.Client
-	Calendar        calendar.Service
+	Calendar        calendar.Backend
 	Resources       *resourcedb.Registry
 	CCTV            *cctv.Manager
 	LayoutStore     layouts.Store
@@ -92,7 +92,7 @@ func NewApp(
 	holidays openinghours.HolidayGetter,
 	calllogs calllogdb.Database,
 	mqttClient mqtt.Client,
-	calendarEvents calendar.Service,
+	calendarEvents calendar.Backend,
 	resourceRegistry *resourcedb.Registry,
 	cctvmng *cctv.Manager,
 	layoutStore layouts.Store,
@@ -178,7 +178,7 @@ func (app *App) BaseURL(c *gin.Context) string {
 	}
 
 	if !strings.HasSuffix(url, "/") {
-		url = url + "/"
+		url += "/"
 	}
 	return url
 }
@@ -197,7 +197,7 @@ func (app *App) BasePath() string {
 
 	path := u.Path
 	if !strings.HasSuffix(path, "/") {
-		path = path + "/"
+		path += "/"
 	}
 	return path
 }
@@ -255,10 +255,10 @@ func (app *App) MaxUploadSize() int64 {
 		}
 
 		if suffix == "K" {
-			parsed = parsed << 10
+			parsed <<= 10
 		}
 		if suffix == "M" {
-			parsed = parsed << 20
+			parsed <<= 20
 		}
 		app.maxUploadSize = parsed
 	})

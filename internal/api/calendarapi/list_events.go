@@ -27,25 +27,16 @@ func ListEventsEndpoint(router *app.Router) {
 			ReadEventsAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			day := time.Now()
-			if forDay := c.Query("for-day"); forDay != "" {
-				var err error
-				day, err = app.ParseTime("2006-1-2", forDay)
-				if err != nil {
-					return httperr.InvalidParameter("for-day")
-				}
+			day, err := getForDayQueryParam(c, app)
+			if err != nil {
+				return err
 			}
 
 			filter := new(calendar.EventSearchOptions).ForDay(day)
 
-			// get all calendars and build a lookup map
-			calendars, err := app.Calendar.ListCalendars(ctx)
+			calendars, calIDtoCal, err := getCalendars(ctx, app)
 			if err != nil {
 				return err
-			}
-			calIdToCal := make(map[string]calendar.Calendar)
-			for _, cal := range calendars {
-				calIdToCal[cal.ID] = cal
 			}
 
 			// get all users and build a lookup map
@@ -54,11 +45,11 @@ func ListEventsEndpoint(router *app.Router) {
 				return err
 			}
 			userNameToUser := make(map[string]cfgspec.User)
-			calIdToUser := make(map[string]cfgspec.User)
+			calIDtoUser := make(map[string]cfgspec.User)
 			for _, user := range users {
 				userNameToUser[user.Name] = user
 				if user.CalendarID != "" {
-					calIdToUser[user.CalendarID] = user
+					calIDtoUser[user.CalendarID] = user
 				}
 			}
 
@@ -117,11 +108,11 @@ func ListEventsEndpoint(router *app.Router) {
 			// with the username where known.
 			modelEvents := make([]v1alpha.Event, len(events))
 			for idx, evt := range events {
-				u := calIdToUser[evt.CalendarID]
+				u := calIDtoUser[evt.CalendarID]
 				modelEvents[idx] = v1alpha.Event{
 					Event:        evt,
 					Username:     u.Name,
-					CalendarName: calIdToCal[evt.CalendarID].Name,
+					CalendarName: calIDtoCal[evt.CalendarID].Name,
 				}
 			}
 
@@ -130,4 +121,29 @@ func ListEventsEndpoint(router *app.Router) {
 			return nil
 		},
 	)
+}
+
+func getForDayQueryParam(c *gin.Context, app *app.App) (time.Time, error) {
+	day := time.Now()
+	if forDay := c.Query("for-day"); forDay != "" {
+		var err error
+		day, err = app.ParseTime("2006-1-2", forDay)
+		if err != nil {
+			return time.Time{}, httperr.InvalidParameter("for-day")
+		}
+	}
+	return day, nil
+}
+
+func getCalendars(ctx context.Context, app *app.App) ([]calendar.Calendar, map[string]calendar.Calendar, error) {
+	// get all calendars and build a lookup map
+	calendars, err := app.Calendar.ListCalendars(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	idToCal := make(map[string]calendar.Calendar)
+	for _, cal := range calendars {
+		idToCal[cal.ID] = cal
+	}
+	return calendars, idToCal, nil
 }

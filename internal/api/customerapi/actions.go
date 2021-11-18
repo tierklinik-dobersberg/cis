@@ -10,4 +10,10 @@ var (
 		"Permission required to read customers",
 		nil,
 	)
+
+	DeleteCustomerAction = permission.MustDefineAction(
+		"customer:delete",
+		"Permission required to delete customers",
+		nil,
+	)
 )

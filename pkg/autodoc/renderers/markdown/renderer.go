@@ -8,13 +8,13 @@ import (
 )
 
 func init() {
-	autodoc.MustRegisterRenderer("markdown", MarkdownRenderer{})
+	autodoc.MustRegisterRenderer("markdown", Renderer{})
 }
 
-// MarkdownRenderer renders (autodoc.File)s as markdown.
-type MarkdownRenderer struct{}
+// Renderer renders (autodoc.File)s as markdown.
+type Renderer struct{}
 
-func (MarkdownRenderer) RenderFile(f autodoc.File) (string, error) {
+func (Renderer) RenderFile(f autodoc.File) (string, error) {
 	var buf = new(bytes.Buffer)
 
 	if f.Multiple {

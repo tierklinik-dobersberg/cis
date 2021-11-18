@@ -46,6 +46,9 @@ type Database interface {
 
 	// DeleteCustomer deletes the customer identified by source and cid.
 	DeleteCustomer(ctx context.Context, id string) error
+
+	// Cursor returns a cursor for all objects in filter.
+	Cursor(ctx context.Context, filter bson.M) (*mongo.Cursor, error)
 }
 
 type database struct {
@@ -59,12 +62,12 @@ func New(ctx context.Context, url, dbName string) (Database, error) {
 	clientConfig := options.Client().ApplyURI(url)
 	client, err := mongo.NewClient(clientConfig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create client: %w", err)
 	}
 
 	// Try to connect
 	if err := client.Connect(ctx); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to server %s: %w", url, err)
 	}
 
 	db, err := NewWithClient(ctx, dbName, client)
@@ -123,6 +126,11 @@ func (db *database) setup(ctx context.Context) error {
 				{Key: "customerSource", Value: 1},
 			},
 		},
+		{
+			Keys: bson.M{
+				"linkedTo": 1,
+			},
+		},
 	})
 
 	if err != nil {
@@ -151,7 +159,7 @@ func (db *database) CreateCustomer(ctx context.Context, cu *Customer) error {
 
 	result, err := db.customers.InsertOne(ctx, cu)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to insert customer: %w", err)
 	}
 
 	// result.InsertedID should be a primitiv.ObjectID if generated
@@ -180,7 +188,7 @@ func (db *database) UpdateCustomer(ctx context.Context, cu *Customer) error {
 
 	result, err := db.customers.ReplaceOne(ctx, bson.M{"_id": cu.ID}, cu)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to replace customer %s: %w", cu.ID, err)
 	}
 
 	if result.ModifiedCount != 1 || result.MatchedCount != 1 {
@@ -245,16 +253,20 @@ func (db *database) FilterCustomer(ctx context.Context, filter bson.M) ([]*Custo
 	return db.findCustomers(ctx, filter)
 }
 
+func (db *database) Cursor(ctx context.Context, filter bson.M) (*mongo.Cursor, error) {
+	return db.customers.Find(ctx, filter)
+}
+
 func (db *database) DeleteCustomer(ctx context.Context, id string) error {
 	dbid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse customer object id %q: %w", id, err)
 	}
 	result, err := db.customers.DeleteOne(ctx, bson.M{
 		"_id": dbid,
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to delete customer: %w", err)
 	}
 	if result.DeletedCount != 1 {
 		return ErrNotFound
@@ -269,14 +281,14 @@ func (db *database) findCustomers(ctx context.Context, filter interface{}) ([]*C
 			return nil, nil
 		}
 
-		return nil, err
+		return nil, fmt.Errorf("failed to query for customers: %w", err)
 	}
 	defer result.Close(ctx)
 
 	var customers []*Customer
 
 	if err := result.All(ctx, &customers); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode customers: %w", err)
 	}
 
 	return customers, nil
@@ -289,12 +301,12 @@ func (db *database) findSingleCustomer(ctx context.Context, filter interface{}) 
 			return nil, httperr.NotFound("customer", fmt.Sprintf("%+v", filter), ErrNotFound)
 		}
 
-		return nil, err
+		return nil, fmt.Errorf("failed to query for customer: %w", err)
 	}
 
 	var cu Customer
 	if err := result.Decode(&cu); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode customer: %w", err)
 	}
 
 	return &cu, nil

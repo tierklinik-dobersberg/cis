@@ -31,10 +31,11 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/patientapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/resourceapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/suggestionapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/triggerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/voicemailapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/calendar"
+	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
 	"github.com/tierklinik-dobersberg/cis/internal/cctv"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
@@ -73,25 +74,26 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	//
-	// underscore imports that register themself somewhere
+	// underscore imports that register themself somewhere.
 	//
 
-	// Exec trigger type
+	// Exec trigger type.
 	_ "github.com/tierklinik-dobersberg/cis/runtime/execer"
-	// SendMail trigger type and SMTP support
+	// SendMail trigger type and SMTP support.
 	_ "github.com/tierklinik-dobersberg/cis/runtime/mailer"
-	// Twilio trigger type
+	// Twilio trigger type.
 	_ "github.com/tierklinik-dobersberg/cis/runtime/twilio"
-	// MQTT trigger type
+	// MQTT trigger type.
 	_ "github.com/tierklinik-dobersberg/cis/internal/integration/mqtt"
-	// VetInf importer
+	// VetInf importer.
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/vetinf"
-	// Neumayr importer
+	// Neumayr importer.
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/neumayr"
-	// CardDAV importer
+	// CardDAV importer.
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/carddav"
-
-	// Schema migrations
+	// Task: Find linkable customers.
+	_ "github.com/tierklinik-dobersberg/cis/internal/tasks/linkable"
+	// Schema migrations.
 	_ "github.com/tierklinik-dobersberg/cis/migrations"
 )
 
@@ -201,6 +203,8 @@ func getApp(ctx context.Context) *app.App {
 				infoscreenapi.Setup(apis.Group("infoscreen", session.Require()))
 				// access to the infoscreen show player
 				infoscreenapi.SetupPlayer(apis.Group("infoscreen"))
+				// access to the suggestion API
+				suggestionapi.Setup(apis.Group("suggestion", session.Require()))
 			}
 
 			return nil
@@ -368,7 +372,7 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "voicemaildb: %s", err)
 	}
 
-	calendarService, err := calendar.New(cfg.GoogleCalendar)
+	calendarService, err := google.New(ctx, cfg.GoogleCalendar)
 	if err != nil {
 		logger.Fatalf(ctx, "calendar: %s", err)
 	}
@@ -412,6 +416,7 @@ func getApp(ctx context.Context) *app.App {
 			time.Sleep(time.Second)
 			continue
 		}
+
 		break
 	}
 
@@ -586,7 +591,7 @@ func runMain() {
 		logger.Fatalf(ctx, "failed to start door scheduler: %s", err)
 	}
 
-	// we log on error so this one get's forwarded to error reportes.
+	// we log on error so this one get's forwarded to error reporters.
 	logger.Errorf(ctx, "CIS starting ....")
 
 	// run the server.

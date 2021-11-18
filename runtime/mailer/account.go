@@ -14,6 +14,13 @@ type Account struct {
 	Password string
 	// From defines the default sender to use for this account.
 	From string
+	// AllowInsecure can be set to true to disable TLS certificate
+	// verification.
+	AllowInsecure bool
+	// UseSSL can be set to either true or false to force SSL to be enabled
+	// or disabled. If not configured, SSL will be used for the default
+	// SSL port.
+	UseSSL *bool
 }
 
 // AccountSpec is defines the configuration stanzas for a mailer Account.
@@ -45,5 +52,16 @@ var AccountSpec = conf.SectionSpec{
 		Name:        "From",
 		Description: "The default sender to use",
 		Type:        conf.StringType,
+	},
+	{
+		Name:        "AllowInsecure",
+		Type:        conf.BoolType,
+		Description: "If set to true, the certificate of the upstream SMTP server is not verified.",
+		Default:     "no",
+	},
+	{
+		Name:        "UseSSL",
+		Type:        conf.BoolType,
+		Description: "Whether or not SSL should be enabled or disabled. Leave empty for the default",
 	},
 }

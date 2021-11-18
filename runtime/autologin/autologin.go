@@ -27,21 +27,21 @@ type Manager struct {
 	session *session.Manager
 
 	// conditionBuilder is used to build the conditions a
-	// request must fullfill to be granted a session token.
+	// request must fulfill to be granted a session token.
 	conditionBuilder *httpcond.Builder
 
 	rw sync.RWMutex
-	// users holds all conditions that must be fullfilled for a request
+	// users holds all conditions that must be fulfilled for a request
 	// to be granted a session token using automatic-login.
 	users map[string]autologinRecord
 
-	// roleAssignment holds all conditions that must be fullfilled for a
+	// roleAssignment holds all conditions that must be fulfilled for a
 	// request to be granted an additional role.
 	roleAssignment map[string]httpcond.Condition
 }
 
 // NewManager returns a new autologin manager that uses reg
-// to build the conditions a HTTP request must fullfill to be
+// to build the conditions a HTTP request must fulfill to be
 // granted an automatic session token.
 func NewManager(ctx context.Context, sessionManager *session.Manager, reg *httpcond.Registry, users map[string]conf.Section, roles map[string]conf.Section) *Manager {
 	mng := &Manager{
