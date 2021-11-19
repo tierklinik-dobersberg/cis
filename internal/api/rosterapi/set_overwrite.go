@@ -13,9 +13,11 @@ import (
 )
 
 type setOverwriteRequest struct {
-	Username    string `json:"username"`
-	Phone       string `json:"phoneNumber"`
-	DisplayName string `json:"displayName"`
+	Username    string    `json:"username"`
+	Phone       string    `json:"phoneNumber"`
+	DisplayName string    `json:"displayName"`
+	From        time.Time `json:"from"`
+	To          time.Time `json:"to"`
 }
 
 // SetOverwriteEndpoint allows to configure the duty roster overwrite.
@@ -26,20 +28,17 @@ func SetOverwriteEndpoint(router *app.Router) {
 			WriteRosterOverwriteAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			date := c.Query("date")
-
-			if date == "" {
-				date = dateForCurrentRoster(ctx, app)
-			}
-
-			d, err := app.ParseTime("2006-1-2", date)
-			if err != nil {
-				return httperr.InvalidParameter("date")
-			}
 
 			var body setOverwriteRequest
 			if err := json.NewDecoder(c.Request.Body).Decode(&body); err != nil {
 				return httperr.BadRequest(err)
+			}
+
+			if body.From.IsZero() {
+				return httperr.InvalidField("from")
+			}
+			if body.To.IsZero() {
+				return httperr.InvalidField("to")
 			}
 
 			if body.Username != "" {
@@ -52,7 +51,7 @@ func SetOverwriteEndpoint(router *app.Router) {
 				}
 			}
 
-			if err := app.DutyRosters.SetOverwrite(ctx, d, body.Username, body.Phone, body.DisplayName); err != nil {
+			if err := app.DutyRosters.SetOverwrite(ctx, body.From, body.To, body.Username, body.Phone, body.DisplayName); err != nil {
 				return err
 			}
 

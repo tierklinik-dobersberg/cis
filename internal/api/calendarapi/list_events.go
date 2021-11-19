@@ -129,7 +129,7 @@ func getForDayQueryParam(c *gin.Context, app *app.App) (time.Time, error) {
 		var err error
 		day, err = app.ParseTime("2006-1-2", forDay)
 		if err != nil {
-			return time.Time{}, httperr.InvalidParameter("for-day")
+			return time.Time{}, httperr.InvalidParameter("for-day", err.Error())
 		}
 	}
 	return day, nil

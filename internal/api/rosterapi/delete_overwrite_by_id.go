@@ -7,28 +7,18 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
-func DeleteOverwriteEndpoint(router *app.Router) {
+func DeleteOverwriteByIDEndpoint(router *app.Router) {
 	router.DELETE(
-		"v1/overwrite",
+		"v1/overwrite/:id",
 		permission.OneOf{
 			WriteRosterOverwriteAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			date := c.Query("date")
+			id := c.Param("id")
 
-			if date == "" {
-				date = dateForCurrentRoster(ctx, app)
-			}
-
-			d, err := app.ParseTime("2006-1-2", date)
-			if err != nil {
-				return httperr.InvalidParameter("date")
-			}
-
-			if err := app.DutyRosters.DeleteOverwrite(ctx, d); err != nil {
+			if err := app.DutyRosters.DeleteOverwrite(ctx, id); err != nil {
 				return err
 			}
 

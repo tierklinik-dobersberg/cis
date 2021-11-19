@@ -65,7 +65,7 @@ func getSingleDayOpeningHours(ctx context.Context, app *app.App, at string, d ti
 		var err error
 		d, err = app.ParseTime("2006-1-2", at)
 		if err != nil {
-			return nil, httperr.InvalidParameter("at")
+			return nil, httperr.InvalidParameter("at", err.Error())
 		}
 	}
 
@@ -92,11 +92,11 @@ func getSingleDayOpeningHours(ctx context.Context, app *app.App, at string, d ti
 func getOpeningHoursRangeResponse(ctx context.Context, app *app.App, from, to string) (*GetOpeningHoursRangeResponse, error) {
 	f, err := app.ParseTime("2006-1-2", from)
 	if err != nil {
-		return nil, httperr.InvalidParameter("from")
+		return nil, httperr.InvalidParameter("from", err.Error())
 	}
 	t, err := app.ParseTime("2006-1-2", to)
 	if err != nil {
-		return nil, httperr.InvalidParameter("to")
+		return nil, httperr.InvalidParameter("to", err.Error())
 	}
 	logger.From(ctx).Infof("loading opening hours in time range from %s to %s", from, to)
 

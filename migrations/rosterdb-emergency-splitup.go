@@ -40,6 +40,7 @@ func init() {
 				if err != nil {
 					return fmt.Errorf("failed to find documents: %w", err)
 				}
+				defer records.Close(ctx)
 
 			L:
 				for records.Next(ctx) {

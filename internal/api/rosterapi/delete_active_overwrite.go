@@ -3,6 +3,7 @@ package rosterapi
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
@@ -10,13 +11,11 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
-// GetOverwriteEndpoint returns the duty-roster overwrite for the
-// requested day.
-func GetOverwriteEndpoint(router *app.Router) {
-	router.GET(
+func DeleteActiveOverwriteEndpoint(router *app.Router) {
+	router.DELETE(
 		"v1/overwrite",
 		permission.OneOf{
-			ReadRosterOverwriteAction,
+			WriteRosterOverwriteAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			date := c.Query("date")
@@ -25,17 +24,17 @@ func GetOverwriteEndpoint(router *app.Router) {
 				date = dateForCurrentRoster(ctx, app)
 			}
 
-			d, err := app.ParseTime("2006-1-2", date)
+			d, err := app.ParseTime(time.RFC3339, date)
 			if err != nil {
-				return httperr.InvalidParameter("date")
+				return httperr.InvalidParameter("date", err.Error())
 			}
 
-			overwrite, err := app.DutyRosters.GetOverwrite(ctx, d)
-			if err != nil {
+			if err := app.DutyRosters.DeleteActiveOverwrite(ctx, d); err != nil {
 				return err
 			}
 
-			c.JSON(http.StatusOK, overwrite)
+			c.Status(http.StatusNoContent)
+
 			return nil
 		},
 	)

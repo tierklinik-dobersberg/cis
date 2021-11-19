@@ -37,7 +37,7 @@ func GetSuggestionsEndpoint(r *app.Router) {
 			if ls != "" {
 				limit, err = strconv.ParseInt(ls, 10, 0)
 				if err != nil {
-					return httperr.InvalidParameter("limit")
+					return httperr.InvalidParameter("limit", err.Error())
 				}
 			}
 			keys, err := app.Cache.List(ctx, linkable.CachePrefix)
@@ -117,7 +117,7 @@ func DeleteSuggestionEndpoint(r *app.Router) {
 			b64id := c.Param("id")
 			id, err := base64.RawStdEncoding.DecodeString(b64id)
 			if err != nil {
-				return httperr.InvalidParameter("id")
+				return httperr.InvalidParameter("id", err.Error())
 			}
 
 			if shouldDelete {

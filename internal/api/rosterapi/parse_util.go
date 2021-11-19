@@ -16,16 +16,16 @@ func getYearAndMonth(c *gin.Context) (time.Month, int, error) {
 
 	year, err := strconv.ParseInt(yearStr, 10, 0)
 	if err != nil {
-		return 0, 0, httperr.InvalidParameter("year")
+		return 0, 0, httperr.InvalidParameter("year", err.Error())
 	}
 
 	month, err := strconv.ParseInt(monthStr, 10, 0)
 	if err != nil {
-		return 0, 0, httperr.InvalidParameter("month")
+		return 0, 0, httperr.InvalidParameter("month", err.Error())
 	}
 
 	if month < 1 || month > 12 {
-		return 0, 0, httperr.InvalidParameter("month")
+		return 0, 0, httperr.InvalidParameter("month", err.Error())
 	}
 
 	return time.Month(month), int(year), nil
