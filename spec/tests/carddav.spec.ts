@@ -40,7 +40,7 @@ describe("CardDAV", () => {
         })
 
         it("should not return max anymore", async () => {
-            const response = await Alice.get(`/api/customer/v1/carddav/${max}`).catch(err => err.response as AxiosResponse)
+            const response = await Alice.get(`/api/customer/v1/carddav/${max}`)
             expect(response.status).toBe(404);
         })
 

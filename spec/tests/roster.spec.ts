@@ -58,14 +58,16 @@ describe("Duty roster API:", () => {
                     ...roster,
                     year: 2022,
                 }
-                await expectAsync(Alice.put("/api/dutyroster/v1/roster/2021/1", copy)).toBeRejected()
+                const response = await Alice.put("/api/dutyroster/v1/roster/2021/1", copy)
+                expect(response.status).toBe(400)
             })
             it("should validate month", async () => {
                 let copy = {
                     ...roster,
                     month: 2,
                 }
-                await expectAsync(Alice.put("/api/dutyroster/v1/roster/2021/1", copy)).toBeRejected()
+                const response = await Alice.put("/api/dutyroster/v1/roster/2021/1", copy)
+                expect(response.status).toBe(400)
             })
             it("should work", async () => {
                 const response = await Alice.put("/api/dutyroster/v1/roster/2021/1", roster)
@@ -83,13 +85,15 @@ describe("Duty roster API:", () => {
             })
 
             it("should fail if there is not roster", async () => {
-                await expectAsync(Alice.get("/api/dutyroster/v1/roster/2019/10")).toBeRejected()
+                const response = await Alice.get("/api/dutyroster/v1/roster/2019/10")
+                expect(response.status).toBe(404)
             })
         })
 
         describe("by deleting a roster", () => {
             it("should fail if the roster does not exist", async () => {
-                await expectAsync(Alice.delete("/api/durtyroster/v1/roster/2019/10")).toBeRejected()
+                const response = await Alice.delete("/api/durtyroster/v1/roster/2019/10");
+                expect(response.status).toBe(404)
             })
 
             it("should work", async () => {
@@ -105,21 +109,21 @@ describe("Duty roster API:", () => {
                 displayName: "test",
                 from: "2021-02-01T18:30:00Z",
                 to: "2021-02-02T18:30:00Z",
-            }).catch(err => err.response)
+            })
             expect(response.status).toBe(400, response.data)
 
             response = await Alice.post("/api/dutyroster/v1/overwrite", {
                 displayName: "test",
                 user: "test",
                 to: "2021-02-02T18:30:00Z",
-            }).catch(err => err.response)
+            })
             expect(response.status).toBe(400, response.data)
 
             response = await Alice.post("/api/dutyroster/v1/overwrite", {
                 displayName: "test",
                 user: "test",
                 from: "2021-02-02T18:30:00Z",
-            }).catch(err => err.response)
+            })
             expect(response.status).toBe(400, response.data)
         })
 
@@ -128,7 +132,7 @@ describe("Duty roster API:", () => {
                 username: "alice",
                 from: "2021-02-01T06:30:00Z",
                 to: "2021-02-02T05:30:00Z",
-            }).catch(err => err.response)
+            })
             expect(response.status).toBe(204, response.data)
 
             response = await Alice.get("/api/dutyroster/v1/overwrite?date=2021-02-01T10:30:00Z").catch(err => err.response)
@@ -149,7 +153,7 @@ describe("Duty roster API:", () => {
                 username: "diser",
                 from: "2021-02-01T08:30:00+02:00",
                 to: "2021-02-02T07:30:00+02:00",
-            }).catch(err => err.response as AxiosResponse)
+            })
             expect(response.status).toBe(400, response.data)
         })
 
@@ -158,14 +162,14 @@ describe("Duty roster API:", () => {
                 username: "alice",
                 from: "2021-02-03T08:30:00+02:00",
                 to: "2021-02-04T07:30:00+02:00",
-            }).catch(err => err.response)
+            })
             expect(first.status).toBe(204, first.data)
 
             let second = await Alice.post("/api/dutyroster/v1/overwrite", {
                 username: "bob",
                 from: "2021-02-03T08:30:00+02:00",
                 to: "2021-02-04T07:30:00+02:00",
-            }).catch(err => err.response)
+            })
             expect(second.status).toBe(409, second.data) // conflict
         })
 
@@ -175,11 +179,10 @@ describe("Duty roster API:", () => {
                 displayName: "extension",
                 from: "2021-02-05T08:30:00+02:00",
                 to: "2021-02-06T07:30:00+02:00",
-            }).catch(err => err.response)
+            })
             expect(response.status).toBe(204, response.data)
 
             response = await Alice.get("/api/dutyroster/v1/overwrite?date=2021-02-05T14:00:00%2B02:00")
-                .catch(err => err.response)
             expect(response.status).toBe(200, response.data)
             const createdAt = response.data.createdAt
             delete (response.data['createdAt'])
@@ -195,25 +198,21 @@ describe("Duty roster API:", () => {
 
         it("should return an error if there is no overwrite", async () => {
             const response = await Alice.get("/api/dutyroster/v1/overwrite?date=2019-11-11T14:00:00Z")
-                .catch(err => err.response)
             expect(response.status).toBe(404, response.data)
         })
 
         it("should be possible to delete an overwrite", async () => {
             const response = await Alice.delete("/api/dutyroster/v1/overwrite?date=2021-02-01T14:00:00Z")
-                .catch(err => err.response)
             expect(response.status).toBe(204, response.data)
         })
 
         it("should return an error when deleting a non-existing overwrite", async () => {
             const response = await Alice.delete("/api/dutyroster/v1/overwrite?date=2021-02-01T14:00:00Z")
-                .catch(err => err.response)
             expect(response.status).toBe(404, response.data)
         })
 
         it("should support querying all overwrites", async () => {
             const response = await Alice.get("/api/dutyroster/v1/overwrites?from=2021-02-01T14:00:00Z&to=2021-02-07T18:00:00%2B02:00")
-                .catch(err => err.response)
             expect(response.status).toBe(200, response.data);
             expect(response.data.length).toBe(2);
             delete(response.data[0].createdAt);
@@ -243,7 +242,6 @@ describe("Duty roster API:", () => {
         let get = (day: number, hour: number, min: number) => {
             let d = new Date(Date.UTC(2021, 3, day, hour, min));
             return Alice.get<DoctorOnDutyResponse<string>>("/api/external/v1/doctor-on-duty?at=" + d.toISOString())
-                .catch(err => err.response)
         }
 
         it("should check the correct roster", async () => {
@@ -274,7 +272,6 @@ describe("Duty roster API:", () => {
 
         it("should work even with different time-zones", async () => {
             const inLocalTime = await Alice.get<DoctorOnDutyResponse<string>>("/api/external/v1/doctor-on-duty?at=2021-04-11T01:10:00%2B02:00")
-                .catch(err => err.response)
 
             expect(inLocalTime.status).toBe(200, inLocalTime.data)
             expect(inLocalTime.data.doctors).toEqual([{
@@ -287,7 +284,6 @@ describe("Duty roster API:", () => {
             }])
 
             const inUTC = await Alice.get<DoctorOnDutyResponse<string>>("/api/external/v1/doctor-on-duty?at=2021-04-10T23:10:00Z")
-                .catch(err => err.response)
             expect(inUTC.status).toBe(200, inUTC.data)
             expect(inUTC.data.doctors).toEqual([{
                 username: "bob",
@@ -409,7 +405,6 @@ describe("Duty roster API:", () => {
         it("should use overwrites if they exist", async () => {
             // created by the roster test cases above
             const query = await Alice.get("/api/external/v1/doctor-on-duty?at=2021-02-03T15:30:00Z")
-                .catch(err => err.response);
             expect(query.status).toBe(200, query.data);
 
             expect(query.data.doctors).toEqual([{

@@ -108,7 +108,7 @@ describe("The identity API", () => {
             const response = await Unauth.post("/api/identity/v1/login", {
                 username: "diser",
                 password: "password",
-            }).catch(err => err.response as AxiosResponse)
+            })
 
             expect(response.status).toBe(401)
         })
@@ -175,45 +175,27 @@ describe("The identity API", () => {
         })
 
         it("should fail if the current password is wrong", async () => {
-            let cought = false
-            try {
-                await Alice.put("/api/identity/v1/profile/password", {
-                    current: "wrong-password",
-                    newPassword: "silly-password",
-                })
-            } catch (err) {
-                cought = true
-                expect(err.response.status).toBe(400)
-            }
-            expect(cought).toBeTrue()
+            const response  = await Alice.put("/api/identity/v1/profile/password", {
+                current: "wrong-password",
+                newPassword: "silly-password",
+            })
+            expect(response.status).toBe(400)
         })
 
         it("should fail if the current password is unset", async () => {
-            let catched = false
-            try {
-                await Alice.put("/api/identity/v1/profile/password", {
-                    current: "",
-                    newPassword: "silly-password",
-                })
-            } catch (err) {
-                catched = true
-                expect(err.response.status).toBe(400)
-            }
-            expect(catched).toBeTrue()
+            const response = await Alice.put("/api/identity/v1/profile/password", {
+                current: "",
+                newPassword: "silly-password",
+            })
+            expect(response.status).toBe(400)
         })
 
         it("should fail if the new password is unset", async () => {
-            let catched = false
-            try {
-                await Alice.put("/api/identity/v1/profile/password", {
-                    current: "password",
-                    newPassword: "",
-                })
-            } catch (err) {
-                catched = true
-                expect(err.response.status).toBe(400)
-            }
-            expect(catched).toBeTrue()
+            const response = await Alice.put("/api/identity/v1/profile/password", {
+                current: "password",
+                newPassword: "",
+            })
+            expect(response.status).toBe(400)
         })
     })
 })
