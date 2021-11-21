@@ -74,7 +74,7 @@ describe("Door management", () => {
     })
 
     it("should support resetting the door", async () => {
-        const response = Alice.post("http://localhost:3000/api/door/v1/reset", null)
+        const response = Alice.post("/api/door/v1/reset", null)
         let commands = [
             await receive(),
             await receive(),
@@ -87,7 +87,7 @@ describe("Door management", () => {
     })
 
     it("should support a manual overwrite", async () => {
-        const currentStateResponse = await Alice.get("http://localhost:3000/api/door/v1/state")
+        const currentStateResponse = await Alice.get("/api/door/v1/state")
         expect(currentStateResponse).toBeDefined()
         expect(currentStateResponse.data.resetInProgress).toBeFalse()
         expect(['locked', 'unlocked']).toContain(currentStateResponse.data.state)
@@ -109,7 +109,7 @@ describe("Door management", () => {
 
         expect(until.getTime()).toBeGreaterThanOrEqual(until.getTime())
 
-        const overWriteResponse = await Alice.post("http://localhost:3000/api/door/v1/overwrite", {
+        const overWriteResponse = await Alice.post("/api/door/v1/overwrite", {
             state: next,
             duration: "2m"
         })
@@ -121,7 +121,7 @@ describe("Door management", () => {
         // let command = await receive()
         // expect(command).toBe(next)
 
-        const currentStateResponse2 = await Alice.get("http://localhost:3000/api/door/v1/state")
+        const currentStateResponse2 = await Alice.get("/api/door/v1/state")
         expect(currentStateResponse2.data.state).toBe(next + "ed")
 
         const actual = new Date(currentStateResponse2.data.until)

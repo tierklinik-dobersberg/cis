@@ -8,12 +8,17 @@ async function createSession(username: string, password: string): Promise<AxiosI
     return axios.create({
         headers: {
             'Cookie': `cis-session=${response.data.token}`
-        }
+        },
+        baseURL: "http://localhost:3000"
     })
 }
 
 beforeAll(async () => {
     Alice = Alice || await createSession("alice", "password")
+    Unauth = Unauth || axios.create({
+        baseURL: "http://localhost:3000"
+    })
 })
 
 export let Alice: AxiosInstance;
+export let Unauth: AxiosInstance;
