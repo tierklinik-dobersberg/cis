@@ -237,9 +237,7 @@ describe("Duty roster API:", () => {
         // there's roster loaded for 2021/04 with one week
         // see testdata/dump/dutyRosters.json
 
-        // TODO(ppacher): assert isDayShift and isNightShift in response
-
-        let get = (day: number, hour: number, min: number) => {
+        const get = (day: number, hour: number, min: number) => {
             let d = new Date(Date.UTC(2021, 3, day, hour, min));
             return Alice.get<DoctorOnDutyResponse<string>>("/api/external/v1/doctor-on-duty?at=" + d.toISOString())
         }
@@ -253,9 +251,11 @@ describe("Duty roster API:", () => {
                 phone: "",
                 properties: {
                     PhoneExtension: "12",
-                }
+                },
             }])
             expect(response.data.until).toBe("2021-04-06T19:30:00+02:00")
+            expect(response.data.isDayShift).toBeTruthy();
+            expect(response.data.isNightShift).toBeFalsy()
 
             const response2 = await get(6, 22, 0)
             expect(response2.status).toBe(200, response2.data)
@@ -268,6 +268,8 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response2.data.until).toBe("2021-04-07T07:30:00+02:00")
+            expect(response2.data.isDayShift).toBeFalsy();
+            expect(response2.data.isNightShift).toBeTruthy()
         })
 
         it("should work even with different time-zones", async () => {
@@ -282,6 +284,8 @@ describe("Duty roster API:", () => {
                     PhoneExtension: "12",
                 }
             }])
+            expect(inLocalTime.data.isDayShift).toBeFalsy();
+            expect(inLocalTime.data.isNightShift).toBeTruthy()
 
             const inUTC = await Alice.get<DoctorOnDutyResponse<string>>("/api/external/v1/doctor-on-duty?at=2021-04-10T23:10:00Z")
             expect(inUTC.status).toBe(200, inUTC.data)
@@ -293,6 +297,8 @@ describe("Duty roster API:", () => {
                     PhoneExtension: "12",
                 }
             }])
+            expect(inUTC.data.isDayShift).toBeFalsy();
+            expect(inUTC.data.isNightShift).toBeTruthy()
         })
 
         it("should honor change-of-duty on regular days", async () => {
@@ -307,6 +313,8 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response.data.until).toBe("2021-04-06T07:30:00+02:00")
+            expect(response.data.isDayShift).toBeFalsy();
+            expect(response.data.isNightShift).toBeTruthy()
 
             const response2 = await get(6, 5, 30)
             expect(response2.status).toBe(200, response2.data)
@@ -319,6 +327,8 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response2.data.until).toBe("2021-04-06T19:30:00+02:00")
+            expect(response2.data.isDayShift).toBeTruthy();
+            expect(response2.data.isNightShift).toBeFalsy()
 
             const response3 = await get(6, 17, 30)
             expect(response3.status).toBe(200, response3.data)
@@ -331,6 +341,8 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response3.data.until).toBe("2021-04-07T07:30:00+02:00")
+            expect(response3.data.isDayShift).toBeFalsy();
+            expect(response3.data.isNightShift).toBeTruthy()
         })
 
         it("should honor change-of-duty on specific days", async () => {
@@ -345,6 +357,8 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response.data.until).toBe("2021-04-10T08:30:00+02:00")
+            expect(response.data.isDayShift).toBeFalsy();
+            expect(response.data.isNightShift).toBeTruthy()
 
             const response2 = await get(10, 6, 30)
             expect(response2.status).toBe(200, response2.data)
@@ -357,6 +371,8 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response2.data.until).toBe("2021-04-10T19:30:00+02:00")
+            expect(response2.data.isDayShift).toBeTruthy();
+            expect(response2.data.isNightShift).toBeFalsy()
 
             const response3 = await get(10, 23, 30)
             expect(response3.status).toBe(200, response.data)
@@ -369,6 +385,8 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response3.data.until).toBe("2021-04-11T08:30:00+02:00")
+            expect(response3.data.isDayShift).toBeFalsy();
+            expect(response3.data.isNightShift).toBeTruthy()
         })
 
         it("should honor change-of-duty on specific days even if it's late", async () => {
