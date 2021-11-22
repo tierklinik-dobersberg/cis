@@ -67,7 +67,7 @@ type Overwrite struct {
 	DisplayName string `bson:"displayName,omitempty" json:"displayName,omitempty"`
 
 	// Deleted is set to true if this overwrite has been deleted or superseded.
-	Deleted bool `bson:"deleted,omitempty" json:"-"`
+	Deleted bool `bson:"deleted,omitempty" json:"deleted,omitempty"`
 
 	// CreatedBy is set to the name of the CIS user that created the overwrite.
 	CreatedBy string `bson:"createdBy,omitempty" json:"createdBy,omitempty"`

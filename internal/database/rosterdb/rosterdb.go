@@ -50,7 +50,7 @@ type Database interface {
 	GetActiveOverwrite(ctx context.Context, date time.Time) (*v1alpha.Overwrite, error)
 
 	// GetOverwrites returns all overwrites that have start or time between from and to.
-	GetOverwrites(ctx context.Context, from, to time.Time) ([]*v1alpha.Overwrite, error)
+	GetOverwrites(ctx context.Context, from, to time.Time, includeDeleted bool) ([]*v1alpha.Overwrite, error)
 
 	// DeleteOverwrite deletes the roster overwrite for the given
 	// day.
@@ -264,7 +264,7 @@ func (db *database) SetOverwrite(ctx context.Context, from, to time.Time, user, 
 		"phone": phone,
 	})
 
-	overlapping, err := db.GetOverwrites(ctx, from, to)
+	overlapping, err := db.GetOverwrites(ctx, from, to, false)
 	if err != nil {
 		return fmt.Errorf("failed to check for overlapping overwrites: %w", err)
 	}
@@ -285,8 +285,8 @@ func (db *database) SetOverwrite(ctx context.Context, from, to time.Time, user, 
 	return nil
 }
 
-func (db *database) GetOverwrites(ctx context.Context, from, to time.Time) ([]*v1alpha.Overwrite, error) {
-	res, err := db.overwrites.Find(ctx, bson.M{
+func (db *database) GetOverwrites(ctx context.Context, from, to time.Time, includeDeleted bool) ([]*v1alpha.Overwrite, error) {
+	filter := bson.M{
 		"$or": bson.A{
 			bson.M{
 				"from": bson.M{
@@ -301,8 +301,12 @@ func (db *database) GetOverwrites(ctx context.Context, from, to time.Time) ([]*v
 				},
 			},
 		},
-		"deleted": bson.M{"$ne": true},
-	})
+	}
+	if !includeDeleted {
+		filter["deleted"] = bson.M{"$ne": true}
+	}
+
+	res, err := db.overwrites.Find(ctx, filter)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil

@@ -231,6 +231,34 @@ describe("Duty roster API:", () => {
                },
             ])
         })
+
+        it("should support getting deleted overwrites", async () => {
+            const response = await Alice.get("/api/dutyroster/v1/overwrites?from=2021-02-01T14:00:00Z&to=2021-02-07T18:00:00%2B02:00&with-deleted")
+            expect(response.status).toBe(200, response.data);
+            expect(response.data.length).toBe(3);
+            delete(response.data[0].createdAt);
+            delete(response.data[1].createdAt);
+            delete(response.data[2].createdAt);
+            expect(response.data).toEqual([
+               {
+                 username: "alice",
+                 from: "2021-02-01T06:30:00Z",
+                 to: "2021-02-02T05:30:00Z",
+                 deleted: true,
+               },
+               {
+                 username: "alice",
+                 from: "2021-02-03T06:30:00Z",
+                 to: "2021-02-04T05:30:00Z",
+               },
+               {
+                 phoneNumber: "10",
+                 displayName: "extension",
+                 from: "2021-02-05T06:30:00Z",
+                 to: "2021-02-06T05:30:00Z",
+               },
+            ])
+        })
     })
 
     describe("doctor-on-duty", () => {

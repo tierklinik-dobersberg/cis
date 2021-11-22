@@ -31,8 +31,9 @@ func GetOverwritesEndpoint(router *app.Router) {
 			if err != nil {
 				return httperr.InvalidParameter("to", err.Error())
 			}
+			_, includeDeleted := c.GetQuery("with-deleted")
 
-			overwrites, err := app.DutyRosters.GetOverwrites(ctx, from, to)
+			overwrites, err := app.DutyRosters.GetOverwrites(ctx, from, to, includeDeleted)
 			if err != nil {
 				return err
 			}
