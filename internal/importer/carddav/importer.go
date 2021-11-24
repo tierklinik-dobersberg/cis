@@ -62,7 +62,7 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 	}
 
 	if err := customerdb.DefaultSourceManager.Register(customerdb.Source{
-		Name:        "carddav",
+		Name:        cfg.Source,
 		Description: "Imports contact data from a CardDAV server",
 		Metadata: map[string]interface{}{
 			"Server":      cfg.Server,
