@@ -6,6 +6,7 @@ import (
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
+	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 	"github.com/tierklinik-dobersberg/service/runtime"
@@ -73,19 +74,23 @@ type EventHandler struct {
 	sender SMSSender
 }
 
-func (ev *EventHandler) HandleEvents(ctx context.Context, evts ...*event.Event) {
+func (ev *EventHandler) HandleEvents(ctx context.Context, evts ...*event.Event) error {
 	log := log.From(ctx)
+	errors := new(multierr.Error)
 
 	if ev.AcceptBuffered {
 		if err := ev.sender.Send(ctx, ev.Message, evts); err != nil {
+			errors.Add(err)
 			log.Errorf("failed to send SMS: %s", err)
 		}
-		return
+		return errors.ToError()
 	}
 
 	for _, evt := range evts {
 		if err := ev.sender.Send(ctx, ev.Message, evt); err != nil {
+			errors.Add(err)
 			log.Errorf("failed to send SMS: %s", err)
 		}
 	}
+	return errors.ToError()
 }

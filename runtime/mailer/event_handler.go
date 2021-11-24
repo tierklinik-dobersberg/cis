@@ -6,6 +6,7 @@ import (
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
+	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 	"github.com/tierklinik-dobersberg/service/runtime"
@@ -17,15 +18,18 @@ type eventHandler struct {
 }
 
 // HandleEvents implements trigger.Handler.
-func (eh *eventHandler) HandleEvents(ctx context.Context, events ...*event.Event) {
+func (eh *eventHandler) HandleEvents(ctx context.Context, events ...*event.Event) error {
 	// TODO(ppacher): consider adding something similar to AcceptBuffered= from
 	// runtime/twilio.
 	// For now, we just send emails for each matching event.
+	errors := new(multierr.Error)
 	for _, evt := range events {
 		if err := eh.mailer.Send(ctx, eh.msg, evt); err != nil {
+			errors.Add(err)
 			log.From(ctx).Errorf("failed to send mail: %w", err)
 		}
 	}
+	return errors.ToError()
 }
 
 // AddTriggerType registers a "SendMail" trigger on reg using typeName.

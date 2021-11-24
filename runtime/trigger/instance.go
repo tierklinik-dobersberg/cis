@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
+	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -19,7 +20,7 @@ import (
 type Handler interface {
 	// HandleEvents is called for each set of events fired. There might
 	// be multiple events if the users configures BufferUntil.
-	HandleEvents(ctx context.Context, event ...*event.Event)
+	HandleEvents(ctx context.Context, event ...*event.Event) error
 }
 
 // InstanceConfig holds additional configuration values
@@ -157,7 +158,9 @@ func (inst *Instance) Wants(eventTopic string) bool {
 // event matches on of the EventFilters specified for this instance. The
 // caller should use Wants() before or otherwise make sure this instance
 // can handle the provided event.
-func (inst *Instance) Handle(ctx context.Context, evt *event.Event) {
+func (inst *Instance) Handle(ctx context.Context, evt *event.Event) error {
+	errors := new(multierr.Error)
+
 	// if we're buffering or debouncing event handling we need a separate
 	// goroutine and will fill / overwrite the instance buffer.
 	if len(inst.cfg.BufferUntil) > 0 || len(inst.cfg.DebounceUntil) > 0 {
@@ -177,14 +180,17 @@ func (inst *Instance) Handle(ctx context.Context, evt *event.Event) {
 		}
 		inst.pending = true
 
-		return
+		return errors.ToError()
 	}
 
 	// Direct passthrough to the handlers if neither BufferUntil= nor
 	// DebounceUntil= is set.
-	for _, handler := range inst.handlers {
-		handler.HandleEvents(ctx, evt)
+	for idx, handler := range inst.handlers {
+		if err := handler.HandleEvents(ctx, evt); err != nil {
+			errors.Addf("handler %d: %w", idx, err)
+		}
 	}
+	return errors.ToError()
 }
 
 func (inst *Instance) waitAndFire(ctx context.Context) {
@@ -251,6 +257,7 @@ func (inst *Instance) fireBuffer(ctx context.Context) {
 
 	log.V(7).Logf("fireing %d buffered events", len(buffer))
 	for _, handler := range inst.handlers {
+		// FIXME(ppacher): what to do with those errors?
 		handler.HandleEvents(context.Background(), buffer...)
 	}
 }
