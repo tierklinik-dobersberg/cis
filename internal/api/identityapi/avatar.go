@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
@@ -27,6 +28,10 @@ func AvatarEndpoint(grp *app.Router) {
 				return httperr.BadRequest(nil, "missing username parameter")
 			}
 
+			// We need scope Internal so we get the avatar file name.
+			ctx = identitydb.WithScope(ctx, identitydb.Internal)
+
+			// load the user data using the prepared context
 			user, err := app.Identities.GetUser(ctx, userName)
 			if err != nil {
 				log.Errorf("failed to get user %s: %s", userName, err)
@@ -41,7 +46,7 @@ func AvatarEndpoint(grp *app.Router) {
 			f, err := loadAvatar(ctx, app.Config.AvatarDirectory, avatarFile)
 			if err != nil {
 				if os.IsNotExist(err) {
-					return httperr.NotFound("avatar", userName, err)
+					return httperr.NotFound("avatar", avatarFile, err)
 				}
 
 				return err

@@ -22,7 +22,7 @@ describe("The identity API", () => {
                 "fullname": "Alice Musterfrau",
                 "mail": ["alice@example.at", "alice@example.com"],
                 "phoneNumbers": ["+4312345678", "+2812345"],
-                "roles": ["default-role"],
+                "roles": ["default-role", "doctor"],
                 "properties": { "PhoneExtension": "10" },
                 "calendarID": "primary",
                 "color": "#1b7550b9"
@@ -66,6 +66,7 @@ describe("The identity API", () => {
             ],
             roles: [
                 "default-role",
+                "doctor"
             ],
             calendarID: "primary",
             properties: {
