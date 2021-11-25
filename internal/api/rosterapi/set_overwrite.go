@@ -60,15 +60,3 @@ func SetOverwriteEndpoint(router *app.Router) {
 		},
 	)
 }
-
-func dateForCurrentRoster(ctx context.Context, app *app.App) string {
-	t := time.Now()
-	// find out if we need the doctor-on-duty from today or the day before
-	// depending on the ChangeOnDuty time for today.
-	changeDutyAt := app.Door.ChangeOnDuty(ctx, t)
-	if !changeDutyAt.IsApplicable(t) {
-		t.Add(-24 * time.Hour)
-	}
-
-	return t.Format("2006-1-2")
-}

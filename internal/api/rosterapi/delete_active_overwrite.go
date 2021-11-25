@@ -18,15 +18,13 @@ func DeleteActiveOverwriteEndpoint(router *app.Router) {
 			WriteRosterOverwriteAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			date := c.Query("date")
-
-			if date == "" {
-				date = dateForCurrentRoster(ctx, app)
-			}
-
-			d, err := app.ParseTime(time.RFC3339, date)
-			if err != nil {
-				return httperr.InvalidParameter("date", err.Error())
+			d := time.Now()
+			if date := c.Query("date"); date != "" {
+				var err error
+				d, err = app.ParseTime(time.RFC3339, date)
+				if err != nil {
+					return httperr.InvalidParameter("date", err.Error())
+				}
 			}
 
 			if err := app.DutyRosters.DeleteActiveOverwrite(ctx, d); err != nil {
