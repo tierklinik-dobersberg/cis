@@ -18,7 +18,7 @@ func Setup(grp gin.IRouter) {
 	// PUT /api/dutyroster/v1/roster/:year/:month
 	CreateOrUpdateEndpoint(router)
 
-	// POST /api/dutyroster/v1/overwrite?date=<date>
+	// POST /api/dutyroster/v1/overwrite
 	SetOverwriteEndpoint(router)
 
 	// GET /api/dutyroster/v1/overwrites?from=<date>&to=<date>

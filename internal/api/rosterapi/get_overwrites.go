@@ -11,8 +11,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
-// GetOverwritesEndpoint returns the duty-roster overwrite for the
-// requested day.
+// GetOverwritesEndpoint returns all duty-roster overwrites between two specified
+// date-times.
 func GetOverwritesEndpoint(router *app.Router) {
 	router.GET(
 		"v1/overwrites",
