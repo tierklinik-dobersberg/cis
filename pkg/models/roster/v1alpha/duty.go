@@ -47,7 +47,7 @@ type DutyRoster struct {
 // at a given date.
 type Overwrite struct {
 	// ID is the a unique ID of the overwrite
-	ID primitive.ObjectID `bson:"_id,omitempty" json:"-"`
+	ID primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
 
 	// From holds the datetime at which the overwrite is considered active.
 	From time.Time `bson:"from" json:"from"`
@@ -70,8 +70,8 @@ type Overwrite struct {
 	Deleted bool `bson:"deleted,omitempty" json:"deleted,omitempty"`
 
 	// CreatedBy is set to the name of the CIS user that created the overwrite.
-	CreatedBy string `bson:"createdBy,omitempty" json:"createdBy,omitempty"`
+	CreatedBy string `bson:"createdBy,omitempty" json:"createdBy"`
 
 	// CreatedAt holds the time at which the overwrite has been created.
-	CreatedAt time.Time `bson:"createdAt,omitempty" json:"createdAt,omitempty"`
+	CreatedAt time.Time `bson:"createdAt,omitempty" json:"createdAt"`
 }

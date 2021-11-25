@@ -104,6 +104,13 @@ describe("Duty roster API:", () => {
     })
 
     describe("roster overwrites", () => {
+        const stripMD = (r: object) => {
+            delete(r['_id'])
+            delete(r['createdAt'])
+            delete(r['createdBy'])
+        }
+
+
         it("should require check for required parameters", async () => {
             let response = await Alice.post("/api/dutyroster/v1/overwrite", {
                 displayName: "test",
@@ -138,7 +145,7 @@ describe("Duty roster API:", () => {
             response = await Alice.get("/api/dutyroster/v1/overwrite?date=2021-02-01T10:30:00Z").catch(err => err.response)
             expect(response.status).toBe(200, response.data)
             const createdAt = response.data.createdAt
-            delete (response.data['createdAt'])
+            stripMD(response.data)
 
             expect(response.data).toEqual({
                 username: "alice",
@@ -185,7 +192,7 @@ describe("Duty roster API:", () => {
             response = await Alice.get("/api/dutyroster/v1/overwrite?date=2021-02-05T14:00:00%2B02:00")
             expect(response.status).toBe(200, response.data)
             const createdAt = response.data.createdAt
-            delete (response.data['createdAt'])
+            stripMD(response.data)
 
             expect(response.data).toEqual({
                 phoneNumber: "10",
@@ -215,8 +222,7 @@ describe("Duty roster API:", () => {
             const response = await Alice.get("/api/dutyroster/v1/overwrites?from=2021-02-01T14:00:00Z&to=2021-02-07T18:00:00%2B02:00")
             expect(response.status).toBe(200, response.data);
             expect(response.data.length).toBe(2);
-            delete(response.data[0].createdAt);
-            delete(response.data[1].createdAt);
+            response.data.forEach((d: object) => stripMD(d))
             expect(response.data).toEqual([
                {
                  username: "alice",
@@ -236,9 +242,7 @@ describe("Duty roster API:", () => {
             const response = await Alice.get("/api/dutyroster/v1/overwrites?from=2021-02-01T14:00:00Z&to=2021-02-07T18:00:00%2B02:00&with-deleted")
             expect(response.status).toBe(200, response.data);
             expect(response.data.length).toBe(3);
-            delete(response.data[0].createdAt);
-            delete(response.data[1].createdAt);
-            delete(response.data[2].createdAt);
+            response.data.forEach((d: object) => stripMD(d))
             expect(response.data).toEqual([
                {
                  username: "alice",
