@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -38,7 +39,16 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 				}
 			}
 
-			response, err := getDoctorOnDuty(ctx, app, d)
+			ignoreOverwrites := false
+			if val := c.Query("ignore-overwrite"); val != "" {
+				b, err := strconv.ParseBool(val)
+				if err != nil {
+					return httperr.InvalidParameter("ignore-overwrite", err.Error())
+				}
+				ignoreOverwrites = b
+			}
+
+			response, err := getDoctorOnDuty(ctx, app, d, ignoreOverwrites)
 			if err != nil {
 				return err
 			}
@@ -115,7 +125,7 @@ func activeOverwrite(ctx context.Context, app *app.App, t time.Time, lm map[stri
 	}
 }
 
-func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) (*v1alpha.DoctorOnDutyResponse, error) {
+func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverwrites bool) (*v1alpha.DoctorOnDutyResponse, error) {
 	log := log.From(ctx)
 	t = t.In(app.Location())
 
@@ -134,10 +144,12 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) (*v1alpha.D
 		lm[strings.ToLower(u.Name)] = u
 	}
 
-	// check if there's an active overwrite for t. In this case, just return
-	// that one and we're done.
-	if res := activeOverwrite(ctx, app, t, lm); res != nil {
-		return res, nil
+	if !ignoreOverwrites {
+		// check if there's an active overwrite for t. In this case, just return
+		// that one and we're done.
+		if res := activeOverwrite(ctx, app, t, lm); res != nil {
+			return res, nil
+		}
 	}
 
 	// find out if we need to the doctor-on-duty from today or the day before

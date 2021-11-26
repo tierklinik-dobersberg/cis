@@ -468,5 +468,10 @@ describe("Duty roster API:", () => {
             expect(query.data.isOverwrite).toBeTrue()
             expect(query.data.until).toBe("2021-02-04T05:30:00Z")
         })
+
+        it("should support ignoring overwrites", async () => {
+            const query = await Alice.get("/api/external/v1/doctor-on-duty?at=2021-02-03T15:30:00Z&ignore-overwrite=true")
+            expect(query.status).toBe(404, query.data);
+        })
     })
 })

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -34,8 +34,15 @@ export class ExternalAPI {
    * Returns a list of all doctors on duty. The first entry is
    * considered the primary and the others are considered backups.
    */
-  getDoctorsOnDuty(): Observable<DoctorOnDutyResponse<Date>> {
-    return this.http.get<DoctorOnDutyResponse<string>>('/api/external/v1/doctor-on-duty')
+  getDoctorsOnDuty({at, ignoreOverwrite}: {at?: Date, ignoreOverwrite?: boolean} = {}): Observable<DoctorOnDutyResponse<Date>> {
+    let params = new HttpParams();
+    if (!!at) {
+      params = params.set("at", at.toISOString())
+    }
+    if (ignoreOverwrite !== undefined) {
+      params = params.set("ignore-overwrite", `${ignoreOverwrite}`);
+    }
+    return this.http.get<DoctorOnDutyResponse<string>>('/api/external/v1/doctor-on-duty', {params})
       .pipe(
         map(res => {
           return {
