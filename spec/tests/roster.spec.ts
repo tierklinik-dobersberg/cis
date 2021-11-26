@@ -77,15 +77,35 @@ describe("Duty roster API:", () => {
 
         describe("by retrieving a roster", () => {
             it("should work", async () => {
-                const response = await Alice.get("/api/dutyroster/v1/roster/2021/1")
+                const response = await Alice.get("/api/dutyroster/v1/roster/2021/1?with-shift-start=false")
                 expect(response.status).toBe(200)
                 expect(response.data).toBeDefined()
                 delete (response.data['_id'])
                 expect(response.data).toEqual(roster)
             })
 
+            it("should support retrieving a single day", async () => {
+                const response = await Alice.get("/api/dutyroster/v1/roster/2021/1/4")
+                expect(response.status).toBe(200, response.data);
+                expect(response.data).toBeDefined()
+                let d = {
+                    ...roster.days[4],
+                    onCall: {
+                        ...roster.days[4].onCall,
+                        dayStart: '2021-01-04T07:30:00+01:00',
+                        nightStart: '2021-01-04T19:30:00+01:00'
+                    }
+                }
+                expect(response.data).toEqual(d)
+            })
+
             it("should fail if there is not roster", async () => {
                 const response = await Alice.get("/api/dutyroster/v1/roster/2019/10")
+                expect(response.status).toBe(404)
+            })
+
+            it("should fail if there is not roster day", async () => {
+                const response = await Alice.get("/api/dutyroster/v1/roster/2021/1/30")
                 expect(response.status).toBe(404)
             })
         })

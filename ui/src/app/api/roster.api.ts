@@ -5,7 +5,9 @@ import { map } from 'rxjs/operators';
 
 export interface OnCall {
   day: string[];
+  dayStart: string;
   night: string[];
+  nightStart: string;
 }
 
 export interface Day {
