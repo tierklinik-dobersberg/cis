@@ -72,6 +72,34 @@ export class RosterAPI {
       );
   }
 
+  forDay(): Observable<Day>;
+  forDay(d: Date): Observable<Day>;
+  forDay(year: number, month: number, day: number): Observable<Day>;
+  forDay(yearOrDate?: number | Date, month?: number, day?: number ): Observable<Day> {
+    let year: number;
+    if (yearOrDate === undefined) {
+      yearOrDate = new Date();
+    }
+    if (yearOrDate instanceof Date) {
+      year = yearOrDate.getFullYear();
+      month = yearOrDate.getMonth() +1;
+      day = yearOrDate.getDate();
+    } else {
+      year = yearOrDate;
+    }
+
+    return this.http.get<Day>(`/api/dutyroster/v1/roster/${year}/${month}/${day}`)
+      .pipe(
+        map(result => {
+          result.afternoon = result.afternoon || [];
+          result.forenoon = result.forenoon || [];
+          result.onCall.day = result.onCall.day || [];
+          result.onCall.night = result.onCall.night || [];
+          return result;
+        })
+      )
+  }
+
   /**
    * Delete the duty roster for the given month in year.
    */

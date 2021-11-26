@@ -12,6 +12,9 @@ func Setup(grp gin.IRouter) {
 	// GET /api/dutyroster/v1/roster/:year/:month
 	GetForMonthEndpoint(router)
 
+	// GET /api/dutyroster/v1/roster/:year/:month/:day
+	GetDayEndpoint(router)
+
 	// DELETE /api/dutyroster/v1/roster/:year/:month
 	DeleteRosterEndpoint(router)
 
