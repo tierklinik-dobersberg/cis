@@ -306,6 +306,7 @@ describe("Duty roster API:", () => {
                 },
             }])
             expect(response.data.until).toBe("2021-04-06T19:30:00+02:00")
+            expect(response.data.rosterDate).toBe("2021-04-06")
             expect(response.data.isDayShift).toBeTruthy();
             expect(response.data.isNightShift).toBeFalsy()
 
@@ -320,6 +321,7 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response2.data.until).toBe("2021-04-07T07:30:00+02:00")
+            expect(response2.data.rosterDate).toBe("2021-04-06")
             expect(response2.data.isDayShift).toBeFalsy();
             expect(response2.data.isNightShift).toBeTruthy()
         })
@@ -338,6 +340,7 @@ describe("Duty roster API:", () => {
             }])
             expect(inLocalTime.data.isDayShift).toBeFalsy();
             expect(inLocalTime.data.isNightShift).toBeTruthy()
+            expect(inLocalTime.data.rosterDate).toBe("2021-04-10")
 
             const inUTC = await Alice.get<DoctorOnDutyResponse<string>>("/api/external/v1/doctor-on-duty?at=2021-04-10T23:10:00Z")
             expect(inUTC.status).toBe(200, inUTC.data)
@@ -350,6 +353,7 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(inUTC.data.isDayShift).toBeFalsy();
+            expect(inUTC.data.rosterDate).toBe("2021-04-10")
             expect(inUTC.data.isNightShift).toBeTruthy()
         })
 
@@ -365,6 +369,7 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response.data.until).toBe("2021-04-06T07:30:00+02:00")
+            expect(response.data.rosterDate).toBe("2021-04-05")
             expect(response.data.isDayShift).toBeFalsy();
             expect(response.data.isNightShift).toBeTruthy()
 
@@ -379,6 +384,7 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response2.data.until).toBe("2021-04-06T19:30:00+02:00")
+            expect(response2.data.rosterDate).toBe("2021-04-06")
             expect(response2.data.isDayShift).toBeTruthy();
             expect(response2.data.isNightShift).toBeFalsy()
 
@@ -393,6 +399,7 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response3.data.until).toBe("2021-04-07T07:30:00+02:00")
+            expect(response3.data.rosterDate).toBe("2021-04-06")
             expect(response3.data.isDayShift).toBeFalsy();
             expect(response3.data.isNightShift).toBeTruthy()
         })
@@ -409,6 +416,7 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response.data.until).toBe("2021-04-10T08:30:00+02:00")
+            expect(response.data.rosterDate).toBe("2021-04-09")
             expect(response.data.isDayShift).toBeFalsy();
             expect(response.data.isNightShift).toBeTruthy()
 
@@ -423,6 +431,7 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response2.data.until).toBe("2021-04-10T19:30:00+02:00")
+            expect(response2.data.rosterDate).toBe("2021-04-10")
             expect(response2.data.isDayShift).toBeTruthy();
             expect(response2.data.isNightShift).toBeFalsy()
 
@@ -437,6 +446,7 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response3.data.until).toBe("2021-04-11T08:30:00+02:00")
+            expect(response3.data.rosterDate).toBe("2021-04-10")
             expect(response3.data.isDayShift).toBeFalsy();
             expect(response3.data.isNightShift).toBeTruthy()
         })
@@ -453,6 +463,7 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response.data.until).toBe("2021-04-11T19:30:00+02:00")
+            expect(response.data.rosterDate).toBe("2021-04-11")
 
             const response2 = await get(11, 17, 30)
             expect(response2.status).toBe(200, response2.data)
@@ -465,6 +476,7 @@ describe("Duty roster API:", () => {
                 }
             }])
             expect(response2.data.until).toBe("2021-04-12T07:30:00+02:00")
+            expect(response2.data.rosterDate).toBe("2021-04-11")
         })
 
         it("should return an error if there's no roster", async () => {
@@ -487,6 +499,7 @@ describe("Duty roster API:", () => {
             }])
             expect(query.data.isOverwrite).toBeTrue()
             expect(query.data.until).toBe("2021-02-04T05:30:00Z")
+            expect(query.data.rosterDate).toBe("")
         })
 
         it("should support ignoring overwrites", async () => {

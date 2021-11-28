@@ -177,6 +177,8 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverw
 		t = newT
 	}
 
+	rosterDate := t.Format("2006-01-02")
+
 	log = log.WithFields(logger.Fields{
 		"nextChange": nextChange.Format(time.RFC3339),
 	})
@@ -241,5 +243,6 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverw
 		IsOverwrite:  false,
 		IsDayShift:   isDayShift,
 		IsNightShift: isNightShift,
+		RosterDate:   rosterDate,
 	}, nil
 }
