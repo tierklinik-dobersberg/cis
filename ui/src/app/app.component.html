@@ -5,7 +5,7 @@
       <span>Dashboard</span>
     </li>
 
-    <!--
+<!--
     <li *ngIf="canCreateEvent" routerLink="/create-event" nzMatchRouter nz-menu-item>
       <i nz-icon nzType="calendar" nzTheme="outline"></i>
       <span>Neuer Termin</span>
@@ -145,13 +145,18 @@
           <i class="drawer-trigger" (click)="toggleMenu()" nz-icon nzType="menu" nzTheme="outline"></i>
 
           <ng-container *ngIf="(suggestionCount | async) as count">
-
             <nz-badge (click)="openSuggestionDialog()" [nzCount]="count" [nzOverflowCount]="10"
               [nzStyle]="{cursor: 'pointer', backgroundColor: 'transparent', color: 'orange', boxShadow: 'none', fontSize: '9px'}">
               <i nz-icon nzType="bell" nzTheme="outline" style="font-size: 20px"
                 [style.color]="count > 0 ? 'orange' : 'inherit'"></i>
             </nz-badge>
           </ng-container>
+
+          <span *ngIf="!layout.isPhone">
+            <button nz-button  nzType="primary" [nzDanger]="hasActiveOverwrite" nzShape="circle" (click)="showRosterOverwriteDialog()">
+              <i nz-icon nzType="phone" nzTheme="outline"></i>
+            </button>
+          </span>
 
           <span *ngIf="!layout.isPhone" class="current-user" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click">
             <nz-avatar nzIcon="user" [nzSrc]="profile?.avatar">

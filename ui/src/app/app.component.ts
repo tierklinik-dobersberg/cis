@@ -1,16 +1,17 @@
-import { HttpClient } from '@angular/common/http';
-import { ApplicationRef, Component, HostListener, isDevMode, OnInit } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { ApplicationRef, Component, HostListener, isDevMode, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { interval } from 'rxjs';
-import { delay, filter, first, map, mergeMap, retryWhen, share, startWith, take } from 'rxjs/operators';
+import { interval, of, Subject } from 'rxjs';
+import { catchError, delay, filter, first, map, mergeMap, retryWhen, share, startWith, switchMap, take, takeUntil } from 'rxjs/operators';
 import { LayoutService } from 'src/app/services';
-import { ConfigAPI, IdentityAPI, Permission, ProfileWithAvatar, UIConfig, VoiceMailAPI } from './api';
+import { ConfigAPI, IdentityAPI, Overwrite, Permission, ProfileWithAvatar, RosterAPI, UIConfig, VoiceMailAPI } from './api';
 import { InfoScreenAPI } from './api/infoscreen.api';
 import { SuggestionCardComponent } from './pages/suggestions/suggestion-card';
 import { SuggestionService } from './pages/suggestions/suggestion.service';
+import { RosterOverwriteDialog } from './shared/roster-overwrite-dialog';
 import { toggleRouteQueryParamFunc } from './utils';
 
 interface MenuEntry {
@@ -30,7 +31,10 @@ interface SubMenu {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
+  /** emits when the component is destroyed */
+  private destory$ = new Subject();
+
   isCollapsed = false;
   isDevMode = isDevMode();
 
@@ -42,6 +46,9 @@ export class AppComponent implements OnInit {
 
   isReachable: boolean = true;
   checkRunning = false;
+
+  /** Whether or not there's an active roster overwrite */
+  hasActiveOverwrite = false;
 
   isLogin = this.router.events
     .pipe(
@@ -100,6 +107,7 @@ export class AppComponent implements OnInit {
     private modal: NzModalService,
     private appRef: ApplicationRef,
     private updates: SwUpdate,
+    private roster: RosterAPI,
     public layout: LayoutService,
     private voice: VoiceMailAPI,
     private http: HttpClient,
@@ -115,6 +123,18 @@ export class AppComponent implements OnInit {
 
   readonly toggleMenu = toggleRouteQueryParamFunc(this.router, this.activeRoute, 'show-menu')
 
+  showRosterOverwriteDialog() {
+    this.modal.create({
+      nzContent: RosterOverwriteDialog,
+      nzWidth: '50vw',
+      nzTitle: 'Dienstplan/Telefon überschreiben',
+      nzFooter: null,
+      nzClosable: true,
+      nzCloseOnNavigation: true,
+      nzMaskClosable: false,
+    })
+  }
+
   openSuggestionDialog() {
     this.modal.create({
       nzContent: SuggestionCardComponent,
@@ -126,9 +146,35 @@ export class AppComponent implements OnInit {
 
   get suggestionCount() { return this.suggestionService.count$ }
 
+  ngOnDestroy() {
+    this.destory$.next();
+    this.destory$.complete();
+  }
+
   ngOnInit(): void {
+    this.destory$ = new Subject();
+
+    interval(5000)
+      .pipe(
+        startWith(-1),
+        takeUntil(this.destory$),
+        switchMap(() => this.roster.getActiveOverwrite()
+          .pipe(
+            catchError(err => {
+              if (!(err instanceof HttpErrorResponse) || err.status !== 404) {
+                console.error(err);
+              }
+              return of(null as Overwrite);
+            })
+          ))
+      )
+      .subscribe(overwrite => {
+        this.hasActiveOverwrite = overwrite !== null;
+      })
+
     this.checkReachability();
     this.activeRoute.queryParamMap
+      .pipe(takeUntil(this.destory$))
       .subscribe(params => {
         this.isCollapsed = !params.has('show-menu');
       })
@@ -162,14 +208,18 @@ export class AppComponent implements OnInit {
         });
     }
 
-    this.layout.change.subscribe(() => {
+    this.layout.change
+      .pipe(takeUntil(this.destory$))
+      .subscribe(() => {
       this.isCollapsed = !this.layout.isTabletLandscapeUp;
     });
 
     this.configapi.change
+      .pipe(takeUntil(this.destory$))
       .subscribe(cfg => this.applyConfig(cfg));
 
     this.identity.profileChange
+      .pipe(takeUntil(this.destory$))
       .subscribe({
         next: result => {
           this.profile = result;
