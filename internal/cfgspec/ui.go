@@ -31,6 +31,32 @@ var UISpec = conf.SectionSpec{
 	},
 }
 
+type RosterUIConfig struct {
+	EligibleRolesForOverwrite []string
+	AllowAnyUserAsOverwrite   bool
+	AllowPhoneNumberOverwrite bool
+}
+
+var RosterUISpec = conf.SectionSpec{
+	{
+		Name:        "EligibleRolesForOverwrite",
+		Type:        conf.StringSliceType,
+		Description: "A list of role names that are eligible for roster overwrites",
+	},
+	{
+		Name:        "AllowAnyUserAsOverwrite",
+		Type:        conf.BoolType,
+		Description: "Whether or not all users should be eligible for roster overwrites. if true, EligibleRolesForOverwrite will be used as a preference only.",
+		Default:     "yes",
+	},
+	{
+		Name:        "AllowPhoneNumberOverwrite",
+		Type:        conf.BoolType,
+		Description: "Whether or not overwritting the roster using direct phone-numbers should be allowed via the UI. This does not restrict API though.",
+		Default:     "yes",
+	},
+}
+
 // ExternalLink defines an external link to be displayed in the
 // user interface.
 type ExternalLink struct {
