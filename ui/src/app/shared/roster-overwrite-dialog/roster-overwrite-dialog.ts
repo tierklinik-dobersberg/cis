@@ -7,7 +7,6 @@ import { ConfigAPI, Day, DoctorOnDutyResponse, ExternalAPI, Overwrite, ProfileWi
 /**
  * FIXME:
  *  - do not allow datepicker to select in the past
- *  - close on logout
  *  - change green when section is selected
  */
 
@@ -30,7 +29,7 @@ interface RosterState {
     styleUrls: ['./roster-overwrite-dialog.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RosterOverwriteDialog implements OnInit, OnDestroy {
+export class RosterOverwriteDialogComponent implements OnInit, OnDestroy {
     private destroy$          = new Subject();
     private checkOverlapping$ = new Subject<{to: Date, from: Date}>();
 
@@ -201,10 +200,10 @@ export class RosterOverwriteDialog implements OnInit, OnDestroy {
                     this.cdr.markForCheck();
                 });
 
-        
+
 
         // check for overlapping overwrites.
-        const overlapping$ = 
+        const overlapping$ =
         this.checkOverlapping$
             .pipe(
                 takeUntil(this.destroy$),
@@ -246,7 +245,7 @@ export class RosterOverwriteDialog implements OnInit, OnDestroy {
     /**
      * Returns a list of user profiles that match the given term.
      * If term is an empty string, all preferred users are returned.
-     * 
+     *
      * @param term The search term to filter users
      */
     filterUsers(term: string): ProfileWithAvatar[] {
@@ -353,7 +352,7 @@ export class RosterOverwriteDialog implements OnInit, OnDestroy {
         );
 
         // Depending on AllowAnyUserOverwrite we might need to other non-preferred users
-        // as well 
+        // as well
         if (cfg.AllowAnyUserAsOverwrite) {
             this.userService.snapshot.forEach(user => {
                 if (!preferred.has(user)) {

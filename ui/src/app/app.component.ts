@@ -11,7 +11,7 @@ import { ConfigAPI, IdentityAPI, Overwrite, Permission, ProfileWithAvatar, Roste
 import { InfoScreenAPI } from './api/infoscreen.api';
 import { SuggestionCardComponent } from './pages/suggestions/suggestion-card';
 import { SuggestionService } from './pages/suggestions/suggestion.service';
-import { RosterOverwriteDialog } from './shared/roster-overwrite-dialog';
+import { RosterOverwriteDialogComponent } from './shared/roster-overwrite-dialog';
 import { toggleRouteQueryParamFunc } from './utils';
 
 interface MenuEntry {
@@ -125,7 +125,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   showRosterOverwriteDialog() {
     this.modal.create({
-      nzContent: RosterOverwriteDialog,
+      nzContent: RosterOverwriteDialogComponent,
       nzWidth: '50vw',
       nzTitle: 'Dienstplan/Telefon überschreiben',
       nzFooter: null,
