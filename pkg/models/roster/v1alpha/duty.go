@@ -10,8 +10,11 @@ import (
 // are used to determine who is responsible of handling emergencies
 // or other duties after office-hours.
 type OnCall struct {
-	Day   []string `bson:"day,omitempty" json:"day,omitempty"`
-	Night []string `bson:"night,omitempty" json:"night,omitempty"`
+	Day      []string   `bson:"day,omitempty" json:"day,omitempty"`
+	DayStart *time.Time `bson:"-" json:"dayStart,omitempty"`
+
+	Night      []string   `bson:"night,omitempty" json:"night,omitempty"`
+	NightStart *time.Time `bson:"-" json:"nightStart,omitempty"`
 }
 
 // Day describes the doctors on duty for a single
