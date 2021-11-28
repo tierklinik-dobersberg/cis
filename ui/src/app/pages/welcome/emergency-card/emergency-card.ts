@@ -69,6 +69,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
   }
 
   configureOverwrite(user?: string, overwritePhone?: string, disiplayName?: string): void {
+    /*
     const configure = () => {
       this.rosterapi.setOverwrite({
         username: user || '',
@@ -87,9 +88,11 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
     };
     // TODO(ppacher): inform user if we are overwritting to shifts (day and night) with different staff!
     configure();
+    */
   }
 
   removeOverwrite(): void {
+    /*
     this.rosterapi.deleteOverwrite()
       .subscribe(
         () => {
@@ -101,6 +104,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
           this.nzMessageService.error(extractErrorMessage(err, 'Dienstplan konnte nicht wiederhergestellt werden'));
         }
       );
+      */
   }
 
   ngOnInit(): void {
