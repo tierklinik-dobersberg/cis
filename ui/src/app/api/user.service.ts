@@ -38,6 +38,11 @@ export class UserService {
     return this.updated.pipe(map(() => Array.from(this.usersByName.values())));
   }
 
+  /** Returns all users */
+  get snapshot(): ProfileWithAvatar[] {
+    return Array.from(this.usersByName.values())
+  }
+
   constructor(
     private identityapi: IdentityAPI,
     private configapi: ConfigAPI
@@ -79,6 +84,16 @@ export class UserService {
    */
   byCalendarID(id: string): ProfileWithAvatar | null {
     return this.usersByCalendarID.get(id) || null;
+  }
+
+  /**
+   * Returns a list of user profiles that have roleName.
+   * 
+   * @param roleName The name of the role
+   */
+  byRole(roleName: string): ProfileWithAvatar[] {
+    return Array.from(this.usersByName.values())
+      .filter(user => user.roles?.includes(roleName))
   }
 
   /**
@@ -167,6 +182,13 @@ export class UserService {
     return this.extendList(list, getExtension, val || 'profile');
   }
 
+  /**
+   * Like extendByName but operates on an observable
+   * 
+   * @param name The name of the property that holds the username
+   * @param val The name of the new property that should hold the profile
+   * @returns 
+   */
   withUserByName<T, K extends string = 'profile'>(name: keyof T | ((x: T) => string), val?: K):
     OperatorFunction<T[], (T & { [key in typeof val]?: ProfileWithAvatar })[]> {
     return (stream: Observable<T[]>) => {
@@ -179,6 +201,13 @@ export class UserService {
     };
   }
 
+  /**
+   * Like extendByExtension but operates on an observable
+   * 
+   * @param name The name of the property that holds the extension
+   * @param val The name of the new property that should hold the profile
+   * @returns 
+   */
   withUserByExt<T, K extends string = 'profile'>(name: keyof T | ((x: T) => string), val?: K):
     OperatorFunction<T[], (T & { [key in typeof val]?: ProfileWithAvatar })[]> {
     return (stream: Observable<T[]>) => {
