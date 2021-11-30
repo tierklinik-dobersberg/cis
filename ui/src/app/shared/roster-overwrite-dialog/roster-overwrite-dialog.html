@@ -1,99 +1,146 @@
 <div *ngIf="today && today.actual">
-    <ng-container *ngIf="today.actualUser as user; else: customOverwrite">
-        <nz-avatar nzIcon="user" nzShape="square" [nzSrc]="user.avatar"></nz-avatar>
-        <span>{{ user.fullname }}</span>
-    </ng-container>
-    <ng-template #customOverwrite>
-        <span>{{ today.actual.displayName || 'Telefon' }}</span>
-        <span>{{ today.actual.phoneNumber }}</span>
-    </ng-template>
+  <ng-container *ngIf="today.actualUser as user; else: customOverwrite">
+    <nz-avatar nzIcon="user" nzShape="square" [nzSrc]="user.avatar"></nz-avatar>
+    <span>{{ user.fullname }}</span>
+  </ng-container>
+  <ng-template #customOverwrite>
+    <span>{{ today.actual.displayName || 'Telefon' }}</span>
+    <span>{{ today.actual.phoneNumber }}</span>
+  </ng-template>
 
-    <ng-container *ngIf="today.onDuty.users?.length">
-        <nz-avatar nzIcon="user" nzShape="square" [nzSrc]="today.onDuty.users[0].avatar"></nz-avatar>
-        <span>{{ today.onDuty.users[0].fullname }}</span>
-    </ng-container>
+  <ng-container *ngIf="today.onDuty?.users?.length">
+    <nz-avatar nzIcon="user" nzShape="square" [nzSrc]="today.onDuty.users[0].avatar"></nz-avatar>
+    <span>{{ today.onDuty.users[0].fullname }}</span>
+  </ng-container>
 </div>
 
-<div class="create-overwrite">
-    <h2>Zeitraum</h2>
-    
-    <div class="datetime-selector">
-        <div class="select-container">
-            <nz-select [(ngModel)]="overwriteType" (ngModelChange)="onDateChange()">
-                <nz-option nzValue="day-shift" nzLabel="Tag-Bereitschaft"></nz-option>
-                <nz-option nzValue="night-shift" nzLabel="Nacht-Bereitschaft"></nz-option>
-                <nz-option nzValue="both" nzLabel="Tag und Nacht Bereitschaft"></nz-option>
-                <nz-option nzValue="custom" nzLabel="Beliebig"></nz-option>
-            </nz-select>
-        </div>
-        <div class="datetime-container" *ngIf="overwriteType !== ''">
-            <ng-container *ngIf="overwriteType === 'custom'; else: dateSelector">
-                <div class="date-time">
-                    <span>Von</span>
-                    <nz-date-picker name="from" [(ngModel)]="from" (ngModelChange)="onDateChange()"></nz-date-picker>
-                    <nz-time-picker nzFormat="HH:mm" [(ngModel)]="from" (ngModelChange)="onDateChange()"></nz-time-picker>
-                </div>
-                <div class="date-time">
-                    <span>Bis</span>
-                    <nz-date-picker name="to" [(ngModel)]="to" (ngModelChange)="onDateChange()"></nz-date-picker>
-                    <nz-time-picker nzFormat="HH:mm" [(ngModel)]="to" (ngModelChange)="onDateChange()"></nz-time-picker>
-                </div>
-            </ng-container>
-            <ng-template #dateSelector>
-                vom
-                <nz-date-picker [(ngModel)]="from" (ngModelChange)="onDateChange()"></nz-date-picker>
-            </ng-template>
-        </div>
+<div class="create-overwrite" [class.ready]="overwriteType !== '' && !!from && !!to">
+  <h2>Zeitraum</h2>
 
-        <div class="current-state" *ngIf="!!stateForDate">
-            <div *ngIf="(overwriteType === 'both' || overwriteType === 'day-shift') && stateForDate.plannedDay?.length">
-                <span>Tag Bereitschaft</span>
-                <div>
-                    <nz-avatar *ngFor="let user of stateForDate.plannedDay; trackBy: trackProfile" nzIcon="user" nzShape="circle" [nzSrc]="user.avatar"></nz-avatar>
-                </div>
-            </div>
-            <div *ngIf="overwriteType === 'both' || overwriteType === 'night-shift' || !stateForDate.plannedDay?.length">
-                <span>{{ stateForDate.plannedDay?.length ? 'Nacht' : 'Tag/Nacht' }} Bereitschaft</span>
-                <div>
-                    <nz-avatar *ngFor="let user of stateForDate.plannedNight; trackBy: trackProfile" nzIcon="user" nzShape="circle" [nzSrc]="user.avatar"></nz-avatar>
-                </div>
-            </div>
-        </div>
+  <div class="datetime-selector">
+    <div class="select-container">
+      <nz-select [(ngModel)]="overwriteType" (ngModelChange)="onDateChange()">
+        <nz-option nzValue="day-shift" nzLabel="Tag-Bereitschaft"></nz-option>
+        <nz-option nzValue="night-shift" nzLabel="Nacht-Bereitschaft"></nz-option>
+        <nz-option nzValue="both" nzLabel="Tag und Nacht Bereitschaft"></nz-option>
+        <nz-option nzValue="custom" nzLabel="Beliebig"></nz-option>
+      </nz-select>
     </div>
 
-</div>
-
-<div class="create-overwrite">
-    <h2>
-        Neues Ziel
-        <label *ngIf="otherAllowedUsers.length" nz-checkbox [(ngModel)]="showAllUsers">Alle anzeigen</label>
-    </h2>
-    <div class="user-list">
-        <div *ngFor="let setting of quickSettings; trackBy: trackQuickSetting" class="quick-setting" [class.selected]="setting.TargetNumber === selectedQuickTargetNumber"  (click)="selectQuickSetting(setting)">
-            <nz-avatar nzIcon="number" nzShape="circle"></nz-avatar>
-            <div>
-                <span class="name">{{ setting.DisplayName }}</span>
-                <span class="number">{{ setting.TargetNumber }}</span>
-            </div>
+    <div class="datetime-container" *ngIf="overwriteType !== ''">
+      <ng-container *ngIf="overwriteType === 'custom'; else: dateSelector">
+        <div class="date-time">
+          <span>Von</span>
+          <nz-date-picker name="from" [(ngModel)]="from" (ngModelChange)="onDateChange()" [nzDisabledDate]="disabledStartDate" [nzAllowClear]="false"></nz-date-picker>
+          <nz-time-picker nzFormat="HH:mm" [(ngModel)]="from" nzS (ngModelChange)="onDateChange()" [nzMinuteStep]="15"  [nzAllowEmpty]="false"></nz-time-picker>
         </div>
+        <div class="date-time">
+          <span>Bis</span>
+          <nz-date-picker name="to" [(ngModel)]="to" (ngModelChange)="onDateChange()" [nzDisabledDate]="disabledEndDate"  [nzAllowClear]="false"></nz-date-picker>
+          <nz-time-picker nzFormat="HH:mm" [(ngModel)]="to" (ngModelChange)="onDateChange()" [nzMinuteStep]="15" [nzAllowEmpty]="false"></nz-time-picker>
+        </div>
+      </ng-container>
+      <ng-template #dateSelector>
+        vom
+        <nz-date-picker [(ngModel)]="from" (ngModelChange)="onDateChange()" [nzDisabledDate]="isBeforeRosterDate"  [nzAllowClear]="false"></nz-date-picker>
+        <i nz-icon nzType="question-circle" nzTheme="outline" [nz-tooltip]="tooltipTemplate"></i>
+        <ng-template #tooltipTemplate>
+          Von {{actualBoundary?.from | date:'medium'}} <br />
+          Bis {{actualBoundary?.to | date:'medium'}}
+        </ng-template>
+      </ng-template>
+
     </div>
-    <div class="user-list">
 
-        <div *ngFor="let user of preferredUsers; trackBy: trackProfile" class="user" (click)="selectUser(user.name)" [class.selected]="user.name === selectedUser">
-            <nz-avatar nzIcon="user" nzShape="circle" [nzSrc]="user.avatar"></nz-avatar>
-            <span>{{ user.fullname }}</span>
-        </div>
-
-        <ng-container *ngIf="showAllUsers">
-            <div *ngFor="let user of otherAllowedUsers; trackBy: trackProfile" class="user" (click)="selectUser(user.name)"  [class.selected]="user.name === selectedUser">
-                <nz-avatar nzIcon="user" nzShape="circle" [nzSrc]="user.avatar"></nz-avatar>
-                <span>{{ user.fullname }}</span>
-            </div>
+    <!--
+      User avatars for day/night on-duty on the selected date
+    -->
+    <nz-avatar-group class="current-state" *ngIf="!!stateForDate">
+      <ng-container
+        *ngIf="(overwriteType === 'both' || overwriteType === 'day-shift') && stateForDate.plannedDay?.length">
+        <ng-container *ngFor="let user of stateForDate.plannedDay; trackBy: trackProfile">
+          <nz-avatar [nz-tooltip]="user.fullname + ' - Tag Bereitschaft'" nzIcon="user" nzShape="circle" [nzSrc]="user.avatar"></nz-avatar>
         </ng-container>
+      </ng-container>
+      <ng-container
+        *ngIf="overwriteType === 'both' || overwriteType === 'night-shift' || !stateForDate.plannedDay?.length">
+        <ng-container *ngFor="let user of stateForDate.plannedNight; trackBy: trackProfile" >
+          <nz-avatar [nz-tooltip]="user.fullname + ' - ' + (stateForDate.plannedDay?.length ? 'Nacht' : 'Tag/Nacht') +  ' Bereitschaft'" nzIcon="user" nzShape="circle" [nzSrc]="user.avatar"></nz-avatar>
+        </ng-container>
+      </ng-container>
+    </nz-avatar-group>
+
+  </div>
+
+</div>
+
+<div class="create-overwrite warn" *ngIf="overlapping?.length">
+  <h2>Überlappende Einträge</h2>
+  <div *ngFor="let ov of overlapping" class="overlap">
+      <div class="times">
+        <span>von {{ ov.from | date:"short" }}</span>
+        <span>bis {{ ov.to   | date:"short" }}</span>
+      </div>
+      <div class="target">
+        <div *ngIf="ov.user; else: noUserTemplate" class="user-avatar">
+          <nz-avatar nzIcon="user" nzShape="circle" [nzSrc]="ov.user.avatar"></nz-avatar>
+          <div>
+            {{ ov.user.fullname }}
+          </div>
+        </div>
+        <ng-template #noUserTemplate>
+          <div>
+            <span>{{ ov.displayName || ov.phoneNumber }}</span>
+            <span>{{ ov.phoneNumber }}</span>
+          </div>
+        </ng-template>
+      </div>
+      <div>
+        <i nz-icon nzType="delete" nzTheme="outline" class="delete-overwrite" (click)="deleteOverwrite(ov)"></i>
+      </div>
+  </div>
+</div>
+
+<div class="create-overwrite" [class.ready]="!!selectedUser || !!selectedQuickTargetNumber || !!customPhoneNumber">
+  <h2>
+    Neues Ziel
+    <label *ngIf="otherAllowedUsers.length" nz-checkbox [(ngModel)]="showAllUsers">Alle anzeigen</label>
+  </h2>
+  <div class="user-list">
+    <div *ngFor="let setting of quickSettings; trackBy: trackQuickSetting" class="quick-setting"
+      [class.selected]="setting.TargetNumber === selectedQuickTargetNumber" (click)="selectQuickSetting(setting)">
+      <nz-avatar nzIcon="number" nzShape="circle"></nz-avatar>
+      <div>
+        <span class="name">{{ setting.DisplayName }}</span>
+        <span class="number">{{ setting.TargetNumber }}</span>
+      </div>
     </div>
-    <div class="user-list" *ngIf="allowPhone">
-        <nz-input-group nzAddOnBefore="oder Telefonnummer">
-            <input type="text" nz-input placeholder="+43 1234 1234" [(ngModel)]="customPhoneNumber" (ngModelChange)="onCustomPhoneNumberChange()"/>
-        </nz-input-group>
+  </div>
+  <div class="user-list">
+
+    <div *ngFor="let user of preferredUsers; trackBy: trackProfile" class="user" (click)="selectUser(user.name)"
+      [class.selected]="user.name === selectedUser">
+      <nz-avatar nzIcon="user" nzShape="circle" [nzSrc]="user.avatar"></nz-avatar>
+      <span>{{ user.fullname }}</span>
     </div>
+
+    <ng-container *ngIf="showAllUsers">
+      <div *ngFor="let user of otherAllowedUsers; trackBy: trackProfile" class="user" (click)="selectUser(user.name)"
+        [class.selected]="user.name === selectedUser">
+        <nz-avatar nzIcon="user" nzShape="circle" [nzSrc]="user.avatar"></nz-avatar>
+        <span>{{ user.fullname }}</span>
+      </div>
+    </ng-container>
+  </div>
+  <div class="user-list" *ngIf="allowPhone">
+    <nz-input-group nzAddOnBefore="oder Telefonnummer">
+      <input type="text" nz-input placeholder="+43 1234 1234" [(ngModel)]="customPhoneNumber"
+        (ngModelChange)="onCustomPhoneNumberChange()" />
+    </nz-input-group>
+  </div>
+</div>
+
+<div class="actions">
+  <button *ngIf="dialogRef" nz-button (click)="dialogRef.close()" >Schließen</button>
+  <button nzType="primary" nzDanger nz-button (click)="createOverwrite()" [disabled]="!valid">Umleiten</button>
 </div>
