@@ -16,6 +16,7 @@ export interface DoctorOnDuty {
 export interface DoctorOnDutyResponse<T = Date> {
   doctors: DoctorOnDuty[];
   until: T;
+  rosterDate: string;
   isOverwrite: boolean;
   isNightShift: boolean;
   isDayShift: boolean;
