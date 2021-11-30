@@ -2,6 +2,7 @@ package rosterapi
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -33,6 +34,13 @@ func GetDayEndpoint(grp *app.Router) {
 
 			roster, err := app.DutyRosters.ForMonth(ctx, month, year)
 			if err != nil {
+				var he *httperr.Error
+				if errors.As(err, &he) && he.Code == http.StatusNotFound {
+					var d v1alpha.Day
+					addStartTimes(ctx, app, time.Date(year, month, int(day), 0, 0, 0, 0, app.Location()), &d)
+					c.JSON(http.StatusNotFound, d)
+					return nil
+				}
 				return err
 			}
 
