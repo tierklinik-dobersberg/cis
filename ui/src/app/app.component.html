@@ -153,8 +153,11 @@
           </ng-container>
 
           <span *ngIf="!layout.isPhone">
-            <button nz-button  nzType="primary" [nzDanger]="hasActiveOverwrite" nzShape="circle" (click)="showRosterOverwriteDialog()">
+            <button nz-button  nzType="primary" [nzDanger]="!!overwriteTarget" [nzShape]="overwriteTarget ? 'round' : 'circle'" (click)="showRosterOverwriteDialog()">
               <i nz-icon nzType="phone" nzTheme="outline"></i>
+              <ng-container *ngIf="overwriteTarget">
+                {{ overwriteTarget }}
+              </ng-container>
             </button>
           </span>
 

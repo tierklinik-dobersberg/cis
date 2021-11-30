@@ -4,10 +4,10 @@ import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { interval, of, Subject } from 'rxjs';
+import { BehaviorSubject, combineLatest, interval, of, Subject } from 'rxjs';
 import { catchError, delay, filter, first, map, mergeMap, retryWhen, share, startWith, switchMap, take, takeUntil } from 'rxjs/operators';
 import { LayoutService } from 'src/app/services';
-import { ConfigAPI, IdentityAPI, Overwrite, Permission, ProfileWithAvatar, RosterAPI, UIConfig, VoiceMailAPI } from './api';
+import { ConfigAPI, IdentityAPI, Overwrite, Permission, ProfileWithAvatar, RosterAPI, UIConfig, UserService, VoiceMailAPI } from './api';
 import { InfoScreenAPI } from './api/infoscreen.api';
 import { SuggestionCardComponent } from './pages/suggestions/suggestion-card';
 import { SuggestionService } from './pages/suggestions/suggestion.service';
@@ -47,8 +47,11 @@ export class AppComponent implements OnInit, OnDestroy {
   isReachable: boolean = true;
   checkRunning = false;
 
-  /** Whether or not there's an active roster overwrite */
-  hasActiveOverwrite = false;
+  /** The target of the current roster overwrite if any */
+  overwriteTarget = '';
+
+  /** Used to trigger a reload of the current overwrite target */
+  private reloadOverwrite$ = new BehaviorSubject<void>(undefined);
 
   isLogin = this.router.events
     .pipe(
@@ -111,6 +114,7 @@ export class AppComponent implements OnInit, OnDestroy {
     public layout: LayoutService,
     private voice: VoiceMailAPI,
     private http: HttpClient,
+    private userService: UserService,
     private showAPI: InfoScreenAPI,
     private suggestionService: SuggestionService,
   ) {
@@ -124,7 +128,7 @@ export class AppComponent implements OnInit, OnDestroy {
   readonly toggleMenu = toggleRouteQueryParamFunc(this.router, this.activeRoute, 'show-menu')
 
   showRosterOverwriteDialog() {
-    this.modal.create({
+    const ref = this.modal.create({
       nzContent: RosterOverwriteDialogComponent,
       nzWidth: '50vw',
       nzTitle: 'Dienstplan/Telefon überschreiben',
@@ -133,6 +137,10 @@ export class AppComponent implements OnInit, OnDestroy {
       nzCloseOnNavigation: true,
       nzMaskClosable: false,
     })
+
+    ref.afterClose
+      .pipe(take(1))
+      .subscribe(() => this.reloadOverwrite$.next())
   }
 
   openSuggestionDialog() {
@@ -154,7 +162,10 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.destory$ = new Subject();
 
-    interval(5000)
+    combineLatest([
+      interval(5000),
+      this.reloadOverwrite$
+    ])
       .pipe(
         startWith(-1),
         takeUntil(this.destory$),
@@ -169,7 +180,14 @@ export class AppComponent implements OnInit, OnDestroy {
           ))
       )
       .subscribe(overwrite => {
-        this.hasActiveOverwrite = overwrite !== null;
+        this.overwriteTarget = '';
+        if (!!overwrite) {
+          if (!!overwrite.username) {
+            this.overwriteTarget = this.userService.byName(overwrite.username)?.fullname;
+          } else {
+            this.overwriteTarget = overwrite.displayName || overwrite.phoneNumber;
+          }
+        }
       })
 
     this.checkReachability();
