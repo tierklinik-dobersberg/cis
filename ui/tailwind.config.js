@@ -98,7 +98,8 @@ module.exports = {
   variants: {
     extend: {
       backgroundOpacity: ['active'],
-      backgroundColor: ['active']
+      backgroundColor: ['active'],
+      boxShadow: ['active']
     }
   },
   plugins: [],
