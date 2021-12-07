@@ -1,21 +1,26 @@
 @layer components {
   .tkd-btn {
-    @apply px-3 py-1.5 rounded cursor-pointer font-inter border border-transparent outline-none focus:outline-none font-medium focus:ring-2;
+    @apply px-3 py-2 rounded-sm cursor-pointer font-inter outline-none focus:outline-none font-medium focus:ring-2 focus:ring-primary focus:ring-opacity-light active:bg-opacity-light text-white;
   }
 
   .tkd-btn-primary {
     @apply tkd-btn;
-    @apply bg-blue-500 hover:bg-blue-400 text-white hover:border-blue-400 focus:ring-blue-200;
+    @apply bg-primary hover:bg-primary-dark active:bg-primary;
   }
 
   .tkd-btn-secondary {
     @apply tkd-btn;
-    @apply border border-gray-300  hover:bg-gray-100 text-gray-700 focus:ring-gray-200;
+    @apply bg-secondary hover:bg-secondary-dark active:bg-secondary;
+  }
+
+  .tkd-btn-tertiary {
+    @apply tkd-btn;
+    @apply bg-tertiary hover:bg-tertiary-dark text-primary active:bg-tertiary;
   }
 
   .tkd-btn-danger {
     @apply tkd-btn;
-    @apply bg-red-500 hover:bg-red-400 text-white hover:border-red-400 focus:ring-red-200;
+    @apply bg-alert-red hover:bg-alert-red-dark text-primary active:bg-alert-red;
   }
 }
 
