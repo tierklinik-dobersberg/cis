@@ -272,19 +272,79 @@ describe("Duty roster API:", () => {
                  from: "2021-02-01T06:30:00Z",
                  to: "2021-02-02T05:30:00Z",
                  deleted: true,
+                 createdBy: "alice",
                },
                {
                  username: "alice",
                  from: "2021-02-03T06:30:00Z",
                  to: "2021-02-04T05:30:00Z",
+                 createdBy: "alice",
                },
                {
                  phoneNumber: "10",
                  displayName: "extension",
                  from: "2021-02-05T06:30:00Z",
                  to: "2021-02-06T05:30:00Z",
+                 createdBy: "alice",
                },
             ])
+        })
+
+        describe("active overwrite", () => {
+            let createdID: string = '';
+
+            // create a new overwrite that we'll use for the following tests.
+            beforeAll(async () => {
+                const response = await Alice.post("/api/dutyroster/v1/overwrite", {
+                    phoneNumber: "10",
+                    displayName: "extension",
+                    from: "2021-03-01T08:30:00+02:00",
+                    to: "2021-03-02T07:30:00+02:00",
+                })
+                expect(response.status).toBe(200, response.data)
+                createdID = response.data._id;
+                expect(createdID).toBeTruthy()
+            })
+
+            it("should return it at 'from' time", async () => {
+                const response = await Alice.get("/api/dutyroster/v1/overwrite?date=2021-03-01T06:30:00Z")
+                expect(response.status).toBe(200, response.data);
+                delete(response.data['createdAt']);
+                expect(response.data).toEqual({
+                    phoneNumber: "10",
+                    displayName: "extension",
+                    from: "2021-03-01T06:30:00Z",
+                    to: "2021-03-02T05:30:00Z",
+                    createdBy: "alice",
+                    _id: createdID,
+                })
+            })
+
+            it("should return it before 'to' time", async () => {
+                const response = await Alice.get("/api/dutyroster/v1/overwrite?date=2021-03-02T05:29:59Z")
+                expect(response.status).toBe(200, response.data);
+                delete(response.data['createdAt']);
+                expect(response.data).toEqual({
+                    phoneNumber: "10",
+                    displayName: "extension",
+                    from: "2021-03-01T06:30:00Z",
+                    to: "2021-03-02T05:30:00Z",
+                    createdBy: "alice",
+                    _id: createdID,
+                })
+            })
+
+            it("should not return it at 'to' time", async () => {
+                const response = await Alice.get("/api/dutyroster/v1/overwrite?date=2021-03-02T05:30:00Z")
+                expect(response.status).toBe(404, response.data);
+            })
+
+            it("should support deleting it", async () => {
+                const response = await Alice.delete("/api/dutyroster/v1/overwrite?date=2021-03-01T06:30:00Z")
+                expect(response.status).toBe(204, response.data)
+
+                expect((await Alice.get("/api/dutyroster/v1/overwrite?date=2021-03-01T07:30:00Z")).status).toBe(404)
+            })
         })
     })
 
