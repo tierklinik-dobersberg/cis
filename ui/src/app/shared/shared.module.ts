@@ -22,7 +22,6 @@ import { CommentComponent } from './comment';
 import { HeaderTitleOutletComponent } from './header-title';
 import { DurationPipe } from './pipes';
 import { CanDeleteCustomerPipe } from './pipes/can-delete-customer';
-import { RosterOverwriteDialogComponent } from './roster-overwrite-dialog';
 import { TextInputComponent } from './text-input';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 
@@ -35,8 +34,6 @@ import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
     NzMessageServiceModule,
     NzButtonModule,
     NzInputModule,
-    NzDatePickerModule,
-    NzTimePickerModule,
     NzCheckboxModule,
     NzSelectModule,
     MarkdownModule.forChild(),
@@ -52,7 +49,6 @@ import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
     CommentComponent,
     TextInputComponent,
     CanDeleteCustomerPipe,
-    RosterOverwriteDialogComponent,
   ],
   exports: [
     CommonModule,
@@ -67,6 +63,7 @@ import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
     NzInputModule,
     NzCheckboxModule,
     NzDatePickerModule,
+    NzTimePickerModule,
     NzMessageServiceModule,
     NzEmptyModule,
     NzSelectModule,
@@ -78,7 +75,6 @@ import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
     CallLogTableComponent,
     TextInputComponent,
     CanDeleteCustomerPipe,
-    RosterOverwriteDialogComponent,
   ],
 })
 export class SharedModule { }

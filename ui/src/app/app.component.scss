@@ -99,7 +99,6 @@ app-header-title-outlet {
   padding-left  : 24px;
   overflow      : hidden;
   line-height   : 64px;
-  //background  : #001529;
   background    : white;
   transition    : all .3s;
 }
@@ -197,15 +196,6 @@ nz-content {
   background-color: unset;
   display         : flex;
   flex-direction  : column;
-}
-
-.inner-content {
-  box-shadow : inset 0px -1px 4px 0px rgba(0, 21, 41, 0.08);
-  height     : 100%;
-  overflow   : auto;
-  display    : flex;
-  align-items: stretch;
-  flex-grow  : 1;
 }
 
 .not-reachable-container {

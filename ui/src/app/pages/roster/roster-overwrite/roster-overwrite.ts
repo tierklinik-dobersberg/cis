@@ -1,9 +1,10 @@
+import { animate, style, transition, trigger } from '@angular/animations';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, Optional, TrackByFunction } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, TrackByFunction, ViewChild } from '@angular/core';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzModalRef } from 'ng-zorro-antd/modal';
+import { NzModalService } from 'ng-zorro-antd/modal';
 import { combineLatest, forkJoin, interval, Observable, of, OperatorFunction, Subject } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil } from 'rxjs/operators';
+import { catchError, debounceTime, map, mergeMap, startWith, switchMap, takeUntil } from 'rxjs/operators';
 import { ConfigAPI, Day, DoctorOnDutyResponse, ExternalAPI, Overwrite, OverwriteBody, ProfileWithAvatar, QuickRosterOverwrite, RosterAPI, RosterUIConfig, UserService } from 'src/app/api';
 import { extractErrorMessage } from 'src/app/utils';
 
@@ -12,6 +13,7 @@ import { extractErrorMessage } from 'src/app/utils';
  *  - do not allow datepicker to select in the past
  *  - use correct date for "today" as it might depend on the current datetime (previous night shift).
  *  - strange behavior when no roster is defined
+ *  - wrong overwrites returned ("to" should not be inclusive)
  */
 
 interface _DoctorOnDuty extends DoctorOnDutyResponse<Date> {
@@ -33,13 +35,30 @@ interface _Overwrite extends Overwrite {
 }
 
 @Component({
-    templateUrl: './roster-overwrite-dialog.html',
-    styleUrls: ['./roster-overwrite-dialog.scss'],
+    templateUrl: './roster-overwrite.html',
+    styleUrls: ['./roster-overwrite.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [
+      trigger(
+        'scaleInOut', [
+          transition(':enter', [
+            style({maxHeight: '0', opacity: 0}),
+            animate('200ms', style({maxHeight: '1000px', opacity: 1}))
+          ]),
+          transition(':leave', [
+            style({maxHeight: '1000px', opacity: 1}),
+            animate('200ms', style({maxHeight: 0, opacity: 0}))
+          ])
+        ]
+      )
+    ],
 })
-export class RosterOverwriteDialogComponent implements OnInit, OnDestroy {
+export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     private destroy$          = new Subject();
     private checkOverlapping$ = new Subject<{to: Date, from: Date}>();
+
+    @ViewChild('confirmDeleteCurrentOverwrite', {read: TemplateRef, static: true})
+    confirmDeleteCurrentOverwriteTemplate: TemplateRef<any> | null = null;
 
     /** A list of overwrites that overlap with the current one */
     overlapping: _Overwrite[] = [];
@@ -147,7 +166,7 @@ export class RosterOverwriteDialogComponent implements OnInit, OnDestroy {
       if (!from) {
         return false;
       }
-      return endValue.getTime() <= from.getTime();
+      return endValue.getTime() < from.getTime();
     }
 
     /** TrackBy function for user profiles */
@@ -162,8 +181,8 @@ export class RosterOverwriteDialogComponent implements OnInit, OnDestroy {
         private userService: UserService,
         private config: ConfigAPI,
         private cdr: ChangeDetectorRef,
+        private modal: NzModalService,
         private nzMessage: NzMessageService,
-        @Optional() public dialogRef: NzModalRef,
     ){}
 
     onDateChange() {
@@ -232,11 +251,27 @@ export class RosterOverwriteDialogComponent implements OnInit, OnDestroy {
       this.roster.setOverwrite(body)
         .subscribe(
           () => {
-          this.dialogRef?.close();
           this.nzMessage.success(`Telefon erfolgreich auf ${target} umgeleitet.`)
           },
           err => this.nzMessage.error(extractErrorMessage(err, 'Telefon konnte nicht umgeleitet werden'))
         )
+    }
+
+    /** @private template-only - deletes the current overwrite */
+    deleteCurrentOverwrite() {
+      if (!this.today?.actual || !this.confirmDeleteCurrentOverwriteTemplate) {
+        return;
+      }
+
+      this.modal.confirm({
+        nzTitle: 'Umleitung zurücksetzten?',
+        nzContent: this.confirmDeleteCurrentOverwriteTemplate,
+        nzCancelText: 'Nein',
+        nzOkText: 'Ja, löschen',
+        nzOnOk: () => {
+          this.deleteOverwrite(this.today.actual);
+        },
+      })
     }
 
     /** @private template-only - deletes a overwrite by ID */

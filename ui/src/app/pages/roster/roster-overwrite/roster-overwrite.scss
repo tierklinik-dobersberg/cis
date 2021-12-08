@@ -1,0 +1,95 @@
+:host {
+  @apply flex-grow p-8 space-y-8 block overflow-auto;
+}
+
+.tkd-card {
+  @apply shadow bg-white rounded;
+
+  header {
+    @apply border-b border-text-deEmphasized border-opacity-light;
+
+    h1 {
+      @apply font-semibold text-primary;
+    }
+
+    h2 {
+      @apply font-normal text-secondary;
+    }
+  }
+
+  section {
+    &:not(:last-of-type) {
+      @apply border-b border-text-deEmphasized border-opacity-30 pb-8;
+    }
+  }
+}
+
+
+nz-date-picker {
+  margin-left: 12px;
+  margin-right: 12px;
+}
+
+.current-state {
+  opacity: .85;
+  nz-avatar {
+    margin-right: -3px;
+  }
+}
+
+
+.user-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-gap: 6px;
+}
+
+.user,
+.quick-setting {
+  display: inline-block;
+  border-radius: 3px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  padding-left: 12px;
+  padding-right: 12px;
+  cursor: pointer;
+
+  nz-avatar {
+    margin-right: 6px;
+  }
+
+  &.selected {
+    background-color: rgba(211, 211, 211, 0.35);
+  }
+
+  &:hover {
+    background-color: rgba(211, 211, 211, 0.35);
+  }
+}
+
+.quick-setting {
+  display: flex;
+  flex-direction: row;
+
+  &>div {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+
+    .number {
+      font-weight: 300;
+      font-size: 95%;
+      margin-top: -6px;
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  button:not(:last-of-type) {
+    margin-right: 6px;
+  }
+}

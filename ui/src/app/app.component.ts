@@ -11,7 +11,6 @@ import { ConfigAPI, IdentityAPI, Overwrite, Permission, ProfileWithAvatar, Roste
 import { InfoScreenAPI } from './api/infoscreen.api';
 import { SuggestionCardComponent } from './pages/suggestions/suggestion-card';
 import { SuggestionService } from './pages/suggestions/suggestion.service';
-import { RosterOverwriteDialogComponent } from './shared/roster-overwrite-dialog';
 import { toggleRouteQueryParamFunc } from './utils';
 
 interface MenuEntry {
@@ -126,22 +125,6 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   readonly toggleMenu = toggleRouteQueryParamFunc(this.router, this.activeRoute, 'show-menu')
-
-  showRosterOverwriteDialog() {
-    const ref = this.modal.create({
-      nzContent: RosterOverwriteDialogComponent,
-      nzWidth: '50vw',
-      nzTitle: 'Dienstplan/Telefon überschreiben',
-      nzFooter: null,
-      nzClosable: true,
-      nzCloseOnNavigation: true,
-      nzMaskClosable: false,
-    })
-
-    ref.afterClose
-      .pipe(take(1))
-      .subscribe(() => this.reloadOverwrite$.next())
-  }
 
   openSuggestionDialog() {
     this.modal.create({
