@@ -76,18 +76,24 @@ module.exports = {
         deEmphasized: '#B4B4B4'
       },
     },
-    textColor: {
-      transparent: 'transparent',
-      white: 'white',
-      current: 'currentColor',
-      primary: '#181818',
-      highlight: '#3B3B3B',
-      secondary: '#717171',
-      tertiary: '#A2A2A2',
-      deEmphasized: '#B4B4B4'
+    textColor: (theme) => {
+      return {
+        ...theme("colors"),
+        'color-primary': theme("colors").primary,
+        'color-secondary': theme("colors").secondary,
+        transparent: 'transparent',
+        white: 'white',
+        current: 'currentColor',
+        primary: '#181818',
+        highlight: '#3B3B3B',
+        secondary: '#717171',
+        tertiary: '#A2A2A2',
+        deEmphasized: '#B4B4B4'
+      }
     },
     fontFamily: {
       inter: 'Inter, sans-serif',
+      lato: 'Lato, sans-serif',
     },
     extend: {
       opacity: {
@@ -99,7 +105,8 @@ module.exports = {
     extend: {
       backgroundOpacity: ['active'],
       backgroundColor: ['active'],
-      boxShadow: ['active']
+      boxShadow: ['active'],
+      borderRadius: ['hover'],
     }
   },
   plugins: [],
