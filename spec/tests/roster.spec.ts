@@ -1,7 +1,6 @@
-import { Alice } from '../utils';
-import { Roster } from '../../ui/src/app/api/roster.api';
 import { DoctorOnDutyResponse } from '../../ui/src/app/api/external.api';
-import { AxiosResponse } from 'axios';
+import { Roster } from '../../ui/src/app/api/roster.api';
+import { Alice } from '../utils';
 
 describe("Duty roster API:", () => {
     describe("Managing duty rosters", () => {
@@ -198,6 +197,22 @@ describe("Duty roster API:", () => {
                 to: "2021-02-04T07:30:00+02:00",
             })
             expect(second.status).toBe(409, second.data) // conflict
+
+            // to is not inclusive and thus the overwrite should succeed
+            let third = await Alice.post("/api/dutyroster/v1/overwrite", {
+                username: "bob",
+                from: "2021-02-02T07:30:00+02:00",
+                to: "2021-02-03T08:30:00+02:00", 
+            })
+            expect(third.status).toBe(200, third.data) // conflict
+
+            // this one should succeed because the to time of first is exclusive
+            let fourth = await Alice.post("/api/dutyroster/v1/overwrite", {
+                username: "bob",
+                from: "2021-02-04T07:30:00+02:00",
+                to: "2021-02-04T08:30:00+02:00",
+            })
+            expect(fourth.status).toBe(200, fourth.data);
         })
 
         it("should work for custom phone numbers", async () => {
