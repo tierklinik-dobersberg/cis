@@ -213,6 +213,14 @@ describe("Duty roster API:", () => {
                 to: "2021-02-04T08:30:00+02:00",
             })
             expect(fourth.status).toBe(200, fourth.data);
+
+            // IN-BETWEEN of first
+            let fifth = await Alice.post("/api/dutyroster/v1/overwrite", {
+                username: "bob",
+                from: "2021-02-03T14:30:00+02:00",
+                to: "2021-02-04T02:30:00+02:00",
+            })
+            expect(fifth.status).toBe(409, fifth.data)
         })
 
         it("should work for custom phone numbers", async () => {

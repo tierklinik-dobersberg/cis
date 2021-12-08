@@ -393,6 +393,10 @@ func (db *database) GetOverwrites(ctx context.Context, filterFrom, filterTo time
 					"$lt": filterTo,
 				},
 			},
+			bson.M{
+				"from": bson.M{"$lte": filterFrom},
+				"to":   bson.M{"$gt": filterTo},
+			},
 		},
 	}
 	if !includeDeleted {
