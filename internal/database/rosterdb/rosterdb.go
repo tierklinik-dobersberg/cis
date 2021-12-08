@@ -9,6 +9,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
+	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -42,9 +43,9 @@ type Database interface {
 	// Delete deletes a roster.
 	Delete(ctx context.Context, month time.Month, year int) error
 
-	// SetOverwrite configures an emergency doctor-on-duty overwrite for the
+	// CreateOverwrite configures an emergency doctor-on-duty overwrite for the
 	// given date.
-	SetOverwrite(ctx context.Context, from, to time.Time, user, phone, displayName string) error
+	CreateOverwrite(ctx context.Context, from, to time.Time, user, phone, displayName string) (v1alpha.Overwrite, error)
 
 	// GetOverwrite returns the currently active overwrite for the given date/time.
 	GetActiveOverwrite(ctx context.Context, date time.Time) (*v1alpha.Overwrite, error)
@@ -241,9 +242,9 @@ func (db *database) Delete(ctx context.Context, month time.Month, year int) erro
 	return nil
 }
 
-func (db *database) SetOverwrite(ctx context.Context, from, to time.Time, user, phone, displayName string) error {
+func (db *database) CreateOverwrite(ctx context.Context, from, to time.Time, user, phone, displayName string) (v1alpha.Overwrite, error) {
 	if user == "" && phone == "" {
-		return httperr.BadRequest(nil, "Username and phone number not set")
+		return v1alpha.Overwrite{}, httperr.BadRequest(nil, "Username and phone number not set")
 	}
 
 	overwrite := v1alpha.Overwrite{
@@ -253,8 +254,8 @@ func (db *database) SetOverwrite(ctx context.Context, from, to time.Time, user, 
 		PhoneNumber: phone,
 		DisplayName: displayName,
 		CreatedAt:   time.Now(),
-		// TODO(ppacher): CreatedBy
-		Deleted: false,
+		CreatedBy:   session.UserFromCtx(ctx),
+		Deleted:     false,
 	}
 
 	log := log.From(ctx).WithFields(logger.Fields{
@@ -266,23 +267,24 @@ func (db *database) SetOverwrite(ctx context.Context, from, to time.Time, user, 
 
 	overlapping, err := db.GetOverwrites(ctx, from, to, false)
 	if err != nil {
-		return fmt.Errorf("failed to check for overlapping overwrites: %w", err)
+		return v1alpha.Overwrite{}, fmt.Errorf("failed to check for overlapping overwrites: %w", err)
 	}
 
 	if len(overlapping) > 0 {
-		return httperr.Conflict("Found existing overwrites between %s and %s", from.Format(time.RFC3339), to.Format(time.RFC3339))
+		return v1alpha.Overwrite{}, httperr.Conflict("Found existing overwrites between %s and %s", from.Format(time.RFC3339), to.Format(time.RFC3339))
 	}
 
-	// create a new one.
-	if _, err := db.overwrites.InsertOne(ctx, overwrite); err != nil {
-		return fmt.Errorf("failed to insert overwrite: %w", err)
+	if res, err := db.overwrites.InsertOne(ctx, overwrite); err == nil {
+		overwrite.ID = res.InsertedID.(primitive.ObjectID)
+	} else {
+		return v1alpha.Overwrite{}, fmt.Errorf("failed to insert overwrite: %w", err)
 	}
 
 	log.Infof("created new roster overwrite")
 
 	go db.fireOverwriteEvent(ctx, from, to, user, phone, displayName)
 
-	return nil
+	return overwrite, nil
 }
 
 func (db *database) GetOverwrites(ctx context.Context, from, to time.Time, includeDeleted bool) ([]*v1alpha.Overwrite, error) {

@@ -22,7 +22,7 @@ func Setup(grp gin.IRouter) {
 	CreateOrUpdateEndpoint(router)
 
 	// POST /api/dutyroster/v1/overwrite
-	SetOverwriteEndpoint(router)
+	CreateOverwriteEndpoint(router)
 
 	// GET /api/dutyroster/v1/overwrites?from=<date>&to=<date>
 	GetOverwritesEndpoint(router)

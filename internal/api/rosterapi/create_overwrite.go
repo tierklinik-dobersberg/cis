@@ -20,8 +20,8 @@ type setOverwriteRequest struct {
 	To          time.Time `json:"to"`
 }
 
-// SetOverwriteEndpoint allows to configure the duty roster overwrite.
-func SetOverwriteEndpoint(router *app.Router) {
+// CreateOverwriteEndpoint allows to configure a duty roster overwrite.
+func CreateOverwriteEndpoint(router *app.Router) {
 	router.POST(
 		"v1/overwrite",
 		permission.OneOf{
@@ -51,11 +51,13 @@ func SetOverwriteEndpoint(router *app.Router) {
 				}
 			}
 
-			if err := app.DutyRosters.SetOverwrite(ctx, body.From, body.To, body.Username, body.Phone, body.DisplayName); err != nil {
+			overwrite, err := app.DutyRosters.CreateOverwrite(ctx, body.From, body.To, body.Username, body.Phone, body.DisplayName)
+			if err != nil {
 				return err
 			}
 
-			c.Status(http.StatusNoContent)
+			c.JSON(http.StatusOK, overwrite)
+
 			return nil
 		},
 	)

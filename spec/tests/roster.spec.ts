@@ -127,7 +127,6 @@ describe("Duty roster API:", () => {
         const stripMD = (r: object) => {
             delete(r['_id'])
             delete(r['createdAt'])
-            delete(r['createdBy'])
         }
 
 
@@ -160,7 +159,7 @@ describe("Duty roster API:", () => {
                 from: "2021-02-01T06:30:00Z",
                 to: "2021-02-02T05:30:00Z",
             })
-            expect(response.status).toBe(204, response.data)
+            expect(response.status).toBe(200, response.data)
 
             response = await Alice.get("/api/dutyroster/v1/overwrite?date=2021-02-01T10:30:00Z").catch(err => err.response)
             expect(response.status).toBe(200, response.data)
@@ -171,6 +170,7 @@ describe("Duty roster API:", () => {
                 username: "alice",
                 from: "2021-02-01T06:30:00Z",
                 to: "2021-02-02T05:30:00Z",
+                createdBy: "alice"
             })
             expect(new Date(createdAt).getTime() / 1000).toBeCloseTo(new Date().getTime() / 1000, 0)
         })
@@ -190,7 +190,7 @@ describe("Duty roster API:", () => {
                 from: "2021-02-03T08:30:00+02:00",
                 to: "2021-02-04T07:30:00+02:00",
             })
-            expect(first.status).toBe(204, first.data)
+            expect(first.status).toBe(200, first.data)
 
             let second = await Alice.post("/api/dutyroster/v1/overwrite", {
                 username: "bob",
@@ -207,7 +207,7 @@ describe("Duty roster API:", () => {
                 from: "2021-02-05T08:30:00+02:00",
                 to: "2021-02-06T07:30:00+02:00",
             })
-            expect(response.status).toBe(204, response.data)
+            expect(response.status).toBe(200, response.data)
 
             response = await Alice.get("/api/dutyroster/v1/overwrite?date=2021-02-05T14:00:00%2B02:00")
             expect(response.status).toBe(200, response.data)
@@ -219,6 +219,7 @@ describe("Duty roster API:", () => {
                 displayName: "extension",
                 from: "2021-02-05T06:30:00Z",
                 to: "2021-02-06T05:30:00Z",
+                createdBy: "alice"
             })
             expect(new Date(createdAt).getTime() / 1000).toBeCloseTo(new Date().getTime() / 1000, 0)
         })
@@ -248,12 +249,14 @@ describe("Duty roster API:", () => {
                  username: "alice",
                  from: "2021-02-03T06:30:00Z",
                  to: "2021-02-04T05:30:00Z",
+                 createdBy: "alice"
                },
                {
                  phoneNumber: "10",
                  displayName: "extension",
                  from: "2021-02-05T06:30:00Z",
                  to: "2021-02-06T05:30:00Z",
+                 createdBy: "alice",
                },
             ])
         })
