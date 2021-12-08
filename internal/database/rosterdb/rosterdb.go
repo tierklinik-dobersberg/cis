@@ -2,6 +2,8 @@ package rosterdb
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -52,6 +54,13 @@ type Database interface {
 
 	// GetOverwrites returns all overwrites that have start or time between from and to.
 	GetOverwrites(ctx context.Context, from, to time.Time, includeDeleted bool) ([]*v1alpha.Overwrite, error)
+
+	// ListOverwrites allows paginating through all overwrites stored in the database. ListOverwrites
+	// returns a pagination token that should be passed to the next call of ListOverwrites. As long
+	// as nextToken is not an empty string another call to ListOverwrites providing nextToken should
+	// return at least one result. It's not guaranteed though because the entry could have been deleted
+	// between the calls to ListOverwrites.
+	ListOverwrites(ctx context.Context, paginationToken string, includeDeleted *bool, limit int64) (result []*v1alpha.Overwrite, nextToken string, err error)
 
 	// DeleteOverwrite deletes the roster overwrite for the given
 	// day.
@@ -287,19 +296,101 @@ func (db *database) CreateOverwrite(ctx context.Context, from, to time.Time, use
 	return overwrite, nil
 }
 
-func (db *database) GetOverwrites(ctx context.Context, from, to time.Time, includeDeleted bool) ([]*v1alpha.Overwrite, error) {
+// ListOverwrites supports listing all overwrites and supports paginating through the result set using an opaque pagination
+// token.
+func (db *database) ListOverwrites(ctx context.Context, paginationToken string, includeDeleted *bool, limit int64) (result []*v1alpha.Overwrite, nextToken string, err error) {
+	type token struct {
+		I string
+		D bool
+	}
+
+	filter := bson.M{}
+
+	if paginationToken != "" {
+		b64dec, err := base64.URLEncoding.DecodeString(paginationToken)
+		if err != nil {
+			return nil, "", fmt.Errorf("invalid pagination token")
+		}
+
+		var t token
+		if err := json.Unmarshal(b64dec, &t); err != nil {
+			return nil, "", fmt.Errorf("invalid pagination token")
+		}
+
+		if t.I != "" {
+			oid, err := primitive.ObjectIDFromHex(t.I)
+			if err != nil {
+				return nil, "", fmt.Errorf("invalid pagination token")
+			}
+			filter["_id"] = bson.M{
+				"$lt": oid,
+			}
+		}
+		if includeDeleted != nil && *includeDeleted != t.D {
+			return nil, "", fmt.Errorf("cannot change includeDeleted during pagination")
+		}
+		if !t.D {
+			filter["deleted"] = bson.M{"$ne": true}
+		}
+	} else {
+		if includeDeleted != nil && !*includeDeleted {
+			filter["deleted"] = bson.M{"$ne": true}
+		}
+	}
+
+	if limit < 0 {
+		limit = 1000
+	}
+
+	limit = limit + 1
+
+	opts := options.Find()
+	opts.SetLimit(limit)
+
+	cur, err := db.overwrites.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if err := cur.All(ctx, &result); err != nil {
+		return nil, "", err
+	}
+
+	if len(result) == 0 {
+		return result, "", nil
+	}
+
+	if len(result) == int(limit-1) {
+		return result, "", nil
+	}
+
+	if includeDeleted == nil {
+		includeDeleted = new(bool)
+	}
+
+	nextTokenBytes, err := json.Marshal(token{
+		I: result[len(result)-2].ID.Hex(),
+		D: *includeDeleted,
+	})
+	if err != nil {
+		return result, "", fmt.Errorf("failed to create pagination token")
+	}
+	return result[0 : limit-2], base64.URLEncoding.EncodeToString(nextTokenBytes), nil
+}
+
+func (db *database) GetOverwrites(ctx context.Context, filterFrom, filterTo time.Time, includeDeleted bool) ([]*v1alpha.Overwrite, error) {
 	filter := bson.M{
 		"$or": bson.A{
 			bson.M{
 				"from": bson.M{
-					"$gte": from,
-					"$lte": to,
+					"$gte": filterFrom,
+					"$lt":  filterTo,
 				},
 			},
 			bson.M{
 				"to": bson.M{
-					"$gte": from,
-					"$lte": to,
+					"$gt": filterFrom,
+					"$lt": filterTo,
 				},
 			},
 		},
@@ -329,7 +420,7 @@ func (db *database) GetActiveOverwrite(ctx context.Context, date time.Time) (*v1
 			"$lte": date,
 		},
 		"to": bson.M{
-			"$gte": date,
+			"$gt": date,
 		},
 		"deleted": bson.M{"$ne": true},
 	})
@@ -355,7 +446,7 @@ func (db *database) DeleteActiveOverwrite(ctx context.Context, d time.Time) erro
 				"$lte": d,
 			},
 			"to": bson.M{
-				"$gte": d,
+				"$gt": d,
 			},
 			"deleted": bson.M{"$ne": true},
 		},

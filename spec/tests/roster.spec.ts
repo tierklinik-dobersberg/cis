@@ -198,15 +198,15 @@ describe("Duty roster API:", () => {
             })
             expect(second.status).toBe(409, second.data) // conflict
 
-            // to is not inclusive and thus the overwrite should succeed
+            // BEFORE first with new-to matching existing-from
             let third = await Alice.post("/api/dutyroster/v1/overwrite", {
                 username: "bob",
                 from: "2021-02-02T07:30:00+02:00",
                 to: "2021-02-03T08:30:00+02:00", 
             })
-            expect(third.status).toBe(200, third.data) // conflict
+            expect(third.status).toBe(200, third.data)
 
-            // this one should succeed because the to time of first is exclusive
+            // AFTER first with new-from matching existing-to
             let fourth = await Alice.post("/api/dutyroster/v1/overwrite", {
                 username: "bob",
                 from: "2021-02-04T07:30:00+02:00",
@@ -257,51 +257,75 @@ describe("Duty roster API:", () => {
         it("should support querying all overwrites", async () => {
             const response = await Alice.get("/api/dutyroster/v1/overwrites?from=2021-02-01T14:00:00Z&to=2021-02-07T18:00:00%2B02:00")
             expect(response.status).toBe(200, response.data);
-            expect(response.data.length).toBe(2);
+            expect(response.data.length).toBe(4);
             response.data.forEach((d: object) => stripMD(d))
             expect(response.data).toEqual([
-               {
-                 username: "alice",
-                 from: "2021-02-03T06:30:00Z",
-                 to: "2021-02-04T05:30:00Z",
-                 createdBy: "alice"
-               },
-               {
-                 phoneNumber: "10",
-                 displayName: "extension",
-                 from: "2021-02-05T06:30:00Z",
-                 to: "2021-02-06T05:30:00Z",
-                 createdBy: "alice",
-               },
-            ])
+                {
+                    username: "bob",
+                    from: "2021-02-02T05:30:00Z",
+                    to: "2021-02-03T06:30:00Z", 
+                    createdBy: "alice"
+                },
+                {
+                    username: "alice",
+                    from: "2021-02-03T06:30:00Z",
+                    to: "2021-02-04T05:30:00Z",
+                    createdBy: "alice"
+                },
+                {
+                    username: "bob",
+                    from: "2021-02-04T05:30:00Z",
+                    to: "2021-02-04T06:30:00Z",
+                    createdBy: "alice"
+                },
+                { 
+                    phoneNumber: "10",
+                    displayName: "extension",
+                    from: "2021-02-05T06:30:00Z",
+                    to: "2021-02-06T05:30:00Z",
+                    createdBy: "alice",
+                },
+            ], response.data)
         })
 
         it("should support getting deleted overwrites", async () => {
             const response = await Alice.get("/api/dutyroster/v1/overwrites?from=2021-02-01T14:00:00Z&to=2021-02-07T18:00:00%2B02:00&with-deleted")
             expect(response.status).toBe(200, response.data);
-            expect(response.data.length).toBe(3);
+            expect(response.data.length).toBe(5);
             response.data.forEach((d: object) => stripMD(d))
             expect(response.data).toEqual([
-               {
-                 username: "alice",
-                 from: "2021-02-01T06:30:00Z",
-                 to: "2021-02-02T05:30:00Z",
-                 deleted: true,
-                 createdBy: "alice",
-               },
-               {
-                 username: "alice",
-                 from: "2021-02-03T06:30:00Z",
-                 to: "2021-02-04T05:30:00Z",
-                 createdBy: "alice",
-               },
-               {
-                 phoneNumber: "10",
-                 displayName: "extension",
-                 from: "2021-02-05T06:30:00Z",
-                 to: "2021-02-06T05:30:00Z",
-                 createdBy: "alice",
-               },
+                {
+                    username: "alice",
+                    from: "2021-02-01T06:30:00Z",
+                    to: "2021-02-02T05:30:00Z",
+                    deleted: true,
+                    createdBy: "alice",
+                },
+                {
+                    username: "bob",
+                    from: "2021-02-02T05:30:00Z",
+                    to: "2021-02-03T06:30:00Z", 
+                    createdBy: "alice"
+                },
+                {
+                    username: "alice",
+                    from: "2021-02-03T06:30:00Z",
+                    to: "2021-02-04T05:30:00Z",
+                    createdBy: "alice"
+                },
+                {
+                    username: "bob",
+                    from: "2021-02-04T05:30:00Z",
+                    to: "2021-02-04T06:30:00Z",
+                    createdBy: "alice"
+                },
+                {
+                    phoneNumber: "10",
+                    displayName: "extension",
+                    from: "2021-02-05T06:30:00Z",
+                    to: "2021-02-06T05:30:00Z",
+                    createdBy: "alice",
+                },
             ])
         })
 
