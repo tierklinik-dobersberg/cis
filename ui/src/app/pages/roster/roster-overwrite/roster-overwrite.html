@@ -1,7 +1,7 @@
 <div *ngIf="today && today.actual; else: noOverwrite">
   <div class="flex flex-row items-start">
     <nz-avatar nzIcon="user" nzShape="square" [nzSize]="48" class="rounded-full shadow" [nzSrc]="today.actualUser?.avatar || null"></nz-avatar>
-    <div class="flex flex-col flex-grow justify-start ml-4">
+    <div class="flex flex-col justify-start flex-grow ml-4">
       <span class="font-semibold text-primary">{{ today.actualUser?.fullname || today.actual.displayName || today.actual.phoneNumber }}</span>
       <span class="text-secondary">
         Telefon ist bis <span class="text-highlight">{{ today.actual.to | date:'medium' }}</span> umgeleitet und folgt nicht dem aktuellen Dienstplan!
@@ -12,7 +12,7 @@
       </span>
     </div>
     <div class="self-center">
-      <svg (click)="deleteCurrentOverwrite()" xmlns="http://www.w3.org/2000/svg" class="p-2 w-9 h-9 bg-white rounded-full shadow-sm cursor-pointer hover:bg-primary text-color-primary hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg (click)="deleteCurrentOverwrite()" xmlns="http://www.w3.org/2000/svg" class="p-2 bg-white rounded-full shadow-sm cursor-pointer w-9 h-9 hover:bg-primary text-color-primary hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
       </svg>
     </div>
@@ -22,8 +22,8 @@
 <ng-template #noOverwrite>
   <div class="flex flex-row items-start" *ngIf="today?.onDuty?.users?.length; else: noRosterOrOverwrite">
     <nz-avatar nzIcon="user" nzShape="square" [nzSize]="48" class="rounded-full shadow" [nzSrc]="today.onDuty.users[0].avatar"></nz-avatar>
-    <div class="flex flex-col flex-grow justify-start ml-4">
-      <span class="font-semibold text-primary">{{ today.onDuty.users[0].fullname }}</span> 
+    <div class="flex flex-col justify-start flex-grow ml-4">
+      <span class="font-semibold text-primary">{{ today.onDuty.users[0].fullname }}</span>
       <span class="text-secondary">
         Anrufe werden <a routerLink="/roster" class="underline text-highlight">laut Dienstplan</a> zugestellt.
       </span>
@@ -32,12 +32,12 @@
 
   <ng-template #noRosterOrOverwrite>
     <div class="flex flex-row items-center">
-      <svg xmlns="http://www.w3.org/2000/svg" class="p-2 w-12 h-12 text-white rounded-full shadow bg-alert-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 p-2 text-white rounded-full shadow bg-alert-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
       </svg>
       <span class="ml-4 font-semibold text-alert-red">
         Es ist momentan kein Dienstplan und keine Umleitung eingestellt, <br>
-        Anrufe können derzeit nicht zugestellt werden!
+        Anrufe <u>außerhalb der Öffnungszeiten</u> können derzeit nicht zugestellt werden!
       </span>
     </div>
   </ng-template>
@@ -50,7 +50,7 @@
       <h2 class="text-sm">Hier kannst du den bestehenden <a class="text-highlight hover:underline"
           routerLink="/roster">Dienstplan</a> überschreiben bzw das Notruf-Telefon umleiten.</h2>
     </div>
-    <svg xmlns="http://www.w3.org/2000/svg" class="mr-6 w-16 h-16 text-opacity-30 text-deEmphasized" fill="none"
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 mr-6 text-opacity-30 text-deEmphasized" fill="none"
       viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
         d="M21 3l-6 6m0 0V4m0 5h5M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z" />
@@ -67,7 +67,7 @@
       </div>
 
       <div class="flex justify-between">
-        <div class="block mr-3 w-56">
+        <div class="block w-56 mr-3">
           <nz-select [(ngModel)]="overwriteType" (ngModelChange)="onDateChange()" class="w-full">
             <nz-option nzValue="day-shift" nzLabel="Tag-Bereitschaft"></nz-option>
             <nz-option nzValue="night-shift" nzLabel="Nacht-Bereitschaft"></nz-option>
@@ -76,7 +76,7 @@
           </nz-select>
         </div>
 
-        <div class="flex-grow items-center" *ngIf="overwriteType !== ''">
+        <div class="items-center flex-grow" *ngIf="overwriteType !== ''">
           <ng-container *ngIf="overwriteType === 'custom'; else: dateSelector">
             <div class="date-time">
               <span class="inline-block w-10 text-center">Von</span>
@@ -133,7 +133,7 @@
       </nz-avatar-group>
 
       <!-- List of overlapping overwrites -->
-      <div *ngIf="overlapping?.length" class="p-4 text-white rounded border shadow bg-alert-red border-alert-red-dark" [@scaleInOut]>
+      <div *ngIf="overlapping?.length" class="p-4 text-white border rounded shadow bg-alert-red border-alert-red-dark" [@scaleInOut]>
         <div class="mb-2">
           <h2 class="text-base text-white underline">Überlappende Einträge gefunden</h2>
           <span class="text-sm">
@@ -144,7 +144,7 @@
         <ul class="mx-4">
           <li *ngFor="let ov of overlapping"
             class="flex items-center p-2 space-x-4 border-b border-white border-opacity-20">
-            <div class="flex flex-col justify-around items-center">
+            <div class="flex flex-col items-center justify-around">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd"
                   d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
@@ -155,7 +155,7 @@
               <span>{{ ov.from | date:"short" }}</span>
               <span>{{ ov.to | date:"short" }}</span>
             </div>
-            <div class="flex flex-row flex-grow items-center space-x-2">
+            <div class="flex flex-row items-center flex-grow space-x-2">
               <ng-container *ngIf="ov.user; else: noUserTemplate">
                 <nz-avatar nzIcon="user" nzShape="circle" [nzSrc]="ov.user.avatar"></nz-avatar>
                 <div>
