@@ -1,11 +1,11 @@
 import { Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { from, Observable, Subject, Subscription } from 'rxjs';
-import { Customer, CustomerAPI } from 'src/app/api/customer.api';
-import { extractErrorMessage, toMongoDBFilter } from 'src/app/utils';
+import { Observable, Subscription } from 'rxjs';
 import { parse as parseQuery } from 'search-query-parser';
-import { ExtendedCustomer, customerTagColor } from './utils';
+import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
+import { extractErrorMessage, toMongoDBFilter } from 'src/app/utils';
+import { customerTagColor, ExtendedCustomer } from './utils';
 
 @Component({
   templateUrl: './customer-list.html',
@@ -21,7 +21,8 @@ export class CustomerListComponent implements OnInit, OnDestroy {
   searching = false;
   sourceTags = new Set<string>();
   tagColors: { [key: string]: string } = {};
-  tagVisibility: { [key: string]: boolean } = {};
+
+  visibleTag: 'all' | string = 'all';
 
   trackBy: TrackByFunction<Customer> = (_: number, cust: Customer) => cust.cid;
 
@@ -32,8 +33,10 @@ export class CustomerListComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.header.set('Kunden');
+    this.header.set('Kunden', 'Stammdaten durchsuchen und verwalten');
     this.subscriptions = new Subscription();
+
+    this.search('');
   }
 
   ngOnDestroy(): void {
@@ -79,12 +82,9 @@ export class CustomerListComponent implements OnInit, OnDestroy {
 
           this.sourceTags.add(c.source);
           this.tagColors[c.source] = tagColor;
-          if (this.tagVisibility[c.source] === undefined) {
-            this.tagVisibility[c.source] = true;
-          }
         });
 
-        this.customers = this.allCustomers.filter(c => !!this.tagVisibility[c.source]);
+        this.updateTagVisibility();
       },
       err => {
         const msg = extractErrorMessage(err, 'Suche fehlgeschlagen');
@@ -98,8 +98,7 @@ export class CustomerListComponent implements OnInit, OnDestroy {
       });
   }
 
-  updateTagVisibility(tag: string, visible: boolean): void {
-    this.tagVisibility[tag] = visible;
-    this.customers = this.allCustomers.filter(c => !!this.tagVisibility[c.source]);
+  updateTagVisibility(): void {
+    this.customers = this.allCustomers.filter(c => this.visibleTag === 'all' || this.visibleTag === c.source);
   }
 }

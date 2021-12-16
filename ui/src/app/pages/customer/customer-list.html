@@ -1,68 +1,42 @@
-<div class="page-header">
-  <div class="main-row">
-    <div class="row-container">
-      <h2>
-        <i nz-icon nzType="database" nzTheme="outline"></i>
-        <span>
-          Kundendaten
-        </span>
-      </h2>
-    </div>
-  </div>
-  <div class="secondary-row">
-    <div class="row-container">
+<div class="flex flex-col flex-grow bg-white rounded shadow">
+  <div class="flex flex-col p-4 space-y-2 border-b border-tertiary">
+    <div class="flex space-x-2">
+      <input type="text" class="flex-grow tkd-input" placeholder="Nach Nachnamen suchen ..." [(ngModel)]="searchText" *ngIf="!useAdvancedSearch"
+        (ngModelChange)="search($event)" />
 
-      <nz-input-group *ngIf="!useAdvancedSearch" [nzSuffix]="suffixIconSearch">
-        <input type="text" nz-input placeholder="Nach Nachnamen suchen ..." [(ngModel)]="searchText"
-          (ngModelChange)="search($event)" />
-      </nz-input-group>
-      <ng-template #suffixIconSearch>
-        <i nz-icon nzType="search"></i>
-      </ng-template>
-      <textarea *ngIf="useAdvancedSearch" nz-input placeholder="Expertenmodus" [nzAutosize]="{ minRows: 3, maxRows: 5 }"
-        [(ngModel)]="searchText" (ngModelChange)="search($event)"></textarea>
+      <textarea *ngIf="useAdvancedSearch" class="flex-grow tkd-input" placeholder="Expertenmodus"
+        [nzAutosize]="{ minRows: 3, maxRows: 5 }" [(ngModel)]="searchText" (ngModelChange)="search($event)"></textarea>
 
-      <div class="info">
-        <label>Expertenmodus</label>
-        <label nz-checkbox [(ngModel)]="useAdvancedSearch"></label>
-      </div>
-      <div class="info">
-        <label>Ergebnisse</label>
-        <span>
-          {{ customers.length || 0 }}
-        </span>
-      </div>
-    </div>
-  </div>
-  <div class="secondary-row">
-    <div class="row-container">
-      <button nz-button nzType="primary" (click)="search(searchText)" [nzLoading]="searching">
-        <i nz-icon nzType="search"></i>
-        Suchen
+      <nz-select class="inline-block w-28" [(ngModel)]="visibleTag" (ngModelChange)="updateTagVisibility()">
+        <nz-option nzValue="all" nzLabel="Alle"></nz-option>
+        <nz-option *ngFor="let tag of sourceTags" [nzValue]="tag" [nzLabel]="tag"></nz-option>
+      </nz-select>
+
+      <button class="tkd-btn tkd-primary" (click)="search(searchText)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd"
+            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+            clip-rule="evenodd" />
+        </svg>
+        <span>Suchen</span>
       </button>
-      <div class="flex-row" style="margin-left: 24px" *ngIf="sourceTags?.size">
-        <span class="label">
-          <i nz-icon nzType="filter" nzTheme="outline"></i>
-          Ursprung:
-        </span>
-        <nz-tag *ngFor="let tag of sourceTags" nzMode="checkable" [nzChecked]="tagVisibility[tag]"
-          (nzCheckedChange)="updateTagVisibility(tag, $event)" [nzColor]="tagVisibility[tag] ? tagColors[tag] : ''">
-          {{ tag }}
-        </nz-tag>
+    </div>
+    <div class="flex space-x-2">
+      <div class="flex items-center space-x-2 text-secondary">
+        <nz-switch nzSize="small" [(ngModel)]="useAdvancedSearch"></nz-switch>
+        <span class="text-sm font-lato">Expertenmodus</span>
       </div>
     </div>
   </div>
-</div>
 
-<div class="content-wrapper">
-  <cdk-virtual-scroll-viewport itemSize="73" class="infinite-container content-section">
-    <nz-list-empty *ngIf="customers.length === 0" [nzNoResult]="emptyTemplate"></nz-list-empty>
+  <cdk-virtual-scroll-viewport itemSize="73" class="flex-grow">
+    <nz-list-empty *ngIf="!customers?.length" [nzNoResult]="emptyTemplate"></nz-list-empty>
     <ng-template #emptyTemplate>
       <nz-empty></nz-empty>
       <nz-spin *ngIf="searching" nzSimple></nz-spin>
     </ng-template>
-    <nz-list nzSize="small">
 
+    <nz-list nzSize="small" class="p-4">
       <nz-list-item *cdkVirtualFor="let customer of customers; trackBy: trackBy"
         [routerLink]="['view', customer.source, customer.cid]">
         <nz-list-item-meta>
