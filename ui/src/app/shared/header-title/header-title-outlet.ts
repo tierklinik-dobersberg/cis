@@ -1,14 +1,23 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { HeaderTitleService } from './header.service';
+import { HeaderTitleService, PageHeader } from './header.service';
 
 @Component({
   selector: 'app-header-title-outlet',
-  template: '{{ header }}',
+  template: `
+    <div class="" *ngIf="!!header.iconTemplate">
+      <ng-container *ngTemplateOutlet="header.iconTemplate"></ng-container>
+    </div>
+    <div class="flex flex-col">
+      <span class="text-base font-semibold text-color-primary-dark font-lato">{{ header.title }}</span>
+      <span *ngIf="header.description" class="text-sm text-secondary font-iter">{{ header.description }}</span>
+    </div>
+  `,
   styles: [
     `
         :host {
-            display: inline;
+            display: inline-flex;
+            flex-direction: row;
             align-self: center;
             white-space: nowrap;
         }
@@ -17,7 +26,7 @@ import { HeaderTitleService } from './header.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderTitleOutletComponent implements OnInit, OnDestroy {
-  header = '';
+  header: PageHeader = {title: '', description: ''};
 
   private subscription = Subscription.EMPTY;
 
