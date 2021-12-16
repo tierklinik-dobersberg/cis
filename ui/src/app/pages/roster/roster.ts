@@ -178,8 +178,6 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
 
     this.subscriptions = new Subscription();
 
-
-
     // Load all users and keep retrying until we got them.
     const sub =
       this.identityapi.listUsers()
@@ -387,7 +385,10 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
   loadRoster(date: Date = this.selectedDate, scrollTo = false): void {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
-    this.header.set(`Dienstplan:  ${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`);
+    this.header.set(
+      `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`,
+      'Mitarbeiter Dienstplan'
+    );
 
     const sub =
       this.rosterapi.forMonth(date.getFullYear(), date.getMonth() + 1)

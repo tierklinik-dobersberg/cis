@@ -1,15 +1,5 @@
 @import 'src/utils';
 
-:host {
-  @include page-host;
-  overflow: auto;
-
-
-  @include for-phone-only {
-    padding: 12px;
-  }
-}
-
 nz-select {
   width: 100%;
 }
@@ -44,46 +34,6 @@ nz-select {
   }
 }
 
-.toolbar {
-  width      : 100%;
-  display    : flex;
-  align-items: center;
-  z-index    : 100;
-
-  @include for-phone-only {
-    position: relative;
-  }
-
-  h1 {
-    margin-bottom  : 0;
-    display        : flex;
-    align-items    : center;
-    justify-content: flex-start;
-
-    nz-tag {
-      margin-left: 0.5rem;
-    }
-  }
-
-  .actions {
-    flex-grow: 0;
-
-    button:not(:last-child) {
-      margin-right: 3px;
-    }
-
-    nz-button-group {
-      button {
-        margin-right: 0px;
-      }
-    }
-  }
-
-  .alerts {
-    margin-right: 12px;
-    flex-grow   : 1;
-  }
-}
 
 .user-menu {
   width    : 25vw;
@@ -167,10 +117,6 @@ span.title {
   padding-bottom: 3px;
   font-size     : 90%;
   text-transform: uppercase;
-}
-
-nz-calendar {
-  padding: 24px;
 }
 
 nz-checkbox-wrapper {
