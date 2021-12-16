@@ -29,10 +29,7 @@
 }
 
 @mixin page-host {
-  display       : flex;
-  width         : 100%;
-  position      : relative;
-  flex-direction: column;
+  @apply px-2 sm:px-4 md:px-8 lg:px-12 w-full relative overflow-auto space-y-8;
 }
 
 @mixin hide-on-phone {

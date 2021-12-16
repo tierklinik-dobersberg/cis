@@ -51,29 +51,17 @@ i[nz-icon] svg {
 }
 
 .content-section {
-  box-shadow      : 1px 1px 6px -2px rgba(0, 33, 65, 0.1);
-  background-color: white;
-  flex-grow       : 1;
-
-  padding: 24px;
-
-  @include for-phone-only {
-    padding: 12px;
-  }
+  // deprecated
+  @apply bg-white rounded shadow-sm p-2 sm:p-4 md:p-6 lg:p-8;
 
   &:last-child {
     margin-bottom: 24px;
-
-    @include for-phone-only {
-      margin-bottom: 12px;
-    }
+    @apply mb-3 sm:mb-6;
   }
-
-  border-radius: 1px;
 }
 
 .content-section~.content-section {
-  margin-top: 24px;
+  @apply mt-3 sm:mt-6;
 }
 
 .ant-picker-body {
