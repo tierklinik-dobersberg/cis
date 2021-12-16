@@ -74,7 +74,7 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
-    this.header.set('Dashboard');
+    this.header.set('Dashboard', 'Eine Übersicht der wichtigsten Informationen.');
 
     this.voicemailapi.listMailboxes()
       .pipe(retryWhen(e => e.pipe(delay(10000))))

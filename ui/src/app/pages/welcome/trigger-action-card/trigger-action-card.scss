@@ -1,18 +1,5 @@
 @import 'src/utils';
 
-nz-card {
-  height    : 100%;
-  flex-grow : 1;
-  border-top: 3px solid #93C5FD;
-  @include for-phone-only {
-    border: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    padding-top: 12px;
-    padding-bottom: 12px;
-  }
-  min-width : 150px;
-}
-
 ul {
     list-style: none;
     padding-left: 0;
