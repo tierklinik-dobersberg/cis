@@ -1,7 +1,9 @@
 <ng-template #menuTemplate>
-  <ul nz-menu [nzTheme]="layout.isPhone ? 'light' : 'dark'" nzMode="inline" [nzInlineCollapsed]="isCollapsed">
+  <ul nz-menu nzTheme="light" nzMode="inline" class="tkd-menu">
     <li routerLink="/welcome" nzMatchRouter nz-menu-item>
-      <i nz-icon nzType="dashboard"></i>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
       <span>Dashboard</span>
     </li>
 
@@ -13,22 +15,30 @@
 -->
 
     <li routerLink="/calendar" nzMatchRouter nz-menu-item>
-      <i nz-icon nzType="calendar"></i>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
       <span>Kalender</span>
     </li>
 
     <li *ngIf="hasRoster" routerLink="/roster" nzMatchRouter nz-menu-item>
-      <i nz-icon nzType="clock-circle"></i>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
       <span>Dienstplan</span>
     </li>
 
     <li *ngIf="hasCustomers" routerLink="/customer" nzMatchRouter nz-menu-item>
-      <i nz-icon nzType="team"></i>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
       <span>Kunden</span>
     </li>
 
     <li routerLink="/xray" nzMatchRouter nz-menu-item>
-      <i nz-icon nzType="expand" nzTheme="outline" [nzRotate]="95"></i>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+      </svg>
       <span>Röntgen</span>
     </li>
 
@@ -44,7 +54,9 @@
     </li>
 
     <li routerLink="/cctv" nzMatchRouter nz-menu-item>
-      <i nz-icon nzType="video-camera" nzTheme="outline"></i>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+      </svg>
       <span>Video-Kameras</span>
     </li>
 
@@ -95,80 +107,89 @@
   </ul>
 </ng-template>
 
+<!-- menu for mobile/phone -->
 <nz-drawer *ngIf="layout.isPhone" [nzClosable]="false" [nzVisible]="!isCollapsed" nzPlacement="left"
   [nzTitle]="drawerTitleTemplate" (nzOnClose)="toggleMenu()" nzWrapClassName="menu-container">
-  <ng-template [nzDrawerContent]>
+  <div *nzDrawerContent class="px-2">
     <ng-container *ngTemplateOutlet="menuTemplate"></ng-container>
-  </ng-template>
+  </div>
 </nz-drawer>
-
 <ng-template #drawerTitleTemplate>
   <i nz-icon nzType="close" nzTheme="outline" (click)="toggleMenu()"></i>
 </ng-template>
 
-<nz-layout class="app-layout">
-  <nz-sider *ngIf="(isLogin | async) === false && !layout.isPhone" class="menu-sidebar" nzCollapsible nzWidth="260px"
-    [(nzCollapsed)]="isCollapsed" [nzTrigger]="null">
 
-    <div class="sidebar-container">
-      <div class="sidebar-logo">
-        <a routerLink="/welcome">
-          <img src="assets/logo.png" alt="logo">
-          <h1>
-            <span style="color: #1080cf">Tierklinik</span> <span style="color: #15377e">Dobersberg</span>
-          </h1>
-        </a>
-      </div>
-
-      <ng-container *ngTemplateOutlet="menuTemplate"></ng-container>
-
-      <span class="copyright">
-        <i nz-icon nzType="copyright" nzTheme="outline"></i>
-        Patrick Pacher 2021
-      </span>
+<div class="flex w-screen h-screen">
+  <!--
+    On tablet and up we have a sidebar for navigation
+  -->
+  <div *ngIf="(isLogin | async) === false && !layout.isPhone" class="relative z-10 flex flex-col w-64 h-full p-2 bg-white shadow-md sm:px-4 ">
+    <div class="py-2 h-14">
+      <a class="flex items-center space-x-2" routerLink="/welcome">
+        <img src="assets/logo.png" class="w-10 h-10" alt="logo">
+        <h1 class="flex flex-col text-base font-semibold leading-4 font-lato">
+          <span style="color: #1080cf">Tierklinik</span>
+          <span style="color: #15377e">Dobersberg</span>
+        </h1>
+      </a>
     </div>
-  </nz-sider>
 
-  <nz-layout>
-    <nz-header *ngIf="(isLogin | async) === false">
-      <div class="app-header">
-        <span class="header-trigger" (click)="toggleMenu()">
-          <i class="trigger" nz-icon [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'"></i>
-        </span>
+    <div class="flex-grow mt-4">
+      <ng-container *ngTemplateOutlet="menuTemplate"></ng-container>
+    </div>
 
-        <a class="header-logo" routerLink="/welcome">
-          <img src="assets/logo.png" alt="logo">
+    <span class="py-2 text-xs text-center text-tertiary">
+      <i nz-icon nzType="copyright" nzTheme="outline"></i>
+      Patrick Pacher 2020-2022
+    </span>
+  </div>
+
+  <!--
+    Next to the sidebar there's the main content container including the header
+  -->
+  <div class="flex flex-col self-stretch flex-grow">
+    <!-- App header is only visible if we're not on the login screen -->
+    <div *ngIf="(isLogin | async) === false" class="relative flex flex-col p-0 px-2 mb-4 sm:px-4 md:px-8 lg:px-12">
+      <div class="flex items-center justify-between py-4">
+        <!-- On mobile the logo is put into the header -->
+        <a class="block px-2 sm:hidden" routerLink="/welcome">
+          <img class="w-8 h-8" src="assets/logo.png" alt="logo">
         </a>
+
         <app-header-title-outlet></app-header-title-outlet>
 
-        <div class="right-container">
-          <i class="drawer-trigger" (click)="toggleMenu()" nz-icon nzType="menu" nzTheme="outline"></i>
+        <div class="flex items-center space-x-4">
+          <i class="block sm:hidden" (click)="toggleMenu()" nz-icon nzType="menu" nzTheme="outline"></i>
 
           <ng-container *ngIf="(suggestionCount | async) as count">
-            <nz-badge (click)="openSuggestionDialog()" [nzCount]="count" [nzOverflowCount]="10"
-              [nzStyle]="{cursor: 'pointer', backgroundColor: 'transparent', color: 'orange', boxShadow: 'none', fontSize: '9px'}">
-              <i nz-icon nzType="bell" nzTheme="outline" style="font-size: 20px"
-                [style.color]="count > 0 ? 'orange' : 'inherit'"></i>
-            </nz-badge>
+            <button class="tkd-icon-btn tkd-small">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+              </svg>
+            </button>
           </ng-container>
 
-            <button *ngIf="!layout.isPhone" [class.tkd-danger]="!!overwriteTarget" [class.tkd-primary]="!overwriteTarget" class="leading-4 tkd-btn" routerLink="/roster/overwrite">
-              <svg xmlns="http://www.w3.org/2000/svg" class="inline-block w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M14.414 7l3.293-3.293a1 1 0 00-1.414-1.414L13 5.586V4a1 1 0 10-2 0v4.003a.996.996 0 00.617.921A.997.997 0 0012 9h4a1 1 0 100-2h-1.586z" />
-                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-              </svg>
-                {{ overwriteTarget || 'Umleiten' }}
-            </button>
+          <button *ngIf="!layout.isPhone" [class.tkd-danger]="!!overwriteTarget" [class.tkd-primary]="!overwriteTarget" class="tkd-btn tkd-outline" [nz-tooltip]="overwriteTarget ? overwriteTooltip : ''" routerLink="/roster/overwrite">
+            <svg xmlns="http://www.w3.org/2000/svg" class="inline-block w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M14.414 7l3.293-3.293a1 1 0 00-1.414-1.414L13 5.586V4a1 1 0 10-2 0v4.003a.996.996 0 00.617.921A.997.997 0 0012 9h4a1 1 0 100-2h-1.586z" />
+              <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+            </svg>
+            <span>
+              {{ overwriteTarget || 'Umleiten' }}
+            </span>
+          </button>
 
-          <span *ngIf="!layout.isPhone" class="current-user" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click">
-            <nz-avatar nzIcon="user" [nzSrc]="profile?.avatar">
+          <ng-template #overwriteTooltip>
+            Notruf sind derzeit an {{ overwriteTarget }} umgeleitet.
+          </ng-template>
+
+          <span *ngIf="!layout.isPhone" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click">
+            <nz-avatar class="shadow cursor-pointer" nzIcon="user" [nzSrc]="profile?.avatar">
             </nz-avatar>
-            <span class="username">{{ profile?.fullname || profile?.name }}</span>
           </span>
-          <span *ngIf="layout.isPhone" class="current-user" (click)="toggleMenu()">
-            <nz-avatar nzIcon="user" [nzSrc]="profile?.avatar">
+          <span *ngIf="layout.isPhone" (click)="toggleMenu()">
+            <nz-avatar nzIcon="user" class="shadow cursor-pointer" [nzSrc]="profile?.avatar">
             </nz-avatar>
-            <span class="username">{{ profile?.fullname || profile?.name }}</span>
           </span>
         </div>
 
@@ -193,47 +214,51 @@
             </li>
           </ul>
         </nz-dropdown-menu>
-
       </div>
-    </nz-header>
-    <nz-content>
-      <div class="flex overflow-auto flex-grow justify-items-stretch items-stretch w-full shadow-inner" cdkScrollable>
-        <router-outlet></router-outlet>
-      </div>
-    </nz-content>
-  </nz-layout>
+      <div class="w-full border-b border-tertiary"></div>
 
-  <!--
-    On mobile we have an additional navigation bar at the bottom
-  -->
-  <nz-footer *ngIf="layout.isPhone" class="mobile-nav">
-    <!-- Dashboard -->
-    <li routerLink="/welcome" routerLinkActive="active">
-      <i nz-icon nzType="dashboard"></i>
-      <span>Dashboard</span>
-    </li>
-    <!-- Kalender -->
-    <li routerLink="/calendar" routerLinkActive="active">
-      <i nz-icon nzType="calendar"></i>
-      <span>Kalender</span>
-    </li>
-    <!-- Dienstplan -->
-    <li routerLink="/roster" routerLinkActive="active">
-      <i nz-icon nzType="clock-circle"></i>
-      <span>Dienstplan</span>
-    </li>
-    <!-- Röntgen -->
-    <li routerLink="/xray" routerLinkActive="active">
-      <i nz-icon nzType="expand" nzTheme="outline" [nzRotate]="95"></i>
-      <span>Röntgen</span>
-    </li>
-    <!-- Open menu -->
-    <li>
-      <i class="drawer-trigger" (click)="toggleMenu()" nz-icon nzType="menu" nzTheme="outline"></i>
-      <span>Mehr</span>
-    </li>
-  </nz-footer>
-</nz-layout>
+    </div>
+
+    <div class="flex items-stretch self-stretch flex-grow w-full overflow-auto justify-items-stretch router-content" cdkScrollable>
+      <router-outlet></router-outlet>
+    </div>
+
+    <!--
+      On mobile we have an additional navigation bar at the bottom
+    -->
+    <div *ngIf="layout.isPhone" class="z-10 flex items-center w-full h-12 py-1 text-xs list-none border-t justify-evenly sm:hidden text-color-primary text-opacity-light border-tertiary">
+      <!-- Dashboard -->
+      <li routerLink="/welcome" routerLinkActive="bg-primary text-white" class="p-1 rounded-full">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-4 h-4" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+      </li>
+      <!-- Kalender -->
+      <li routerLink="/calendar" routerLinkActive="bg-primary text-white" class="p-1 rounded-full">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-4 h-4"  viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </li>
+      <!-- Dienstplan -->
+      <li routerLink="/roster" routerLinkActive="bg-primary text-white" class="p-1 rounded-full">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-4 h-4"  viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </li>
+      <!-- Röntgen -->
+      <li routerLink="/xray" routerLinkActive="bg-primary text-white" class="p-1 rounded-full">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-4 h-4"  viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+        </svg>
+      </li>
+      <!-- Open menu -->
+      <li>
+        <i (click)="toggleMenu()" nz-icon nzType="menu"  class="w-4 h-4"  nzTheme="outline"></i>
+      </li>
+    </div>
+  </div>
+
+</div>
 
 <div *ngIf="!isReachable" class="not-reachable-container">
   <i nz-icon [nzType]="'sync'" [nzSpin]="true"></i>
