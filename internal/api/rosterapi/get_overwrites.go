@@ -3,14 +3,12 @@ package rosterapi
 import (
 	"context"
 	"net/http"
-	"sort"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
-	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
 )
 
 // GetOverwritesEndpoint returns all duty-roster overwrites between two specified
@@ -24,6 +22,13 @@ func GetOverwritesEndpoint(router *app.Router) {
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			fromStr := c.Query("from")
 			toStr := c.Query("to")
+
+			if fromStr == "" {
+				return httperr.MissingParameter("from")
+			}
+			if toStr == "" {
+				return httperr.MissingParameter("to")
+			}
 
 			from, err := app.ParseTime(time.RFC3339, fromStr)
 			if err != nil {
@@ -40,16 +45,9 @@ func GetOverwritesEndpoint(router *app.Router) {
 				return err
 			}
 
-			sort.Sort(byTime(overwrites))
-
 			c.JSON(http.StatusOK, overwrites)
+
 			return nil
 		},
 	)
 }
-
-type byTime []*v1alpha.Overwrite
-
-func (sl byTime) Less(i, j int) bool { return sl[i].From.Before(sl[j].From) }
-func (sl byTime) Swap(i, j int)      { sl[i], sl[j] = sl[j], sl[i] }
-func (sl byTime) Len() int           { return len(sl) }

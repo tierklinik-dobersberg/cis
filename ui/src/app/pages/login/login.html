@@ -9,7 +9,7 @@
             Du bist derzeit im CIS angemeldet. <br />
             Möchtest du dich <a (click)="logout()" nz-button nzType="link">Abmelden</a> oder
         
-            <button (click)="continue()" class="my-2 w-full text-xs uppercase rounded-xl tkd-btn-secondary">
+            <button (click)="continue()" class="my-2 w-full text-xs uppercase rounded-xl tkd-btn tkd-secondary">
                 Weiter als
                 &nbsp;
                 <u>{{(profile.fullname || profile.name)}}</u>
@@ -32,7 +32,7 @@
                     </label>
                 </div>
             </div>
-            <button class="w-full text-xs uppercase rounded-xl tkd-btn-primary">Sign in</button>
+            <button class="w-full text-xs uppercase rounded-xl tkd-btn tkd-primary">Sign in</button>
         </form>
     </div>
 </div>
