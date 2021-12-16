@@ -1,7 +1,3 @@
-:host {
-  @apply flex-grow p-4 sm:p-6 md:p-8 space-y-8 block overflow-auto;
-}
-
 .tkd-card {
   @apply shadow bg-white rounded;
 
@@ -24,19 +20,12 @@
   }
 }
 
-
-nz-date-picker {
-  margin-left: 12px;
-  margin-right: 12px;
-}
-
 .current-state {
   opacity: .85;
   nz-avatar {
     margin-right: -3px;
   }
 }
-
 
 .user-list {
   display: grid;

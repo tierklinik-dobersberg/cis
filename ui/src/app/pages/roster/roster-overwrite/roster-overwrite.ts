@@ -3,9 +3,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, TrackByFunction, ViewChild } from '@angular/core';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { combineLatest, forkJoin, interval, Observable, of, OperatorFunction, Subject } from 'rxjs';
+import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, OperatorFunction, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, map, mergeMap, startWith, switchMap, takeUntil } from 'rxjs/operators';
 import { ConfigAPI, Day, DoctorOnDutyResponse, ExternalAPI, Overwrite, OverwriteBody, ProfileWithAvatar, QuickRosterOverwrite, RosterAPI, RosterUIConfig, UserService } from 'src/app/api';
+import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage } from 'src/app/utils';
 
 /**
@@ -56,6 +57,7 @@ interface _Overwrite extends Overwrite {
 export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     private destroy$          = new Subject();
     private checkOverlapping$ = new Subject<{to: Date, from: Date}>();
+    private reloadToday$      = new BehaviorSubject<void>(undefined);
 
     @ViewChild('confirmDeleteCurrentOverwrite', {read: TemplateRef, static: true})
     confirmDeleteCurrentOverwriteTemplate: TemplateRef<any> | null = null;
@@ -183,6 +185,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
         private cdr: ChangeDetectorRef,
         private modal: NzModalService,
         private nzMessage: NzMessageService,
+        private header: HeaderTitleService
     ){}
 
     onDateChange() {
@@ -251,7 +254,9 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
       this.roster.setOverwrite(body)
         .subscribe(
           () => {
-          this.nzMessage.success(`Telefon erfolgreich auf ${target} umgeleitet.`)
+            this.nzMessage.success(`Telefon erfolgreich auf ${target} umgeleitet.`)
+            this.reloadToday$.next();
+            this.checkOverlapping$.next(this.getTimeBoundary())
           },
           err => this.nzMessage.error(extractErrorMessage(err, 'Telefon konnte nicht umgeleitet werden'))
         )
@@ -285,13 +290,51 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
           () => {
             this.nzMessage.success("Eintrag wurde erfolgreich gelöscht")
             this.onDateChange();
+            this.reloadToday$.next();
           },
           err => this.nzMessage.error(extractErrorMessage(err, 'Eintrag konnte nicht gelöscht werden'))
         )
     }
 
+    selectTime(what: 'from' | 'to', shift: 'day' | 'night' ) {
+      let d: Date;
+      if (what === 'from') {
+        d = this.from;
+      } else {
+        d = this.to;
+      }
+
+      this.roster.forDay(d)
+        .pipe(catchError(err => {
+          if (err instanceof HttpErrorResponse && err.status === 404) {
+            return of(err.error as Day);
+          }
+          return throwError(err);
+        }))
+        .subscribe({
+          next: day => {
+            let nd: Date;
+            if (shift === 'day') {
+              nd = new Date(day.onCall.dayStart);
+            } else {
+              nd = new Date(day.onCall.nightStart);
+            }
+
+            if (what === 'from') {
+              this.from = nd;
+            } else {
+              this.to = nd;
+            }
+
+            this.cdr.markForCheck();
+          }
+        })
+    }
+
     ngOnInit() {
         this.destroy$ = new Subject();
+
+        this.header.set('Telefon Umleitungen', 'Überschreibe den Dienstplan und wähle ein neues Ziel für Anrufe außerhalb der Öffnungszeiten')
 
         // load and watch preferred and other allowed users.
         const rosterConfig$ = this.config.change;
@@ -314,9 +357,11 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
             })
 
         // load and watch the currently active overwrite for this day
-        interval(5000)
+        combineLatest([
+          interval(5000).pipe(startWith(-1)),
+          this.reloadToday$
+        ])
                 .pipe(
-                    startWith(-1),
                     takeUntil(this.destroy$),
                     map(() => new Date()),
                     this.toRosterState(),
@@ -397,7 +442,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
                     overlapping: this.roster.getOverwrites(timeBoundary.from, timeBoundary.to)
                       .pipe(
                         map(res => {
-                          return res.map(ov => ({
+                          return (res || []).map(ov => ({
                             ...ov,
                             user: !!ov.username ? this.userService.byName(ov.username) : null,
                           }))
@@ -423,6 +468,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     ngOnDestroy() {
         this.destroy$.next();
         this.destroy$.complete()
+        this.reloadToday$.complete();
     }
 
     /**
