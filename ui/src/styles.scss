@@ -265,3 +265,7 @@ i[nz-icon] svg {
 button, [nz-menu-item] {
   user-select: none;
 }
+
+[nz-menu-item] [nz-icon] {
+  @apply mr-2;
+}
