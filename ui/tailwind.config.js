@@ -44,7 +44,7 @@ module.exports = {
       },
       'rost-dust': {
         DEFAULT: '#AF6377',
-        dark: '#9c5064' 
+        dark: '#9c5064'
       },
       'golden-rod': {
         DEFAULT: '#dba11c',
@@ -94,6 +94,7 @@ module.exports = {
     fontFamily: {
       inter: 'Inter, sans-serif',
       lato: 'Lato, sans-serif',
+      roboto: 'Roboto, sans-serif',
     },
     extend: {
       opacity: {
