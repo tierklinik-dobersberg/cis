@@ -12,6 +12,9 @@ func Setup(grp gin.IRouter) {
 	// GET /api/calllogs/v1/date/:year/:month/:day
 	ForDateEndpoint(router)
 
+	// GET /api/callogs/v1/search
+	SearchEndpoint(router)
+
 	// GET /api/calllogs/v1/customer/:source/:id
 	ForCustomerEndpoint(router)
 }
