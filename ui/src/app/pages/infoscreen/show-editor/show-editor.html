@@ -1,9 +1,9 @@
 <div class="editor">
-  <div class="slides">
+  <div class="p-2 space-y-3 overflow-auto bg-white rounded shadow sm:p-4 md:p-6 lg:p-8">
     <div cdkDropList (cdkDropListDropped)="drop($event)">
       <div class="slide" *ngFor="let slide of show?.slides; let index=index" cdkDrag
         [class.active]="index === currentSlideIndex">
-        <iframe [src]="slide.preview"></iframe>
+        <iframe class="rounded shadow" [src]="slide.preview"></iframe>
         <div (click)="openSlide(slide, index)" cdkDragHandle class="cover">
         </div>
         <i (click)="deleteSlide(index)" class="delete" nz-icon nzType="delete" nzTheme="outline"></i>
@@ -11,10 +11,14 @@
     </div>
 
     <div class="slide">
-      <button nz-button nzType="dashed" (click)="selectLayout()">
-        <i nz-icon nzType="plus-circle" nzTheme="outline"></i>
-        Neue Folie
-      </button>
+      <div class="flex items-center justify-around">
+        <button class="tkd-btn tkd-primary tkd-outline" (click)="selectLayout()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          <span>Neue Folie</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -22,14 +26,16 @@
     <ng-container *ngIf="layoutPreview as url">
       <iframe [src]="url" id="currentSlide"></iframe>
     </ng-container>
-    <button nz-button nzType="default" nzSize="large" nzShape="round" (click)="saveOrPlay()"
-      [nzLoading]="refreshPending">
+
+    <button class="tkd-btn tkd-primary" (click)="saveOrPlay()">
       <i nz-icon [nzType]="unsaved ? 'save' : 'caret-right'" nzTheme="outline"></i>
-      {{ refreshPending ? 'Laden ...' : unsaved ? 'Speichern' : 'Abspielen'}}
+      <span>
+        {{ refreshPending ? 'Laden ...' : unsaved ? 'Speichern' : 'Abspielen'}}
+      </span>
     </button>
   </div>
 
-  <nz-collapse class="vars">
+  <nz-collapse class="flex flex-col flex-grow h-full ml-3 overflow-x-hidden overflow-y-scroll bg-white border-0 rounded shadow w-52 vars">
     <nz-collapse-panel nzHeader="Slide-Show Einstellungen">
       <ng-container *ngIf="!!show">
         <div class="var">
