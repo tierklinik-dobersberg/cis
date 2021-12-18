@@ -137,25 +137,25 @@ func (db *database) DeletePatient(ctx context.Context, id string) error {
 }
 
 func (db *database) Search(ctx context.Context, filter *SearchOptions) ([]v1alpha.PatientRecord, error) {
-	opts := options.Find().SetSort(bson.M{
-		"customerSource": 1,
-		"customerID":     1,
-		"animalID":       -1,
+	opts := options.Find().SetSort(bson.D{
+		{"customerSource", 1},
+		{"customerID", 1},
+		{"animalID", -1},
 	})
 	result, err := db.collection.Find(ctx, filter.Build(), opts)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to perform query: %w", err)
 	}
 	if result.Err() != nil {
 		if errors.Is(result.Err(), mongo.ErrNoDocuments) {
 			return nil, nil
 		}
-		return nil, result.Err()
+		return nil, fmt.Errorf("query error: %w", result.Err())
 	}
 
 	var records []v1alpha.PatientRecord
 	if err := result.All(ctx, &records); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode result: %w", err)
 	}
 	return records, nil
 }
