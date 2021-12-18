@@ -1,34 +1,15 @@
-<div class="page-header">
-  <div class="main-row">
-    <div class="row-container">
-      <h2>Röntgen Aufnahmen</h2>
-    </div>
-  </div>
-  <div class="secondary-row">
-    <div class="row-container flex-row justify-between">
-      <span class="label">
-        <i nz-icon nzType="filter" nzTheme="outline"></i>
-        FILTER
-      </span>
-      <nz-input-group [nzSuffix]="suffixIconSearch">
-        <input type="text" nz-input placeholder="Nach Kundennamen suchen ..." [(ngModel)]="searchText"
-          (ngModelChange)="ds.search($event)" />
-      </nz-input-group>
-      <ng-template #suffixIconSearch>
-        <i nz-icon nzType="search"></i>
-      </ng-template>
-    </div>
-  </div>
-  <div class="secondary-row">
-    <div class="row-container">
-      <button nz-button nzType="primary" (click)="ds.search(searchText)">Suchen</button>
-    </div>
-  </div>
+<div class="flex items-center py-2 space-x-3">
+  <input type="text" class="flex-grow tkd-input " placeholder="Nach Namen suchen ..." [(ngModel)]="searchText" (ngModelChange)="ds.search($event)">
+  <button class="tkd-btn tkd-primary" (click)="ds.search(searchText)">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+    </svg>
+    <span>Suchen</span>
+  </button>
 </div>
 
-<div class="content-wrapper">
-
-  <cdk-virtual-scroll-viewport itemSize="73" class="infinite-container content-section">
+<div class="flex flex-grow p-2 bg-white rounded shadow sm:p-4 md:p-8">
+  <cdk-virtual-scroll-viewport itemSize="48" class="flex-grow">
     <nz-list nzSize="small">
       <nz-list-item *cdkVirtualFor="let study of ds; trackBy: trackBy" (click)="toggleDrawer(study.studyInstanceUid)">
         <nz-list-item-meta>
@@ -68,8 +49,8 @@
           </ng-template>
         </nz-list-item-meta>
 
-        <nz-list-item-extra *ngIf="layout.isTabletLandscapeUp">
-          <img *ngFor="let preview of study.previews" (click)="openViewer(study, preview)" height="60" alt="logo"
+        <nz-list-item-extra *ngIf="layout.isTabletLandscapeUp" class="flex flex-row items-center space-x-2">
+          <img *ngFor="let preview of study.previews" (click)="openViewer(study, preview)" alt="preview" class="h-12 border border-transparent rounded cursor-pointer hover:opacity-80 hover:border-primary"
             [attr.src]="preview.previewUrl" />
         </nz-list-item-extra>
       </nz-list-item>
