@@ -123,7 +123,7 @@
   <!--
     On tablet and up we have a sidebar for navigation
   -->
-  <div *ngIf="(isLogin | async) === false && !layout.isPhone" class="flex relative z-10 flex-col p-2 w-64 h-full bg-white shadow-md sm:px-4">
+  <div *ngIf="(isLogin | async) === false && !layout.isPhone" class="relative z-10 flex flex-col w-64 h-full p-2 bg-white shadow-md sm:px-4">
     <div class="py-2 ml-1 h-14">
       <a class="flex items-center space-x-2" routerLink="/welcome">
         <img src="assets/logo.png" class="w-10 h-10" alt="logo">
@@ -138,19 +138,22 @@
       <ng-container *ngTemplateOutlet="menuTemplate"></ng-container>
     </div>
 
-    <span class="py-2 text-xs text-center text-tertiary">
-      <i nz-icon nzType="copyright" nzTheme="outline"></i>
-      Patrick Pacher 2020-2022
+    <span class="flex flex-col items-center justify-around py-2 text-xs text-center text-secondary font-lato">
+      <span class="font-semibold text-highlight">V1.0</span>
+      <span>
+        <i nz-icon nzType="copyright" nzTheme="outline"></i>
+        Patrick Pacher 2020-2022
+      </span>
     </span>
   </div>
 
   <!--
     Next to the sidebar there's the main content container including the header
   -->
-  <div class="flex overflow-x-hidden flex-col flex-grow self-stretch">
+  <div class="flex flex-col self-stretch flex-grow overflow-x-hidden">
     <!-- App header is only visible if we're not on the login screen -->
-    <div *ngIf="(isLogin | async) === false" class="flex relative flex-col p-0 px-2 mb-4 sm:px-4 md:px-8 lg:px-12">
-      <div class="flex justify-between items-center py-4">
+    <div *ngIf="(isLogin | async) === false" class="relative flex flex-col p-0 px-2 mb-4 sm:px-4 md:px-8 lg:px-12">
+      <div class="flex items-center justify-between py-4">
         <!-- On mobile the logo is put into the header -->
         <a class="block px-2 sm:hidden" routerLink="/welcome">
           <img class="w-8 h-8" src="assets/logo.png" alt="logo">
@@ -162,9 +165,9 @@
           <i class="block sm:hidden" (click)="toggleMenu()" nz-icon nzType="menu" nzTheme="outline"></i>
 
           <ng-container *ngIf="(suggestionCount | async) as count">
-            <button class="tkd-icon-btn tkd-small">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+            <button class="tkd-icon-btn tkd-small text-secondary no-shadow" (click)="openSuggestionDialog()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
             </button>
           </ng-container>
@@ -219,14 +222,14 @@
 
     </div>
 
-    <div class="flex overflow-auto flex-grow justify-items-stretch items-stretch self-stretch w-full router-content" cdkScrollable>
+    <div class="flex items-stretch self-stretch flex-grow w-full overflow-auto justify-items-stretch router-content" cdkScrollable>
       <router-outlet></router-outlet>
     </div>
 
     <!--
       On mobile we have an additional navigation bar at the bottom
     -->
-    <div *ngIf="layout.isPhone" class="flex z-10 justify-evenly items-center py-1 w-full h-12 text-xs list-none border-t sm:hidden text-color-primary text-opacity-light border-tertiary">
+    <div *ngIf="layout.isPhone" class="z-10 flex items-center w-full h-12 py-1 text-xs list-none border-t justify-evenly sm:hidden text-color-primary text-opacity-light border-tertiary">
       <!-- Dashboard -->
       <li routerLink="/welcome" routerLinkActive="bg-primary text-white" class="p-1 rounded-full">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-4 h-4" viewBox="0 0 24 24" stroke="currentColor">
