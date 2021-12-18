@@ -1,8 +1,7 @@
 <div class="shows">
-
-  <div class="show-entry" *ngFor="let show of shows; trackBy: trackShow">
-    <iframe class="preview" [src]="show.preview" (mouseenter)="activate(show)" (mouseleave)="deactivate(show)"></iframe>
-    <div class="meta">
+  <div class="flex flex-col bg-white rounded shadow cursor-pointer show-entry hover:bg-primary hover:text-color-primary hover:bg-opacity-light" *ngFor="let show of shows; trackBy: trackShow">
+    <iframe class="preview bg-primary bg-opacity-light" [src]="show.preview" (mouseenter)="activate(show)" (mouseleave)="deactivate(show)"></iframe>
+    <div class="meta flex-grow px-3 py-1.5 rounded-b bg-white flex items-center">
       <div class="desc">
         <a [href]="show.playUrl" target="_blank" class="name">{{ show.name }}</a>
         <span class="description">{{ show?.description || 'Slide-Show' }}</span>
