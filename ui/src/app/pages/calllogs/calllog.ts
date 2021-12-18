@@ -65,7 +65,7 @@ export class CallLogComponent implements OnInit, OnDestroy {
         )
         .subscribe(logs => {
           this.missedCalls = 0;
-          this.logs = logs.items;
+          this.logs = logs.items || [];
           this.distinctCallers = new Set();
           this.logs.forEach(log => {
             this.distinctCallers.add(log.caller);

@@ -34,7 +34,7 @@
   <div class="p-2 bg-white rounded shadow sm:p-4">
     <div class="flex items-center space-x-5">
       <span class="space-x-1 leading-3">
-        <h1 class="text-3xl font-bold text-rost-dust font-roboto">{{ 100 / logs.length * missedCalls | number:"1.2-2" }}%</h1>
+        <h1 class="text-3xl font-bold text-rost-dust font-roboto">{{ (logs.length > 0 ? 100 / logs.length * missedCalls : 0) | number:"1.2-2" }}%</h1>
         <span class="text-secondary font-lato"><span class="font-semibold text-highlight">{{missedCalls}}</span> Verpasste Anrufe</span>
       </span>
     </div>
