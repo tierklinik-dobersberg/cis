@@ -50,10 +50,10 @@
   </ng-template>
 </div>
 
-<div class="mb-12 tkd-card" [class.ready]="overwriteType !== '' && !!from && !!to">
-  <header class="flex flex-row items-center px-12 py-12">
+<div class="mb-12 bg-white rounded shadow" [class.ready]="overwriteType !== '' && !!from && !!to">
+  <header class="flex flex-row items-center px-12 py-12 border-b border-text-deEmphasized border-opacity-light">
     <div class="flex-grow">
-      <h1 class="mb-1 text-xl font-lato">Telefon umleiten</h1>
+      <h1 class="mb-1 text-xl font-lato text-color-primary">Telefon umleiten</h1>
       <h2 class="text-sm">Hier kannst du den bestehenden <a class="text-highlight hover:underline"
           routerLink="/roster">Dienstplan</a> überschreiben bzw das Notruf-Telefon umleiten.</h2>
     </div>

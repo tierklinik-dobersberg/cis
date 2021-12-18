@@ -1,22 +1,6 @@
-.tkd-card {
-  @apply shadow bg-white rounded;
-
-  header {
-    @apply border-b border-text-deEmphasized border-opacity-light;
-
-    h1 {
-      @apply font-semibold text-primary;
-    }
-
-    h2 {
-      @apply font-normal text-secondary;
-    }
-  }
-
-  section {
-    &:not(:last-of-type) {
-      @apply border-b border-text-deEmphasized border-opacity-30 pb-8;
-    }
+section {
+  &:not(:last-of-type) {
+    @apply border-b border-text-deEmphasized border-opacity-30 pb-8;
   }
 }
 
