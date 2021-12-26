@@ -1,15 +1,3 @@
-@import 'src/utils';
-
-:host {
-  @include page-host;
-  overflow: auto;
-  padding : 24px;
-
-  @include for-phone-only {
-    padding: 12px;
-  }
-}
-
 .shows {
   display       : flex;
   flex-direction: row;

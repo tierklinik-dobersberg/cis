@@ -1,7 +1,7 @@
 <div class="shows">
   <div class="flex flex-col bg-white rounded shadow cursor-pointer show-entry hover:bg-primary hover:text-color-primary hover:bg-opacity-light" *ngFor="let show of shows; trackBy: trackShow">
     <iframe class="preview bg-primary bg-opacity-light" [src]="show.preview" (mouseenter)="activate(show)" (mouseleave)="deactivate(show)"></iframe>
-    <div class="meta flex-grow px-3 py-1.5 rounded-b bg-white flex items-center">
+    <div class="flex flex-grow items-center px-3 py-1.5 bg-white rounded-b meta">
       <div class="desc">
         <a [href]="show.playUrl" target="_blank" class="name">{{ show.name }}</a>
         <span class="description">{{ show?.description || 'Slide-Show' }}</span>
@@ -14,11 +14,11 @@
     </div>
   </div>
 
-  <div class="show-entry" (click)="createNew()" *ngIf="layout.isTabletLandscapeUp">
+  <div class="flex flex-col bg-white rounded shadow cursor-pointer show-entry hover:bg-primary hover:text-color-primary hover:bg-opacity-light" (click)="createNew()" *ngIf="layout.isTabletLandscapeUp">
     <div class="preview add-new">
       <i nz-icon nzType="plus-circle" nzTheme="outline"></i>
     </div>
-    <div class="meta">
+    <div class="flex flex-grow items-center px-3 py-1.5 bg-white rounded-b meta">
       <div class="desc">
         <span class="name">Neue Slide-Show</span>
         <span class="description">Erstelle eine neue Slide-Show</span>
