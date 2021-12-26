@@ -312,7 +312,13 @@ func (db *database) GetOverwrites(ctx context.Context, filterFrom, filterTo time
 		filter["deleted"] = bson.M{"$ne": true}
 	}
 
-	res, err := db.overwrites.Find(ctx, filter)
+	opts := options.Find().SetSort(bson.D{
+		{"from", 1},
+		{"to", 1},
+		{"_id", 1},
+	})
+
+	res, err := db.overwrites.Find(ctx, filter, opts)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
