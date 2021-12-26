@@ -7,18 +7,11 @@
 
 nz-card {
   height    : 100%;
-  flex-grow: 1;
-  border-top: 3px solid #93C5FD;
-  @include for-phone-only {
-    border: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    padding-top: 12px;
-    padding-bottom: 12px;
-  }
-  position  : relative;
 
   img.card-image {
     display: none;
+
+    @apply text-color-primary opacity-25;
 
     @include for-tablet-portrait-up {
       display: block;
@@ -27,13 +20,11 @@ nz-card {
     position: absolute;
     top     : 15px;
     right   : 15px;
-    opacity : 0.1;
     height  : 100px;
   }
 }
 
 .header {
-  font-size: 80%;
   margin-bottom: 6px;
   display: block;
   text-transform: uppercase;

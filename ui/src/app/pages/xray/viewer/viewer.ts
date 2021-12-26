@@ -1,12 +1,12 @@
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { DxrService, Series, Study } from 'src/app/api';
-import { DwvService, Tool } from './viewer.service';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import * as dwv from 'dwv';
-import { map, mergeMap, take } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
+import { map, mergeMap } from 'rxjs/operators';
+import { DxrService, Series, Study } from 'src/app/api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
+import { DwvService } from './viewer.service';
 
 @Component({
   templateUrl: './viewer.html',
@@ -103,7 +103,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
           const study = response.studies[0];
           this.loadProgress = 0;
 
-          this.header.set(`Röntgen: ${study.patientName} - ${study.animalName}`);
+          this.header.set(`${study.patientName} - ${study.animalName}`, `Röntgen Aufnahmen vom ${study.studyDate} ${study.studyTime || ''} ${study.animalRace ? ' - ' + study.animalRace : ''}`);
           this.study = study;
           this.series = study.seriesList.find(s => s.seriesInstanceUid === seriesID);
 

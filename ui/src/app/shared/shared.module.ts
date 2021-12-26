@@ -13,6 +13,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageServiceModule } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { MarkdownModule } from 'ngx-markdown';
@@ -22,6 +23,7 @@ import { HeaderTitleOutletComponent } from './header-title';
 import { DurationPipe } from './pipes';
 import { CanDeleteCustomerPipe } from './pipes/can-delete-customer';
 import { TextInputComponent } from './text-input';
+import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 
 @NgModule({
   imports: [
@@ -32,6 +34,7 @@ import { TextInputComponent } from './text-input';
     NzMessageServiceModule,
     NzButtonModule,
     NzInputModule,
+    NzCheckboxModule,
     NzSelectModule,
     MarkdownModule.forChild(),
     CommonModule,
@@ -59,6 +62,8 @@ import { TextInputComponent } from './text-input';
     NzButtonModule,
     NzInputModule,
     NzCheckboxModule,
+    NzDatePickerModule,
+    NzTimePickerModule,
     NzMessageServiceModule,
     NzEmptyModule,
     NzSelectModule,

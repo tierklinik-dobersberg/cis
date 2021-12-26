@@ -122,7 +122,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 			if cityCode := c.Query("cityCode"); cityCode != "" {
 				parsed, err := strconv.ParseInt(cityCode, 10, 0)
 				if err != nil {
-					return httperr.InvalidParameter("cityCode")
+					return httperr.InvalidParameter("cityCode", err.Error())
 				}
 
 				filter["cityCode"] = parsed

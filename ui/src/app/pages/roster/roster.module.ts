@@ -22,6 +22,7 @@ import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { SharedModule } from 'src/app/shared/shared.module';
+import { RosterOverwritePageComponent } from './roster-overwrite';
 
 @NgModule({
   imports: [
@@ -52,6 +53,7 @@ import { SharedModule } from 'src/app/shared/shared.module';
   ],
   declarations: [
     RosterComponent,
+    RosterOverwritePageComponent,
   ],
   exports: [
     RosterComponent,

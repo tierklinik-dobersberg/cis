@@ -19,7 +19,7 @@ describe("Triggers", () => {
         // based on permissions checks. I.e. add a user that only has access to one
         // following triggers.
 
-        const response = await Alice.get("http://localhost:3000/api/triggers/v1")
+        const response = await Alice.get("/api/triggers/v1")
         expect(response.status).toBe(200)
         expect(response.data).toEqual({
             "instances": [
@@ -54,7 +54,7 @@ describe("Triggers", () => {
 
         it("should send a To and CC mails when triggered using inline-template", async () => {
             const response = await
-                Alice.post(`http://localhost:3000/api/triggers/v1/instance/${InlineMailTemplateTrigger}`);
+                Alice.post(`/api/triggers/v1/instance/${InlineMailTemplateTrigger}`);
             expect(response.status).toBe(202);
 
             const mails = await getMails()
@@ -73,7 +73,7 @@ describe("Triggers", () => {
 
         it("should send a To and CC mails when triggered using inline-template", async () => {
             const response = await
-                Alice.post(`http://localhost:3000/api/triggers/v1/instance/${FileMailTemplateTrigger}`);
+                Alice.post(`/api/triggers/v1/instance/${FileMailTemplateTrigger}`);
             expect(response.status).toBe(202);
 
             const mails = await getMails()

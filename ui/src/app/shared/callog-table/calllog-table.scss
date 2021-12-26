@@ -4,29 +4,33 @@ tr.error {
 
 tr.inbound {
   .direction {
-    color: green;
+    @apply text-meadow;
   }
 }
 
 tr.self-call {
-  background-color: rgba(33, 33, 33, 0.1);
+  @apply text-subtle;
   opacity: 0.9;
 }
 
 tr.outbound {
   .direction {
-    color: blue;
+    @apply text-highlight;
   }
 }
 
 tr.lost {
   .direction {
-    color: red;
+    @apply text-alert-red;
   }
 }
 
-.data-container {
-  padding: 0;
+.direction {
+  @apply text-center;
+
+  & > svg {
+    @apply inline-block;
+  }
 }
 
 .customer-link {
@@ -34,6 +38,10 @@ tr.lost {
 }
 
 .transfer-target {
-  color    : gray;
+  @apply text-deEmphasized;
   font-size: 95%;
+}
+
+::ng-deep .ant-table-pagination.ant-pagination {
+  margin-right: 1rem !important;
 }

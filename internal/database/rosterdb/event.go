@@ -21,7 +21,8 @@ type RosterDeleteEvent struct {
 
 type OverwriteEvent struct {
 	Reset       bool   `json:"reset,omitempty" bson:"reset,omitempty"`
-	Date        string `json:"date,omitempty" bson:"date,omitempty"`
+	From        string `json:"from,omitempty" bson:"from,omitempty"`
+	To          string `json:"to,omitempty" bson:"to,omitempty"`
 	DisplayName string `json:"displayName,omitempty" bson:"displayName,omitempty"`
 	User        string `json:"user,omitempty" bson:"user,omitempty"`
 	Phone       string `json:"phone,omitempty" bson:"phone,omitempty"`
@@ -49,19 +50,21 @@ func (db *database) fireDeleteEvent(ctx context.Context, month time.Month, year 
 	})
 }
 
-func (db *database) fireOverwriteDeleteEvent(ctx context.Context, d time.Time) {
+func (db *database) fireOverwriteDeleteEvent(ctx context.Context, from, to time.Time) {
 	event.Fire(ctx, "event/roster/overwrite/delete", OverwriteEvent{
 		Reset: true,
-		Date:  d.Format("2006-01-02"),
+		From:  from.Format(time.RFC3339),
+		To:    to.Format(time.RFC3339),
 	})
 }
 
-func (db *database) fireOverwriteEvent(ctx context.Context, d time.Time, user, phone, name string) {
+func (db *database) fireOverwriteEvent(ctx context.Context, from, to time.Time, user, phone, name string) {
 	event.Fire(ctx, "event/roster/overwrite/create", OverwriteEvent{
 		DisplayName: name,
 		User:        user,
 		Phone:       phone,
 		Reset:       false,
-		Date:        d.Format("2006-01-02"),
+		From:        from.Format(time.RFC3339),
+		To:          to.Format(time.RFC3339),
 	})
 }

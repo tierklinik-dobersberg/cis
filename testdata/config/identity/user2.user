@@ -1,0 +1,12 @@
+[User]
+Name=lidia
+FullName=Lidia Kirkland
+PasswordAlgo=plain
+PasswordHash=password
+Mail=lidia@example.com
+PhoneNumber=+123452
+Roles=default-role
+PhoneExtension=12
+CalendarID=primary
+PrivateProperty=some-value
+AvatarFile=user2.png

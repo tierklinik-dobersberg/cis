@@ -9,7 +9,6 @@ export type InputUnit = 'ns' | 'µs' | 'ms' | 's' | 'm' | 'h';
 })
 export class DurationPipe implements PipeTransform {
   transform(value: string | number, layout: DurationLayout = 'default', input: InputUnit = 's'): string {
-    console.log(value);
     let d: Duration;
     switch (input) {
       case 'h':

@@ -1,22 +1,24 @@
-<h1>Hi <span class="username">{{ (user$ | async)?.fullname }}</span>,</h1>
-<p>
+<h1 class="font-lato">Hi <span class="font-semibold text-color-primary">{{ (user$ | async)?.fullname }}</span>,</h1>
+<p class="py-3 text-primary text-opacity-70">
   Schön das du hier bist! Die folgenden Punkte könnten dir helfen schneller an dein Ziel zu gelangen:
 </p>
-<ul class="action-list">
+<ul class="w-full p-0 space-y-1.5 list-none">
   <li tabindex="0" *ngIf="(user$ | async)?.needsPasswordChange" routerLink="/profile/change-password">
-    <i nz-icon nzType="exclamation-circle" nzTheme="outline" style="background-color: lightcoral;"></i>
+    <i nz-icon nzType="exclamation-circle" nzTheme="outline" class="text-white bg-rost-dust"></i>
     <span>Ändere dein Passwort!</span>
   </li>
   <li tabindex="0" *ngFor="let item of unreadMailboxes" [routerLink]="['/voicemail', item.name]">
-    <i nz-icon nzType="customer-service" style="background-color: lightblue;"></i>
+    <i nz-icon nzType="customer-service" class="text-white bg-golden-rod"></i>
     <span>{{ item.name }} abhören</span>
   </li>
   <li tabindex="0" routerLink="/calendar">
-    <i nz-icon nzType="calendar" style="background-color: lightgoldenrodyellow;"></i>
+    <i nz-icon nzType="calendar" class="text-white bg-meadow"></i>
     <span>Kalender öffnen</span>
   </li>
   <li tabindex="0" routerLink="/roster">
-    <i nz-icon nzType="clock-circle" style="background-color: lightgreen;"></i>
+    <i nz-icon nzType="clock-circle" class="text-white bg-blue-gray"></i>
     <span>Dienstplan anzeigen</span>
   </li>
 </ul>
+
+<div class="w-full mt-4 mb-2 border-b border-tertiary"></div>

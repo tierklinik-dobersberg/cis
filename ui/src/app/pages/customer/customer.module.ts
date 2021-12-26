@@ -12,6 +12,7 @@ import { NzPopoverModule } from 'ng-zorro-antd/popover';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { CustomerListComponent } from './customer-list';
 import { CustomerRoutingModule } from './customer-routing.module';
@@ -31,6 +32,7 @@ import { CustomerViewComponent } from './customer-view';
     NzDrawerModule,
     NzGridModule,
     NzPopoverModule,
+    NzSwitchModule,
     NgxChartsModule,
     ScrollingModule,
     CustomerRoutingModule,

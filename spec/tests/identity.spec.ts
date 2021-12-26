@@ -1,10 +1,10 @@
 import axios, { AxiosResponse } from 'axios';
 import { Cookie, parse as parseCookie } from 'set-cookie-parser';
-import { Alice } from '../utils';
+import { Alice, Unauth } from '../utils';
 
 describe("The identity API", () => {
     it("should allow access to all members", async () => {
-        const response = await Alice.get("http://localhost:3000/api/identity/v1/users")
+        const response = await Alice.get("/api/identity/v1/users")
         expect(response).toBeDefined()
         expect(response.status).toBe(200)
         expect(response.data).toContain(
@@ -22,7 +22,7 @@ describe("The identity API", () => {
                 "fullname": "Alice Musterfrau",
                 "mail": ["alice@example.at", "alice@example.com"],
                 "phoneNumbers": ["+4312345678", "+2812345"],
-                "roles": ["default-role"],
+                "roles": ["default-role", "doctor"],
                 "properties": { "PhoneExtension": "10" },
                 "calendarID": "primary",
                 "color": "#1b7550b9"
@@ -51,7 +51,7 @@ describe("The identity API", () => {
     })
 
     it("should allow access to profile", async () => {
-        const response = await Alice.get("http://localhost:3000/api/identity/v1/profile")
+        const response = await Alice.get("/api/identity/v1/profile")
         expect(response.status).toBe(200);
         expect(response.data).toEqual({
             name: "alice",
@@ -66,6 +66,7 @@ describe("The identity API", () => {
             ],
             roles: [
                 "default-role",
+                "doctor"
             ],
             calendarID: "primary",
             properties: {
@@ -77,7 +78,7 @@ describe("The identity API", () => {
     })
 
     it("should allow access to user avatars", async () => {
-        const response = await Alice.get("http://localhost:3000/api/identity/v1/avatar/bob")
+        const response = await Alice.get("/api/identity/v1/avatar/bob")
         expect(response.status).toBe(200)
         expect(response.headers['content-type']).toEqual("image/png")
     })
@@ -87,7 +88,7 @@ describe("The identity API", () => {
         let refreshCookie: Cookie;
 
         it("should work as alice", async () => {
-            const response = await axios.post("http://localhost:3000/api/identity/v1/login", {
+            const response = await Unauth.post("/api/identity/v1/login", {
                 username: "alice",
                 password: "password"
             })
@@ -105,16 +106,16 @@ describe("The identity API", () => {
         })
 
         it("should not work for disabled uesrs", async () => {
-            const response = await axios.post("http://localhost:3000/api/identity/v1/login", {
+            const response = await Unauth.post("/api/identity/v1/login", {
                 username: "diser",
                 password: "password",
-            }).catch(err => err.response as AxiosResponse)
+            })
 
             expect(response.status).toBe(401)
         })
 
         it("should issue a new access token on refresh", async () => {
-            const response = await axios.post("http://localhost:3000/api/identity/v1/refresh", null, {
+            const response = await Unauth.post("/api/identity/v1/refresh", null, {
                 headers: {
                     Cookie: `${refreshCookie.name}=${refreshCookie.value}`,
                 }
@@ -125,7 +126,7 @@ describe("The identity API", () => {
         })
 
         it("should clear session and refresh token on logout", async () => {
-            const response = await axios.post("http://localhost:3000/api/identity/v1/logout", null, {
+            const response = await Unauth.post("/api/identity/v1/logout", null, {
                 headers: {
                     Cookie: `cis-session=${accessToken}`
                 }
@@ -152,21 +153,21 @@ describe("The identity API", () => {
 
     describe("chaning passwords", () => {
         it("should work", async () => {
-            const response = await Alice.put("http://localhost:3000/api/identity/v1/profile/password", {
+            const response = await Alice.put("/api/identity/v1/profile/password", {
                 current: "password",
                 newPassword: "test",
             })
             expect(response).toBeDefined();
             expect(response.status).toBe(204)
 
-            const loginResponse = await axios.post("http://localhost:3000/api/identity/v1/login", {
+            const loginResponse = await Unauth.post("/api/identity/v1/login", {
                 username: "alice",
                 password: "test"
             })
             expect(loginResponse.status).toBe(200)
             expect(loginResponse.data.token).toBeTruthy()
 
-            const responseReset = await Alice.put("http://localhost:3000/api/identity/v1/profile/password", {
+            const responseReset = await Alice.put("/api/identity/v1/profile/password", {
                 current: "test",
                 newPassword: "password",
             })
@@ -175,45 +176,27 @@ describe("The identity API", () => {
         })
 
         it("should fail if the current password is wrong", async () => {
-            let catched = false
-            try {
-                await Alice.put("http://localhost:3000/api/identity/v1/profile/password", {
-                    current: "wrong-password",
-                    newPassword: "silly-password",
-                })
-            } catch (err) {
-                catched = true
-                expect(err.response.status).toBe(400)
-            }
-            expect(catched).toBeTrue()
+            const response  = await Alice.put("/api/identity/v1/profile/password", {
+                current: "wrong-password",
+                newPassword: "silly-password",
+            })
+            expect(response.status).toBe(400)
         })
 
         it("should fail if the current password is unset", async () => {
-            let catched = false
-            try {
-                await Alice.put("http://localhost:3000/api/identity/v1/profile/password", {
-                    current: "",
-                    newPassword: "silly-password",
-                })
-            } catch (err) {
-                catched = true
-                expect(err.response.status).toBe(400)
-            }
-            expect(catched).toBeTrue()
+            const response = await Alice.put("/api/identity/v1/profile/password", {
+                current: "",
+                newPassword: "silly-password",
+            })
+            expect(response.status).toBe(400)
         })
 
         it("should fail if the new password is unset", async () => {
-            let catched = false
-            try {
-                await Alice.put("http://localhost:3000/api/identity/v1/profile/password", {
-                    current: "password",
-                    newPassword: "",
-                })
-            } catch (err) {
-                catched = true
-                expect(err.response.status).toBe(400)
-            }
-            expect(catched).toBeTrue()
+            const response = await Alice.put("/api/identity/v1/profile/password", {
+                current: "password",
+                newPassword: "",
+            })
+            expect(response.status).toBe(400)
         })
     })
 })

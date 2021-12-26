@@ -36,7 +36,7 @@ func GetContactEndpoint(grp *app.Router) {
 
 			number, err := phonenumbers.Parse(phone, app.Config.Country)
 			if err != nil {
-				return httperr.InvalidParameter("phone")
+				return httperr.InvalidParameter("phone", err.Error())
 			}
 
 			filter := bson.M{

@@ -41,6 +41,12 @@ export interface TriggerAction {
   PendingText: string;
 }
 
+export interface RosterUIConfig {
+  EligibleRolesForOverwrite: string[];
+  AllowAnyUserAsOverwrite: boolean;
+  AllowPhoneNumberOverwrite: boolean;
+}
+
 export interface UIConfig {
   HideUsersWithRole?: string[];
   ExternalLinks?: ExternalLink[];
@@ -50,6 +56,7 @@ export interface UIConfig {
   UserPhoneExtensionProperties?: string[];
   TriggerActions?: TriggerAction[];
   CreateEventAlwaysAllowCalendar?: string[];
+  Roster?: RosterUIConfig;
 }
 
 @Injectable({

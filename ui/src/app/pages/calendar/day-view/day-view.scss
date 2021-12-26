@@ -7,37 +7,6 @@
     overflow: hidden;
 }
 
-.calendar-container {
-    display: flex;
-    flex-direction: row;
-    overflow: auto;
-}
-
-.toolbar {
-    padding-left: 12px;
-    padding-right: 12px;
-    padding-top: 6px;
-    padding-bottom: 6px;
-    background-color: #fafafa;
-    z-index: 3;
-    justify-content: space-between;
-
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    flex: 1 0 50px;
-
-    .filter {
-        label {
-            opacity: .9;
-        }
-
-        button.create {
-            margin-left: .5rem; 
-        }
-    }
-}
-
 .calendar {
     flex: 1 1;
     background-color: white;

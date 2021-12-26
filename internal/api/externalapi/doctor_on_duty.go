@@ -3,8 +3,8 @@ package externalapi
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -35,11 +35,20 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 				var err error
 				d, err = app.ParseTime(time.RFC3339, at)
 				if err != nil {
-					return httperr.InvalidParameter("at")
+					return httperr.InvalidParameter("at", err.Error())
 				}
 			}
 
-			response, err := getDoctorOnDuty(ctx, app, d)
+			ignoreOverwrites := false
+			if val := c.Query("ignore-overwrite"); val != "" {
+				b, err := strconv.ParseBool(val)
+				if err != nil {
+					return httperr.InvalidParameter("ignore-overwrite", err.Error())
+				}
+				ignoreOverwrites = b
+			}
+
+			response, err := getDoctorOnDuty(ctx, app, d, ignoreOverwrites)
 			if err != nil {
 				return err
 			}
@@ -49,17 +58,105 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 	)
 }
 
-func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) (*v1alpha.DoctorOnDutyResponse, error) {
+func activeOverwrite(ctx context.Context, app *app.App, t time.Time, lm map[string]cfgspec.User) *v1alpha.DoctorOnDutyResponse {
+	log := log.From(ctx)
+	// first check if we have an active overwrite for today
+	overwrite, err := app.DutyRosters.GetActiveOverwrite(ctx, t)
+	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		return nil
+	}
+
+	if err != nil {
+		log.Errorf("failed to find active overwrite for %s", t)
+		return nil
+	}
+
+	if overwrite.DisplayName == "" {
+		overwrite.DisplayName = "Manual Overwrite"
+	}
+
+	log.WithFields(logger.Fields{
+		"overwrite": overwrite,
+	}).Infof("found active overwrite, using that instead")
+
+	parsed, err := phonenumbers.Parse(overwrite.PhoneNumber, app.Config.Country)
+	if err == nil {
+		overwrite.PhoneNumber = strings.ReplaceAll(
+			phonenumbers.Format(parsed, phonenumbers.NATIONAL),
+			" ",
+			"",
+		)
+	} else {
+		var phone string
+		user, ok := lm[overwrite.Username]
+		if !ok || overwrite.Username == "" {
+			log.Errorf("found invalid emergency duty overwrite for %s", t)
+			return nil
+		}
+
+		if len(user.PhoneNumber) > 0 {
+			phone = user.PhoneNumber[0]
+		}
+
+		return &v1alpha.DoctorOnDutyResponse{
+			Doctors: []v1alpha.DoctorOnDuty{
+				{
+					FullName:   user.Fullname,
+					Phone:      phone,
+					Username:   user.Name,
+					Properties: user.Properties,
+				},
+			},
+			Until:       overwrite.To,
+			IsOverwrite: true,
+		}
+	}
+
+	return &v1alpha.DoctorOnDutyResponse{
+		Doctors: []v1alpha.DoctorOnDuty{
+			{
+				FullName: overwrite.DisplayName,
+				Phone:    overwrite.PhoneNumber,
+				Username: overwrite.Username,
+			},
+		},
+		Until:       overwrite.To,
+		IsOverwrite: true,
+	}
+}
+
+func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverwrites bool) (*v1alpha.DoctorOnDutyResponse, error) {
 	log := log.From(ctx)
 	t = t.In(app.Location())
+
+	// fetch all users so we can convert usernames to phone numbers,
+	// ...
+	allUsers, err := app.Identities.ListAllUsers(
+		identitydb.WithScope(ctx, identitydb.Public),
+	)
+	if err != nil {
+		return nil, httperr.InternalError(err)
+	}
+
+	// build a small lookup map by username.
+	lm := make(map[string]cfgspec.User, len(allUsers))
+	for _, u := range allUsers {
+		lm[strings.ToLower(u.Name)] = u
+	}
+
+	if !ignoreOverwrites {
+		// check if there's an active overwrite for t. In this case, just return
+		// that one and we're done.
+		if res := activeOverwrite(ctx, app, t, lm); res != nil {
+			return res, nil
+		}
+	}
 
 	// find out if we need to the doctor-on-duty from today or the day before
 	// depending on the ChangeOnDuty time for today.
 	changeDutyAt := app.Door.ChangeOnDuty(ctx, t)
 	var nextChange time.Time
 	var isDayShift bool
-
-	log.V(7).Logf("searching doctor on duty for %s. Duty time frame changes on %s at %s", t, changeDutyAt.Weekday(), changeDutyAt)
 
 	if changeDutyAt.IsApplicable(t) {
 		if changeDutyAt.IsDayShift(t) {
@@ -80,106 +177,11 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) (*v1alpha.D
 		t = newT
 	}
 
+	rosterDate := t.Format("2006-01-02")
+
 	log = log.WithFields(logger.Fields{
 		"nextChange": nextChange.Format(time.RFC3339),
 	})
-
-	// fetch all users so we can convert usernames to phone numbers,
-	// ...
-	allUsers, err := app.Identities.ListAllUsers(
-		identitydb.WithScope(ctx, identitydb.Public),
-	)
-	if err != nil {
-		return nil, httperr.InternalError(err)
-	}
-
-	// build a small lookup map by username.
-	lm := make(map[string]cfgspec.User, len(allUsers))
-	for _, u := range allUsers {
-		lm[strings.ToLower(u.Name)] = u
-	}
-
-	key := fmt.Sprintf("%04d/%02d/%02d", t.Year(), int(t.Month()), t.Day())
-	log = log.WithFields(logger.Fields{
-		"rosterDate": key,
-	})
-
-	// first check if we have an active overwrite for today
-	overwrite, err := app.DutyRosters.GetOverwrite(ctx, t)
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, err
-	}
-
-	if err == nil {
-		// TODO(ppacher):
-		// 		Overwrites always affect the day and the night shift.
-		//		To make sure the users see the correct end-of-overwrite
-		//		we might need to switch nextChange to the end of the night
-		//		shift the next day. If we are already in the night shift
-		// 		there is nothing to do.
-		if isDayShift {
-			nextDay := t.Add(24 * time.Hour)
-			nextDayChange := app.Door.ChangeOnDuty(ctx, nextDay)
-			nextChange = nextDayChange.DayStartAt(nextDay)
-		}
-
-		if overwrite.DisplayName == "" {
-			overwrite.DisplayName = "Manual Overwrite"
-		}
-
-		log.WithFields(logger.Fields{
-			"overwrite": overwrite,
-		}).Infof("found active overwrite, using that instead")
-
-		parsed, err := phonenumbers.Parse(overwrite.PhoneNumber, app.Config.Country)
-		if err == nil {
-			overwrite.PhoneNumber = strings.ReplaceAll(
-				phonenumbers.Format(parsed, phonenumbers.NATIONAL),
-				" ",
-				"",
-			)
-		} else {
-			var phone string
-			user, ok := lm[overwrite.Username]
-			if !ok || overwrite.Username == "" {
-				log.Errorf("found invalid emergency duty overwrite for day %s", key)
-				return nil, fmt.Errorf("invalid overwrite")
-			}
-
-			if len(user.PhoneNumber) > 0 {
-				phone = user.PhoneNumber[0]
-			}
-
-			return &v1alpha.DoctorOnDutyResponse{
-				Doctors: []v1alpha.DoctorOnDuty{
-					{
-						FullName:   user.Fullname,
-						Phone:      phone,
-						Username:   user.Name,
-						Properties: user.Properties,
-					},
-				},
-				Until:        nextChange,
-				IsOverwrite:  true,
-				IsDayShift:   isDayShift,
-				IsNightShift: !isDayShift,
-			}, nil
-		}
-
-		return &v1alpha.DoctorOnDutyResponse{
-			Doctors: []v1alpha.DoctorOnDuty{
-				{
-					FullName: overwrite.DisplayName,
-					Phone:    overwrite.PhoneNumber,
-					Username: overwrite.Username,
-				},
-			},
-			Until:        nextChange,
-			IsOverwrite:  true,
-			IsDayShift:   isDayShift,
-			IsNightShift: !isDayShift,
-		}, nil
-	}
 
 	day, err := app.DutyRosters.ForDay(ctx, t)
 	if err != nil {
@@ -210,7 +212,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) (*v1alpha.D
 	}
 
 	if len(activeShift) == 0 {
-		return nil, fmt.Errorf("no onCall shifts defined")
+		return nil, httperr.NotFound("doctor-on-duty", "no onCall shifts defined", nil)
 	}
 
 	// convert all the usernames from the Emergency slice to their
@@ -241,5 +243,6 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time) (*v1alpha.D
 		IsOverwrite:  false,
 		IsDayShift:   isDayShift,
 		IsNightShift: isNightShift,
+		RosterDate:   rosterDate,
 	}, nil
 }

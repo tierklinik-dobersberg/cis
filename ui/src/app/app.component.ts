@@ -1,13 +1,13 @@
-import { HttpClient } from '@angular/common/http';
-import { ApplicationRef, Component, HostListener, isDevMode, OnInit } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { ApplicationRef, Component, HostListener, isDevMode, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { interval } from 'rxjs';
-import { delay, filter, first, map, mergeMap, retryWhen, share, startWith, take } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, interval, of, Subject } from 'rxjs';
+import { catchError, delay, filter, first, map, mergeMap, retryWhen, share, startWith, switchMap, take, takeUntil } from 'rxjs/operators';
 import { LayoutService } from 'src/app/services';
-import { ConfigAPI, IdentityAPI, Permission, ProfileWithAvatar, UIConfig, VoiceMailAPI } from './api';
+import { ConfigAPI, IdentityAPI, Overwrite, Permission, ProfileWithAvatar, RosterAPI, UIConfig, UserService, VoiceMailAPI } from './api';
 import { InfoScreenAPI } from './api/infoscreen.api';
 import { SuggestionCardComponent } from './pages/suggestions/suggestion-card';
 import { SuggestionService } from './pages/suggestions/suggestion.service';
@@ -30,7 +30,10 @@ interface SubMenu {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
+  /** emits when the component is destroyed */
+  private destory$ = new Subject();
+
   isCollapsed = false;
   isDevMode = isDevMode();
 
@@ -42,6 +45,12 @@ export class AppComponent implements OnInit {
 
   isReachable: boolean = true;
   checkRunning = false;
+
+  /** The target of the current roster overwrite if any */
+  overwriteTarget = '';
+
+  /** Used to trigger a reload of the current overwrite target */
+  private reloadOverwrite$ = new BehaviorSubject<void>(undefined);
 
   isLogin = this.router.events
     .pipe(
@@ -100,9 +109,11 @@ export class AppComponent implements OnInit {
     private modal: NzModalService,
     private appRef: ApplicationRef,
     private updates: SwUpdate,
+    private roster: RosterAPI,
     public layout: LayoutService,
     private voice: VoiceMailAPI,
     private http: HttpClient,
+    private userService: UserService,
     private showAPI: InfoScreenAPI,
     private suggestionService: SuggestionService,
   ) {
@@ -126,9 +137,45 @@ export class AppComponent implements OnInit {
 
   get suggestionCount() { return this.suggestionService.count$ }
 
+  ngOnDestroy() {
+    this.destory$.next();
+    this.destory$.complete();
+  }
+
   ngOnInit(): void {
+    this.destory$ = new Subject();
+
+    combineLatest([
+      interval(5000),
+      this.reloadOverwrite$
+    ])
+      .pipe(
+        startWith(-1),
+        takeUntil(this.destory$),
+        switchMap(() => this.roster.getActiveOverwrite()
+          .pipe(
+            catchError(err => {
+              if (!(err instanceof HttpErrorResponse) || err.status !== 404) {
+                console.error(err);
+              }
+              return of(null as Overwrite);
+            })
+          ))
+      )
+      .subscribe(overwrite => {
+        this.overwriteTarget = '';
+        if (!!overwrite) {
+          if (!!overwrite.username) {
+            this.overwriteTarget = this.userService.byName(overwrite.username)?.fullname;
+          } else {
+            this.overwriteTarget = overwrite.displayName || overwrite.phoneNumber;
+          }
+        }
+      })
+
     this.checkReachability();
     this.activeRoute.queryParamMap
+      .pipe(takeUntil(this.destory$))
       .subscribe(params => {
         this.isCollapsed = !params.has('show-menu');
       })
@@ -162,14 +209,18 @@ export class AppComponent implements OnInit {
         });
     }
 
-    this.layout.change.subscribe(() => {
+    this.layout.change
+      .pipe(takeUntil(this.destory$))
+      .subscribe(() => {
       this.isCollapsed = !this.layout.isTabletLandscapeUp;
     });
 
     this.configapi.change
+      .pipe(takeUntil(this.destory$))
       .subscribe(cfg => this.applyConfig(cfg));
 
     this.identity.profileChange
+      .pipe(takeUntil(this.destory$))
       .subscribe({
         next: result => {
           this.profile = result;

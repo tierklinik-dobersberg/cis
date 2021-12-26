@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, Subject } from 'rxjs';
-import { delay, distinctUntilChanged, map, mergeMap, retry, retryWhen, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { ConfigAPI, IdentityAPI, TriggerAction, TriggerAPI, TriggerInstance, PermissionRequest, Permission, PermissionTestResult } from 'src/app/api';
+import { delay, distinctUntilChanged, retryWhen, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { ConfigAPI, IdentityAPI, Permission, PermissionRequest, PermissionTestResult, TriggerAction, TriggerAPI, TriggerInstance } from 'src/app/api';
 import { extractErrorMessage } from 'src/app/utils';
 
 interface Action extends TriggerAction {
@@ -22,6 +22,8 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
   private reload$ = new BehaviorSubject<void>(undefined);
 
   actions: Action[] = [];
+
+  trackAction: TrackByFunction<Action> = (_: number, a: Action) => a.Name;
 
   constructor(
     private triggerapi: TriggerAPI,

@@ -27,8 +27,6 @@ export class AuthorizationInterceptor implements HttpInterceptor {
                                 }
                             }
                         }
-
-                        console.error(`API error on ${req.url}`, err);
                     }
                     return throwError(err);
                 })

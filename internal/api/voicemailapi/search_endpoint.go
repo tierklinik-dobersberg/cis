@@ -32,7 +32,7 @@ func SearchEndpoint(router *app.Router) {
 			if date := c.Query("date"); date != "" {
 				d, err := app.ParseTime("2006-1-2", date)
 				if err != nil {
-					return httperr.InvalidParameter("date")
+					return httperr.InvalidParameter("date", err.Error())
 				}
 				opts.ByDate(d)
 			}

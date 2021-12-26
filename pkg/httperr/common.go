@@ -84,7 +84,7 @@ func MissingField(name string) *Error {
 func InvalidParameter(name string, value ...string) *Error {
 	err := fmt.Errorf("invalid value for parameter %q", name)
 	if len(value) > 0 {
-		err = fmt.Errorf("invalid value for parameter %q with value %q", name, value[0])
+		err = fmt.Errorf("%w: %s", err, value)
 	}
 	return BadRequest(err)
 }
@@ -121,4 +121,8 @@ func UnsupportedMediaType(msg string) *Error {
 
 func RequestToLarge(msg string, args ...interface{}) *Error {
 	return New(http.StatusRequestEntityTooLarge, fmt.Errorf(msg, args...), nil)
+}
+
+func Conflict(msg string, args ...interface{}) *Error {
+	return New(http.StatusConflict, fmt.Errorf(msg, args...), nil)
 }

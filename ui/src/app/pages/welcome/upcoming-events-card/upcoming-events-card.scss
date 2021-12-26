@@ -1,22 +1,5 @@
 @import 'src/utils';
 
-nz-card {
-  height: 100%;
-  flex-grow: 1;
-  border-top: 3px solid #93C5FD;
-  @include for-phone-only {
-    border: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    padding-top: 12px;
-    padding-bottom: 12px;
-    max-height: 500px;
-  }
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-
 ::ng-deep app-upcoming-events-card .ant-card-body {
     display: flex;
     flex-direction: column;
@@ -28,21 +11,10 @@ ul[nz-menu] {
     user-select: none;
 }
 
-span.filter, .toggle {
-    font-size: 85%;
+.toggle {
     opacity: .85;
     cursor: pointer;
 }
-
-span.filter {
-    float: right;
-    text-transform: uppercase;
-    color: #40617c;
-    &:hover {
-        opacity: 1;
-    }
-}
-
 
 nz-empty {
     margin-top: auto;

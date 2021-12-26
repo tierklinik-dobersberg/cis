@@ -1,42 +1,30 @@
-<div class="login-container">
-    <div class="login-image">
+<div class="p-16 bg-white rounded-md shadow-md w-96 sm:p-12">
+    <div class="w-full">
         <img src="assets/logo-big.png" alt="logo">
     </div>
 
-    <div class="login-form" *ngIf="!!profile">
+    <div class="text-secondary" *ngIf="!!profile">
         <div class="center">
             <h1>Hallo {{ profile.fullname || profile.name }},</h1>
             Du bist derzeit im CIS angemeldet. <br />
             Möchtest du dich <a (click)="logout()" nz-button nzType="link">Abmelden</a> oder
-            <button (click)="continue()" nz-button style="margin-top: 12px; margin-bottom: 12px; width: 100%;"
-                nzType="primary">
+
+            <button (click)="continue()" class="w-full my-2 text-xs uppercase rounded-xl tkd-btn tkd-secondary">
                 Weiter als
                 &nbsp;
                 <u>{{(profile.fullname || profile.name)}}</u>
             </button>
         </div>
-        <hr color="#e0e0e0" />
-        <p>Du kannst dich auch als neuer Benutzer anmelden:</p>
+        <p class="block py-2 my-2 border-t border-text-tertiary text-secondary">Du kannst dich auch als neuer Benutzer anmelden:</p>
     </div>
 
-    <div class="login-form">
-        <form nz-form [formGroup]="validateForm" class="login-form" (ngSubmit)="submitForm()">
-            <nz-form-item>
-                <nz-form-control nzErrorTip="Bitte Benutzernamen eingeben.">
-                    <nz-input-group nzPrefixIcon="user">
-                        <input type="text" [(ngModel)]="username" nz-input formControlName="userName"
-                            placeholder="Benutzername" />
-                    </nz-input-group>
-                </nz-form-control>
-            </nz-form-item>
-            <nz-form-item>
-                <nz-form-control nzErrorTip="Bitte Passwort eingeben!">
-                    <nz-input-group nzPrefixIcon="lock">
-                        <input type="password" [(ngModel)]="password" nz-input formControlName="password"
-                            placeholder="Passwort" autocomplete="current-password" />
-                    </nz-input-group>
-                </nz-form-control>
-            </nz-form-item>
+    <div class="">
+        <form nz-form [formGroup]="validateForm" class="space-y-4 login-form" (ngSubmit)="submitForm()">
+            <input class="tkd-input" type="text" [(ngModel)]="username" formControlName="userName"
+                placeholder="Benutzername" />
+
+            <input class="tkd-input" type="password" [(ngModel)]="password" formControlName="password"
+                placeholder="Passwort" autocomplete="current-password" />
             <div nz-row>
                 <div nz-col [nzSpan]="24">
                     <label nz-checkbox formControlName="remember">
@@ -44,7 +32,7 @@
                     </label>
                 </div>
             </div>
-            <button nz-button class="login-form-button login-form-margin" [nzType]="'primary'">Log in</button>
+            <button class="w-full text-xs uppercase rounded-xl tkd-btn tkd-primary">Sign in</button>
         </form>
     </div>
 </div>

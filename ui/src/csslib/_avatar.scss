@@ -1,0 +1,7 @@
+@layer components {
+    .tkd-avatar {
+        &, img {
+            @apply rounded-full shadow;
+        }
+    }
+}

@@ -5,17 +5,17 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
+	"encoding/hex"
 )
 
-// Nonce returns a random nonce of the given size.
+// Nonce returns a random nonce of the given size encoded as hex.
 func Nonce(size int) (string, error) {
 	nonce := make([]byte, size)
 	if _, err := rand.Read(nonce); err != nil {
 		return "", err
 	}
 
-	return fmt.Sprintf("%x", nonce), nil
+	return hex.EncodeToString(nonce), nil
 }
 
 // Signature returns a signature for the given parts.

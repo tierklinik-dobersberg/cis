@@ -37,4 +37,5 @@ type UIConfig struct {
 	QuickRosterOverwrites []cfgspec.QuickRosterOverwrite `section:"QuickRosterOverwrite"`
 	KnownPhoneExtensions  []cfgspec.KnownPhoneExtension  `section:"KnownPhoneExtension"`
 	TriggerActions        []cfgspec.TriggerAction        `section:"TriggerAction"`
+	Roster                cfgspec.RosterUIConfig         `section:"Roster"`
 }

@@ -64,7 +64,7 @@ func getIntParam(name string, c *gin.Context) (int, error) {
 
 	value, err := strconv.ParseInt(stringValue, 0, 0)
 	if err != nil {
-		return 0, httperr.InvalidParameter(name)
+		return 0, httperr.InvalidParameter(name, err.Error())
 	}
 
 	return int(value), nil

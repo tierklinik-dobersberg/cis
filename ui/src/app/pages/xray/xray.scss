@@ -1,49 +1,7 @@
 @import "src/utils";
 
-@import 'src/utils';
-
 :host {
-  @include page-host;
-  padding: 0;
-}
-
-cdk-virtual-scroll-viewport {
-  flex-grow: 1;
-}
-
-nz-empty {
-  margin-top: 96px;
-}
-
-nz-list {
-  width: 100%;
-
-  nz-list-item:hover {
-    background: #50566308;
-
-    h4,
-    a {
-      text-decoration: underline;
-    }
-  }
-
-  nz-list-item-extra {
-    img {
-      cursor    : pointer;
-      box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.08);
-      opacity   : 0.5;
-      transition: all ease-in-out .125s;
-
-      &:hover {
-        opacity   : 1;
-        box-shadow: 0px 0px 2px 0px rgba(0, 21, 41, 0.25);
-      }
-    }
-
-    img:not(:last-child) {
-      margin-right: 10px;
-    }
-  }
+  @apply space-y-2;
 }
 
 .contact-popover {

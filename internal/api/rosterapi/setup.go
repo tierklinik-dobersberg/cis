@@ -12,18 +12,27 @@ func Setup(grp gin.IRouter) {
 	// GET /api/dutyroster/v1/roster/:year/:month
 	GetForMonthEndpoint(router)
 
+	// GET /api/dutyroster/v1/roster/:year/:month/:day
+	GetDayEndpoint(router)
+
 	// DELETE /api/dutyroster/v1/roster/:year/:month
 	DeleteRosterEndpoint(router)
 
 	// PUT /api/dutyroster/v1/roster/:year/:month
 	CreateOrUpdateEndpoint(router)
 
-	// POST /api/dutyroster/v1/overwrite?date=<date>
-	SetOverwriteEndpoint(router)
+	// POST /api/dutyroster/v1/overwrite
+	CreateOverwriteEndpoint(router)
+
+	// GET /api/dutyroster/v1/overwrites?from=<date>&to=<date>
+	GetOverwritesEndpoint(router)
 
 	// GET /api/dutyroster/v1/overwrite?date=<date>
-	GetOverwriteEndpoint(router)
+	GetActiveOverwriteEndpoint(router)
 
 	// DELETE /api/dutyroster/v1/overwrite?date=<date>
-	DeleteOverwriteEndpoint(router)
+	DeleteActiveOverwriteEndpoint(router)
+
+	// DELETE /api/dutyroster/v1/overwrite/:id
+	DeleteOverwriteByIDEndpoint(router)
 }

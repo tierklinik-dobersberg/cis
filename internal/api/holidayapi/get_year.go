@@ -21,7 +21,7 @@ func GetForYearEndpoint(grp *app.Router) {
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
 			year, err := strconv.ParseInt(c.Param("year"), 10, 0)
 			if err != nil {
-				return httperr.InvalidParameter("year")
+				return httperr.InvalidParameter("year", err.Error())
 			}
 
 			holidays, err := app.Holidays.Get(ctx, app.Config.Country, int(year))

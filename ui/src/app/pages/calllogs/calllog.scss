@@ -1,35 +1,3 @@
-@import 'src/utils';
-
 :host {
-  @include page-host;
-  padding: 0;
-}
-
-.selection-container {
-  flex-grow: 0;
-  height   : fit-content;
-}
-
-.date-selection {
-  margin-bottom: 12px;
-
-  nz-date-picker {
-    margin-left: 12px;
-  }
-}
-
-.date-time {
-  span {
-    white-space: nowrap;
-    display    : inline;
-
-    @include for-phone-only {
-      display: block;
-    }
-  }
-}
-
-.statistics {
-  display        : flex;
-  justify-content: space-evenly;
+  @apply space-y-4;
 }

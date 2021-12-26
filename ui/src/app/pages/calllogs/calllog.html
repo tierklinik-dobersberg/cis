@@ -1,53 +1,52 @@
-<div class="page-header">
-  <div class="main-row">
-    <div class="row-container">
-      <h2>
-        <i nz-icon nzType="history" nzTheme="outline"></i>
-        Anruf Journal
-      </h2>
+<div class="flex items-center space-x-3">
+    <nz-range-picker [nzShowTime]="true"  [(ngModel)]="dateRange" [nzAllowClear]="false" (ngModelChange)="onChange($event)"></nz-range-picker>
+    <button class="tkd-btn tkd-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+      </svg>
+      <span>Suchen</span>
+    </button>
+</div>
+
+<div class="flex flex-row space-x-4">
+  <div class="p-2 bg-white rounded shadow sm:p-4">
+    <div class="flex items-center space-x-5">
+      <span class="space-x-1 leading-3">
+        <h1 class="text-3xl font-bold text-color-primary font-roboto">{{ logs.length }}</h1>
+        <span class="text-secondary font-lato">Telefonate</span>
+      </span>
+      <span class="space-x-1 leading-3">
+        <h1 class="text-3xl font-bold text-meadow font-roboto">{{ distinctCallers.size }}</h1>
+        <span class="text-secondary font-lato">Anrufer</span>
+      </span>
     </div>
   </div>
-  <div class="secondary-row">
-    <div class="row-container flex-row justify-between">
-      <div class="flex-row">
-        <span class="label">
-          <i nz-icon nzType="filter" nzTheme="outline"></i>
-          FILTER
-        </span>
-        <nz-date-picker [nzAllowClear]="false" [(ngModel)]="date" (ngModelChange)="onChange($event)"></nz-date-picker>
-      </div>
-      <div class="info">
-        <label>Telefonate</label>
-        <span>{{logs.length || 0}}</span>
-      </div>
-      <div class="info">
-        <label>Anrufer</label>
-        <span>{{distinctCallers.size}}</span>
-      </div>
-      <div class="info">
-        <label>Anrufdauer</label>
-        <span>{{totalCallTime | duration}}</span>
-      </div>
+
+  <div class="p-2 bg-white rounded shadow sm:p-4">
+    <div class="flex items-center space-x-5">
+      <span class="space-x-1 leading-3">
+        <h1 class="text-3xl font-bold text-color-secondary-dark font-roboto">{{ totalCallTime | duration }}</h1>
+        <span class="text-secondary font-lato">Gesamte Dauer</span>
+      </span>
     </div>
   </div>
-  <div class="secondary-row">
-    <div class="row-container">
-      <button nz-button nzType="primary" (click)="onChange(date)" [nzLoading]="loading">
-        <i nz-icon nzType="search"></i>
-        Suchen
-      </button>
+
+  <div class="p-2 bg-white rounded shadow sm:p-4">
+    <div class="flex items-center space-x-5">
+      <span class="space-x-1 leading-3">
+        <h1 class="text-3xl font-bold text-rost-dust font-roboto">{{ (logs.length > 0 ? 100 / logs.length * missedCalls : 0) | number:"1.2-2" }}%</h1>
+        <span class="text-secondary font-lato"><span class="font-semibold text-highlight">{{missedCalls}}</span> Verpasste Anrufe</span>
+      </span>
     </div>
   </div>
 </div>
 
-<div class="content-wrapper">
-  <nz-tabset [nzAnimated]="{inkBar: true, tabPane: false}">
-    <nz-tab nzTitle="Anruf Journal">
-      <app-calllog-table *nz-tab [records]="logs" (totalCallTime)="totalCallTime = $event"></app-calllog-table>
-    </nz-tab>
+<div class="bg-white rounded shadow">
+  <div class="p-4 border-b sm:p-6 md:p-8 border-tertiary">
+    <h1 class="text-lg text-lato text-color-primary">Journal</h1>
+    <span class="text-secondary">Im folgenden findest du eine Liste an eingehenden und ausgehenden Telefongesprächen im gewünschten Zeitraum.</span>
+  </div>
 
-    <nz-tab nzTitle="Statistik & Auswertung">
-      <nz-empty *nz-tab nzNotFoundContent="Hier entsteht eine Übersichts und Statistikseite"></nz-empty>
-    </nz-tab>
-  </nz-tabset>
+  <app-calllog-table [records]="logs" (totalCallTime)="totalCallTime = $event"></app-calllog-table>
 </div>
+

@@ -75,7 +75,7 @@ export class ShowEditorComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    this.headerService.set('Slide-Show')
+    this.headerService.set('Wird geladen ...', 'Bearbeite deine Slide Show.')
 
     this._updatePreview$.pipe(
       takeUntil(this._destroy$),
@@ -129,7 +129,7 @@ export class ShowEditorComponent implements OnInit, OnDestroy {
           this.openSlide(this.show.slides[0], 0)
         }
 
-        this.headerService.set('Slide-Show: ' + show.name);
+        this.headerService.set(show.name, 'Bearbeite deine Slide-Show.');
       })
   }
 

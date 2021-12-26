@@ -95,7 +95,7 @@ export class XRayComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.header.set('Röntgen');
+    this.header.set('Röntgen Aufnahmen', 'Durchsuchen und Betrachten von Röntgen-Studien');
     this.subscriptions = new Subscription();
 
     const routeSub = this.activeRoute.queryParamMap
@@ -122,15 +122,10 @@ class StudyDataSource extends DataSource<StudyWithMeta> {
   private cachedData: StudyWithMeta[] = [];
   private fetchedPages = new Set<number>();
   private dataStream = new BehaviorSubject<StudyWithMeta[]>(this.cachedData);
-  private complete$ = new Subject<void>();
   private disconnect$ = new Subject<void>();
 
   constructor(private dxrservice: DxrService) {
     super();
-  }
-
-  completed(): Observable<void> {
-    return this.complete$.asObservable();
   }
 
   connect(collectionViewer: CollectionViewer): Observable<StudyWithMeta[]> {
@@ -163,16 +158,10 @@ class StudyDataSource extends DataSource<StudyWithMeta> {
 
     collectionViewer.viewChange
       .pipe(
-        takeUntil(this.complete$),
         takeUntil(this.disconnect$)
       ).subscribe(range => {
-        if (this.cachedData.length >= 50) {
-          this.complete$.next();
-          this.complete$.complete();
-        } else {
-          const endPage = this.getPageForIndex(range.end);
-          this.fetchPage(endPage + 1);
-        }
+        const endPage = this.getPageForIndex(range.end);
+        this.fetchPage(endPage + 1);
       });
   }
 
@@ -194,7 +183,6 @@ class StudyDataSource extends DataSource<StudyWithMeta> {
   }
 
   private updateCurrentStudies(studies: Study[], page = 0): void {
-    console.log(studies);
     const result = studies.map(study => {
       const urls: InstancePreview[] = [];
 

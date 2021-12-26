@@ -25,12 +25,12 @@ func GetForMonthEndpoint(grp *app.Router) {
 
 			year, err := strconv.ParseInt(c.Param("year"), 10, 0)
 			if err != nil {
-				return httperr.InvalidParameter("year")
+				return httperr.InvalidParameter("year", err.Error())
 			}
 
 			month, err := strconv.ParseInt(c.Param("month"), 10, 0)
 			if err != nil {
-				return httperr.InvalidParameter("month")
+				return httperr.InvalidParameter("month", err.Error())
 			}
 
 			holidays, err := app.Holidays.Get(ctx, app.Config.Country, int(year))

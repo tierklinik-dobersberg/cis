@@ -2,7 +2,7 @@ import { LayoutModule } from '@angular/cdk/layout';
 import { registerLocaleData } from '@angular/common';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import de from '@angular/common/locales/de';
-import { NgModule } from '@angular/core';
+import { LOCALE_ID, NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -68,6 +68,7 @@ registerLocaleData(de);
     { provide: NZ_I18N, useValue: de_DE },
     { provide: HTTP_INTERCEPTORS, useExisting: AuthorizationInterceptor, multi: true },
     { provide: NZ_DATE_CONFIG, useValue: { firstDayOfWeek: 1 } },
+    { provide: LOCALE_ID, useValue: 'de'}
   ],
   bootstrap: [AppComponent]
 })

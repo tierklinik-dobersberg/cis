@@ -1,11 +1,21 @@
-import { HttpClient } from '@angular/common/http';
-import { ArrayType } from '@angular/compiler';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, ObservedValueOf } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { CustomerRef } from './customer.api';
 import { ProfileWithAvatar } from './identity.api';
 import { UserService } from './user.service';
+
+export interface CalllogQuery {
+  at?: Date;
+  from?: Date;
+  to?: Date;
+  cid?: string;
+}
+
+export interface SearchResult {
+  items: CallLog[];
+}
 
 export interface CallLogModel {
   _id?: string;
@@ -76,5 +86,24 @@ export class CalllogAPI {
         this.userService.withUserByExt('agent', 'agentProfile'),
         this.userService.withUserByExt('transferTarget', 'transferToProfile'),
       );
+  }
+
+  /** Search searches for calllogs using query. */
+  search(query: CalllogQuery = {}): Observable<SearchResult> {
+    let p = new HttpParams();
+    if (query.at) {
+      p = p.set("at", query.at.toISOString())
+    }
+    if (query.from) {
+      p = p.set("from", query.from.toISOString())
+    }
+    if (query.to) {
+      p = p.set("to", query.to.toISOString())
+    }
+    if (query.cid) {
+      p = p.set("cid", query.cid)
+    }
+
+    return this.http.get<SearchResult>(`/api/calllogs/v1/search`, {params: p});
   }
 }

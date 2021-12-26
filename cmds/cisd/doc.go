@@ -47,5 +47,6 @@ var uiConfigFile = autodoc.MustRegister(autodoc.File{
 		"QuickRosterOverwrite": cfgspec.QuickRosterOverwriteSpec,
 		"KnownPhoneExtension":  cfgspec.KnownPhoneExtensionSpec,
 		"TriggerAction":        cfgspec.TriggerActionSpec,
+		"Roster":               cfgspec.RosterUISpec,
 	},
 })

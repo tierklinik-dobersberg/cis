@@ -1,22 +1,10 @@
 @import '../../../../utils';
 
 nz-card {
-  height: 100%;
-  flex-grow: 1;
+  @apply flex flex-col;
 
-  border-top: 3px solid #93C5FD;
-  @include for-phone-only {
-    border: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    padding-top: 12px;
-    padding-bottom: 12px;
-
-    ::ng-deep .ant-card-actions {
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      background: rgba(0, 0, 0, 0.01);
-      margin-left: 12px;
-      margin-right: 12px;
-    }
+  ::ng-deep .ant-card-body {
+    @apply flex-grow;
   }
 }
 
@@ -25,8 +13,8 @@ nz-card {
 
   .clock {
     position: absolute;
-right: 0px;
-    top: -3rem;
+    right: 0px;
+    top: -2rem;
 
     font-size: 2.5rem;
     opacity: .2;
@@ -45,9 +33,9 @@ right: 0px;
 }
 
 .door-locked {
-  background-color: #F87171;
+  @apply bg-rost-dust bg-opacity-light;
 }
 
 .door-unlocked {
-  background-color: #6EE7B7;
+  @apply bg-meadow bg-opacity-light;
 }
