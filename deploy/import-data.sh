@@ -1,8 +1,9 @@
 #!/bin/bash
-set -e
 set -x
 
 output=$(echo "db.getCollectionNames()" | mongosh mongodb://mongo/cis --username root --password example --authenticationDatabase=admin | grep "cis:schema")
+
+set -e
 
 if [[ $output != "" ]]; then
     exit 0

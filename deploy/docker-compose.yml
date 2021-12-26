@@ -111,7 +111,7 @@ services:
       TZ: ""
 
   uidev:
-    image: node:latest
+    image: node:16
     user: 1000:1000
     ports:
       - 4200:4200
