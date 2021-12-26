@@ -11,6 +11,8 @@ nz-card {
   img.card-image {
     display: none;
 
+    @apply text-color-primary opacity-25;
+
     @include for-tablet-portrait-up {
       display: block;
     }
@@ -18,7 +20,6 @@ nz-card {
     position: absolute;
     top     : 15px;
     right   : 15px;
-    opacity : 0.1;
     height  : 100px;
   }
 }
