@@ -1,8 +1,7 @@
 @import 'src/utils';
 
 :host {
-  @include page-host;
-  padding: 0;
+  @apply block;
 }
 
 .chart-container {
@@ -16,16 +15,6 @@
 
 fieldset {
   min-width: 150px;
-}
-
-h2 {
-  font-family: "Poppins";
-  font-size  : 18px;
-
-  i[nzType="warning"] {
-    color       : lightcoral;
-    margin-right: 6px;
-  }
 }
 
 nz-tag {

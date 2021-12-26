@@ -1,170 +1,191 @@
-<div class="page-header">
-  <div class="main-row">
-    <div class="row-container">
-      <fieldset>
-        <legend>Name</legend>
-        <i nz-icon nzType="user" nzTheme="outline"></i>
-        <span>
-          {{ customer?.name }}&nbsp;{{ customer?.firstname }}
-        </span>
-      </fieldset>
-    </div>
-  </div>
-  <div class="secondary-row">
-    <div class="row-container justify-between phone-grid">
-      <div class="info">
-        <label>ID</label>
-        <span>{{ customer?.cid || 'N/A'}}</span>
-      </div>
+<div class="flex flex-row space-x-2">
+  <svg xmlns="http://www.w3.org/2000/svg"
+    class="block p-2.5 w-12 h-12 bg-white rounded-full shadow text-color-primary" fill="none" viewBox="0 0 24 24"
+    stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  </svg>
 
-      <div class="info">
-        <label>Ursprung</label>
+  <div class="flex flex-col space-y-4">
+    <div class="flex flex-col">
+      <span class="text-base font-semibold font-lato text-primary">
+        {{ customer?.name}}&nbsp;{{ customer?.firstname }}
+      </span>
+      <span class="text-sm text-secondary font-iter">
+        importiert von
         <nz-tag [nzColor]="customer?.tagColor" nz-tooltip [nzTooltipTitle]="tooltipTemplate">{{ customer?.source }}
         </nz-tag>
         <ng-template #tooltipTemplate>
           Erstellt am: {{ customer.createdAt | date: 'short' }}<br />
           Zuletzt geändert am: {{ customer.modifiedAt | date: 'short' }}
         </ng-template>
-      </div>
+      </span>
+    </div>
 
-      <div class="info">
-        <label>Summe Telefonate</label>
-        <span>{{ (totalCallTime || 0) | duration }}</span>
-      </div>
+    <div class="flex flex-col text-sm text-secondary">
+      <span *ngIf="!!customer?.distinctPhoneNumbers?.length" class="flex flex-row items-center space-x-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+        </svg>
 
-      <div class="info">
-        <label>Letzter Anruf</label>
-        <span>{{ callrecords.length > 0 ? (callrecords[0].date | date:'short':'':'de') : 'N/A' }}</span>
-      </div>
-
-      <div class="info">
-        <label>Tiere</label>
-        <span>{{ patients?.length || 0 }}</span>
-      </div>
-
-      <div class="info" *ngIf="!!missingData.length">
-        <label>Fehlende Daten</label>
-        <span>⚠️</span>
-      </div>
+        <a *ngFor="let number of customer.distinctPhoneNumbers; let last=last" href="tel:{{number}}" class="text-sm">
+          {{ number }}{{ last ? '' : ', '}}
+        </a>
+      </span>
     </div>
   </div>
 </div>
 
-<div class="content-wrapper">
-  <nz-tabset [nzAnimated]="{inkBar:true, tabPane:false}">
-    <nz-tab nzTitle="Übersicht">
-      <div class="content-section" *ngIf="!!missingData.length">
-        <h2>
-          <i nz-icon nzType="warning" nzTheme="outline"></i>
-          Nicht alle Kundendaten vorhanden
-        </h2>
-        <p>Bitte ergänze die folgenden Informationen:</p>
-        <ul>
+<nz-tabset [nzAnimated]="{inkBar:true, tabPane:false}">
+  <nz-tab nzTitle="Übersicht">
+
+    <div class="flex flex-row mb-12 space-x-4">
+      <div class="p-2 bg-white rounded shadow sm:p-4">
+        <div class="flex items-center space-x-5">
+          <span class="space-x-1 leading-3">
+            <h1 class="text-3xl font-bold text-color-primary font-roboto">{{ callrecords.length  }}</h1>
+            <span class="text-secondary font-lato">Anrufe</span>
+          </span>
+          <span class="space-x-1 leading-3">
+            <h1 class="text-3xl font-bold text-meadow font-roboto">{{ (totalCallTime || 0) | duration }}</h1>
+            <span class="text-secondary font-lato">Dauer</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="p-2 bg-white rounded shadow sm:p-4">
+        <div class="flex items-center space-x-5">
+          <span class="space-x-1 leading-3">
+            <h1 class="text-3xl font-bold text-color-secondary font-roboto">{{ callrecords.length > 0 ? (callrecords[0].date | date:'short':'':'de') : 'N/A' }}</h1>
+            <span class="text-secondary font-lato">Letzes Telefonat</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="p-2 bg-white rounded shadow sm:p-4">
+        <div class="flex items-center space-x-5">
+          <span class="space-x-1 leading-3">
+            <h1 class="text-3xl font-bold text-color-secondary font-roboto">{{ patients?.length || 0 }}</h1>
+            <span class="text-secondary font-lato">Tiere</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-12 mb-12 bg-white rounded shadow" *ngIf="!!missingData.length">
+      <div class="flex flex-col">
+        <span class="mb-1.5 text-lg font-semibold text-alert-red font-lato">Fehlende Kundendaten</span>
+        <span class="text-sm text-secondary font-iter">Es sind nicht alle Kundendaten vorhanden. Bitte ergänze die folgenden Informationen:</span>
+      </div>
+
+      <div class="mt-4 font-iter">
+        <ul class="pl-4 text-sm list-disc text-highlight">
           <li *ngFor="let point of missingData">{{ point }}</li>
         </ul>
       </div>
-      <div class="content-section">
-        <nz-empty *ngIf="!customerComment; else: noteTemplate" nzNotFoundContent="Keine Kundennotiz"
-          [nzNotFoundFooter]="editCustomerNote">
-        </nz-empty>
-        <ng-template #editCustomerNote>
-          <button nz-button nzType="primary" (click)="editComment()">Beschreibung erstellen</button>
-        </ng-template>
-        <ng-template #noteTemplate>
-          <app-comment [comment]="customerComment" [canReply]="false" [showReplies]="false"></app-comment>
-          <div>
-            <button nz-button nzType="link" (click)="editComment()">Beschreibung bearbeiten</button>
-            <a nz-button (click)="toggleComments()" nzType="link">Alle anzeigen</a>
-          </div>
-        </ng-template>
-
-        <nz-modal [(nzVisible)]="showCommentModal" nzTitle="Notiz bearbeiten" (nzOnCancel)="handleCommentCancel()"
-          [nzWidth]="600" (nzOnOk)="handleCommentOk()">
-
-          <ng-container *nzModalContent>
-            <app-text-input *ngIf="showCommentModal" format="markdown" [(ngModel)]="commentText"></app-text-input>
-          </ng-container>
-        </nz-modal>
-      </div>
-
-      <div class="content-section">
-        <nz-descriptions nzBordered>
-          <nz-descriptions-item nzTitle="Name" [nzSpan]="3">{{customer?.name || 'N/A'}}</nz-descriptions-item>
-          <nz-descriptions-item nzTitle="Vorname" [nzSpan]="3">{{customer?.firstname || 'N/A'}}</nz-descriptions-item>
-          <nz-descriptions-item nzTitle="Titel" [nzSpan]="3">{{customer?.title || 'N/A'}}</nz-descriptions-item>
-          <nz-descriptions-item nzTitle="Gruppe" [nzSpan]="3">{{customer?.group || 'N/A'}}</nz-descriptions-item>
-          <nz-descriptions-item nzTitle="Impferinnerung" [nzSpan]="3">{{ customer?.vaccinationReminder ? 'Ja' : 'Nein'
-            }}</nz-descriptions-item>
-          <nz-descriptions-item nzTitle="Telefon" [nzSpan]="3">
-            <li *ngFor="let phone of customer?.distinctPhoneNumbers">{{phone}}</li>
-          </nz-descriptions-item>
-          <nz-descriptions-item nzTitle="E-Mail" [nzSpan]="3">
-            <li *ngFor="let mail of customer?.mailAddresses">{{mail}}</li>
-          </nz-descriptions-item>
-          <nz-descriptions-item nzTitle="Addresse" [nzSpan]="3">
-            {{ customer?.street }}<br />
-            {{ customer?.cityCode }}&nbsp;{{ customer?.city }}
-          </nz-descriptions-item>
-        </nz-descriptions>
-      </div>
-    </nz-tab>
-
-    <nz-tab nzTitle="Patienten">
-      <div class="content-section">
-        <nz-list nzSize="small">
-          <nz-list-item *ngFor="let patient of patients">
-            <nz-list-item-meta>
-              <nz-list-item-meta-title>
-                <ng-container *ngIf="patient.name; else noName">
-                  {{ patient.name }}
-                </ng-container>
-                <ng-template #noName>
-                  <i>Kein Name</i>
-                </ng-template>
-              </nz-list-item-meta-title>
-
-              <nz-list-item-meta-description>
-                {{ patient.species }}
-                <ng-container *ngIf="patient.breed">
-                  &nbsp;|&nbsp;{{ patient.breed }}
-                </ng-container>
-                <ng-container *ngIf="patient.birthday">
-                  &nbsp; - <i nz-icon nzType="calendar" nzTheme="outline"></i> {{ patient.birthday }}
-                </ng-container>
-              </nz-list-item-meta-description>
-            </nz-list-item-meta>
-          </nz-list-item>
-        </nz-list>
-      </div>
-    </nz-tab>
-
-    <nz-tab nzTitle="Anruf Journal">
-      <ng-template nz-tab>
-        <div class="content-section">
-          <div class="chart-container">
-            <ngx-charts-line-chart [scheme]="lineScheme" [legend]="true" [showXAxisLabel]="true" [showYAxisLabel]="true"
-              [xAxis]="true" [yAxis]="true" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]="false"
-              [results]="callLogSeries">
-            </ngx-charts-line-chart>
-          </div>
-          <div class="chart-container">
-            <ngx-charts-heat-map [results]="heatMapSeries" [legend]="false" xAxisLabel="Wochentag" yAxisLabel="Uhrzeit"
-              [scheme]="areaScheme" [showXAxisLabel]="true" [showYAxisLabel]="true" [xAxis]="true" [yAxis]="true">
-            </ngx-charts-heat-map>
-          </div>
-
-          <app-calllog-table [records]="callrecords" (totalCallTime)="totalCallTime = $event"></app-calllog-table>
+    </div>
+    
+    <div class="p-12 mb-12 bg-white rounded shadow">
+      <nz-empty *ngIf="!customerComment; else: noteTemplate" nzNotFoundContent="Keine Kundennotiz"
+        [nzNotFoundFooter]="editCustomerNote">
+      </nz-empty>
+      <ng-template #editCustomerNote>
+        <button nz-button nzType="primary" (click)="editComment()">Beschreibung erstellen</button>
+      </ng-template>
+      <ng-template #noteTemplate>
+        <app-comment [comment]="customerComment" [canReply]="false" [showReplies]="false"></app-comment>
+        <div>
+          <button nz-button nzType="link" (click)="editComment()">Beschreibung bearbeiten</button>
+          <a nz-button (click)="toggleComments()" nzType="link">Alle anzeigen</a>
         </div>
       </ng-template>
-    </nz-tab>
 
-    <nz-tab nzTitle="Erweitert">
-      <ng-template nz-tab>
-        <pre class="content-section">{{ customer | json }}</pre>
-      </ng-template>
-    </nz-tab>
-  </nz-tabset>
-</div>
+      <nz-modal [(nzVisible)]="showCommentModal" nzTitle="Notiz bearbeiten" (nzOnCancel)="handleCommentCancel()"
+        [nzWidth]="600" (nzOnOk)="handleCommentOk()">
+
+        <ng-container *nzModalContent>
+          <app-text-input *ngIf="showCommentModal" format="markdown" [(ngModel)]="commentText"></app-text-input>
+        </ng-container>
+      </nz-modal>
+    </div>
+
+    <div class="p-12 mb-12 bg-white rounded shadow">
+      <nz-descriptions nzBordered>
+        <nz-descriptions-item nzTitle="Name" [nzSpan]="3">{{customer?.name || 'N/A'}}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Vorname" [nzSpan]="3">{{customer?.firstname || 'N/A'}}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Titel" [nzSpan]="3">{{customer?.title || 'N/A'}}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Gruppe" [nzSpan]="3">{{customer?.group || 'N/A'}}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Impferinnerung" [nzSpan]="3">{{ customer?.vaccinationReminder ? 'Ja' : 'Nein'
+          }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Telefon" [nzSpan]="3">
+          <li *ngFor="let phone of customer?.distinctPhoneNumbers">{{phone}}</li>
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="E-Mail" [nzSpan]="3">
+          <li *ngFor="let mail of customer?.mailAddresses">{{mail}}</li>
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Addresse" [nzSpan]="3">
+          {{ customer?.street }}<br />
+          {{ customer?.cityCode }}&nbsp;{{ customer?.city }}
+        </nz-descriptions-item>
+      </nz-descriptions>
+    </div>
+  </nz-tab>
+
+  <nz-tab nzTitle="Patienten">
+    <div class="p-12 mb-12 bg-white rounded shadow">
+      <nz-list nzSize="small">
+        <nz-list-item *ngFor="let patient of patients">
+          <nz-list-item-meta>
+            <nz-list-item-meta-title>
+              <ng-container *ngIf="patient.name; else noName">
+                {{ patient.name }}
+              </ng-container>
+              <ng-template #noName>
+                <i>Kein Name</i>
+              </ng-template>
+            </nz-list-item-meta-title>
+
+            <nz-list-item-meta-description>
+              {{ patient.species }}
+              <ng-container *ngIf="patient.breed">
+                &nbsp;|&nbsp;{{ patient.breed }}
+              </ng-container>
+              <ng-container *ngIf="patient.birthday">
+                &nbsp; - <i nz-icon nzType="calendar" nzTheme="outline"></i> {{ patient.birthday }}
+              </ng-container>
+            </nz-list-item-meta-description>
+          </nz-list-item-meta>
+        </nz-list-item>
+      </nz-list>
+    </div>
+  </nz-tab>
+
+  <nz-tab nzTitle="Anruf Journal">
+    <ng-template nz-tab>
+      <div class="p-12 mb-12 bg-white rounded shadow">
+        <div class="chart-container">
+          <ngx-charts-line-chart [scheme]="lineScheme" [legend]="true" [showXAxisLabel]="true" [showYAxisLabel]="true"
+            [xAxis]="true" [yAxis]="true" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]="false"
+            [results]="callLogSeries">
+          </ngx-charts-line-chart>
+        </div>
+        <div class="chart-container">
+          <ngx-charts-heat-map [results]="heatMapSeries" [legend]="false" xAxisLabel="Wochentag" yAxisLabel="Uhrzeit"
+            [scheme]="areaScheme" [showXAxisLabel]="true" [showYAxisLabel]="true" [xAxis]="true" [yAxis]="true">
+          </ngx-charts-heat-map>
+        </div>
+
+        <app-calllog-table [records]="callrecords" (totalCallTime)="totalCallTime = $event"></app-calllog-table>
+      </div>
+    </ng-template>
+  </nz-tab>
+
+  <nz-tab nzTitle="Erweitert">
+    <ng-template nz-tab>
+      <pre class="p-12 mb-12 bg-white rounded shadow">{{ customer | json }}</pre>
+    </ng-template>
+  </nz-tab>
+</nz-tabset>
 
 <nz-drawer [nzClosable]=" true" [nzVisible]="showCommentDrawer" nzPlacement="right" (nzOnClose)="toggleComments()"
   [nzWidth]="layout.isPhone ? '100vw' : layout.isDesktopUp ? '25vw' : '50vw'">
