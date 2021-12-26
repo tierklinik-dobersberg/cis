@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, OperatorFunction, Subject, throwError } from 'rxjs';
-import { catchError, debounceTime, map, mergeMap, startWith, switchMap, takeUntil } from 'rxjs/operators';
+import { catchError, debounceTime, filter, map, mergeMap, startWith, switchMap, takeUntil } from 'rxjs/operators';
 import { ConfigAPI, Day, DoctorOnDutyResponse, ExternalAPI, Overwrite, OverwriteBody, ProfileWithAvatar, QuickRosterOverwrite, RosterAPI, RosterUIConfig, UserService } from 'src/app/api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage } from 'src/app/utils';
@@ -68,8 +68,8 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     /** The currently active overwrite, if any */
     today: RosterState | null = null;
 
-    /** Holds the roster state for the selected date */
-    stateForDate: RosterState | null = null;
+    /** Holds the roster states for the date date */
+    statesForRange: RosterState[] | null = null;
 
     /** A list of users that are preferable used as overwrites */
     preferredUsers: ProfileWithAvatar[] = [];
@@ -93,7 +93,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     to: Date | null = null;
 
     /** The type of overwrite that is being created */
-    overwriteType: 'day-shift' | 'night-shift' | 'both' | 'custom' | '' = '';
+    overwriteType: '' | 'day-shift' | 'night-shift' | 'both' | 'custom' = '';
 
     /** A list of configured quick-settings  */
     quickSettings: QuickRosterOverwrite[];
@@ -106,6 +106,9 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
 
     /** The actual time boundary based on the overwriteType */
     actualBoundary: {from: Date, to: Date} | null = null;
+
+    /** Whether or not we're in "firstLoad" mode and should hide the overlapping warning */
+    firstLoad = true;
 
     /** Evaluates to true if everything is ready to create a new roster overwrite */
     get valid(): boolean {
@@ -188,14 +191,17 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
         private header: HeaderTitleService
     ){}
 
-    onDateChange() {
-        if (!this.from) {
-            return;
-        }
-        if (this.overwriteType !== 'custom') {
-            this.to = this.from;
-        }
-        this.checkOverlapping$.next({from: this.from, to: this.to});
+    onDateChange(humanInteraction = true) {
+      if (humanInteraction) {
+        this.firstLoad = false;
+      }
+      if (!this.from) {
+          return;
+      }
+      if (this.overwriteType !== 'custom') {
+          this.to = this.from;
+      }
+      this.checkOverlapping$.next({from: this.from, to: this.to});
     }
 
     /** @private template-only - select the user that should be used for the new overwrite */
@@ -224,7 +230,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const {from, to} = this.getTimeBoundary(this.stateForDate);
+      const {from, to} = this.getTimeBoundary(this.statesForRange);
       let body: OverwriteBody = {
         from: from.toISOString(),
         to: to.toISOString(),
@@ -256,9 +262,17 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
           () => {
             this.nzMessage.success(`Telefon erfolgreich auf ${target} umgeleitet.`)
             this.reloadToday$.next();
-            this.checkOverlapping$.next(this.getTimeBoundary())
+            this.firstLoad = true;
+            this.overwriteType = '';
+            this.statesForRange = [];
+            this.actualBoundary = null;
+            this.checkOverlapping$.next({from, to})
           },
-          err => this.nzMessage.error(extractErrorMessage(err, 'Telefon konnte nicht umgeleitet werden'))
+          err => {
+            this.firstLoad = false;
+            this.nzMessage.error(extractErrorMessage(err, 'Telefon konnte nicht umgeleitet werden'))
+            this.cdr.markForCheck();
+          }
         )
     }
 
@@ -362,12 +376,11 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
           this.reloadToday$
         ])
                 .pipe(
-                    takeUntil(this.destroy$),
                     map(() => new Date()),
                     this.toRosterState(),
+                    takeUntil(this.destroy$),
                 )
                 .subscribe((active: RosterState) => {
-                    console.log(active);
 
                     if (!!active.actual?.username) {
                         active.actualUser = this.userService.byName(active.actual.username);
@@ -376,7 +389,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
 
                     // if the overwriteType is not yet set and we don't have an active overwrite we try to
                     // figure out a reasonable default
-                    if (this.overwriteType === '') {
+                    if (this.overwriteType === '' && !this.today.actual) {
                         this.from = new Date();
 
                         (() => {
@@ -412,7 +425,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
                             }
                         })()
 
-                        this.onDateChange();
+                        this.onDateChange(false);
                     }
 
                     this.cdr.markForCheck();
@@ -425,20 +438,26 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
             .pipe(
                 takeUntil(this.destroy$),
                 debounceTime(100),
-                mergeMap(value => {
-                  let start: Date | null = null;
-                  if (!!value.to && !!value.from && value.from.toDateString() === value.to.toDateString()) {
-                      start = value.from;
-                  }
-                  return forkJoin({
-                    value: of(value),
-                    state: of(start).pipe(this.toRosterState()),
-                  })
+                filter(() => this.overwriteType != ''),
+                switchMap(value => {
+                  let iter: Date = this.from;
+                  let states: Observable<RosterState>[] = [];
+
+                  do {
+                    states.push(
+                      of(iter).pipe(
+                        this.toRosterState(),
+                        takeUntil(this.destroy$)
+                      )
+                    )
+                    iter = new Date(iter.getFullYear(), iter.getMonth(), iter.getDate() + 1)
+                  } while(iter.getTime() < this.to.getTime())
+                  return forkJoin(states)
                 }),
-                mergeMap(({value, state}) => {
-                  const timeBoundary = this.getTimeBoundary(state)
+                switchMap(states => {
+                  const timeBoundary = this.getTimeBoundary(states)
                   return forkJoin({
-                    state: of(state),
+                    states: of(states),
                     overlapping: this.roster.getOverwrites(timeBoundary.from, timeBoundary.to)
                       .pipe(
                         map(res => {
@@ -458,9 +477,9 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
                 })
             )
             .subscribe(state => {
-                this.stateForDate = state.state;
+                this.statesForRange = state.states;
                 this.overlapping = state.overlapping;
-                this.actualBoundary = this.getTimeBoundary(state.state);
+                this.actualBoundary = this.getTimeBoundary(state.states);
                 this.cdr.markForCheck();
             })
     }
@@ -494,14 +513,27 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
         return result;
     }
 
-    private getTimeBoundary(state: RosterState = this.stateForDate): {from: Date, to: Date} {
+    private getTimeBoundary(states: RosterState[]): {from: Date, to: Date} {
       if (this.overwriteType === 'custom') {
         return {
           from: this.from || null,
           to: this.to || null,
         }
       }
+      if (states.length === 0) {
+        console.log(`[DEBUG] no time boundary available for overwriteType != customer and empty states`) 
+        return null;
+      }
+
+      // we should not receive more than one state if the overwrite type is set to anything other
+      // than "custom".
+      if (states.length !== 1) {
+        console.error("Received more than one state with overwriteType set to custom")
+      }
+      const state = states[0];
+
       if (!this.from || !state || !state.planned) {
+          console.log(`[DEBUG] no time boundary available from=${this.from} state=${state} planned=${state?.planned}`)
           return null;
       }
       let from: Date;
@@ -524,7 +556,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
           break;
 
         default:
-          console.error(`Invalid overwriteType ${this.overwriteType}`)
+          console.error(`Invalid overwriteType "${this.overwriteType}"`)
           return null;
       }
 
