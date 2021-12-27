@@ -10,7 +10,7 @@ import { HeaderTitleService, PageHeader } from './header.service';
     </div>
     <div class="flex flex-col">
       <span class="text-base font-semibold text-color-primary-dark font-lato">{{ header.title }}</span>
-      <span *ngIf="header.description" class="text-sm text-secondary font-iter">{{ header.description }}</span>
+      <span *ngIf="header.description" class="hidden text-sm text-secondary font-iter sm:block">{{ header.description }}</span>
     </div>
   `,
   styles: [
