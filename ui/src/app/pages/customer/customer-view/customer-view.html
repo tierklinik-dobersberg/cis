@@ -1,4 +1,4 @@
-<div class="flex flex-row space-x-2">
+<div class="flex flex-row space-x-4">
   <svg xmlns="http://www.w3.org/2000/svg"
     class="block p-2.5 w-12 h-12 bg-white rounded-full shadow text-color-primary" fill="none" viewBox="0 0 24 24"
     stroke="currentColor">
@@ -39,7 +39,7 @@
 <nz-tabset [nzAnimated]="{inkBar:true, tabPane:false}">
   <nz-tab nzTitle="Übersicht">
 
-    <div class="flex flex-row mb-12 space-x-4">
+    <div class="flex flex-row mb-8 space-x-4 md:mb-12">
       <div class="p-2 bg-white rounded shadow sm:p-4">
         <div class="flex items-center space-x-5">
           <span class="space-x-1 leading-3">
@@ -72,7 +72,7 @@
       </div>
     </div>
 
-    <div class="p-12 mb-12 bg-white rounded shadow" *ngIf="!!missingData.length">
+    <div class="p-12 mb-8 bg-white rounded shadow md:mb-12" *ngIf="!!missingData.length">
       <div class="flex flex-col">
         <span class="mb-1.5 text-lg font-semibold text-alert-red font-lato">Fehlende Kundendaten</span>
         <span class="text-sm text-secondary font-iter">Es sind nicht alle Kundendaten vorhanden. Bitte ergänze die folgenden Informationen:</span>
@@ -85,7 +85,7 @@
       </div>
     </div>
     
-    <div class="p-12 mb-12 bg-white rounded shadow">
+    <div class="p-12 mb-8 bg-white rounded shadow md:mb-12">
       <nz-empty *ngIf="!customerComment; else: noteTemplate" nzNotFoundContent="Keine Kundennotiz"
         [nzNotFoundFooter]="editCustomerNote">
       </nz-empty>
@@ -109,7 +109,7 @@
       </nz-modal>
     </div>
 
-    <div class="p-12 mb-12 bg-white rounded shadow">
+    <div class="p-12 mb-8 bg-white rounded shadow md:mb-12">
       <nz-descriptions nzBordered>
         <nz-descriptions-item nzTitle="Name" [nzSpan]="3">{{customer?.name || 'N/A'}}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="Vorname" [nzSpan]="3">{{customer?.firstname || 'N/A'}}</nz-descriptions-item>
@@ -132,7 +132,7 @@
   </nz-tab>
 
   <nz-tab nzTitle="Patienten">
-    <div class="p-12 mb-12 bg-white rounded shadow">
+    <div class="p-12 mb-8 bg-white rounded shadow md:mb-12">
       <nz-list nzSize="small">
         <nz-list-item *ngFor="let patient of patients">
           <nz-list-item-meta>
@@ -162,27 +162,28 @@
 
   <nz-tab nzTitle="Anruf Journal">
     <ng-template nz-tab>
-      <div class="p-12 mb-12 bg-white rounded shadow">
+      <div class="p-12 mb-8 bg-white rounded shadow md:mb-12">
         <div class="chart-container">
           <ngx-charts-line-chart [scheme]="lineScheme" [legend]="true" [showXAxisLabel]="true" [showYAxisLabel]="true"
             [xAxis]="true" [yAxis]="true" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]="false"
             [results]="callLogSeries">
           </ngx-charts-line-chart>
         </div>
+
         <div class="chart-container">
           <ngx-charts-heat-map [results]="heatMapSeries" [legend]="false" xAxisLabel="Wochentag" yAxisLabel="Uhrzeit"
             [scheme]="areaScheme" [showXAxisLabel]="true" [showYAxisLabel]="true" [xAxis]="true" [yAxis]="true">
           </ngx-charts-heat-map>
         </div>
-
-        <app-calllog-table [records]="callrecords" (totalCallTime)="totalCallTime = $event"></app-calllog-table>
       </div>
+
+        <app-calllog-table [records]="callrecords" (totalCallTime)="totalCallTime = $event" class="block bg-white rounded shadow"></app-calllog-table>
     </ng-template>
   </nz-tab>
 
   <nz-tab nzTitle="Erweitert">
     <ng-template nz-tab>
-      <pre class="p-12 mb-12 bg-white rounded shadow">{{ customer | json }}</pre>
+      <pre class="p-12 mb-8 bg-white rounded shadow md:mb-12">{{ customer | json }}</pre>
     </ng-template>
   </nz-tab>
 </nz-tabset>
