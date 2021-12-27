@@ -40,7 +40,6 @@ export class XRayComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
 
   offset = 0;
-  studies: StudyWithMeta[] = [];
   searchText = '';
   popOverCustomer: Customer | null = null;
   drawerVisible = false;
@@ -102,12 +101,10 @@ export class XRayComponent implements OnInit, OnDestroy {
       .subscribe(params => {
         const studyUID = params.get('study')
         this.drawerStudy = !!studyUID
-          ? this.studies.find(study => study.studyInstanceUid === studyUID)
+          ? this.ds.getStudy(studyUID)
           : null;
 
         this.drawerVisible = !!this.drawerStudy;
-
-        console.log(`xray studyUID=${studyUID} drawerStudy=${this.drawerStudy} drawerVisible=${this.drawerVisible}`);
       });
     this.subscriptions.add(routeSub);
   }
@@ -126,6 +123,10 @@ class StudyDataSource extends DataSource<StudyWithMeta> {
 
   constructor(private dxrservice: DxrService) {
     super();
+  }
+
+  getStudy(uid: string): StudyWithMeta | null {
+    return this.cachedData.find(study => study.studyInstanceUid === uid) || null;
   }
 
   connect(collectionViewer: CollectionViewer): Observable<StudyWithMeta[]> {
