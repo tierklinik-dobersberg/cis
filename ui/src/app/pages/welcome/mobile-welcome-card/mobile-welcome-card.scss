@@ -1,27 +1,12 @@
+ul {
+  @apply grid grid-cols-2 sm:grid-cols-4 gap-4;
+}
+
 li {
-  display        : flex;
-  align-items    : center;
-  justify-content: flex-start;
-  i {
-    @apply rounded p-1.5 mr-1.5 block border border-subtle;
-  }
+  @apply flex flex-col items-center justify-around bg-primary hover:bg-primary-dark rounded shadow text-white p-4 text-center active:bg-primary-dark focus:bg-primary-dark;
 
-  span {
-    @apply text-color-primary-dark font-lato leading-3;
-  }
-
-  &:hover,
-  &:active,
-  &:focus {
-    outline: none;
-
-    i {
-      opacity: 1;
-    }
-
-    span {
-      text-decoration: underline;
-    }
+  svg {
+    @apply h-10 w-10;
   }
 }
 
