@@ -92,7 +92,7 @@ import (
 	// CardDAV importer.
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/carddav"
 	// Task: Find linkable customers.
-	_ "github.com/tierklinik-dobersberg/cis/internal/tasks/linkable"
+	//_ "github.com/tierklinik-dobersberg/cis/internal/tasks/linkable"
 	// Schema migrations.
 	_ "github.com/tierklinik-dobersberg/cis/migrations"
 )
