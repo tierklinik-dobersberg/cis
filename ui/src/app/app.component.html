@@ -123,7 +123,7 @@
   <!--
     On tablet and up we have a sidebar for navigation
   -->
-  <div *ngIf="(isLogin | async) === false && !layout.isPhone" class="relative z-10 flex flex-col w-64 h-full p-2 bg-white shadow-md sm:px-4">
+  <div *ngIf="(isLogin | async) === false && !layout.isPhone" class="flex relative z-10 flex-col p-2 w-64 h-full bg-white shadow-md sm:px-4">
     <div class="py-2 ml-1 h-14">
       <a class="flex items-center space-x-2" routerLink="/welcome">
         <img src="assets/logo.png" class="w-10 h-10" alt="logo">
@@ -138,7 +138,7 @@
       <ng-container *ngTemplateOutlet="menuTemplate"></ng-container>
     </div>
 
-    <span class="flex flex-col items-center justify-around py-2 text-xs text-center text-secondary font-lato">
+    <span class="flex flex-col justify-around items-center py-2 text-xs text-center text-secondary font-lato">
       <span class="font-semibold text-highlight">V1.0</span>
       <span>
         <i nz-icon nzType="copyright" nzTheme="outline"></i>
@@ -150,20 +150,18 @@
   <!--
     Next to the sidebar there's the main content container including the header
   -->
-  <div class="flex flex-col self-stretch flex-grow overflow-x-hidden">
+  <div class="flex overflow-x-hidden flex-col flex-grow self-stretch">
     <!-- App header is only visible if we're not on the login screen -->
-    <div *ngIf="(isLogin | async) === false" class="relative flex flex-col p-0 px-2 mb-4 sm:px-4 md:px-8 lg:px-12">
-      <div class="flex items-center justify-between py-4">
+    <div *ngIf="(isLogin | async) === false" class="flex relative flex-col p-0 px-2 sm:px-4 md:px-8 lg:px-12">
+      <div class="flex justify-between items-center py-4">
         <!-- On mobile the logo is put into the header -->
-        <a class="block px-2 sm:hidden" routerLink="/welcome">
-          <img class="w-8 h-8" src="assets/logo.png" alt="logo">
+        <a class="block mr-2 w-8 h-8" *ngIf="layout.isPhone" routerLink="/welcome">
+          <img class="w-full h-full" src="assets/logo.png" alt="logo">
         </a>
 
         <app-header-title-outlet></app-header-title-outlet>
 
         <div class="flex items-center space-x-4">
-          <i class="block sm:hidden" (click)="toggleMenu()" nz-icon nzType="menu" nzTheme="outline"></i>
-
           <ng-container *ngIf="(suggestionCount | async) as count">
             <button class="tkd-icon-btn tkd-small text-secondary no-shadow" (click)="openSuggestionDialog()">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -171,6 +169,12 @@
               </svg>
             </button>
           </ng-container>
+
+          <button class="block tkd-icon-btn tkd-small sm:hidden no-shadow text-secondary" (click)="toggleMenu()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
 
           <button *ngIf="!layout.isPhone" [class.tkd-danger]="!!overwriteTarget" [class.tkd-primary]="!overwriteTarget" class="tkd-btn tkd-outline" [nz-tooltip]="overwriteTarget ? overwriteTooltip : ''" routerLink="/roster/overwrite">
             <svg xmlns="http://www.w3.org/2000/svg" class="inline-block w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -188,10 +192,6 @@
 
           <span *ngIf="!layout.isPhone" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click">
             <nz-avatar class="shadow cursor-pointer" nzIcon="user" [nzSrc]="profile?.avatar">
-            </nz-avatar>
-          </span>
-          <span *ngIf="layout.isPhone" (click)="toggleMenu()">
-            <nz-avatar nzIcon="user" class="shadow cursor-pointer" [nzSrc]="profile?.avatar">
             </nz-avatar>
           </span>
         </div>
@@ -222,35 +222,35 @@
 
     </div>
 
-    <div class="flex items-stretch self-stretch flex-grow w-full overflow-auto justify-items-stretch router-content" cdkScrollable>
+    <div class="flex overflow-auto flex-grow justify-items-stretch items-stretch self-stretch w-full router-content" cdkScrollable>
       <router-outlet></router-outlet>
     </div>
 
     <!--
       On mobile we have an additional navigation bar at the bottom
     -->
-    <div *ngIf="layout.isPhone" class="z-10 flex items-center w-full h-12 py-1 text-xs list-none border-t justify-evenly sm:hidden text-color-primary text-opacity-light border-tertiary">
+    <div *ngIf="layout.isPhone" class="flex z-10 flex-grow-0 flex-shrink-0 justify-evenly items-center py-1 mt-1 w-full h-12 text-xs list-none border-t text-color-primary text-opacity-light border-tertiary">
       <!-- Dashboard -->
-      <li routerLink="/welcome" routerLinkActive="bg-primary text-white" class="p-1 rounded-full">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-4 h-4" viewBox="0 0 24 24" stroke="currentColor">
+      <li routerLink="/welcome" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
         </svg>
       </li>
       <!-- Kalender -->
-      <li routerLink="/calendar" routerLinkActive="bg-primary text-white" class="p-1 rounded-full">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-4 h-4"  viewBox="0 0 24 24" stroke="currentColor">
+      <li routerLink="/calendar" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5"  viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       </li>
       <!-- Dienstplan -->
-      <li routerLink="/roster" routerLinkActive="bg-primary text-white" class="p-1 rounded-full">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-4 h-4"  viewBox="0 0 24 24" stroke="currentColor">
+      <li routerLink="/roster" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5"  viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </li>
       <!-- Röntgen -->
-      <li routerLink="/xray" routerLinkActive="bg-primary text-white" class="p-1 rounded-full">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-4 h-4"  viewBox="0 0 24 24" stroke="currentColor">
+      <li routerLink="/xray" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5"  viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
         </svg>
       </li>
