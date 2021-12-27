@@ -101,13 +101,13 @@ export class XRayComponent implements OnInit, OnDestroy {
     const routeSub = this.activeRoute.queryParamMap
       .subscribe(params => {
         const studyUID = params.get('study')
-        if (!!studyUID) {
-          this.drawerStudy = this.studies.find(study => study.studyInstanceUid === studyUID);
-          this.drawerVisible = !!this.drawerStudy;
-        } else {
-          this.drawerStudy = null;
-          this.drawerVisible = false;
-        }
+        this.drawerStudy = !!studyUID
+          ? this.studies.find(study => study.studyInstanceUid === studyUID)
+          : null;
+
+        this.drawerVisible = !!this.drawerStudy;
+
+        console.log(`xray studyUID=${studyUID} drawerStudy=${this.drawerStudy} drawerVisible=${this.drawerVisible}`);
       });
     this.subscriptions.add(routeSub);
   }
