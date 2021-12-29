@@ -25,9 +25,7 @@ export class VoiceMailCardComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.subscriptions = new Subscription();
-
-    interval(10000)
+    this.subscriptions = interval(10000)
       .pipe(
         startWith(-1),
         mergeMap(() => this.voicemail.search({
