@@ -8,7 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
+	"github.com/tierklinik-dobersberg/cis/internal/door"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/logger"
@@ -60,7 +60,7 @@ func OverwriteEndpoint(grp *app.Router) {
 			}).V(6).Logf("received manual door overwrite request")
 
 			// overwrite the current state
-			err = app.Door.Overwrite(ctx, openinghours.DoorState(body.State), until)
+			err = app.Door.Overwrite(ctx, door.DoorState(body.State), until)
 			if err != nil {
 				return err
 			}

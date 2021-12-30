@@ -3,6 +3,7 @@ package openinghours
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -332,4 +333,23 @@ func (ctrl *Controller) Country() string {
 
 func (ctrl *Controller) OnChange(ctx context.Context, fn OnChangeCallbackFunc) {
 
+}
+
+func sortAndValidate(os []OpeningHour) error {
+	sort.Sort(OpeningHourSlice(os))
+
+	// it's already guaranteed that each To is after the respective From
+	// value (see utils.ParseDayTime) and the slice is sorted by asc From
+	// time. Therefore, we only need to check if there's a To time that's
+	// after the From time of the next time range.
+	for i := 0; i < len(os)-1; i++ {
+		current := os[i]
+		next := os[i+1]
+
+		if current.EffectiveClose() >= next.EffectiveOpen() {
+			return fmt.Errorf("overlapping time frames %s and %s", current, next)
+		}
+	}
+
+	return nil
 }

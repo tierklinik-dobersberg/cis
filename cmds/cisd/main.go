@@ -46,6 +46,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
+	"github.com/tierklinik-dobersberg/cis/internal/door"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/integration/mongolog"
@@ -432,8 +433,8 @@ func getApp(ctx context.Context) *app.App {
 	//
 	// prepare entry door controller
 	//
-	door := getDoorInterface(ctx, mqttClient)
-	doorController, err := openinghours.NewDoorController(openingHoursCtrl, door)
+	dint := getDoorInterface(ctx, mqttClient)
+	doorController, err := door.NewDoorController(openingHoursCtrl, dint)
 	if err != nil {
 		logger.Fatalf(ctx, "door-controler: %s", err.Error())
 	}
@@ -557,8 +558,8 @@ func getApp(ctx context.Context) *app.App {
 	return appCtx
 }
 
-func getDoorInterface(ctx context.Context, client mqtt.Client) openinghours.DoorInterfacer {
-	cli, err := openinghours.NewMqttDoor(client)
+func getDoorInterface(ctx context.Context, client mqtt.Client) door.Interfacer {
+	cli, err := door.NewMqttDoor(client)
 	if err != nil {
 		logger.Fatalf(ctx, err.Error())
 	}

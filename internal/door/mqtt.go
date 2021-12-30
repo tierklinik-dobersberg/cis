@@ -1,4 +1,4 @@
-package openinghours
+package door
 
 import (
 	"context"
@@ -8,21 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/tierklinik-dobersberg/logger"
 )
-
-// DoorInterfacer is used to interact and control
-// the entry door. The door itself may be locked,
-// unlocked or "opened". If it's state is "opened",
-// it will lock against after it was closed.
-type DoorInterfacer interface {
-	// Lock the door.
-	Lock(context.Context) error
-
-	// Unlock the door.
-	Unlock(context.Context) error
-
-	// Open the door for the next visitor to enter.
-	Open(context.Context) error
-}
 
 // MqttDoor interfaces with an door controller via
 // mqtt. It's meant to work with

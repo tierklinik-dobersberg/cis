@@ -1,4 +1,4 @@
-package openinghours
+package door
 
 // TODO(ppacher): move all the parsing work away from this package to schema or utils.
 
@@ -6,15 +6,33 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sort"
 	"sync"
 	"time"
 
 	"github.com/tevino/abool"
+	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
+	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 )
+
+var log = pkglog.New("door")
 
 // DoorState describes the current state of the entry door.
 type DoorState string
+
+// Interfacer is used to interact and control
+// the entry door. The door itself may be locked,
+// unlocked or "opened". If it's state is "opened",
+// it will lock against after it was closed.
+type Interfacer interface {
+	// Lock the door.
+	Lock(context.Context) error
+
+	// Unlock the door.
+	Unlock(context.Context) error
+
+	// Open the door for the next visitor to enter.
+	Open(context.Context) error
+}
 
 // Possible door states.
 const (
@@ -34,15 +52,16 @@ type stateOverwrite struct {
 	sessionUser string
 }
 
-// DoorController interacts with the entry door controller via MQTT.
-type DoorController struct {
-	*Controller
+// Controller interacts with the entry door controller via the configured interfacer
+// and locks/unlocks the door depending on the opening hours.
+type Controller struct {
+	*openinghours.Controller
 
 	// overwriteLock protects access to manualOverwrite.
 	overwriteLock sync.Mutex
 
 	// door is the actual interface to control the door.
-	door DoorInterfacer
+	door Interfacer
 
 	// manualOverwrite is set when a user has manually overwritten
 	// the current state of the entry door.
@@ -65,8 +84,8 @@ type DoorController struct {
 }
 
 // NewDoorController returns a new door controller.
-func NewDoorController(ohCtrl *Controller, door DoorInterfacer) (*DoorController, error) {
-	dc := &DoorController{
+func NewDoorController(ohCtrl *openinghours.Controller, door Interfacer) (*Controller, error) {
+	dc := &Controller{
 		Controller:      ohCtrl,
 		door:            door,
 		stop:            make(chan struct{}),
@@ -78,7 +97,7 @@ func NewDoorController(ohCtrl *Controller, door DoorInterfacer) (*DoorController
 }
 
 // Overwrite overwrites the current door state with state until untilTime.
-func (dc *DoorController) Overwrite(ctx context.Context, state DoorState, untilTime time.Time) error {
+func (dc *Controller) Overwrite(ctx context.Context, state DoorState, untilTime time.Time) error {
 	log.From(ctx).V(7).Logf("overwritting door state to %s until %s", state, untilTime)
 
 	if err := isValidState(state); err != nil {
@@ -111,28 +130,28 @@ func (dc *DoorController) Overwrite(ctx context.Context, state DoorState, untilT
 }
 
 // Lock implements DoorInterfacer.
-func (dc *DoorController) Lock(ctx context.Context) error {
+func (dc *Controller) Lock(ctx context.Context) error {
 	dc.wg.Add(1)
 	defer dc.wg.Done()
 	return dc.door.Lock(ctx)
 }
 
 // Unlock implements DoorInterfacer.
-func (dc *DoorController) Unlock(ctx context.Context) error {
+func (dc *Controller) Unlock(ctx context.Context) error {
 	dc.wg.Add(1)
 	defer dc.wg.Done()
 	return dc.door.Unlock(ctx)
 }
 
 // Open implements DoorInterfacer.
-func (dc *DoorController) Open(ctx context.Context) error {
+func (dc *Controller) Open(ctx context.Context) error {
 	dc.wg.Add(1)
 	defer dc.wg.Done()
 	return dc.door.Open(ctx)
 }
 
 // Start starts the scheduler for the door controller.
-func (dc *DoorController) Start() error {
+func (dc *Controller) Start() error {
 	dc.wg.Add(1)
 	go dc.scheduler()
 
@@ -141,7 +160,7 @@ func (dc *DoorController) Start() error {
 
 // Stop requests the scheduler to stop and waits for all
 // operations to complete.
-func (dc *DoorController) Stop() error {
+func (dc *Controller) Stop() error {
 	close(dc.stop)
 
 	dc.wg.Wait()
@@ -150,7 +169,7 @@ func (dc *DoorController) Stop() error {
 }
 
 // Reset triggers a reset of the door scheduler.
-func (dc *DoorController) Reset(ctx context.Context) error {
+func (dc *Controller) Reset(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -167,7 +186,7 @@ func (dc *DoorController) Reset(ctx context.Context) error {
 // resetDoor resets the entry door by unlocking, locking and unlocking
 // it again. For whatever reason, this proved to work best when the door
 // does not behave as it should.
-func (dc *DoorController) resetDoor(ctx context.Context) {
+func (dc *Controller) resetDoor(ctx context.Context) {
 	dc.wg.Add(1)
 	defer dc.wg.Done()
 
@@ -198,7 +217,7 @@ func (dc *DoorController) resetDoor(ctx context.Context) {
 	}
 }
 
-func (dc *DoorController) scheduler() {
+func (dc *Controller) scheduler() {
 	defer dc.wg.Done()
 	var lastState DoorState
 	var state DoorState
@@ -284,7 +303,7 @@ func (dc *DoorController) scheduler() {
 }
 
 // Current returns the current door state.
-func (dc *DoorController) Current(ctx context.Context) (DoorState, time.Time, bool) {
+func (dc *Controller) Current(ctx context.Context) (DoorState, time.Time, bool) {
 	state, until := dc.stateFor(ctx, time.Now().In(dc.Location()))
 
 	return state, until, dc.resetInProgress.IsSet()
@@ -294,11 +313,11 @@ func (dc *DoorController) Current(ctx context.Context) (DoorState, time.Time, bo
 // It makes sure t is in the correct location. Like in ChangeOnDuty, the
 // caller must make sure that t is in the desired timezone as StateFor will copy
 // hour and date information.
-func (dc *DoorController) StateFor(ctx context.Context, t time.Time) (DoorState, time.Time) {
+func (dc *Controller) StateFor(ctx context.Context, t time.Time) (DoorState, time.Time) {
 	return dc.stateFor(ctx, t)
 }
 
-func (dc *DoorController) stateFor(ctx context.Context, t time.Time) (DoorState, time.Time) {
+func (dc *Controller) stateFor(ctx context.Context, t time.Time) (DoorState, time.Time) {
 	log := log.From(ctx)
 	// if we have an active overwrite we need to return it
 	// together with it's end time.
@@ -327,30 +346,11 @@ func (dc *DoorController) stateFor(ctx context.Context, t time.Time) (DoorState,
 	return Locked, f.From
 }
 
-func (dc *DoorController) getManualOverwrite() *stateOverwrite {
+func (dc *Controller) getManualOverwrite() *stateOverwrite {
 	dc.overwriteLock.Lock()
 	defer dc.overwriteLock.Unlock()
 
 	return dc.manualOverwrite
-}
-
-func sortAndValidate(os []OpeningHour) error {
-	sort.Sort(OpeningHourSlice(os))
-
-	// it's already guaranteed that each To is after the respective From
-	// value (see utils.ParseDayTime) and the slice is sorted by asc From
-	// time. Therefore, we only need to check if there's a To time that's
-	// after the From time of the next time range.
-	for i := 0; i < len(os)-1; i++ {
-		current := os[i]
-		next := os[i+1]
-
-		if current.EffectiveClose() >= next.EffectiveOpen() {
-			return fmt.Errorf("overlapping time frames %s and %s", current, next)
-		}
-	}
-
-	return nil
 }
 
 func isValidState(state DoorState) error {

@@ -24,6 +24,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
+	"github.com/tierklinik-dobersberg/cis/internal/door"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -53,7 +54,7 @@ type App struct {
 	VoiceMails      voicemaildb.Database
 	Sessions        *session.Manager
 	MailSync        *mailsync.Manager
-	Door            *openinghours.DoorController
+	Door            *door.Controller
 	Holidays        openinghours.HolidayGetter
 	CallLogs        calllogdb.Database
 	MQTTClient      mqtt.Client
@@ -87,7 +88,7 @@ func NewApp(
 	comments commentdb.Database,
 	voicemail voicemaildb.Database,
 	mailsyncManager *mailsync.Manager,
-	door *openinghours.DoorController,
+	door *door.Controller,
 	sessionManager *session.Manager,
 	holidays openinghours.HolidayGetter,
 	calllogs calllogdb.Database,
