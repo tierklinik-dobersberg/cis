@@ -421,11 +421,19 @@ func getApp(ctx context.Context) *app.App {
 	}
 
 	//
+	// prepare opeing hours controller
+	//
+	holidayCache := openinghours.NewHolidayCache()
+	openingHoursCtrl, err := openinghours.New(cfg.Config, cfg.OpeningHours, holidayCache)
+	if err != nil {
+		logger.Fatalf(ctx, "opening-hours-controler: %s", err.Error())
+	}
+
+	//
 	// prepare entry door controller
 	//
 	door := getDoorInterface(ctx, mqttClient)
-	holidayCache := openinghours.NewHolidayCache()
-	doorController, err := openinghours.NewDoorController(cfg.Config, cfg.OpeningHours, holidayCache, door)
+	doorController, err := openinghours.NewDoorController(openingHoursCtrl, door)
 	if err != nil {
 		logger.Fatalf(ctx, "door-controler: %s", err.Error())
 	}

@@ -69,7 +69,7 @@ func getSingleDayOpeningHours(ctx context.Context, app *app.App, at string, d ti
 		}
 	}
 
-	frames := app.Door.OpeningFramesForDay(ctx, d)
+	frames := app.Door.ForDate(ctx, d)
 	holiday, err := app.Holidays.IsHoliday(ctx, app.Config.Country, d)
 	if err != nil {
 		return nil, err
