@@ -1,4 +1,4 @@
-package rosterdb
+package roster
 
 import "github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
 

@@ -12,8 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	roster "github.com/tierklinik-dobersberg/cis/internal/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
@@ -34,7 +34,7 @@ func CreateOrUpdateEndpoint(grp *app.Router) {
 			}
 
 			_, err = app.DutyRosters.ForMonth(ctx, month, year)
-			if err != nil && !errors.Is(err, rosterdb.ErrNotFound) {
+			if err != nil && !errors.Is(err, roster.ErrNotFound) {
 				return err
 			}
 
@@ -54,7 +54,7 @@ func CreateOrUpdateEndpoint(grp *app.Router) {
 				return httperr.BadRequest(err)
 			}
 
-			if errors.Is(err, rosterdb.ErrNotFound) {
+			if errors.Is(err, roster.ErrNotFound) {
 				err = app.DutyRosters.Create(ctx, body.Month, body.Year, body.Days)
 			} else {
 				err = app.DutyRosters.Update(ctx, &body)

@@ -45,7 +45,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/infoscreendb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
-	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
@@ -53,6 +52,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/integration/rocket"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	roster "github.com/tierklinik-dobersberg/cis/internal/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
@@ -346,7 +346,7 @@ func getApp(ctx context.Context) *app.App {
 		logger.Fatalf(ctx, "identitydb: %s", err)
 	}
 
-	rosters, err := rosterdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
+	rosters, err := roster.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
 		logger.Fatalf(ctx, "rosterdb: %s", err.Error())
 	}

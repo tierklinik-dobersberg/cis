@@ -23,11 +23,11 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/infoscreendb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
-	"github.com/tierklinik-dobersberg/cis/internal/database/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	roster "github.com/tierklinik-dobersberg/cis/internal/rosterdb"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
@@ -45,7 +45,7 @@ type App struct {
 	Instance        *service.Instance
 	Config          *Config
 	Matcher         *permission.Matcher
-	DutyRosters     rosterdb.Database
+	DutyRosters     roster.Database
 	Identities      identitydb.Database
 	Customers       customerdb.Database
 	Patients        patientdb.Database
@@ -83,7 +83,7 @@ func NewApp(
 	identities identitydb.Database,
 	customers customerdb.Database,
 	patients patientdb.Database,
-	dutyRosters rosterdb.Database,
+	dutyRosters roster.Database,
 	comments commentdb.Database,
 	voicemail voicemaildb.Database,
 	mailsyncManager *mailsync.Manager,

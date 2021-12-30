@@ -1,4 +1,4 @@
-package rosterdb
+package roster
 
 import "errors"
 
