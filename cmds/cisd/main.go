@@ -52,7 +52,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/integration/rocket"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	roster "github.com/tierklinik-dobersberg/cis/internal/rosterdb"
+	"github.com/tierklinik-dobersberg/cis/internal/roster"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"

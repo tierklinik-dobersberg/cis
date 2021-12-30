@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-version"
-	roster "github.com/tierklinik-dobersberg/cis/internal/rosterdb"
+	"github.com/tierklinik-dobersberg/cis/internal/roster"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/runtime/schema"
 	"go.mongodb.org/mongo-driver/bson"
