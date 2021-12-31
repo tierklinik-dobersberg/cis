@@ -23,4 +23,7 @@ func Setup(grp gin.IRouter) {
 
 	// GET /api/customer/sources/v1
 	ListSourcesEndpoint(router)
+
+	// GET /api/customer/v1/stats/new-customers?from=<RFC3339>&to=<RFC3339>
+	NewCustomerStatsEndpoint(router)
 }

@@ -49,6 +49,8 @@ type Database interface {
 
 	// Cursor returns a cursor for all objects in filter.
 	Cursor(ctx context.Context, filter bson.M) (*mongo.Cursor, error)
+
+	Stats() *Statistician
 }
 
 type database struct {

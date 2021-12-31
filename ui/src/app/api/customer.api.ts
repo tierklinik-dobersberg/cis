@@ -173,6 +173,15 @@ export class CustomerAPI {
         distinctPhoneNumbers: distinctPhoneNumbers(customer.phoneNumbers)
       }))));
   }
+
+
+  newCustomerStats(from: Date, to: Date): Observable<any> {
+    return this.http.get<any>(`/api/customer/v1/stats/new-customers`, {
+      params: new HttpParams()
+        .set("from", from.toISOString())
+        .set("to", to.toISOString())
+    })
+  }
 }
 
 export function distinctPhoneNumbers(numbers: string[]): string[] {
