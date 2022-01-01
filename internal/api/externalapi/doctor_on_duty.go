@@ -69,7 +69,7 @@ func activeOverwrite(ctx context.Context, app *app.App, t time.Time, lm map[stri
 
 	log.Infof("[doctor-on-duty] retrieving active overwrites for %s", t)
 	overwrite, err := app.DutyRosters.GetActiveOverwrite(ctx, t)
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err != nil && errors.Is(err, mongo.ErrNoDocuments) {
 		return nil
 	}
 
@@ -133,6 +133,8 @@ func activeOverwrite(ctx context.Context, app *app.App, t time.Time, lm map[stri
 }
 
 func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverwrites bool) (*v1alpha.DoctorOnDutyResponse, error) {
+	start := time.Now()
+
 	log := log.From(ctx)
 	t = t.In(app.Location())
 
@@ -155,6 +157,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverw
 		// check if there's an active overwrite for t. In this case, just return
 		// that one and we're done.
 		if res := activeOverwrite(ctx, app, t, lm); res != nil {
+			log.Error("[doctor-on-duty] returning active overwrite")
 			return res, nil
 		}
 	}
@@ -190,10 +193,12 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverw
 		"nextChange": nextChange.Format(time.RFC3339),
 	})
 
+	log.Infof("[doctor-on-duty] loading duty roster ")
 	day, err := app.DutyRosters.ForDay(ctx, t)
 	if err != nil {
 		return nil, err
 	}
+	log.Infof("[doctor-on-duty] loaded duty roster in %s", time.Since(start))
 
 	// Get the correct username slice. If there's no "day-shift"
 	// configured we fallback to the night shift.
