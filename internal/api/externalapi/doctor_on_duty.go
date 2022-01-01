@@ -63,11 +63,11 @@ func activeOverwrite(ctx context.Context, app *app.App, t time.Time, lm map[stri
 	log := log.From(ctx)
 
 	defer func() {
-		log.Debugf("[doctor-on-duty] retrieved active overwrites for %s in %s", t, time.Since(start))
+		log.Infof("[doctor-on-duty] retrieved active overwrites for %s in %s", t, time.Since(start))
 	}()
 	// first check if we have an active overwrite for today
 
-	log.Debugf("[doctor-on-duty] retrieving active overwrites for %s", t)
+	log.Infof("[doctor-on-duty] retrieving active overwrites for %s", t)
 	overwrite, err := app.DutyRosters.GetActiveOverwrite(ctx, t)
 	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		return nil
