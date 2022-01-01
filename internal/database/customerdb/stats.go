@@ -30,6 +30,41 @@ func (db *database) Stats() *Statistician {
 	return &Statistician{db}
 }
 
+func (s *Statistician) CustomerSourceDistribution(ctx context.Context) ([]stats.Group, error) {
+	res, err := s.db.customers.Aggregate(ctx, mongo.Pipeline{
+		bson.D{
+			{Key: "$group", Value: bson.M{
+				"_id": "$customerSource",
+				"count": bson.M{
+					"$sum": 1,
+				},
+			}},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var result []struct {
+		ID    string `bson:"_id"`
+		Count int    `bson:"count"`
+	}
+	if err := res.All(ctx, &result); err != nil {
+		return nil, err
+	}
+
+	var groups []stats.Group
+	for _, r := range result {
+		groups = append(groups, stats.Group{
+			ID:    r.ID,
+			Label: r.ID,
+			Count: r.Count,
+		})
+	}
+
+	return groups, nil
+}
+
 func (s *Statistician) NewCustomers(ctx context.Context, from, to time.Time, timeRange string) ([]stats.TimeSeries, error) {
 	log.From(ctx).Infof("loading customers that have been created between %s and %s", from.Format(time.RFC3339), to.Format(time.RFC3339))
 
@@ -102,9 +137,9 @@ func (s *Statistician) NewCustomers(ctx context.Context, from, to time.Time, tim
 	var result []stats.TimeSeries
 	for id, val := range lm {
 		result = append(result, stats.TimeSeries{
-			ID:     id,
-			Name:   id,
-			Series: val,
+			ID:    id,
+			Label: id,
+			Data:  val,
 		})
 	}
 

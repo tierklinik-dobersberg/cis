@@ -59,15 +59,22 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 }
 
 func activeOverwrite(ctx context.Context, app *app.App, t time.Time, lm map[string]cfgspec.User) *v1alpha.DoctorOnDutyResponse {
+	start := time.Now()
 	log := log.From(ctx)
+
+	defer func() {
+		log.Debugf("[doctor-on-duty] retrieved active overwrites for %s in %s", t, time.Since(start))
+	}()
 	// first check if we have an active overwrite for today
+
+	log.Debugf("[doctor-on-duty] retrieving active overwrites for %s", t)
 	overwrite, err := app.DutyRosters.GetActiveOverwrite(ctx, t)
 	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		return nil
 	}
 
 	if err != nil {
-		log.Errorf("failed to find active overwrite for %s", t)
+		log.Errorf("failed to find active overwrite for %s: %s", t, err)
 		return nil
 	}
 

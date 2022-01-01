@@ -23,9 +23,18 @@ type TimeSeries struct {
 	// ID is the ID of the time-series.
 	ID string `json:"id"`
 
-	// Name is human readable name of the time series. Defaults to ID if empty.
-	Name string `json:"name"`
+	// Label is human readable name of the time series. Defaults to ID if empty.
+	Label string `json:"label"`
 
 	// Values are the values of the times series and are ordered by time.
-	Series []TimedValue `json:"series"`
+	Data []TimedValue `json:"data"`
+}
+
+type Group struct {
+	// ID is a unique identifier for the group.
+	ID string `json:"id"`
+	// Label holds a human readable group name.
+	Label string `json:"label"`
+	// Count holds the amount if items in this group.
+	Count int `json:"count"`
 }
