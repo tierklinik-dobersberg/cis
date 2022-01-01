@@ -334,6 +334,7 @@ func (db *database) GetOverwrites(ctx context.Context, filterFrom, filterTo time
 }
 
 func (db *database) GetActiveOverwrite(ctx context.Context, date time.Time) (*v1alpha.Overwrite, error) {
+	log.From(ctx).Infof("[active-overwrite] searching database ...")
 	res := db.overwrites.FindOne(ctx, bson.M{
 		"from": bson.M{
 			"$lte": date,
@@ -343,6 +344,8 @@ func (db *database) GetActiveOverwrite(ctx context.Context, date time.Time) (*v1
 		},
 		"deleted": bson.M{"$ne": true},
 	})
+	log.From(ctx).Infof("[active-overwrite] received result")
+
 	if res.Err() != nil {
 		if errors.Is(res.Err(), mongo.ErrNoDocuments) {
 			return nil, httperr.NotFound("overwrite", date.String(), res.Err())
@@ -350,6 +353,7 @@ func (db *database) GetActiveOverwrite(ctx context.Context, date time.Time) (*v1
 		return nil, res.Err()
 	}
 
+	log.From(ctx).Infof("[active-overwrite] decoding overwrite")
 	var o v1alpha.Overwrite
 	if err := res.Decode(&o); err != nil {
 		return nil, err
