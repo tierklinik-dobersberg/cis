@@ -5,6 +5,8 @@ import { environment } from './environments/environment';
 import { registerLocaleData } from '@angular/common'  
 import localeDeAT from '@angular/common/locales/de-AT';
 
+import 'chartjs-adapter-moment';
+
 registerLocaleData(localeDeAT);
 
 if (environment.production) {

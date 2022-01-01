@@ -31,6 +31,7 @@ import { IconsProviderModule } from './icons-provider.module';
 import { LoginModule } from './pages/login/login.module';
 import { SuggestionModule } from './pages/suggestions/suggestion.module';
 import { SharedModule } from './shared/shared.module';
+import { NgChartsModule } from 'ng2-charts';
 
 
 registerLocaleData(de);
@@ -63,6 +64,7 @@ registerLocaleData(de);
     RouterModule,
     LayoutModule,
     ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
+    NgChartsModule,
   ],
   providers: [
     { provide: NZ_I18N, useValue: de_DE },

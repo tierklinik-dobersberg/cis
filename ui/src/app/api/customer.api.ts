@@ -1,7 +1,15 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { ChartData, ChartDataset } from 'chart.js';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { ColorService } from '../shared/charts/color.service';
+
+export interface Group {
+  id: string;
+  label: string;
+  count: number;
+}
 
 export interface CustomerRef {
   cid: string;
@@ -57,7 +65,10 @@ export interface Customer extends RemoteCustomer<Date | string> {
 export class CustomerAPI {
   private sources = new Map<string, CustomerSource>();
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private colorService: ColorService,
+  ) {
     // customer sources will likely never change during
     // runtime as it can only happen with new CIS releases.
     // that's why we load them at startup and keep the in-mem.
@@ -181,6 +192,23 @@ export class CustomerAPI {
         .set("from", from.toISOString())
         .set("to", to.toISOString())
     })
+  }
+
+  customerSourceDistribution(): Observable<ChartData<'pie'>> {
+    return this.http.get<Group[]>(`/api/customer/v1/stats/source-distribution`)
+      .pipe(
+        map(grps => {
+          return {
+            labels: grps.map(grp => grp.label || grp.id),
+            datasets: [
+              {
+                data: grps.map(grp => grp.count),
+                backgroundColor: this.colorService.colors,
+              }
+            ]
+          }
+        })
+      )
   }
 }
 

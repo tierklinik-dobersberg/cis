@@ -5,11 +5,15 @@ module.exports = {
   },
   darkMode: false, // or 'media', 'class'
   theme: {
-    colors: {
+    colors: (theme) => ({
       transparent: 'transparent',
       current: 'currentColor',
       white: 'white',
-
+      ...theme("foundationColors"),
+      ...theme("alertColors"),
+      ...theme("specialColors"),
+    }),
+    foundationColors: {
       // foundation colors
       primary: {
         DEFAULT: '#194B7D',
@@ -24,7 +28,34 @@ module.exports = {
         dark: '#CBCBCB',
       },
       subtle: '#F5F6F8',
-
+      text: {
+        primary: '#181818',
+        highlight: '#3B3B3B',
+        secondary: '#717171',
+        tertiary: '#A2A2A2',
+        deEmphasized: '#B4B4B4'
+      },
+    },
+    alertColors: {
+      // alert colors
+      'alert-green': {
+        DEFAULT: '#4CAF50',
+        dark: '#419544',
+      },
+      'alert-orange': {
+        DEFAULT: '#FF9800',
+        dark: '#db8300',
+      },
+      'alert-red': {
+        DEFAULT: '#F44336',
+        dark: '#F11C0D',
+      },
+      'alert-blue': {
+        DEFAULT: '#2196F3',
+        dark: '#0c81e0',
+      },
+    },
+    specialColors: {
       // special colors
       meadow: {
         DEFAULT: '#00C29C',
@@ -49,31 +80,6 @@ module.exports = {
       'golden-rod': {
         DEFAULT: '#dba11c',
         dark: 'ba8918',
-      },
-
-      // alert colors
-      'alert-green': {
-        DEFAULT: '#4CAF50',
-        dark: '#419544',
-      },
-      'alert-orange': {
-        DEFAULT: '#FF9800',
-        dark: '#db8300',
-      },
-      'alert-red': {
-        DEFAULT: '#F44336',
-        dark: '#F11C0D',
-      },
-      'alert-blue': {
-        DEFAULT: '#2196F3',
-        dark: '#0c81e0',
-      },
-      text: {
-        primary: '#181818',
-        highlight: '#3B3B3B',
-        secondary: '#717171',
-        tertiary: '#A2A2A2',
-        deEmphasized: '#B4B4B4'
       },
     },
     textColor: (theme) => {
