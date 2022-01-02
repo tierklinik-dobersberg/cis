@@ -53,9 +53,10 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 				return err
 			}
 
-			log.From(ctx).Errorf("doctor-on-duty finished, returning response")
+			log.From(ctx).Errorf("[doctor-on-duty] finished, returning response")
+			decodeStart := time.Now()
 			c.JSON(http.StatusOK, response)
-			log.From(ctx).Errorf("doctor-on-duty finished, done")
+			log.From(ctx).Errorf("[doctor-on-duty] finished in %s, done", time.Since(decodeStart))
 
 			return nil
 		},
