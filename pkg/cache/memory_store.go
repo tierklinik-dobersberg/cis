@@ -34,7 +34,7 @@ func (mem *memory) Put(_ context.Context, r KeyRecord) error {
 func (mem *memory) Get(_ context.Context, key string) (*KeyRecord, error) {
 	r, ok := mem.records[key]
 	if !ok {
-		return nil, nil
+		return nil, ErrNotFound
 	}
 
 	c := cloneRecord(&r)

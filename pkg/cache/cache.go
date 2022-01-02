@@ -243,7 +243,7 @@ func (c *cache) Read(ctx context.Context, key string) ([]byte, *Metadata, error)
 
 	// this record is not valid anymore so we don't return it.
 	if !md.IsValid() {
-		return nil, nil, nil
+		return nil, nil, ErrNotFound
 	}
 
 	// immediately delete the cache record if burn-after-reading
