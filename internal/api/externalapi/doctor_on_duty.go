@@ -52,7 +52,11 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 			if err != nil {
 				return err
 			}
+
+			log.From(ctx).Errorf("doctor-on-duty finished, returning response")
 			c.JSON(http.StatusOK, response)
+			log.From(ctx).Errorf("doctor-on-duty finished, done")
+
 			return nil
 		},
 	)
