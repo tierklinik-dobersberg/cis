@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/nyaruka/phonenumbers"
+	"github.com/tierklinik-dobersberg/cis/internal/database/dbutils"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/calllog/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"go.mongodb.org/mongo-driver/bson"
@@ -27,6 +28,8 @@ type Database interface {
 	RecordCustomerCall(ctx context.Context, record v1alpha.CallLog) error
 	// Search searches for all records that match query.
 	Search(ctx context.Context, query *SearchQuery) ([]v1alpha.CallLog, error)
+
+	Stats() *dbutils.Stats
 }
 
 type database struct {

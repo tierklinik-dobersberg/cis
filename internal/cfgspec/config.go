@@ -13,12 +13,16 @@ import (
 // Config groups global configuration values that are used by various subsystems
 // of cisd.
 type Config struct {
-	Secret        string
-	BaseURL       string
-	Country       string
-	AccessLogFile string
-	TimeZone      string
-	LogLevel      string
+	Secret   string
+	Country  string
+	TimeZone string
+	LogLevel string
+
+	// HTTP Server configuration
+	BaseURL                   string
+	Listen                    string
+	PrometheusMetricsListener string
+	AccessLogFile             string
 
 	UnknownContactName   string
 	UnknownContactSource string
@@ -102,6 +106,18 @@ var ConfigSpec = conf.SectionSpec{
 		Description: "The maximum log level that should be printed to console. Should either be a number or the special values 'trace' (7), 'debug' (6), 'info' (5), 'warn' (3) or 'error' (0)",
 		Type:        conf.StringType,
 		Default:     "info",
+	},
+	{
+		Name:        "Listen",
+		Description: "The address for the internal server to listen on",
+		Type:        conf.StringType,
+		Default:     ":3000",
+	},
+	{
+		Name:        "PrometheusMetricsListener",
+		Description: "Listen address for the /metrics endpoint",
+		Type:        conf.StringType,
+		Default:     "127.0.0.1:3001",
 	},
 }
 

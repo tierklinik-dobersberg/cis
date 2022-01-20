@@ -31,6 +31,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/patientapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/resourceapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/statsapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/suggestionapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/triggerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/voicemailapi"
@@ -143,6 +144,7 @@ func getApp(ctx context.Context) *app.App {
 			runtime.GlobalSchema,
 		},
 		ConfigTarget: &cfg,
+
 		RouteSetupFunc: func(grp gin.IRouter) error {
 			apis := grp.Group(
 				"/api/",
@@ -156,6 +158,7 @@ func getApp(ctx context.Context) *app.App {
 					c.Next()
 				},
 			)
+
 			// alive check
 			{
 				apis.GET("/", func(c *gin.Context) {
@@ -206,6 +209,8 @@ func getApp(ctx context.Context) *app.App {
 				infoscreenapi.SetupPlayer(apis.Group("infoscreen"))
 				// access to the suggestion API
 				suggestionapi.Setup(apis.Group("suggestion", session.Require()))
+
+				statsapi.Setup(apis.Group("stats"))
 			}
 
 			return nil

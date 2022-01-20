@@ -1,4 +1,4 @@
-package customerapi
+package statsapi
 
 import (
 	"context"
@@ -9,12 +9,20 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
-func CustomerSourceDistributionEndpoint(router *app.Router) {
+func GroupByEndpoint(router *app.Router) {
 	router.GET(
-		"v1/stats/source-distribution",
+		"v1/:collection/group-by/:key",
 		permission.Anyone,
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			res, err := app.Customers.Stats().CustomerSourceDistribution(ctx)
+			counterKey := c.Query("count")
+			stats, err := getStatsBuilder(c.Param("collection"), app)
+			if err != nil {
+				return err
+			}
+
+			groupByKey := c.Param("key")
+
+			res, err := stats.SimpleGroupBy(ctx, groupByKey, counterKey)
 			if err != nil {
 				return err
 			}

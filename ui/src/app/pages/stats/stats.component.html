@@ -1,8 +1,8 @@
 <section class="space-y-5">
     <div class="flex items-center space-x-3">
-        <div class="flex flex-grow items-center space-x-3">
+        <div class="flex items-center flex-grow space-x-3">
             <svg xmlns="http://www.w3.org/2000/svg"
-                class="p-2 w-12 h-12 bg-white rounded-full shadow text-color-primary text-opacity-light" fill="none"
+                class="w-12 h-12 p-2 bg-white rounded-full shadow text-color-primary text-opacity-light" fill="none"
                 viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -15,8 +15,8 @@
         </div>
 
         <div class="flex items-center space-x-3">
-            <nz-range-picker [nzShowTime]="false" [nzAllowClear]="false"></nz-range-picker>
-            <button class="tkd-btn tkd-primary tkd-outline">
+            <nz-range-picker [nzShowTime]="false" [nzAllowClear]="false" [(ngModel)]="dateRange"></nz-range-picker>
+            <button class="tkd-btn tkd-primary tkd-outline" (click)="reload()">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
                         d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
@@ -27,30 +27,32 @@
         </div>
     </div>
 
-    <div class="grid grid-flow-col gap-2 md:gap-6">
-        <div class="flex flex-col p-2 space-y-3 bg-white rounded shadow sm:p-4 lg:p-6">
-            <div class="block leading-3">
-                <span class="block text-lg font-semibold font-lato text-color-primary">Neue Kunden</span>
-                <span class="block text-sm text-secondary">Anzahl an neuen Kundendatensätzen</span>
-            </div>
-
-            <div class="relative">
-                <canvas baseChart height="220" [data]="newCustomerData" [options]="newCustomerOptions"
-                    type="bar"></canvas>
-            </div>
-        </div>
-
-        <div class="flex flex-col p-2 space-y-3 bg-white rounded shadow sm:p-4 lg:p-6">
-            <div class="block leading-3">
-                <span class="block text-lg font-semibold font-lato text-color-primary">Kunden Verteilung</span>
-                <span class="block text-sm text-secondary">Verteilung der Kundendaten nach Ursprung.</span>
-            </div>
-
-            <div class="relative">
-                <canvas baseChart height="220" [data]="sourceDistData" [options]="sourceDistOptions"
-                    type="doughnut"></canvas>
-            </div>
-        </div>
+    <div class="grid grid-cols-2 gap-2 md:gap-6 2xl:grid-cols-4">
+        <tkd-time-chart
+          class="col-span-2"
+          chartType="bar"
+          title="Neue Kunden"
+          description="Anzahl an neuen Kundendatensätzen im angegebenen Zeitraum"
+          [from]="dateRange[0]"
+          [to]="dateRange[1]"
+          [load]="newCustomerStats"></tkd-time-chart>
+        <tkd-stats-chart
+          chartType="pie"
+          title="Kundenverteilung"
+          description="Anzahl der Kunden nach Ursprung"
+          [load]="sourceDistribution"
+          [options]="{
+            plugins: {
+              legend: {
+                display: true
+              }
+            }
+          }"></tkd-stats-chart>
+        <tkd-stats-chart
+          chartType="bar"
+          title="Impferinnerung"
+          description="Gruppierung der Kunden nach Impferinnerung"
+          [load]="byVaccinationReminder"></tkd-stats-chart>
     </div>
 </section>
 
@@ -58,8 +60,41 @@
 
 <section class="space-y-5">
     <div class="flex items-center space-x-3">
-        <div class="flex flex-grow items-center space-x-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="p-2 w-12 h-12 bg-white rounded-full shadow text-color-primary text-opacity-light" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="flex items-center flex-grow space-x-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 p-2 bg-white rounded-full shadow text-color-primary text-opacity-light" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          </svg>
+            <div class="flex flex-col">
+                <h1 class="text-xl font-semibold font-lato text-color-primary-dark">Telefonie</h1>
+                <span class="text-sm text-secondary">Hier findest du Statistiken zu Anrufen, Dauer der Telefonate und mehr.</span>
+            </div>
+        </div>
+    </div>
+    <div class="grid grid-cols-1 gap-2 md:gap-6 2xl:grid-cols-2">
+        <tkd-time-chart
+          chartType="bar"
+          title="Telefonierte Zeit"
+          description="Summe der Dauer der Telefonate nach Zeit und Kunden-Ursprung"
+          [from]="dateRange[0]"
+          [to]="dateRange[1]"
+          [options]="callopts"
+          [load]="calllogs"></tkd-time-chart>
+        <tkd-time-chart
+          chartType="bar"
+          title="Eindeutige Anrufer"
+          description = "Anzahl an unterschiedlichen Anrufern"
+          [from]="dateRange[0]"
+          [to]="dateRange[1]"
+          [load]="callers"></tkd-time-chart>
+    </div>
+</section>
+
+<div class="border-t border-text-tertiary border-opacity-light"></div>
+
+<section class="space-y-5">
+    <div class="flex items-center space-x-3">
+        <div class="flex items-center flex-grow space-x-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 p-2 bg-white rounded-full shadow text-color-primary text-opacity-light" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <div class="flex flex-col">
@@ -67,18 +102,6 @@
                 <span class="text-sm text-secondary">Hier findest du Statistiken zur Terminvergabe, Auslastung und Stoßzeiten.</span>
             </div>
         </div>
-
-        <div class="flex items-center space-x-3">
-            <nz-range-picker [nzShowTime]="false" [nzAllowClear]="false"></nz-range-picker>
-            <button class="tkd-btn tkd-primary tkd-outline">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                        d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                        clip-rule="evenodd" />
-                </svg>
-                <span>Laden</span>
-            </button>
-        </div>
     </div>
 </section>
 
@@ -86,8 +109,8 @@
 
 <section class="space-y-5">
     <div class="flex items-center space-x-3">
-        <div class="flex flex-grow items-center space-x-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="p-2 w-12 h-12 bg-white rounded-full shadow text-color-primary text-opacity-light" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="flex items-center flex-grow space-x-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 p-2 bg-white rounded-full shadow text-color-primary text-opacity-light" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <div class="flex flex-col">
@@ -95,17 +118,7 @@
                 <span class="text-sm text-secondary">Daten zu Diensplänen, Umleitungen und Auslastungen.</span>
             </div>
         </div>
-
-        <div class="flex items-center space-x-3">
-            <nz-range-picker [nzShowTime]="false" [nzAllowClear]="false"></nz-range-picker>
-            <button class="tkd-btn tkd-primary tkd-outline">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                        d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                        clip-rule="evenodd" />
-                </svg>
-                <span>Laden</span>
-            </button>
-        </div>
     </div>
+
+
 </section>

@@ -17,3 +17,4 @@ export * from './openinghours.api';
 export * from './resources.api';
 export * from './cctv.api';
 export * from './trigger.api';
+export * from './stats.api';
