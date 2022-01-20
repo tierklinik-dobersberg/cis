@@ -24,6 +24,8 @@ import { DurationPipe } from './pipes';
 import { CanDeleteCustomerPipe } from './pipes/can-delete-customer';
 import { TextInputComponent } from './text-input';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
+import { LinkNoBubbleDirective } from './a-no-bubble.directive';
+import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 
 @NgModule({
   imports: [
@@ -49,6 +51,7 @@ import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
     CommentComponent,
     TextInputComponent,
     CanDeleteCustomerPipe,
+    LinkNoBubbleDirective,
   ],
   exports: [
     CommonModule,
@@ -75,6 +78,8 @@ import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
     CallLogTableComponent,
     TextInputComponent,
     CanDeleteCustomerPipe,
+    LinkNoBubbleDirective,
+    MatBottomSheetModule,
   ],
 })
 export class SharedModule { }

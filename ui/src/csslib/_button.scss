@@ -1,109 +1,115 @@
 @layer components {
-  .tkd-btn {
-    @apply px-3 py-1.5 rounded cursor-pointer outline-none focus:outline-none font-medium focus:ring-2 focus:ring-primary focus:ring-opacity-light active:shadow-inner text-white;
-    @apply transition-colors duration-75 ease-in-out;
-    @apply flex items-center space-x-2 font-lato justify-around leading-4;
+  @variants responsive {
 
-    & > svg {
-      @apply w-4 h-4;
-    }
+    .tkd-btn {
+      @apply px-3 py-1.5 rounded cursor-pointer outline-none focus:outline-none font-medium focus:ring-2 focus:ring-primary focus:ring-opacity-light active:shadow-inner text-white;
+      @apply transition-colors duration-75 ease-in-out;
+      @apply flex items-center space-x-2 font-lato justify-around leading-4;
 
-    &.tkd-small {
-      @apply text-xs px-1.5 py-1;
-    }
+      & > svg {
+        @apply w-4 h-4;
+      }
 
-    &[disabled] {
-      @apply cursor-default;
-    }
+      &.tkd-small {
+        @apply text-xs px-1.5 py-1;
+      }
 
-    &:not(.tkd-outline) {
-      &.tkd-primary {
-        @apply bg-primary hover:bg-primary-dark;
-        &[disabled] {
-          @apply bg-primary bg-opacity-light;
+      &[disabled] {
+        @apply cursor-default;
+      }
+
+      &:not(.tkd-outline) {
+        &.tkd-primary {
+          @apply bg-primary hover:bg-primary-dark;
+          &[disabled] {
+            @apply bg-primary bg-opacity-light;
+          }
         }
+        &.tkd-secondary {
+          @apply bg-secondary hover:bg-secondary-dark;
+          &[disabled] {
+            @apply bg-secondary bg-opacity-light;
+          }
+        }
+        &.tkd-tertiary {
+          @apply bg-tertiary hover:bg-tertiary-dark text-primary;
+          &[disabled] {
+            @apply bg-tertiary bg-opacity-light;
+          }
+        }
+        &.tkd-danger {
+          @apply bg-alert-red hover:bg-alert-red-dark;
+          &[disabled] {
+            @apply bg-alert-red bg-opacity-light;
+          }
+        }
+      }
+
+      &.tkd-outline {
+        @apply border text-primary;
+
+        &.tkd-primary {
+          @apply border-primary hover:bg-primary text-color-primary hover:bg-opacity-5  border-opacity-light;
+          &[disabled] {
+            @apply bg-subtle text-opacity-light;
+          }
+        }
+        &.tkd-secondary {
+          @apply border-secondary hover:bg-secondary text-color-secondary hover:bg-opacity-5 border-opacity-light;
+          &[disabled] {
+            @apply  bg-subtle  text-opacity-light;
+          }
+        }
+        &.tkd-tertiary {
+          @apply border-tertiary hover:bg-tertiary text-tertiary hover:bg-opacity-5 border-opacity-light;
+          &[disabled] {
+            @apply  bg-subtle text-opacity-light;
+          }
+        }
+        &.tkd-danger {
+          @apply border-alert-red hover:bg-alert-red text-alert-red hover:bg-opacity-5 border-opacity-light;
+          &[disabled] {
+            @apply  bg-subtle text-opacity-light;
+          }
+        }
+      }
+    }
+
+
+    .tkd-icon-btn {
+      @apply p-2 w-9 h-9  rounded-full shadow-sm cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-light active:shadow-inner;
+      @apply transition-colors duration-75 ease-in-out;
+      &.tkd-primary {
+        @apply bg-white  hover:bg-primary text-color-primary hover:text-white;
       }
       &.tkd-secondary {
-        @apply bg-secondary hover:bg-secondary-dark;
-        &[disabled] {
-          @apply bg-secondary bg-opacity-light;
-        }
-      }
-      &.tkd-tertiary {
-        @apply bg-tertiary hover:bg-tertiary-dark text-primary;
-        &[disabled] {
-          @apply bg-tertiary bg-opacity-light;
-        }
+        @apply bg-white  hover:bg-secondary text-color-secondary hover:text-white;
       }
       &.tkd-danger {
-        @apply bg-alert-red hover:bg-alert-red-dark;
-        &[disabled] {
-          @apply bg-alert-red bg-opacity-light;
-        }
+        @apply bg-white  hover:bg-alert-red text-alert-red hover:text-white;
       }
     }
 
-    &.tkd-outline {
-      @apply border text-primary;
-
+    .tkd-icon-btn-inverse {
+      @apply tkd-icon-btn;
       &.tkd-primary {
-        @apply border-primary hover:bg-primary text-color-primary hover:bg-opacity-5  border-opacity-light;
-        &[disabled] {
-          @apply bg-subtle text-opacity-light;
-        }
+        @apply hover:bg-white  bg-primary hover:text-color-primary text-white;
       }
       &.tkd-secondary {
-        @apply border-secondary hover:bg-secondary text-color-secondary hover:bg-opacity-5 border-opacity-light;
-        &[disabled] {
-          @apply  bg-subtle  text-opacity-light;
-        }
-      }
-      &.tkd-tertiary {
-        @apply border-tertiary hover:bg-tertiary text-tertiary hover:bg-opacity-5 border-opacity-light;
-        &[disabled] {
-          @apply  bg-subtle text-opacity-light;
-        }
+        @apply hover:bg-white  bg-secondary hover:text-color-secondary text-white;
       }
       &.tkd-danger {
-        @apply border-alert-red hover:bg-alert-red text-alert-red hover:bg-opacity-5 border-opacity-light;
-        &[disabled] {
-          @apply  bg-subtle text-opacity-light;
-        }
+        @apply hover:bg-white  bg-alert-red hover:text-alert-red text-white;
       }
     }
-  }
 
-
-  .tkd-icon-btn {
-    @apply p-2 w-9 h-9  rounded-full shadow-sm cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-light active:shadow-inner;
-    @apply transition-colors duration-75 ease-in-out;
-    &.tkd-primary {
-      @apply bg-white  hover:bg-primary text-color-primary hover:text-white;
-    }
-    &.tkd-secondary {
-      @apply bg-white  hover:bg-secondary text-color-secondary hover:text-white;
-    }
-    &.tkd-danger {
-      @apply bg-white  hover:bg-alert-red text-alert-red hover:text-white;
-    }
-  }
-
-  .tkd-icon-btn-inverse {
-    @apply tkd-icon-btn;
-    &.tkd-primary {
-      @apply hover:bg-white  bg-primary hover:text-color-primary text-white;
-    }
-    &.tkd-secondary {
-      @apply hover:bg-white  bg-secondary hover:text-color-secondary text-white;
-    }
-    &.tkd-danger {
-      @apply hover:bg-white  bg-alert-red hover:text-alert-red text-white;
-    }
-  }
-
-  .tkd-icon-btn, .tkd-icon-btn-inverse {
-    &.no-shadow {
-      @apply shadow-none;
+    .tkd-icon-btn, .tkd-icon-btn-inverse {
+      &.no-shadow {
+        @apply shadow-none;
+      }
+      &.with-shadow {
+        @apply shadow-sm
+      }
     }
   }
 }

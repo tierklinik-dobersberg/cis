@@ -97,6 +97,11 @@ module.exports = {
         deEmphasized: '#B4B4B4'
       }
     },
+    minWidth: {
+      '1/2': '50%',
+      '1/3': '33%',
+      '2/3': '33%',
+    },
     fontFamily: {
       inter: 'Inter, sans-serif',
       lato: 'Lato, sans-serif',
