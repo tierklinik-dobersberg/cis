@@ -36,6 +36,19 @@ func (db *database) Stats() *dbutils.Stats {
 		ValidTimeKeys: map[string]struct{}{
 			"createdat": {},
 		},
+		ValidCounts: map[string]bson.M{
+			"invalidNumbers": {
+				"$cond": bson.M{
+					"if": bson.M{
+						"$ne": bson.A{"distinctPhoneNumbers", bson.A{}},
+					},
+					"then": bson.M{
+						"$sum": 1,
+					},
+					"else": nil,
+				},
+			},
+		},
 		Collection: db.customers,
 	}
 }

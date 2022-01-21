@@ -2,9 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { ChartConfiguration } from "chart.js";
 import { BaseChartDirective } from "ng2-charts";
 import { Subject } from "rxjs";
-import { tap } from "rxjs/operators";
 import { StatsAPI } from "src/app/api";
-import { ColorService } from "src/app/shared/charts/color.service";
 import { HeaderTitleService } from "src/app/shared/header-title";
 
 @Component({

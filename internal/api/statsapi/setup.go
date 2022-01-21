@@ -9,11 +9,14 @@ import (
 
 func Setup(grp gin.IRouter) {
 	router := app.NewRouter(grp)
-	// GET /api/stats/v1/:collection/group-by-created/:key?from=&to=&timeRange=
+	// GET /api/stats/v1/:collection/group-by-time/:key?from=&to=&timeRange=
 	GroupByOverTimeEndpoint(router)
 
 	// GET /api/stats/v1/:collection/group-by/:key
 	GroupByEndpoint(router)
+
+	// GET /api/stats/v1/:collection/count/:key
+	CountEndpoint(router)
 }
 
 func getStatsBuilder(collection string, app *app.App) (*dbutils.Stats, error) {
@@ -24,7 +27,7 @@ func getStatsBuilder(collection string, app *app.App) (*dbutils.Stats, error) {
 
 	stats, ok := lm[collection]
 	if !ok {
-		return nil, httperr.BadRequest(nil, "invalid collection")
+		return nil, httperr.InvalidParameter("collection", collection)
 	}
 	return stats.Stats(), nil
 }

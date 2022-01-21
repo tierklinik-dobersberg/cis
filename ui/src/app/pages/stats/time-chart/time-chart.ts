@@ -96,6 +96,29 @@ export class TimeChartComponent implements OnDestroy, OnChanges, OnInit {
             )
             .subscribe(data => {
                 this.data = data;
+                if (data.datasets.some(d => d.data.length > 256)) {
+                  this._options = mergeDeep(this._options, {
+                    elements: {
+                      line: {
+                        borderWidth: 1,
+                      },
+                      point: {
+                        pointRadius: 0,
+                      },
+                    }
+                  })
+                } else {
+                  this._options = mergeDeep(this._options, {
+                    elements: {
+                      line: {
+                        borderWidth: 3,
+                      },
+                      point: {
+                        pointRadius: 3,
+                      },
+                    }
+                  })
+                }
                 this.cdr.detectChanges();
             })
 

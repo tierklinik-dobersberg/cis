@@ -50,6 +50,10 @@ export class StatsAPI {
       )
   }
 
+  count(collection: string, counter: string): Observable<number> {
+    return this.http.get<number>(`/api/stats/v1/${collection}/count/${counter}`)
+  }
+
   private relabel(label: string, translation: {[key: string]: string} = null) {
     if (translation === null) {
       translation = {};
