@@ -6,6 +6,7 @@ import { StatsPageComponent } from "./stats.component";
 import { NgChartsModule } from 'ng2-charts';
 import { NzDatePickerModule } from "ng-zorro-antd/date-picker";
 import { TimeChartComponent } from "./time-chart";
+import { StatsChartComponent } from "./stats-chart";
 
 @NgModule({
     imports: [
@@ -18,6 +19,7 @@ import { TimeChartComponent } from "./time-chart";
     declarations: [
         StatsPageComponent,
         TimeChartComponent,
+        StatsChartComponent,
     ]
 })
 export class StatsModule { }

@@ -1,13 +1,8 @@
 package customerdb
 
 import (
-	"context"
-	"time"
-
-	"github.com/tierklinik-dobersberg/cis/internal/stats"
-	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
+	"github.com/tierklinik-dobersberg/cis/internal/database/dbutils"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var dateMongoFormat = map[string]string{
@@ -22,126 +17,38 @@ var dateTimeFormat = map[string]string{
 	"yearly":  "2006",
 }
 
-type Statistician struct {
-	db *database
+var validGroupByKeys = map[string]bson.M{
+	"cid":                 nil,
+	"group":               nil,
+	"name":                nil,
+	"firstname":           nil,
+	"title":               nil,
+	"street":              nil,
+	"cityCode":            nil,
+	"city":                nil,
+	"vaccinationReminder": nil,
+	"customerSource":      nil,
 }
 
-func (db *database) Stats() *Statistician {
-	return &Statistician{db}
-}
-
-func (s *Statistician) CustomerSourceDistribution(ctx context.Context) ([]stats.Group, error) {
-	res, err := s.db.customers.Aggregate(ctx, mongo.Pipeline{
-		bson.D{
-			{Key: "$group", Value: bson.M{
-				"_id": "$customerSource",
-				"count": bson.M{
-					"$sum": 1,
-				},
-			}},
+func (db *database) Stats() *dbutils.Stats {
+	return &dbutils.Stats{
+		ValidGroupBys: validGroupByKeys,
+		ValidTimeKeys: map[string]struct{}{
+			"createdat": {},
 		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	var result []struct {
-		ID    string `bson:"_id"`
-		Count int    `bson:"count"`
-	}
-	if err := res.All(ctx, &result); err != nil {
-		return nil, err
-	}
-
-	var groups []stats.Group
-	for _, r := range result {
-		groups = append(groups, stats.Group{
-			ID:    r.ID,
-			Label: r.ID,
-			Count: r.Count,
-		})
-	}
-
-	return groups, nil
-}
-
-func (s *Statistician) NewCustomers(ctx context.Context, from, to time.Time, timeRange string) ([]stats.TimeSeries, error) {
-	log.From(ctx).Infof("loading customers that have been created between %s and %s", from.Format(time.RFC3339), to.Format(time.RFC3339))
-
-	mongoFormat, ok := dateMongoFormat[timeRange]
-	if !ok {
-		return nil, httperr.BadRequest(nil, "timeRange must be daily, monthly or yearly")
-	}
-
-	res, err := s.db.customers.Aggregate(ctx, mongo.Pipeline{
-		// matching stage
-		bson.D{
-			{Key: "$match", Value: bson.M{
-				"createdat": bson.M{
-					"$gte": from,
-					"$lte": to,
-				},
-			}},
-		},
-		// group stage
-		bson.D{
-			{Key: "$group", Value: bson.M{
-				"_id": bson.M{
-					"date": bson.M{
-						"$dateToString": bson.M{
-							"date":   "$createdat",
-							"format": mongoFormat,
-						},
+		ValidCounts: map[string]bson.M{
+			"invalidNumbers": {
+				"$cond": bson.M{
+					"if": bson.M{
+						"$ne": bson.A{"distinctPhoneNumbers", bson.A{}},
 					},
-					"source": "$customerSource",
+					"then": bson.M{
+						"$sum": 1,
+					},
+					"else": nil,
 				},
-				"count": bson.M{
-					"$sum": 1,
-				},
-			}},
+			},
 		},
-		// sort stage
-		bson.D{
-			{Key: "$sort", Value: bson.D{
-				{Key: "date", Value: 1},
-			}},
-		},
-	})
-	if err != nil {
-		return nil, err
+		Collection: db.customers,
 	}
-
-	var r []struct {
-		ID struct {
-			Date   string `bson:"date"`
-			Source string `bson:"source"`
-		} `bson:"_id"`
-		Count int `bson:"count"`
-	}
-	if err := res.All(ctx, &r); err != nil {
-		return nil, err
-	}
-
-	lm := make(map[string][]stats.TimedValue)
-
-	for _, rec := range r {
-		d, _ := time.ParseInLocation("2006-01-02", rec.ID.Date, time.UTC)
-
-		lm[rec.ID.Source] = append(lm[rec.ID.Source], stats.TimedValue{
-			Value: rec.Count,
-			Time:  d,
-			Name:  rec.ID.Date,
-		})
-	}
-
-	var result []stats.TimeSeries
-	for id, val := range lm {
-		result = append(result, stats.TimeSeries{
-			ID:    id,
-			Label: id,
-			Data:  val,
-		})
-	}
-
-	return result, nil
 }

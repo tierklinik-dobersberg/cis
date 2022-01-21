@@ -16,6 +16,33 @@ const tagColors = [
 
 export interface ExtendedCustomer extends Customer {
   tagColor: string;
+  mapsUrl: string;
+}
+
+export function getMapsRouteUrl(val?: Customer): string {
+  let addr = '';
+  if (!!val.street) {
+    addr = val.street;
+  }
+  if (val.cityCode || val.city) {
+    if (addr !== '') {
+      addr += ', '
+    }
+    if (val.cityCode) {
+      addr += val.cityCode
+      if (val.city) {
+        addr += ' '
+      }
+    }
+    if (val.city) {
+      addr += val.city
+    }
+  }
+  if (addr === '') {
+    return '';
+  }
+  addr = encodeURIComponent(addr);
+  return `https://www.google.com/maps/dir/Current+Location/${addr}/`;
 }
 
 export function customerTagColor(val?: Customer): string {

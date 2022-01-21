@@ -13,6 +13,9 @@ export class ColorService {
             [config.theme.foundationColors, config.theme.specialColors].forEach(colorset => {
                 Object.keys(colorset)
                     .forEach(colorName => {
+                        if (colorName === 'tertiary') {
+                          return;
+                        }
                         try {
                             const color = colorset[colorName][key];
                             if (!!color) {

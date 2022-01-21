@@ -5,10 +5,20 @@
 @import './csslib/index';
 @import './utils';
 
-
 @layer base {
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400&display=swap');
 }
+
+@import '~@angular/material/theming';
+@include mat-core();
+
+// Use the desired palette
+$palette:  mat-palette($mat-indigo);
+// Create the theme
+$theme: mat-light-theme($palette, $palette);
+
+// Include component specific mixin
+@include mat-bottom-sheet-theme($theme);
 
 /* You can add global styles to this file, and also import other style files */
 html,

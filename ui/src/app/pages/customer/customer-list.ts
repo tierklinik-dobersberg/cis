@@ -1,11 +1,12 @@
-import { Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef, TrackByFunction, ViewChild } from '@angular/core';
+import { MatBottomSheet, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { Observable, Subscription } from 'rxjs';
 import { parse as parseQuery } from 'search-query-parser';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, toMongoDBFilter } from 'src/app/utils';
-import { customerTagColor, ExtendedCustomer } from './utils';
+import { customerTagColor, ExtendedCustomer, getMapsRouteUrl } from './utils';
 
 @Component({
   templateUrl: './customer-list.html',
@@ -13,6 +14,9 @@ import { customerTagColor, ExtendedCustomer } from './utils';
 })
 export class CustomerListComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
+
+  @ViewChild('customerSelectPhone', {static: true, read: TemplateRef})
+  customerSelectPhone: TemplateRef<any> | null = null;
 
   searchText = '';
   customers: ExtendedCustomer[] = [];
@@ -24,12 +28,15 @@ export class CustomerListComponent implements OnInit, OnDestroy {
 
   visibleTag: 'all' | string = 'all';
 
-  trackBy: TrackByFunction<Customer> = (_: number, cust: Customer) => cust.cid;
+  bottomSheetRef: MatBottomSheetRef | null = null;
+
+  trackBy: TrackByFunction<ExtendedCustomer> = (_: number, cust: ExtendedCustomer) => cust.cid;
 
   constructor(
     private header: HeaderTitleService,
     private customerapi: CustomerAPI,
     private nzMessageService: NzMessageService,
+    private bottomSheet: MatBottomSheet,
   ) { }
 
   ngOnInit(): void {
@@ -41,6 +48,19 @@ export class CustomerListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+  }
+
+  callCustomer(cus: ExtendedCustomer) {
+    if (cus.distinctPhoneNumbers.length === 1) {
+      window.open(`tel:` + cus.distinctPhoneNumbers[0])
+      return;
+    }
+
+    this.bottomSheetRef = this.bottomSheet.open(this.customerSelectPhone!, {
+      data: cus,
+    })
+    this.bottomSheetRef.afterDismissed()
+      .subscribe(() => this.bottomSheetRef = null);
   }
 
   search(term: string): void {
@@ -75,9 +95,11 @@ export class CustomerListComponent implements OnInit, OnDestroy {
 
         (result || []).forEach(c => {
           const tagColor = customerTagColor(c);
+          const mapsUrl = getMapsRouteUrl(c);
           this.allCustomers.push({
             ...c,
             tagColor,
+            mapsUrl,
           });
 
           this.sourceTags.add(c.source);

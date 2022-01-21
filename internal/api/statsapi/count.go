@@ -1,4 +1,4 @@
-package customerapi
+package statsapi
 
 import (
 	"context"
@@ -9,12 +9,18 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
-func CustomerSourceDistributionEndpoint(router *app.Router) {
+func CountEndpoint(router *app.Router) {
 	router.GET(
-		"v1/stats/source-distribution",
+		"v1/:collection/count/:key",
 		permission.Anyone,
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			res, err := app.Customers.Stats().CustomerSourceDistribution(ctx)
+			stats, err := getStatsBuilder(c.Param("collection"), app)
+			if err != nil {
+				return err
+			}
+
+			counter := c.Param("key")
+			res, err := stats.SimpleCount(ctx, counter)
 			if err != nil {
 				return err
 			}

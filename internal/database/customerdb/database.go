@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/antzucaro/matchr"
+	"github.com/tierklinik-dobersberg/cis/internal/database/dbutils"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"go.mongodb.org/mongo-driver/bson"
@@ -50,7 +51,7 @@ type Database interface {
 	// Cursor returns a cursor for all objects in filter.
 	Cursor(ctx context.Context, filter bson.M) (*mongo.Cursor, error)
 
-	Stats() *Statistician
+	Stats() *dbutils.Stats
 }
 
 type database struct {

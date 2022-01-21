@@ -3,7 +3,7 @@ import { SearchParserResult } from 'search-query-parser';
 
 /**
  * Toggle the presence of a query parameter in the current route.
- * 
+ *
  * @param router The router instance
  * @param activeRoute The current route snapshot
  * @param key The name of the query parameter to toggle
@@ -125,4 +125,35 @@ export function toMongoDBFilter(res: SearchParserResult): object {
   });
 
   return filter;
+}
+
+
+/**
+* Performs a deep merge of objects and returns new object. Does not modify
+* objects (immutable) and merges arrays via concatenation.
+*
+* @param {...object} objects - Objects to merge
+* @returns {object} New object with merged key/values
+*/
+export function mergeDeep(...objects) {
+  const isObject = obj => obj && typeof obj === 'object';
+
+  return objects.reduce((prev, obj) => {
+    Object.keys(obj).forEach(key => {
+      const pVal = prev[key];
+      const oVal = obj[key];
+
+      if (Array.isArray(pVal) && Array.isArray(oVal)) {
+        prev[key] = pVal.concat(...oVal);
+      }
+      else if (isObject(pVal) && isObject(oVal)) {
+        prev[key] = mergeDeep(pVal, oVal);
+      }
+      else {
+        prev[key] = oVal;
+      }
+    });
+
+    return prev;
+  }, {});
 }

@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { MatBottomSheet, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ScaleType } from '@swimlane/ngx-charts';
 import { Color } from '@swimlane/ngx-charts/lib/utils/color-sets';
@@ -11,13 +12,15 @@ import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, toggleRouteQueryParamFunc } from 'src/app/utils';
-import { customerTagColor, ExtendedCustomer } from '../utils';
+import { customerTagColor, ExtendedCustomer, getMapsRouteUrl } from '../utils';
 
 @Component({
   templateUrl: './customer-view.html',
   styleUrls: ['./customer-view.scss']
 })
 export class CustomerViewComponent implements OnInit, OnDestroy {
+  @ViewChild('customerSelectPhone', {static: true, read: TemplateRef})
+  customerSelectPhone: TemplateRef<any> | null = null;
 
   constructor(
     public layout: LayoutService,
@@ -31,9 +34,12 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     private nzMessageService: NzMessageService,
     private router: Router,
     private changeDetector: ChangeDetectorRef,
+    private bottomSheet: MatBottomSheet,
   ) { }
 
   private subscriptions = Subscription.EMPTY;
+
+  bottomSheetRef: MatBottomSheetRef | null = null;
 
   allComments: Comment[] = [];
   totalCallTime = 0;
@@ -171,6 +177,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
         this.customer = {
           ...result.customer,
           tagColor: customerTagColor(result.customer),
+          mapsUrl: getMapsRouteUrl(result.customer),
         };
 
         this.patients = [];
@@ -190,6 +197,19 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add(routerSub);
   }
+
+  callCustomer(cus: ExtendedCustomer) {
+    if (cus.distinctPhoneNumbers.length === 1) {
+      window.open(`tel:` + cus.distinctPhoneNumbers[0])
+    }
+
+    this.bottomSheetRef = this.bottomSheet.open(this.customerSelectPhone!, {
+      data: cus,
+    })
+    this.bottomSheetRef.afterDismissed()
+      .subscribe(() => this.bottomSheetRef = null);
+  }
+
 
   trackLog(_: number, log: CallLogModel): string | null {
     return log._id || null;

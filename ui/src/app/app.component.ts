@@ -146,7 +146,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.destory$ = new Subject();
 
     combineLatest([
-      interval(5000),
+      interval(15000),
       this.reloadOverwrite$
     ])
       .pipe(
