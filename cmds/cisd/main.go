@@ -402,6 +402,8 @@ func getApp(ctx context.Context) *app.App {
 		}
 	}
 
+	logger.Infof(ctx, "database system initialized")
+
 	//
 	// prepare MQTT client and connect to broker
 	//
@@ -420,6 +422,8 @@ func getApp(ctx context.Context) *app.App {
 
 		break
 	}
+
+	logger.Infof(ctx, "successfully connected to MQTT")
 
 	//
 	// prepare opeing hours controller
@@ -532,6 +536,8 @@ func getApp(ctx context.Context) *app.App {
 
 	ctx = app.With(ctx, appCtx)
 
+	logger.Infof(ctx, "application initialized, starting tasks ...")
+
 	//
 	// Start the task manager
 	// All tasks can get access to appCtx by using app.From(ctx).
@@ -546,7 +552,7 @@ func getApp(ctx context.Context) *app.App {
 
 	// TODO(ppacher): this currently requires app.App to have been associated with ctx.
 	// I'm somewhat unhappy with that requirement so make it go away in the future.
-	logger.Infof(ctx, "%d trigger types available so far", trigger.DefaultRegistry.TypeCount())
+	logger.Infof(ctx, "tasks started, loading trigger files with %d available types", trigger.DefaultRegistry.TypeCount())
 	triggers, err := trigger.DefaultRegistry.LoadFiles(ctx, runtime.GlobalSchema, instance.ConfigurationDirectory)
 	if err != nil {
 		logger.Fatalf(ctx, "triggers: %s", err)
@@ -555,6 +561,9 @@ func getApp(ctx context.Context) *app.App {
 	// the triggerapi.
 	// TODO(ppacher): this feels more like a workaround than a real solution.
 	*triggerInstances = triggers
+
+	logger.Infof(ctx, "initialization complete")
+
 	return appCtx
 }
 
@@ -587,6 +596,8 @@ func runMain() {
 
 	app := getApp(ctx)
 
+	logger.Infof(ctx, "starting importers ...")
+
 	importManager, err := importer.New(ctx, app)
 	if err != nil {
 		logger.Fatalf(ctx, "failed to create importers: %s", err)
@@ -596,12 +607,14 @@ func runMain() {
 		logger.Fatalf(ctx, "failed to start importers: %s", err)
 	}
 
+	logger.Infof(ctx, "starting door scheduler ...")
+
 	if err := app.Door.Start(); err != nil {
 		logger.Fatalf(ctx, "failed to start door scheduler: %s", err)
 	}
 
 	// we log on error so this one get's forwarded to error reporters.
-	logger.Errorf(ctx, "CIS starting ....")
+	logger.Errorf(ctx, "startup complete, serving API ....")
 
 	// run the server.
 	if err := app.Instance.Serve(); err != nil {
