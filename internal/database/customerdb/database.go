@@ -111,6 +111,10 @@ func (db *database) setup(ctx context.Context) error {
 		{
 			Keys: bson.D{
 				{Key: "nameMetaphone", Value: "text"},
+				{Key: "name", Value: "text"},
+				{Key: "firstname", Value: "text"},
+				{Key: "street", Value: "text"},
+				{Key: "city", Value: "text"},
 			},
 		},
 		{

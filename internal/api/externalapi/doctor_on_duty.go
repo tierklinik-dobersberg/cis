@@ -3,6 +3,7 @@ package externalapi
 import (
 	"context"
 	"errors"
+	stdlog "log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -30,6 +31,8 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 			ReadOnDutyAction,
 		},
 		func(ctx context.Context, app *app.App, c *gin.Context) error {
+			start := time.Now()
+
 			d := time.Now()
 			if at := c.Query("at"); at != "" {
 				var err error
@@ -48,15 +51,19 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 				ignoreOverwrites = b
 			}
 
+			log.From(ctx).Errorf("[DEBUG] retrieving doctor on duty after %s", time.Since(start))
+
 			response, err := getDoctorOnDuty(ctx, app, d, ignoreOverwrites)
 			if err != nil {
 				return err
 			}
 
-			log.From(ctx).Errorf("[doctor-on-duty] finished, returning response")
+			log.From(ctx).Errorf("[DEBUG] retrieved doctor on duty after %s", time.Since(start))
+
 			decodeStart := time.Now()
 			c.JSON(http.StatusOK, response)
-			log.From(ctx).Errorf("[doctor-on-duty] finished in %s, done", time.Since(decodeStart))
+
+			log.From(ctx).Errorf("[DEBUG] serialized and sent response after %s (serialized %s)", time.Since(start), time.Since(decodeStart))
 
 			return nil
 		},
@@ -64,6 +71,9 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 }
 
 func activeOverwrite(ctx context.Context, app *app.App, t time.Time, lm map[string]cfgspec.User) *v1alpha.DoctorOnDutyResponse {
+	stdlog.Println("[DEBUG] enter getDoctorOnDuty()")
+	defer stdlog.Println("[DEBUG] leave getDoctorOnDuty()")
+
 	start := time.Now()
 	log := log.From(ctx)
 
@@ -138,10 +148,15 @@ func activeOverwrite(ctx context.Context, app *app.App, t time.Time, lm map[stri
 }
 
 func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverwrites bool) (*v1alpha.DoctorOnDutyResponse, error) {
+	stdlog.Println("[DEBUG] enter getDoctorOnDuty()")
+	defer stdlog.Println("[DEBUG] leave getDoctorOnDuty()")
+
 	start := time.Now()
 
 	log := log.From(ctx)
 	t = t.In(app.Location())
+
+	log.Infof("[DEBUG] retrieving user identities ...")
 
 	// fetch all users so we can convert usernames to phone numbers,
 	// ...
@@ -158,11 +173,13 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverw
 		lm[strings.ToLower(u.Name)] = u
 	}
 
+	log.Infof("[DEBUG] retrieved user identities")
+
 	if !ignoreOverwrites {
 		// check if there's an active overwrite for t. In this case, just return
 		// that one and we're done.
 		if res := activeOverwrite(ctx, app, t, lm); res != nil {
-			log.Error("[doctor-on-duty] returning active overwrite")
+			log.Error("[DEBUG] returning active overwrite")
 			return res, nil
 		}
 	}
@@ -198,12 +215,12 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverw
 		"nextChange": nextChange.Format(time.RFC3339),
 	})
 
-	log.Infof("[doctor-on-duty] loading duty roster ")
+	log.Infof("[DEBUG] loading duty roster ")
 	day, err := app.DutyRosters.ForDay(ctx, t)
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("[doctor-on-duty] loaded duty roster in %s", time.Since(start))
+	log.Infof("[DEBUG] loaded duty roster in %s", time.Since(start))
 
 	// Get the correct username slice. If there's no "day-shift"
 	// configured we fallback to the night shift.

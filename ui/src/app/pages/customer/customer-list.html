@@ -21,10 +21,13 @@
         <span>Suchen</span>
       </button>
     </div>
-    <div class="flex space-x-2">
+    <div class="flex justify-between space-x-2">
       <div class="flex items-center space-x-2 text-secondary">
         <nz-switch nzSize="small" [(ngModel)]="useAdvancedSearch"></nz-switch>
         <span class="text-sm font-lato">Expertenmodus</span>
+      </div>
+      <div>
+        <span class="text-sm">{{customers?.length}} Ergebnisse</span>
       </div>
     </div>
   </div>
@@ -38,7 +41,7 @@
 
     <div class="p-4">
       <li *cdkVirtualFor="let customer of customers; trackBy: trackBy"
-        class="flex flex-row items-start justify-between p-2 rounded outline-none cursor-pointer md:items-center hover:bg-secondary hover:bg-opacity-25"
+        class="flex flex-row justify-between items-start p-2 rounded cursor-pointer outline-none md:items-center hover:bg-secondary hover:bg-opacity-25"
         [routerLink]="['view', customer.source, customer.cid]">
         <div class="flex flex-col">
           <div>
@@ -88,7 +91,7 @@
   <ul class="list-none">
     <li *ngFor="let phone of data.distinctPhoneNumbers">
       <a class="flex-row items-center p-2 space-x-3 text-base outline-none font-lato text-primaryflex md:p-4 hover:bg-secondary hover:bg-opacity-25 pointer text-color-primary text-opacity-light hover:text-color-primary hover:text-opacity-100" href="tel:{{phone}}" (click)="bottomSheetRef?.dismiss()" >
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6 ">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6">
           <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
         </svg>
         <span class="text-base text-lato text-primary hover:text-color-primary-dark">{{ phone }}</span>

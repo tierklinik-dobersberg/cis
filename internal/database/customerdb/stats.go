@@ -3,6 +3,7 @@ package customerdb
 import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/dbutils"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var dateMongoFormat = map[string]string{
@@ -38,14 +39,14 @@ func (db *database) Stats() *dbutils.Stats {
 		},
 		ValidCounts: map[string]bson.M{
 			"invalidNumbers": {
-				"$cond": bson.M{
-					"if": bson.M{
-						"$ne": bson.A{"distinctPhoneNumbers", bson.A{}},
+				"$sum": bson.M{
+					"$cond": bson.M{
+						"if": bson.M{
+							"$ne": bson.A{"phoneNumbers", primitive.Null{}},
+						},
+						"then": 1,
+						"else": 0,
 					},
-					"then": bson.M{
-						"$sum": 1,
-					},
-					"else": nil,
 				},
 			},
 		},
