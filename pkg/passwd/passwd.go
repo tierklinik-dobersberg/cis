@@ -69,6 +69,10 @@ func Hash(ctx context.Context, algo, plaintext string) (string, error) {
 	lock.RLock()
 	defer lock.RUnlock()
 
+	if algo == "" {
+		algo = "bcrypt"
+	}
+
 	entry, ok := supportedAlgo[strings.ToLower(algo)]
 	if !ok {
 		return "", fmt.Errorf("%s: %w", algo, ErrUnknownAlgo)
