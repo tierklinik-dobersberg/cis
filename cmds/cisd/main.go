@@ -47,6 +47,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/door"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/identity/providers/file"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
@@ -297,7 +298,14 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		logger.Fatalf(ctx, "patientdb: %s", err.Error())
 	}
 
-	identities, err := file.New(ctx, instance.ConfigurationDirectory, cfg.Country, cfg.UserProperties)
+	identities, err := identity.DefaultRegistry.Create(ctx, cfg.IdentityBackend, instance.ConfigFile(), identity.Environment{
+		ConfigurationDirectory:  instance.ConfigurationDirectory,
+		MongoClient:             mongoClient,
+		MongoDatabaseName:       cfg.DatabaseName,
+		UserPropertyDefinitions: cfg.UserProperties,
+		Global:                  &cfg.Config,
+		ConfigSchema:            runtime.GlobalSchema,
+	})
 	if err != nil {
 		logger.Fatalf(ctx, "file: %s", err)
 	}

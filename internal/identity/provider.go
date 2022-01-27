@@ -11,9 +11,6 @@ type Provider interface {
 	// password is correct. False otherwise.
 	Authenticate(ctx context.Context, name string, password string) bool
 
-	// SetUserPassword updates the password of the given user.
-	SetUserPassword(ctx context.Context, user, password, algo string) error
-
 	// ListAllUsers returns all users stored in the database.
 	ListAllUsers(ctx context.Context) ([]cfgspec.User, error)
 
@@ -32,4 +29,9 @@ type Provider interface {
 	// GetRolePermissions returns a slice of permissions directly attached to
 	// the role identified by name.
 	GetRolePermissions(ctx context.Context, name string) ([]cfgspec.Permission, error)
+}
+
+type PasswortChangeSupport interface {
+	// SetUserPassword updates the password of the given user.
+	SetUserPassword(ctx context.Context, user, password, algo string) error
 }

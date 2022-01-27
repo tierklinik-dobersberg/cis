@@ -22,11 +22,18 @@ type (
 	// FactoryConfig is passed to identity provider factories and may contain useful
 	// dependencies.
 	Environment struct {
+		// ConfigurationDirectory should be set to the configuration directory.
+		// If unset, svcenv.Env() is used.
+		ConfigurationDirectory string
 		// MongoClient can be set to a shared mongodb client if available.
 		MongoClient *mongo.Client
 		// MongoDatabaseName should be set to the name of the target database
 		// that should be used.
 		MongoDatabaseName string
+		// UserPropertyDefinitions should hold the list of customer user properties.
+		// TODO(ppacher): add comment on what providers are expected to do with this
+		// information.
+		UserPropertyDefinitions []cfgspec.UserPropertyDefinition
 		// Global contains a reference to the global configuration struct.
 		Global *cfgspec.Config
 		// ConfigSchema holds a reference to the global configuration schema.
@@ -39,11 +46,11 @@ type (
 
 	// Factory creates a new identity provider using the given configuration section.
 	Factory interface {
-		CreateProvider(ctx context.Context, cfg conf.Section, env *Environment) (Provider, error)
+		CreateProvider(ctx context.Context, cfg conf.Section, env Environment) (Provider, error)
 	}
 
 	// FactoryFunc is a convenience type for implementing the Factory interface.
-	FactoryFunc func(ctx context.Context, cfg conf.Section, env *Environment) (Provider, error)
+	FactoryFunc func(ctx context.Context, cfg conf.Section, env Environment) (Provider, error)
 
 	// Registry keeps track of available identity provider factories and their configuration
 	// specification.
@@ -60,7 +67,7 @@ type (
 
 // CreateProvider implements the Factory interface and creates a new identity provider
 // using the provided cfg section.
-func (fn FactoryFunc) CreateProvider(ctx context.Context, cfg conf.Section, env *Environment) (Provider, error) {
+func (fn FactoryFunc) CreateProvider(ctx context.Context, cfg conf.Section, env Environment) (Provider, error) {
 	return fn(ctx, cfg, env)
 }
 
@@ -88,7 +95,7 @@ func (reg *Registry) Register(name string, spec conf.OptionRegistry, factory Fac
 
 // Create creates a new identity provider from the given type and initializes it
 // using cfg.
-func (reg *Registry) Create(ctx context.Context, providerType string, cfg *conf.File, env *Environment) (Provider, error) {
+func (reg *Registry) Create(ctx context.Context, providerType string, cfg *conf.File, env Environment) (Provider, error) {
 	reg.l.Lock()
 	defer reg.l.Unlock()
 
@@ -125,7 +132,7 @@ func (reg *Registry) OptionsForSection(name string) (conf.OptionRegistry, bool) 
 	}
 
 	entry, ok := reg.factories[name]
-	if ok {
+	if ok && entry.Spec != nil {
 		return entry.Spec, ok
 	}
 	return nil, false

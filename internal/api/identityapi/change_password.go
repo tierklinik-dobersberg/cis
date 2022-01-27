@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
@@ -40,7 +41,11 @@ func ChangePasswordEndpoint(grp *app.Router) {
 				return httperr.BadRequest()
 			}
 
-			if err := app.Identities.SetUserPassword(ctx, sess.User.Name, body.NewPassword, "bcrypt"); err != nil {
+			changer, ok := app.Identities.(identity.PasswortChangeSupport)
+			if !ok {
+				return echo.NewHTTPError(http.StatusNotImplemented, "Setting user passwords is not supported in this environment")
+			}
+			if err := changer.SetUserPassword(ctx, sess.User.Name, body.NewPassword, "bcrypt"); err != nil {
 				return err
 			}
 
