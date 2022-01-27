@@ -8,6 +8,8 @@ import (
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/service/runtime"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var (
@@ -17,13 +19,31 @@ var (
 )
 
 type (
+	// FactoryConfig is passed to identity provider factories and may contain useful
+	// dependencies.
+	Environment struct {
+		// MongoClient can be set to a shared mongodb client if available.
+		MongoClient *mongo.Client
+		// MongoDatabaseName should be set to the name of the target database
+		// that should be used.
+		MongoDatabaseName string
+		// Global contains a reference to the global configuration struct.
+		Global *cfgspec.Config
+		// ConfigSchema holds a reference to the global configuration schema.
+		// Provider factories should only use this if they really need access to
+		// one of the configuration values that is not part of cfgspec.Config.
+		// Use with care as there are not build-checks in place that will prevent
+		// compiling in case of errors.
+		ConfigSchema *runtime.ConfigSchema
+	}
+
 	// Factory creates a new identity provider using the given configuration section.
 	Factory interface {
-		CreateProvider(ctx context.Context, global *cfgspec.Config, cfg conf.Section) (Provider, error)
+		CreateProvider(ctx context.Context, cfg conf.Section, env *Environment) (Provider, error)
 	}
 
 	// FactoryFunc is a convenience type for implementing the Factory interface.
-	FactoryFunc func(ctx context.Context, global *cfgspec.Config, cfg conf.Section) (Provider, error)
+	FactoryFunc func(ctx context.Context, cfg conf.Section, env *Environment) (Provider, error)
 
 	// Registry keeps track of available identity provider factories and their configuration
 	// specification.
@@ -40,8 +60,8 @@ type (
 
 // CreateProvider implements the Factory interface and creates a new identity provider
 // using the provided cfg section.
-func (fn FactoryFunc) CreateProvider(ctx context.Context, global *cfgspec.Config, cfg conf.Section) (Provider, error) {
-	return fn(ctx, global, cfg)
+func (fn FactoryFunc) CreateProvider(ctx context.Context, cfg conf.Section, env *Environment) (Provider, error) {
+	return fn(ctx, cfg, env)
 }
 
 // Register registers a new provider factory and the corresponding configuration specification.
@@ -68,19 +88,19 @@ func (reg *Registry) Register(name string, spec conf.OptionRegistry, factory Fac
 
 // Create creates a new identity provider from the given type and initializes it
 // using cfg.
-func (reg *Registry) Create(ctx context.Context, providerTypoe string, global *cfgspec.Config, cfg *conf.File) (Provider, error) {
+func (reg *Registry) Create(ctx context.Context, providerType string, cfg *conf.File, env *Environment) (Provider, error) {
 	reg.l.Lock()
 	defer reg.l.Unlock()
 
 	if reg.factories == nil {
 		return nil, ErrUnknownProvider
 	}
-	entry, ok := reg.factories[strings.ToLower(providerTypoe)]
+	entry, ok := reg.factories[strings.ToLower(providerType)]
 	if !ok {
 		return nil, ErrUnknownProvider
 	}
 
-	cfgSections := cfg.GetAll(providerTypoe)
+	cfgSections := cfg.GetAll(providerType)
 	if len(cfgSections) > 1 {
 		return nil, ErrMultipleSections
 	}
@@ -89,7 +109,7 @@ func (reg *Registry) Create(ctx context.Context, providerTypoe string, global *c
 		providerConfig = cfgSections[0]
 	}
 
-	return entry.CreateProvider(ctx, global, providerConfig)
+	return entry.CreateProvider(ctx, providerConfig, env)
 }
 
 // OptionsForSection implements the conf.SectionRegistry interface. That is, a Registry
