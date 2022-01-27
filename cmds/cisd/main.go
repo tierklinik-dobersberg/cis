@@ -42,12 +42,12 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
-	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/infoscreendb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/door"
+	"github.com/tierklinik-dobersberg/cis/internal/identity/providers/file"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/integration/mongolog"
@@ -297,9 +297,9 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		logger.Fatalf(ctx, "patientdb: %s", err.Error())
 	}
 
-	identities, err := identitydb.New(ctx, instance.ConfigurationDirectory, cfg.Country, cfg.UserProperties, httpcond.DefaultRegistry)
+	identities, err := file.New(ctx, instance.ConfigurationDirectory, cfg.Country, cfg.UserProperties, httpcond.DefaultRegistry)
 	if err != nil {
-		logger.Fatalf(ctx, "identitydb: %s", err)
+		logger.Fatalf(ctx, "file: %s", err)
 	}
 
 	rosters, err := roster.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
@@ -402,7 +402,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	// Configure the session manager
 	//
 	userProvider := session.UserProviderFunc(func(ctx context.Context, name string) (*v1alpha.User, error) {
-		ctx = identitydb.WithScope(ctx, identitydb.Internal)
+		ctx = file.WithScope(ctx, file.Internal)
 		u, err := identities.GetUser(ctx, name)
 		if err != nil {
 			return nil, err

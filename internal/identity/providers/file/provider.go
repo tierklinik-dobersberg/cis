@@ -20,7 +20,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var log = pkglog.New("identitydb")
+var log = pkglog.New("file")
 
 var (
 	// ErrNotFound is returned when the requested user or role does not
