@@ -2,8 +2,8 @@ package externalapi
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
-	stdlog "log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -19,6 +19,9 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/models/external/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 // CurrentDoctorOnDutyEndpoint provides a specialized endpoint
@@ -31,7 +34,8 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 			ReadOnDutyAction,
 		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
-			start := time.Now()
+			ctx, sp := otel.Tracer("").Start(ctx, "getDoctorOnDutyEndpoint")
+			defer sp.End()
 
 			d := time.Now()
 			if at := c.QueryParam("at"); at != "" {
@@ -51,19 +55,22 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 				ignoreOverwrites = b
 			}
 
-			log.From(ctx).Errorf("[DEBUG] retrieving doctor on duty after %s", time.Since(start))
-
 			response, err := getDoctorOnDuty(ctx, app, d, ignoreOverwrites)
 			if err != nil {
+				sp.RecordError(err)
+				sp.SetStatus(codes.Error, err.Error())
 				return err
 			}
 
-			log.From(ctx).Errorf("[DEBUG] retrieved doctor on duty after %s", time.Since(start))
+			if blob, err := json.MarshalIndent(response, "", "  "); err == nil {
+				sp.SetAttributes(
+					attribute.String("tkd.doctor_on_duty", string(blob)),
+				)
+			} else if err != nil {
+				sp.SetAttributes(attribute.String("tkd.doctor_on_duty", err.Error()))
+			}
 
-			decodeStart := time.Now()
 			c.JSON(http.StatusOK, response)
-
-			log.From(ctx).Errorf("[DEBUG] serialized and sent response after %s (serialized %s)", time.Since(start), time.Since(decodeStart))
 
 			return nil
 		},
@@ -71,8 +78,8 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 }
 
 func activeOverwrite(ctx context.Context, app *app.App, t time.Time, lm map[string]cfgspec.User) *v1alpha.DoctorOnDutyResponse {
-	stdlog.Println("[DEBUG] enter getDoctorOnDuty()")
-	defer stdlog.Println("[DEBUG] leave getDoctorOnDuty()")
+	ctx, sp := otel.Tracer("").Start(ctx, "getActiveOverwrite")
+	defer sp.End()
 
 	start := time.Now()
 	log := log.From(ctx)
@@ -148,15 +155,11 @@ func activeOverwrite(ctx context.Context, app *app.App, t time.Time, lm map[stri
 }
 
 func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverwrites bool) (*v1alpha.DoctorOnDutyResponse, error) {
-	stdlog.Println("[DEBUG] enter getDoctorOnDuty()")
-	defer stdlog.Println("[DEBUG] leave getDoctorOnDuty()")
-
-	start := time.Now()
+	ctx, sp := otel.Tracer("").Start(ctx, "getDoctorOnDuty")
+	defer sp.End()
 
 	log := log.From(ctx)
 	t = t.In(app.Location())
-
-	log.Infof("[DEBUG] retrieving user identities ...")
 
 	// fetch all users so we can convert usernames to phone numbers,
 	// ...
@@ -215,12 +218,10 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverw
 		"nextChange": nextChange.Format(time.RFC3339),
 	})
 
-	log.Infof("[DEBUG] loading duty roster ")
 	day, err := app.DutyRosters.ForDay(ctx, t)
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("[DEBUG] loaded duty roster in %s", time.Since(start))
 
 	// Get the correct username slice. If there's no "day-shift"
 	// configured we fallback to the night shift.
