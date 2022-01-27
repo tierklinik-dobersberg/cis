@@ -6,7 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/identity/providers/file"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 )
@@ -20,7 +20,7 @@ func ProfileEndpoint(grp *app.Router) {
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			sess := session.Get(c)
 
-			ctx = file.WithScope(ctx, file.Private)
+			ctx = identity.WithScope(ctx, identity.Private)
 			user, err := app.Identities.GetUser(ctx, sess.User.Name)
 			if err != nil {
 				return err

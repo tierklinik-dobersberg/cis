@@ -11,7 +11,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/identity/providers/file"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
@@ -30,7 +30,7 @@ func AvatarEndpoint(grp *app.Router) {
 			}
 
 			// We need scope Internal so we get the avatar file name.
-			ctx = file.WithScope(ctx, file.Internal)
+			ctx = identity.WithScope(ctx, identity.Internal)
 
 			// load the user data using the prepared context
 			user, err := app.Identities.GetUser(ctx, userName)

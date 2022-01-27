@@ -13,7 +13,7 @@ import (
 	"github.com/nyaruka/phonenumbers"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/identity/providers/file"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/external/v1alpha"
@@ -160,7 +160,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverw
 	// fetch all users so we can convert usernames to phone numbers,
 	// ...
 	allUsers, err := app.Identities.ListAllUsers(
-		file.WithScope(ctx, file.Public),
+		identity.WithScope(ctx, identity.Public),
 	)
 	if err != nil {
 		return nil, httperr.InternalError().SetInternal(err)
