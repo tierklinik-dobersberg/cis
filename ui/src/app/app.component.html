@@ -35,7 +35,6 @@
       <span>Kunden</span>
     </li>
 
-  <!--
     <li routerLink="/statistics" nzMatchRouter nz-menu-item>
       <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
@@ -43,7 +42,6 @@
       </svg>
       <span>Statistiken</span>
     </li>
-  -->
 
     <li routerLink="/xray" nzMatchRouter nz-menu-item>
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -133,7 +131,7 @@
   <!--
     On tablet and up we have a sidebar for navigation
   -->
-  <div *ngIf="(isLogin | async) === false && !layout.isPhone" class="flex relative z-10 flex-col p-2 w-64 h-full bg-white shadow-md sm:px-4">
+  <div *ngIf="(isLogin | async) === false && !layout.isPhone" class="relative z-10 flex flex-col w-64 h-full p-2 bg-white shadow-md sm:px-4">
     <div class="py-2 ml-1 h-14">
       <a class="flex items-center space-x-2" routerLink="/welcome">
         <img src="assets/logo.png" class="w-10 h-10" alt="logo">
@@ -148,7 +146,7 @@
       <ng-container *ngTemplateOutlet="menuTemplate"></ng-container>
     </div>
 
-    <span class="flex flex-col justify-around items-center py-2 text-xs text-center text-secondary font-lato">
+    <span class="flex flex-col items-center justify-around py-2 text-xs text-center text-secondary font-lato">
       <span class="font-semibold text-highlight">V1.0</span>
       <span>
         <i nz-icon nzType="copyright" nzTheme="outline"></i>
@@ -160,12 +158,12 @@
   <!--
     Next to the sidebar there's the main content container including the header
   -->
-  <div class="flex overflow-x-hidden flex-col flex-grow self-stretch">
+  <div class="flex flex-col self-stretch flex-grow overflow-x-hidden">
     <!-- App header is only visible if we're not on the login screen -->
-    <div *ngIf="(isLogin | async) === false" class="flex relative flex-col p-0 px-2 sm:px-4 md:px-8 lg:px-12">
-      <div class="flex justify-between items-center py-4">
+    <div *ngIf="(isLogin | async) === false" class="relative flex flex-col p-0 px-2 sm:px-4 md:px-8 lg:px-12">
+      <div class="flex items-center justify-between py-4">
         <!-- On mobile the logo is put into the header -->
-        <a class="block mr-2 w-8 h-8" *ngIf="layout.isPhone" routerLink="/welcome">
+        <a class="block w-8 h-8 mr-2" *ngIf="layout.isPhone" routerLink="/welcome">
           <img class="w-full h-full" src="assets/logo.png" alt="logo">
         </a>
 
@@ -232,14 +230,14 @@
 
     </div>
 
-    <div class="flex overflow-auto flex-grow justify-items-stretch items-stretch self-stretch w-full router-content" cdkScrollable>
+    <div class="flex items-stretch self-stretch flex-grow w-full overflow-auto justify-items-stretch router-content" cdkScrollable>
       <router-outlet></router-outlet>
     </div>
 
     <!--
       On mobile we have an additional navigation bar at the bottom
     -->
-    <div *ngIf="layout.isPhone" class="flex z-10 flex-grow-0 flex-shrink-0 justify-evenly items-center py-1 mt-1 w-full h-12 text-xs list-none border-t text-color-primary text-opacity-light border-tertiary">
+    <div *ngIf="layout.isPhone" class="z-10 flex items-center flex-grow-0 flex-shrink-0 w-full h-12 py-1 mt-1 text-xs list-none border-t justify-evenly text-color-primary text-opacity-light border-tertiary">
       <!-- Dashboard -->
       <li routerLink="/welcome" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5" viewBox="0 0 24 24" stroke="currentColor">

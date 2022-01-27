@@ -13,12 +13,13 @@ export class StatsAPI {
     private colorService: ColorService,
   ) {}
 
-  groupByOverTime(collection: string, timeKey: string, groupKey: string, from: Date, to: Date, count = ''): Observable<ChartData<'line'>> {
+  groupByOverTime(collection: string, timeKey: string, groupKey: string, from: Date, to: Date, timeRange: string, count = ''): Observable<ChartData<'line'>> {
     return this.http.get<any>(`/api/stats/v1/${collection}/group-by-time/${timeKey}/${groupKey}`, {
       params: new HttpParams()
         .set("from", from.toISOString())
         .set("to", to.toISOString())
         .set('count', count)
+        .set('time-range', timeRange)
     })
       .pipe(map(result => {
         result = result || [];
@@ -51,7 +52,7 @@ export class StatsAPI {
   }
 
   count(collection: string, counter: string): Observable<number> {
-    return this.http.get<number>(`/api/stats/v1/${collection}/count/${counter}`)
+    return this.http.get<number>(`/api/stats/v1/${collection}/count/${counter}/`)
   }
 
   private relabel(label: string, translation: {[key: string]: string} = null) {

@@ -156,7 +156,7 @@ export class CustomerAPI {
   }
 
   searchName(name: string): Observable<Customer[]> {
-    return this.http.get<Customer[]>(`/api/customer/v1/`, {
+    return this.http.get<Customer[]>(`/api/customer/v1`, {
       params: {
         name,
       },
@@ -168,7 +168,7 @@ export class CustomerAPI {
   }
 
   search(params: { [key: string]: string | string[] }): Observable<Customer[]> {
-    return this.http.get<Customer[]>(`/api/customer/v1/`, {
+    return this.http.get<Customer[]>(`/api/customer/v1`, {
       params,
     })
       .pipe(map(result => result.map(customer => ({

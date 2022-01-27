@@ -1,8 +1,13 @@
-<div class="block leading-3">
-  <span class="block text-lg font-semibold font-lato text-color-primary">{{ title }}</span>
-  <span class="block text-sm text-secondary">{{ description }}</span>
+<div class="block leading-3" *ngIf="title || description">
+  <span *ngIf="title" class="block text-lg font-semibold font-lato text-color-primary">{{ title }}</span>
+  <span *ngIf="description" class="block text-sm text-secondary">{{ description }}</span>
 </div>
 
-<div class="relative">
-    {{ count }}
+<div class="relative grid {{gridClass}} items-center justify-center flex-grow gap-1 bg-subtle">
+  <ng-container *ngFor="let counter of _count">
+    <div class="flex flex-col items-center justify-center flex-1 flex-grow flex-shrink h-full bg-white {{counter.class}} ">
+      <span class="block w-full text-xs text-center break-words text-secondary" *ngIf="counter.title">{{ counter.title }}</span>
+      <h1 class="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-lato" [style.color]="counter.color">{{ counter.count | number}}</h1>
+    </div>
+  </ng-container>
 </div>

@@ -1,7 +1,9 @@
 import { Component, OnDestroy, OnInit, TemplateRef, TrackByFunction, ViewChild } from '@angular/core';
 import { MatBottomSheet, MatBottomSheetRef } from '@angular/material/bottom-sheet';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
+import { debounceTime, map, takeUntil } from 'rxjs/operators';
 import { parse as parseQuery } from 'search-query-parser';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
@@ -13,9 +15,10 @@ import { customerTagColor, ExtendedCustomer, getMapsRouteUrl } from './utils';
   styleUrls: ['./customer-list.scss']
 })
 export class CustomerListComponent implements OnInit, OnDestroy {
-  private subscriptions = Subscription.EMPTY;
+  private search$ = new Subject<string>();
+  private destroy$ = new Subject();
 
-  @ViewChild('customerSelectPhone', {static: true, read: TemplateRef})
+  @ViewChild('customerSelectPhone', { static: true, read: TemplateRef })
   customerSelectPhone: TemplateRef<any> | null = null;
 
   searchText = '';
@@ -37,17 +40,90 @@ export class CustomerListComponent implements OnInit, OnDestroy {
     private customerapi: CustomerAPI,
     private nzMessageService: NzMessageService,
     private bottomSheet: MatBottomSheet,
+    private route: ActivatedRoute,
+    private router: Router,
   ) { }
 
   ngOnInit(): void {
     this.header.set('Kunden', 'Stammdaten durchsuchen und verwalten');
-    this.subscriptions = new Subscription();
 
-    this.search('');
+    this.search$
+      .pipe(
+        debounceTime(500),
+        takeUntil(this.destroy$))
+      .subscribe(term => {
+        let queryParams = {...this.route.snapshot.queryParams};
+        queryParams['q'] = term;
+        return this.router.navigate([], { queryParams })
+      })
+
+    this.route.queryParamMap
+      .pipe(
+        map(qpm => qpm.get('q') || ''),
+        takeUntil(this.destroy$),
+      )
+      .subscribe(term => {
+        this.searchText = term;
+        let stream: Observable<Customer[]> = this.customerapi.searchName(term);
+
+        if (this.useAdvancedSearch) {
+          let payload: any;
+          try {
+            payload = JSON.parse(term);
+          } catch (err) {
+            return;
+          }
+
+          stream = this.customerapi.extendedSearch(payload);
+        } else {
+          const parsedQuery = parseQuery(term, {
+            keywords: ['name', 'firstname', 'phoneNumbers', 'city', 'cityCode', 'street', 'mailAddresses', 'customerSource']
+          });
+
+          if (typeof parsedQuery !== 'string') {
+            const filter = toMongoDBFilter(parsedQuery);
+            stream = this.customerapi.extendedSearch(filter);
+          }
+        }
+
+        this.searching = true;
+        stream.subscribe(
+          result => {
+            this.sourceTags = new Set();
+            this.tagColors = {};
+            this.allCustomers = [];
+
+            (result || []).forEach(c => {
+              const tagColor = customerTagColor(c);
+              const mapsUrl = getMapsRouteUrl(c);
+              this.allCustomers.push({
+                ...c,
+                tagColor,
+                mapsUrl,
+              });
+
+              this.sourceTags.add(c.source);
+              this.tagColors[c.source] = tagColor;
+            });
+
+            this.updateTagVisibility();
+          },
+          err => {
+            const msg = extractErrorMessage(err, 'Suche fehlgeschlagen');
+            this.nzMessageService.error(msg);
+
+            this.customers = [];
+            this.sourceTags = new Set();
+          },
+          () => {
+            this.searching = false;
+          });
+      })
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   callCustomer(cus: ExtendedCustomer) {
@@ -64,60 +140,7 @@ export class CustomerListComponent implements OnInit, OnDestroy {
   }
 
   search(term: string): void {
-    let stream: Observable<Customer[]> = this.customerapi.searchName(term);
-
-    if (this.useAdvancedSearch) {
-      let payload: any;
-      try {
-        payload = JSON.parse(term);
-      } catch (err) {
-        return;
-      }
-
-      stream = this.customerapi.extendedSearch(payload);
-    } else {
-      const parsedQuery = parseQuery(term, {
-        keywords: ['name', 'firstname', 'phoneNumbers', 'city', 'cityCode', 'street', 'mailAddresses', 'customerSource']
-      });
-
-      if (typeof parsedQuery !== 'string') {
-        const filter = toMongoDBFilter(parsedQuery);
-        stream = this.customerapi.extendedSearch(filter);
-      }
-    }
-
-    this.searching = true;
-    stream.subscribe(
-      result => {
-        this.sourceTags = new Set();
-        this.tagColors = {};
-        this.allCustomers = [];
-
-        (result || []).forEach(c => {
-          const tagColor = customerTagColor(c);
-          const mapsUrl = getMapsRouteUrl(c);
-          this.allCustomers.push({
-            ...c,
-            tagColor,
-            mapsUrl,
-          });
-
-          this.sourceTags.add(c.source);
-          this.tagColors[c.source] = tagColor;
-        });
-
-        this.updateTagVisibility();
-      },
-      err => {
-        const msg = extractErrorMessage(err, 'Suche fehlgeschlagen');
-        this.nzMessageService.error(msg);
-
-        this.customers = [];
-        this.sourceTags = new Set();
-      },
-      () => {
-        this.searching = false;
-      });
+    this.search$.next(term);
   }
 
   updateTagVisibility(): void {

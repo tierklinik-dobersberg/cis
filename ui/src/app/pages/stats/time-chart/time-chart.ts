@@ -25,7 +25,7 @@ export class TimeChartComponent implements OnDestroy, OnChanges, OnInit {
                 min: 0,
             },
             x: {
-                type: 'time', // timeseries
+                type: 'time',
                 time: {
                     unit: 'day',
                     round: 'day',
@@ -60,6 +60,9 @@ export class TimeChartComponent implements OnDestroy, OnChanges, OnInit {
     description = '';
 
     @Input()
+    timeRange: string = '';
+
+    @Input()
     chartType: 'bar' | 'line' = 'line';
 
     @Input()
@@ -92,10 +95,22 @@ export class TimeChartComponent implements OnDestroy, OnChanges, OnInit {
             .pipe(
                 takeUntil(this.destroy$),
                 debounceTime(5),
-                switchMap(({from, to}) => this.load(from, to)),
+                switchMap(({from, to}) => this.load(from, to, this.timeRange)),
             )
             .subscribe(data => {
                 this.data = data;
+                this._options = mergeDeep(this._options, {
+                  scales: {
+                    x: {
+                      time: {
+                        unit: this.timeRange || 'day',
+                        round: this.timeRange || 'day',
+                      },
+                      min: this.from.getTime(),
+                      max: this.to.getTime(),
+                    }
+                  }
+                })
                 if (data.datasets.some(d => d.data.length > 256)) {
                   this._options = mergeDeep(this._options, {
                     elements: {
@@ -119,6 +134,7 @@ export class TimeChartComponent implements OnDestroy, OnChanges, OnInit {
                     }
                   })
                 }
+                console.log(this._options)
                 this.cdr.detectChanges();
             })
 
@@ -126,7 +142,7 @@ export class TimeChartComponent implements OnDestroy, OnChanges, OnInit {
     }
 
     ngOnChanges(changes: SimpleChanges) {
-        if ('to' in changes || 'from' in changes || 'load' in changes) {
+        if ('to' in changes || 'from' in changes || 'load' in changes || 'timeRange' in changes) {
             if (!!this.to && !!this.from && this.load) {
                 this.reload$.next({from: this.from, to: this.to})
             }

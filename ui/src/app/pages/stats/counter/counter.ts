@@ -1,46 +1,56 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
-import { Observable, ObservedValueOf, of, Subject } from 'rxjs';
-import { switchMap, takeUntil } from 'rxjs/operators';
+import { ChangeDetectionStrategy, Component, Input, TrackByFunction } from '@angular/core';
+import { ColorService } from 'src/app/shared/charts/color.service';
+
+export interface Counter {
+  title?: string;
+  color: string;
+  count: number;
+  class?: string;
+}
 
 @Component({
-    selector: 'tkd-counter',
-    templateUrl: './counter.html',
-    styleUrls: ['./counter.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'tkd-counter',
+  templateUrl: './counter.html',
+  styleUrls: ['./counter.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CounterStatComponent implements OnChanges, OnInit, OnDestroy {
-    private reload$ = new Subject<void>();
-    private destroy$ = new Subject<void>(); 
+export class CounterStatComponent {
+  constructor(private colorService: ColorService) { }
 
-    @Input()
-    title: string = '';
+  @Input()
+  title: string = '';
 
-    @Input()
-    description: string = '';
+  @Input()
+  description: string = '';
 
-    @Input()
-    load: () => Observable<number> = () => of(0);
-
-    @Input()
-    count: number = 0;
-
-    ngOnInit() {
-        this.reload$
-            .pipe(
-                takeUntil(this.destroy$),
-                switchMap(() => this.load())
-            )
-            .subscribe(counter => this.count = counter)
+  @Input()
+  set count(v: Counter[] | Counter | number) {
+    if (Array.isArray(v)) {
+      this._count = v;
+    } else if (typeof v === 'number') {
+      this._count = [{
+        title: '',
+        color: this.colorService.get('primary'),
+        count: v,
+      }]
+    } else {
+      this._count = [v];
     }
 
-    ngOnDestroy() {
-        this.destroy$.next();
-        this.destroy$.complete();
-    }
+    this._count = this._count.map((counter, idx) => {
+      counter = { ...counter };
+      if (!counter.color) {
+        counter.color = this.colorService.byIndex(idx)
+      } else {
+        counter.color = this.colorService.get(counter.color);
+      }
+      return counter;
+    })
+  }
+  _count: Counter[] = []
 
-    ngOnChanges(changes: SimpleChanges) {
-        if ('load' in changes) {
-            this.reload$.next()
-        }
-    }
+  @Input()
+  gridClass: string = '';
+
+  trackCounter: TrackByFunction<Counter> = (_: number, counter: Counter) => counter.title;
 }

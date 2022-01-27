@@ -8,6 +8,7 @@ import { NzDatePickerModule } from "ng-zorro-antd/date-picker";
 import { TimeChartComponent } from "./time-chart";
 import { StatsChartComponent } from "./stats-chart";
 import { CounterStatComponent } from "./counter";
+import { NzDropDownModule } from "ng-zorro-antd/dropdown";
 
 @NgModule({
     imports: [
@@ -16,6 +17,7 @@ import { CounterStatComponent } from "./counter";
         SharedModule,
         NgChartsModule,
         NzDatePickerModule,
+        NzDropDownModule
     ],
     declarations: [
         StatsPageComponent,

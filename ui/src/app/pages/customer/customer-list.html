@@ -1,13 +1,13 @@
 <div class="flex flex-col flex-grow bg-white rounded shadow">
   <div class="flex flex-col p-4 space-y-2 border-b border-tertiary">
     <div class="flex space-x-2">
-      <input type="text" class="flex-grow tkd-input" placeholder="Nach Nachnamen suchen ..." [(ngModel)]="searchText" *ngIf="!useAdvancedSearch"
+      <input type="text" class="flex-grow tkd-input" placeholder="Suche nach Name oder Addresse ..." [(ngModel)]="searchText" *ngIf="!useAdvancedSearch"
         (ngModelChange)="search($event)" />
 
       <textarea *ngIf="useAdvancedSearch" class="flex-grow tkd-input" placeholder="Expertenmodus"
-        [nzAutosize]="{ minRows: 3, maxRows: 5 }" [(ngModel)]="searchText" (ngModelChange)="search($event)"></textarea>
+        [nzAutosize]="{ minRows: 3, maxRows: 5 }" [ngModel]="searchText" (ngModelChange)="search($event)"></textarea>
 
-      <nz-select class="inline-block w-28" [(ngModel)]="visibleTag" (ngModelChange)="updateTagVisibility()">
+      <nz-select class="hidden w-28 sm:inline-block" [(ngModel)]="visibleTag" (ngModelChange)="updateTagVisibility()">
         <nz-option nzValue="all" nzLabel="Alle"></nz-option>
         <nz-option *ngFor="let tag of sourceTags" [nzValue]="tag" [nzLabel]="tag"></nz-option>
       </nz-select>
@@ -18,16 +18,19 @@
             d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
             clip-rule="evenodd" />
         </svg>
-        <span>Suchen</span>
+        <span class="hidden sm:block">Suchen</span>
       </button>
     </div>
-    <div class="flex justify-between space-x-2">
+    <div class="justify-between hidden space-x-2 md:flex">
       <div class="flex items-center space-x-2 text-secondary">
         <nz-switch nzSize="small" [(ngModel)]="useAdvancedSearch"></nz-switch>
         <span class="text-sm font-lato">Expertenmodus</span>
       </div>
       <div>
-        <span class="text-sm">{{customers?.length}} Ergebnisse</span>
+        <span class="text-sm text-secondary">
+          {{customers?.length}}
+          Ergebnisse
+        </span>
       </div>
     </div>
   </div>
@@ -41,7 +44,7 @@
 
     <div class="p-4">
       <li *cdkVirtualFor="let customer of customers; trackBy: trackBy"
-        class="flex flex-row justify-between items-start p-2 rounded cursor-pointer outline-none md:items-center hover:bg-secondary hover:bg-opacity-25"
+        class="flex flex-row items-start justify-between p-2 rounded outline-none cursor-pointer md:items-center hover:bg-secondary hover:bg-opacity-25"
         [routerLink]="['view', customer.source, customer.cid]">
         <div class="flex flex-col">
           <div>

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { PolarSeriesComponent } from '@swimlane/ngx-charts';
-import { BehaviorSubject, combineLatest, interval, Observable } from 'rxjs';
-import { delay, map, mergeMap, retryWhen, startWith, withLatestFrom } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, interval, Observable, of } from 'rxjs';
+import { delay, map, mergeMap, retryWhen, startWith, switchMap } from 'rxjs/operators';
+import { IdentityAPI, UserService } from 'src/app/api';
 import { CustomerAPI, CustomerRef, Suggestion } from 'src/app/api/customer.api';
 
 @Injectable({ providedIn: 'root' })
@@ -9,11 +9,25 @@ export class SuggestionService {
   private _reload: BehaviorSubject<void> = new BehaviorSubject(undefined);
   private _suggestions: BehaviorSubject<Suggestion[]> = new BehaviorSubject([]);
 
-  constructor(private customerapi: CustomerAPI) {
-    const poll$ = interval(10 * 60 * 1000).pipe(startWith(-1))
-    combineLatest([poll$, this._reload])
-      .pipe(mergeMap(() => this.customerapi.getSuggestions({ limit: 100 })))
-      .pipe(retryWhen(err => err.pipe(delay(2000))))
+  constructor(
+    private customerapi: CustomerAPI,
+    private users: UserService,
+    private identityapi: IdentityAPI,
+  ) {
+    this.identityapi.profileChange
+      .pipe(
+        switchMap(profile => {
+          if (profile === null) {
+            return of([] as Suggestion[]);
+          }
+          const poll$ = interval(10 * 60 * 1000).pipe(startWith(-1))
+          return combineLatest([poll$, this._reload])
+            .pipe(
+              mergeMap(() => this.customerapi.getSuggestions({ limit: 100 })),
+              retryWhen(err => err.pipe(delay(2000)))
+            )
+        })
+      )
       .subscribe(suggestions => this._updateSuggestions(suggestions));
   }
 
