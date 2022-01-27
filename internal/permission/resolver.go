@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
@@ -12,11 +12,11 @@ import (
 // permissions including direct and inherited
 // permission sets.
 type Resolver struct {
-	db identitydb.Database
+	db identity.Provider
 }
 
 // NewResolver returns a new permission resolver.
-func NewResolver(db identitydb.Database) *Resolver {
+func NewResolver(db identity.Provider) *Resolver {
 	return &Resolver{db}
 }
 

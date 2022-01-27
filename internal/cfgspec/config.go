@@ -18,6 +18,10 @@ type Config struct {
 	TimeZone string
 	LogLevel string
 
+	// IdentityBackend configures the backend type that should be
+	// used for user configuration.
+	IdentityBackend string
+
 	// Service is the name of the service. It's used when reporting
 	// metrics and traces.
 	Service string
@@ -163,6 +167,13 @@ var ConfigSpec = conf.SectionSpec{
 		Description: "URL of the Jaeger server to which traces should be reported",
 		Type:        conf.StringType,
 		Default:     "",
+	},
+	{
+		Name:        "IdentityBackend",
+		Description: "The type of identity backend that should be used",
+		Required:    true,
+		Default:     "file",
+		Type:        conf.StringType,
 	},
 }
 

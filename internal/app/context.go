@@ -19,12 +19,12 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
-	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/infoscreendb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/door"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -49,7 +49,7 @@ type App struct {
 	Config          *Config
 	Matcher         *permission.Matcher
 	DutyRosters     roster.Database
-	Identities      identitydb.Database
+	Identities      identity.Provider
 	Customers       customerdb.Database
 	Patients        patientdb.Database
 	Comments        commentdb.Database
@@ -84,7 +84,7 @@ func NewApp(
 	inst *service.Instance,
 	cfg *Config,
 	matcher *permission.Matcher,
-	identities identitydb.Database,
+	identities identity.Provider,
 	customers customerdb.Database,
 	patients patientdb.Database,
 	dutyRosters roster.Database,

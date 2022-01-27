@@ -8,7 +8,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
@@ -62,7 +62,7 @@ func VerifyEndpoint(grp *app.Router) {
 	)
 }
 
-func verifyBasicAuth(ctx context.Context, db identitydb.Database, header string) (*v1alpha.User, error) {
+func verifyBasicAuth(ctx context.Context, db identity.Provider, header string) (*v1alpha.User, error) {
 	log := log.From(ctx)
 
 	// We only support "Basic" auth so error out immediately for any

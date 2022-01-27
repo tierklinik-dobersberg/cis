@@ -12,6 +12,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/patient/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/go-vetinf/vetinf"
@@ -41,7 +42,7 @@ type Exporter struct {
 	country  string
 	usersMap map[int]string // nolint:unused
 
-	identities    identitydb.Database
+	identities    identity.Provider
 	loadUsersOnce sync.Once // nolint:unused
 }
 
@@ -53,7 +54,7 @@ type ImportResults struct {
 }
 
 // NewExporter creates a new exporter for vetinf.
-func NewExporter(cfg cfgspec.VetInf, country string, users identitydb.Database) (*Exporter, error) {
+func NewExporter(cfg cfgspec.VetInf, country string, users identity.Provider) (*Exporter, error) {
 	stat, err := os.Stat(cfg.VetInfDirectory)
 	if err != nil {
 		return nil, err

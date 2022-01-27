@@ -1,4 +1,4 @@
-package identitydb
+package file
 
 import (
 	"github.com/ppacher/system-conf/conf"
