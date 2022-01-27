@@ -2,10 +2,10 @@ package httpcond
 
 import (
 	"errors"
-	"net/http"
 	"strings"
 	"sync"
 
+	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 )
@@ -17,12 +17,12 @@ var log = pkglog.New("httpcond")
 // conditions value. MatchFunc should not care about negating
 // or otherwise complex boolean logic (AND/OR) as this is
 // handled by the condition chain itself.
-type MatchFunc func(req *http.Request, value string) (bool, error)
+type MatchFunc func(c echo.Context, value string) (bool, error)
 
 // Condition descibes the interface that is used to evaluate if a
 // HTTP request matches a condition.
 type Condition interface {
-	Match(req *http.Request) (bool, error)
+	Match(c echo.Context) (bool, error)
 }
 
 // ConcatFunc decides how multiple conditions (of the same type)
@@ -57,8 +57,8 @@ type Instance struct {
 
 // Match checks if req matches the condition represented by this instance.
 // It implements the Condition interface.
-func (instance *Instance) Match(req *http.Request) (bool, error) {
-	return instance.Type.Match(req, instance.Value)
+func (instance *Instance) Match(c echo.Context) (bool, error) {
+	return instance.Type.Match(c, instance.Value)
 }
 
 // Registry manages all available and supported conditions

@@ -16,7 +16,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/service/utils"
 )
 
 // MJPEGSource describes how to access an MJPEG stream of the camera.
@@ -65,7 +64,7 @@ func (src *MJPEGSource) Attach(ctx context.Context, c echo.Context) error {
 
 	// perpare a multipart writer and the HTTP response
 	// header
-	client := utils.RealClientIP(c.Request())
+	client := c.RealIP()
 	writer := multipart.NewWriter(conn)
 	res := http.Response{
 		StatusCode:    http.StatusOK,
@@ -98,7 +97,7 @@ func (src *MJPEGSource) Attach(ctx context.Context, c echo.Context) error {
 	}
 
 	log := logger.From(ctx).WithFields(logger.Fields{
-		"client": client.String(),
+		"client": client,
 	})
 
 	// forward JPEG frames

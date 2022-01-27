@@ -1,6 +1,8 @@
 package httpcond
 
-import "net/http"
+import (
+	"github.com/labstack/echo/v4"
+)
 
 // And is a simple condition that represents a boolean
 // AND between Left and Right.
@@ -16,9 +18,9 @@ func NewAnd(conds ...Condition) Condition {
 }
 
 // Match implements Condition.
-func (and *And) Match(req *http.Request) (bool, error) {
+func (and *And) Match(c echo.Context) (bool, error) {
 	for _, cond := range and.conds {
-		ok, err := cond.Match(req)
+		ok, err := cond.Match(c)
 		if err != nil {
 			return false, err
 		}
@@ -45,9 +47,9 @@ func NewOr(conds ...Condition) Condition {
 }
 
 // Match implements Condition.
-func (or *Or) Match(req *http.Request) (bool, error) {
+func (or *Or) Match(c echo.Context) (bool, error) {
 	for _, cond := range or.conds {
-		ok, err := cond.Match(req)
+		ok, err := cond.Match(c)
 		if err != nil {
 			return false, err
 		}
@@ -73,8 +75,8 @@ func NewNot(c Condition) *Not {
 }
 
 // Match implements Condition.
-func (not *Not) Match(req *http.Request) (bool, error) {
-	ok, err := not.What.Match(req)
+func (not *Not) Match(c echo.Context) (bool, error) {
+	ok, err := not.What.Match(c)
 	if err != nil {
 		return false, err
 	}

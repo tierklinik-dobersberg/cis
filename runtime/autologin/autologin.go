@@ -2,7 +2,6 @@ package autologin
 
 import (
 	"context"
-	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -53,19 +52,21 @@ func NewManager(ctx context.Context, sessionManager *session.Manager, reg *httpc
 	return mng
 }
 
-func (mng *Manager) getUserLogin(r *http.Request) (*v1alpha.User, bool, error) {
+func (mng *Manager) getUserLogin(c echo.Context) (*v1alpha.User, bool, error) {
 	mng.rw.RLock()
 	defer mng.rw.RUnlock()
 
+	req := c.Request()
+
 	for user, cond := range mng.users {
-		matched, err := cond.Match(r)
+		matched, err := cond.Match(c)
 		if err != nil {
-			log.From(r.Context()).Errorf("failed to check for autologin for user %s: %s", user, err)
+			log.From(req.Context()).Errorf("failed to check for autologin for user %s: %s", user, err)
 			continue
 		}
 
 		if matched {
-			u, err := mng.session.GetUser(r.Context(), user)
+			u, err := mng.session.GetUser(req.Context(), user)
 			if err != nil {
 				return nil, false, err
 			}
@@ -79,16 +80,17 @@ func (mng *Manager) getUserLogin(r *http.Request) (*v1alpha.User, bool, error) {
 
 // GetAutoAssignedRoles returns all roles that should be automatically assigned
 // to r.
-func (mng *Manager) GetAutoAssignedRoles(r *http.Request) ([]string, error) {
+func (mng *Manager) GetAutoAssignedRoles(c echo.Context) ([]string, error) {
 	mng.rw.RLock()
 	defer mng.rw.RUnlock()
 
 	var roles []string
+	req := c.Request()
 
 	for role, cond := range mng.roleAssignment {
-		matched, err := cond.Match(r)
+		matched, err := cond.Match(c)
 		if err != nil {
-			log.From(r.Context()).Errorf("failed to check for autoassignment of role %s: %s", role, err)
+			log.From(req.Context()).Errorf("failed to check for autoassignment of role %s: %s", role, err)
 			continue
 		}
 
@@ -106,7 +108,7 @@ func (mng *Manager) PerformAutologin(c echo.Context) {
 	// never try to issue an automatic session
 	// token if there is a valid user session
 	if session.Get(c) == nil {
-		autologin, createSession, err := mng.getUserLogin(c.Request())
+		autologin, createSession, err := mng.getUserLogin(c)
 		if err != nil {
 			log.Errorf("failed to perform autologin: %s", err.Error())
 			return
@@ -143,7 +145,7 @@ func (mng *Manager) PerformAutologin(c echo.Context) {
 		return
 	}
 
-	roles, err := mng.GetAutoAssignedRoles(c.Request())
+	roles, err := mng.GetAutoAssignedRoles(c)
 	if err != nil {
 		log.Errorf("failed to get auto-assign roles: %s", err)
 		return

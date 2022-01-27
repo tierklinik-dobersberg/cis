@@ -1,8 +1,7 @@
 package session
 
 import (
-	"net/http"
-
+	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 )
@@ -13,7 +12,8 @@ func init() {
 		Description: "Match against the session user.",
 		Type:        conf.StringSliceType,
 		ConcatFunc:  httpcond.NewOr,
-		Match: func(req *http.Request, value string) (bool, error) {
+		Match: func(c echo.Context, value string) (bool, error) {
+			req := c.Request()
 			sess := FromCtx(req.Context())
 			if sess == nil {
 				return false, nil
@@ -31,7 +31,8 @@ func init() {
 		Description: "Match against the available session roles.",
 		Type:        conf.StringSliceType,
 		ConcatFunc:  httpcond.NewAnd,
-		Match: func(req *http.Request, value string) (bool, error) {
+		Match: func(c echo.Context, value string) (bool, error) {
+			req := c.Request()
 			sess := FromCtx(req.Context())
 			if sess == nil {
 				return false, nil

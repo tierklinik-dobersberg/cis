@@ -2,9 +2,9 @@ package httpcond
 
 import (
 	"encoding/base64"
-	"net/http"
 	"strings"
 
+	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
 )
 
@@ -14,7 +14,8 @@ func init() {
 		Description: "Matches requests that have access token set to one of the values. Supported methods are Authorization Bearer, access_token form field or query parameter. RFC6750",
 		ConcatFunc:  NewOr,
 		Type:        conf.StringSliceType,
-		Match: func(r *http.Request, value string) (bool, error) {
+		Match: func(c echo.Context, value string) (bool, error) {
+			r := c.Request()
 			log := log.From(r.Context())
 			var token string
 			if h := r.Header.Get("Authorization"); h != "" {

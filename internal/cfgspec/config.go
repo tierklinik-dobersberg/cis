@@ -171,7 +171,6 @@ var ConfigSpec = conf.SectionSpec{
 	{
 		Name:        "IdentityBackend",
 		Description: "The type of identity backend that should be used",
-		Required:    true,
 		Default:     "file",
 		Type:        conf.StringType,
 	},

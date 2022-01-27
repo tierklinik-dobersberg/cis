@@ -2,10 +2,9 @@ package httpcond
 
 import (
 	"net"
-	"net/http"
 
+	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/service/utils"
 )
 
 func init() {
@@ -14,15 +13,15 @@ func init() {
 		Description: "Matches requests that originate from the given CIDR addresses",
 		Type:        conf.StringSliceType,
 		ConcatFunc:  NewOr,
-		Match: func(req *http.Request, value string) (bool, error) {
+		Match: func(c echo.Context, value string) (bool, error) {
 			_, network, err := net.ParseCIDR(value)
 			if err != nil {
 				return false, err
 			}
 
-			ip := utils.RealClientIP(req)
+			ip := net.ParseIP(c.RealIP())
 			if ip == nil {
-				log.From(req.Context()).Errorf("RequestFromCIDR: failed to get (real) client IP")
+				log.From(c.Request().Context()).Errorf("RequestFromCIDR: failed to get (real) client IP")
 				return false, nil
 			}
 
