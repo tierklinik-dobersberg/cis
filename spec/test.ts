@@ -44,6 +44,16 @@ export class GHActionsReporter implements jasmine.CustomReporter {
     }
 }
 
+(global as any).currentSpec = null;
+export class CurrentSpecReporter implements jasmine.CustomReporter {
+    specStarted(result: jasmine.CustomReporterResult): void {
+        (global as any).currentSpec = result; 
+    }
+    specDone(result: jasmine.CustomReporterResult): void {
+        (global as any).currentSpec = null;
+    }
+}
+
 async function waitForApi(): Promise<void> {
     for (let i = 0; i < 60; i++) {
         try {
@@ -104,6 +114,7 @@ async function main() {
         random: false
     })
     runner.addReporter(new reporter())
+    runner.addReporter(new CurrentSpecReporter())
 
     if (!!process.env['CI']) {
         runner.addReporter(new GHActionsReporter())

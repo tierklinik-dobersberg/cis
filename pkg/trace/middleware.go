@@ -77,6 +77,14 @@ func TraceWithConfig(config Config) echo.MiddlewareFunc {
 			}
 			attrs = append(attrs, semconv.HTTPClientAttributesFromHTTPRequest(req)...)
 
+			// FIXME(ppacher): only allow in a debug build
+			if specName := req.Header.Get("X-Spec-Name"); specName != "" {
+				attrs = append(attrs, attribute.String("spec.name", specName))
+			}
+			if specID := req.Header.Get("X-Spec-ID"); specID != "" {
+				attrs = append(attrs, attribute.String("spec.id", specID))
+			}
+
 			// add all path parameters
 			for _, name := range c.ParamNames() {
 				attrs = append(attrs, attribute.String(

@@ -1,4 +1,3 @@
-import axios, { AxiosResponse } from 'axios';
 import { Cookie, parse as parseCookie } from 'set-cookie-parser';
 import { Alice, Unauth } from '../utils';
 
@@ -149,6 +148,45 @@ describe("The identity API", () => {
                 maxAge: 0,
             })
         })
+
+        describe("autologin", () => {
+            describe("using ConditionAccessToken", () => {
+                it("should support basic auth", async () => {
+                    const response = await Unauth.get("/api/identity/v1/profile", {
+                        headers: {
+                            Authorization: `Basic ${btoa(':test-token')}`,
+                        }
+                    })
+                    expect(response.status).toBe(200, response.data)
+                    expect(response.data).toEqual({
+                        "name": "guest",
+                        "fullname": "guest user",
+                        "mail": null,
+                        "phoneNumbers": null,
+                        "roles": ["Service Account", "intern"],
+                        "properties": {}
+                    })
+                })
+
+                it("should support query parameter", async () => {
+                    const response = await Unauth.get("/api/identity/v1/profile?access_token=test-token");
+                    expect(response.status).toBe(200, response.data)
+                    expect(response.data).toEqual({
+                        "name": "guest",
+                        "fullname": "guest user",
+                        "mail": null,
+                        "phoneNumbers": null,
+                        "roles": ["Service Account", "intern"],
+                        "properties": {}
+                    })
+                })
+
+                it("should verify the token", async () => {
+                    const response = await Unauth.get("/api/identity/v1/profile?access_token=test-token1");
+                    expect(response.status).toBe(401, response.data)
+                })
+            })
+        })
     })
 
     describe("chaning passwords", () => {
@@ -176,7 +214,7 @@ describe("The identity API", () => {
         })
 
         it("should fail if the current password is wrong", async () => {
-            const response  = await Alice.put("/api/identity/v1/profile/password", {
+            const response = await Alice.put("/api/identity/v1/profile/password", {
                 current: "wrong-password",
                 newPassword: "silly-password",
             })
