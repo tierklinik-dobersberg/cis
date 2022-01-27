@@ -64,10 +64,10 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 
 			if blob, err := json.MarshalIndent(response, "", "  "); err == nil {
 				sp.SetAttributes(
-					attribute.String("tkd.doctor_on_duty", string(blob)),
+					attribute.String("tkd.doctor_on_duty.result", string(blob)),
 				)
 			} else if err != nil {
-				sp.SetAttributes(attribute.String("tkd.doctor_on_duty", err.Error()))
+				sp.SetAttributes(attribute.String("tkd.doctor_on_duty.result", err.Error()))
 			}
 
 			c.JSON(http.StatusOK, response)
@@ -81,15 +81,11 @@ func activeOverwrite(ctx context.Context, app *app.App, t time.Time, lm map[stri
 	ctx, sp := otel.Tracer("").Start(ctx, "getActiveOverwrite")
 	defer sp.End()
 
-	start := time.Now()
 	log := log.From(ctx)
 
-	defer func() {
-		log.Infof("[doctor-on-duty] retrieved active overwrites for %s in %s", t, time.Since(start))
-	}()
 	// first check if we have an active overwrite for today
 
-	log.Infof("[doctor-on-duty] retrieving active overwrites for %s", t)
+	log.V(7).Logf("[doctor-on-duty] retrieving active overwrites for %s", t)
 	overwrite, err := app.DutyRosters.GetActiveOverwrite(ctx, t)
 	if err != nil && errors.Is(err, mongo.ErrNoDocuments) {
 		return nil
@@ -176,13 +172,10 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverw
 		lm[strings.ToLower(u.Name)] = u
 	}
 
-	log.Infof("[DEBUG] retrieved user identities")
-
 	if !ignoreOverwrites {
 		// check if there's an active overwrite for t. In this case, just return
 		// that one and we're done.
 		if res := activeOverwrite(ctx, app, t, lm); res != nil {
-			log.Error("[DEBUG] returning active overwrite")
 			return res, nil
 		}
 	}
