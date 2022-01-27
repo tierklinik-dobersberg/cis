@@ -17,10 +17,6 @@ func init() {
 		Sections: conf.FileSpec{
 			"Role":       cfgspec.RoleSpec,
 			"Permission": cfgspec.PermissionSpec,
-			// FIXME(ppacher): this is a hard assumption here. if Database
-			// gets created with a different registry we report wrong configuration
-			// stanzas. Or, the section might be completely invalid at all.
-			"AutoAssign": httpcond.DefaultRegistry,
 		},
 		Example: `
 		[Role]

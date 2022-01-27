@@ -27,19 +27,6 @@ func (db *identDB) loadUsers(identityDir string) error {
 		"User":       append(cfgspec.UserSpec, userPropertySpecs...),
 		"Permission": cfgspec.PermissionSpec,
 	}
-	if db.httpConditionRegistry != nil {
-		spec["AutoLogin"] = confutil.MultiOptionRegistry{
-			db.httpConditionRegistry,
-			conf.SectionSpec{
-				{
-					Name:        "CreateSession",
-					Type:        conf.BoolType,
-					Description: "Whether or not a new session should be created or if only this request should be authorized",
-					Default:     "no",
-				},
-			},
-		}
-	}
 
 	userFiles, err := confutil.LoadFiles(identityDir, ".user", spec)
 	if err != nil {
@@ -48,7 +35,7 @@ func (db *identDB) loadUsers(identityDir string) error {
 
 	// build the user map
 	for _, f := range userFiles {
-		u, autologin, err := buildUser(f, userPropertySpecs, db.httpConditionRegistry, db.country)
+		u, err := buildUser(f, userPropertySpecs, db.country)
 		if err != nil {
 			return fmt.Errorf("%s: %w", f.Path, err)
 		}
@@ -59,30 +46,19 @@ func (db *identDB) loadUsers(identityDir string) error {
 			return fmt.Errorf("user with name %s already defined", lowerName)
 		}
 		db.users[lowerName] = u
-
-		// if the user has an autologin section defined
-		// add it the the autologin map as well.
-		if autologin != nil && len(autologin.Options) > 0 {
-			db.autologinUsers[lowerName] = *autologin
-		}
 	}
 
 	return nil
 }
 
-func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, autologinConditions conf.OptionRegistry, country string) (*user, *conf.Section, error) {
+func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, country string) (*user, error) {
 	spec := conf.FileSpec{
 		"User":       cfgspec.UserSpec,
 		"Permission": cfgspec.PermissionSpec,
 	}
-
-	if autologinConditions != nil {
-		spec["AutoLogin"] = autologinConditions
-	}
-
 	var u user
 	if err := conf.DecodeFile(f, &u, spec); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	// validate phone numbers and convert them to international
@@ -128,10 +104,5 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, autologinCondi
 		}
 	}
 
-	var autologinSection *conf.Section
-	if autologinConditions != nil {
-		autologinSection = f.Get("AutoLogin")
-	}
-
-	return &u, autologinSection, nil
+	return &u, nil
 }

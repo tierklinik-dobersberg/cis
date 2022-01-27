@@ -126,6 +126,7 @@ func NewApp(
 		LayoutStore:     layoutStore,
 		InfoScreenShows: infoScreens,
 		Cache:           cache,
+		Autologin:       autologinManager,
 	}
 }
 

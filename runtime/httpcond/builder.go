@@ -20,6 +20,12 @@ func NewBuilder(reg *Registry) *Builder {
 	}
 }
 
+// Registry returns the underlying http condition registry
+// used by the builder.
+func (b *Builder) Registry() *Registry {
+	return b.reg
+}
+
 // Build builds a new condition our of sec.
 func (b *Builder) Build(sec conf.Section) (Condition, error) {
 	b.reg.rw.RLock()

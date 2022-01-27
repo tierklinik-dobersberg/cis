@@ -62,6 +62,12 @@ func init() {
 				token = r.Form.Get("access_token")
 			}
 
+			// no access token found so return immediately. Testing against an empty
+			// value is not supported as it will match basically all requests.
+			if token == "" {
+				return false, nil
+			}
+
 			log.Infof("Testing access token %q against %q", token, value)
 			return token == value, nil
 		},

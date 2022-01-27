@@ -297,7 +297,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		logger.Fatalf(ctx, "patientdb: %s", err.Error())
 	}
 
-	identities, err := file.New(ctx, instance.ConfigurationDirectory, cfg.Country, cfg.UserProperties, httpcond.DefaultRegistry)
+	identities, err := file.New(ctx, instance.ConfigurationDirectory, cfg.Country, cfg.UserProperties)
 	if err != nil {
 		logger.Fatalf(ctx, "file: %s", err)
 	}
@@ -427,8 +427,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		ctx,
 		sessionManager,
 		httpcond.DefaultRegistry,
-		identities.GetAutologinUsers(ctx),
-		identities.GetAutologinRoles(ctx),
+		instance.ConfigFile().GetAll("Autologin"),
 	)
 
 	//

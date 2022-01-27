@@ -3,7 +3,6 @@ package identity
 import (
 	"context"
 
-	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 )
 
@@ -33,12 +32,4 @@ type Provider interface {
 	// GetRolePermissions returns a slice of permissions directly attached to
 	// the role identified by name.
 	GetRolePermissions(ctx context.Context, name string) ([]cfgspec.Permission, error)
-
-	// GetAutologinUsers returns a map that contains the autologin section for each
-	// user that has one defined.
-	GetAutologinUsers(ctx context.Context) map[string]conf.Section
-
-	// GetAutologinRoles returns a map that contains the autologin section for
-	// each role that has one defined.
-	GetAutologinRoles(ctx context.Context) map[string]conf.Section
 }

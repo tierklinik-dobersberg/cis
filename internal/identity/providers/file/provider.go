@@ -16,7 +16,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/passwd"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
-	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -33,24 +32,20 @@ var (
 
 // The actual in-memory implementation for identDB.
 type identDB struct {
-	dir                   string
-	country               string
-	userPropertySpecs     []cfgspec.UserPropertyDefinition
-	rw                    sync.RWMutex
-	httpConditionRegistry *httpcond.Registry
-	users                 map[string]*user
-	roles                 map[string]*role
-	autologinUsers        map[string]conf.Section
-	autologinRoles        map[string]conf.Section
+	dir               string
+	country           string
+	userPropertySpecs []cfgspec.UserPropertyDefinition
+	rw                sync.RWMutex
+	users             map[string]*user
+	roles             map[string]*role
 }
 
 // New returns a new database that uses ldr.
-func New(ctx context.Context, dir, country string, userProperties []cfgspec.UserPropertyDefinition, reg *httpcond.Registry) (identity.Provider, error) {
+func New(ctx context.Context, dir, country string, userProperties []cfgspec.UserPropertyDefinition) (identity.Provider, error) {
 	db := &identDB{
-		dir:                   dir,
-		httpConditionRegistry: reg,
-		userPropertySpecs:     userProperties,
-		country:               country,
+		dir:               dir,
+		userPropertySpecs: userProperties,
+		country:           country,
 	}
 
 	if err := db.reload(ctx); err != nil {
@@ -159,30 +154,6 @@ func (db *identDB) GetRolePermissions(ctx context.Context, name string) ([]cfgsp
 	return perms, nil
 }
 
-func (db *identDB) GetAutologinUsers(_ context.Context) map[string]conf.Section {
-	db.rw.RLock()
-	defer db.rw.RUnlock()
-
-	// create a copy of the map
-	m := make(map[string]conf.Section, len(db.autologinUsers))
-	for k, v := range db.autologinUsers {
-		m[k] = v
-	}
-	return m
-}
-
-func (db *identDB) GetAutologinRoles(_ context.Context) map[string]conf.Section {
-	db.rw.RLock()
-	defer db.rw.RUnlock()
-
-	// create a copy of the map
-	m := make(map[string]conf.Section, len(db.autologinRoles))
-	for k, v := range db.autologinRoles {
-		m[k] = v
-	}
-	return m
-}
-
 func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo string) error {
 	var hash string
 	switch algo {
@@ -281,8 +252,6 @@ func (db *identDB) reload(ctx context.Context) error {
 	// clear the current user and roles maps
 	db.users = make(map[string]*user, len(db.users))
 	db.roles = make(map[string]*role, len(db.roles))
-	db.autologinUsers = make(map[string]conf.Section, len(db.autologinUsers))
-	db.autologinRoles = make(map[string]conf.Section, len(db.autologinRoles))
 
 	identityDir := filepath.Join(db.dir, "identity")
 

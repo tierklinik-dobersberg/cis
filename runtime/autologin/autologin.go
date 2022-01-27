@@ -2,23 +2,30 @@ package autologin
 
 import (
 	"context"
-	"strings"
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
+	"github.com/tierklinik-dobersberg/logger"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 var log = pkglog.New("autologin")
 
 type autologinRecord struct {
-	httpcond.Condition
-	createSession bool
+	httpcond.Condition `option:"-"`
+
+	CreateSession bool
+	User          string
+	Roles         []string
+	Name          string
 }
 
 // Manager manages and grants automatic user logins.
@@ -30,91 +37,101 @@ type Manager struct {
 	conditionBuilder *httpcond.Builder
 
 	rw sync.RWMutex
-	// users holds all conditions that must be fulfilled for a request
-	// to be granted a session token using automatic-login.
-	users map[string]autologinRecord
 
-	// roleAssignment holds all conditions that must be fulfilled for a
-	// request to be granted an additional role.
-	roleAssignment map[string]httpcond.Condition
+	conditions []*autologinRecord
 }
 
 // NewManager returns a new autologin manager that uses reg
 // to build the conditions a HTTP request must fulfill to be
 // granted an automatic session token.
-func NewManager(ctx context.Context, sessionManager *session.Manager, reg *httpcond.Registry, users map[string]conf.Section, roles map[string]conf.Section) *Manager {
+func NewManager(ctx context.Context, sessionManager *session.Manager, reg *httpcond.Registry, sections []conf.Section) *Manager {
+	if reg == nil {
+		reg = httpcond.DefaultRegistry
+	}
 	mng := &Manager{
 		conditionBuilder: httpcond.NewBuilder(reg),
 		session:          sessionManager,
 	}
 
-	mng.buildConditions(ctx, users, roles)
+	mng.buildConditions(ctx, sections)
 	return mng
 }
 
-func (mng *Manager) getUserLogin(c echo.Context) (*v1alpha.User, bool, error) {
+func (mng *Manager) findMatchingRecords(c echo.Context) []*autologinRecord {
+	var result []*autologinRecord
+	log := log.From(c.Request().Context())
+
 	mng.rw.RLock()
 	defer mng.rw.RUnlock()
+	for _, rec := range mng.conditions {
+		matched, err := rec.Match(c)
+		log.WithFields(logger.Fields{
+			"policy":  rec.Name,
+			"matched": matched,
+			"error":   fmt.Sprintf("%s", err),
+		}).V(7).Logf("evaluated condition %s", rec.Name)
 
-	req := c.Request()
-
-	for user, cond := range mng.users {
-		matched, err := cond.Match(c)
 		if err != nil {
-			log.From(req.Context()).Errorf("failed to check for autologin for user %s: %s", user, err)
+			log.Errorf("failed to evaluate http request condition: %s", err)
 			continue
 		}
-
 		if matched {
-			u, err := mng.session.GetUser(req.Context(), user)
-			if err != nil {
-				return nil, false, err
-			}
-
-			return u, cond.createSession, nil
+			result = append(result, rec)
 		}
 	}
-
-	return nil, false, nil
-}
-
-// GetAutoAssignedRoles returns all roles that should be automatically assigned
-// to r.
-func (mng *Manager) GetAutoAssignedRoles(c echo.Context) ([]string, error) {
-	mng.rw.RLock()
-	defer mng.rw.RUnlock()
-
-	var roles []string
-	req := c.Request()
-
-	for role, cond := range mng.roleAssignment {
-		matched, err := cond.Match(c)
-		if err != nil {
-			log.From(req.Context()).Errorf("failed to check for autoassignment of role %s: %s", role, err)
-			continue
-		}
-
-		if matched {
-			roles = append(roles, role)
-		}
-	}
-
-	return roles, nil
+	return result
 }
 
 // PerformAutologin may add an autologin user session to c.
 func (mng *Manager) PerformAutologin(c echo.Context) {
+	ctx := c.Request().Context()
 	log := log.From(c.Request().Context())
-	// never try to issue an automatic session
-	// token if there is a valid user session
-	if session.Get(c) == nil {
-		autologin, createSession, err := mng.getUserLogin(c)
-		if err != nil {
-			log.Errorf("failed to perform autologin: %s", err.Error())
-			return
+
+	ctx, sp := otel.Tracer("").Start(ctx, "PerformAutologin")
+	defer sp.End()
+
+	matchedConditions := mng.findMatchingRecords(c)
+
+	sp.SetAttributes(attribute.Int("autologin.matched_conditions.count", len(matchedConditions)))
+
+	if len(matchedConditions) == 0 {
+		return
+	}
+
+	log.Infof("[autologin] found %d matching conditions", len(matchedConditions))
+	var (
+		user          string
+		createSession bool
+		roles         = make(map[string]struct{})
+	)
+	for _, rec := range matchedConditions {
+		if rec.User != "" {
+			if user != "" {
+				log.Errorf("multiple matches on request for users %s and %s", user, rec.User)
+			} else {
+				user = rec.User
+				createSession = rec.CreateSession
+			}
 		}
 
-		if autologin != nil {
+		for _, r := range rec.Roles {
+			roles[r] = struct{}{}
+		}
+	}
+
+	// never try to issue an automatic session
+	// token if there is a valid user session
+	if session.Get(c) == nil && user != "" {
+		if autologin, err := mng.session.GetUser(ctx, user); err != nil {
+			log.Errorf("failed to get user with name %s from provider: %s", user, err)
+			sp.RecordError(err)
+			sp.SetStatus(codes.Error, err.Error())
+		} else {
+			sp.SetAttributes(
+				attribute.Bool("autologin.create_session", createSession),
+				attribute.String("autologin.user", user),
+			)
+
 			var sess *session.Session
 			if !createSession {
 				// DO NOT use session.Create() here as this would
@@ -131,6 +148,8 @@ func (mng *Manager) PerformAutologin(c echo.Context) {
 				sess, _, err = mng.session.Create(*autologin, c.Response())
 				if err != nil {
 					log.Errorf("failed to create autologin session: %s", err.Error())
+					sp.RecordError(err)
+					sp.SetStatus(codes.Error, err.Error())
 				}
 			}
 
@@ -145,50 +164,41 @@ func (mng *Manager) PerformAutologin(c echo.Context) {
 		return
 	}
 
-	roles, err := mng.GetAutoAssignedRoles(c)
-	if err != nil {
-		log.Errorf("failed to get auto-assign roles: %s", err)
-		return
-	}
 	if len(roles) == 0 {
 		return
 	}
 
-	log.V(5).Logf("automatically assigning roles %s", strings.Join(roles, ", "))
-	for _, role := range roles {
+	log.V(5).Logf("automatically assigning roles %v", roles)
+	for role := range roles {
 		sess.AddRole(role)
 	}
 }
 
-func (mng *Manager) buildConditions(ctx context.Context, users map[string]conf.Section, roles map[string]conf.Section) {
-	userConditionMap := make(map[string]autologinRecord, len(users))
-	for user, section := range users {
-		cond, err := mng.conditionBuilder.Build(section)
+func (mng *Manager) buildConditions(ctx context.Context, sections []conf.Section) error {
+	var records []*autologinRecord
+
+	spec := Spec(mng.conditionBuilder.Registry())
+
+	for _, sec := range sections {
+		cond, err := mng.conditionBuilder.Build(sec)
 		if err != nil {
-			log.From(ctx).Errorf("cannot build autologin conditions for user %s: %s", user, err)
-			continue
+			return fmt.Errorf("failed to build condition: %w", err)
 		}
 
-		userConditionMap[user] = autologinRecord{
-			Condition:     cond,
-			createSession: section.GetBoolDefault("CreateSession", false),
+		record := autologinRecord{
+			Condition: cond,
 		}
+
+		if err := conf.DecodeSections([]conf.Section{sec}, spec, &record); err != nil {
+			return fmt.Errorf("failed to decode configuration: %w", err)
+		}
+
+		records = append(records, &record)
 	}
 
-	roleConditionMap := make(map[string]httpcond.Condition, len(roles))
-	for role, section := range roles {
-		cond, err := mng.conditionBuilder.Build(section)
-		if err != nil {
-			log.From(ctx).Errorf("cannot build autoassign conditions for role %s: %s", role, err)
-			continue
-		}
+	log.From(ctx).Infof("processed %d sections successfully", len(records))
 
-		roleConditionMap[role] = cond
-	}
+	mng.conditions = records
 
-	mng.rw.Lock()
-	defer mng.rw.Unlock()
-
-	mng.users = userConditionMap
-	mng.roleAssignment = roleConditionMap
+	return nil
 }
