@@ -6,7 +6,7 @@ import { debounceTime, switchMap, takeUntil } from "rxjs/operators";
 import { mergeDeep } from "src/app/utils";
 
 @Component({
-    selector: 'tkd-stats-chart',
+    selector: 'tkd-stats-chart', // eslint-disable-line
     templateUrl: './stats-chart.html',
     styleUrls: ['./stats-chart.scss']
 })

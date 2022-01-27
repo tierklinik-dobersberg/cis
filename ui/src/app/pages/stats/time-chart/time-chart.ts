@@ -7,7 +7,7 @@ import { mergeDeep } from "src/app/utils";
 export type TimeRange = 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
 
 @Component({
-    selector: 'tkd-time-chart',
+    selector: 'tkd-time-chart', // eslint-disable-line
     templateUrl: './time-chart.html',
     styleUrls: ['./time-chart.scss']
 })

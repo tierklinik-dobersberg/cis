@@ -9,7 +9,7 @@ export interface Counter {
 }
 
 @Component({
-  selector: 'tkd-counter',
+  selector: 'tkd-counter', // eslint-disable-line
   templateUrl: './counter.html',
   styleUrls: ['./counter.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
