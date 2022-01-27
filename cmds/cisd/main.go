@@ -48,7 +48,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/door"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
-	"github.com/tierklinik-dobersberg/cis/internal/identity/providers/file"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/integration/mongolog"
@@ -84,6 +83,8 @@ import (
 	// underscore imports that register themself somewhere.
 	//
 
+	// All available/build-in identity providers.
+	_ "github.com/tierklinik-dobersberg/cis/internal/identity/providers"
 	// Exec trigger type.
 	_ "github.com/tierklinik-dobersberg/cis/runtime/execer"
 	// SendMail trigger type and SMTP support.
@@ -410,7 +411,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	// Configure the session manager
 	//
 	userProvider := session.UserProviderFunc(func(ctx context.Context, name string) (*v1alpha.User, error) {
-		ctx = file.WithScope(ctx, file.Internal)
+		ctx = identity.WithScope(ctx, identity.Internal)
 		u, err := identities.GetUser(ctx, name)
 		if err != nil {
 			return nil, err

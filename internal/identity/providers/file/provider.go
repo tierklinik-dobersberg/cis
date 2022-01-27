@@ -218,15 +218,15 @@ func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo str
 func (db *identDB) applyPrivacy(ctx context.Context, u *user) cfgspec.User {
 	schemaUser := u.User
 
-	schemaUser.Properties = FilterProperties(
-		GetScope(ctx),
+	schemaUser.Properties = identity.FilterProperties(
+		identity.GetScope(ctx),
 		db.userPropertySpecs,
 		schemaUser.Properties,
 	)
 
 	// make sure only internal requests get access to password
 	// data and avatar file names.
-	if GetScope(ctx) != Internal {
+	if identity.GetScope(ctx) != identity.Internal {
 		schemaUser.AvatarFile = ""
 		schemaUser.PasswordAlgo = ""
 		schemaUser.PasswordHash = ""
