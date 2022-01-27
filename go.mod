@@ -25,6 +25,7 @@ require (
 	github.com/kevinburke/go.uuid v1.2.0
 	github.com/kevinburke/rest v0.0.0-20210506044642-5611499aa33c // indirect
 	github.com/kevinburke/twilio-go v0.0.0-20210327194925-1623146bcf73
+	github.com/labstack/echo/v4 v4.6.3
 	github.com/microcosm-cc/bluemonday v1.0.16 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
@@ -53,6 +54,12 @@ require (
 	github.com/zclconf/go-cty v1.10.0
 	github.com/zsais/go-gin-prometheus v0.1.0 // indirect
 	go.mongodb.org/mongo-driver v1.8.1
+	go.opentelemetry.io/contrib v1.3.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo v0.28.0
+	go.opentelemetry.io/otel v1.3.0
+	go.opentelemetry.io/otel/exporters/jaeger v1.3.0
+	go.opentelemetry.io/otel/sdk v1.3.0
+	go.opentelemetry.io/otel/trace v1.3.0
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
 	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8

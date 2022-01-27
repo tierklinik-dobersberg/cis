@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
@@ -19,7 +19,7 @@ func GetByIDEndpoint(grp *app.Router) {
 		permission.OneOf{
 			ReadCustomerAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			source := c.Param("source")
 
 			id := c.Param("id")

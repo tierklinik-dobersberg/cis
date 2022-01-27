@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/jwt"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
@@ -214,27 +214,24 @@ func (session *Session) addRole(role string, dryRun bool) bool {
 // Set sets the session s on c. It also creates and assigns
 // a request copy with a new context to c.
 // If s is nil then Set is a no-op.
-func Set(c *gin.Context, s *Session) {
+func Set(c echo.Context, s *Session) {
 	if s == nil {
 		return
 	}
 
-	c.Request = c.Request.Clone(
-		context.WithValue(c.Request.Context(), contextSessionKey, s),
+	req := c.Request().Clone(
+		context.WithValue(c.Request().Context(), contextSessionKey, s),
 	)
+
+	c.SetRequest(req)
 
 	c.Set(SessionKey, s)
 }
 
 // Get returns the session associated with c.
-func Get(c *gin.Context) *Session {
-	val, ok := c.Get(SessionKey)
-	if !ok {
-		return nil
-	}
-
-	session, _ := val.(*Session)
-	return session
+func Get(c echo.Context) *Session {
+	val, _ := c.Get(SessionKey).(*Session)
+	return val
 }
 
 // FromCtx returns the session associated with ctx.

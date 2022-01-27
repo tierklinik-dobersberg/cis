@@ -3,22 +3,27 @@ package customerapi
 import (
 	"context"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 func DeleteCustomerEndpoint(r *app.Router) {
 	r.DELETE(
-		"v1/:source/:cid",
+		"v1/:source/:id",
 		permission.OneOf{
 			DeleteCustomerAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			source := c.Param("source")
-			cid := c.Param("cid")
+			cid := c.Param("id")
 
+			logger.From(ctx).WithFields(logger.Fields{
+				"source": source,
+				"cid":    cid,
+			}).Infof("searching for customer, %+v, %+v", c.ParamNames(), c.ParamValues())
 			cus, err := app.Customers.CustomerByCID(ctx, source, cid)
 			if err != nil {
 				return err

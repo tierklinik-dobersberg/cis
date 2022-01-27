@@ -5,7 +5,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 // CookieFactory creates and deletes HTTP cookies.
@@ -16,8 +16,8 @@ type CookieFactory struct {
 }
 
 // Clear removes the cookie with the given name.
-func (factory *CookieFactory) Clear(cookieName, relPath string, c *gin.Context) {
-	http.SetCookie(c.Writer, &http.Cookie{
+func (factory *CookieFactory) Clear(cookieName, relPath string, c echo.Context) {
+	http.SetCookie(c.Response(), &http.Cookie{
 		Name:   cookieName,
 		Path:   path.Join(factory.BasePath, relPath),
 		Domain: factory.Domain,

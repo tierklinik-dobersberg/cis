@@ -13,7 +13,7 @@ import (
 	goruntime "runtime"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/spf13/cobra"
 	"github.com/tierklinik-dobersberg/cis/internal/api/calendarapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/calllogapi"
@@ -58,8 +58,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
-	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
+	tracemw "github.com/tierklinik-dobersberg/cis/pkg/trace"
 	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
@@ -74,6 +74,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo"
+	"go.opentelemetry.io/otel"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 
 	//
 	// underscore imports that register themself somewhere.
@@ -125,12 +129,10 @@ func getRootCommand() *cobra.Command {
 	return cmd
 }
 
-func getApp(ctx context.Context) *app.App {
+func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, context.Context) {
 	var (
-		cfg              app.Config
-		autoLoginManager *autologin.Manager
-		sessionManager   = new(session.Manager)
-		triggerInstances = &([]*trigger.Instance{})
+		cfg            app.Config
+		sessionManager = new(session.Manager)
 	)
 
 	log.Printf("CIS - running on %s (%s)", goruntime.GOOS, goruntime.GOARCH)
@@ -143,78 +145,8 @@ func getApp(ctx context.Context) *app.App {
 			globalConfigFile,
 			runtime.GlobalSchema,
 		},
-		ConfigTarget: &cfg,
-
-		RouteSetupFunc: func(grp gin.IRouter) error {
-			apis := grp.Group(
-				"/api/",
-				httperr.Middleware,
-				sessionManager.Middleware,
-				func(c *gin.Context) {
-					if autoLoginManager != nil {
-						autoLoginManager.PerformAutologin(c)
-					}
-
-					c.Next()
-				},
-			)
-
-			// alive check
-			{
-				apis.GET("/", func(c *gin.Context) {
-					c.Status(http.StatusOK)
-				})
-			}
-			// API endpoints
-			{
-				// identityapi provides user and session endpoints
-				identityapi.Setup(apis.Group("identity"))
-				// customerapi provides customer database endpoints
-				customerapi.Setup(apis.Group("customer", session.Require()))
-				// rosterapi provides access to the electronic duty roster
-				rosterapi.Setup(apis.Group("dutyroster", session.Require()))
-				// doorapi provides access to the entry door controller.
-				doorapi.Setup(apis.Group("door", session.Require()))
-				// externalapi provides specialized APIs for integration
-				// with external services (like the phone-system).
-				externalapi.Setup(apis.Group("external", session.Require()))
-				// holidayapi provides access to all holidays in the
-				// configured countries.
-				holidayapi.Setup(apis.Group("holidays", session.Require()))
-				// calllog allows to retrieve and query call log records
-				calllogapi.Setup(apis.Group("calllogs", session.Require()))
-				// configapi provides configuration specific endpoints.
-				configapi.Setup(apis.Group("config", session.Require()))
-				// importapi provides import support for customer data
-				importapi.Setup(apis.Group("import", session.Require()))
-				// commentapi manages the comment system from cis
-				commentapi.Setup(apis.Group("comments", session.Require()))
-				// voicemailapi allows access to voicemail mailboxes
-				voicemailapi.Setup(apis.Group("voicemail", session.Require()))
-				// patientapi allows access to patient data
-				patientapi.Setup(apis.Group("patient", session.Require()))
-				// calendarapi provides access to calendar data
-				calendarapi.Setup(apis.Group("calendar", session.Require()))
-				// openinghoursapi provides access to the configured openinghours
-				openinghoursapi.Setup(apis.Group("openinghours", session.Require()))
-				// resourceapi provides access to limited resource definitions
-				resourceapi.Setup(apis.Group("resources", session.Require()))
-				// cctv allows streaming access to security cameras
-				cctvapi.Setup(apis.Group("cctv", session.Require()))
-				// direct access to trigger instances
-				triggerapi.Setup(apis.Group("triggers", session.Require()), triggerInstances)
-				// access to the infoscreen management api
-				infoscreenapi.Setup(apis.Group("infoscreen", session.Require()))
-				// access to the infoscreen show player
-				infoscreenapi.SetupPlayer(apis.Group("infoscreen"))
-				// access to the suggestion API
-				suggestionapi.Setup(apis.Group("suggestion", session.Require()))
-
-				statsapi.Setup(apis.Group("stats"))
-			}
-
-			return nil
-		},
+		ConfigTarget:  &cfg,
+		DisableServer: true,
 	})
 	if err != nil {
 		log.Fatalf("failed to boot service: %s", err)
@@ -228,6 +160,24 @@ func getApp(ctx context.Context) *app.App {
 		log.Fatalf("failed to parse log-level: %s", err)
 	}
 	instance.SetLogLevel(lvl)
+
+	//
+	// prepare tracing
+	//
+	var ctx = baseCtx
+	var tp *tracesdk.TracerProvider
+	if cfg.JaegerTracingURL != "" {
+		var span trace.Span
+		tp, err = tracerProvider(&cfg.Config)
+		if err != nil {
+			log.Fatalf("failed to configure trace provider: %s", err)
+		}
+		otel.SetTracerProvider(tp)
+
+		tr := tp.Tracer("")
+		ctx, span = tr.Start(ctx, "init")
+		defer span.End()
+	}
 
 	// add the configuration file to the global schema
 	// so packages can decode from it.
@@ -473,7 +423,7 @@ func getApp(ctx context.Context) *app.App {
 	//
 	// Create the autologin manager
 	//
-	autoLoginManager = autologin.NewManager(
+	autoLoginManager := autologin.NewManager(
 		ctx,
 		sessionManager,
 		httpcond.DefaultRegistry,
@@ -536,10 +486,10 @@ func getApp(ctx context.Context) *app.App {
 		layoutStore,
 		infoScreens,
 		cache,
+		autoLoginManager,
 	)
-	instance.Server().WithPreHandler(app.AddToRequest(appCtx))
 
-	ctx = app.With(ctx, appCtx)
+	ctx = app.With(baseCtx, appCtx)
 
 	logger.Infof(ctx, "application initialized, starting tasks ...")
 
@@ -558,18 +508,85 @@ func getApp(ctx context.Context) *app.App {
 	// TODO(ppacher): this currently requires app.App to have been associated with ctx.
 	// I'm somewhat unhappy with that requirement so make it go away in the future.
 	logger.Infof(ctx, "tasks started, loading trigger files with %d available types", trigger.DefaultRegistry.TypeCount())
-	triggers, err := trigger.DefaultRegistry.LoadFiles(ctx, runtime.GlobalSchema, instance.ConfigurationDirectory)
-	if err != nil {
+	if _, err := trigger.DefaultRegistry.LoadFiles(ctx, runtime.GlobalSchema, instance.ConfigurationDirectory); err != nil {
 		logger.Fatalf(ctx, "triggers: %s", err)
 	}
-	// copy the slice pointer to make triggers available in
-	// the triggerapi.
-	// TODO(ppacher): this feels more like a workaround than a real solution.
-	*triggerInstances = triggers
 
 	logger.Infof(ctx, "initialization complete")
 
-	return appCtx
+	return appCtx, tp, app.With(baseCtx, appCtx)
+}
+
+func setupAPI(app *app.App, grp *echo.Echo) error {
+	apis := grp.Group(
+		"/api/",
+		app.Sessions.Middleware,
+		func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c echo.Context) error {
+				if app.Autologin != nil {
+					app.Autologin.PerformAutologin(c)
+				}
+				return next(c)
+			}
+		},
+	)
+
+	// alive check
+	{
+		apis.GET("", func(c echo.Context) error {
+			c.NoContent(http.StatusOK)
+			return nil
+		})
+	}
+	// API endpoints
+	{
+		// identityapi provides user and session endpoints
+		identityapi.Setup(app, apis.Group("identity/"))
+		// customerapi provides customer database endpoints
+		customerapi.Setup(app, apis.Group("customer/", session.Require()))
+		// rosterapi provides access to the electronic duty roster
+		rosterapi.Setup(app, apis.Group("dutyroster/", session.Require()))
+		// doorapi provides access to the entry door controller.
+		doorapi.Setup(app, apis.Group("door/", session.Require()))
+		// externalapi provides specialized APIs for integration
+		// with external services (like the phone-system).
+		externalapi.Setup(app, apis.Group("external/", session.Require()))
+		// holidayapi provides access to all holidays in the
+		// configured countries.
+		holidayapi.Setup(app, apis.Group("holidays/", session.Require()))
+		// calllog allows to retrieve and query call log records
+		calllogapi.Setup(app, apis.Group("calllogs/", session.Require()))
+		// configapi provides configuration specific endpoints.
+		configapi.Setup(app, apis.Group("config/", session.Require()))
+		// importapi provides import support for customer data
+		importapi.Setup(app, apis.Group("import/", session.Require()))
+		// commentapi manages the comment system from cis
+		commentapi.Setup(app, apis.Group("comments/", session.Require()))
+		// voicemailapi allows access to voicemail mailboxes
+		voicemailapi.Setup(app, apis.Group("voicemail/", session.Require()))
+		// patientapi allows access to patient data
+		patientapi.Setup(app, apis.Group("patient/", session.Require()))
+		// calendarapi provides access to calendar data
+		calendarapi.Setup(app, apis.Group("calendar/", session.Require()))
+		// openinghoursapi provides access to the configured openinghours
+		openinghoursapi.Setup(app, apis.Group("openinghours/", session.Require()))
+		// resourceapi provides access to limited resource definitions
+		resourceapi.Setup(app, apis.Group("resources/", session.Require()))
+		// cctv allows streaming access to security cameras
+		cctvapi.Setup(app, apis.Group("cctv/", session.Require()))
+		// direct access to trigger instances
+		triggerapi.Setup(app, apis.Group("triggers/", session.Require()))
+		// access to the infoscreen management api
+		infoscreenapi.Setup(app, apis.Group("infoscreen/", session.Require()))
+		// access to the infoscreen show player
+		infoscreenapi.SetupPlayer(app, apis.Group("infoscreen/"))
+		// access to the suggestion API
+		suggestionapi.Setup(app, apis.Group("suggestion/", session.Require()))
+
+		statsapi.Setup(app, apis.Group("stats/"))
+	}
+
+	return nil
 }
 
 func getDoorInterface(ctx context.Context, client mqtt.Client) door.Interfacer {
@@ -582,7 +599,8 @@ func getDoorInterface(ctx context.Context, client mqtt.Client) door.Interfacer {
 }
 
 func getMongoClient(ctx context.Context, uri string) *mongo.Client {
-	clientConfig := options.Client().ApplyURI(uri)
+	monitor := otelmongo.NewMonitor()
+	clientConfig := options.Client().ApplyURI(uri).SetMonitor(monitor)
 	client, err := mongo.NewClient(clientConfig)
 	if err != nil {
 		logger.Fatalf(ctx, err.Error())
@@ -599,7 +617,19 @@ func runMain() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	app := getApp(ctx)
+	app, tp, ctx := getApp(ctx)
+
+	// Cleanly shutdown and flush telemetry when the application exits.
+	if tp != nil {
+		defer func(ctx context.Context) {
+			// Do not make the application hang when it is shutdown.
+			ctx, cancel = context.WithTimeout(ctx, time.Second*5)
+			defer cancel()
+			if err := tp.Shutdown(ctx); err != nil {
+				log.Fatal(err)
+			}
+		}(ctx)
+	}
 
 	logger.Infof(ctx, "starting importers ...")
 
@@ -622,8 +652,17 @@ func runMain() {
 	logger.Errorf(ctx, "startup complete, serving API ....")
 
 	// run the server.
-	if err := app.Instance.Serve(); err != nil {
-		logger.Fatalf(ctx, "failed to serve: %s", err)
+	srv, err := setupServer(ctx, app)
+	if err != nil {
+		logger.Fatalf(ctx, "failed to setup server: %s", err)
+	}
+	if tp != nil {
+		srv.Use(tracemw.TraceWithConfig(tracemw.DefaultConfig))
+	}
+	setupAPI(app, srv)
+
+	if err := srv.Start(app.Config.Config.Listen); err != nil {
+		logger.Fatalf(ctx, "failed to start listening: %s", err)
 	}
 
 	if err := app.Door.Stop(); err != nil {

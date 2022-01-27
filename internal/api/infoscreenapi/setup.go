@@ -1,13 +1,13 @@
 package infoscreenapi
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 )
 
 // Setup defines all routes for the infoscreen API.
-func Setup(grp gin.IRouter) {
-	router := app.NewRouter(grp)
+func Setup(a *app.App, grp *echo.Group) {
+	router := app.NewRouter(grp, a)
 
 	EnabledEndpoint(router)
 
@@ -24,8 +24,8 @@ func Setup(grp gin.IRouter) {
 	UploadFileEndpoint(router)
 }
 
-func SetupPlayer(grp gin.IRouter) {
-	router := app.NewRouter(grp)
+func SetupPlayer(a *app.App, grp *echo.Group) {
+	router := app.NewRouter(grp, a)
 
 	PlayShowEndpoint(router)
 }

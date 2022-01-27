@@ -2,11 +2,11 @@ package customerapi
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/antzucaro/matchr"
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/nyaruka/phonenumbers"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
@@ -22,19 +22,19 @@ import (
 // a double metaphone driven search on the customers name.
 func FuzzySearchEndpoint(grp *app.Router) {
 	grp.GET(
-		"v1/",
+		"v1",
 		permission.OneOf{
 			ReadCustomerAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			filter := bson.M{}
-			singleResponse := c.Query("single") != ""
+			singleResponse := c.QueryParam("single") != ""
 
 			// get a list of all users if we should also include
 			// users into the result.
-			_, includeUsers := c.GetQuery("includeUsers")
+			includeUsers := c.QueryParams().Has("includeUsers")
 			if includeUsers && singleResponse {
-				return httperr.BadRequest(nil, "cannot mix query parameters single and includeUsers")
+				return httperr.BadRequest("cannot mix query parameters single and includeUsers")
 			}
 
 			var allUsers []cfgspec.User
@@ -50,12 +50,13 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				}
 			}
 
+			textScore := false
 			matchedUsers := make(map[string]v1alpha.User)
-			if name := c.Query("name"); name != "" {
-				m1, m2 := matchr.DoubleMetaphone(name)
+			if name := c.QueryParam("name"); name != "" {
+				textScore = true
+				//m1, m2 := matchr.DoubleMetaphone(name)
 				filter["$text"] = bson.M{
-					"$search":   m1 + " " + m2,
-					"$language": "de",
+					"$search": name,
 				}
 
 				if includeUsers {
@@ -68,7 +69,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				}
 			}
 
-			if phoneQueries, ok := c.GetQueryArray("phone"); ok && len(phoneQueries) > 0 {
+			if phoneQueries, ok := c.QueryParams()["phone"]; ok && len(phoneQueries) > 0 {
 				phoneNumbers := []string{}
 				for _, phone := range phoneQueries {
 					// skip empty phone numbers and "anonymous".
@@ -115,11 +116,11 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				}
 			}
 
-			if city := c.Query("city"); city != "" {
+			if city := c.QueryParam("city"); city != "" {
 				filter["city"] = city
 			}
 
-			if cityCode := c.Query("cityCode"); cityCode != "" {
+			if cityCode := c.QueryParam("cityCode"); cityCode != "" {
 				parsed, err := strconv.ParseInt(cityCode, 10, 0)
 				if err != nil {
 					return httperr.InvalidParameter("cityCode", err.Error())
@@ -128,7 +129,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				filter["cityCode"] = parsed
 			}
 
-			if mail := c.Query("mail"); mail != "" {
+			if mail := c.QueryParam("mail"); mail != "" {
 				filter["mailAddresses"] = mail
 
 				// search users by mail address
@@ -145,14 +146,15 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				}
 			}
 
-			customers, err := app.Customers.FilterCustomer(ctx, filter)
+			fmt.Printf("%#v\n", filter)
+			customers, err := app.Customers.FilterCustomer(ctx, filter, textScore)
 			if err != nil {
 				return err
 			}
 
 			if singleResponse {
 				if len(customers) == 0 {
-					return httperr.NotFound("customer", "filter", nil)
+					return httperr.NotFound("customer", "filter")
 				}
 
 				c.JSON(http.StatusOK, CustomerModel(ctx, customers[0]))

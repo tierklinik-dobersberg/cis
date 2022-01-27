@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/infoscreen/v1alpha"
@@ -18,11 +18,11 @@ func CreateShowEndpoint(router *app.Router) {
 		permission.OneOf{
 			ActionShowsWrite,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			showName := c.Param("show")
 
 			var show v1alpha.Show
-			if err := json.NewDecoder(c.Request.Body).Decode(&show); err != nil {
+			if err := json.NewDecoder(c.Request().Body).Decode(&show); err != nil {
 				return err
 			}
 			if show.Name == "" {
@@ -36,7 +36,7 @@ func CreateShowEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.Status(http.StatusCreated)
+			c.NoContent(http.StatusCreated)
 
 			return nil
 		},

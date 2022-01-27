@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -17,7 +17,7 @@ func ProfileEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/profile",
 		permission.Anyone,
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			sess := session.Get(c)
 
 			ctx = identitydb.WithScope(ctx, identitydb.Private)
@@ -33,5 +33,6 @@ func ProfileEndpoint(grp *app.Router) {
 			c.JSON(http.StatusOK, user.User)
 			return nil
 		},
+		session.Require(),
 	)
 }

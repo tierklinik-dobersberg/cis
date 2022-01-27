@@ -1,13 +1,13 @@
 package calllogapi
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 )
 
 // Setup configures the calllog API endpoints.
-func Setup(grp gin.IRouter) {
-	router := app.NewRouter(grp)
+func Setup(a *app.App, grp *echo.Group) {
+	router := app.NewRouter(grp, a)
 
 	// GET /api/calllogs/v1/date/:year/:month/:day
 	ForDateEndpoint(router)

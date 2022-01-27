@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
@@ -17,7 +18,7 @@ func ResetDoorEndpoint(grp *app.Router) {
 		permission.OneOf{
 			SetStateAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			err := app.Door.Reset(ctx)
 			if err != nil {
 				return err

@@ -1,14 +1,14 @@
 package statsapi
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/dbutils"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
-func Setup(grp gin.IRouter) {
-	router := app.NewRouter(grp)
+func Setup(a *app.App, grp *echo.Group) {
+	router := app.NewRouter(grp, a)
 	// GET /api/stats/v1/:collection/group-by-time/:key?from=&to=&timeRange=
 	GroupByOverTimeEndpoint(router)
 
@@ -23,6 +23,7 @@ func getStatsBuilder(collection string, app *app.App) (*dbutils.Stats, error) {
 	lm := map[string]interface{ Stats() *dbutils.Stats }{
 		"customer": app.Customers,
 		"calllogs": app.CallLogs,
+		"patients": app.Patients,
 	}
 
 	stats, ok := lm[collection]

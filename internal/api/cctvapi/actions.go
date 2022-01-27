@@ -1,7 +1,7 @@
 package cctvapi
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
@@ -15,7 +15,7 @@ var (
 	WatchCameraStream = permission.MustDefineAction(
 		"camera:watch",
 		"Permission required to watch camera streams",
-		func(c *gin.Context) (string, error) {
+		func(c echo.Context) (string, error) {
 			return c.Param("camera"), nil
 		},
 	)

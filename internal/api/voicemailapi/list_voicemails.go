@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
@@ -15,7 +15,7 @@ func ListMailboxesEndpoint(router *app.Router) {
 	router.GET(
 		"v1/list",
 		permission.OneOf{ReadVoicemailsAction},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			names := make([]string, len(app.Config.VoiceMails))
 
 			for idx, cfg := range app.Config.VoiceMails {

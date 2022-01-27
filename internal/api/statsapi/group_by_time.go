@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -24,8 +24,8 @@ func GroupByOverTimeEndpoint(router *app.Router) {
 	)
 }
 
-func simpleGroupByHandler(ctx context.Context, app *app.App, c *gin.Context) error {
-	counterKey := c.Query("count")
+func simpleGroupByHandler(ctx context.Context, app *app.App, c echo.Context) error {
+	counterKey := c.QueryParam("count")
 	stats, err := getStatsBuilder(c.Param("collection"), app)
 	if err != nil {
 		return err
@@ -34,8 +34,8 @@ func simpleGroupByHandler(ctx context.Context, app *app.App, c *gin.Context) err
 	groupByKey := c.Param("groupKey")
 	timeKey := c.Param("timeKey")
 
-	fromStr, ok := c.GetQuery("from")
-	if !ok {
+	fromStr := c.QueryParam("from")
+	if fromStr == "" {
 		return httperr.MissingParameter("from")
 	}
 	from, err := app.ParseTime(time.RFC3339, fromStr)
@@ -43,17 +43,17 @@ func simpleGroupByHandler(ctx context.Context, app *app.App, c *gin.Context) err
 		return httperr.InvalidParameter("from", err.Error())
 	}
 
-	toStr, ok := c.GetQuery("to")
-	if !ok {
+	toStr := c.QueryParam("to")
+	if toStr == "" {
 		return httperr.MissingParameter("to")
 	}
 	to, err := app.ParseTime(time.RFC3339, toStr)
 	if err != nil {
 		return httperr.InvalidParameter("to", err.Error())
 	}
-	timeRange, ok := c.GetQuery("time-range")
-	if !ok {
-		timeRange = "daily"
+	timeRange := c.QueryParam("time-range")
+	if timeRange == "" {
+		timeRange = "day"
 	}
 
 	res, err := stats.SimpleGroupByOverTime(ctx, from, to, timeRange, groupByKey, timeKey, counterKey)

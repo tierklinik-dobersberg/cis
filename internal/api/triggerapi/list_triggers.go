@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -23,18 +23,18 @@ type TriggerListResponse struct {
 	Instances []TriggerInstance `json:"instances"`
 }
 
-func ListTriggerEndpoint(router *app.Router, triggers *[]*trigger.Instance) {
+func ListTriggerEndpoint(router *app.Router) {
 	router.GET(
 		"v1",
 		permission.OneOf{
 			ReadTriggerAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			sess := session.Get(c)
 
 			// collect all instances the user has access to.
 			var instances []TriggerInstance
-			for _, i := range *triggers {
+			for _, i := range trigger.DefaultRegistry.Instances() {
 				req := &permission.Request{
 					User:     sess.User.Name,
 					Resource: i.Name(),
@@ -42,7 +42,7 @@ func ListTriggerEndpoint(router *app.Router, triggers *[]*trigger.Instance) {
 				}
 				permitted, err := app.Matcher.Decide(ctx, req, sess.ExtraRoles())
 				if err != nil {
-					return httperr.InternalError(err)
+					return httperr.InternalError().SetInternal(err)
 				}
 				if permitted {
 					instances = append(instances, TriggerInstance{

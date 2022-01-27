@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
@@ -18,7 +19,7 @@ func CurrentStateEndpoint(grp *app.Router) {
 		permission.OneOf{
 			GetStateAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			currentState, until, resetInProgress := app.Door.Current(ctx)
 			c.JSON(http.StatusOK, gin.H{
 				"state":           currentState,

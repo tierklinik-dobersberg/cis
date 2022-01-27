@@ -12,15 +12,19 @@ import (
 )
 
 var DateMongoFormat = map[string]string{
-	"daily":   "%Y-%m-%d",
-	"monthly": "%Y-%m",
-	"yearly":  "%Y",
+	"hour":  "%Y-%m-%d %H",
+	"day":   "%Y-%m-%d",
+	"month": "%Y-%m",
+	"week":  "%V",
+	"year":  "%Y",
 }
 
 var DateTimeFormat = map[string]string{
-	"daily":   "2006-01-02",
-	"monthly": "2006-01",
-	"yearly":  "2006",
+	"hour":  "2006-01-02 15",
+	"day":   "2006-01-02",
+	"month": "2006-01",
+	"week":  "",
+	"year":  "2006",
 }
 
 type Stats struct {
@@ -36,15 +40,15 @@ func (s *Stats) SimpleCount(ctx context.Context, counterKey string) (int, error)
 		return 0, err
 	}
 
-	//	projection := bson.M{
-	//		"count": bson.M{
-	//			"$cond": bson.M{
-	//				"if":   bson.M{"$isArray": "$count"},
-	//				"then": bson.M{"$size": "$count"},
-	//				"else": "$count",
-	//			},
-	//		},
-	//	}
+	projection := bson.M{
+		"count": bson.M{
+			"$cond": bson.M{
+				"if":   bson.M{"$isArray": "$count"},
+				"then": bson.M{"$size": "$count"},
+				"else": "$count",
+			},
+		},
+	}
 
 	res, err := s.Collection.Aggregate(ctx, mongo.Pipeline{
 		// group stage
@@ -55,9 +59,9 @@ func (s *Stats) SimpleCount(ctx context.Context, counterKey string) (int, error)
 			}},
 		},
 		// projection state
-		//bson.D{
-		//	{Key: "$project", Value: projection},
-		//},
+		bson.D{
+			{Key: "$project", Value: projection},
+		},
 	})
 	if err != nil {
 		return 0, err
@@ -77,7 +81,7 @@ func (s *Stats) SimpleCount(ctx context.Context, counterKey string) (int, error)
 
 func (s *Stats) SimpleGroupByOverTime(ctx context.Context, from, to time.Time, timeRange string, groupByKey, timeKey, counterKey string) ([]stats.TimeSeries, error) {
 	if _, found := s.ValidTimeKeys[timeKey]; !found {
-		return nil, httperr.BadRequest(nil, "invalid time key")
+		return nil, httperr.BadRequest("invalid time key")
 	}
 
 	counter, err := s.getCounter(counterKey)
@@ -87,8 +91,9 @@ func (s *Stats) SimpleGroupByOverTime(ctx context.Context, from, to time.Time, t
 
 	mongoFormat, ok := DateMongoFormat[timeRange]
 	if !ok {
-		return nil, httperr.BadRequest(nil, "timeRange must be daily, monthly or yearly")
+		return nil, httperr.BadRequest("timeRange must be daily, monthly or yearly")
 	}
+	goFormat, _ := DateTimeFormat[timeRange]
 
 	groupByFields := bson.M{
 		"date": bson.M{
@@ -164,7 +169,7 @@ func (s *Stats) SimpleGroupByOverTime(ctx context.Context, from, to time.Time, t
 	lm := make(map[string][]stats.TimedValue)
 
 	for _, rec := range r {
-		d, _ := time.ParseInLocation("2006-01-02", rec.ID.Date, time.UTC)
+		d, _ := time.ParseInLocation(goFormat, rec.ID.Date, time.UTC)
 
 		lm[rec.ID.Group] = append(lm[rec.ID.Group], stats.TimedValue{
 			Value: rec.Count,
@@ -251,7 +256,7 @@ func (s *Stats) getGroupBy(groupByKey string) (bson.M, error) {
 }
 
 func (s *Stats) getCounter(counterKey string) (bson.M, error) {
-	if counterKey == "" {
+	if counterKey == "" || counterKey == "null" {
 		return bson.M{
 			"$sum": 1,
 		}, nil

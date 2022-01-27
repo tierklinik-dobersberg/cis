@@ -12,7 +12,7 @@ describe('VoiceMail API', () => {
 
     it("should support listing voice-mails", async () => {
         const response = await Alice.get('/api/voicemail/v1/list')
-        expect(response.status).toBe(200)
+        expect(response.status).toBe(200, response.data)
         expect(response.data).toEqual([]); // TODO(ppacher): create voicemail for test.
     })
 
@@ -23,7 +23,7 @@ describe('VoiceMail API', () => {
                 date: "2021-2-7",
             }
         })
-        expect(response.status).toBe(200)
+        expect(response.status).toBe(200, response.data)
         expect(response.data).toHaveSize(5)
     })
 
@@ -34,7 +34,7 @@ describe('VoiceMail API', () => {
                 seen: "false",
             }
         })
-        expect(response.status).toBe(200)
+        expect(response.status).toBe(200, response.data)
         expect(response.data).toHaveSize(6)
     })
 
@@ -46,27 +46,27 @@ describe('VoiceMail API', () => {
                 date: "2021-2-7",
             }
         })
-        expect(response.status).toBe(200)
+        expect(response.status).toBe(200, response.data)
         expect(response.data).toHaveSize(3)
     })
 
     it("should support marking voice-mails as seen", async () => {
         expect((await getVoicemail("6020219cfbdac8b50bb5d226"))?.read).toBeUndefined()
         const response = await Alice.put('/api/voicemail/v1/recording/6020219cfbdac8b50bb5d226/seen')
-        expect(response.status).toBe(204)
+        expect(response.status).toBe(204, response.data)
         expect((await getVoicemail("6020219cfbdac8b50bb5d226"))?.read).toBeTrue()
     })
 
     it("should support marking voice-mails as unseen", async () => {
         expect((await getVoicemail("6020219cfbdac8b50bb5d226"))?.read).toBeTrue()
         const response = await Alice.delete('/api/voicemail/v1/recording/6020219cfbdac8b50bb5d226/seen')
-        expect(response.status).toBe(204)
+        expect(response.status).toBe(204, response.data)
         expect((await getVoicemail("6020219cfbdac8b50bb5d226"))?.read).toBeUndefined()
     })
 
     it("should support retrieving voicemails by ID", async () => {
-        const response = await Alice.get("/api/voicemail/v1/recording/60201fd71019fe0e812caa87/")
-        expect(response.status).toBe(200);
+        const response = await Alice.get("/api/voicemail/v1/recording/60201fd71019fe0e812caa87")
+        expect(response.status).toBe(200, response.data);
         expect(response.data).toBe("<testcontent>\n")
     })
 })

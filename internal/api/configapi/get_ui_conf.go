@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -20,7 +20,7 @@ func GetUIConfigEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/ui",
 		permission.Anyone,
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			resp := uiResponseModel{
 				UIConfig:       app.Config.UI,
 				UserProperties: app.Config.UserProperties,

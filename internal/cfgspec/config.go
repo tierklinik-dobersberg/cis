@@ -18,9 +18,24 @@ type Config struct {
 	TimeZone string
 	LogLevel string
 
+	// Service is the name of the service. It's used when reporting
+	// metrics and traces.
+	Service string
+	// Environment defines an arbitrary environment string that is
+	// reported together with metrics and traces.
+	Environment string
+	// ID defines an arbitrary ID for this service instances. This might
+	// be set to the Container ID or Allocation ID and is reported together
+	// with metrics and traces.
+	ID string
+	// JaegerTracingURL, when set, should point to the collector of a
+	// Jaeger deployment.
+	JaegerTracingURL string
+
 	// HTTP Server configuration
 	BaseURL                   string
 	Listen                    string
+	TrustedProxy              []string
 	PrometheusMetricsListener string
 	AccessLogFile             string
 
@@ -114,10 +129,40 @@ var ConfigSpec = conf.SectionSpec{
 		Default:     ":3000",
 	},
 	{
+		Name:        "TrustedProxy",
+		Description: "One or more IP addresses in CIDR notation that are trusted to set correct X-Forwareded-For headers",
+		Type:        conf.StringSliceType,
+		Default:     "",
+	},
+	{
 		Name:        "PrometheusMetricsListener",
 		Description: "Listen address for the /metrics endpoint",
 		Type:        conf.StringType,
 		Default:     "127.0.0.1:3001",
+	},
+	{
+		Name:        "Service",
+		Description: "The name of the service. Used for metrics and traces.",
+		Type:        conf.StringType,
+		Default:     "cis",
+	},
+	{
+		Name:        "Environment",
+		Description: "The name of the environment the service is deployed at.",
+		Default:     "production",
+		Type:        conf.StringType,
+	},
+	{
+		Name:        "ID",
+		Description: "An arbitrary ID that is reported together with metrics and traces",
+		Type:        conf.StringType,
+		Default:     "",
+	},
+	{
+		Name:        "JaegerTracingURL",
+		Description: "URL of the Jaeger server to which traces should be reported",
+		Type:        conf.StringType,
+		Default:     "",
 	},
 }
 

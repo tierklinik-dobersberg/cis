@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -98,6 +99,8 @@ type Registry struct {
 	location  *time.Location
 	l         sync.RWMutex
 	factories map[string]Factory
+
+	instances map[string]*Instance
 }
 
 // NewRegistry creates a new trigger registry that places and event subscriptions and
@@ -112,6 +115,7 @@ func NewRegistry(eventReg *event.Registry, location *time.Location) *Registry {
 		factories: make(map[string]Factory),
 		event:     eventReg,
 		location:  location,
+		instances: make(map[string]*Instance),
 	}
 }
 
@@ -191,8 +195,12 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 	fileBase := filepath.Base(f.Path)
 	fileBase = strings.TrimSuffix(fileBase, filepath.Ext(fileBase))
 
-	reg.l.RLock()
-	defer reg.l.RUnlock()
+	reg.l.Lock()
+	defer reg.l.Unlock()
+
+	if _, ok := reg.instances[fileBase]; ok {
+		return nil, fmt.Errorf("trigger instance named %q already created", fileBase)
+	}
 
 	// now iterate over all sections, call the associated factory and collect
 	// the created handlers.
@@ -220,9 +228,24 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 
 	instance := NewInstance(fileBase, handlers, instanceCfg)
 
+	reg.instances[instance.name] = instance
+
 	reg.subscribeAndDispatch(ctx, instance, fileBase)
 
 	return instance, nil
+}
+
+func (reg *Registry) Instances() []*Instance {
+	reg.l.RLock()
+	defer reg.l.RUnlock()
+
+	instances := make([]*Instance, 0, len(reg.instances))
+	for _, i := range reg.instances {
+		instances = append(instances, i)
+	}
+
+	sort.Sort(byInstanceName(instances))
+	return instances
 }
 
 func (reg *Registry) getInstanceCfg(f *conf.File) (*InstanceConfig, error) {
@@ -287,3 +310,9 @@ func RegisterType(name string, factory Factory) error {
 // DefaultRegistry is a trigger registry that is configured for the
 // default event registry.
 var DefaultRegistry = NewRegistry(event.DefaultRegistry, time.Local)
+
+type byInstanceName []*Instance
+
+func (sl byInstanceName) Len() int           { return len(sl) }
+func (sl byInstanceName) Swap(i, j int)      { sl[i], sl[j] = sl[j], sl[i] }
+func (sl byInstanceName) Less(i, j int) bool { return sl[i].name < sl[j].name }

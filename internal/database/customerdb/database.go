@@ -36,7 +36,7 @@ type Database interface {
 	CustomerByCID(ctx context.Context, source string, cid string) (*Customer, error)
 
 	// FilterCustomer filters all customers according to filter.
-	FilterCustomer(ctx context.Context, filter bson.M) ([]*Customer, error)
+	FilterCustomer(ctx context.Context, filter bson.M, textScore bool) ([]*Customer, error)
 
 	// FuzzySearchName searches for a customer by name usign fuzzy-search
 	FuzzySearchName(ctx context.Context, name string) ([]*Customer, error)
@@ -212,7 +212,7 @@ func (db *database) FuzzySearchName(ctx context.Context, name string) ([]*Custom
 			"$search":   m1 + " " + m2,
 			"$language": "de",
 		},
-	})
+	}, true)
 
 	if err != nil {
 		return nil, err
@@ -253,11 +253,11 @@ func (db *database) SearchCustomerByName(ctx context.Context, name string) ([]*C
 			"$search":        name,
 			"$caseSensitive": true,
 		},
-	})
+	}, true)
 }
 
-func (db *database) FilterCustomer(ctx context.Context, filter bson.M) ([]*Customer, error) {
-	return db.findCustomers(ctx, filter)
+func (db *database) FilterCustomer(ctx context.Context, filter bson.M, textScore bool) ([]*Customer, error) {
+	return db.findCustomers(ctx, filter, textScore)
 }
 
 func (db *database) Cursor(ctx context.Context, filter bson.M) (*mongo.Cursor, error) {
@@ -276,13 +276,24 @@ func (db *database) DeleteCustomer(ctx context.Context, id string) error {
 		return fmt.Errorf("failed to delete customer: %w", err)
 	}
 	if result.DeletedCount != 1 {
-		return ErrNotFound
+		return httperr.NotFound("customer", id)
 	}
 	return nil
 }
 
-func (db *database) findCustomers(ctx context.Context, filter interface{}) ([]*Customer, error) {
-	result, err := db.customers.Find(ctx, filter)
+func (db *database) findCustomers(ctx context.Context, filter interface{}, projectTextScore bool) ([]*Customer, error) {
+	var findOpts *options.FindOptions
+	if projectTextScore {
+		findOpts = options.Find()
+
+		findOpts.SetProjection(bson.M{
+			"score": bson.M{"$meta": "textScore"},
+		})
+		findOpts.SetSort(bson.M{
+			"score": bson.M{"$meta": "textScore"},
+		})
+	}
+	result, err := db.customers.Find(ctx, filter, findOpts)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
@@ -305,7 +316,7 @@ func (db *database) findSingleCustomer(ctx context.Context, filter interface{}) 
 	result := db.customers.FindOne(ctx, filter)
 	if err := result.Err(); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, httperr.NotFound("customer", fmt.Sprintf("%+v", filter), ErrNotFound)
+			return nil, httperr.NotFound("customer", fmt.Sprintf("%+v", filter)).SetInternal(ErrNotFound)
 		}
 
 		return nil, fmt.Errorf("failed to query for customer: %w", err)

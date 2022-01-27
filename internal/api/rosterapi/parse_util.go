@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
-func getYearAndMonth(c *gin.Context) (time.Month, int, error) {
+func getYearAndMonth(c echo.Context) (time.Month, int, error) {
 	yearStr := c.Param("year")
 	monthStr := c.Param("month")
 	monthStr = strings.TrimPrefix(monthStr, "0")

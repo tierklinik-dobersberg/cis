@@ -4,6 +4,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
+	"github.com/tierklinik-dobersberg/service/server"
 )
 
 // Config holds the complete cisd configuration.
@@ -16,6 +17,7 @@ type Config struct {
 	cfgspec.InfoScreenConfig  `section:"InfoScreen"`
 	cfgspec.IntegrationConfig `section:"Integration"`
 	cfgspec.MongoLogConfig    `section:"MongoLog"`
+	server.CORS               `section:"CORS"`
 
 	CardDAVImports []cfgspec.CardDAVConfig `section:"CardDAV Import"`
 

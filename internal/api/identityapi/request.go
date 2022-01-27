@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
@@ -13,10 +13,10 @@ import (
 // the X-Original-URL header or by using a combination of X-Forwarded-Proto,
 // X-Forwarded-Host and X-Forwarded-URI headers as a fallback. The User member
 // of the permission request is set to the session user associated with c.
-func NewPermissionRequest(ctx context.Context, c *gin.Context) (*permission.Request, error) {
-	user := c.GetString("session:user")
+func NewPermissionRequest(ctx context.Context, c echo.Context) (*permission.Request, error) {
+	user, _ := c.Get("session:user").(string)
 
-	originalURL := c.Request.Header.Get("X-Original-URL")
+	originalURL := c.Request().Header.Get("X-Original-URL")
 	if originalURL != "" {
 		perm, err := PermissionRequestFromURL(originalURL)
 		if err != nil {
@@ -29,9 +29,9 @@ func NewPermissionRequest(ctx context.Context, c *gin.Context) (*permission.Requ
 
 	log.From(ctx).Infof("no X-Original-URL header present, using X-Forwarded headers")
 
-	proto := c.Request.Header.Get("X-Forwarded-Proto")
-	host := c.Request.Header.Get("X-Forwarded-Host")
-	uri := c.Request.Header.Get("X-Forwarded-URI")
+	proto := c.Request().Header.Get("X-Forwarded-Proto")
+	host := c.Request().Header.Get("X-Forwarded-Host")
+	uri := c.Request().Header.Get("X-Forwarded-URI")
 
 	return PermissionRequestFromURL(fmt.Sprintf("%s://%s/%s", proto, host, uri))
 }

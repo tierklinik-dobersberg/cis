@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
@@ -17,7 +17,7 @@ func DeleteRosterEndpoint(grp *app.Router) {
 		permission.OneOf{
 			WriteRosterAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			month, year, err := getYearAndMonth(c)
 			if err != nil {
 				return err
@@ -27,7 +27,7 @@ func DeleteRosterEndpoint(grp *app.Router) {
 				return err
 			}
 
-			c.Status(http.StatusAccepted)
+			c.NoContent(http.StatusAccepted)
 			return nil
 		},
 	)

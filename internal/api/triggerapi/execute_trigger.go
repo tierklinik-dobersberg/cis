@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -13,18 +13,18 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 )
 
-func ExecuteTriggerEndpoint(router *app.Router, instances *[]*trigger.Instance) {
+func ExecuteTriggerEndpoint(router *app.Router) {
 	router.POST(
 		"v1/instance/:trigger",
 		permission.OneOf{
 			ExecuteTriggerAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			trigger := c.Param("trigger")
+		func(ctx context.Context, app *app.App, c echo.Context) error {
+			triggerName := c.Param("trigger")
 
-			instance := findInstance(trigger, *instances)
+			instance := findInstance(triggerName, trigger.DefaultRegistry.Instances())
 			if instance == nil {
-				return httperr.BadRequest(nil, "trigger "+trigger)
+				return httperr.BadRequest("trigger " + triggerName)
 			}
 			// TODO(ppacher): we may add support for custom event IDs instead
 			// of the hard-coded __external.
@@ -36,7 +36,7 @@ func ExecuteTriggerEndpoint(router *app.Router, instances *[]*trigger.Instance) 
 			} else {
 				return httperr.PreconditionFailed("trigger does not support being triggered via API")
 			}
-			c.Status(http.StatusAccepted)
+			c.NoContent(http.StatusAccepted)
 
 			return nil
 		},

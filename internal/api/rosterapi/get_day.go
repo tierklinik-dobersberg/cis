@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -21,7 +21,7 @@ func GetDayEndpoint(grp *app.Router) {
 		permission.OneOf{
 			ReadRosterAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			month, year, err := getYearAndMonth(c)
 			if err != nil {
 				return err
@@ -34,7 +34,7 @@ func GetDayEndpoint(grp *app.Router) {
 
 			roster, err := app.DutyRosters.ForMonth(ctx, month, year)
 			if err != nil {
-				var he *httperr.Error
+				var he *echo.HTTPError
 				if errors.As(err, &he) && he.Code == http.StatusNotFound {
 					var d v1alpha.Day
 					addStartTimes(ctx, app, time.Date(year, month, int(day), 0, 0, 0, 0, app.Location()), &d)
@@ -46,7 +46,7 @@ func GetDayEndpoint(grp *app.Router) {
 
 			d, ok := roster.Days[int(day)]
 			if !ok {
-				return httperr.NotFound("roster-day", fmt.Sprintf("%d-%d-%d", year, month, day), nil)
+				return httperr.NotFound("roster-day", fmt.Sprintf("%d-%d-%d", year, month, day))
 			}
 
 			addStartTimes(ctx, app, time.Date(year, month, int(day), 0, 0, 0, 0, app.Location()), &d)

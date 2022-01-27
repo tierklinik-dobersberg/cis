@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
@@ -31,12 +31,12 @@ func GetOpeningHoursEndpoint(router *app.Router) {
 	router.GET(
 		"v1/opening-hours",
 		permission.Anyone,
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			from := c.Query("from")
-			to := c.Query("to")
+		func(ctx context.Context, app *app.App, c echo.Context) error {
+			from := c.QueryParam("from")
+			to := c.QueryParam("to")
 			if from != "" || to != "" {
 				if from == "" || to == "" {
-					return httperr.BadRequest(nil, "from= and to= must both be set")
+					return httperr.BadRequest("from= and to= must both be set")
 				}
 				res, err := getOpeningHoursRangeResponse(ctx, app, from, to)
 				if err != nil {
@@ -47,7 +47,7 @@ func GetOpeningHoursEndpoint(router *app.Router) {
 				return nil
 			}
 
-			at := c.Query("at")
+			at := c.QueryParam("at")
 			res, err := getSingleDayOpeningHours(ctx, app, at, time.Now())
 			if err != nil {
 				return err
@@ -101,7 +101,7 @@ func getOpeningHoursRangeResponse(ctx context.Context, app *app.App, from, to st
 	logger.From(ctx).Infof("loading opening hours in time range from %s to %s", from, to)
 
 	if t.Before(f) || t.Equal(f) {
-		return nil, httperr.BadRequest(nil, "invalid from/to values")
+		return nil, httperr.BadRequest("invalid from/to values")
 	}
 
 	res := &GetOpeningHoursRangeResponse{

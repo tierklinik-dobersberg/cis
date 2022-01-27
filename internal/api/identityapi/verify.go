@@ -3,12 +3,10 @@ package identityapi
 import (
 	"context"
 	"encoding/base64"
-	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -22,12 +20,12 @@ func VerifyEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/verify",
 		permission.Anyone,
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			log := log.From(ctx)
 
 			sess := session.Get(c)
 			if sess == nil {
-				return httperr.New(http.StatusUnauthorized, fmt.Errorf("not authenticated"), nil)
+				return httperr.Forbidden()
 			}
 
 			// on success, add user details as headers and
@@ -42,24 +40,25 @@ func VerifyEndpoint(grp *app.Router) {
 			//
 			req, err := NewPermissionRequest(ctx, c)
 			if err != nil {
-				return httperr.InternalError(err)
+				return httperr.InternalError().SetInternal(err)
 			}
 
 			allowed, err := app.Matcher.Decide(ctx, req, sess.ExtraRoles())
 			if err != nil {
-				return httperr.InternalError(err)
+				return httperr.InternalError().SetInternal(err)
 			}
 
 			if !allowed {
 				log.WithFields(req.AsFields()).Info("access denied")
-				return httperr.New(http.StatusForbidden, fmt.Errorf("access denied"), nil)
+				return httperr.Forbidden()
 			}
 
-			addRemoteUserHeaders(sess.User, c.Writer)
+			addRemoteUserHeaders(sess.User, c.Response())
 
-			c.Status(http.StatusOK)
+			c.NoContent(http.StatusOK)
 			return nil
 		},
+		session.Require(),
 	)
 }
 
@@ -70,21 +69,21 @@ func verifyBasicAuth(ctx context.Context, db identitydb.Database, header string)
 	// other technique.
 	if !strings.HasPrefix(header, "Basic ") {
 		log.Infof("basic-auth: invalid 'Authorization' header: Only 'Basic' auth is supported. ")
-		return nil, httperr.BadRequest(nil, "invalid authorization header")
+		return nil, httperr.BadRequest("invalid authorization header")
 	}
 
 	// get the base64 encoded user:password string
 	blob, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(header, "Basic "))
 	if err != nil {
 		log.Infof("basic-auth: invalid 'Authorization' header: invalid base64 encoded value")
-		return nil, httperr.BadRequest(nil, "invalid authorization header")
+		return nil, httperr.BadRequest("invalid authorization header")
 	}
 
 	// split user and passwort apart
 	parts := strings.SplitN(string(blob), ":", 2)
 	if len(parts) != 2 {
 		log.Infof("basic-auth: invalid 'Authorization' header: unexpcted number of parts")
-		return nil, httperr.BadRequest(nil, "invalid authorization header")
+		return nil, httperr.BadRequest("invalid authorization header")
 	}
 
 	log.Infof("basic-auth: trying to authenticating user %s", parts[0])
@@ -94,12 +93,12 @@ func verifyBasicAuth(ctx context.Context, db identitydb.Database, header string)
 		user, err := db.GetUser(ctx, parts[0])
 		if err != nil {
 			log.Errorf("basic-auth: failed to retrieve user object for authenticated session %s", parts[0])
-			return nil, httperr.BadRequest(nil, "invalid authorization header")
+			return nil, httperr.BadRequest("invalid authorization header")
 		}
 
 		return &user.User, nil
 	}
-	return nil, httperr.WithCode(http.StatusUnauthorized, errors.New("authentication failed"))
+	return nil, httperr.Unauthorized("authentication failed")
 }
 
 func addRemoteUserHeaders(u v1alpha.User, w http.ResponseWriter) {

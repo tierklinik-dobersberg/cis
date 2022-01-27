@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -20,9 +20,9 @@ func GetForMonthEndpoint(grp *app.Router) {
 		permission.OneOf{
 			ReadRosterAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			withShiftStartTimes := true
-			if val := c.Query("with-shift-start"); val != "" {
+			if val := c.QueryParam("with-shift-start"); val != "" {
 				v, err := strconv.ParseBool(val)
 				if err != nil {
 					return httperr.InvalidParameter("with-shift-start", err.Error())

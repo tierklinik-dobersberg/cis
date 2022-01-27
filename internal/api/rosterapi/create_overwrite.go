@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -27,10 +27,10 @@ func CreateOverwriteEndpoint(router *app.Router) {
 		permission.OneOf{
 			WriteRosterOverwriteAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 
 			var body setOverwriteRequest
-			if err := json.NewDecoder(c.Request.Body).Decode(&body); err != nil {
+			if err := json.NewDecoder(c.Request().Body).Decode(&body); err != nil {
 				return httperr.BadRequest(err)
 			}
 
@@ -47,7 +47,7 @@ func CreateOverwriteEndpoint(router *app.Router) {
 					return err
 				}
 				if user.Disabled {
-					return httperr.BadRequest(nil, "user is disabled")
+					return httperr.BadRequest("user is disabled")
 				}
 			}
 

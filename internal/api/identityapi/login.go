@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -33,10 +34,10 @@ func GetSessionStatus(grp *app.Router) {
 	grp.GET(
 		"v1/login",
 		permission.Anyone,
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			sess := session.Get(c)
 			if sess == nil {
-				return httperr.Forbidden(nil, "not allowed")
+				return httperr.Forbidden("not allowed")
 			}
 
 			r := gin.H{
@@ -64,7 +65,7 @@ func LoginEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/login",
 		permission.Anyone,
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			var user *v1alpha.User
 
 			log := log.From(ctx)
@@ -74,10 +75,10 @@ func LoginEndpoint(grp *app.Router) {
 			// endpoint.
 			// TODO(ppacher): maybe make some endpoints skippable by the
 			// autologin manager?
-			removeSetSessionCookie(app, c.Writer)
+			removeSetSessionCookie(app, c.Response())
 
-			authHeader := c.Request.Header.Get("Authorization")
-			contentType := c.Request.Header.Get("Content-Type")
+			authHeader := c.Request().Header.Get("Authorization")
+			contentType := c.Request().Header.Get("Content-Type")
 
 			if authHeader != "" {
 				// There's no session cookie available, check if the user
@@ -102,8 +103,8 @@ func LoginEndpoint(grp *app.Router) {
 						Password string `json:"password"`
 					}
 
-					if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
-						return httperr.BadRequest(err, "invalid JSON encoded body")
+					if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+						return httperr.BadRequest("invalid JSON encoded body").SetInternal(err)
 					}
 
 					username = req.Username
@@ -111,24 +112,22 @@ func LoginEndpoint(grp *app.Router) {
 				} else if strings.Contains(contentType, "x-www-form-urlencoded") ||
 					strings.Contains(contentType, "multipart/form-data") {
 					log.Infof("performing authentication from x-www-form-urlencoded or multipart/form-data payload.")
-					username = c.Request.FormValue("username")
-					password = c.Request.FormValue("password")
+					username = c.Request().FormValue("username")
+					password = c.Request().FormValue("password")
 				}
 
 				if username != "" && password != "" {
 					success := app.Identities.Authenticate(ctx, username, password)
 
 					if !success {
-						log.Infof("failed to authenticate %q", username)
-						c.AbortWithStatus(http.StatusUnauthorized)
-						return nil
+						return httperr.Unauthorized("failed to authenticate")
 					}
 
 					u, err := app.Identities.GetUser(ctx, username)
 
 					if err != nil {
 						log.Errorf("failed to retrieve authenticated user %q", username)
-						return httperr.InternalError(err) // make sure we send 500 instead of 404
+						return httperr.InternalError().SetInternal(err) // make sure we send 500 instead of 404
 					}
 
 					user = &u.User
@@ -151,7 +150,7 @@ func LoginEndpoint(grp *app.Router) {
 					// TODO(ppacher): make configurable
 					if sess.AccessUntil != nil && time.Until(*sess.AccessUntil) > 5*time.Minute {
 						log.Infof("accepting request as cookie is still valid until %s", sess.AccessUntil)
-						c.Status(http.StatusOK)
+						c.NoContent(http.StatusOK)
 						return nil
 					}
 
@@ -160,17 +159,16 @@ func LoginEndpoint(grp *app.Router) {
 			}
 
 			if user == nil {
-				c.AbortWithStatus(http.StatusUnauthorized)
-				return nil
+				return httperr.Unauthorized()
 			}
 
-			sess, accessToken, err := app.Sessions.Create(*user, c.Writer)
+			sess, accessToken, err := app.Sessions.Create(*user, c.Response())
 			if err != nil {
-				c.AbortWithStatus(http.StatusInternalServerError)
+				return err
 			}
 			session.Set(c, sess)
 
-			rd := c.Query("redirect")
+			rd := c.QueryParam("redirect")
 			if rd == "" {
 				c.JSON(http.StatusOK, gin.H{
 					"token": accessToken,

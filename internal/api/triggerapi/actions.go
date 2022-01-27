@@ -3,7 +3,7 @@ package triggerapi
 import (
 	"fmt"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
@@ -19,10 +19,10 @@ var (
 	ExecuteTriggerAction = permission.MustDefineAction(
 		"trigger:execute",
 		"Permission to execute a trigger",
-		func(c *gin.Context) (string, error) {
+		func(c echo.Context) (string, error) {
 			name := c.Param("trigger")
 			if name == "" {
-				return "", fmt.Errorf("permssion not applicable")
+				return "", fmt.Errorf("permission not applicable")
 			}
 			return name, nil
 		},

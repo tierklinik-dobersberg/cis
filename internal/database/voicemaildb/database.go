@@ -100,7 +100,7 @@ func (db *database) ByID(ctx context.Context, id string) (*v1alpha.VoiceMailReco
 	result := db.collection.FindOne(ctx, bson.M{"_id": objID})
 	if result.Err() != nil {
 		if errors.Is(result.Err(), mongo.ErrNoDocuments) {
-			return nil, httperr.NotFound("id", id, result.Err())
+			return nil, httperr.NotFound("id", id).SetInternal(result.Err())
 		}
 		return nil, result.Err()
 	}
@@ -126,13 +126,13 @@ func (db *database) UpdateSeenFlag(ctx context.Context, id string, seen bool) er
 	})
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return httperr.NotFound("voicemail", id, err)
+			return httperr.NotFound("voicemail", id).SetInternal(err)
 		}
 		return err
 	}
 
 	if result.MatchedCount != 1 {
-		return httperr.NotFound("voicemail", id, nil)
+		return httperr.NotFound("voicemail", id)
 	}
 
 	go db.fireEvent(context.Background(), id, false)

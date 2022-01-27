@@ -3,20 +3,7 @@ package customerdb
 import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/dbutils"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-
-var dateMongoFormat = map[string]string{
-	"daily":   "%Y-%m-%d",
-	"monthly": "%Y-%m",
-	"yearly":  "%Y",
-}
-
-var dateTimeFormat = map[string]string{
-	"daily":   "2006-01-02",
-	"monthly": "2006-01",
-	"yearly":  "2006",
-}
 
 var validGroupByKeys = map[string]bson.M{
 	"cid":                 nil,
@@ -42,12 +29,23 @@ func (db *database) Stats() *dbutils.Stats {
 				"$sum": bson.M{
 					"$cond": bson.M{
 						"if": bson.M{
-							"$ne": bson.A{"phoneNumbers", primitive.Null{}},
+							"$eq": bson.A{"array", bson.M{"$type": "$phoneNumbers"}},
 						},
-						"then": 1,
-						"else": 0,
+						"then": bson.M{
+							"$cond": bson.M{
+								"if": bson.M{
+									"$gt": bson.A{bson.M{"$size": "$phoneNumbers"}, 0},
+								},
+								"then": 0,
+								"else": 1,
+							},
+						},
+						"else": 1,
 					},
 				},
+			},
+			"distinctCities": bson.M{
+				"$addToSet": "$cityCode",
 			},
 		},
 		Collection: db.customers,

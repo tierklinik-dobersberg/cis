@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -17,7 +17,7 @@ func GetLayoutEndpoint(router *app.Router) {
 			ActionShowsWrite,
 			ActionShowsRead,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			l, err := app.LayoutStore.Get(ctx, c.Param("layout"))
 			if err != nil {
 				return err
@@ -34,7 +34,7 @@ func GetLayoutEndpoint(router *app.Router) {
 			ActionShowsRead,
 			ActionShowsWrite,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			layoutName := c.Param("layout")
 			l, err := app.LayoutStore.Get(ctx, layoutName)
 			if err != nil {
@@ -42,12 +42,11 @@ func GetLayoutEndpoint(router *app.Router) {
 			}
 
 			if l.PreviewIcon == "" {
-				return httperr.NotFound("layout icon", layoutName, nil)
+				return httperr.NotFound("layout icon", layoutName)
 			}
 
 			iconPath := l.FilePath(l.PreviewIcon)
-
-			http.ServeFile(c.Writer, c.Request, iconPath)
+			c.File(iconPath)
 			return nil
 		},
 	)

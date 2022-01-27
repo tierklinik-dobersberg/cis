@@ -275,21 +275,21 @@ func deleteContact(ctx context.Context, cus *customerdb.Customer, cli *Client) e
 	carddavMd := cus.Metadata["carddav"]
 	if carddavMd == nil {
 		logger.From(ctx).Infof("Metadata: %+v", cus.Metadata)
-		return httperr.InternalError(nil, "customer does not have carddav metadata record")
+		return httperr.InternalError("customer does not have carddav metadata record")
 	}
 	md, _ := carddavMd.(map[string]interface{})
 	if md == nil {
-		return httperr.InternalError(fmt.Errorf("customer carddav record has invalid type %T", carddavMd))
+		return httperr.InternalError().SetInternal(fmt.Errorf("customer carddav record has invalid type %T", carddavMd))
 	}
 	ab, _ := md["collection"].(string)
 	path, _ := md["path"].(string)
 
 	if ab == "" || path == "" {
-		return httperr.InternalError(nil, "customer does not have collection or path metadata records")
+		return httperr.InternalError("customer does not have collection or path metadata records")
 	}
 
 	if ab != cli.cfg.AddressBook {
-		return httperr.InternalError(fmt.Errorf("customer has a different carddav addressbook record: %q != %q", cli.cfg.AddressBook, ab))
+		return httperr.InternalError().SetInternal(fmt.Errorf("customer has a different carddav addressbook record: %q != %q", cli.cfg.AddressBook, ab))
 	}
 
 	return cli.DeleteObject(ctx, path)
@@ -388,7 +388,7 @@ func handleUpdate(ctx context.Context, cfg *cfgspec.CardDAVConfig, app *app.App,
 func findByPath(ctx context.Context, app *app.App, path string) (*customerdb.Customer, error) {
 	customers, err := app.Customers.FilterCustomer(ctx, bson.M{
 		"metadata.carddav.path": path,
-	})
+	}, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find customer by path %s: %s", path, err)
 	}
@@ -405,7 +405,7 @@ func findByPath(ctx context.Context, app *app.App, path string) (*customerdb.Cus
 func findByCollection(ctx context.Context, app *app.App, collectionPath string) ([]*customerdb.Customer, error) {
 	return app.Customers.FilterCustomer(ctx, bson.M{
 		"metadata.carddav.collection": collectionPath,
-	})
+	}, false)
 }
 
 func getID(path string) string {

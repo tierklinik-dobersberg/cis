@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -17,9 +17,9 @@ func DeleteActiveOverwriteEndpoint(router *app.Router) {
 		permission.OneOf{
 			WriteRosterOverwriteAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			d := time.Now()
-			if date := c.Query("date"); date != "" {
+			if date := c.QueryParam("date"); date != "" {
 				var err error
 				d, err = app.ParseTime(time.RFC3339, date)
 				if err != nil {
@@ -31,7 +31,7 @@ func DeleteActiveOverwriteEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.Status(http.StatusNoContent)
+			c.NoContent(http.StatusNoContent)
 
 			return nil
 		},

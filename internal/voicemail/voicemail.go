@@ -129,7 +129,7 @@ func (box *Mailbox) HandleMail(ctx context.Context, mail *mailbox.EMail) {
 						phonenumbers.Format(parsed, phonenumbers.NATIONAL),
 					},
 				},
-			})
+			}, false)
 			if err == nil {
 				if len(customers) > 0 {
 					// TODO(ppacher): what to do on multiple results

@@ -198,7 +198,7 @@ func (db *database) ForMonth(ctx context.Context, month time.Month, year int) (*
 	res := db.rosters.FindOne(ctx, bson.M{"month": month, "year": year})
 	if err := res.Err(); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, httperr.NotFound("roster", fmt.Sprintf("%04d/%02d", year, month), ErrNotFound)
+			return nil, httperr.NotFound("roster", fmt.Sprintf("%04d/%02d", year, month)).SetInternal(ErrNotFound)
 		}
 		return nil, err
 	}
@@ -219,7 +219,7 @@ func (db *database) ForDay(ctx context.Context, t time.Time) (*v1alpha.Day, erro
 	day, ok := roster.Days[t.Day()]
 	if !ok {
 		key := fmt.Sprintf("%04d/%02d", t.Year(), t.Month())
-		return nil, httperr.NotFound("roster-day", key, nil)
+		return nil, httperr.NotFound("roster-day", key)
 	}
 	return &day, nil
 }
@@ -228,13 +228,13 @@ func (db *database) Delete(ctx context.Context, month time.Month, year int) erro
 	res, err := db.rosters.DeleteOne(ctx, bson.M{"month": month, "year": year})
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return httperr.NotFound("roster", fmt.Sprintf("%04d/%02d", year, month), ErrNotFound)
+			return httperr.NotFound("roster", fmt.Sprintf("%04d/%02d", year, month)).SetInternal(ErrNotFound)
 		}
 		return err
 	}
 
 	if res.DeletedCount < 1 {
-		return httperr.NotFound("roster", fmt.Sprintf("%04d/%02d", year, month), ErrNotFound)
+		return httperr.NotFound("roster", fmt.Sprintf("%04d/%02d", year, month)).SetInternal(ErrNotFound)
 	}
 
 	go db.fireDeleteEvent(ctx, month, year)
@@ -244,7 +244,7 @@ func (db *database) Delete(ctx context.Context, month time.Month, year int) erro
 
 func (db *database) CreateOverwrite(ctx context.Context, from, to time.Time, user, phone, displayName string) (v1alpha.Overwrite, error) {
 	if user == "" && phone == "" {
-		return v1alpha.Overwrite{}, httperr.BadRequest(nil, "Username and phone number not set")
+		return v1alpha.Overwrite{}, httperr.BadRequest("Username and phone number not set")
 	}
 
 	overwrite := v1alpha.Overwrite{
@@ -348,7 +348,7 @@ func (db *database) GetActiveOverwrite(ctx context.Context, date time.Time) (*v1
 
 	if res.Err() != nil {
 		if errors.Is(res.Err(), mongo.ErrNoDocuments) {
-			return nil, httperr.NotFound("overwrite", date.String(), res.Err())
+			return nil, httperr.NotFound("overwrite", date.String()).SetInternal(res.Err())
 		}
 		return nil, res.Err()
 	}
@@ -382,14 +382,14 @@ func (db *database) DeleteActiveOverwrite(ctx context.Context, d time.Time) erro
 
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return httperr.NotFound("overwrite", d.Format("2006-01-02"), err)
+			return httperr.NotFound("overwrite", d.Format("2006-01-02")).SetInternal(err)
 		}
 
 		return err
 	}
 
 	if res.ModifiedCount == 0 {
-		return httperr.NotFound("overwrite", d.Format("2006-01-02"), nil)
+		return httperr.NotFound("overwrite", d.Format("2006-01-02"))
 	}
 
 	// FIXME(ppacher): we use d for From and To here. Instead, we should actually
@@ -421,13 +421,13 @@ func (db *database) DeleteOverwrite(ctx context.Context, id string) error {
 
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return httperr.NotFound("overwrite", id, err)
+			return httperr.NotFound("overwrite", id).SetInternal(err)
 		}
 		return err
 	}
 
 	if res.ModifiedCount == 0 {
-		return httperr.NotFound("overwrite", id, nil)
+		return httperr.NotFound("overwrite", id)
 	}
 
 	// FIXME(ppacher): fire a overwrite deleted event here

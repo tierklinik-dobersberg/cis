@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/tasks/linkable"
@@ -28,8 +28,8 @@ func GetSuggestionsEndpoint(r *app.Router) {
 		permission.Union{
 			ReadSuggestionsAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			ls := c.Query("limit")
+		func(ctx context.Context, app *app.App, c echo.Context) error {
+			ls := c.QueryParam("limit")
 			var (
 				limit int64
 				err   error
@@ -88,12 +88,12 @@ func ApplySuggestionEndpoint(r *app.Router) {
 		permission.Union{
 			ApplySuggestionsAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			sugType := c.Param("type")
 
 			if sugType == "customer-link" {
 				var payload linkable.Suggestion
-				if err := json.NewDecoder(c.Request.Body).Decode(&payload); err != nil {
+				if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
 					return err
 				}
 				if err := linkable.LinkCustomers(ctx, app, payload); err != nil {
@@ -101,7 +101,7 @@ func ApplySuggestionEndpoint(r *app.Router) {
 				}
 				return nil
 			}
-			return httperr.BadRequest(nil, "unknown suggestion type")
+			return httperr.BadRequest("unknown suggestion type")
 		},
 	)
 }
@@ -112,8 +112,8 @@ func DeleteSuggestionEndpoint(r *app.Router) {
 		permission.Union{
 			ApplySuggestionsAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			shouldDelete := c.Request.URL.Query().Has("delete")
+		func(ctx context.Context, app *app.App, c echo.Context) error {
+			shouldDelete := c.QueryParams().Has("delete")
 			b64id := c.Param("id")
 			id, err := base64.RawStdEncoding.DecodeString(b64id)
 			if err != nil {
@@ -130,7 +130,7 @@ func DeleteSuggestionEndpoint(r *app.Router) {
 				}
 			}
 
-			c.Status(http.StatusNoContent)
+			c.NoContent(http.StatusNoContent)
 			return nil
 		},
 	)

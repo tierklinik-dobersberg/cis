@@ -30,7 +30,7 @@ func getDoorLockCommand() *cobra.Command {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			app := getApp(ctx)
+			app, _, ctx := getApp(ctx)
 
 			if err := app.Door.Lock(ctx); err != nil {
 				logger.Fatalf(ctx, err.Error())
@@ -47,7 +47,7 @@ func getDoorUnlockCommand() *cobra.Command {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			app := getApp(ctx)
+			app, _, ctx := getApp(ctx)
 
 			if err := app.Door.Unlock(ctx); err != nil {
 				logger.Fatalf(ctx, err.Error())
@@ -64,7 +64,7 @@ func getDoorOpenCommand() *cobra.Command {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			app := getApp(ctx)
+			app, _, ctx := getApp(ctx)
 
 			if err := app.Door.Open(ctx); err != nil {
 				logger.Fatalf(ctx, err.Error())

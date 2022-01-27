@@ -145,7 +145,7 @@ func (db *identDB) GetUser(ctx context.Context, name string) (cfgspec.User, erro
 
 	u, ok := db.users[strings.ToLower(name)]
 	if !ok {
-		return cfgspec.User{}, httperr.NotFound("user", name, ErrNotFound)
+		return cfgspec.User{}, httperr.NotFound("user", name).SetInternal(ErrNotFound)
 	}
 
 	return db.applyPrivacy(ctx, u), nil
@@ -157,7 +157,7 @@ func (db *identDB) GetRole(ctx context.Context, name string) (cfgspec.Role, erro
 
 	g, ok := db.roles[strings.ToLower(name)]
 	if !ok {
-		return cfgspec.Role{}, httperr.NotFound("role", name, ErrNotFound)
+		return cfgspec.Role{}, httperr.NotFound("role", name).SetInternal(ErrNotFound)
 	}
 
 	return g.Role, nil
@@ -169,7 +169,7 @@ func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]cfgsp
 
 	u, ok := db.users[strings.ToLower(name)]
 	if !ok {
-		return nil, httperr.NotFound("user", name, ErrNotFound)
+		return nil, httperr.NotFound("user", name).SetInternal(ErrNotFound)
 	}
 
 	perms := make([]cfgspec.Permission, len(u.Permissions))
@@ -185,7 +185,7 @@ func (db *identDB) GetRolePermissions(ctx context.Context, name string) ([]cfgsp
 
 	g, ok := db.roles[strings.ToLower(name)]
 	if !ok {
-		return nil, httperr.NotFound("role", name, ErrNotFound)
+		return nil, httperr.NotFound("role", name).SetInternal(ErrNotFound)
 	}
 
 	perms := make([]cfgspec.Permission, len(g.Permissions))
@@ -239,7 +239,7 @@ func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo str
 
 	u, ok := db.users[user]
 	if !ok {
-		return httperr.NotFound("user", user, ErrNotFound)
+		return httperr.NotFound("user", user).SetInternal(ErrNotFound)
 	}
 
 	// create a shallow copy of u

@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
@@ -13,8 +13,8 @@ func GroupByEndpoint(router *app.Router) {
 	router.GET(
 		"v1/:collection/group-by/:key",
 		permission.Anyone,
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			counterKey := c.Query("count")
+		func(ctx context.Context, app *app.App, c echo.Context) error {
+			counterKey := c.QueryParam("count")
 			stats, err := getStatsBuilder(c.Param("collection"), app)
 			if err != nil {
 				return err

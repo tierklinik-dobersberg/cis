@@ -1,14 +1,14 @@
 package voicemailapi
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 )
 
 // Setup registers all available VoiceMail related
 // HTTP routes on grp.
-func Setup(grp gin.IRouter) {
-	router := app.NewRouter(grp)
+func Setup(a *app.App, grp *echo.Group) {
+	router := app.NewRouter(grp, a)
 
 	// GET /api/voicemail/v1/search
 	SearchEndpoint(router)

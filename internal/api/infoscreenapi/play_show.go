@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -117,16 +117,16 @@ func PlayShowEndpoint(router *app.Router) {
 	router.GET(
 		"v1/shows/:show/play/*resource",
 		permission.Anyone, // we handle authorization for this endpoint on our own
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			// TODO(ppacher): add authorization
 			log := logger.From(ctx)
 
 			showName := c.Param("show")
-			isEmbedded := c.Query("embedded") != ""
-			theme := c.Query("theme")
+			isEmbedded := c.QueryParam("embedded") != ""
+			theme := c.QueryParam("theme")
 
 			previewIndex := -1
-			if previewStr := c.Query("preview"); previewStr != "" {
+			if previewStr := c.QueryParam("preview"); previewStr != "" {
 				if idx, err := strconv.ParseInt(previewStr, 0, 0); err == nil {
 					previewIndex = int(idx)
 				} else {
@@ -140,13 +140,13 @@ func PlayShowEndpoint(router *app.Router) {
 				// TODO(ppacher): verify the show actually has a field
 				// that allows this resource!
 				path := strings.TrimPrefix(resource, "uploaded/")
-				http.ServeFile(c.Writer, c.Request, filepath.Join(
+				c.File(filepath.Join(
 					app.Config.InfoScreenConfig.UploadDataDirectory,
 					path,
 				))
 				return nil
 			} else if resource != "" {
-				return httperr.NotFound("asset", resource, nil)
+				return httperr.NotFound("asset", resource)
 			}
 
 			show, err := app.InfoScreenShows.GetShow(ctx, showName)
@@ -196,7 +196,7 @@ func PlayShowEndpoint(router *app.Router) {
 				})
 			}
 
-			return renderPlayer(playCtx, c.Writer)
+			return renderPlayer(playCtx, c.Response())
 		},
 	)
 }

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -20,7 +21,7 @@ func TestStateEndpoint(grp *app.Router) {
 		permission.OneOf{
 			GetStateAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			year, err := getIntParam("year", c)
 			if err != nil {
 				return err
@@ -54,7 +55,7 @@ func TestStateEndpoint(grp *app.Router) {
 	)
 }
 
-func getIntParam(name string, c *gin.Context) (int, error) {
+func getIntParam(name string, c echo.Context) (int, error) {
 	stringValue := c.Param(name)
 
 	// strip away the first leading zero if any

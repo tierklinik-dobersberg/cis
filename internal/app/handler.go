@@ -3,23 +3,15 @@ package app
 import (
 	"context"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 // HandlerFunc defines a cis HTTP handler func.
-type HandlerFunc func(ctx context.Context, app *App, c *gin.Context) error
+type HandlerFunc func(ctx context.Context, app *App, c echo.Context) error
 
 // WrapHandler wraps a handler function into a gin.HandlerFunc.
-func WrapHandler(fn HandlerFunc) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		app := From(c)
-		if app == nil {
-			return
-		}
-
-		err := fn(c.Request.Context(), app, c)
-		if err != nil {
-			_ = c.Error(err)
-		}
+func WrapHandler(app *App, fn HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		return fn(c.Request().Context(), app, c)
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -19,8 +19,8 @@ func GetActiveOverwriteEndpoint(router *app.Router) {
 		permission.OneOf{
 			ReadRosterOverwriteAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			date := c.Query("date")
+		func(ctx context.Context, app *app.App, c echo.Context) error {
+			date := c.QueryParam("date")
 
 			var d time.Time = time.Now()
 			if date != "" {

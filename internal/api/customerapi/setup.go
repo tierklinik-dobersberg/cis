@@ -1,13 +1,13 @@
 package customerapi
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 )
 
 // Setup registers all API endpoints for the customer api.
-func Setup(grp gin.IRouter) {
-	router := app.NewRouter(grp)
+func Setup(a *app.App, grp *echo.Group) {
+	router := app.NewRouter(grp, a)
 
 	// GET /api/customer/v1/:source/:id
 	GetByIDEndpoint(router)

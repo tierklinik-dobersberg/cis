@@ -6,10 +6,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/nbutton23/zxcvbn-go"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
+	"github.com/tierklinik-dobersberg/cis/runtime/session"
 )
 
 // PasswordStrengthEndpoint calculates the strength of a password
@@ -18,13 +20,13 @@ func PasswordStrengthEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/password-check",
 		permission.Anyone,
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			var body struct {
 				Password string `json:"password"`
 			}
 
-			if err := json.NewDecoder(c.Request.Body).Decode(&body); err != nil {
-				return httperr.BadRequest(err)
+			if err := json.NewDecoder(c.Request().Body).Decode(&body); err != nil {
+				return httperr.BadRequest().SetInternal(err)
 			}
 
 			result := zxcvbn.PasswordStrength(body.Password, nil)
@@ -36,5 +38,6 @@ func PasswordStrengthEndpoint(grp *app.Router) {
 			})
 			return nil
 		},
+		session.Require(),
 	)
 }

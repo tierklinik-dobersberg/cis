@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -18,7 +18,7 @@ func LoadRecordingEndpoint(router *app.Router) {
 	router.GET(
 		"v1/recording/:id",
 		permission.OneOf{ReadVoicemailsAction},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			id := c.Param("id")
 
 			rec, err := app.VoiceMails.ByID(ctx, id)
@@ -28,11 +28,11 @@ func LoadRecordingEndpoint(router *app.Router) {
 
 			f, err := os.Open(rec.Filename)
 			if err != nil {
-				return httperr.NotFound("recording", id, err)
+				return httperr.NotFound("recording", id)
 			}
 			defer f.Close()
 
-			http.ServeContent(c.Writer, c.Request, rec.Filename, time.Now(), f)
+			http.ServeContent(c.Response(), c.Request(), rec.Filename, time.Now(), f)
 
 			return nil
 		},

@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	uuid "github.com/kevinburke/go.uuid"
+	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/logger"
 	"github.com/tierklinik-dobersberg/service/utils"
@@ -41,7 +41,7 @@ var MJPEGSourceSpec = conf.SectionSpec{
 }
 
 // Attach implements Source.Attach.
-func (src *MJPEGSource) Attach(ctx context.Context, c *gin.Context) error {
+func (src *MJPEGSource) Attach(ctx context.Context, c echo.Context) error {
 	// start pulling frames and send them to ch.
 	ch, key, err := src.attach(ctx)
 	if err != nil {
@@ -57,7 +57,7 @@ func (src *MJPEGSource) Attach(ctx context.Context, c *gin.Context) error {
 
 	// hijack the connection as we need to clear
 	// read/write timeouts.
-	conn, _, err := c.Writer.Hijack()
+	conn, _, err := c.Response().Hijack()
 	if err != nil {
 		return fmt.Errorf("failed to hijack: %w", err)
 	}
@@ -65,12 +65,12 @@ func (src *MJPEGSource) Attach(ctx context.Context, c *gin.Context) error {
 
 	// perpare a multipart writer and the HTTP response
 	// header
-	client := utils.RealClientIP(c.Request)
+	client := utils.RealClientIP(c.Request())
 	writer := multipart.NewWriter(conn)
 	res := http.Response{
 		StatusCode:    http.StatusOK,
-		ProtoMajor:    c.Request.ProtoMajor,
-		ProtoMinor:    c.Request.ProtoMinor,
+		ProtoMajor:    c.Request().ProtoMajor,
+		ProtoMinor:    c.Request().ProtoMinor,
 		ContentLength: -1, // unknown
 		Header:        http.Header{},
 	}

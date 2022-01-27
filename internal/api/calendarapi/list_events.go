@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
@@ -26,7 +26,7 @@ func ListEventsEndpoint(router *app.Router) {
 		permission.OneOf{
 			ReadEventsAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			day, err := getForDayQueryParam(c, app)
 			if err != nil {
 				return err
@@ -54,14 +54,14 @@ func ListEventsEndpoint(router *app.Router) {
 			}
 
 			var requestedCalendarIDs []string
-			if forUser := c.QueryArray("for-user"); len(forUser) > 0 {
+			if forUser := c.QueryParams()["for-user"]; len(forUser) > 0 {
 				for _, username := range forUser {
 					user, ok := userNameToUser[username]
 					if !ok {
-						return httperr.NotFound("user", username, nil)
+						return httperr.NotFound("user", username)
 					}
 					if user.CalendarID == "" {
-						return httperr.WithCode(
+						return echo.NewHTTPError(
 							http.StatusExpectationFailed,
 							fmt.Errorf("user %s does not have a calendar", user.Name),
 						)
@@ -123,9 +123,9 @@ func ListEventsEndpoint(router *app.Router) {
 	)
 }
 
-func getForDayQueryParam(c *gin.Context, app *app.App) (time.Time, error) {
+func getForDayQueryParam(c echo.Context, app *app.App) (time.Time, error) {
 	day := time.Now()
-	if forDay := c.Query("for-day"); forDay != "" {
+	if forDay := c.QueryParam("for-day"); forDay != "" {
 		var err error
 		day, err = app.ParseTime("2006-1-2", forDay)
 		if err != nil {

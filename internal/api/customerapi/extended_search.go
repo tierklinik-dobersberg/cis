@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -25,14 +25,14 @@ func ExtendedSearchEndpoint(grp *app.Router) {
 		permission.OneOf{
 			ReadCustomerAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			var result map[string]interface{}
 
-			if err := json.NewDecoder(c.Request.Body).Decode(&result); err != nil {
-				return httperr.BadRequest(err, "invalid body")
+			if err := json.NewDecoder(c.Request().Body).Decode(&result); err != nil {
+				return httperr.BadRequest("invalid body").SetInternal(err)
 			}
 
-			customers, err := app.Customers.FilterCustomer(ctx, result)
+			customers, err := app.Customers.FilterCustomer(ctx, result, false)
 			if err != nil {
 				return err
 			}

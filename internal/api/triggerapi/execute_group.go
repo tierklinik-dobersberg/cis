@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -14,11 +14,11 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 )
 
-func ExecuteTriggerGroupEndpoint(router *app.Router, triggers *[]*trigger.Instance) {
+func ExecuteTriggerGroupEndpoint(router *app.Router) {
 	router.POST(
 		"v1/group/:groupName",
 		permission.Anyone, // we'l verify that ourself
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			sess := session.Get(c)
 			groupName := c.Param(("groupName"))
 
@@ -27,7 +27,7 @@ func ExecuteTriggerGroupEndpoint(router *app.Router, triggers *[]*trigger.Instan
 				sess.User.Name,
 				sess.ExtraRoles(),
 				app,
-				*triggers,
+				trigger.DefaultRegistry.Instances(),
 				groupName,
 			)
 			if err != nil {
@@ -95,10 +95,10 @@ func findAllowedGroupMembers(ctx context.Context, username string, extraRoles []
 		}
 	}
 	if !foundGroup {
-		return nil, httperr.NotFound("trigger group", groupName, nil)
+		return nil, httperr.NotFound("trigger group", groupName)
 	}
 	if len(result) == 0 {
-		return nil, httperr.Forbidden(nil, "permission denied")
+		return nil, httperr.Forbidden("permission denied")
 	}
 	return result, nil
 }

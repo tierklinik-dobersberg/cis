@@ -1,7 +1,7 @@
 package externalapi
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 )
@@ -9,8 +9,8 @@ import (
 var log = pkglog.New("externalapi")
 
 // Setup configures all integrationapi endpoints.
-func Setup(grp gin.IRouter) {
-	router := app.NewRouter(grp)
+func Setup(a *app.App, grp *echo.Group) {
+	router := app.NewRouter(grp, a)
 
 	// GET /api/external/v1/doctor-on-duty
 	CurrentDoctorOnDutyEndpoint(router)

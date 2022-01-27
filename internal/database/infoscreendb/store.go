@@ -115,7 +115,7 @@ func (db *database) GetShow(ctx context.Context, name string) (*v1alpha.Show, er
 
 	if result.Err() != nil {
 		if errors.Is(result.Err(), mongo.ErrNoDocuments) {
-			return nil, httperr.NotFound("show", name, result.Err())
+			return nil, httperr.NotFound("show", name).SetInternal(result.Err())
 		}
 		return nil, result.Err()
 	}
@@ -135,12 +135,12 @@ func (db *database) DeleteShow(ctx context.Context, name string) error {
 	)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return httperr.NotFound("show", name, err)
+			return httperr.NotFound("show", name).SetInternal(err)
 		}
 		return err
 	}
 	if result.DeletedCount != 1 {
-		return httperr.NotFound("show", name, nil)
+		return httperr.NotFound("show", name)
 	}
 	return nil
 }

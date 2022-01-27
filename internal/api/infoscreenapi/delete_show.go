@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
@@ -15,14 +15,14 @@ func DeleteShowEndpoint(router *app.Router) {
 		permission.OneOf{
 			ActionShowsDelete,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			showName := c.Param("show")
 
 			if err := app.InfoScreenShows.DeleteShow(ctx, showName); err != nil {
 				return err
 			}
 
-			c.Status(http.StatusAccepted)
+			c.NoContent(http.StatusAccepted)
 			return nil
 		},
 	)

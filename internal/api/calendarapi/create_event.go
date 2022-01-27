@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -22,10 +22,10 @@ func CreateEventEndpoint(router *app.Router) {
 		permission.OneOf{
 			WriteEventsAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			var event v1alpha.CreateEventCall
 
-			if err := json.NewDecoder(c.Request.Body).Decode(&event); err != nil {
+			if err := json.NewDecoder(c.Request().Body).Decode(&event); err != nil {
 				return httperr.BadRequest(err)
 			}
 
@@ -46,7 +46,7 @@ func CreateEventEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.Status(http.StatusNoContent)
+			c.NoContent(http.StatusNoContent)
 
 			return nil
 		},
@@ -71,7 +71,7 @@ func validateEventModel(ctx context.Context, app *app.App, event *v1alpha.Create
 		return httperr.MissingField("duration or endTime")
 	}
 	if event.FullDayEvent {
-		return httperr.BadRequest(nil, "full day events are not yet supported")
+		return httperr.BadRequest("full day events are not yet supported")
 	}
 
 	end := event.StartTime.Add(duration)

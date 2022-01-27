@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -17,14 +17,14 @@ func ChangePasswordEndpoint(grp *app.Router) {
 	grp.PUT(
 		"v1/profile/password",
 		permission.Anyone,
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			body := struct {
 				Current     string `json:"current"`
 				NewPassword string `json:"newPassword"`
 			}{}
 
-			if err := json.NewDecoder(c.Request.Body).Decode(&body); err != nil {
-				return httperr.BadRequest(err, "invalid body")
+			if err := json.NewDecoder(c.Request().Body).Decode(&body); err != nil {
+				return httperr.BadRequest("invalid body").SetInternal(err)
 			}
 
 			if body.Current == "" {
@@ -37,15 +37,16 @@ func ChangePasswordEndpoint(grp *app.Router) {
 
 			sess := session.Get(c)
 			if !app.Identities.Authenticate(ctx, sess.User.Name, body.Current) {
-				return httperr.BadRequest(nil)
+				return httperr.BadRequest()
 			}
 
 			if err := app.Identities.SetUserPassword(ctx, sess.User.Name, body.NewPassword, "bcrypt"); err != nil {
 				return err
 			}
 
-			c.Status(http.StatusNoContent)
+			c.NoContent(http.StatusNoContent)
 			return nil
 		},
+		session.Require(),
 	)
 }

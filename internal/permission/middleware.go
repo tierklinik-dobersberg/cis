@@ -3,7 +3,7 @@ package permission
 import (
 	"fmt"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 )
@@ -54,60 +54,55 @@ var Anyone = Set(nil)
 
 // Require is a gin middleware that enforces
 // permission requirements.
-func Require(matcher *Matcher, set Set) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		sess := session.Get(c)
-		if sess == nil && set != nil && len(set.Actions()) > 0 {
-			httperr.Forbidden(nil, "no session").AbortRequest(c)
-			return
-		}
+func Require(matcher *Matcher, set Set) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			sess := session.Get(c)
+			if sess == nil && set != nil && len(set.Actions()) > 0 {
+				return httperr.Forbidden("no session")
+			}
 
-		if set != nil {
-			for _, action := range set.Actions() {
-				var resource string
-				if action.ResourceName != nil {
-					var err error
-					resource, err = action.ResourceName(c)
+			if set != nil {
+				for _, action := range set.Actions() {
+					var resource string
+					if action.ResourceName != nil {
+						var err error
+						resource, err = action.ResourceName(c)
+						if err != nil {
+							return err
+						}
+					}
+
+					req := Request{
+						Action:   action.Name,
+						Resource: resource,
+						User:     sess.User.Name,
+					}
+
+					allowed, err := matcher.Decide(c.Request().Context(), &req, sess.ExtraRoles())
 					if err != nil {
-						httperr.Abort(c, err)
-						return
+						return httperr.InternalError().SetInternal(err)
+					}
+
+					if allowed && set.Type() == Or {
+						return next(c)
+					}
+
+					if !allowed && set.Type() == And {
+						return httperr.Forbidden(
+							fmt.Sprintf("Not allowed to perform %s on %q", action.Name, resource),
+						)
 					}
 				}
 
-				req := Request{
-					Action:   action.Name,
-					Resource: resource,
-					User:     sess.User.Name,
-				}
-
-				allowed, err := matcher.Decide(c.Request.Context(), &req, sess.ExtraRoles())
-				if err != nil {
-					httperr.InternalError(err).AbortRequest(c)
-					return
-				}
-
-				if allowed && set.Type() == Or {
-					c.Next()
-					return
-				}
-
-				if !allowed && set.Type() == And {
-					httperr.Forbidden(
-						nil,
-						fmt.Sprintf("Not allowed to perform %s on %q", action.Name, resource),
-					).AbortRequest(c)
-					return
+				if set.Type() == Or {
+					return httperr.Forbidden("all actions declined")
 				}
 			}
 
-			if set.Type() == Or {
-				httperr.Forbidden(nil, "all actions declined").AbortRequest(c)
-				return
-			}
+			// If set.Type() == And and we reach this point than
+			// all actions are allowed.
+			return next(c)
 		}
-
-		// If set.Type() == And and we reach this point than
-		// all actions are allowed.
-		c.Next()
 	}
 }

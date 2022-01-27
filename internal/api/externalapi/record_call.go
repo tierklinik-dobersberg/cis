@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/api/calllogapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -32,8 +32,8 @@ func RecordCallEndpoint(grp *app.Router) {
 		permission.OneOf{
 			calllogapi.CreateRecordAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			caller := c.Query("ani")
+		func(ctx context.Context, app *app.App, c echo.Context) error {
+			caller := c.QueryParam("ani")
 
 			// If we have a caller than this is an "unidentified" call record
 			// send by the callflow app.
@@ -41,14 +41,14 @@ func RecordCallEndpoint(grp *app.Router) {
 				record := v1alpha.CallLog{
 					Date:          time.Now(),
 					Caller:        caller,
-					InboundNumber: c.Query("did"),
+					InboundNumber: c.QueryParam("did"),
 				}
 
-				if transferTo := c.Query("transferTo"); transferTo != "" {
+				if transferTo := c.QueryParam("transferTo"); transferTo != "" {
 					record.TransferTarget = transferTo
 				}
 
-				if errparam := c.Query("error"); errparam != "" {
+				if errparam := c.QueryParam("error"); errparam != "" {
 					b, err := strconv.ParseBool(errparam)
 					if err != nil {
 						log.From(ctx).Errorf("invalid error boolean %q, assuming true", err)
@@ -58,14 +58,14 @@ func RecordCallEndpoint(grp *app.Router) {
 				}
 
 				if err := app.CallLogs.CreateUnidentified(ctx, record); err != nil {
-					return httperr.InternalError(err)
+					return httperr.InternalError().SetInternal(err)
 				}
 			} else {
 				// otherwise, we should have a body containing a calllog record
 				// for an identified customer
 				var payload recordCallRequest
-				if err := json.NewDecoder(c.Request.Body).Decode(&payload); err != nil {
-					return httperr.BadRequest(err)
+				if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
+					return httperr.BadRequest().SetInternal(err)
 				}
 
 				record := v1alpha.CallLog{
@@ -96,7 +96,7 @@ func RecordCallEndpoint(grp *app.Router) {
 				}
 			}
 
-			c.Status(http.StatusNoContent)
+			c.NoContent(http.StatusNoContent)
 			return nil
 		},
 	)

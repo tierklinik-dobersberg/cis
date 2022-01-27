@@ -70,7 +70,7 @@ func (fs *fileStore) Get(ctx context.Context, name string) (*Layout, error) {
 
 	l, ok := fs.layouts[name]
 	if !ok {
-		return nil, httperr.NotFound("layout", name, os.ErrNotExist)
+		return nil, httperr.NotFound("layout", name)
 	}
 
 	cpy := new(Layout)

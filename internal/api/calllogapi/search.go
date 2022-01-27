@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -24,7 +24,7 @@ func SearchEndpoint(router *app.Router) {
 		permission.OneOf{
 			ReadRecordsAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			q := new(calllogdb.SearchQuery)
 
 			if d, err := getQueryDate(c, app, "at"); !d.IsZero() {
@@ -45,7 +45,7 @@ func SearchEndpoint(router *app.Router) {
 				return err
 			}
 
-			if cid, ok := c.GetQuery("cid"); ok {
+			if cid := c.QueryParam("cid"); cid != "" {
 				ref := customerv1alpha.ParseRef(cid)
 				if ref == nil {
 					return httperr.InvalidParameter("cid")
@@ -66,9 +66,9 @@ func SearchEndpoint(router *app.Router) {
 	)
 }
 
-func getQueryDate(c *gin.Context, app *app.App, param string) (time.Time, error) {
-	val, ok := c.GetQuery(param)
-	if !ok {
+func getQueryDate(c echo.Context, app *app.App, param string) (time.Time, error) {
+	val := c.QueryParam(param)
+	if val == "" {
 		return time.Time{}, nil
 	}
 	d, err := app.ParseTime(time.RFC3339, val)

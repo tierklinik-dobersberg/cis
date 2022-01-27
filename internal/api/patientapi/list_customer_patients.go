@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -16,7 +16,7 @@ func ListCustomerPatientsEndpoint(router *app.Router) {
 		permission.OneOf{
 			ReadPatientAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			source := c.Param("source")
 			cid := c.Param("cid")
 

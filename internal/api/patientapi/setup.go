@@ -1,13 +1,13 @@
 package patientapi
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 )
 
 // Setup registers all patient API routes.
-func Setup(grp gin.IRouter) {
-	router := app.NewRouter(grp)
+func Setup(a *app.App, grp *echo.Group) {
+	router := app.NewRouter(grp, a)
 
 	PatientByIDEndpoint(router)
 	ListCustomerPatientsEndpoint(router)

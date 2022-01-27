@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -19,9 +19,9 @@ func GetOverwritesEndpoint(router *app.Router) {
 		permission.OneOf{
 			ReadRosterOverwriteAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			fromStr := c.Query("from")
-			toStr := c.Query("to")
+		func(ctx context.Context, app *app.App, c echo.Context) error {
+			fromStr := c.QueryParam("from")
+			toStr := c.QueryParam("to")
 
 			if fromStr == "" {
 				return httperr.MissingParameter("from")
@@ -38,7 +38,7 @@ func GetOverwritesEndpoint(router *app.Router) {
 			if err != nil {
 				return httperr.InvalidParameter("to", err.Error())
 			}
-			_, includeDeleted := c.GetQuery("with-deleted")
+			includeDeleted := c.QueryParams().Has("with-deleted")
 
 			overwrites, err := app.DutyRosters.GetOverwrites(ctx, from, to, includeDeleted)
 			if err != nil {

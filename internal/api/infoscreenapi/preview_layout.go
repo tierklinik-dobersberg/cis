@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -31,14 +32,14 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 			ActionShowsRead,
 			ActionShowsWrite,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			sess := session.Get(c)
 			if sess == nil {
-				return httperr.InternalError(nil, "missing session")
+				return httperr.InternalError("missing session")
 			}
 
 			var slide v1alpha.Slide
-			if err := json.NewDecoder(c.Request.Body).Decode(&slide); err != nil {
+			if err := json.NewDecoder(c.Request().Body).Decode(&slide); err != nil {
 				return err
 			}
 			key, err := utils.Nonce(32)
@@ -46,7 +47,7 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 				return err
 			}
 
-			theme := c.Query("theme")
+			theme := c.QueryParam("theme")
 			if theme == "" {
 				theme = "white"
 			}
@@ -99,13 +100,13 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 			ActionShowsWrite,
 			ActionShowsRead,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			resource := strings.TrimPrefix(c.Param("resource"), "/")
 
 			key := c.Param("key")
 			sess := session.Get(c)
 			if sess == nil {
-				return httperr.InternalError(nil, "missing session")
+				return httperr.InternalError("missing session")
 			}
 
 			var slide slidePreview
@@ -114,19 +115,19 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 				return err
 			}
 			if ttl.IsZero() {
-				return httperr.NotFound("slide-preview", key, nil)
+				return httperr.NotFound("slide-preview", key)
 			}
 
 			if strings.HasPrefix(resource, "uploaded/") {
-				http.ServeFile(c.Writer, c.Request, filepath.Join(
+				c.File(filepath.Join(
 					app.Config.InfoScreenConfig.UploadDataDirectory,
 					strings.TrimPrefix(resource, "uploaded/"),
 				))
 				return nil
 			}
 
-			c.Writer.Header().Set("Content-Type", "text/html; charset=utf-8")
-			_, err = c.Writer.Write([]byte(slide.Content))
+			c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
+			_, err = c.Response().Write([]byte(slide.Content))
 			return err
 		},
 	)

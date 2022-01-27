@@ -168,7 +168,7 @@ func (db *database) ByID(ctx context.Context, id string) (*v1alpha.Comment, erro
 	})
 	if err := result.Err(); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, httperr.NotFound("comment", id, err)
+			return nil, httperr.NotFound("comment", id).SetInternal(err)
 		}
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func (db *database) ByKey(ctx context.Context, key string, prefix bool) ([]v1alp
 	results, err := db.comments.Find(ctx, filter, opts)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, httperr.NotFound("comments", key, err)
+			return nil, httperr.NotFound("comments", key).SetInternal(err)
 		}
 		return nil, fmt.Errorf("failed to query comments: %w", err)
 	}

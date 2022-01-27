@@ -1,15 +1,14 @@
 package triggerapi
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 )
 
-func Setup(grp gin.IRouter, triggers *[]*trigger.Instance) {
-	router := app.NewRouter(grp)
+func Setup(a *app.App, grp *echo.Group) {
+	router := app.NewRouter(grp, a)
 
-	ListTriggerEndpoint(router, triggers)
-	ExecuteTriggerEndpoint(router, triggers)
-	ExecuteTriggerGroupEndpoint(router, triggers)
+	ListTriggerEndpoint(router)
+	ExecuteTriggerEndpoint(router)
+	ExecuteTriggerGroupEndpoint(router)
 }

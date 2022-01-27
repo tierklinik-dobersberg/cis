@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
@@ -101,12 +101,12 @@ func (mng *Manager) GetAutoAssignedRoles(r *http.Request) ([]string, error) {
 }
 
 // PerformAutologin may add an autologin user session to c.
-func (mng *Manager) PerformAutologin(c *gin.Context) {
-	log := log.From(c.Request.Context())
+func (mng *Manager) PerformAutologin(c echo.Context) {
+	log := log.From(c.Request().Context())
 	// never try to issue an automatic session
 	// token if there is a valid user session
 	if session.Get(c) == nil {
-		autologin, createSession, err := mng.getUserLogin(c.Request)
+		autologin, createSession, err := mng.getUserLogin(c.Request())
 		if err != nil {
 			log.Errorf("failed to perform autologin: %s", err.Error())
 			return
@@ -126,7 +126,7 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 			} else {
 				// the user explicitly set CreateSession=yes in the autologin section
 				// of this user.
-				sess, _, err = mng.session.Create(*autologin, c.Writer)
+				sess, _, err = mng.session.Create(*autologin, c.Response())
 				if err != nil {
 					log.Errorf("failed to create autologin session: %s", err.Error())
 				}
@@ -143,7 +143,7 @@ func (mng *Manager) PerformAutologin(c *gin.Context) {
 		return
 	}
 
-	roles, err := mng.GetAutoAssignedRoles(c.Request)
+	roles, err := mng.GetAutoAssignedRoles(c.Request())
 	if err != nil {
 		log.Errorf("failed to get auto-assign roles: %s", err)
 		return

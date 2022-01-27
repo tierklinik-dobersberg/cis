@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/jwt"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
@@ -67,7 +67,7 @@ func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityCo
 }
 
 // Delete the session associated with c.
-func (mng *Manager) Delete(c *gin.Context) error {
+func (mng *Manager) Delete(c echo.Context) error {
 	mng.cookieFactory.Clear(
 		mng.identityConfg.AccessTokenCookie,
 		"",
@@ -81,7 +81,7 @@ func (mng *Manager) Delete(c *gin.Context) error {
 
 	// TODO(ppacher): maybe switch to "cookies", "storage" in production
 	// rather than deleting cache and executionContext as well.
-	c.Header("Clear-Site-Data", "*")
+	c.Response().Header().Set("Clear-Site-Data", "*")
 
 	return nil
 }

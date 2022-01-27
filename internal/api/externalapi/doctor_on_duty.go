@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/nyaruka/phonenumbers"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
@@ -30,11 +30,11 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 		permission.OneOf{
 			ReadOnDutyAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			start := time.Now()
 
 			d := time.Now()
-			if at := c.Query("at"); at != "" {
+			if at := c.QueryParam("at"); at != "" {
 				var err error
 				d, err = app.ParseTime(time.RFC3339, at)
 				if err != nil {
@@ -43,7 +43,7 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 			}
 
 			ignoreOverwrites := false
-			if val := c.Query("ignore-overwrite"); val != "" {
+			if val := c.QueryParam("ignore-overwrite"); val != "" {
 				b, err := strconv.ParseBool(val)
 				if err != nil {
 					return httperr.InvalidParameter("ignore-overwrite", err.Error())
@@ -164,7 +164,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverw
 		identitydb.WithScope(ctx, identitydb.Public),
 	)
 	if err != nil {
-		return nil, httperr.InternalError(err)
+		return nil, httperr.InternalError().SetInternal(err)
 	}
 
 	// build a small lookup map by username.
@@ -246,7 +246,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverw
 	}
 
 	if len(activeShift) == 0 {
-		return nil, httperr.NotFound("doctor-on-duty", "no onCall shifts defined", nil)
+		return nil, httperr.NotFound("doctor-on-duty", "no onCall shifts defined")
 	}
 
 	// convert all the usernames from the Emergency slice to their

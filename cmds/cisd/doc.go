@@ -7,6 +7,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
+	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/service/svcenv"
 )
 
@@ -32,6 +33,7 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 		"MongoLog":       cfgspec.MongoLogSpec,
 		"GoogleCalendar": google.GoogleConfigSpec,
 		"CardDAV Import": cfgspec.CardDAVSpec,
+		"CORS":           server.CORSSpec,
 	},
 })
 

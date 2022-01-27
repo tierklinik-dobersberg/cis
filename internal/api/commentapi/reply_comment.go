@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -17,7 +17,7 @@ func ReplyCommentEndpoint(router *app.Router) {
 		permission.OneOf{
 			ReplyCommentsAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			id := c.Param("id")
 			if id == "" {
 				return httperr.MissingParameter("id")
@@ -25,7 +25,7 @@ func ReplyCommentEndpoint(router *app.Router) {
 
 			sess := session.Get(c)
 			if sess == nil {
-				return httperr.InternalError(nil, "session missing")
+				return httperr.InternalError("session missing")
 			}
 
 			msg, err := readCommentMessage(c)
@@ -38,7 +38,7 @@ func ReplyCommentEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.Status(http.StatusNoContent)
+			c.NoContent(http.StatusNoContent)
 
 			return nil
 		},

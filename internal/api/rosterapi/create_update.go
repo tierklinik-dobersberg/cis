@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -27,7 +27,7 @@ func CreateOrUpdateEndpoint(grp *app.Router) {
 		permission.OneOf{
 			WriteRosterAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			month, year, err := getYearAndMonth(c)
 			if err != nil {
 				return err
@@ -39,12 +39,12 @@ func CreateOrUpdateEndpoint(grp *app.Router) {
 			}
 
 			var body v1alpha.DutyRoster
-			if err := json.NewDecoder(c.Request.Body).Decode(&body); err != nil {
+			if err := json.NewDecoder(c.Request().Body).Decode(&body); err != nil {
 				return httperr.BadRequest(err)
 			}
 
 			if body.Month != month || body.Year != year {
-				return httperr.BadRequest(nil, fmt.Sprintf(
+				return httperr.BadRequest(fmt.Sprintf(
 					"body specifies a different year/month. body.year = %d, param.year=%d body.month = %d, param.month = %d",
 					body.Year, year, body.Month, month,
 				))
@@ -64,7 +64,7 @@ func CreateOrUpdateEndpoint(grp *app.Router) {
 				return err
 			}
 
-			c.Status(http.StatusNoContent)
+			c.NoContent(http.StatusNoContent)
 			return nil
 		},
 	)

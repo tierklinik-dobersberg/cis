@@ -1,68 +1,74 @@
 package app
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
 // Router wraps a gin router interface to use HandlerFunc
 // instead of gin.HandlerFunc.
 type Router struct {
-	r gin.IRouter
+	app *App
+	r   *echo.Group
 }
 
 // NewRouter returns a new application router wrapping r.
-func NewRouter(r gin.IRouter) *Router {
-	return &Router{r}
-}
-
-func (r *Router) checkPermission(set permission.Set) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		app := From(c)
-		if app == nil {
-			httperr.InternalError(nil, "missing app").AbortRequest(c)
-			return
-		}
-
-		permission.Require(app.Matcher, set)(c)
+func NewRouter(r *echo.Group, app *App) *Router {
+	return &Router{
+		r:   r,
+		app: app,
 	}
 }
 
-// GET is like gin.IRouter.GET.
-func (r *Router) GET(path string, set permission.Set, handler HandlerFunc) {
-	r.r.GET(path, r.checkPermission(set), WrapHandler(handler))
+func (r *Router) checkPermission(set permission.Set) echo.MiddlewareFunc {
+	return permission.Require(r.app.Matcher, set)
 }
 
-// POST is like gin.IRouter.POST.
-func (r *Router) POST(path string, set permission.Set, handler HandlerFunc) {
-	r.r.POST(path, r.checkPermission(set), WrapHandler(handler))
+func (r *Router) wrap(handler HandlerFunc) echo.HandlerFunc {
+	return WrapHandler(r.app, handler)
 }
 
-// PUT is like gin.IRouter.PUT.
-func (r *Router) PUT(path string, set permission.Set, handler HandlerFunc) {
-	r.r.PUT(path, r.checkPermission(set), WrapHandler(handler))
+// GET is like echo.Group.GET.
+func (r *Router) GET(path string, set permission.Set, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
+	middlewares = append([]echo.MiddlewareFunc{r.checkPermission(set)}, middlewares...)
+	r.r.GET(path, r.wrap(handler), middlewares...)
 }
 
-// PATCH is like gin.IRouter.PATCH.
-func (r *Router) PATCH(path string, set permission.Set, handler HandlerFunc) {
-	r.r.PATCH(path, r.checkPermission(set), WrapHandler(handler))
+// POST is like echo.Group.POST.
+func (r *Router) POST(path string, set permission.Set, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
+	middlewares = append([]echo.MiddlewareFunc{r.checkPermission(set)}, middlewares...)
+	r.r.POST(path, r.wrap(handler), middlewares...)
 }
 
-// DELETE is like gin.IRouter.PATCH.
-func (r *Router) DELETE(path string, set permission.Set, handler HandlerFunc) {
-	r.r.DELETE(path, r.checkPermission(set), WrapHandler(handler))
+// PUT is like echo.Group.PUT.
+func (r *Router) PUT(path string, set permission.Set, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
+	middlewares = append([]echo.MiddlewareFunc{r.checkPermission(set)}, middlewares...)
+	r.r.PUT(path, r.wrap(handler), middlewares...)
 }
 
-// OPTIONS is like gin.IRouter.OPTIONS.
-func (r *Router) OPTIONS(path string, set permission.Set, handler HandlerFunc) {
-	r.r.OPTIONS(path, r.checkPermission(set), WrapHandler(handler))
+// PATCH is like echo.Group.PATCH.
+func (r *Router) PATCH(path string, set permission.Set, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
+	middlewares = append([]echo.MiddlewareFunc{r.checkPermission(set)}, middlewares...)
+	r.r.PATCH(path, r.wrap(handler), middlewares...)
+}
+
+// DELETE is like echo.Group.PATCH.
+func (r *Router) DELETE(path string, set permission.Set, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
+	middlewares = append([]echo.MiddlewareFunc{r.checkPermission(set)}, middlewares...)
+	r.r.DELETE(path, r.wrap(handler), middlewares...)
+}
+
+// OPTIONS is like echo.Group.OPTIONS.
+func (r *Router) OPTIONS(path string, set permission.Set, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
+	middlewares = append([]echo.MiddlewareFunc{r.checkPermission(set)}, middlewares...)
+	r.r.OPTIONS(path, r.wrap(handler), middlewares...)
 }
 
 // Group returns a new router that groups handlers at path.
-// It works like gin.IRouter.Group.
-func (r *Router) Group(path string, handlers ...gin.HandlerFunc) *Router {
+// It works like echo.Group.Group.
+func (r *Router) Group(path string, handlers ...echo.MiddlewareFunc) *Router {
 	return &Router{
-		r: r.r.Group(path, handlers...),
+		r:   r.r.Group(path, handlers...),
+		app: r.app,
 	}
 }

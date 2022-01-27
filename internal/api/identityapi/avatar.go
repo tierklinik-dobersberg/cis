@@ -9,11 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/identitydb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
+	"github.com/tierklinik-dobersberg/cis/runtime/session"
 )
 
 // AvatarEndpoint serves the user avatar as an image.
@@ -21,11 +22,11 @@ func AvatarEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/avatar/:userName",
 		permission.Anyone,
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			log := log.From(ctx)
 			userName := c.Param("userName")
 			if userName == "" {
-				return httperr.BadRequest(nil, "missing username parameter")
+				return httperr.BadRequest("missing username parameter")
 			}
 
 			// We need scope Internal so we get the avatar file name.
@@ -46,7 +47,7 @@ func AvatarEndpoint(grp *app.Router) {
 			f, err := loadAvatar(ctx, app.Config.AvatarDirectory, avatarFile)
 			if err != nil {
 				if os.IsNotExist(err) {
-					return httperr.NotFound("avatar", avatarFile, err)
+					return httperr.NotFound("avatar", avatarFile)
 				}
 
 				return err
@@ -56,9 +57,10 @@ func AvatarEndpoint(grp *app.Router) {
 				defer closer.Close()
 			}
 
-			http.ServeContent(c.Writer, c.Request, userName, time.Now(), f)
+			http.ServeContent(c.Response(), c.Request(), userName, time.Now(), f)
 			return nil
 		},
+		session.Require(),
 	)
 }
 

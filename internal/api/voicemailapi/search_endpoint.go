@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -22,14 +22,14 @@ func SearchEndpoint(router *app.Router) {
 		permission.OneOf{
 			ReadVoicemailsAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			opts := new(voicemaildb.SearchOptions)
 
-			if name := c.Query("name"); name != "" {
+			if name := c.QueryParam("name"); name != "" {
 				opts.ByVoiceMail(name)
 			}
 
-			if date := c.Query("date"); date != "" {
+			if date := c.QueryParam("date"); date != "" {
 				d, err := app.ParseTime("2006-1-2", date)
 				if err != nil {
 					return httperr.InvalidParameter("date", err.Error())
@@ -37,10 +37,10 @@ func SearchEndpoint(router *app.Router) {
 				opts.ByDate(d)
 			}
 
-			if seen := c.Query("seen"); seen != "" {
+			if seen := c.QueryParam("seen"); seen != "" {
 				b, err := strconv.ParseBool(seen)
 				if err != nil {
-					return httperr.BadRequest(err)
+					return httperr.BadRequest().SetInternal(err)
 				}
 
 				opts.BySeen(b)
@@ -48,7 +48,7 @@ func SearchEndpoint(router *app.Router) {
 
 			records, err := app.VoiceMails.Search(ctx, opts)
 			if err != nil {
-				return httperr.InternalError(err)
+				return httperr.InternalError().SetInternal(err)
 			}
 
 			c.JSON(http.StatusOK, records)

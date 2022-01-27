@@ -3,7 +3,7 @@ package cctvapi
 import (
 	"context"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
@@ -16,7 +16,7 @@ func StreamCameraEndpoint(router *app.Router) {
 		permission.OneOf{
 			WatchCameraStream,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			return app.CCTV.AttachToStream(ctx, c.Param("camera"), c)
 		},
 	)

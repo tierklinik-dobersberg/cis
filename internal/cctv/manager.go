@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -79,12 +79,12 @@ func (mng *Manager) ListDefinitions() map[string]CameraMeta {
 }
 
 // AttachToStream attaches the request c to the stream of camera camID.
-func (mng *Manager) AttachToStream(ctx context.Context, camID string, c *gin.Context) error {
+func (mng *Manager) AttachToStream(ctx context.Context, camID string, c echo.Context) error {
 	mng.rl.RLock()
 	cam, ok := mng.cameras[camID]
 	mng.rl.RUnlock()
 	if !ok {
-		return httperr.NotFound("camera", camID, nil)
+		return httperr.NotFound("camera", camID)
 	}
 
 	ctx = context.WithValue(ctx, contextKeyCameraMeta, &cam.Meta)
@@ -94,7 +94,7 @@ func (mng *Manager) AttachToStream(ctx context.Context, camID string, c *gin.Con
 		return cam.MJPEGSource.Attach(ctx, c)
 	}
 
-	return httperr.InternalError(
+	return httperr.InternalError().SetInternal(
 		fmt.Errorf("no usable source for camera %s", camID),
 	)
 }

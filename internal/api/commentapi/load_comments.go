@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -18,14 +18,14 @@ func LoadCommentsForKeyEndpoint(router *app.Router) {
 		permission.OneOf{
 			ReadCommentsAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			prefix := false
 			key := c.Param("key")
 			if key == "" {
 				return httperr.MissingParameter("key")
 			}
 
-			if prefixParam := c.Query("prefix"); prefixParam != "" {
+			if prefixParam := c.QueryParam("prefix"); prefixParam != "" {
 				b, err := strconv.ParseBool(prefixParam)
 				if err != nil {
 					return httperr.BadRequest(err)

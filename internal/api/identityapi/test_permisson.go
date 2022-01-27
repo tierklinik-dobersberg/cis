@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -23,16 +23,16 @@ func TestPermissionEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/permissions/test",
 		permission.Anyone,
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			var requests map[string]permission.Request
 
-			if err := json.NewDecoder(c.Request.Body).Decode(&requests); err != nil {
-				return httperr.BadRequest(err, "invalid body")
+			if err := json.NewDecoder(c.Request().Body).Decode(&requests); err != nil {
+				return httperr.BadRequest("invalid body").SetInternal(err)
 			}
 
 			sess := session.Get(c)
 			if sess == nil {
-				return httperr.InternalError(nil, "missing session")
+				return httperr.InternalError("missing session")
 			}
 
 			// test each permission request and record the result
@@ -55,5 +55,6 @@ func TestPermissionEndpoint(grp *app.Router) {
 
 			return nil
 		},
+		session.Require(),
 	)
 }

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -20,7 +20,7 @@ func GetForMonthEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/:year/:month",
 		permission.Anyone, // public domain
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			log := log.From(ctx)
 
 			year, err := strconv.ParseInt(c.Param("year"), 10, 0)

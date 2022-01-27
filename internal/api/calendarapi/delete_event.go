@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
@@ -16,7 +16,7 @@ func DeleteEventEndpoint(router *app.Router) {
 		permission.OneOf{
 			DeleteEventsAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			cid := c.Param("calid")
 			id := c.Param("id")
 
@@ -24,7 +24,7 @@ func DeleteEventEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.Status(http.StatusNoContent)
+			c.NoContent(http.StatusNoContent)
 			return nil
 		},
 	)

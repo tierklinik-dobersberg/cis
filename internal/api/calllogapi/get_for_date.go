@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -22,7 +22,7 @@ func ForDateEndpoint(grp *app.Router) {
 		permission.OneOf{
 			ReadRecordsAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			year, err := strconv.ParseInt(c.Param("year"), 10, 0)
 			if err != nil {
 				return err
@@ -40,7 +40,7 @@ func ForDateEndpoint(grp *app.Router) {
 
 			d, err := app.ParseTime("2006-01-02", fmt.Sprintf("%04d-%02d-%02d", year, month, day))
 			if err != nil {
-				return httperr.BadRequest(err, "invalid date", err.Error())
+				return httperr.BadRequest("invalid date").SetInternal(err)
 			}
 
 			q := new(calllogdb.SearchQuery).

@@ -5,11 +5,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 // ResourceNameFunc should return the name of the resource in question.
-type ResourceNameFunc func(c *gin.Context) (string, error)
+type ResourceNameFunc func(c echo.Context) (string, error)
 
 // Action is a resource action and subject to
 // permission checks.

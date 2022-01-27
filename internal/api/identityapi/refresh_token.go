@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
@@ -18,7 +19,7 @@ func RefreshEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/refresh",
 		permission.Anyone,
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			token, err := app.Sessions.IssueAccessToken(c)
 			if err != nil {
 				return err
@@ -29,5 +30,8 @@ func RefreshEndpoint(grp *app.Router) {
 			})
 			return nil
 		},
+		// session.Require() is not required here as IssueAccessToken() will
+		// verify the refresh-token while the access-token is allowed to have
+		// been expired.
 	)
 }

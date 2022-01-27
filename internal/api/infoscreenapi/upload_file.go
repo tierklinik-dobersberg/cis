@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -27,38 +28,38 @@ func UploadFileEndpoint(router *app.Router) {
 		permission.OneOf{
 			ActionUploadFiles,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			// We only expect and hanlde multipart/form-data here
-			contentType := c.Request.Header.Get("content-type")
+			contentType := c.Request().Header.Get("content-type")
 			if !strings.Contains(contentType, "multipart/form-data") {
 				return httperr.UnsupportedMediaType("only multipart/form-data is supported")
 			}
 
 			// try to parse the multipart form and limit the whole request body
 			// to MaxUploadSize=
-			if err := c.Request.ParseMultipartForm(app.MaxUploadSize()); err != nil {
+			if err := c.Request().ParseMultipartForm(app.MaxUploadSize()); err != nil {
 				if errors.Is(err, multipart.ErrMessageTooLarge) {
 					return httperr.RequestToLarge("maximum size is %s", app.Config.InfoScreenConfig.MaxUploadSize)
 				}
 				logger.From(ctx).Errorf("failed to process upload request: %s", err)
-				return httperr.InternalError(nil, "failed to process request")
+				return httperr.InternalError("failed to process request")
 			}
 
 			// we only accept one file-upload per request
 			var file *multipart.FileHeader
-			if len(c.Request.MultipartForm.File) > 1 {
-				return httperr.BadRequest(nil, "only one file-upload is allowed per request")
+			if len(c.Request().MultipartForm.File) > 1 {
+				return httperr.BadRequest("only one file-upload is allowed per request")
 			}
-			for _, files := range c.Request.MultipartForm.File {
+			for _, files := range c.Request().MultipartForm.File {
 				if len(files) > 1 {
-					return httperr.BadRequest(nil, "only one file-upload is allowed per request")
+					return httperr.BadRequest("only one file-upload is allowed per request")
 				}
 				file = files[0]
 			}
 
 			// make sure we actually have a multipart file-header
 			if file == nil {
-				return httperr.BadRequest(nil, "no file disposition found")
+				return httperr.BadRequest("no file disposition found")
 			}
 
 			// search for the layout and the variable definition so we can
@@ -73,10 +74,10 @@ func UploadFileEndpoint(router *app.Router) {
 
 			def := l.Var(varName)
 			if def == nil {
-				return httperr.NotFound("variable", varName, nil)
+				return httperr.NotFound("variable", varName)
 			}
 			if !layouts.RequiresUpload(def.Type) {
-				return httperr.BadRequest(fmt.Errorf("variable %s does not accept uploads", def.Name))
+				return httperr.BadRequest(fmt.Sprintf("variable %s does not accept uploads", def.Name))
 			}
 
 			// make sure the uploaded file type is actually allowed for the variable.
@@ -135,22 +136,22 @@ func isAllowedFile(varDef *layouts.Variable, file *multipart.FileHeader, maxSize
 	if ext := filepath.Ext(file.Filename); ext != "" {
 		mt := mime.TypeByExtension(ext)
 		if mt != "" && !isAllowedMediaType(varDef, mt) {
-			return httperr.BadRequest(nil, "media type is not allowed")
+			return httperr.BadRequest("media type is not allowed")
 		}
 	}
 
 	// verify the mime-type of the Content-Type file header
 	ct := file.Header.Get("Content-Type")
 	if ct == "" {
-		return httperr.BadRequest(nil, "missing content-type header in file disposition")
+		return httperr.BadRequest("missing content-type header in file disposition")
 	}
 
 	parsed, _, err := mime.ParseMediaType(ct)
 	if err != nil {
-		return httperr.BadRequest(err, "invalid content-type header in file disposition")
+		return httperr.BadRequest("invalid content-type header in file disposition").SetInternal(err)
 	}
 	if !isAllowedMediaType(varDef, parsed) {
-		return httperr.BadRequest(nil, "media type is not allowed")
+		return httperr.BadRequest("media type is not allowed")
 	}
 
 	if file.Size > maxSize {

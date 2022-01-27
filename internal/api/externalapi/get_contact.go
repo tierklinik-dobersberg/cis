@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/nyaruka/phonenumbers"
 	"github.com/tierklinik-dobersberg/cis/internal/api/customerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
@@ -28,8 +28,8 @@ func GetContactEndpoint(grp *app.Router) {
 		permission.OneOf{
 			GetContactAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
-			phone := c.Query("phone")
+		func(ctx context.Context, app *app.App, c echo.Context) error {
+			phone := c.QueryParam("phone")
 			if phone == "" {
 				return httperr.MissingParameter("phone")
 			}
@@ -48,7 +48,7 @@ func GetContactEndpoint(grp *app.Router) {
 				},
 			}
 
-			customers, err := app.Customers.FilterCustomer(ctx, filter)
+			customers, err := app.Customers.FilterCustomer(ctx, filter, false)
 			if err != nil {
 				return err
 			}
@@ -78,7 +78,7 @@ func GetContactEndpoint(grp *app.Router) {
 					return nil
 				}
 
-				return httperr.NotFound("customer", phone, nil)
+				return httperr.NotFound("customer", phone)
 			}
 
 			/*

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/tierklinik-dobersberg/cis/internal/database/dbutils"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/patient/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
@@ -26,6 +27,7 @@ type Database interface {
 	UpdatePatient(ctx context.Context, record *v1alpha.PatientRecord) error
 	DeletePatient(ctx context.Context, id string) error
 	ByCustomerAndAnimalID(ctx context.Context, source string, cid string, aid string) (*v1alpha.PatientRecord, error)
+	Stats() *dbutils.Stats
 }
 
 type database struct {
@@ -60,7 +62,7 @@ func (db *database) setup(ctx context.Context) error {
 
 func (db *database) CreatePatient(ctx context.Context, record *v1alpha.PatientRecord) error {
 	if !record.ID.IsZero() {
-		return httperr.BadRequest(nil, "cannot create with existing ID")
+		return httperr.BadRequest("cannot create with existing ID")
 	}
 
 	result, err := db.collection.InsertOne(ctx, record)
@@ -80,7 +82,7 @@ func (db *database) CreatePatient(ctx context.Context, record *v1alpha.PatientRe
 
 func (db *database) UpdatePatient(ctx context.Context, record *v1alpha.PatientRecord) error {
 	if record.ID.IsZero() {
-		return httperr.BadRequest(nil, "cannot update without ID")
+		return httperr.BadRequest("cannot update without ID")
 	}
 
 	result, err := db.collection.ReplaceOne(
@@ -107,7 +109,7 @@ func (db *database) ByCustomerAndAnimalID(ctx context.Context, source string, ci
 	if result.Err() != nil {
 		if errors.Is(result.Err(), mongo.ErrNoDocuments) {
 			key := fmt.Sprintf("%s/%s/%s", source, cid, aid)
-			return nil, httperr.NotFound("patient", key, ErrNotFound)
+			return nil, httperr.NotFound("patient", key).SetInternal(ErrNotFound)
 		}
 		return nil, result.Err()
 	}
@@ -131,7 +133,7 @@ func (db *database) DeletePatient(ctx context.Context, id string) error {
 	}
 
 	if result.DeletedCount == 0 {
-		return ErrNotFound
+		return httperr.NotFound("patient", id)
 	}
 	return nil
 }

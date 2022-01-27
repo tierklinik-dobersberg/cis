@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -14,6 +13,7 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/cctv"
 	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
@@ -30,6 +30,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/roster"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
+	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
+	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/logger"
@@ -64,6 +66,7 @@ type App struct {
 	LayoutStore     layouts.Store
 	InfoScreenShows infoscreendb.Database
 	Cache           cache.Cache
+	Autologin       *autologin.Manager
 
 	loadLocationOnce sync.Once
 	location         *time.Location
@@ -99,6 +102,7 @@ func NewApp(
 	layoutStore layouts.Store,
 	infoScreens infoscreendb.Database,
 	cache cache.Cache,
+	autologinManager *autologin.Manager,
 ) *App {
 	return &App{
 		Instance:        inst,
@@ -152,15 +156,14 @@ func AddToRequest(app *App) server.PreHandlerFunc {
 // From returns the App associated with c.
 // If there is no context assigned to c the request
 // is terminated with 500 Internal Server error.
-func From(c *gin.Context) *App {
-	val, _ := c.Request.Context().Value(appContextKey).(*App)
+func From(c echo.Context) (*App, error) {
+	val := FromContext(c.Request().Context())
 
 	if val == nil {
-		server.AbortRequest(c, http.StatusInternalServerError, errors.New("no AppCtx available"))
-		return nil
+		return nil, httperr.InternalError().SetInternal(fmt.Errorf("no appCtx available"))
 	}
 
-	return val
+	return val, nil
 }
 
 // FromContext returns the App associated with c.

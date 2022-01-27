@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/door"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -22,14 +23,14 @@ func OverwriteEndpoint(grp *app.Router) {
 		permission.OneOf{
 			SetStateAction,
 		},
-		func(ctx context.Context, app *app.App, c *gin.Context) error {
+		func(ctx context.Context, app *app.App, c echo.Context) error {
 			// parse the request body
 			var body struct {
 				State    string `json:"state"`
 				Duration string `json:"duration"`
 			}
-			if err := json.NewDecoder(c.Request.Body).Decode(&body); err != nil {
-				return httperr.BadRequest(err, "invalid body")
+			if err := json.NewDecoder(c.Request().Body).Decode(&body); err != nil {
+				return httperr.BadRequest("invalid body").SetInternal(err)
 			}
 
 			// convert the command to the expected door state.
@@ -53,7 +54,7 @@ func OverwriteEndpoint(grp *app.Router) {
 
 			until := time.Now().Add(d)
 
-			log.From(c).WithFields(logger.Fields{
+			log.From(ctx).WithFields(logger.Fields{
 				"duration": d.String(),
 				"state":    body.State,
 				"until":    until.String(),
