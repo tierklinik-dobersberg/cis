@@ -9,9 +9,9 @@ import (
 type User struct {
 	v1alpha.User
 
-	AvatarFile   string
-	PasswordHash string
-	PasswordAlgo string
+	AvatarFile   string `bson:"avatarFile,omitempty"`
+	PasswordHash string `bson:"passwordHash,omitempty"`
+	PasswordAlgo string `bson:"passwordAlgo,omitempty"`
 }
 
 // UserSpec defines the schema of a user.

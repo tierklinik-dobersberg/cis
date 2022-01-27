@@ -12,7 +12,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
-	"github.com/tierklinik-dobersberg/cis/internal/identity/providers/file"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/patient/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/go-vetinf/vetinf"
@@ -82,7 +81,7 @@ func (e *Exporter) buildUsersMap() error {
 	// reload.
 	e.usersMap = make(map[int]string)
 	if e.cfg.VetInfUserIDProperty != "" {
-		ctx := file.WithScope(context.Background(), file.Internal)
+		ctx := identity.WithScope(context.Background(), identity.Internal)
 		allUsers, err := e.identities.ListAllUsers(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to build user-lookup map: %s", err)
