@@ -14,28 +14,41 @@ var (
 	ErrUnknownAlgo = errors.New("unknown algorithm")
 )
 
-// CompareFunc returns true uf the plaintext matches the hash.
-type CompareFunc func(ctx context.Context, username, hash, plaintext string) (bool, error)
+type (
+	// CompareFunc returns true uf the plaintext matches the hash.
+	CompareFunc func(ctx context.Context, username, hash, plaintext string) (bool, error)
+
+	// HashFunc should create a hashed version of plaintext.
+	HashFunc func(ctx context.Context, plaintext string) (string, error)
+
+	knownAlog struct {
+		CompareFunc
+		HashFunc
+	}
+)
 
 var (
 	lock          sync.RWMutex
-	supportedAlgo map[string]CompareFunc
+	supportedAlgo map[string]*knownAlog
 )
 
 // Register registers a new compare function for algo.
-func Register(algo string, fn CompareFunc) {
+func Register(algo string, cmpFn CompareFunc, hashFn HashFunc) {
 	lock.Lock()
 	defer lock.Unlock()
 
 	if supportedAlgo == nil {
-		supportedAlgo = make(map[string]CompareFunc)
+		supportedAlgo = make(map[string]*knownAlog)
 	}
 
 	if _, ok := supportedAlgo[strings.ToLower(algo)]; ok {
 		panic("hash algorithm " + algo + " already registered")
 	}
 
-	supportedAlgo[strings.ToLower(algo)] = fn
+	supportedAlgo[strings.ToLower(algo)] = &knownAlog{
+		CompareFunc: cmpFn,
+		HashFunc:    hashFn,
+	}
 }
 
 // Compare checks if plaintext matches hash using algo.
@@ -43,10 +56,22 @@ func Compare(ctx context.Context, algo, username, hash string, plaintext string)
 	lock.RLock()
 	defer lock.RUnlock()
 
-	fn, ok := supportedAlgo[strings.ToLower(algo)]
+	entry, ok := supportedAlgo[strings.ToLower(algo)]
 	if !ok {
 		return false, fmt.Errorf("%s: %w", algo, ErrUnknownAlgo)
 	}
 
-	return fn(ctx, username, hash, plaintext)
+	return entry.CompareFunc(ctx, username, hash, plaintext)
+}
+
+// Hash creates a hashed representation of plaintext using algo.
+func Hash(ctx context.Context, algo, plaintext string) (string, error) {
+	lock.RLock()
+	defer lock.RUnlock()
+
+	entry, ok := supportedAlgo[strings.ToLower(algo)]
+	if !ok {
+		return "", fmt.Errorf("%s: %w", algo, ErrUnknownAlgo)
+	}
+	return entry.HashFunc(ctx, plaintext)
 }

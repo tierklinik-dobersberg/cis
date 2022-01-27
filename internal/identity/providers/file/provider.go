@@ -16,7 +16,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/passwd"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var log = pkglog.New("file")
@@ -155,18 +154,9 @@ func (db *identDB) GetRolePermissions(ctx context.Context, name string) ([]cfgsp
 }
 
 func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo string) error {
-	var hash string
-	switch algo {
-	case "plain":
-		hash = password
-	case "bcrypt":
-		res, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-		if err != nil {
-			return err
-		}
-		hash = string(res)
-	default:
-		return fmt.Errorf("unsupported password algo: %s", algo)
+	hash, err := passwd.Hash(ctx, algo, password)
+	if err != nil {
+		return err
 	}
 
 	db.rw.Lock()
