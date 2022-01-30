@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
 
 type Provider interface {
@@ -34,4 +35,23 @@ type Provider interface {
 type PasswortChangeSupport interface {
 	// SetUserPassword updates the password of the given user.
 	SetUserPassword(ctx context.Context, user, password, algo string) error
+}
+
+type ManageUserSupport interface {
+	// CreateUser creates a new user with the given password.
+	CreateUser(ctx context.Context, user v1alpha.User, password string) error
+
+	// EditUser updates the record to match u. Changing the username is not allowed.
+	EditUser(ctx context.Context, username string, user v1alpha.User) error
+
+	// DisableUser disables the user identified by name.
+	DisableUser(ctx context.Context, user string) error
+
+	// AssignUserRole assigns a role to user. It is a no-op if the role is already assigned
+	// to user. Both the user and the role must exist.
+	AssignUserRole(ctx context.Context, user, role string) error
+
+	// UnassignUserRole removes an assigned role from a user. It is a no-op if the role
+	// has not been assigned. Both the user and the role must exist.
+	UnassignUserRole(ctx context.Context, user, role string) error
 }

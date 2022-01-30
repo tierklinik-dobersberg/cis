@@ -11,7 +11,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 )
 
-type user struct {
+type UserModel struct {
 	cfgspec.User `section:"User"`
 
 	Permissions []*cfgspec.Permission `section:"Permission"`
@@ -51,12 +51,12 @@ func (db *identDB) loadUsers(identityDir string) error {
 	return nil
 }
 
-func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, country string) (*user, error) {
+func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, country string) (*UserModel, error) {
 	spec := conf.FileSpec{
 		"User":       cfgspec.UserSpec,
 		"Permission": cfgspec.PermissionSpec,
 	}
-	var u user
+	var u UserModel
 	if err := conf.DecodeFile(f, &u, spec); err != nil {
 		return nil, err
 	}

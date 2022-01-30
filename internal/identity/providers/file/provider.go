@@ -35,7 +35,7 @@ type identDB struct {
 	country           string
 	userPropertySpecs []cfgspec.UserPropertyDefinition
 	rw                sync.RWMutex
-	users             map[string]*user
+	users             map[string]*UserModel
 	roles             map[string]*role
 }
 
@@ -215,7 +215,7 @@ func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo str
 	return nil
 }
 
-func (db *identDB) applyPrivacy(ctx context.Context, u *user) cfgspec.User {
+func (db *identDB) applyPrivacy(ctx context.Context, u *UserModel) cfgspec.User {
 	schemaUser := u.User
 
 	schemaUser.Properties = identity.FilterProperties(
@@ -240,7 +240,7 @@ func (db *identDB) reload(ctx context.Context) error {
 	defer db.rw.Unlock()
 
 	// clear the current user and roles maps
-	db.users = make(map[string]*user, len(db.users))
+	db.users = make(map[string]*UserModel, len(db.users))
 	db.roles = make(map[string]*role, len(db.roles))
 
 	identityDir := filepath.Join(db.dir, "identity")

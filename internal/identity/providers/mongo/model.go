@@ -2,12 +2,12 @@ package mongo
 
 import "github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 
-type user struct {
+type UserModel struct {
 	cfgspec.User
 	Permissions []cfgspec.Permission `bson:"permissions,omitempty"`
 }
 
-type role struct {
+type RoleModel struct {
 	cfgspec.Role
 	Permissions []cfgspec.Permission `bson:"permissions,omitempty"`
 }
