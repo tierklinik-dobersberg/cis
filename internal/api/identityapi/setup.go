@@ -44,4 +44,7 @@ func Setup(a *app.App, grp *echo.Group) {
 
 	// POST v1/logout
 	LogoutEndpoint(router)
+
+	// POST/PUT v1/users/:user
+	CreateEditUserEndpoint(router)
 }

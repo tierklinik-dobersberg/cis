@@ -84,6 +84,8 @@ func init() {
 					return fmt.Errorf("failed to create admin user: %w", err)
 				}
 				logger.From(ctx).V(2).Logf("admin user already created. Ignoring environment variable CIS_BOOTSTRAP_ADMIN")
+			} else {
+				logger.From(ctx).Infof("successfully boostrapped admin user")
 			}
 
 			return nil
