@@ -13,9 +13,9 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/customer/v1alpha"
+	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/cis/runtime/tasks"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/service/runtime"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

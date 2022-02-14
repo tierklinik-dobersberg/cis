@@ -5,9 +5,9 @@ import (
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
+	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
-	"github.com/tierklinik-dobersberg/service/runtime"
 )
 
 type eventHandler struct {

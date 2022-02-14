@@ -32,9 +32,9 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
+	"github.com/tierklinik-dobersberg/cis/runtime/service"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/service/service"
 )
 
 type contextKey string

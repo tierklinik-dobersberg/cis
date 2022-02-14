@@ -1,8 +1,8 @@
 package mailer
 
 import (
+	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
-	"github.com/tierklinik-dobersberg/service/runtime"
 )
 
 var (

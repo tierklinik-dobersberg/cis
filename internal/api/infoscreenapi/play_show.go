@@ -14,8 +14,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
+	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/service/runtime"
 )
 
 const playTemplateContent = `

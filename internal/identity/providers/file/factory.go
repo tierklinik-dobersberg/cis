@@ -5,7 +5,7 @@ import (
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
-	"github.com/tierklinik-dobersberg/service/runtime"
+	"github.com/tierklinik-dobersberg/cis/runtime"
 )
 
 func Factory(ctx context.Context, _ conf.Section, env identity.Environment) (identity.Provider, error) {

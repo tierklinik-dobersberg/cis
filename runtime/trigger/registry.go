@@ -11,8 +11,8 @@ import (
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
+	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
-	"github.com/tierklinik-dobersberg/service/runtime"
 )
 
 var log = pkglog.New("trigger")

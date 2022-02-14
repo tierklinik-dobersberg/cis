@@ -41,7 +41,6 @@ type Config struct {
 	Listen                    string
 	TrustedProxy              []string
 	PrometheusMetricsListener string
-	AccessLogFile             string
 
 	UnknownContactName   string
 	UnknownContactSource string
@@ -70,11 +69,6 @@ var ConfigSpec = conf.SectionSpec{
 		Name:        "Country",
 		Description: "The country cisd operates in",
 		Default:     "AT",
-		Type:        conf.StringType,
-	},
-	{
-		Name:        "AccessLogFile",
-		Description: "Path to access lo file",
 		Type:        conf.StringType,
 	},
 	{

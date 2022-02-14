@@ -1,8 +1,8 @@
 package autologin
 
 import (
+	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
-	"github.com/tierklinik-dobersberg/service/runtime"
 )
 
 var (

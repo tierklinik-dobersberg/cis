@@ -13,6 +13,7 @@ require (
 	github.com/emersion/go-webdav v0.3.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-gonic/gin v1.7.7
+	github.com/go-playground/validator/v10 v10.9.0 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/golang/snappy v0.0.4 // indirect
@@ -47,15 +48,13 @@ require (
 	github.com/tierklinik-dobersberg/go-vetinf v0.1.5
 	github.com/tierklinik-dobersberg/logger v0.4.0
 	github.com/tierklinik-dobersberg/mailbox v0.0.4
-	github.com/tierklinik-dobersberg/service v0.5.1
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.2.1 // indirect
+	github.com/ugorji/go v1.2.6 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	github.com/yuin/goldmark v1.4.4
 	github.com/zclconf/go-cty v1.10.0
-	github.com/zsais/go-gin-prometheus v0.1.0 // indirect
 	go.mongodb.org/mongo-driver v1.8.1
-	go.opentelemetry.io/contrib v1.3.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo v0.28.0
 	go.opentelemetry.io/otel v1.3.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.3.0

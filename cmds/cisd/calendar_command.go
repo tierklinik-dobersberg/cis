@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
-	"github.com/tierklinik-dobersberg/service/runtime"
+	"github.com/tierklinik-dobersberg/cis/runtime"
 )
 
 var (

@@ -61,16 +61,16 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
 	tracemw "github.com/tierklinik-dobersberg/cis/pkg/trace"
+	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
 	"github.com/tierklinik-dobersberg/cis/runtime/schema"
+	"github.com/tierklinik-dobersberg/cis/runtime/service"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/cis/runtime/tasks"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/service/runtime"
-	"github.com/tierklinik-dobersberg/service/service"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -147,8 +147,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 			globalConfigFile,
 			runtime.GlobalSchema,
 		},
-		ConfigTarget:  &cfg,
-		DisableServer: true,
+		ConfigTarget: &cfg,
 	})
 	if err != nil {
 		log.Fatalf("failed to boot service: %s", err)

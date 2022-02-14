@@ -9,8 +9,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/importer/importutils"
+	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/service/runtime"
 )
 
 type Importer struct {
