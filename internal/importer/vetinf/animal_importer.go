@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/tevino/abool"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
@@ -15,6 +16,7 @@ func getAnimalImporter(app *app.App, exporter *Exporter) (*importer.Instance, er
 		ID:             "vetinf-animals: " + convertToID(app.Config.VetInfDirectory),
 		RunImmediately: true,
 		Schedule:       app.Config.VetInfImportSchedule,
+		Disabled:       abool.NewBool(app.Config.VetInfImportDisabled),
 		Handler: importer.ImportFunc(func(ctx context.Context) (interface{}, error) {
 			log := log.From(ctx)
 

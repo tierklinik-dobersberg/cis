@@ -43,8 +43,7 @@ func (reg *Registry) Fire(ctx context.Context, id string, payload Data) {
 			"subscription": sub.topic,
 		})
 		if !MatchSubscription(id, sub.topic) {
-			l.Infof("skipping subscriber %s, topic %s does not match %s.", sub.subscriber, sub.topic, id)
-
+			//l.Infof("skipping subscriber %s, topic %s does not match %s.", sub.subscriber, sub.topic, id)
 			continue
 		}
 
@@ -52,7 +51,7 @@ func (reg *Registry) Fire(ctx context.Context, id string, payload Data) {
 		go func(sub subscription) {
 			select {
 			case sub.ch <- evt:
-				l.Infof("notified subscriber after %s", time.Since(start))
+				l.V(7).Logf("notified subscriber after %s", time.Since(start))
 			case <-time.After(time.Second):
 				l.Errorf("failed to notify event subscriber")
 			}

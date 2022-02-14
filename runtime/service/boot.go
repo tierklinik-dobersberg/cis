@@ -145,6 +145,22 @@ func loadConfig(env svcenv.ServiceEnv, cfg *Config) (*conf.File, error) {
 		return nil, fmt.Errorf("failed to parse: %w", err)
 	}
 
+	if cfg.EnvironmentPrefix != "" {
+		// finally, create drop-ins from environment variables and apply them as well
+		dropIn, err := conf.ParseFromEnv(cfg.EnvironmentPrefix, os.Environ(), cfg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse environment variables into config: %w", err)
+		}
+
+		if dropIn != nil {
+			if err := conf.ApplyDropIns(confFile, []*conf.DropIn{(*conf.DropIn)(dropIn)}, cfg); err != nil {
+				return nil, fmt.Errorf("failed to apply environment variables to config: %w", err)
+			}
+		}
+
+		log.V(5).Logf("applied configuration values from environment: %+v", dropIn)
+	}
+
 	// Validate the configuration file, set defaults and ensure
 	// everything is ready to be parsed.
 	if err := conf.ValidateFile(confFile, cfg); err != nil {

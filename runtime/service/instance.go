@@ -1,8 +1,6 @@
 package service
 
 import (
-	"context"
-
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
 	"github.com/tierklinik-dobersberg/logger"
@@ -18,13 +16,6 @@ type Instance struct {
 
 	cfgFile    *conf.File
 	logAdapter *logAdapter
-}
-
-// FromContext returns the service instance associated
-// with ctx.
-func FromContext(ctx context.Context) *Instance {
-	inst, _ := ctx.Value(instanceContextKey).(*Instance)
-	return inst
 }
 
 // ConfigFile returns the parsed conf.File content

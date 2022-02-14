@@ -39,16 +39,47 @@ type Instance struct {
 	Schedule       string
 	RunImmediately bool
 	Handler        Handler
+	Disabled       *abool.AtomicBool
 
 	log      logger.Logger
 	schedule cron.Schedule
 	running  *abool.AtomicBool
 }
 
+// Enable enables the instance so it will run again.
+func (inst *Instance) Enable() error {
+	if inst.Disabled == nil {
+		return fmt.Errorf("instance cannot be enabled/disabled")
+	}
+	inst.Disabled.UnSet()
+	return nil
+}
+
+// Disable disables the instance. Any future runs of the instance
+// will be skipped as long as the instance is disabled.
+func (inst *Instance) Disable() error {
+	if inst.Disabled == nil {
+		return fmt.Errorf("instance cannot be enabled/disabled")
+	}
+	inst.Disabled.Set()
+	return nil
+}
+
+func (inst *Instance) IsDisabled() bool {
+	if inst.Disabled == nil {
+		return false
+	}
+	return inst.Disabled.IsSet()
+}
+
 // Run implements cron.Job.
 func (inst *Instance) Run() {
 	if !inst.running.SetToIf(false, true) {
-		inst.log.Infof("Import still running, skipping scheudle")
+		inst.log.Infof("Import still running, skipping schedule")
+		return
+	}
+	if inst.IsDisabled() {
+		inst.log.Infof("Importer currently disabled")
 		return
 	}
 	defer inst.running.UnSet()
@@ -166,12 +197,16 @@ func (imp *Importer) setup(ctx context.Context, app *app.App) error {
 		}
 	}
 
+	countDisabled := 0
 	for _, inst := range instances {
 		imp.cron.Schedule(inst.schedule, inst)
 		imp.instances = append(imp.instances, inst)
+		if inst.IsDisabled() {
+			countDisabled++
+		}
 	}
 
-	log.From(ctx).Infof("created and scheduled %d importers", len(instances))
+	log.From(ctx).Infof("created and scheduled %d importers. %d are disabled right now", len(instances), countDisabled)
 
 	return nil
 }

@@ -9,6 +9,7 @@ type VetInf struct {
 	VetInfEncoding       string
 	VetInfImportSchedule string
 	VetInfUserIDProperty string
+	VetInfImportDisabled bool
 }
 
 // VetInfSpec describes the allowed configuration directives for
@@ -37,5 +38,11 @@ var VetInfSpec = conf.SectionSpec{
 		Type:        conf.StringType,
 		Default:     "",
 		Description: "The name of the user property that maps to the user identifier in VetInf.",
+	},
+	{
+		Name:        "VetInfImportDisabled",
+		Type:        conf.BoolType,
+		Description: "Whether or not the importer is currently disabled",
+		Default:     "no",
 	},
 }

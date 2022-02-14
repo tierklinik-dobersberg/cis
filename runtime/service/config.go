@@ -19,6 +19,10 @@ type Config struct {
 	// to .conf.
 	ConfigFileName string
 
+	// EnvironmentPrefix holds the prefix that is used for environment variables
+	// that should be applied to the configuration.
+	EnvironmentPrefix string
+
 	// ConfigDirectory is the name of the directory that may contain
 	// separate configuration files.
 	ConfigDirectory string

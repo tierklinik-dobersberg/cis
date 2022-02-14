@@ -121,6 +121,7 @@ services:
       - /tmp/cislog:/log
     environment:
       CIS_BOOTSTRAP_ADMIN: "${CIS_BOOTSTRAP_ADMIN}"
+      CIS_IMPORT_VETINFIMPORTDISABLED: yes
       CONFIGURATION_DIRECTORY: /project/testdata/config
       STATE_DIRECTORY: /project/testdata/state
       TZ: ""

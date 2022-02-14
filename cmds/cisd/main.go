@@ -143,6 +143,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		UseStdlibLogAdapter: true,
 		ConfigFileName:      "cis.conf",
 		ConfigDirectory:     "conf.d",
+		EnvironmentPrefix:   "CIS",
 		ConfigSchema: confutil.MultiSectionRegistry{
 			globalConfigFile,
 			runtime.GlobalSchema,
