@@ -73,8 +73,10 @@ func New(
 		}
 	}
 
-	if err := syncer.Start(); err != nil {
-		return nil, err
+	if !cfg.Disabled {
+		if err := syncer.Start(); err != nil {
+			return nil, err
+		}
 	}
 
 	return box, nil

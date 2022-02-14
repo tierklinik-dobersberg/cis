@@ -8,6 +8,7 @@ import (
 // VoiceMail describes a mailbox that receives voice-mails.
 type VoiceMail struct {
 	Name                string
+	Disabled            bool
 	ExtractCallerRegexp string
 	ExtractTargetRegexp string
 	mailbox.Config
@@ -21,6 +22,12 @@ var VoiceMailSpec = conf.SectionSpec(append([]conf.OptionSpec{
 		Type:        conf.StringType,
 		Description: "The name of the voicemail",
 		Required:    true,
+	},
+	{
+		Name:        "Disabled",
+		Type:        conf.BoolType,
+		Default:     "no",
+		Description: "Whether or not the watching of the specified mailbox is disabled.",
 	},
 	{
 		Name:     "ExtractCallerRegexp",
