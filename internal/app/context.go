@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"net/url"
 	"path"
 	"strconv"
@@ -35,7 +34,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/logger"
-	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/service/service"
 )
 
@@ -133,25 +131,6 @@ func NewApp(
 // With adds app to ctx.
 func With(ctx context.Context, app *App) context.Context {
 	return context.WithValue(ctx, appContextKey, app)
-}
-
-// ServerOption returns a server option that adds app to
-// each request. Useful if used together with From() in
-// request handlers.
-func ServerOption(app *App) server.Option {
-	return server.WithPreHandler(AddToRequest(app))
-}
-
-// AddToRequest returns a (service/server).PreHandlerFunc that
-// adds app to each incoming HTTP request.
-func AddToRequest(app *App) server.PreHandlerFunc {
-	return func(req *http.Request) *http.Request {
-		ctx := req.Context()
-
-		return req.WithContext(
-			With(ctx, app),
-		)
-	}
 }
 
 // From returns the App associated with c.

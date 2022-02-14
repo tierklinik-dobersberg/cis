@@ -10,7 +10,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/service/server"
 )
 
 func setupServer(ctx context.Context, app *app.App) (*echo.Echo, error) {
@@ -51,7 +50,7 @@ func setupServer(ctx context.Context, app *app.App) (*echo.Echo, error) {
 	return engine, nil
 }
 
-func convertToCorsConfig(c *server.CORS) (middleware.CORSConfig, error) {
+func convertToCorsConfig(c *app.CORS) (middleware.CORSConfig, error) {
 	t, err := time.ParseDuration(c.MaxAge)
 	if err != nil {
 		return middleware.DefaultCORSConfig, err

@@ -4,8 +4,22 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
-	"github.com/tierklinik-dobersberg/service/server"
 )
+
+// CORS is a type-alias to cors.Config to avoid additional
+// imports in client packages.
+type CORS struct {
+	AllowAllOrigins        bool
+	AllowOrigins           []string
+	AllowMethods           []string
+	AllowHeaders           []string
+	AllowCredentials       bool
+	ExposeHeaders          []string
+	MaxAge                 string
+	AllowWildcard          bool
+	AllowBrowserExtensions bool
+	AllowWebSockets        bool
+}
 
 // Config holds the complete cisd configuration.
 type Config struct {
@@ -17,7 +31,7 @@ type Config struct {
 	cfgspec.InfoScreenConfig  `section:"InfoScreen"`
 	cfgspec.IntegrationConfig `section:"Integration"`
 	cfgspec.MongoLogConfig    `section:"MongoLog"`
-	server.CORS               `section:"CORS"`
+	CORS                      `section:"CORS"`
 
 	CardDAVImports []cfgspec.CardDAVConfig `section:"CardDAV Import"`
 

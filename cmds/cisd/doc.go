@@ -9,7 +9,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
-	"github.com/tierklinik-dobersberg/service/server"
 	"github.com/tierklinik-dobersberg/service/svcenv"
 )
 
@@ -35,7 +34,7 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 		"MongoLog":       cfgspec.MongoLogSpec,
 		"GoogleCalendar": google.GoogleConfigSpec,
 		"CardDAV Import": cfgspec.CardDAVSpec,
-		"CORS":           server.CORSSpec,
+		"CORS":           CORSSpec,
 		"Autologin":      autologin.Spec(httpcond.DefaultRegistry),
 	},
 })
@@ -55,3 +54,56 @@ var uiConfigFile = autodoc.MustRegister(autodoc.File{
 		"Roster":               cfgspec.RosterUISpec,
 	},
 })
+
+// CORSSpec defines the specification for parsing into CORS.
+var CORSSpec = conf.SectionSpec{
+	{
+		Name:        "AllOrigins",
+		Description: "Wether or not all origins should be allowed",
+		Default:     "no",
+		Type:        conf.BoolType,
+	},
+	{
+		Name:        "AllowOrigins",
+		Description: "AllowOrigins is a list of origins a cross-domain request can be executed from. If the special '*' value is present in the list, all origins will be allowed.",
+		Type:        conf.StringSliceType,
+	},
+	{
+		Name:        "AllowMethods",
+		Aliases:     []string{"AllowVerbs"},
+		Description: "AllowMethods is a list of methods the client is allowed to use with cross-domain requests.",
+		Type:        conf.StringSliceType,
+	},
+	{
+		Name:        "AllowHeaders",
+		Description: "AllowHeaders is list of non simple headers the client is allowed to use with cross-domain requests.",
+		Type:        conf.StringSliceType,
+	},
+	{
+		Name:        "AllowCredentials",
+		Description: "AllowCredentials indicates whether the request can include user credentials like cookies, HTTP authentication or client side SSL certificates.",
+		Type:        conf.BoolType,
+		Default:     "no",
+	},
+	{
+		Name:        "ExposeHeaders",
+		Type:        conf.StringSliceType,
+		Description: "ExposedHeaders indicates which headers are safe to expose to the API of a CORS API specification.",
+	},
+	{
+		Name:        "AllowWildcard",
+		Type:        conf.BoolType,
+		Description: "Allows to add origins like http://some-domain/*, https://api.* or http://some.*.subdomain.com",
+	},
+	{
+		Name:        "AllowWebSockets",
+		Type:        conf.BoolType,
+		Description: "Allows usage of WebSocket protocol",
+	},
+	{
+		Name:        "MaxAge",
+		Description: "How long the client is allowed to cache preflight requests",
+		Type:        conf.StringType,
+		Default:     "12h",
+	},
+}
