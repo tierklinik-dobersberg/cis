@@ -43,13 +43,20 @@ export class UserService {
     return Array.from(this.usersByName.values())
   }
 
+  private reload$ = new BehaviorSubject<void>(undefined);
+
+  /** Force a reload of all available users. */
+  reloadUsers() {
+    this.reload$.next();
+  }
+
   constructor(
     private identityapi: IdentityAPI,
     private configapi: ConfigAPI
   ) {
-    this.configapi.change
+    combineLatest([this.configapi.change, this.reload$])
       .pipe(
-        filter(cfg => !!cfg),
+        filter(([cfg]) => !!cfg),
         mergeMap(() => this.identityapi.listUsers()),
         retryWhen(err => err.pipe(delay(2000))),
       )
@@ -78,9 +85,9 @@ export class UserService {
 
   /**
    * Returns the user by "calendar" id.
-   * 
+   *
    * @param id The ID of the calendar
-   * @returns 
+   * @returns
    */
   byCalendarID(id: string): ProfileWithAvatar | null {
     return this.usersByCalendarID.get(id) || null;
@@ -88,7 +95,7 @@ export class UserService {
 
   /**
    * Returns a list of user profiles that have roleName.
-   * 
+   *
    * @param roleName The name of the role
    */
   byRole(roleName: string): ProfileWithAvatar[] {
@@ -184,10 +191,10 @@ export class UserService {
 
   /**
    * Like extendByName but operates on an observable
-   * 
+   *
    * @param name The name of the property that holds the username
    * @param val The name of the new property that should hold the profile
-   * @returns 
+   * @returns
    */
   withUserByName<T, K extends string = 'profile'>(name: keyof T | ((x: T) => string), val?: K):
     OperatorFunction<T[], (T & { [key in typeof val]?: ProfileWithAvatar })[]> {
@@ -203,10 +210,10 @@ export class UserService {
 
   /**
    * Like extendByExtension but operates on an observable
-   * 
+   *
    * @param name The name of the property that holds the extension
    * @param val The name of the new property that should hold the profile
-   * @returns 
+   * @returns
    */
   withUserByExt<T, K extends string = 'profile'>(name: keyof T | ((x: T) => string), val?: K):
     OperatorFunction<T[], (T & { [key in typeof val]?: ProfileWithAvatar })[]> {

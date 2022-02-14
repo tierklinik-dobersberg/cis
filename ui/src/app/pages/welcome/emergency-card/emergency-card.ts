@@ -8,7 +8,7 @@ import {
   DoctorOnDutyResponse,
   ExternalAPI,
   IdentityAPI,
-  Permission,
+  Permissions,
   ProfileWithAvatar, Roster,
   RosterAPI,
   UserService
@@ -43,7 +43,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
   ) { }
 
   get canSetOverwrite(): boolean {
-    return this.identityapi.hasPermission(Permission.RosterSetOverwrite);
+    return this.identityapi.hasPermission(Permissions.RosterSetOverwrite);
   }
 
   ngOnInit(): void {

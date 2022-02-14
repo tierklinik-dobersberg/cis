@@ -1,0 +1,73 @@
+<nz-table [nzData]="permissions" #table class="border-b border-subtle">
+  <tr class="text-sm text-secondary">
+    <th class="p-2 font-lato" width="100">Effect</th>
+    <th class="p-2 font-lato">Beschreibung</th>
+    <th class="p-2 font-lato">Resources</th>
+    <th class="p-2 font-lato">Actions</th>
+    <th class="p-2 font-lato" width="40"></th>
+  </tr>
+
+  <tr *ngFor="let row of table.data; trackBy: trackPermission; let index=index" class="border-b border-subtle hover:bg-subtle font-lato">
+    <td class="p-2 uppercase" [class.text-alert-green-dark]="row.effect === 'allow'" [class.text-alert-red]="row.effect !== 'allow'">{{ row.effect }}</td>
+    <td class="p-2">{{ row.description }}</td>
+    <td class="p-2 space-x-2">
+      <pre *ngFor="let res of row.resources; let last=last" class="bg-text-secondary text-white px-2 py-0.5 inline-block w-auto text-xs rounded">{{ res }}</pre>
+    </td>
+    <td class="p-2 space-x-2">
+      <pre *ngFor="let act of row.actions; let last=last" class="bg-text-secondary  text-white px-2 py-0.5 inline-block w-auto text-xs rounded">{{ act }}</pre>
+    </td>
+    <td>
+      <button class="tkd-btn tkd-outline tkd-small tkd-danger" (click)="remove(index)" *ngIf="!!row.id">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </td>
+  </tr>
+</nz-table>
+
+<div class="flex justify-end mt-5">
+  <button class="space-x-2 text-sm tkd-btn tkd-primary font-lato" (click)="addNew()">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+    </svg>
+    Neue Berechtigung
+  </button>
+</div>
+
+<nz-modal [nzVisible]="showNewDialog" (nzOnCancel)="handleCancel()" nzTitle="Neue Berechtigung">
+  <div *nzModalContent class="space-y-2">
+    <div class="flex flex-row items-baseline justify-between space-x-3">
+      <span class="block w-1/3 text-primary">Beschreibung:</span>
+      <input type="text" class="flex-grow w-auto tkd-input" [(ngModel)]="newPermission.description">
+    </div>
+
+    <div class="flex flex-row items-baseline justify-between">
+      <span class="text-primary">Effect:</span>
+      <nz-select [(ngModel)]="newPermission.effect">
+        <nz-option nzLabel="Allow" nzValue="allow"></nz-option>
+        <nz-option nzLabel="Deny" nzValue="deny"></nz-option>
+      </nz-select>
+    </div>
+
+    <div class="flex flex-row items-baseline justify-between space-x-3">
+      <span class="block w-1/3 text-primary">Resources:</span>
+      <tkd-string-slice-input class="flex-grow" [(ngModel)]="newPermission.resources"></tkd-string-slice-input>
+    </div>
+
+    <div class="flex flex-row items-baseline justify-between space-x-3">
+      <span class="block w-1/3 text-primary">Actions:</span>
+      <tkd-string-slice-input class="flex-grow" [(ngModel)]="newPermission.actions"></tkd-string-slice-input>
+    </div>
+
+  </div>
+
+  <div *nzModalFooter class="flex flex-row justify-end space-x-2">
+    <button class="tkd-btn tkd-primary" (click)="handleSave()" [disabled]="!newPermission.actions[0]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+      </svg>
+      OK
+    </button>
+  </div>
+</nz-modal>

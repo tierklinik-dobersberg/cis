@@ -1,7 +1,7 @@
 import { Component, isDevMode, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BehaviorSubject, combineLatest, interval, Subscription } from 'rxjs';
 import { delay, mergeMap, repeatWhen, retryWhen, startWith } from 'rxjs/operators';
-import { DoorAPI, IdentityAPI, Permission, Roster, RosterAPI, State, VoiceMailAPI } from 'src/app/api';
+import { DoorAPI, IdentityAPI, Permissions, Roster, RosterAPI, State, VoiceMailAPI } from 'src/app/api';
 import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 
@@ -19,23 +19,23 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   mailboxes: string[] = [];
 
   get hasDoorAccess(): boolean {
-    return this.identityapi.hasPermission(Permission.DoorGet);
+    return this.identityapi.hasPermission(Permissions.DoorGet);
   }
 
   get hasDoctorOnDutyAccess(): boolean {
-    return this.identityapi.hasPermission(Permission.ExternalReadOnDuty);
+    return this.identityapi.hasPermission(Permissions.ExternalReadOnDuty);
   }
 
   get hasRosterAccess(): boolean {
-    return this.identityapi.hasPermission(Permission.RosterRead);
+    return this.identityapi.hasPermission(Permissions.RosterRead);
   }
 
   get hasTriggerAccess(): boolean {
-    return this.identityapi.hasPermission(Permission.TriggerRead)
+    return this.identityapi.hasPermission(Permissions.TriggerRead)
   }
 
   get hasSuggestionAccess(): boolean {
-    return this.identityapi.hasPermission(Permission.SuggestionRead);
+    return this.identityapi.hasPermission(Permissions.SuggestionRead);
   }
 
   constructor(

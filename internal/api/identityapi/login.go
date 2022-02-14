@@ -15,6 +15,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/logger"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func removeSetSessionCookie(app *app.App, w http.ResponseWriter) {
@@ -117,6 +119,11 @@ func LoginEndpoint(grp *app.Router) {
 				}
 
 				if username != "" && password != "" {
+
+					trace.SpanFromContext(ctx).SetAttributes(
+						attribute.String("login.user", username),
+					)
+
 					success := app.Identities.Authenticate(ctx, username, password)
 
 					if !success {

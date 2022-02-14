@@ -86,15 +86,6 @@
       </ul>
     </li>
 
-    <li nz-submenu nzTitle="Administration" nzMatchRouter nzIcon="setting" class="font-lato">
-      <ul>
-        <li nz-menu-item nzMatchRouter routerLink="/admin/users">Benutzer / Mitarbeiter</li>
-        <li nz-menu-item nzMatchRouter routerLink="/admin/import">Daten Import</li>
-        <li nz-menu-item *ngIf="hasInfoScreen && infoScreenEnabled" nzMatchRouter routerLink="/infoscreen">Info-Screen
-          Shows</li>
-      </ul>
-    </li>
-
     <ng-container *ngIf="layout.isPhone">
       <li nz-submenu nzTitle="Mein Konto" nzMatchRouter nzIcon="user">
         <ul>
@@ -218,6 +209,13 @@
             <li nz-menu-item routerLink="/login">
               <i nz-icon nzType="user-switch" nzTheme="outline"></i>
               Benutzer wechseln
+            </li>
+            <li nz-menu-item routerLink="/admin">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1.5 -ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Administration
             </li>
             <li nz-menu-item (click)="logout()">
               <i nz-icon nzType="logout" nzTheme="outline"></i>

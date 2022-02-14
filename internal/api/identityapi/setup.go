@@ -47,4 +47,12 @@ func Setup(a *app.App, grp *echo.Group) {
 
 	// POST/PUT v1/users/:user
 	CreateEditUserEndpoint(router)
+
+	RoleManagementEndpoints(router)
+	EditRoleEndpoint(router)
+	DeleteRoleEndpoint(router)
+	GetRoleEndpoint(router)
+
+	CreatePermissionEndpoint(router)
+	DeletePermissionEndpoint(router)
 }

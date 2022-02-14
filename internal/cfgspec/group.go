@@ -7,7 +7,7 @@ import (
 
 // Role defines the structure of a user role.
 type Role struct {
-	v1alpha.Role
+	v1alpha.Role `bson:",inline"`
 }
 
 // RoleSpec defines the properties of a role.

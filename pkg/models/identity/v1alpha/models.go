@@ -11,7 +11,7 @@ type User struct {
 	Roles               []string               `json:"roles" option:"Roles" bson:"roles,omitempty"`
 	Properties          map[string]interface{} `json:"properties" option:"-" bson:"properties,omitempty"`
 	Color               string                 `json:"color,omitempty" bson:"color,omitempty"`
-	Disabled            bool                   `json:"disabled,omitempty" bson:"disabled,omitempty"`
+	Disabled            *bool                  `json:"disabled,omitempty" bson:"disabled,omitempty"`
 	CalendarID          string                 `json:"calendarID,omitempty" bson:"calendarID,omitempty"`
 	NeedsPasswordChange bool                   `json:"needsPasswordChange,omitempty" bson:"needsPasswordChange,omitempty"`
 }
@@ -25,11 +25,12 @@ type Role struct {
 
 // Permission describes a permission.
 type Permission struct {
+	ID          string   `json:"id" bson:"id,omitempty"`
 	Description string   `json:"description" bson:"description,omitempty"`
-	Resources   []string `json:"resources" option:"Resource" bson:"resources,omitempty"`
+	Resources   []string `json:"resources,omitempty" option:"Resource" bson:"resources,omitempty"`
 	Effect      string   `json:"effect" bson:"effect,omitempty"`
-	Domains     []string `json:"domain" option:"Domain" bson:"domains,omitempty"`
-	Actions     []string `json:"actions" option:"Action" bson:"actions,omitempty"`
+	Domains     []string `json:"domain,omitempty" option:"Domain" bson:"domains,omitempty"`
+	Actions     []string `json:"actions,omitempty" option:"Action" bson:"actions,omitempty"`
 }
 
 func (perm *Permission) String() string {

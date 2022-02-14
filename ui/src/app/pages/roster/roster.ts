@@ -7,7 +7,7 @@ import { NzCalendarMode } from 'ng-zorro-antd/calendar';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { Observable, Subject, Subscription, throwError } from 'rxjs';
 import { catchError, debounceTime, delay, map, retryWhen } from 'rxjs/operators';
-import { Comment as BaseComment, CommentAPI, Day, Holiday, HolidayAPI, IdentityAPI, OpeningHour, OpeningHoursAPI, OpeningHoursResponse, Permission, ProfileWithAvatar, Roster, RosterAPI } from 'src/app/api';
+import { Comment as BaseComment, CommentAPI, Day, Holiday, HolidayAPI, IdentityAPI, OpeningHour, OpeningHoursAPI, OpeningHoursResponse, Permissions, ProfileWithAvatar, Roster, RosterAPI } from 'src/app/api';
 import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, toggleRouteQueryParamFunc } from 'src/app/utils';
@@ -156,7 +156,7 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
 
   /** canEditRoster is true if the current user has permission to edit the roster. */
   get canEditRoster(): boolean {
-    return this.identityapi.hasPermission(Permission.RosterWrite);
+    return this.identityapi.hasPermission(Permissions.RosterWrite);
   }
 
   setSelectedDate(d: Date): void {

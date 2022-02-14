@@ -4,9 +4,9 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzListModule } from 'ng-zorro-antd/list';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { SharedModule } from 'src/app/shared/shared.module';
+import { AdminOverviewComponent } from './admin';
 import { AdminRoutingModule } from './admin-routing.module';
 import { ImportPageComponent } from './import';
-import { UserListComponent } from './users';
 
 @NgModule({
     imports: [
@@ -19,11 +19,10 @@ import { UserListComponent } from './users';
     ],
     declarations: [
         ImportPageComponent,
-        UserListComponent,
+        AdminOverviewComponent
     ],
     exports: [
         ImportPageComponent,
-        UserListComponent,
     ]
 })
 export class AdminModule { }

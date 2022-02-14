@@ -8,7 +8,7 @@ import (
 // Permission describes a permission of a user or role to perform
 // a given action.
 type Permission struct {
-	v1alpha.Permission
+	v1alpha.Permission `bson:",inline"`
 }
 
 // PermissionSpec describes the configuration stanzas for the Permission struct.

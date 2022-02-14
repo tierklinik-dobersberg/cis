@@ -46,7 +46,7 @@ func CreateOverwriteEndpoint(router *app.Router) {
 				if err != nil {
 					return err
 				}
-				if user.Disabled {
+				if user.Disabled != nil && *user.Disabled {
 					return httperr.BadRequest("user is disabled")
 				}
 			}

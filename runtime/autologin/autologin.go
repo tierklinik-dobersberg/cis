@@ -103,6 +103,7 @@ func (mng *Manager) PerformAutologin(c echo.Context) {
 		user          string
 		createSession bool
 		roles         = make(map[string]struct{})
+		roleNames     = []string{}
 	)
 	for _, rec := range matchedConditions {
 		if rec.User != "" {
@@ -115,7 +116,10 @@ func (mng *Manager) PerformAutologin(c echo.Context) {
 		}
 
 		for _, r := range rec.Roles {
-			roles[r] = struct{}{}
+			if _, ok := roles[r]; !ok {
+				roles[r] = struct{}{}
+				roleNames = append(roleNames, r)
+			}
 		}
 	}
 
@@ -164,12 +168,12 @@ func (mng *Manager) PerformAutologin(c echo.Context) {
 		return
 	}
 
-	if len(roles) == 0 {
+	if len(roleNames) == 0 {
 		return
 	}
 
-	log.V(5).Logf("automatically assigning roles %v", roles)
-	for role := range roles {
+	log.V(5).Logf("automatically assigning roles %v", roleNames)
+	for _, role := range roleNames {
 		sess.AddRole(role)
 	}
 }

@@ -665,7 +665,13 @@ func runMain() {
 		logger.Fatalf(ctx, "failed to setup server: %s", err)
 	}
 	if tp != nil {
-		srv.Use(tracemw.TraceWithConfig(tracemw.DefaultConfig))
+		srv.Use(tracemw.TraceWithConfig(tracemw.Config{
+			Skipper: func(c echo.Context) bool {
+				// skip the health-check endpoint because it creates a lot of traces
+				// but does not provide any real value ...
+				return c.Path() == "/api/"
+			},
+		}))
 	}
 	setupAPI(app, srv)
 

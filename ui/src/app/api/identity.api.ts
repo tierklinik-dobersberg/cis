@@ -7,7 +7,7 @@ import { getContrastFontColor } from '../utils';
 import { UIConfig } from './config.api';
 
 // Permission defines all API permissions.
-export enum Permission {
+export enum Permissions {
   CalllogCreateRecord = 'calllog:create',
   CalllogReadRecords = 'calllog:read',
   CommentCreate = 'comment:create',
@@ -52,6 +52,27 @@ export interface Profile {
   needsPasswordChange?: boolean;
 }
 
+export interface Permission {
+  id: string;
+  description: string;
+  effect: 'allow' | 'deny';
+  actions: string[];
+  resources: string[];
+  domain: string[];
+}
+
+export interface Role {
+  name: string;
+  description: string;
+}
+
+export interface RoleDetails extends Role {
+  permissions: Permission[]|null;
+}
+export interface UserDetails extends Profile {
+  permissions: Permission[]|null;
+}
+
 interface TokenReponse {
   token: string;
 }
@@ -84,7 +105,7 @@ export interface PermissionTestResult {
   error?: string;
 }
 
-export type UIPermissions = Partial<Record<Permission, boolean>>;
+export type UIPermissions = Partial<Record<Permissions, boolean>>;
 
 export interface Token extends JWTToken {
   expiresAt: Date;
@@ -155,7 +176,7 @@ export class IdentityAPI {
     return this.onLogin.getValue();
   }
 
-  hasPermission(p: Permission): boolean {
+  hasPermission(p: Permissions): boolean {
     const profile = this.onLogin.getValue();
     return profile?.permissions[p] || false;
   }
@@ -227,6 +248,16 @@ export class IdentityAPI {
       current,
       newPassword: newPwd
     });
+  }
+
+  /**
+   * Sets a new password for a user. This is the "admin" version of changePassword
+   *
+   * @param username The name of the user
+   * @param password The new password for the user
+   */
+  setUserPassword(username: string, password: string): Observable<void> {
+    return this.http.put<void>(`/api/identity/v1/users/${username}/password`, {password});
   }
 
 
@@ -354,28 +385,28 @@ export class IdentityAPI {
           };
         }),
         mergeMap(pwa => {
-          const request: Partial<Record<Permission, PermissionRequest>> = {};
-          const actions: Permission[] = [
-            Permission.RosterGetOverwrite,
-            Permission.RosterRead,
-            Permission.RosterWrite,
-            Permission.RosterSetOverwrite,
-            Permission.ExternalReadOnDuty,
-            Permission.DoorGet,
-            Permission.DoorSet,
-            Permission.ImportNeumayrContacts,
-            Permission.CustomerRead,
-            Permission.CalllogReadRecords,
-            Permission.VoicemailRead,
-            Permission.CalendarDelete,
-            Permission.CalendarRead,
-            Permission.CalendarWrite,
-            Permission.TriggerRead,
-            Permission.InfoScreenShowsRead,
-            Permission.InfoScreenShowWrite,
-            Permission.InfoScreenShowDelete,
-            Permission.SuggestionRead,
-            Permission.SuggestionApply,
+          const request: Partial<Record<Permissions, PermissionRequest>> = {};
+          const actions: Permissions[] = [
+            Permissions.RosterGetOverwrite,
+            Permissions.RosterRead,
+            Permissions.RosterWrite,
+            Permissions.RosterSetOverwrite,
+            Permissions.ExternalReadOnDuty,
+            Permissions.DoorGet,
+            Permissions.DoorSet,
+            Permissions.ImportNeumayrContacts,
+            Permissions.CustomerRead,
+            Permissions.CalllogReadRecords,
+            Permissions.VoicemailRead,
+            Permissions.CalendarDelete,
+            Permissions.CalendarRead,
+            Permissions.CalendarWrite,
+            Permissions.TriggerRead,
+            Permissions.InfoScreenShowsRead,
+            Permissions.InfoScreenShowWrite,
+            Permissions.InfoScreenShowDelete,
+            Permissions.SuggestionRead,
+            Permissions.SuggestionApply,
           ];
 
           actions.forEach(perm => {
@@ -440,6 +471,95 @@ export class IdentityAPI {
           this.avatarCache[user] = data;
         })
       );
+  }
+
+  /**
+   * Create a new system user.
+   *
+   * @param user The user object to create. It may have a password specified as well. If no password
+   *             is given a random one will be generated and returned.
+   */
+  createUser(user: Profile): Observable<void>;
+  createUser(user: Profile & {password: string}): Observable<{password: string}>;
+  createUser(user: Profile & {password?: string}): Observable<{password: string}|void> {
+    return this.http.post<{password: string}|void>(`/api/identity/v1/users/${user.name}`, user)
+  }
+
+  /**
+   * Edit a system user.
+   *
+   * @param user The updated user.
+   */
+  editUser(user: Profile): Observable<void> {
+    return this.http.put<void>(`/api/identity/v1/users/${user.name}`, user)
+  }
+
+  /**
+   * Uploads a new avatar for a given user.
+   *
+   * @param user The name of the user
+   * @param avatar The {@link File} to send to the server
+   */
+  uploadUserAvatar(user: string, avatar: File): Observable<void> {
+    const formData = new FormData();
+    formData.append("file", avatar)
+    return this.http.post<void>(`/api/identity/v1/avatar/${user}`, formData)
+  }
+
+  /**
+   * Returns the details for a user account.
+   */
+  getUser(username: string): Observable<UserDetails> {
+    return this.http.get<UserDetails>(`/api/identity/v1/users/${username}`);
+  }
+
+  /**
+   * Returns the details for a role.
+   */
+  getRole(rolename: string): Observable<RoleDetails> {
+    return this.http.get<RoleDetails>(`/api/identity/v1/roles/${rolename}`);
+  }
+
+  /**
+   * Returns a list of all roles.
+   */
+  getRoles(): Observable<Role[]> {
+    return this.http.get<Role[]>(`/api/identity/v1/roles`);
+  }
+
+  /**
+   * Create a new role
+   */
+  createRole(role: Role): Observable<void> {
+    return this.http.post<void>(`/api/identity/v1/roles/${role.name}`, role);
+  }
+
+  /**
+   * Edit/Save a role
+   */
+  editRole(role: Role): Observable<void> {
+    return this.http.put<void>(`/api/identity/v1/roles/${role.name}`, role);
+  }
+
+  /**
+   * Delete a role identified by it's name
+   */
+  deleteRole(role: string): Observable<void> {
+    return this.http.delete<void>(`/api/identity/v1/roles/${role}`);
+  }
+
+  /**
+   * Assigns a new permission to either a user or a role.
+   */
+  assignPermission(scope: 'users' | 'roles', target: string, perm: Permission): Observable<{id: string}> {
+    return this.http.post<{id: string}>(`/api/identity/v1/permissions/${scope}/${target}`, perm)
+  }
+
+  /**
+   * Removes a permission by ID from either a user or a role.
+   */
+  unassignPermission(scope: 'users' | 'roles', target: string, permid: string): Observable<{id: string}> {
+    return this.http.delete<{id: string}>(`/api/identity/v1/permissions/${scope}/${target}/${permid}`)
   }
 
   testPerimissions<T extends { [key: string]: PermissionRequest }>(requests: T): Observable<{ [key: string]: PermissionTestResult }> {

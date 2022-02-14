@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 
 const requestInterceptor = (req: AxiosRequestConfig) => {
     // Add the current spec ID and name as request headers.
@@ -39,11 +39,96 @@ function getUnauth(): AxiosInstance {
     return instance;
 }
 
+export const expectResponse = (response: AxiosResponse, code: number = 200) => {
+    expect(response.status).toBe(code, response.data)
+}
+
+async function bootstrapIdentities() {
+    let response: AxiosResponse;
+    let Admin =  await createSession("admin", "password")
+
+    response = await Admin.post(`/api/identity/v1/roles/default-role`, {
+        description: 'A default role for all users'
+    })
+    expectResponse(response, 204)
+
+    response = await Admin.post(`/api/identity/v1/roles/doctor`, {
+        description: 'A role for doctors'
+    })
+    expectResponse(response, 204)
+
+    response = await Admin.post(`/api/identity/v1/roles/intern`, {
+        description: 'A role for testing autologin/autoassign'
+    })
+    expectResponse(response, 204)
+
+
+    response = await Admin.post(`/api/identity/v1/users/alice`, {
+        "name": "alice",
+        "fullname": "Alice Musterfrau",
+        "mail": ["alice@example.at", "alice@example.com"],
+        "phoneNumbers": ["+4312345678", "+2812345"],
+        "roles": ["default-role", "doctor"],
+        "properties": { 
+            "PhoneExtension": "10",
+            "PrivateProperty": "some-secret-value"
+        },
+        "calendarID": "primary",
+        "color": "#1b7550b9",
+        "password": "password",
+    })
+    expectResponse(response, 204)
+
+    // for our simple test cases, allice is allowed to do anything
+    response = await Admin.post(`/api/identity/v1/permissions/users/alice`, {
+        description: "Alice can do everything",
+        actions: [".*"],
+        resources: [".*"],
+        effect: "allow"
+    })
+
+    response = await Admin.post(`/api/identity/v1/users/bob`, {
+        "name": "bob",
+        "fullname": "Bob Mustermann",
+        "mail": ["bob@example.com"],
+        "phoneNumbers": null,
+        "roles": ["default-role"],
+        "properties": { "PhoneExtension": "12" },
+        "color": "#ddb0b0"
+    })
+    expectResponse(response, 200)
+
+    response = await Admin.post(`/api/identity/v1/users/guest`, {
+        "name": "guest",
+        "fullname": "guest user",
+        "mail": null,
+        "phoneNumbers": null,
+        "roles": ["Service Account"],
+        "properties": {}
+    })
+    expectResponse(response, 200)
+
+    response = await Admin.post(`/api/identity/v1/users/diser`, {
+        "name": "diser",
+        "fullname": "Disabled user",
+        "mail": null,
+        "phoneNumbers": null,
+        "roles": ["default-role"],
+        "properties": { "PhoneExtension": "13" },
+        "color": "#1b7550b9",
+        "disabled": true,
+    })
+    expectResponse(response, 200)
+}
 
 beforeAll(async () => {
-    Alice = Alice || await createSession("alice", "password")
+    await bootstrapIdentities()
+
     Unauth = Unauth || getUnauth();
+    Alice = Alice || await createSession("alice", "password")
 })
 
+
+export let Admin: AxiosInstance;
 export let Alice: AxiosInstance;
 export let Unauth: AxiosInstance;

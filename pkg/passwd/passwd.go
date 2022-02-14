@@ -16,7 +16,7 @@ var (
 
 type (
 	// CompareFunc returns true uf the plaintext matches the hash.
-	CompareFunc func(ctx context.Context, username, hash, plaintext string) (bool, error)
+	CompareFunc func(ctx context.Context, hash, plaintext string) (bool, error)
 
 	// HashFunc should create a hashed version of plaintext.
 	HashFunc func(ctx context.Context, plaintext string) (string, error)
@@ -52,7 +52,7 @@ func Register(algo string, cmpFn CompareFunc, hashFn HashFunc) {
 }
 
 // Compare checks if plaintext matches hash using algo.
-func Compare(ctx context.Context, algo, username, hash string, plaintext string) (bool, error) {
+func Compare(ctx context.Context, algo, hash string, plaintext string) (bool, error) {
 	lock.RLock()
 	defer lock.RUnlock()
 
@@ -61,7 +61,7 @@ func Compare(ctx context.Context, algo, username, hash string, plaintext string)
 		return false, fmt.Errorf("%s: %w", algo, ErrUnknownAlgo)
 	}
 
-	return entry.CompareFunc(ctx, username, hash, plaintext)
+	return entry.CompareFunc(ctx, hash, plaintext)
 }
 
 // Hash creates a hashed representation of plaintext using algo.

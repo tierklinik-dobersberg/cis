@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { ConfigAPI, IdentityAPI, ProfileWithAvatar, UserProperty, UserService } from 'src/app/api';
+import { ConfigAPI, ProfileWithAvatar, UserProperty, UserService } from 'src/app/api';
 import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 
@@ -35,7 +35,7 @@ export class UserListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscription = new Subscription();
 
-    this.header.set('Benutzer / Mitarbeiter');
+    this.header.set('Benutzer Verwaltung', 'Erstelle, bearbeite oder lösche Benutzerkonten.');
 
     this.subscription.add(
       this.configapi.change

@@ -37,6 +37,7 @@ require (
 	github.com/ory/mail/v3 v3.0.0
 	github.com/ppacher/system-conf v0.8.1
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/rogpeppe/go-internal v1.8.0
 	github.com/schollz/progressbar/v3 v3.8.5
 	github.com/sloonz/go-qprintable v0.0.0-20210417175225-715103f9e6eb // indirect
 	github.com/spf13/afero v1.7.1

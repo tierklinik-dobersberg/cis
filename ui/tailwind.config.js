@@ -111,6 +111,12 @@ module.exports = {
       opacity: {
         light: '0.5',
       },
+      width: {
+        'fit': 'fit-content'
+      },
+      height: {
+        'fit': 'fit-content'
+      },
     },
   },
   variants: {

@@ -1,0 +1,21 @@
+@layer components {
+  .tkd-card {
+    @apply bg-white rounded shadow;
+
+    & > header {
+      @apply p-4 border-b sm:p-6 md:p-8 border-tertiary;
+
+      h1 {
+        @apply text-lg font-lato text-color-primary;
+      }
+
+      h1 ~ span {
+        @apply text-secondary;
+      }
+    }
+
+    & > div {
+      @apply p-4 sm:p-6 md:p-8;
+    }
+  }
+}

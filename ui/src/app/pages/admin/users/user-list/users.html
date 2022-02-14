@@ -1,3 +1,12 @@
+<div class="flex justify-end">
+  <div>
+    <button class="tkd-icon-btn tkd-primary" nz-tooltip="Erstelle einen neuen Benutzer" [routerLink]="['create']">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+      </svg>
+    </button>
+  </div>
+</div>
 <nz-table #userTable class="content-section" [nzData]="profiles">
     <thead>
         <tr>
@@ -9,6 +18,7 @@
                 <th>Farbe</th>
 
                 <th *ngFor="let prop of userProps">{{prop.displayName || prop.name}}</th>
+                <th></th>
 
             </ng-container>
             <th *ngIf="layout.isPhone" nzWidth="40px"></th>
@@ -42,6 +52,15 @@
 
                     <td *ngFor="let prop of userProps">{{ data?.properties[prop.name] || 'N/A' }}</td>
                 </ng-container>
+
+                <td>
+                  <button class="tkd-icon-btn tkd-small tkd-secondary no-shadow" [routerLink]="['/admin/identity/users/edit/', data.name]">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+                </td>
+
                 <td *ngIf="layout.isPhone" [nzExpand]="expandSet.has(data.name)" nzWidth="40px"
                     (nzExpandChange)="onExpandChange(data.name, $event)">
                 </td>

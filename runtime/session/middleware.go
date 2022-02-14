@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -15,6 +16,9 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/logger"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var log = pkglog.New("session")
@@ -34,14 +38,17 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(c)
 		}
 
+		ctx, sp := otel.Tracer("").Start(c.Request().Context(), "session.Middleware")
+		defer sp.End()
+
 		// get access and refresh tokens
 		//
-		accessToken, accessUser, err := mng.getAccessToken(c)
+		accessToken, accessUser, err := mng.getAccessToken(ctx, c)
 		if err != nil {
 			log.V(3).Logf("failed to get access token: %s", err)
 			return err
 		}
-		refreshToken, refreshUser, err := mng.getRefreshToken(c)
+		refreshToken, refreshUser, err := mng.getRefreshToken(ctx, c)
 		if err != nil {
 			log.V(3).Logf("failed to get refresh token: %s", err)
 			return err
@@ -84,7 +91,7 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 			)
 		}
 
-		if user.Disabled {
+		if user.Disabled != nil && *user.Disabled {
 			log.V(3).Log("request denied: user has been disabled!")
 			return httperr.Forbidden(
 				fmt.Errorf("user has been disabled"),
@@ -150,6 +157,12 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 		}
 
+		trace.SpanFromContext(c.Request().Context()).SetAttributes(
+			attribute.String("session.user", session.User.Name),
+			attribute.String("session.id", session.id),
+			attribute.StringSlice("session.extra_roles", session.extraRoles),
+		)
+
 		// we do have an existing session here so let's update the request
 		// and make sure it has the sid set as a logging field
 		req := c.Request().Clone(
@@ -166,6 +179,7 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		// add the session to the gin context.
 		Set(c, session)
+
 		return next(c)
 	}
 }
@@ -246,7 +260,7 @@ func cookieValueOrBearer(cookieName string, r *http.Request) string {
 	return ""
 }
 
-func (mng *Manager) getAccessToken(c echo.Context) (*jwt.Claims, *v1alpha.User, error) {
+func (mng *Manager) getAccessToken(ctx context.Context, c echo.Context) (*jwt.Claims, *v1alpha.User, error) {
 	tokenValue := cookieValueOrBearer(mng.identityConfg.AccessTokenCookie, c.Request())
 	if tokenValue == "" {
 		return nil, nil, nil
@@ -258,7 +272,7 @@ func (mng *Manager) getAccessToken(c echo.Context) (*jwt.Claims, *v1alpha.User, 
 	}
 
 	if hasScope(claims.Scopes, jwt.ScopeAccess) {
-		user, err := mng.GetUser(c.Request().Context(), claims.Subject)
+		user, err := mng.GetUser(ctx, claims.Subject)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -270,7 +284,7 @@ func (mng *Manager) getAccessToken(c echo.Context) (*jwt.Claims, *v1alpha.User, 
 	return nil, nil, nil
 }
 
-func (mng *Manager) getRefreshToken(c echo.Context) (*jwt.Claims, *v1alpha.User, error) {
+func (mng *Manager) getRefreshToken(ctx context.Context, c echo.Context) (*jwt.Claims, *v1alpha.User, error) {
 	tokenValue := cookieValueOrBearer(mng.identityConfg.RefreshTokenCookie, c.Request())
 	if tokenValue == "" {
 		return nil, nil, nil
@@ -282,7 +296,7 @@ func (mng *Manager) getRefreshToken(c echo.Context) (*jwt.Claims, *v1alpha.User,
 	}
 
 	if hasScope(claims.Scopes, jwt.ScopeRefresh) {
-		user, err := mng.GetUser(c.Request().Context(), claims.Subject)
+		user, err := mng.GetUser(ctx, claims.Subject)
 		if err != nil {
 			return nil, nil, err
 		}

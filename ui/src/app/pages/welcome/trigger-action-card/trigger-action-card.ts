@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, Subject } from 'rxjs';
 import { delay, distinctUntilChanged, retryWhen, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { ConfigAPI, IdentityAPI, Permission, PermissionRequest, PermissionTestResult, TriggerAction, TriggerAPI, TriggerInstance } from 'src/app/api';
+import { ConfigAPI, IdentityAPI, Permissions, PermissionRequest, PermissionTestResult, TriggerAction, TriggerAPI, TriggerInstance } from 'src/app/api';
 import { extractErrorMessage } from 'src/app/utils';
 
 interface Action extends TriggerAction {
@@ -52,7 +52,7 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
             }
             newCheckedPermissions.add(name)
             permRequest[name] = {
-              action: Permission.TriggerExecute,
+              action: Permissions.TriggerExecute,
             }
           })
           let findExecutables = this.identityapi.testPerimissions(permRequest)

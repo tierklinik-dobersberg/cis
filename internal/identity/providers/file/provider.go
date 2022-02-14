@@ -66,7 +66,7 @@ func (db *identDB) Authenticate(ctx context.Context, name, password string) bool
 		return false
 	}
 
-	if u.Disabled {
+	if u.Disabled != nil && *u.Disabled {
 		// TODO(ppacher): incident report!
 		log.Infof("identity: user %s is disabled. Authentication denied", name)
 		return false
@@ -77,7 +77,7 @@ func (db *identDB) Authenticate(ctx context.Context, name, password string) bool
 		return false
 	}
 
-	match, err := passwd.Compare(ctx, u.PasswordAlgo, u.Name, u.PasswordHash, password)
+	match, err := passwd.Compare(ctx, u.PasswordAlgo, u.PasswordHash, password)
 	if err != nil {
 		log.Errorf("identity: failed to validate password for user %q: %s", name, err)
 	}
@@ -95,6 +95,17 @@ func (db *identDB) ListAllUsers(ctx context.Context) ([]cfgspec.User, error) {
 	}
 
 	return users, nil
+}
+
+func (db *identDB) ListRoles(ctx context.Context) ([]cfgspec.Role, error) {
+	db.rw.RLock()
+	defer db.rw.RUnlock()
+
+	roles := make([]cfgspec.Role, 0, len(db.roles))
+	for _, role := range db.roles {
+		roles = append(roles, role.Role)
+	}
+	return roles, nil
 }
 
 func (db *identDB) GetUser(ctx context.Context, name string) (cfgspec.User, error) {

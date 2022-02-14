@@ -121,7 +121,7 @@ func validateUsers(users []string, lm map[string]cfgspec.User, allowDisabled boo
 		if !ok {
 			return fmt.Errorf("unknown user %s", u)
 		}
-		if !allowDisabled && user.Disabled {
+		if !allowDisabled && user.Disabled != nil && *user.Disabled {
 			return fmt.Errorf("user %s is disabled", u)
 		}
 	}

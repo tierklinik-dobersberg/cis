@@ -4,7 +4,7 @@ import { Router } from "@angular/router";
 import { NzModalRef, NzModalService } from "ng-zorro-antd/modal";
 import { Subject } from "rxjs";
 import { take } from "rxjs/operators";
-import { IdentityAPI, Permission } from "src/app/api";
+import { IdentityAPI, Permissions } from "src/app/api";
 import { InfoScreenAPI, ListShowEntry } from "src/app/api/infoscreen.api";
 import { LayoutService } from "src/app/services";
 import { HeaderTitleService } from "src/app/shared/header-title";
@@ -37,11 +37,11 @@ export class ShowListComponent implements OnInit, OnDestroy {
   ) { }
 
   get canEditShows() {
-    return this.identity.hasPermission(Permission.InfoScreenShowWrite)
+    return this.identity.hasPermission(Permissions.InfoScreenShowWrite)
   }
 
   get canDeleteShows() {
-    return this.identity.hasPermission(Permission.InfoScreenShowDelete);
+    return this.identity.hasPermission(Permissions.InfoScreenShowDelete);
   }
 
   ngOnInit() {

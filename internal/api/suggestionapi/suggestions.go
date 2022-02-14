@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -14,6 +15,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/tasks/linkable"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type Suggestion struct {
@@ -120,13 +123,18 @@ func DeleteSuggestionEndpoint(r *app.Router) {
 				return httperr.InvalidParameter("id", err.Error())
 			}
 
+			// for debugging purposes we add the decoded ID to the trace
+			trace.SpanFromContext(ctx).SetAttributes(
+				attribute.String("tkd.suggestion_id", string(id)),
+			)
+
 			if shouldDelete {
 				if err := linkable.DeleteSuggestion(ctx, app, string(id)); err != nil {
-					return err
+					return fmt.Errorf("failed to delete %s: %w", string(id), err)
 				}
 			} else {
 				if err := linkable.MarkFalsePositive(ctx, app, string(id)); err != nil {
-					return err
+					return fmt.Errorf("failed to mark %s as false-positive: %w", string(id), err)
 				}
 			}
 

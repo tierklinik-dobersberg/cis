@@ -7,7 +7,7 @@ import (
 
 // User describes a single user definition.
 type User struct {
-	v1alpha.User
+	v1alpha.User `bson:",inline"`
 
 	AvatarFile   string `bson:"avatarFile,omitempty"`
 	PasswordHash string `bson:"passwordHash,omitempty"`

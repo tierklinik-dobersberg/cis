@@ -83,9 +83,10 @@ async function testAPI(): Promise<any> {
     }
 }
 
-function dockerCompose(args: string) {
+function dockerCompose(args: string, env?: NodeJS.ProcessEnv) {
     execSync(`sh -c 'yes | docker-compose ${args}'`, {
         cwd: join('..', 'deploy'),
+        env: env,
     })
 }
 
@@ -98,7 +99,9 @@ async function main() {
     // so import tasks get re-executed immediately
     if (!process.env['CI']) {
         dockerCompose('down -v')
-        dockerCompose('up -d')
+        dockerCompose('up -d', {
+            'CIS_BOOTSTRAP_ADMIN': 'password',
+        })
         await waitForApi()
     }
 

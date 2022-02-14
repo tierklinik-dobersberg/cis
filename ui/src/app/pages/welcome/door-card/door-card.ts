@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/c
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, combineLatest, interval, Subscription } from 'rxjs';
 import { delay, mergeMap, retryWhen, startWith, takeWhile, tap } from 'rxjs/operators';
-import { DoorAPI, IdentityAPI, Permission, State } from 'src/app/api';
+import { DoorAPI, IdentityAPI, Permissions, State } from 'src/app/api';
 
 @Component({
   selector: 'app-door-card',
@@ -12,7 +12,7 @@ import { DoorAPI, IdentityAPI, Permission, State } from 'src/app/api';
 export class DoorCardComponent implements OnInit, OnDestroy {
 
   get hasWriteAccess(): boolean {
-    return this.identityapi.hasPermission(Permission.DoorSet);
+    return this.identityapi.hasPermission(Permissions.DoorSet);
   }
 
   constructor(

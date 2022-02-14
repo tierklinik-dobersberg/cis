@@ -1,0 +1,40 @@
+<div class="flex justify-end">
+  <div>
+    <button class="tkd-icon-btn tkd-primary" nz-tooltip="Erstelle eine neue Bentuzerrolle" [routerLink]="['create']">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+      </svg>
+    </button>
+  </div>
+</div>
+
+<nz-table #roleTable [nzData]="roles" class="bg-white rounded shadow">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Beschreibung</th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <ng-container *ngFor="let  data of roleTable.data; trackBy: trackRole">
+            <tr>
+                <td>
+                    {{data.name}}
+                </td>
+                <td>
+                  {{ data.description }}
+                </td>
+                <td width="50">
+                  <button class="tkd-icon-btn tkd-small tkd-secondary no-shadow" [routerLink]="['/admin/identity/roles/edit/', data.name]">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+                </td>
+            </tr>
+        </ng-container>
+    </tbody>
+</nz-table>
+

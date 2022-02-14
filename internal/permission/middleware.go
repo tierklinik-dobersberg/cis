@@ -6,6 +6,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 // SetType fines if one or all actions of a set
@@ -57,6 +59,10 @@ var Anyone = Set(nil)
 func Require(matcher *Matcher, set Set) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			ctx := c.Request().Context()
+			ctx, sp := otel.Tracer("").Start(ctx, "permission.Require")
+			defer sp.End()
+
 			sess := session.Get(c)
 			if sess == nil && set != nil && len(set.Actions()) > 0 {
 				return httperr.Forbidden("no session")
@@ -79,7 +85,13 @@ func Require(matcher *Matcher, set Set) echo.MiddlewareFunc {
 						User:     sess.User.Name,
 					}
 
-					allowed, err := matcher.Decide(c.Request().Context(), &req, sess.ExtraRoles())
+					sp.SetAttributes(
+						attribute.String("tkd.permission.action", req.Action),
+						attribute.String("tkd.permission.resource", resource),
+						attribute.String("tkd.permission.user", req.User),
+					)
+
+					allowed, err := matcher.Decide(ctx, &req, sess.ExtraRoles())
 					if err != nil {
 						return httperr.InternalError().SetInternal(err)
 					}

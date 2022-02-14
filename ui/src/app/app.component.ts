@@ -7,7 +7,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { BehaviorSubject, combineLatest, interval, of, Subject } from 'rxjs';
 import { catchError, delay, filter, first, map, mergeMap, retryWhen, share, startWith, switchMap, take, takeUntil } from 'rxjs/operators';
 import { LayoutService } from 'src/app/services';
-import { ConfigAPI, IdentityAPI, Overwrite, Permission, ProfileWithAvatar, RosterAPI, UIConfig, UserService, VoiceMailAPI } from './api';
+import { ConfigAPI, IdentityAPI, Overwrite, Permissions, ProfileWithAvatar, RosterAPI, UIConfig, UserService, VoiceMailAPI } from './api';
 import { InfoScreenAPI } from './api/infoscreen.api';
 import { SuggestionCardComponent } from './pages/suggestions/suggestion-card';
 import { SuggestionService } from './pages/suggestions/suggestion.service';
@@ -64,27 +64,27 @@ export class AppComponent implements OnInit, OnDestroy {
 
   /** Returns true if the user has (at least read-only) access to the roster */
   get hasRoster(): boolean {
-    return this.identity.hasPermission(Permission.RosterRead);
+    return this.identity.hasPermission(Permissions.RosterRead);
   }
 
   /** Returns true if the user can see voicemail records */
   get hasVoiceMail(): boolean {
-    return this.identity.hasPermission(Permission.VoicemailRead);
+    return this.identity.hasPermission(Permissions.VoicemailRead);
   }
 
   /** Returns true if the user can see calllogs */
   get hasCallLog(): boolean {
-    return this.identity.hasPermission(Permission.CalllogReadRecords);
+    return this.identity.hasPermission(Permissions.CalllogReadRecords);
   }
 
   /** Returns true if the user can see customer records */
   get hasCustomers(): boolean {
-    return this.identity.hasPermission(Permission.CustomerRead);
+    return this.identity.hasPermission(Permissions.CustomerRead);
   }
 
   get hasInfoScreen(): boolean {
-    return this.identity.hasPermission(Permission.InfoScreenShowWrite)
-      || this.identity.hasPermission(Permission.InfoScreenShowsRead)
+    return this.identity.hasPermission(Permissions.InfoScreenShowWrite)
+      || this.identity.hasPermission(Permissions.InfoScreenShowsRead)
   }
 
   /**
@@ -92,7 +92,7 @@ export class AppComponent implements OnInit, OnDestroy {
    * this also requires hasCustomer, hasCalllog and hasRoster
    */
   get canCreateEvent(): boolean {
-    return this.identity.hasPermission(Permission.CalendarWrite)
+    return this.identity.hasPermission(Permissions.CalendarWrite)
       && this.hasCallLog
       && this.hasCustomers
       && this.hasRoster;

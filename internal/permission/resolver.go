@@ -2,10 +2,12 @@ package permission
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/logger"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Resolver is used for resolving user and role
@@ -45,7 +47,10 @@ func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string, ad
 	for _, roleName := range userObj.Roles {
 		rolePerms, err := res.db.GetRolePermissions(ctx, roleName)
 		if err != nil {
-			return nil, err
+			err = fmt.Errorf("failed to load permissions for role %s: %w", roleName, err)
+			trace.SpanFromContext(ctx).RecordError(err)
+			logger.From(ctx).Errorf(err.Error())
+			continue
 		}
 		rolePermissions = append(rolePermissions, rolePerms...)
 	}
@@ -59,7 +64,10 @@ func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string, ad
 	for _, roleName := range additionalRoles {
 		rolePerms, err := res.db.GetRolePermissions(ctx, roleName)
 		if err != nil {
-			return nil, err
+			err = fmt.Errorf("failed to load permissions for extra session role %s: %w", roleName, err)
+			trace.SpanFromContext(ctx).RecordError(err)
+			logger.From(ctx).Errorf(err.Error())
+			continue
 		}
 		extraRolePermissions = append(extraRolePermissions, rolePerms...)
 	}
