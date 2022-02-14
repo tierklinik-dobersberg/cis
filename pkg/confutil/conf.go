@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/service/svcenv"
+	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
 )
 
 // AbsConfig ensures that path is absolute and if not, prepends the

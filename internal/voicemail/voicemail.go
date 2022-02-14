@@ -17,9 +17,9 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/voicemail/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
+	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
 	"github.com/tierklinik-dobersberg/mailbox"
-	"github.com/tierklinik-dobersberg/service/svcenv"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/service/svcenv"
+	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
 )
 
 type InfoScreenConfig struct {

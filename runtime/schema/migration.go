@@ -13,7 +13,7 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
-	"github.com/tierklinik-dobersberg/service/svcenv"
+	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )

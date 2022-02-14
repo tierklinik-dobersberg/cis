@@ -6,10 +6,10 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
+	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
 	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
-	"github.com/tierklinik-dobersberg/service/svcenv"
 )
 
 var globalConfigFile = autodoc.MustRegister(autodoc.File{
