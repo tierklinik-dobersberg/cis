@@ -11,7 +11,7 @@ var (
 )
 
 func addToSchema(schema *runtime.ConfigSchema) error {
-	return schema.Register(runtime.Registration{
+	return schema.Register(runtime.Schema{
 		Name:        "Mailer",
 		Description: "Configure a SMTP server to allow sending emails.",
 		Spec:        AccountSpec,

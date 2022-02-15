@@ -11,7 +11,7 @@ var (
 )
 
 func addToSchema(schema *runtime.ConfigSchema) error {
-	return schema.Register(runtime.Registration{
+	return schema.Register(runtime.Schema{
 		Name:        "Autologin",
 		Description: "Configure token access and automatic role grants",
 		Spec:        Spec(httpcond.DefaultRegistry),

@@ -11,4 +11,7 @@ func Setup(a *app.App, grp *echo.Group) {
 
 	// GET /api/config/v1/ui
 	GetUIConfigEndpoint(router)
+
+	// GET /api/config/v1/schemas
+	ListSchemasEndpoint(router)
 }

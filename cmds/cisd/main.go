@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 	"time"
 
@@ -180,7 +179,8 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	// There might be a ui.conf file so try to load it.
 	//
 	uiConf := filepath.Join(svcenv.Env().ConfigurationDirectory, "ui.conf")
-	if err := uiConfigFile.Sections.ParseFile(uiConf, &cfg.UI); err != nil && !os.IsNotExist(err) {
+
+	if err := runtime.GlobalSchema.FileSpec().ParseFile(uiConf, &cfg.UI); err != nil {
 		logger.Fatalf(ctx, "failed to load ui.conf: %s", err)
 	}
 

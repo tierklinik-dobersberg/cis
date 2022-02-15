@@ -1,6 +1,16 @@
 package cfgspec
 
-import "github.com/ppacher/system-conf/conf"
+import (
+	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/runtime"
+)
+
+var (
+	ConfigBuilder = runtime.NewConfigSchemaBuilder(addUISchema)
+	AddToSchema   = ConfigBuilder.AddToSchema
+
+	uiCategory = "User Interface"
+)
 
 // UI groups settings that only relate to the user
 // interface and are not directly used by cisd.
@@ -187,4 +197,58 @@ var TriggerActionSpec = conf.SectionSpec{
 		Description: "The text to display if the trigger is already pending.",
 		Type:        conf.StringType,
 	},
+}
+
+func addUISchema(schema *runtime.ConfigSchema) error {
+	if err := schema.Register(
+		runtime.Schema{
+			Name:        "UI",
+			Description: "Configuration options that are used by the user interface",
+			Spec:        UISpec,
+			Category:    uiCategory,
+		},
+		runtime.Schema{
+			Name:        "ExternalLink",
+			Description: "Additional links for the sidebar",
+			Multi:       true,
+			Spec:        ExternalLinkSpec,
+			Category:    uiCategory,
+		},
+		runtime.Schema{
+			Name:        "QuickRosterOverwrite",
+			Description: "Quick settings for roster overwrites",
+			Spec:        QuickRosterOverwriteSpec,
+			Multi:       true,
+			Category:    uiCategory,
+		},
+		runtime.Schema{
+			Name:        "TriggerAction",
+			Description: "Define actions that can be triggered via the user interface",
+			Spec:        TriggerActionSpec,
+			Multi:       true,
+			Category:    uiCategory,
+		},
+		runtime.Schema{
+			Name:        "KnownPhoneExtension",
+			Description: "Additional phone-number to name mappings",
+			Category:    uiCategory,
+			Spec:        KnownPhoneExtensionSpec,
+			Multi:       true,
+		},
+		runtime.Schema{
+			Name:        "Roster",
+			Description: "User interface configuration for the duty roster",
+			Spec:        RosterUISpec,
+			Category:    uiCategory,
+		},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+func init() {
+	runtime.Must(
+		AddToSchema(runtime.GlobalSchema),
+	)
 }

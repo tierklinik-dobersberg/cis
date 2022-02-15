@@ -11,7 +11,7 @@ var (
 )
 
 func addToSchema(schema *runtime.ConfigSchema) error {
-	return schema.Register(runtime.Registration{
+	return schema.Register(runtime.Schema{
 		Name:        "Twilio",
 		Description: "Configure a twilio account to use for programmable messaging.",
 		Category:    "",

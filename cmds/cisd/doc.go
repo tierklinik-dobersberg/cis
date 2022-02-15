@@ -39,22 +39,6 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 	},
 })
 
-var uiConfigFile = autodoc.MustRegister(autodoc.File{
-	Name:        "ui.conf",
-	Description: "Configuration file for the User-Interface.",
-	LookupPaths: []string{
-		svcenv.Env().ConfigurationDirectory,
-	},
-	Sections: conf.FileSpec{
-		"UI":                   cfgspec.UISpec,
-		"ExternalLink":         cfgspec.ExternalLinkSpec,
-		"QuickRosterOverwrite": cfgspec.QuickRosterOverwriteSpec,
-		"KnownPhoneExtension":  cfgspec.KnownPhoneExtensionSpec,
-		"TriggerAction":        cfgspec.TriggerActionSpec,
-		"Roster":               cfgspec.RosterUISpec,
-	},
-})
-
 // CORSSpec defines the specification for parsing into CORS.
 var CORSSpec = conf.SectionSpec{
 	{

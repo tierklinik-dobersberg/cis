@@ -19,7 +19,7 @@ type (
 	// file.
 	ConfigSchema struct {
 		rw      sync.RWMutex
-		entries map[string]Registration
+		entries map[string]Schema
 
 		providerLock sync.RWMutex
 		provider     ConfigProvider
@@ -31,32 +31,32 @@ type (
 	// register on the global configuration.
 	ConfigSchemaBuilder []func(*ConfigSchema) error
 
-	// Registration is passed to ConfigSchema.Register and holds metadata and information
+	// Schema is passed to ConfigSchema.Register and holds metadata and information
 	// about the registered configuration block.
-	Registration struct {
+	Schema struct {
 		// Name is the name of the registration block and is used to identify the allowed
 		// values of a configuration.
 		// Name is required when registering a new configuration block.
-		Name string
+		Name string `json:"name"`
 
 		// Description holds a human readable description of the configuration block and
 		// is mainly used by the user interface.
 		// Description is optional.
-		Description string
+		Description string `json:"description"`
 
 		// Category defines the category the configuration section belongs to.
 		// Categories can be used to group related sections together in the user
 		// interface.
-		Category string
+		Category string `json:"category"`
 
 		// Spec holds the actual option registry that defines which values and which types
 		// are allowed for instances of the configuration block.
 		// Spec is required when registering a new configuration block.
-		Spec conf.OptionRegistry
+		Spec conf.OptionRegistry `json:"-"`
 
 		// Multi should be set to true if multiple instances of the registered
 		// configuration can exist at the same time.
-		Multi bool
+		Multi bool `json:"multi"`
 
 		// OnChange is called when an instance of a specific configuration section
 		// is created, modified or deleted. The changeType parameter will be set to
@@ -65,7 +65,7 @@ type (
 		// be omitted during deletes.
 		// Note that any error returned from this callback is displayed to the user but does
 		// NOT prevent that change from happening!
-		OnChange func(ctx context.Context, changeType, id string, sec *conf.Section) error
+		OnChange func(ctx context.Context, changeType, id string, sec *conf.Section) error `json:"-"`
 	}
 )
 
@@ -103,25 +103,29 @@ var (
 )
 
 // Register registers a section at the global config registry.
-func (schema *ConfigSchema) Register(reg Registration) error {
-	if reg.Name == "" {
-		return ErrMissingName
-	}
-	lowerName := strings.ToLower(reg.Name)
-
-	if reg.Spec == nil {
-		return ErrMissingSpec
-	}
-
+func (schema *ConfigSchema) Register(regs ...Schema) error {
 	schema.rw.Lock()
 	defer schema.rw.Unlock()
-	if _, ok := schema.entries[lowerName]; ok {
-		return ErrNameTaken
+
+	for idx, reg := range regs {
+		if reg.Name == "" {
+			return fmt.Errorf("index %d: %w", idx, ErrMissingName)
+		}
+		lowerName := strings.ToLower(reg.Name)
+
+		if reg.Spec == nil {
+			return fmt.Errorf("%s: %w", reg.Name, ErrMissingSpec)
+		}
+
+		if _, ok := schema.entries[lowerName]; ok {
+			return fmt.Errorf("%s: %w", reg.Name, ErrNameTaken)
+		}
+
+		if schema.entries == nil {
+			schema.entries = make(map[string]Schema)
+		}
+		schema.entries[lowerName] = reg
 	}
-	if schema.entries == nil {
-		schema.entries = make(map[string]Registration)
-	}
-	schema.entries[lowerName] = reg
 
 	return nil
 }
@@ -137,6 +141,18 @@ func (schema *ConfigSchema) FileSpec() conf.FileSpec {
 	}
 
 	return c
+}
+
+// Schemas returns a slice of all registered configuration schemas.
+func (schema *ConfigSchema) Schemas() []Schema {
+	schema.rw.RLock()
+	defer schema.rw.RUnlock()
+
+	res := make([]Schema, 0, len(schema.entries))
+	for _, value := range schema.entries {
+		res = append(res, value)
+	}
+	return res
 }
 
 // OptionsForSection implements conf.SectionRegistry.
