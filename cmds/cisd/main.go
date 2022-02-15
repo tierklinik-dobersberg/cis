@@ -14,6 +14,7 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/labstack/echo/v4"
+	"github.com/ppacher/system-conf/conf"
 	"github.com/spf13/cobra"
 	"github.com/tierklinik-dobersberg/cis/internal/api/calendarapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/calllogapi"
@@ -66,7 +67,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
 	"github.com/tierklinik-dobersberg/cis/runtime/schema"
-	"github.com/tierklinik-dobersberg/cis/runtime/service"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/cis/runtime/tasks"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
@@ -139,19 +139,24 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 
 	log.Printf("CIS - running on %s (%s)", goruntime.GOOS, goruntime.GOARCH)
 
-	instance, err := service.Boot(service.Config{
-		UseStdlibLogAdapter: true,
-		ConfigFileName:      "cis.conf",
-		ConfigDirectory:     "conf.d",
-		EnvironmentPrefix:   "CIS",
-		ConfigSchema: confutil.MultiSectionRegistry{
-			globalConfigFile,
-			runtime.GlobalSchema,
-		},
-		ConfigTarget: &cfg,
-	})
+	// setup logging
+	l := new(logAdapter)
+	l.addAdapter(new(logger.StdlibAdapter))
+	logger.SetDefaultAdapter(l)
+
+	configSchema := confutil.MultiSectionRegistry{
+		globalConfigFile,
+		runtime.GlobalSchema,
+	}
+
+	// load the configuration file
+	cfgFile, err := loadConfig(configSchema)
 	if err != nil {
-		log.Fatalf("failed to boot service: %s", err)
+		log.Fatalf("configuration: %w", err)
+	}
+
+	if err := conf.DecodeFile(cfgFile, &cfg, configSchema); err != nil {
+		log.Fatalf("failed to decode config: %s", err)
 	}
 
 	//
@@ -161,7 +166,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	if err != nil {
 		log.Fatalf("failed to parse log-level: %s", err)
 	}
-	instance.SetLogLevel(lvl)
+	l.setMaxSeverity(lvl)
 
 	//
 	// prepare tracing
@@ -183,7 +188,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 
 	// add the configuration file to the global schema
 	// so packages can decode from it.
-	runtime.GlobalSchema.SetFileProvider(instance.ConfigFile())
+	runtime.GlobalSchema.SetFileProvider(cfgFile)
 
 	//
 	// There might be a ui.conf file so try to load it.
@@ -202,7 +207,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 			logger.Fatalf(ctx, "failed to configure rocketchat integration: %s", err)
 		}
 
-		instance.AddLogger(logger.AdapterFunc(func(t time.Time, s logger.Severity, msg string, f logger.Fields) {
+		l.addAdapter(logger.AdapterFunc(func(t time.Time, s logger.Severity, msg string, f logger.Fields) {
 			if s != logger.Error {
 				return
 			}
@@ -243,7 +248,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		if err != nil {
 			logger.Fatalf(ctx, "mongolog: %s", err.Error())
 		}
-		instance.AddLogger(mongoLogger)
+		l.addAdapter(mongoLogger)
 	}
 
 	//
@@ -299,8 +304,8 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		logger.Fatalf(ctx, "patientdb: %s", err.Error())
 	}
 
-	identities, err := identity.DefaultRegistry.Create(ctx, cfg.IdentityBackend, instance.ConfigFile(), identity.Environment{
-		ConfigurationDirectory:  instance.ConfigurationDirectory,
+	identities, err := identity.DefaultRegistry.Create(ctx, cfg.IdentityBackend, cfgFile, identity.Environment{
+		ConfigurationDirectory:  svcenv.Env().ConfigurationDirectory,
 		MongoClient:             mongoClient,
 		MongoDatabaseName:       cfg.DatabaseName,
 		UserPropertyDefinitions: cfg.UserProperties,
@@ -436,7 +441,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		ctx,
 		sessionManager,
 		httpcond.DefaultRegistry,
-		instance.ConfigFile().GetAll("Autologin"),
+		cfgFile.GetAll("Autologin"),
 	)
 
 	//
@@ -473,7 +478,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	// to each incoming HTTP Request.
 	//
 	appCtx := app.NewApp(
-		instance,
 		&cfg,
 		matcher,
 		identities,
@@ -516,7 +520,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	// TODO(ppacher): this currently requires app.App to have been associated with ctx.
 	// I'm somewhat unhappy with that requirement so make it go away in the future.
 	logger.Infof(ctx, "tasks started, loading trigger files with %d available types", trigger.DefaultRegistry.TypeCount())
-	if _, err := trigger.DefaultRegistry.LoadFiles(ctx, runtime.GlobalSchema, instance.ConfigurationDirectory); err != nil {
+	if _, err := trigger.DefaultRegistry.LoadFiles(ctx, runtime.GlobalSchema, svcenv.Env().ConfigurationDirectory); err != nil {
 		logger.Fatalf(ctx, "triggers: %s", err)
 	}
 

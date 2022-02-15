@@ -18,6 +18,10 @@ type Config struct {
 	TimeZone string
 	LogLevel string
 
+	// ConfigProvider defines the type of configuration provider
+	// that should be used by CIS.
+	ConfigProvider string
+
 	// IdentityBackend configures the backend type that should be
 	// used for user configuration.
 	IdentityBackend string
@@ -167,6 +171,12 @@ var ConfigSpec = conf.SectionSpec{
 		Description: "The type of identity backend that should be used",
 		Default:     "file",
 		Type:        conf.StringType,
+	},
+	{
+		Name:        "ConfigProvider",
+		Description: "The type of configuration provider to use. Currently 'file' and 'mongo' are supported.",
+		Type:        conf.StringType,
+		Default:     "file",
 	},
 }
 

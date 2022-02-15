@@ -32,7 +32,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
-	"github.com/tierklinik-dobersberg/cis/runtime/service"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -43,7 +42,6 @@ const appContextKey = contextKey("app:context")
 
 // App holds dependencies for cis API request handlers.
 type App struct {
-	Instance        *service.Instance
 	Config          *Config
 	Matcher         *permission.Matcher
 	DutyRosters     roster.Database
@@ -79,7 +77,6 @@ func (app *App) String() string {
 
 // NewApp context creates a new application context.
 func NewApp(
-	inst *service.Instance,
 	cfg *Config,
 	matcher *permission.Matcher,
 	identities identity.Provider,
@@ -103,7 +100,6 @@ func NewApp(
 	autologinManager *autologin.Manager,
 ) *App {
 	return &App{
-		Instance:        inst,
 		Config:          cfg,
 		Matcher:         matcher,
 		Identities:      identities,
