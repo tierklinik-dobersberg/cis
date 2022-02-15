@@ -17,7 +17,7 @@ func (cfg *FileProvider) Create(ctx context.Context, sec conf.Section) (string, 
 	return "", ErrReadOnly
 }
 
-func (cfg *FileProvider) Update(ctx context.Context, id string, opts []conf.Option) error {
+func (cfg *FileProvider) Update(ctx context.Context, id, secType string, opts []conf.Option) error {
 	return ErrReadOnly
 }
 

@@ -9,9 +9,22 @@ import (
 
 // Common errors when working with ConfigProvider.
 var (
+	ErrNoProvider         = errors.New("config-provider: not initialized")
 	ErrCfgSectionNotFound = errors.New("config-provider: no configuration section found")
 	ErrReadOnly           = errors.New("config-provider: provider is read-only")
 )
+
+type NotificationError struct {
+	Wrapped error
+}
+
+func (nf *NotificationError) Error() string {
+	return nf.Wrapped.Error()
+}
+
+func (nf *NotificationError) Unwrap() error {
+	return nf.Wrapped
+}
 
 type Section struct {
 	ID string
@@ -28,7 +41,7 @@ type ConfigProvider interface {
 
 	// Update should update an existing configuration section by id. opts
 	// holds the new configuration data for that section.
-	Update(ctx context.Context, id string, opts []conf.Option) error
+	Update(ctx context.Context, id string, secType string, opts []conf.Option) error
 
 	// Delete should delete an existing configuration section by id.
 	Delete(ctx context.Context, id string) error

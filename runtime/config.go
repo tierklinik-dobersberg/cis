@@ -155,6 +155,33 @@ func (schema *ConfigSchema) Schemas() []Schema {
 	return res
 }
 
+func (schema *ConfigSchema) SchemaAsMap(ctx context.Context, name string) (map[string]map[string]interface{}, error) {
+	lower := strings.ToLower(name)
+	spec, ok := schema.entries[lower]
+	if !ok {
+		return nil, ErrCfgSectionNotFound
+	}
+
+	schema.providerLock.RLock()
+	defer schema.providerLock.RUnlock()
+
+	if schema.provider == nil {
+		return nil, ErrNoProvider
+	}
+
+	configs, err := schema.provider.Get(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	decoder := conf.NewSectionDecoder(spec.Spec.All())
+	result := make(map[string]map[string]interface{}, len(configs))
+	for _, sec := range configs {
+		result[sec.ID] = decoder.AsMap(sec.Section)
+	}
+	return result, nil
+}
+
 // OptionsForSection implements conf.SectionRegistry.
 func (schema *ConfigSchema) OptionsForSection(name string) (conf.OptionRegistry, bool) {
 	schema.rw.RLock()
@@ -178,7 +205,7 @@ func (schema *ConfigSchema) Decode(ctx context.Context, section string, target i
 	defer schema.providerLock.RUnlock()
 
 	if schema.provider == nil {
-		return fmt.Errorf("configuration not loaded")
+		return ErrNoProvider
 	}
 
 	spec, ok := schema.OptionsForSection(section)
@@ -203,6 +230,117 @@ func (schema *ConfigSchema) SetFileProvider(file *conf.File) {
 	defer schema.providerLock.Unlock()
 
 	schema.provider = &FileProvider{File: file}
+}
+
+func (schema *ConfigSchema) GetID(ctx context.Context, id string) (Section, error) {
+	schema.providerLock.RLock()
+	defer schema.providerLock.RUnlock()
+
+	if schema.provider == nil {
+		return Section{}, ErrNoProvider
+	}
+
+	sec, err := schema.provider.GetID(ctx, id)
+	return sec, err
+}
+
+func (schema *ConfigSchema) Create(ctx context.Context, secType string, options []conf.Option) (string, error) {
+	schema.rw.RLock()
+	defer schema.rw.RUnlock()
+
+	schema.providerLock.RLock()
+	defer schema.providerLock.RUnlock()
+
+	reg, ok := schema.entries[strings.ToLower(secType)]
+	if !ok {
+		return "", ErrCfgSectionNotFound
+	}
+
+	if schema.provider == nil {
+		return "", ErrNoProvider
+	}
+
+	id, err := schema.provider.Create(ctx, conf.Section{
+		Name:    secType,
+		Options: options,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	if reg.OnChange != nil {
+		if err := reg.OnChange(ctx, "create", id, &conf.Section{
+			Name:    secType,
+			Options: options,
+		}); err != nil {
+			return id, &NotificationError{Wrapped: err}
+		}
+	}
+	return id, err
+}
+
+func (schema *ConfigSchema) Update(ctx context.Context, id, secType string, opts []conf.Option) error {
+	schema.providerLock.RLock()
+	defer schema.providerLock.RUnlock()
+
+	schema.rw.RLock()
+	defer schema.rw.RUnlock()
+
+	if schema.provider == nil {
+		return ErrNoProvider
+	}
+
+	reg, ok := schema.entries[strings.ToLower(secType)]
+	if !ok {
+		return ErrCfgSectionNotFound
+	}
+
+	if err := schema.provider.Update(ctx, id, secType, opts); err != nil {
+		return err
+	}
+
+	if reg.OnChange != nil {
+		if err := reg.OnChange(ctx, "delete", id, &conf.Section{
+			Name:    secType,
+			Options: opts,
+		}); err != nil {
+			return &NotificationError{Wrapped: err}
+		}
+	}
+	return nil
+}
+
+func (schema *ConfigSchema) Delete(ctx context.Context, id string) error {
+	schema.providerLock.RLock()
+	defer schema.providerLock.RUnlock()
+
+	if schema.provider == nil {
+		return ErrNoProvider
+	}
+
+	val, err := schema.provider.GetID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	schema.rw.RLock()
+	defer schema.rw.RUnlock()
+
+	reg, ok := schema.entries[strings.ToLower(val.Name)]
+	if !ok {
+		return ErrCfgSectionNotFound
+	}
+
+	if err := schema.provider.Delete(ctx, id); err != nil {
+		return err
+	}
+
+	if reg.OnChange != nil {
+		if err := reg.OnChange(ctx, "delete", val.ID, &val.Section); err != nil {
+			return &NotificationError{Wrapped: err}
+		}
+	}
+	return nil
 }
 
 // GlobalSchema is the global configuration schema.
