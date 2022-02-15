@@ -133,7 +133,6 @@ func getRootCommand() *cobra.Command {
 
 func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, context.Context) {
 	var (
-		cfg            app.Config
 		sessionManager = new(session.Manager)
 	)
 
@@ -144,19 +143,10 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	l.addAdapter(new(logger.StdlibAdapter))
 	logger.SetDefaultAdapter(l)
 
-	configSchema := confutil.MultiSectionRegistry{
-		globalConfigFile,
-		runtime.GlobalSchema,
-	}
-
 	// load the configuration file
-	cfgFile, err := loadConfig(configSchema)
+	cfg, cfgFile, err := loadConfig()
 	if err != nil {
 		log.Fatalf("configuration: %w", err)
-	}
-
-	if err := conf.DecodeFile(cfgFile, &cfg, configSchema); err != nil {
-		log.Fatalf("failed to decode config: %s", err)
 	}
 
 	//
@@ -185,10 +175,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		ctx, span = tr.Start(ctx, "init")
 		defer span.End()
 	}
-
-	// add the configuration file to the global schema
-	// so packages can decode from it.
-	runtime.GlobalSchema.SetFileProvider(cfgFile)
 
 	//
 	// There might be a ui.conf file so try to load it.
@@ -250,6 +236,26 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		}
 		l.addAdapter(mongoLogger)
 	}
+
+	//
+	// At this point we can prepare the actual configuration provider
+	//
+	switch cfg.ConfigProvider {
+	case "file":
+		// for the file provider we should re-validate the configuration file but
+		// this time we validate the global schema as wel and we don't allow unknown
+		// sections
+		if err := conf.ValidateFile(cfgFile, confutil.MultiSectionRegistry{
+			globalConfigFile,
+			runtime.GlobalSchema,
+		}); err != nil {
+			logger.Fatalf(ctx, "failed to validate runtime configuration: %s", err)
+		}
+		runtime.GlobalSchema.SetFileProvider(cfgFile)
+	default:
+		logger.Fatalf(ctx, "invalid configuration provider: %s", cfg.ConfigProvider)
+	}
+	logger.Infof(ctx, "config-provider: using the %q provider", cfg.ConfigProvider)
 
 	//
 	// Apply any pending migrations
@@ -478,7 +484,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	// to each incoming HTTP Request.
 	//
 	appCtx := app.NewApp(
-		&cfg,
+		cfg,
 		matcher,
 		identities,
 		customers,

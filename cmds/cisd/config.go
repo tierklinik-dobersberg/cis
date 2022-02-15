@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -22,12 +23,11 @@ func newLineReader() io.Reader {
 	return strings.NewReader("\n")
 }
 
-func loadConfig(configSchema conf.SectionRegistry) (*conf.File, error) {
+func loadConfig() (*app.Config, *conf.File, error) {
 	env := svcenv.Env()
 
 	// The configuration file is either located in env.ConfigurationDirectory
 	// or in the current working-directory of the service.
-	// TODO(ppacher): add support to disable the WD fallback.
 	log := logger.From(context.TODO())
 
 	dir := env.ConfigurationDirectory
@@ -35,7 +35,7 @@ func loadConfig(configSchema conf.SectionRegistry) (*conf.File, error) {
 		var err error
 		dir, err = os.Getwd()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 	log.V(5).Logf("configuration directory: %s", dir)
@@ -44,16 +44,11 @@ func loadConfig(configSchema conf.SectionRegistry) (*conf.File, error) {
 	var configurations []io.Reader
 	mainConfigFile := filepath.Join(dir, "cis.conf")
 
-	// if cfg.ConfigFileName does not include an extension
-	// we default to .conf.
-	if filepath.Ext(mainConfigFile) == "" {
-		mainConfigFile = mainConfigFile + ".conf"
-	}
-
 	mainFile, err := os.Open(mainConfigFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open: %w", err)
+		return nil, nil, fmt.Errorf("failed to open: %w", err)
 	}
+
 	defer mainFile.Close()
 	configurations = append(
 		configurations,
@@ -94,28 +89,36 @@ func loadConfig(configSchema conf.SectionRegistry) (*conf.File, error) {
 	// later.
 	confFile, err := conf.Deserialize(mainConfigFile, io.MultiReader(configurations...))
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse: %w", err)
+		return nil, nil, fmt.Errorf("failed to parse: %w", err)
 	}
 
 	// finally, create drop-ins from environment variables and apply them as well
-	dropIn, err := conf.ParseFromEnv("CIS", os.Environ(), configSchema)
+	dropIn, err := conf.ParseFromEnv("CIS", os.Environ(), globalConfigFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse environment variables into config: %w", err)
+		return nil, nil, fmt.Errorf("failed to parse environment variables into config: %w", err)
 	}
 
 	if dropIn != nil {
-		if err := conf.ApplyDropIns(confFile, []*conf.DropIn{(*conf.DropIn)(dropIn)}, configSchema); err != nil {
-			return nil, fmt.Errorf("failed to apply environment variables to config: %w", err)
+		if err := conf.ApplyDropIns(confFile, []*conf.DropIn{(*conf.DropIn)(dropIn)}, globalConfigFile); err != nil {
+			return nil, nil, fmt.Errorf("failed to apply environment variables to config: %w", err)
 		}
 	}
 
 	log.V(5).Logf("applied configuration values from environment: %+v", dropIn)
 
-	// Validate the configuration file, set defaults and ensure
-	// everything is ready to be parsed.
-	if err := conf.ValidateFile(confFile, configSchema); err != nil {
-		return nil, fmt.Errorf("invalid config file: %w", err)
+	// Validate all configuration options that are allowed in the global configuration file.
+	// We accept unknown section though because we don't know the actual config provider yet.
+	if err := conf.ValidateFile(confFile, globalConfigFile, conf.ValidationConfig{
+		IgnoreUnknownSections: true,
+	}); err != nil {
+		return nil, nil, fmt.Errorf("invalid config file: %w", err)
 	}
 
-	return confFile, nil
+	// decode the global configuration file
+	var cfg app.Config
+	if err := conf.DecodeFile(confFile, &cfg, globalConfigFile); err != nil {
+		return nil, nil, fmt.Errorf("failed to decode file: %w", err)
+	}
+
+	return &cfg, confFile, nil
 }
