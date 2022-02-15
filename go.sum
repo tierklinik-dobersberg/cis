@@ -488,8 +488,6 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
 github.com/posener/complete v1.2.3/go.mod h1:WZIdtGGp+qx0sLrYKtIRAruyNpv6hFCicSgv7Sy7s/s=
 github.com/ppacher/system-conf v0.7.4/go.mod h1:UTcn/7lTkcZaCjXpWCz/d1iYG0nn5CnOryTImTlA/BY=
-github.com/ppacher/system-conf v0.8.2 h1:tFw/HZ4292bAOmSUvuh+g9IcLcL8KCPo/jlPrHJgwiM=
-github.com/ppacher/system-conf v0.8.2/go.mod h1:4Tt3/NWA26XrMaa/XInaD5yGc98c7plnELkgA9NH0qo=
 github.com/ppacher/system-conf v0.9.0 h1:tLIykXGJI1DxpTljkPMfZ2wZOfHVcpuVer4wB1jKIuk=
 github.com/ppacher/system-conf v0.9.0/go.mod h1:4Tt3/NWA26XrMaa/XInaD5yGc98c7plnELkgA9NH0qo=
 github.com/prometheus/client_golang v0.9.1/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=
