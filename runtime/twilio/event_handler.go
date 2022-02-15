@@ -52,7 +52,7 @@ func AddTriggerType(name string, reg *trigger.Registry) error {
 					return nil, fmt.Errorf("failed to decode twilio account settings: %w", err)
 				}
 			} else {
-				if err := globalCfg.Decode("Twilio", &acc); err != nil {
+				if err := globalCfg.Decode(ctx, "Twilio", &acc); err != nil {
 					return nil, fmt.Errorf("failed to decode global twilio account section: %w", err)
 				}
 			}

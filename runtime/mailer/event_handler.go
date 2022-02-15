@@ -39,7 +39,7 @@ func AddTriggerType(typeName string, reg *trigger.Registry) error {
 			confutil.MakeOptional(AccountSpec),
 			MessageSpec,
 		},
-		CreateFunc: func(c context.Context, cs *runtime.ConfigSchema, s *conf.Section) (trigger.Handler, error) {
+		CreateFunc: func(ctx context.Context, cs *runtime.ConfigSchema, s *conf.Section) (trigger.Handler, error) {
 			var (
 				acc Account
 				msg Message
@@ -51,7 +51,7 @@ func AddTriggerType(typeName string, reg *trigger.Registry) error {
 					return nil, fmt.Errorf("parsing account: %w", err)
 				}
 			} else {
-				if err := cs.Decode("Mailer", &acc); err != nil {
+				if err := cs.Decode(ctx, "Mailer", &acc); err != nil {
 					return nil, fmt.Errorf("parsing global account: %w", err)
 				}
 			}

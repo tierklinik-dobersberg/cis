@@ -11,11 +11,13 @@ var (
 )
 
 func addToSchema(schema *runtime.ConfigSchema) error {
-	return schema.RegisterSection(
-		"Twilio",
-		"Configure a twilio account to use for programmable messaging.",
-		AccountSpec,
-	)
+	return schema.Register(runtime.Registration{
+		Name:        "Twilio",
+		Description: "Configure a twilio account to use for programmable messaging.",
+		Category:    "",
+		Spec:        AccountSpec,
+		Multi:       false,
+	})
 }
 
 func init() {

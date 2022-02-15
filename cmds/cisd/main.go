@@ -183,7 +183,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 
 	// add the configuration file to the global schema
 	// so packages can decode from it.
-	runtime.GlobalSchema.SetFile(instance.ConfigFile())
+	runtime.GlobalSchema.SetFileProvider(instance.ConfigFile())
 
 	//
 	// There might be a ui.conf file so try to load it.

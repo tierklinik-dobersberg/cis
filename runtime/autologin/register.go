@@ -11,11 +11,12 @@ var (
 )
 
 func addToSchema(schema *runtime.ConfigSchema) error {
-	return schema.RegisterSection(
-		"Autologin",
-		"Configure token access and automatic role grants",
-		Spec(httpcond.DefaultRegistry),
-	)
+	return schema.Register(runtime.Registration{
+		Name:        "Autologin",
+		Description: "Configure token access and automatic role grants",
+		Spec:        Spec(httpcond.DefaultRegistry),
+		Multi:       true,
+	})
 }
 
 func init() {
