@@ -4,7 +4,7 @@ import { NzMessageService } from "ng-zorro-antd/message";
 import { forkJoin, Observable, of, Subject } from "rxjs";
 import { catchError, debounceTime, filter, switchMap, take, takeUntil } from "rxjs/operators";
 import { Calendar, CalendarAPI, ConfigAPI, IdentityAPI, PasswordStrenght, Permission, Role, UserDetails, UserProperty, UserService } from "src/app/api";
-import { HeaderTitleService } from "src/app/shared/header-title";
+import { Breadcrump, HeaderTitleService } from "src/app/shared/header-title";
 import { extractErrorMessage } from "src/app/utils";
 import { getOperations } from "../permissions-view";
 
@@ -28,6 +28,11 @@ const ScoreColors = [
   '#60A5FA',
   '#059669'
 ];
+
+const breadcrumps: Breadcrump[] = [
+  {name: 'Administration', route: '/admin/'},
+  {name: 'Benutzer', route: '/admin/identity/users/'},
+]
 
 @Component({
   templateUrl: './create-user.html',
@@ -118,7 +123,12 @@ export class CreateUserComponent implements OnInit, OnDestroy {
       this.identityapi.getUser(this.name)
         .subscribe({
           next: user => {
-            this.headerService.set('Benutzer bearbeiten', 'Bearbeite einen bereits existierenden Benutzeraccount.');
+            this.headerService.set(
+              'Benutzer bearbeiten',
+              'Bearbeite einen bereits existierenden Benutzeraccount.',
+              null,
+              breadcrumps,
+            );
             this.name = user.name;
             this.fullname = user.fullname;
             this.phoneNumbers = user.phoneNumbers || [''];
@@ -140,7 +150,12 @@ export class CreateUserComponent implements OnInit, OnDestroy {
           }
         })
     } else {
-      this.headerService.set('Neuen Benutzer', 'Erstelle einen neuen Benutzer');
+      this.headerService.set(
+        'Neuen Benutzer',
+        'Erstelle einen neuen Benutzer',
+        null,
+        breadcrumps,
+      );
       // new users should likely change their password so perpare for that.
       this.needsPasswortChange = true;
     }

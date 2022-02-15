@@ -35,7 +35,12 @@ export class UserListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscription = new Subscription();
 
-    this.header.set('Benutzer Verwaltung', 'Erstelle, bearbeite oder lösche Benutzerkonten.');
+    this.header.set(
+      'Benutzer Verwaltung',
+      'Erstelle, bearbeite oder lösche Benutzerkonten.',
+      null,
+      [{name: 'Administration', route: '/admin/'}]
+    );
 
     this.subscription.add(
       this.configapi.change

@@ -22,7 +22,7 @@ type ListSchemasResponse struct {
 
 func ListSchemasEndpoint(grp *app.Router) {
 	grp.GET(
-		"v1/schemas",
+		"v1/schema",
 		permission.OneOf{ConfigManagementAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			schemas := runtime.GlobalSchema.Schemas()

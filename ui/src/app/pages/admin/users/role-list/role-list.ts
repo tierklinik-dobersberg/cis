@@ -22,7 +22,12 @@ export class RoleListComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.headerTitleService.set("Benutzer Rollen")
+    this.headerTitleService.set(
+      "Benutzer Rollen",
+      "Verwalte Berechtigungen mittels Benutzer Rollen.",
+      null,
+      [{name: 'Administration', route: '/admin/'}]
+    )
     this.identityapi.getRoles()
       .subscribe({
         next: roles => {

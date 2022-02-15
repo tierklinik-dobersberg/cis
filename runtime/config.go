@@ -39,6 +39,12 @@ type (
 		// Name is required when registering a new configuration block.
 		Name string `json:"name"`
 
+		// DisplayName holds a human readable name for the schema type and is mainly used
+		// in the user interface. If omitted, DisplayName is set to equal Name.
+		DisplayName string `json:"displayName"`
+
+		SVGData string `json:"svgData,omitempty"`
+
 		// Description holds a human readable description of the configuration block and
 		// is mainly used by the user interface.
 		// Description is optional.
@@ -112,6 +118,10 @@ func (schema *ConfigSchema) Register(regs ...Schema) error {
 			return fmt.Errorf("index %d: %w", idx, ErrMissingName)
 		}
 		lowerName := strings.ToLower(reg.Name)
+
+		if reg.DisplayName == "" {
+			reg.DisplayName = reg.Name
+		}
 
 		if reg.Spec == nil {
 			return fmt.Errorf("%s: %w", reg.Name, ErrMissingSpec)

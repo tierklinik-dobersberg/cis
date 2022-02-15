@@ -4,11 +4,15 @@ import { NzMessageService } from "ng-zorro-antd/message";
 import { forkJoin, Observable, of, Subject } from "rxjs";
 import { switchMap, takeUntil } from "rxjs/operators";
 import { IdentityAPI, Permission, Role } from "src/app/api";
-import { HeaderTitleService } from "src/app/shared/header-title";
+import { Breadcrump, HeaderTitleService } from "src/app/shared/header-title";
 import { extractErrorMessage } from "src/app/utils";
 import { getOperations } from "../permissions-view";
 
 
+const breadcrumps: Breadcrump[] = [
+  {name: 'Administration', route: '/admin/'},
+  {name: 'Benutzerrollen', route: '/admin/identity/roles/'},
+]
 @Component({
   templateUrl: './role-view.html',
   styleUrls: ['./role-view.scss'],
@@ -50,7 +54,12 @@ export class RoleViewComponent implements OnInit, OnDestroy {
           this.description = '';
           this.permissions = [];
           this.originalPermissions = [];
-          this.headerTitleService.set('Erstelle eine neuen Benutzerrolle', 'Benutzerrollen vereinfachen die Verwaltung von Berechtigungen.')
+          this.headerTitleService.set(
+            'Erstelle eine neuen Benutzerrolle',
+            'Benutzerrollen vereinfachen die Verwaltung von Berechtigungen.',
+            null,
+            breadcrumps
+          )
           this.cdr.markForCheck();
         } else {
           this.identityapi.getRole(roleName)
@@ -62,7 +71,12 @@ export class RoleViewComponent implements OnInit, OnDestroy {
                 this.editMode = true;
                 this.permissions = role.permissions || [];
                 this.originalPermissions = [...this.permissions];
-                this.headerTitleService.set('Bearbeite eine Benutzerrolle', 'Benutzerrollen vereinfachen die Verwaltung von Berechtigungen.')
+                this.headerTitleService.set(
+                  'Bearbeite eine Benutzerrolle',
+                  'Benutzerrollen vereinfachen die Verwaltung von Berechtigungen.',
+                  null,
+                  breadcrumps,
+                )
                 this.cdr.markForCheck();
               },
               error: err => {

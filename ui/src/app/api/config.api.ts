@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { IdentityAPI } from './identity.api';
 
 export interface ExternalLink {
@@ -13,13 +13,26 @@ export interface ExternalLink {
   BlankTarget: boolean;
 }
 
-export interface UserProperty {
+export interface Schema {
+  name: string;
+  displayName: string;
+  description: string;
+  svgData?: string;
+  category: string;
+  multi: boolean;
+  options: OptionSpec[];
+}
+
+export interface OptionSpec {
   name: string;
   description: string;
   type: string;
   required: boolean;
-  visibility: string;
   default: string;
+}
+
+export interface UserProperty extends OptionSpec {
+  visibility: string;
   displayName?: string;
 }
 
@@ -98,5 +111,10 @@ export class ConfigAPI {
 
   loaddUIConfig(): Observable<UIConfig> {
     return this.http.get<UIConfig>('/api/config/v1/ui');
+  }
+
+  listSchemas(): Observable<Schema[]> {
+    return this.http.get<{schemas: Schema[]}>(`/api/config/v1/schema`)
+      .pipe(map(res => res.schemas || []))
   }
 }

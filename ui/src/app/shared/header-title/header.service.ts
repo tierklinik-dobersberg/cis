@@ -5,6 +5,12 @@ export interface PageHeader {
   title: string;
   description: string;
   iconTemplate?: TemplateRef<any>;
+  breadcrumps?: Breadcrump[];
+}
+
+export interface Breadcrump {
+  name: string;
+  route: string;
 }
 
 @Injectable({
@@ -13,11 +19,12 @@ export interface PageHeader {
 export class HeaderTitleService {
   private headerSubj = new BehaviorSubject<PageHeader>({title: '', description: ''});
 
-  set(s: string, description = '', icon: TemplateRef<any> | null = null): void {
+  set(s: string, description = '', icon: TemplateRef<any> | null = null, breadcrumps: Breadcrump[] = []): void {
     this.headerSubj.next({
       title: s,
       description: description,
       iconTemplate: icon || undefined,
+      breadcrumps: breadcrumps || [],
     });
   }
 

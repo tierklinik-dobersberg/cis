@@ -7,6 +7,7 @@ import { SharedModule } from 'src/app/shared/shared.module';
 import { AdminOverviewComponent } from './admin';
 import { AdminRoutingModule } from './admin-routing.module';
 import { ImportPageComponent } from './import';
+import { ManageSettingsCategoryComponent } from './manage-settings-category';
 
 @NgModule({
     imports: [
@@ -19,7 +20,8 @@ import { ImportPageComponent } from './import';
     ],
     declarations: [
         ImportPageComponent,
-        AdminOverviewComponent
+        AdminOverviewComponent,
+        ManageSettingsCategoryComponent,
     ],
     exports: [
         ImportPageComponent,
