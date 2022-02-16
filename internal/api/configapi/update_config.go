@@ -2,7 +2,9 @@ package configapi
 
 import (
 	"context"
+	"errors"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -13,24 +15,24 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime"
 )
 
-type PatchConfigResponse struct {
+type UpdateConfigResponse struct {
 	ID      string `json:"id"`
 	Warning string `json:"warning,omitempty"`
 }
 
-type PatchConfigRequest struct {
+type UpdateConfigRequest struct {
 	Config map[string]interface{} `json:"config"`
 }
 
-func PatchConfigEndpoint(r *app.Router) {
-	r.PATCH(
+func UpdateConfigEndpoint(r *app.Router) {
+	r.PUT(
 		"v1/schema/:key/:id",
 		permission.OneOf{ConfigManagementAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			key := c.Param("key")
 			id := c.Param("id")
 
-			var req PatchConfigRequest
+			var req UpdateConfigRequest
 			if err := c.Bind(&req); err != nil {
 				return err
 			}
@@ -41,7 +43,8 @@ func PatchConfigEndpoint(r *app.Router) {
 				opts, err := conf.EncodeToOptions(name, val)
 				if err != nil {
 					return httperr.BadRequest(echo.Map{
-						"error": "invalid values for option",
+						"error": "invalid values for option: " + err.Error(),
+						"value": val,
 						"name":  name,
 					}).SetInternal(err)
 				}
@@ -58,34 +61,31 @@ func PatchConfigEndpoint(r *app.Router) {
 				return httperr.NotFound("schema-type", key)
 			}
 
-			dropIn := &conf.DropIn{
-				Sections: conf.Sections{
+			current := &conf.File{
+				Sections: []conf.Section{
 					{
 						Name:    val.Name,
 						Options: options,
 					},
 				},
 			}
-			current := &conf.File{
-				Sections: []conf.Section{val.Section},
-			}
-			if err := conf.ApplyDropIns(current, []*conf.DropIn{dropIn}, runtime.GlobalSchema); err != nil {
-				return err
-			}
 
 			if err := conf.ValidateFile(current, runtime.GlobalSchema); err != nil {
-				return err
+				return echo.NewHTTPError(http.StatusBadRequest, err.Error()).SetInternal(err)
 			}
 
+			// NORELEASE: debug code
+			_ = conf.WriteSectionsTo(current.Sections, os.Stderr)
+
 			var warning string
-			if err := runtime.GlobalSchema.Update(ctx, id, key, current.Sections[0].Options); err != nil {
+			if err := runtime.GlobalSchema.Update(ctx, id, key, options); err != nil {
 				warning, err = handleRuntimeError(err)
 				if err != nil {
 					return err
 				}
 			}
 
-			c.JSON(http.StatusOK, PatchConfigResponse{
+			c.JSON(http.StatusOK, UpdateConfigResponse{
 				ID:      id,
 				Warning: warning,
 			})
@@ -93,4 +93,16 @@ func PatchConfigEndpoint(r *app.Router) {
 			return nil
 		},
 	)
+}
+
+func handleRuntimeError(err error) (string, error) {
+	var notifErr *runtime.NotificationError
+	if errors.As(err, &notifErr) {
+		return notifErr.Wrapped.Error(), nil
+	}
+
+	if errors.Is(err, runtime.ErrReadOnly) {
+		return "", echo.NewHTTPError(http.StatusNotImplemented, "configuration is read-only")
+	}
+	return "", err
 }

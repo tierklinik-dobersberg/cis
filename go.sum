@@ -490,6 +490,12 @@ github.com/posener/complete v1.2.3/go.mod h1:WZIdtGGp+qx0sLrYKtIRAruyNpv6hFCicSg
 github.com/ppacher/system-conf v0.7.4/go.mod h1:UTcn/7lTkcZaCjXpWCz/d1iYG0nn5CnOryTImTlA/BY=
 github.com/ppacher/system-conf v0.9.0 h1:tLIykXGJI1DxpTljkPMfZ2wZOfHVcpuVer4wB1jKIuk=
 github.com/ppacher/system-conf v0.9.0/go.mod h1:4Tt3/NWA26XrMaa/XInaD5yGc98c7plnELkgA9NH0qo=
+github.com/ppacher/system-conf v0.9.1 h1:Qnh+NzoYtH4vRPUJDihfQ2HdKWUatmDbfj2p8lcs9KQ=
+github.com/ppacher/system-conf v0.9.1/go.mod h1:4Tt3/NWA26XrMaa/XInaD5yGc98c7plnELkgA9NH0qo=
+github.com/ppacher/system-conf v0.9.3 h1:NgBVsjbp9wwpoTttOpoD8PI30mkrbUjSCk+KAHZ6OaQ=
+github.com/ppacher/system-conf v0.9.3/go.mod h1:4Tt3/NWA26XrMaa/XInaD5yGc98c7plnELkgA9NH0qo=
+github.com/ppacher/system-conf v0.9.4 h1:FGEZ1wfxa4Zfu5xTCwfql2932E9i4POx+0JjVhDZIb4=
+github.com/ppacher/system-conf v0.9.4/go.mod h1:4Tt3/NWA26XrMaa/XInaD5yGc98c7plnELkgA9NH0qo=
 github.com/prometheus/client_golang v0.9.1/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=
 github.com/prometheus/client_golang v0.9.3/go.mod h1:/TN21ttK/J9q6uSwhBd54HahCDft0ttaMvbicHlPoso=
 github.com/prometheus/client_golang v1.0.0/go.mod h1:db9x61etRT2tGnBNRi70OPL5FsnadC4Ky3P0J6CfImo=

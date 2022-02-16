@@ -91,7 +91,7 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
         cfg[1].triggers.forEach(i => instances.set(stripTriggerSuffix(i.name), i));
 
         this.actions = [];
-        cfg[0].TriggerActions?.forEach(a => {
+        cfg[0].TriggerAction?.forEach(a => {
           const name = stripTriggerSuffix(a.PrimaryTrigger)
           this.actions.push({
             ...a,

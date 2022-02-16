@@ -6,8 +6,11 @@ import (
 )
 
 var (
-	ConfigBuilder = runtime.NewConfigSchemaBuilder(addUISchema)
-	AddToSchema   = ConfigBuilder.AddToSchema
+	ConfigBuilder = runtime.NewConfigSchemaBuilder(
+		addUISchema,
+		addUserProperty,
+	)
+	AddToSchema = ConfigBuilder.AddToSchema
 )
 
 // UI groups settings that only relate to the user

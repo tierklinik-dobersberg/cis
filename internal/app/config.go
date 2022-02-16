@@ -41,7 +41,7 @@ type Config struct {
 	UserProperties []cfgspec.UserPropertyDefinition `section:"UserProperty"`
 	VoiceMails     []cfgspec.VoiceMail              `section:"VoiceMail"`
 
-	UI UIConfig `section:"-"`
+	UIConfig `section:"-"`
 }
 
 // UIConfig holds the configuration that is solely important for the

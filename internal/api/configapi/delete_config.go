@@ -2,7 +2,6 @@ package configapi
 
 import (
 	"context"
-	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -25,10 +24,8 @@ func DeleteConfigEndpoint(r *app.Router) {
 
 			var warning string
 			if err := runtime.GlobalSchema.Delete(ctx, id); err != nil {
-				var notifyErr *runtime.NotificationError
-				if errors.As(err, &notifyErr) {
-					warning = notifyErr.Wrapped.Error()
-				} else {
+				warning, err = handleRuntimeError(err)
+				if err != nil {
 					return err
 				}
 			}

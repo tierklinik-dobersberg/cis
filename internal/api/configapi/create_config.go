@@ -2,7 +2,6 @@ package configapi
 
 import (
 	"context"
-	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -64,11 +63,9 @@ func CreateConfigEndpoint(r *app.Router) {
 			var warning string
 			id, err := runtime.GlobalSchema.Create(ctx, key, options)
 			if err != nil {
-				var notifErr *runtime.NotificationError
-				if errors.As(err, &notifErr) {
-					warning = notifErr.Wrapped.Error()
-				} else {
-					return httperr.InternalError().SetInternal(err)
+				warning, err = handleRuntimeError(err)
+				if err != nil {
+					return err
 				}
 			}
 

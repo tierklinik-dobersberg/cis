@@ -28,7 +28,7 @@
 </div>
 
 <div class="grid w-full gap-4 leading-3 auto-cols-max font-lato" style="grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))">
-  <a class="flex flex-col items-center justify-center h-20 text-center text-white rounded hover:bg-opacity-75 w-36 bg-primary hover:bg-primary hover:text-white" *ngFor="let s of schemas; trackBy: trackSchema" [routerLink]="isCategory(s) ? '/admin/config/category/' + s.categoryName : null" [nz-tooltip]="s.description || null" nzTooltipPlacement="bottom">
+  <a class="flex flex-col items-center justify-center h-20 text-center text-white rounded hover:bg-opacity-75 w-36 bg-primary hover:bg-primary hover:text-white" *ngFor="let s of schemas; trackBy: trackSchema" [routerLink]="isCategory(s) ? '/admin/settings/category/' + s.categoryName : '/admin/settings/' + s.name" [nz-tooltip]="s.description || null" nzTooltipPlacement="bottom">
     <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" *ngIf="!isCategory(s) && !!s.svgData" [innerHTML]="dom.bypassSecurityTrustHtml(s.svgData)">
     </svg>
     {{  isCategory(s) ? s.categoryName : (s.displayName || s.name) }}

@@ -66,6 +66,8 @@ export function extractErrorMessage(err: any, prefix: string = ''): string {
     msg = err;
   } else if ('error' in err && typeof err.error === 'string') {
     msg = err.error;
+  } else if ('error' in err && typeof err.error === 'object' && 'message' in err.error) {
+    msg = err.error.message;
   } else if ('error' in err && typeof err.error?.error === 'string') {
     msg = err.error.error;
   } else if ('statusText' in err && typeof err.statusText === 'string') {

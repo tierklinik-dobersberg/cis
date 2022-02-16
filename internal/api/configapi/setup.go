@@ -10,7 +10,7 @@ func Setup(a *app.App, grp *echo.Group) {
 	router := app.NewRouter(grp, a)
 
 	// GET /api/config/v1/ui
-	GetUIConfigEndpoint(router)
+	GetFlatConfigEndpoint(router)
 
 	// GET /api/config/v1/schemas
 	ListSchemasEndpoint(router)
@@ -26,6 +26,9 @@ func Setup(a *app.App, grp *echo.Group) {
 
 	// PATCH /api/config/v1/schema/:key/:id
 	PatchConfigEndpoint(router)
+
+	// PUT /api/config/v1/schema/:key/:id
+	UpdateConfigEndpoint(router)
 
 	// DELETE /api/config/v1/schema/:key/:id
 	DeleteConfigEndpoint(router)

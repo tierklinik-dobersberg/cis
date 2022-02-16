@@ -26,6 +26,8 @@ import { TextInputComponent } from './text-input';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { LinkNoBubbleDirective } from './a-no-bubble.directive';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
+import { TkdOptionSpecInputComponent } from './option-spec-input';
+import { TkdStringSliceInputComponent } from './simple-string-slice-input';
 
 @NgModule({
   imports: [
@@ -52,6 +54,8 @@ import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
     TextInputComponent,
     CanDeleteCustomerPipe,
     LinkNoBubbleDirective,
+    TkdStringSliceInputComponent,
+    TkdOptionSpecInputComponent,
   ],
   exports: [
     CommonModule,
@@ -80,6 +84,8 @@ import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
     CanDeleteCustomerPipe,
     LinkNoBubbleDirective,
     MatBottomSheetModule,
+    TkdStringSliceInputComponent,
+    TkdOptionSpecInputComponent,
   ],
 })
 export class SharedModule { }

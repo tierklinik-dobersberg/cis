@@ -130,7 +130,7 @@ export class IdentityAPI {
 
   applyUIConfig(cfg: UIConfig): void {
     this.rolesToHide = new Set();
-    cfg?.HideUsersWithRole?.forEach(role => this.rolesToHide.add(role));
+    cfg?.UI?.HideUsersWithRole?.forEach(role => this.rolesToHide.add(role));
   }
 
   constructor(

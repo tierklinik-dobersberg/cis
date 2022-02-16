@@ -59,7 +59,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
 
     const configSub = this.configapi.change.subscribe(config => {
       this.knownExtensions = new Map();
-      (config.KnownPhoneExtensions || []).forEach(known => {
+      (config.KnownPhoneExtension || []).forEach(known => {
         this.knownExtensions.set(known.ExtensionNumber, { fullname: known.DisplayName } as ProfileWithAvatar);
       });
 

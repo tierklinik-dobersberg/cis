@@ -279,7 +279,7 @@ export class AppComponent implements OnInit, OnDestroy {
     const menus = new Map<string, SubMenu>();
     this.rootLinks = [];
 
-    (cfg?.ExternalLinks || []).forEach(link => {
+    (cfg?.ExternalLink || []).forEach(link => {
       if (!link.ParentMenu) {
         this.rootLinks.push(link);
         return;
