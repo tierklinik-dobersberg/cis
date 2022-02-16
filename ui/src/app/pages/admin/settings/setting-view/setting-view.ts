@@ -75,6 +75,23 @@ export class SettingViewComponent implements OnInit, OnDestroy {
           })
   }
 
+  deleteSetting(id?: string) {
+    if (id === undefined && this.singleModeID) {
+      this.configAPI.deleteSetting(this.schema!.name, this.singleModeID)
+        .subscribe({
+          next: res => {
+              if (!!res.warning) {
+                this.nzMessageService.warning(res.warning)
+              } else {
+                this.nzMessageService.success("Einstellungen erfolgreich gelöscht.")
+              }
+          },
+          error: err => this.nzMessageService.error(extractErrorMessage(err, "Fehler"))
+        })
+      return;
+    }
+  }
+
   ngOnInit(): void {
       this.route.paramMap
         .pipe(
