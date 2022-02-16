@@ -1,9 +1,8 @@
 <!-- Header Row -->
 <div class="flex flex-row items-center space-x-4">
   <div class="block p-2.5 w-12 h-12 bg-white rounded-full shadow text-color-primary">
-    <svg xmlns="http://www.w3.org/2000/svg" *ngIf="!!schema?.svgData"
-         fill="none" viewBox="0 0 24 24" [innerHTML]="domSanitizer.bypassSecurityTrustHtml(schema.svgData)"
-        stroke="currentColor">
+    <svg xmlns="http://www.w3.org/2000/svg" *ngIf="!!schema?.svgData" fill="none" viewBox="0 0 24 24"
+      [innerHTML]="domSanitizer.bypassSecurityTrustHtml(schema.svgData)" stroke="currentColor">
     </svg>
   </div>
 
@@ -32,11 +31,31 @@
 <ng-container *ngIf="!!schema">
   <ng-container *ngIf="schema.multi; else: singleSettingView">
 
+    <nz-table #configTable [nzData]="configs | keyvalue" class="bg-white rounded shadow">
+      <thead>
+        <tr>
+          <th *ngFor="let spec of tableKeys">{{ spec.name }}</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let  data of configTable.data; trackBy: trackByKey">
+          <td *ngFor="let spec of tableKeys">
+            {{ data.value[spec.name] || 'N/A' }}
+          </td>
+          <td>
+            <!-- add actions -->
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+
   </ng-container>
 
   <ng-template #singleSettingView>
-    <app-setting-editor [schema]="schema" [(ngModel)]="configs" #singleValueModel="ngModel" showIndex="false" [showHeader]="false"></app-setting-editor>
+    <app-setting-editor [schema]="schema" [(ngModel)]="configs" #singleValueModel="ngModel" showIndex="false"
+      [showHeader]="false"></app-setting-editor>
   </ng-template>
 
 </ng-container>
-

@@ -176,13 +176,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	}
 
 	//
-	// Decode legacy UI configuration
-	//
-	if err := conf.DecodeFile(cfgFile, &cfg.UIConfig, runtime.GlobalSchema); err != nil {
-		logger.Fatalf(ctx, "failed to load ui.conf: %s", err)
-	}
-
-	//
 	// configure rocket.chat error log integration
 	//
 	if cfg.IntegrationConfig.RocketChatAddress != "" {

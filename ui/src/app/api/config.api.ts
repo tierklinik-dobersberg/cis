@@ -15,6 +15,11 @@ export interface ExternalLink {
   BlankTarget: boolean;
 }
 
+export enum WellKnownAnnotations {
+  Secret = "system-conf/secret",
+  OverviewFields = "vet.dobersberg.cis:schema/overviewFields"
+}
+
 export interface Schema {
   name: string;
   displayName: string;
@@ -23,6 +28,9 @@ export interface Schema {
   category: string;
   multi: boolean;
   options: OptionSpec[];
+  annotations?: {
+    [key: string]: any;
+  }
 }
 
 export interface SchemaInstance {
@@ -35,6 +43,9 @@ export interface OptionSpec {
   type: string;
   required: boolean;
   default: string;
+  annotations?: {
+    [key: string]: any;
+  }
 }
 
 export interface UserProperty extends OptionSpec {

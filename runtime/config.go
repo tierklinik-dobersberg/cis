@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 
@@ -63,6 +64,11 @@ type (
 		// Multi should be set to true if multiple instances of the registered
 		// configuration can exist at the same time.
 		Multi bool `json:"multi"`
+
+		// Annotations may hold additional annotations about the configuration schema. Those
+		// annotations may be, for example, used by user interfaces to determine how to
+		// best display the configuration setting.
+		Annotations conf.Annotation `json:"annotations"`
 
 		// OnChange is called when an instance of a specific configuration section
 		// is created, modified or deleted. The changeType parameter will be set to
@@ -162,6 +168,9 @@ func (schema *ConfigSchema) Schemas() []Schema {
 	for _, value := range schema.entries {
 		res = append(res, value)
 	}
+
+	sort.Sort(schemaByName(res))
+
 	return res
 }
 
@@ -355,3 +364,10 @@ func (schema *ConfigSchema) Delete(ctx context.Context, id string) error {
 
 // GlobalSchema is the global configuration schema.
 var GlobalSchema = new(ConfigSchema)
+
+// Sorting schemas by name
+type schemaByName []Schema
+
+func (sn schemaByName) Len() int           { return len(sn) }
+func (sn schemaByName) Less(i, j int) bool { return sn[i].Name < sn[j].Name }
+func (sn schemaByName) Swap(i, j int)      { sn[i], sn[j] = sn[j], sn[i] }

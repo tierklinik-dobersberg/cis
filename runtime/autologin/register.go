@@ -1,6 +1,7 @@
 package autologin
 
 import (
+	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 )
@@ -16,6 +17,9 @@ func addToSchema(schema *runtime.ConfigSchema) error {
 		Description: "Configure token access and automatic role grants",
 		Spec:        Spec(httpcond.DefaultRegistry),
 		Multi:       true,
+		Annotations: new(conf.Annotation).With(
+			runtime.OverviewFields("Name", "User", "Roles"),
+		),
 	})
 }
 

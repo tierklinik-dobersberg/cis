@@ -1,6 +1,6 @@
 import { NgModule } from "@angular/core";
+import { NzTableModule } from "ng-zorro-antd/table";
 import { SharedModule } from "src/app/shared/shared.module";
-import { ManageSettingsCategoryComponent } from "./category-view";
 import { SettingEditorComponent } from "./setting-editor";
 import { SettingViewComponent } from "./setting-view";
 import { SettingsRoutingModule } from "./settings-routing.module";
@@ -9,9 +9,9 @@ import { SettingsRoutingModule } from "./settings-routing.module";
   imports: [
     SharedModule,
     SettingsRoutingModule,
+    NzTableModule,
   ],
   declarations: [
-    ManageSettingsCategoryComponent,
     SettingViewComponent,
     SettingEditorComponent
   ]
