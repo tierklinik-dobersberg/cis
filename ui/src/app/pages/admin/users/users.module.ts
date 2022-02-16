@@ -11,7 +11,6 @@ import { CreateUserComponent } from "./create-user";
 import { PermissionsViewComponent } from "./permissions-view";
 import { RoleListComponent } from "./role-list";
 import { RoleViewComponent } from "./role-view";
-import { TkdStringSliceInputComponent } from "./simple-string-slice-input";
 import { UserListComponent } from "./user-list";
 import { UsersRoutingModule } from "./users-routing.module";
 
@@ -30,7 +29,6 @@ import { UsersRoutingModule } from "./users-routing.module";
   declarations: [
     UserListComponent,
     CreateUserComponent,
-    TkdStringSliceInputComponent,
     RoleListComponent,
     RoleViewComponent,
     PermissionsViewComponent,

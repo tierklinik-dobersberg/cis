@@ -1,7 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { MatBottomSheet } from '@angular/material/bottom-sheet';
+import { NzMessageRef, NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, delay, map, retryWhen, tap } from 'rxjs/operators';
 import { IdentityAPI } from './identity.api';
 
 export interface ExternalLink {
@@ -21,6 +23,10 @@ export interface Schema {
   category: string;
   multi: boolean;
   options: OptionSpec[];
+}
+
+export interface SchemaInstance {
+  [key: string]: any;
 }
 
 export interface OptionSpec {
@@ -61,14 +67,16 @@ export interface RosterUIConfig {
 }
 
 export interface UIConfig {
-  HideUsersWithRole?: string[];
-  ExternalLinks?: ExternalLink[];
-  UserProperties: UserProperty[];
-  QuickRosterOverwrites?: QuickRosterOverwrite[];
-  KnownPhoneExtensions?: KnownPhoneExtension[];
-  UserPhoneExtensionProperties?: string[];
-  TriggerActions?: TriggerAction[];
-  CreateEventAlwaysAllowCalendar?: string[];
+  UI?: {
+    HideUsersWithRole?: string[];
+    UserPhoneExtensionProperties?: string[];
+    CreateEventAlwaysAllowCalendar?: string[];
+  }
+  ExternalLink?: ExternalLink[];
+  UserProperty: UserProperty[];
+  QuickRosterOverwrite?: QuickRosterOverwrite[];
+  KnownPhoneExtension?: KnownPhoneExtension[];
+  TriggerAction?: TriggerAction[];
   Roster?: RosterUIConfig;
 }
 
@@ -88,14 +96,29 @@ export class ConfigAPI {
 
   constructor(
     private http: HttpClient,
+    private nzMessageService: NzMessageService,
     private identity: IdentityAPI,
   ) {
+    let loading: NzMessageRef | null = null;
     this.identity.profileChange.subscribe(() => {
       this.loaddUIConfig()
-        .pipe(catchError(err => {
-          return of(null);
-        }))
+        .pipe(
+          tap(undefined, err => {
+            if (!!loading) {
+              return;
+            }
+
+            loading = this.nzMessageService.loading("Trying to load configuration")
+          }),
+          retryWhen(d => {
+            return d.pipe(delay(2000));
+          })
+        )
         .subscribe(cfg => {
+          if (!!loading) {
+            this.nzMessageService.remove(loading.messageId);
+            loading = null;
+          }
           // we need to update the IdentityAPI ourself
           // as importing ConfigAPI there would cause a circular
           // dependency.
@@ -110,11 +133,47 @@ export class ConfigAPI {
   }
 
   loaddUIConfig(): Observable<UIConfig> {
-    return this.http.get<UIConfig>('/api/config/v1/ui');
+    return this.http.get<UIConfig>('/api/config/v1/flat', {
+      params: new HttpParams()
+        .append("keys", "UI")
+        .append("keys", "ExternalLink")
+        .append("keys", "QuickRosterOverwrite")
+        .append("keys", "TriggerAction")
+        .append("keys", "KnownPhoneExtension")
+        .append("keys", "Roster")
+        .append("keys", "UserProperty")
+    });
   }
 
   listSchemas(): Observable<Schema[]> {
     return this.http.get<{schemas: Schema[]}>(`/api/config/v1/schema`)
       .pipe(map(res => res.schemas || []))
+  }
+
+  getSettings(key: string): Observable<{[key: string]: SchemaInstance}> {
+    return this.http.get<{configs: {[key: string]: SchemaInstance}}>(`/api/config/v1/schema/${key}`)
+      .pipe(map(res => res.configs));
+  }
+
+  createSetting(key: string, values: SchemaInstance): Observable<{id: string, warning?: string}> {
+    return this.http.post<{id: string, warning?: string}>(`/api/config/v1/schema/${key}`, {
+      config: values
+    })
+  }
+
+  patchSetting(key: string, id: string, values: Partial<SchemaInstance>): Observable<{warning?: string}> {
+    return this.http.patch<{warning?: string}>(`/api/config/v1/schema/${key}/${id}`, {
+      config: values,
+  })
+  }
+
+  updateSetting(key: string, id: string, values: Partial<SchemaInstance>): Observable<{warning?: string}> {
+    return this.http.put<{warning?: string}>(`/api/config/v1/schema/${key}/${id}`, {
+      config: values
+    })
+  }
+
+  deleteSetting(key: string, id: string): Observable<{warning?: string}> {
+    return this.http.delete<{warning?: string}>(`/api/config/v1/schema/${key}/${id}`)
   }
 }

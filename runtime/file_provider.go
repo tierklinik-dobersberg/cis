@@ -61,11 +61,11 @@ func (cfg *FileProvider) GetID(ctx context.Context, id string) (Section, error) 
 }
 
 func (cfg *FileProvider) makeKey(secType string, idx int) string {
-	return fmt.Sprintf("%s/%d", secType, idx)
+	return fmt.Sprintf("%s-%d", secType, idx)
 }
 
 func (cfg *FileProvider) parseKey(key string) (secType string, idx int, err error) {
-	parts := strings.Split(key, "/")
+	parts := strings.Split(key, "-")
 	if len(parts) != 2 {
 		return "", 0, fmt.Errorf("section id: invalid number of segments")
 	}

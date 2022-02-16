@@ -114,7 +114,7 @@ export class UserService {
     this.usersByCalendarID = new Map();
 
     const cfg = this.configapi.current;
-    const phoneExtension = cfg?.UserPhoneExtensionProperties || [];
+    const phoneExtension = cfg?.UI?.UserPhoneExtensionProperties || [];
     users.forEach(user => {
       this.usersByName.set(user.name, user);
       if (!!user.calendarID) {

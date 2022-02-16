@@ -1,0 +1,24 @@
+<span class="text-2xl text-color-primary-dark font-lato" *ngIf="index !== null">
+  {{index}}.
+</span>
+<div class="flex flex-col flex-grow">
+  <span class="text-base font-medium font-lato">
+    {{ spec.name }} <span *ngIf="spec.required" class="text-color-primary-dark">*</span>
+  </span>
+  <span class="text-sm text-secondary font-lato">
+    {{ spec.description }}
+  </span>
+  <div class="mt-3">
+    <div class="flex items-center mt-3 space-x-2 ">
+      <ng-container [ngSwitch]="spec.type">
+        <input type="text" class="flex-grow tkd-input" *ngSwitchCase="'string'" [(ngModel)]="value" (ngModelChange)="_onChanged($event)" (blur)="_onBlur()">
+        <tkd-string-slice-input class="flex-grow" *ngSwitchCase="'[]string'" [(ngModel)]="value"  (ngModelChange)="_onChanged($event)" (blur)="_onBlur()">
+        </tkd-string-slice-input>
+        <label *ngSwitchCase="'bool'" class="flex-grow" nz-checkbox [(ngModel)]="value" (ngModelChange)="_onChanged($event)" (blur)="_onBlur()">Enabled</label>
+        <div *ngSwitchDefault class="flex-grow p-3 border border-alert-red text-alert-red font-lato">
+          Option type {{ spec.type }} is not yet supported
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

@@ -365,7 +365,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
             .subscribe(c => {
                 this.preferredUsers = c.users.preferred;
                 this.otherAllowedUsers = c.users.others;
-                this.quickSettings = c.cfg.QuickRosterOverwrites || [];
+                this.quickSettings = c.cfg.QuickRosterOverwrite || [];
                 this.allowPhone = c.cfg.Roster?.AllowPhoneNumberOverwrite || false;
                 this.cdr.markForCheck();
             })
@@ -521,7 +521,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
         }
       }
       if (states.length === 0) {
-        console.log(`[DEBUG] no time boundary available for overwriteType != customer and empty states`) 
+        console.log(`[DEBUG] no time boundary available for overwriteType != customer and empty states`)
         return null;
       }
 

@@ -209,8 +209,8 @@ func (schema *ConfigSchema) OptionsForSection(name string) (conf.OptionRegistry,
 	return reg.Spec, true
 }
 
-// Decode decodes the values of section from into target.
-func (schema *ConfigSchema) Decode(ctx context.Context, section string, target interface{}) error {
+// DecodeSection decodes the values of section from into target.
+func (schema *ConfigSchema) DecodeSection(ctx context.Context, section string, target interface{}) error {
 	schema.providerLock.RLock()
 	defer schema.providerLock.RUnlock()
 

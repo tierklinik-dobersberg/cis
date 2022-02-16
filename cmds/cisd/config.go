@@ -1,9 +1,9 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -12,7 +12,6 @@ import (
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
-	"github.com/tierklinik-dobersberg/logger"
 )
 
 // newLineReader returns an io.Reader that just emits a new line.
@@ -28,7 +27,6 @@ func loadConfig() (*app.Config, *conf.File, error) {
 
 	// The configuration file is either located in env.ConfigurationDirectory
 	// or in the current working-directory of the service.
-	log := logger.From(context.TODO())
 
 	dir := env.ConfigurationDirectory
 	if dir == "" {
@@ -38,7 +36,7 @@ func loadConfig() (*app.Config, *conf.File, error) {
 			return nil, nil, err
 		}
 	}
-	log.V(5).Logf("configuration directory: %s", dir)
+	log.Printf("configuration directory: %s", dir)
 
 	// a list of io.Readers for each configuration file.
 	var configurations []io.Reader
@@ -58,7 +56,7 @@ func loadConfig() (*app.Config, *conf.File, error) {
 
 	// open all .conf files in the configuration-directory.
 	confd := filepath.Join(dir, "conf.d")
-	log.V(5).Logf("searching for additional .conf files in: %s", confd)
+	log.Printf("searching for additional .conf files in: %s", confd)
 	matches, err := filepath.Glob(filepath.Join(confd, "*.conf"))
 	if err != nil {
 		// err can only be filepath.ErrBadPattern which we should never
@@ -66,12 +64,26 @@ func loadConfig() (*app.Config, *conf.File, error) {
 		panic(err)
 	}
 
+	uiConf := filepath.Join(svcenv.Env().ConfigurationDirectory, "ui.conf")
+	if _, err := os.Stat(uiConf); err == nil {
+		uiConfFile, err := os.Open(uiConf)
+		if err != nil {
+			log.Printf("failed to load ui configuration file %s: %s", uiConf, err)
+		} else {
+			log.Printf("reading legacy UI configuration file from %s", uiConf)
+			defer uiConfFile.Close()
+			configurations = append(configurations, uiConfFile, newLineReader())
+		}
+	} else {
+		log.Printf("No legacy UI configuration found at %s, skipping ...", uiConf)
+	}
+
 	sort.Strings(matches)
 	for _, file := range matches {
-		logger.From(context.TODO()).V(5).Logf("found configuration file: %s", file)
+		log.Printf("found configuration file: %s", file)
 		f, err := os.Open(file)
 		if err != nil {
-			logger.Errorf(context.TODO(), "failed to open %s: %s, skipping", file, err)
+			log.Printf("failed to open %s: %s, skipping", file, err)
 			continue
 		}
 		defer f.Close()
@@ -82,7 +94,7 @@ func loadConfig() (*app.Config, *conf.File, error) {
 		)
 	}
 
-	log.V(5).Logf("loading service configuration from %d sources", int(len(configurations)/2))
+	log.Printf("loading service configuration from %d sources", int(len(configurations)/2))
 
 	// finally deserialize all configuration files and convert it into a
 	// conf.File. Actual decoding of confFile into a struct type happens
@@ -104,7 +116,7 @@ func loadConfig() (*app.Config, *conf.File, error) {
 		}
 	}
 
-	log.V(5).Logf("applied configuration values from environment: %+v", dropIn)
+	log.Printf("applied configuration values from environment: %+v", dropIn)
 
 	// Validate all configuration options that are allowed in the global configuration file.
 	// We accept unknown section though because we don't know the actual config provider yet.

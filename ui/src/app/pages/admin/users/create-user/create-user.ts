@@ -117,7 +117,7 @@ export class CreateUserComponent implements OnInit, OnDestroy {
         filter(cfg => !!cfg),
         take(1),
       )
-      .subscribe(cfg => this.userProperties = cfg.UserProperties || []);
+      .subscribe(cfg => this.userProperties = cfg.UserProperty || []);
 
     if (this.editMode) {
       this.identityapi.getUser(this.name)

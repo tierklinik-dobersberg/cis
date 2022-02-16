@@ -1,0 +1,42 @@
+<!-- Header Row -->
+<div class="flex flex-row items-center space-x-4">
+  <div class="block p-2.5 w-12 h-12 bg-white rounded-full shadow text-color-primary">
+    <svg xmlns="http://www.w3.org/2000/svg" *ngIf="!!schema?.svgData"
+         fill="none" viewBox="0 0 24 24" [innerHTML]="domSanitizer.bypassSecurityTrustHtml(schema.svgData)"
+        stroke="currentColor">
+    </svg>
+  </div>
+
+  <div class="flex flex-col">
+    <span class="text-base font-semibold font-lato text-primary">
+      {{ schema?.displayName || schema?.name }}
+    </span>
+    <span class="text-secondary" *ngIf="!!schema?.description">
+      {{ schema?.description }}
+    </span>
+  </div>
+
+  <div class="flex-grow"></div>
+
+  <div class="flex flex-row space-x-3">
+    <button class="tkd-icon-btn tkd-primary tkd-small" (click)="saveSetting()" [disabled]="!singleValueModel?.dirty">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+        nz-tooltip="Speichern">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+      </svg>
+    </button>
+  </div>
+</div>
+
+<ng-container *ngIf="!!schema">
+  <ng-container *ngIf="schema.multi; else: singleSettingView">
+
+  </ng-container>
+
+  <ng-template #singleSettingView>
+    <app-setting-editor [schema]="schema" [(ngModel)]="configs" #singleValueModel="ngModel" showIndex="false" [showHeader]="false"></app-setting-editor>
+  </ng-template>
+
+</ng-container>
+

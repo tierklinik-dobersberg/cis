@@ -176,11 +176,9 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	}
 
 	//
-	// There might be a ui.conf file so try to load it.
+	// Decode legacy UI configuration
 	//
-	uiConf := filepath.Join(svcenv.Env().ConfigurationDirectory, "ui.conf")
-
-	if err := runtime.GlobalSchema.FileSpec().ParseFile(uiConf, &cfg.UI); err != nil {
+	if err := conf.DecodeFile(cfgFile, &cfg.UIConfig, runtime.GlobalSchema); err != nil {
 		logger.Fatalf(ctx, "failed to load ui.conf: %s", err)
 	}
 

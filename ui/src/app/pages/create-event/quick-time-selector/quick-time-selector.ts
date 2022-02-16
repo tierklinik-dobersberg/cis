@@ -529,7 +529,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
             });
 
             let unassignedCalendars: string[] = [];
-            (config.CreateEventAlwaysAllowCalendar || []).forEach(calID => {
+            (config.UI?.CreateEventAlwaysAllowCalendar || []).forEach(calID => {
                 const cal = this.calendars.find(cal => cal._id === calID);
                 if (!cal) {
                     this.nzMessageService.error("Kalender mit ID " + calID + " nicht gefunden")

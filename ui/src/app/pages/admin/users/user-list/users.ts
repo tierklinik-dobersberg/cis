@@ -46,7 +46,7 @@ export class UserListComponent implements OnInit, OnDestroy {
       this.configapi.change
         .pipe(filter(cfg => !!cfg))
         .subscribe(cfg => {
-          this.userProps = (cfg.UserProperties || []).filter(prop => prop.visibility === 'public');
+          this.userProps = (cfg.UserProperty || []).filter(prop => prop.visibility === 'public');
         })
     );
 

@@ -51,7 +51,7 @@ func AddTriggerType(typeName string, reg *trigger.Registry) error {
 					return nil, fmt.Errorf("parsing account: %w", err)
 				}
 			} else {
-				if err := cs.Decode(ctx, "Mailer", &acc); err != nil {
+				if err := cs.DecodeSection(ctx, "Mailer", &acc); err != nil {
 					return nil, fmt.Errorf("parsing global account: %w", err)
 				}
 			}

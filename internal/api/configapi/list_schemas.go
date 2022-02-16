@@ -26,7 +26,6 @@ func ListSchemasEndpoint(grp *app.Router) {
 		permission.OneOf{ConfigManagementAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			schemas := runtime.GlobalSchema.Schemas()
-
 			var res ListSchemasResponse
 
 			for _, s := range schemas {

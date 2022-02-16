@@ -36,7 +36,7 @@ require (
 	github.com/nyaruka/phonenumbers v1.0.73
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/ory/mail/v3 v3.0.0
-	github.com/ppacher/system-conf v0.9.0
+	github.com/ppacher/system-conf v0.9.4
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rogpeppe/go-internal v1.8.0
 	github.com/schollz/progressbar/v3 v3.8.5

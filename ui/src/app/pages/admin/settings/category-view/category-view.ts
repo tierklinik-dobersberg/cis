@@ -6,7 +6,7 @@ import { map, switchMap, takeUntil } from "rxjs/operators";
 import { ConfigAPI, Schema } from "src/app/api";
 
 @Component({
-  templateUrl: './manage-settings-category.html',
+  templateUrl: './category-view.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ManageSettingsCategoryComponent implements OnInit, OnDestroy {
