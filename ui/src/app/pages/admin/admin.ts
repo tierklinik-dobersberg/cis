@@ -5,7 +5,10 @@ import { takeUntil } from "rxjs/operators";
 import { ConfigAPI, Schema } from "src/app/api";
 import { HeaderTitleService } from "src/app/shared/header-title";
 
-type SchemaOrCategory = Schema | { categoryName: string; description: '' }
+interface Category  {
+  name: string;
+  schemas: Schema[];
+}
 
 @Component({
   templateUrl: './admin.html',
@@ -14,18 +17,10 @@ type SchemaOrCategory = Schema | { categoryName: string; description: '' }
 export class AdminOverviewComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
-  schemas: SchemaOrCategory[] = [];
+  categories: Category[] = [];
 
-  isCategory(s: SchemaOrCategory): s is {categoryName: string; description: ''} {
-    return 'categoryName' in s;
-  }
-
-  trackSchema: TrackByFunction<SchemaOrCategory> = (_: number, s: SchemaOrCategory) => {
-    if ('name' in s) {
-      return s.name;
-    }
-    return s.categoryName;
-  };
+  trackSchema: TrackByFunction<Schema> = (_: number, s: Schema) => s.name
+  trackCategory: TrackByFunction<Category> = (_: number, s: Category) => s.name
 
   constructor(
     private headerTitleService: HeaderTitleService,
@@ -42,19 +37,31 @@ export class AdminOverviewComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
       )
       .subscribe(schemas => {
-        let categories = new Set<string>();
-        this.schemas = [];
+        let categories = new Map<string, Schema[]>();
+        let global: Schema[] = [];
+
+        this.categories = [];
 
         schemas.forEach(s => {
           if (!!s.category) {
-            categories.add(s.category)
+            let cat = categories.get(s.category) || [];
+            cat.push(s)
+            categories.set(s.category, cat)
             return;
           }
 
-          this.schemas.push(s)
+          global.push(s)
         })
 
-        categories.forEach(val => this.schemas.push({categoryName: val, description: ''}))
+        this.categories.push({
+          name: "Allgemein",
+          schemas: global,
+        })
+
+        categories.forEach((val, key) => this.categories.push({
+          name: key,
+          schemas: val
+        }))
         this.cdr.markForCheck();
       });
   }

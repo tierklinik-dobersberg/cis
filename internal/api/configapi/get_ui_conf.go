@@ -6,16 +6,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 )
-
-type uiResponseModel struct {
-	app.UIConfig
-	UserProperties []cfgspec.UserPropertyDefinition
-}
 
 // GetFlatConfigEndpoint provides access to the UI configuration.
 func GetFlatConfigEndpoint(grp *app.Router) {

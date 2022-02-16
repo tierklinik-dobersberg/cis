@@ -40,18 +40,4 @@ type Config struct {
 	OpeningHours   []cfgspec.OpeningHours           `section:"OpeningHour"`
 	UserProperties []cfgspec.UserPropertyDefinition `section:"UserProperty"`
 	VoiceMails     []cfgspec.VoiceMail              `section:"VoiceMail"`
-
-	UIConfig `section:"-"`
-}
-
-// UIConfig holds the configuration that is solely important for the
-// user interface.
-type UIConfig struct {
-	cfgspec.UI `section:"UI"`
-
-	ExternalLinks         []cfgspec.ExternalLink         `section:"ExternalLink"`
-	QuickRosterOverwrites []cfgspec.QuickRosterOverwrite `section:"QuickRosterOverwrite"`
-	KnownPhoneExtensions  []cfgspec.KnownPhoneExtension  `section:"KnownPhoneExtension"`
-	TriggerActions        []cfgspec.TriggerAction        `section:"TriggerAction"`
-	Roster                cfgspec.RosterUIConfig         `section:"Roster"`
 }

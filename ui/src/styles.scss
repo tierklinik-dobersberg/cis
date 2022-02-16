@@ -279,3 +279,7 @@ button, [nz-menu-item] {
 [nz-menu-item] [nz-icon] {
   @apply mr-2;
 }
+
+.ant-table-pagination.ant-pagination {
+  margin-right: 1rem !important;
+}

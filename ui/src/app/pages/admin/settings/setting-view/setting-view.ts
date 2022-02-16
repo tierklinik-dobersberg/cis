@@ -1,11 +1,13 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import { KeyValue } from "@angular/common";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction, ViewChild } from "@angular/core";
 import { NgModel } from "@angular/forms";
 import { DomSanitizer } from "@angular/platform-browser";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NzMessageService } from "ng-zorro-antd/message";
 import { forkJoin, Observable, Subject, throwError } from "rxjs";
 import { map, switchMap, takeUntil } from "rxjs/operators";
-import { ConfigAPI, Schema, SchemaInstance } from "src/app/api";
+import { Options } from "selenium-webdriver";
+import { ConfigAPI, OptionSpec, Schema, SchemaInstance, WellKnownAnnotations } from "src/app/api";
 import { HeaderTitleService } from "src/app/shared/header-title";
 import { extractErrorMessage } from "src/app/utils";
 
@@ -19,6 +21,8 @@ export class SettingViewComponent implements OnInit, OnDestroy {
   @ViewChild('singleValueModel', {static: false, read: NgModel})
   singleValueModel: NgModel | null = null;
 
+  tableKeys: OptionSpec[] = [];
+
   schema: Schema | null = null;
   configs: {
     [key: string]: SchemaInstance;
@@ -29,6 +33,8 @@ export class SettingViewComponent implements OnInit, OnDestroy {
   } | SchemaInstance = {};
 
   singleModeID = '';
+
+  trackByKey: TrackByFunction<KeyValue<string, any>> = (_: number, kv: KeyValue<string, any>) => kv.key;
 
   constructor(
     private configAPI: ConfigAPI,
@@ -98,6 +104,19 @@ export class SettingViewComponent implements OnInit, OnDestroy {
 
           this.schema = result.schema;
           this.configs = result.settings;
+
+          let specs = new Map<string, OptionSpec>();
+          this.schema.options.forEach(val => specs.set(val.name, val));
+
+          if (this.schema.annotations && this.schema.annotations[WellKnownAnnotations.OverviewFields]) {
+            this.tableKeys = [];
+            (this.schema.annotations[WellKnownAnnotations.OverviewFields] || []).forEach(key => {
+              const s = specs.get(key);
+              if (!!s) {
+                this.tableKeys.push(s)
+              }
+            })
+          }
 
           // If this kind of configuration can only exist once make sure
           // we have an empty model to work with.
