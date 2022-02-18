@@ -63,6 +63,7 @@ import (
 	tracemw "github.com/tierklinik-dobersberg/cis/pkg/trace"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
+	"github.com/tierklinik-dobersberg/cis/runtime/configprovider/fileprovider"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
 	"github.com/tierklinik-dobersberg/cis/runtime/schema"
@@ -242,7 +243,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		}); err != nil {
 			logger.Fatalf(ctx, "failed to validate runtime configuration: %s", err)
 		}
-		runtime.GlobalSchema.SetFileProvider(cfgFile)
+		runtime.GlobalSchema.SetProvider(fileprovider.New(cfgFile))
 	default:
 		logger.Fatalf(ctx, "invalid configuration provider: %s", cfg.ConfigProvider)
 	}

@@ -37,6 +37,7 @@ type Authorization struct {
 // AppMetadata defines app specific metadata attached to
 // JWT tokens issued by cisd.
 type AppMetadata struct {
+	TokenVersion  string         `json:"token_version" xml:"token_version" yaml:"token_version"`
 	Authorization *Authorization `json:"authorization,omitempty" xml:"authorization" yaml:"authorization,omitempty"`
 }
 
