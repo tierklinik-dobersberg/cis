@@ -4,7 +4,6 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { Subscription } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
 import { IdentityAPI, Profile } from 'src/app/api';
 import { extractErrorMessage } from 'src/app/utils';
 
@@ -36,11 +35,9 @@ export class LoginComponent implements OnInit, OnDestroy {
       this.lastMessageID = this.messageService.loading('Anmeldung ...').messageId;
 
       this.identityapi.login(this.username, this.password)
-        .pipe(mergeMap(() => this.identityapi.profile()))
         .subscribe(
-          profile => {
+          () => {
             this.messageService.remove(this.lastMessageID);
-            this.lastMessageID = this.messageService.info(`Hallo, ${profile.fullname}`).messageId;
             const target = this.activatedRoute.snapshot.queryParamMap.get('rd') || '/';
 
             if (target.startsWith('http')) {

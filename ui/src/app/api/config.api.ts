@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { NzMessageRef, NzMessageService } from 'ng-zorro-antd/message';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
 import { catchError, delay, map, retryWhen, tap } from 'rxjs/operators';
 import { IdentityAPI } from './identity.api';
 
@@ -96,6 +96,7 @@ export interface UIConfig {
 })
 export class ConfigAPI {
   private onChange = new BehaviorSubject<UIConfig | null>(null);
+  private reload$ = new BehaviorSubject<void>(undefined);
 
   get change(): Observable<UIConfig | null> {
     return this.onChange;
@@ -105,13 +106,22 @@ export class ConfigAPI {
     return this.onChange.getValue();
   }
 
+  reload() {
+    this.reload$.next();
+  }
+
   constructor(
     private http: HttpClient,
     private nzMessageService: NzMessageService,
     private identity: IdentityAPI,
   ) {
+
     let loading: NzMessageRef | null = null;
-    this.identity.profileChange.subscribe(() => {
+    combineLatest([
+      this.identity.profileChange,
+      this.reload$
+    ]).subscribe(() => {
+
       this.loaddUIConfig()
         .pipe(
           tap(undefined, err => {
@@ -140,6 +150,7 @@ export class ConfigAPI {
           this.onChange.next(cfg);
           console.log(cfg);
         });
+
     });
   }
 

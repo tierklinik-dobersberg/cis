@@ -10,7 +10,7 @@ export interface PageHeader {
 
 export interface Breadcrump {
   name: string;
-  route: string;
+  route: string | string[];
 }
 
 @Injectable({

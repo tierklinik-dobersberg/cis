@@ -4,6 +4,7 @@ import { SettingViewComponent } from "./setting-view";
 
 const routes: Route[] = [
   { path: ':name', component: SettingViewComponent },
+  { path: ':name/:sid', component: SettingViewComponent },
 ]
 
 @NgModule({

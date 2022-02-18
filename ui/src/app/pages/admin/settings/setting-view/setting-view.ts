@@ -4,11 +4,10 @@ import { NgModel } from "@angular/forms";
 import { DomSanitizer } from "@angular/platform-browser";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NzMessageService } from "ng-zorro-antd/message";
-import { forkJoin, Observable, Subject, throwError } from "rxjs";
+import { forkJoin, Observable, of, Subject, throwError } from "rxjs";
 import { map, switchMap, takeUntil } from "rxjs/operators";
-import { Options } from "selenium-webdriver";
 import { ConfigAPI, OptionSpec, Schema, SchemaInstance, WellKnownAnnotations } from "src/app/api";
-import { HeaderTitleService } from "src/app/shared/header-title";
+import { Breadcrump, HeaderTitleService } from "src/app/shared/header-title";
 import { extractErrorMessage } from "src/app/utils";
 
 @Component({
@@ -32,7 +31,9 @@ export class SettingViewComponent implements OnInit, OnDestroy {
     [key: string]: SchemaInstance
   } | SchemaInstance = {};
 
-  singleModeID = '';
+  singleModeID: string | null = '';
+
+  singleMode = false;
 
   trackByKey: TrackByFunction<KeyValue<string, any>> = (_: number, kv: KeyValue<string, any>) => kv.key;
 
@@ -53,14 +54,10 @@ export class SettingViewComponent implements OnInit, OnDestroy {
 
     let stream: Observable<{warning?: string}>;
 
-    if (!this.schema.multi) {
-      if (!!this.singleModeID) {
-        stream = this.configAPI.updateSetting(this.schema.name, this.singleModeID, this.configs)
-      } else {
-        stream = this.configAPI.createSetting(this.schema.name, this.configs)
-      }
+    if (!!this.singleModeID) {
+      stream = this.configAPI.updateSetting(this.schema.name, this.singleModeID, this.configs)
     } else {
-      stream = throwError("not yet supported");
+      stream = this.configAPI.createSetting(this.schema.name, this.configs)
     }
 
     stream.subscribe({
@@ -70,6 +67,8 @@ export class SettingViewComponent implements OnInit, OnDestroy {
               } else {
                 this.nzMessageService.success("Einstellungen erfolgreich gespeichert")
               }
+
+              this.configAPI.reload();
             },
             error: err => this.nzMessageService.error(extractErrorMessage(err, "Fehler"))
           })
@@ -85,6 +84,9 @@ export class SettingViewComponent implements OnInit, OnDestroy {
               } else {
                 this.nzMessageService.success("Einstellungen erfolgreich gelöscht.")
               }
+
+              this.configAPI.reload();
+              this.router.navigate([".."], {relativeTo: this.route})
           },
           error: err => this.nzMessageService.error(extractErrorMessage(err, "Fehler"))
         })
@@ -95,11 +97,12 @@ export class SettingViewComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
       this.route.paramMap
         .pipe(
-          map(params => (params.get("name") || '').toLowerCase()),
-          switchMap(name => {
+          switchMap(params => {
+            let name = params.get("name").toLowerCase()
             return forkJoin({
               schema: this.configAPI.listSchemas().pipe(map(schemas => schemas.find(s => s.name.toLowerCase() === name))),
               settings: this.configAPI.getSettings(name),
+              params: of(params),
             })
           }),
           takeUntil(this.destroy$),
@@ -109,15 +112,6 @@ export class SettingViewComponent implements OnInit, OnDestroy {
             this.router.navigate(["/admin/settings"]);
             return;
           }
-
-          this.headerTitleService.set(
-            result.schema.displayName || result.schema.name,
-            '',
-            null,
-            [
-              {name: 'Administration', route: '/admin/'},
-            ]
-          )
 
           this.schema = result.schema;
           this.configs = result.settings;
@@ -137,8 +131,20 @@ export class SettingViewComponent implements OnInit, OnDestroy {
 
           // If this kind of configuration can only exist once make sure
           // we have an empty model to work with.
-          if (!this.schema.multi) {
-            this.singleModeID = Object.keys(result.settings)[0] || '';
+          const sid = result.params.get("sid")
+          if (!this.schema.multi || !!sid) {
+            this.singleMode = true;
+
+            if (!!sid) {
+              if (sid !== 'new') {
+                this.singleModeID = sid;
+              } else {
+                this.singleModeID = '';
+              }
+            } else {
+              this.singleModeID = Object.keys(result.settings)[0] || '';
+            }
+
             if (!!this.singleModeID) {
               this.configs = result.settings[this.singleModeID]
             } else {
@@ -147,6 +153,8 @@ export class SettingViewComponent implements OnInit, OnDestroy {
 
             this.originalValue = {...this.configs};
           } else {
+            this.singleMode = false;
+            this.singleModeID = null;
             this.originalValue = {}
             Object.keys(result.settings).forEach(key => {
               this.originalValue[key] = {
@@ -154,6 +162,24 @@ export class SettingViewComponent implements OnInit, OnDestroy {
               }
             })
           }
+
+          let breadcrumps: Breadcrump[] = [
+              {name: 'Administration', route: '/admin/'},
+          ]
+
+          if (this.singleMode && this.schema.multi) {
+            breadcrumps.push({
+              name: this.schema.displayName || this.schema.name, route: '/admin/settings/' + this.schema.name
+            })
+          }
+
+          this.headerTitleService.set(
+            result.schema.displayName || result.schema.name,
+            '',
+            null,
+            breadcrumps
+          );
+
           this.cdr.markForCheck();
         })
   }
