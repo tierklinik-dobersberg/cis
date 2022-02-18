@@ -3,6 +3,7 @@ package mongoprovider
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/runtime"
@@ -12,10 +13,10 @@ import (
 )
 
 type record struct {
-	ID string `bson:"_id"`
+	ID primitive.ObjectID `bson:"_id,omitempty"`
 
-	Key     string
-	Options []conf.Option
+	Key     string        `bson:"key"`
+	Options []conf.Option `bson:"options"`
 }
 
 // MongoProvider is a runtime.ConfigProvider that stores configuration
@@ -39,7 +40,7 @@ func New(cli *mongo.Client, dbName, colName string) *MongoProvider {
 // It returns the ID of the new record along with any encountered error.
 func (pr *MongoProvider) Create(ctx context.Context, sec conf.Section) (string, error) {
 	res, err := pr.collection.InsertOne(ctx, record{
-		Key:     sec.Name,
+		Key:     strings.ToLower(sec.Name),
 		Options: sec.Options,
 	})
 	if err != nil {
@@ -57,14 +58,16 @@ func (pr *MongoProvider) Update(ctx context.Context, id, secType string, opts []
 		return err
 	}
 
+	secType = strings.ToLower(secType)
+
 	res, err := pr.collection.ReplaceOne(
 		ctx,
 		bson.M{
 			"_id": oid,
-			"Key": secType,
+			"key": secType,
 		},
 		record{
-			ID:      id,
+			ID:      oid,
 			Key:     secType,
 			Options: opts,
 		},
@@ -99,7 +102,8 @@ func (pr *MongoProvider) Delete(ctx context.Context, id string) error {
 
 // Get a list of configuration objects of a given sectionType.
 func (pr *MongoProvider) Get(ctx context.Context, sectionType string) ([]runtime.Section, error) {
-	queryResult, err := pr.collection.Find(ctx, bson.M{"Key": sectionType})
+	sectionType = strings.ToLower(sectionType)
+	queryResult, err := pr.collection.Find(ctx, bson.M{"key": sectionType})
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +116,7 @@ func (pr *MongoProvider) Get(ctx context.Context, sectionType string) ([]runtime
 	var sections = make([]runtime.Section, len(result))
 	for idx, r := range result {
 		sections[idx] = runtime.Section{
-			ID: r.ID,
+			ID: r.ID.Hex(),
 			Section: conf.Section{
 				Name:    r.Key,
 				Options: r.Options,
@@ -143,7 +147,7 @@ func (pr *MongoProvider) GetID(ctx context.Context, id string) (runtime.Section,
 	}
 
 	return runtime.Section{
-		ID: r.ID,
+		ID: r.ID.Hex(),
 		Section: conf.Section{
 			Name:    r.Key,
 			Options: r.Options,
