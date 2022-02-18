@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, fo
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
 import { OptionSpec } from "src/app/api";
 
+export type NamedOptionSpec = OptionSpec & {displayName?: string};
 
 @Component({
   selector: 'tkd-option-spec-input',
@@ -20,7 +21,7 @@ export class TkdOptionSpecInputComponent implements ControlValueAccessor {
   index: string | number | null = null;
 
   @Input()
-  spec: OptionSpec | null = null;
+  spec: NamedOptionSpec | null = null;
 
   @Input()
   value: any;
