@@ -17,7 +17,7 @@
                 <th>Mail</th>
                 <th>Farbe</th>
 
-                <th *ngFor="let prop of userProps">{{prop.displayName || prop.name}}</th>
+                <th *ngFor="let prop of userProps">{{prop.DisplayName || prop.Name}}</th>
                 <th></th>
 
             </ng-container>
@@ -50,7 +50,7 @@
                             [style.color]="data.fontColor">{{data.color}}</span>
                     </td>
 
-                    <td *ngFor="let prop of userProps">{{ data?.properties[prop.name] || 'N/A' }}</td>
+                    <td *ngFor="let prop of userProps">{{ data?.properties[prop.Name] || 'N/A' }}</td>
                 </ng-container>
 
                 <td>
@@ -80,8 +80,8 @@
                 </li>
 
                 <ng-container *ngFor="let prop of userProps">
-                    <h3>{{ prop.displayName || prop.name }}</h3>
-                    <li>{{ data?.properties[prop.name] || 'N/A' }}</li>
+                    <h3>{{ prop.DisplayName || prop.Name }}</h3>
+                    <li>{{ data?.properties[prop.Name] || 'N/A' }}</li>
                 </ng-container>
             </tr>
         </ng-container>

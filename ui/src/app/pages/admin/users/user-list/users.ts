@@ -1,9 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { ConfigAPI, ProfileWithAvatar, UserProperty, UserService } from 'src/app/api';
+import { ConfigAPI, OptionSpec, ProfileWithAvatar, UserProperty, UserService } from 'src/app/api';
 import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
+import { NamedOptionSpec } from 'src/app/shared/option-spec-input';
 
 @Component({
   templateUrl: './users.html',
@@ -46,7 +47,7 @@ export class UserListComponent implements OnInit, OnDestroy {
       this.configapi.change
         .pipe(filter(cfg => !!cfg))
         .subscribe(cfg => {
-          this.userProps = (cfg.UserProperty || []).filter(prop => prop.visibility === 'public');
+          this.userProps = (cfg.UserProperty || []).filter(prop => prop.Visibility === 'public');
         })
     );
 

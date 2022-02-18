@@ -220,33 +220,12 @@
             <span>Einstellungen die den Kalender, Termine und Dienstpläne betreffen</span>
           </header>
           <div class="grid items-start grid-cols-1 gap-4 md:gap-6 lg:gap-8 lg:grid-cols-2">
-
-            <div class="flex flex-row space-x-4" *ngFor="let prop of userProperties; let index=index">
-              <span class="text-2xl text-color-primary-dark font-lato"
-                [class.text-opacity-light]="!properties[prop.name]">
-                {{ 7 + index }}.
-              </span>
-              <div class="flex flex-col flex-grow">
-                <span class="text-base font-medium font-lato">
-                  {{ prop.displayName || prop.name }}
-                </span>
-                <span class="text-sm text-secondary font-lato">
-                  {{ prop.description}}
-                </span>
-                <div class="flex items-center mt-3 space-x-2">
-                  <ng-container [ngSwitch]="prop.type">
-                    <input type="text" class="tkd-input" *ngSwitchCase="'string'" [(ngModel)]="properties[prop.name]">
-                    <tkd-string-slice-input *ngSwitchCase="'[]string'" [(ngModel)]="properties[prop.name]">
-                    </tkd-string-slice-input>
-                    <label *ngSwitchCase="'bool'" nz-checkbox [(ngModel)]="properties[prop.name]"></label>
-                  </ng-container>
-                </div>
-              </div>
-            </div>
+            <tkd-option-spec-input *ngFor="let prop of userProperties; let index=index" [spec]="prop" [index]="index + 7" [(ngModel)]="properties[prop.name]"></tkd-option-spec-input>
           </div>
         </div>
 
         <div class="tkd-card">
+
           <div class="flex flex-row items-center space-x-4">
             <span class="text-2xl text-color-primary-dark font-lato" [class.text-opacity-light]="!color"
               *ngIf="!editMode">

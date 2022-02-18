@@ -5,6 +5,7 @@ import { forkJoin, Observable, of, Subject } from "rxjs";
 import { catchError, debounceTime, filter, switchMap, take, takeUntil } from "rxjs/operators";
 import { Calendar, CalendarAPI, ConfigAPI, IdentityAPI, PasswordStrenght, Permission, Role, UserDetails, UserProperty, UserService } from "src/app/api";
 import { Breadcrump, HeaderTitleService } from "src/app/shared/header-title";
+import { NamedOptionSpec } from "src/app/shared/option-spec-input";
 import { extractErrorMessage } from "src/app/utils";
 import { getOperations } from "../permissions-view";
 
@@ -30,8 +31,8 @@ const ScoreColors = [
 ];
 
 const breadcrumps: Breadcrump[] = [
-  {name: 'Administration', route: '/admin/'},
-  {name: 'Benutzer', route: '/admin/identity/users/'},
+  { name: 'Administration', route: '/admin/' },
+  { name: 'Benutzer', route: '/admin/identity/users/' },
 ]
 
 @Component({
@@ -55,9 +56,9 @@ export class CreateUserComponent implements OnInit, OnDestroy {
   color = '';
   createCalendar = false;
   needsPasswortChange = false;
-  userProperties: UserProperty[] = [];
+  userProperties: NamedOptionSpec[] = [];
 
-  properties: {[key: string]: any} = {};
+  properties: { [key: string]: any } = {};
 
   availableRoles: Role[] = [];
   availableCalendars: Calendar[] = [];
@@ -75,7 +76,7 @@ export class CreateUserComponent implements OnInit, OnDestroy {
     repeat: '',
   }
 
-  trackIndex: TrackByFunction<string> = (idx, _ ) => idx;
+  trackIndex: TrackByFunction<string> = (idx, _) => idx;
 
   private iterableDifferFactory: IterableDifferFactory;
 
@@ -117,7 +118,20 @@ export class CreateUserComponent implements OnInit, OnDestroy {
         filter(cfg => !!cfg),
         take(1),
       )
-      .subscribe(cfg => this.userProperties = cfg.UserProperty || []);
+      .subscribe(cfg => {
+        this.userProperties = (cfg.UserProperty || [])
+          .map(spec => {
+            return {
+              name: spec.Name,
+              default: spec.Default,
+              description: spec.Description,
+              displayName: spec.DisplayName,
+              required: spec.Required,
+              type: spec.Type,
+              annotations: spec.Annotations,
+            }
+          })
+      });
 
     if (this.editMode) {
       this.identityapi.getUser(this.name)
@@ -283,11 +297,11 @@ export class CreateUserComponent implements OnInit, OnDestroy {
   }
 
   createUser() {
-    let createUser$: Observable<{password: string, avatarError?: any}> =
-    this.identityapi.createUser({
-      ...this.getProfile(),
-      password: this.password || undefined,
-    });
+    let createUser$: Observable<{ password: string, avatarError?: any }> =
+      this.identityapi.createUser({
+        ...this.getProfile(),
+        password: this.password || undefined,
+      });
 
     if (!!this.file) {
       createUser$ = createUser$.pipe(
@@ -313,7 +327,7 @@ export class CreateUserComponent implements OnInit, OnDestroy {
           this.password = result.password;
           this.showGeneratedPasswordModal = true;
         } else {
-          this.nzMessageService.success(`${this.fullname || this.name} wurde erfolgreich erstellt.` )
+          this.nzMessageService.success(`${this.fullname || this.name} wurde erfolgreich erstellt.`)
           this.router.navigate(['/admin/identity/users/edit', this.name]);
         }
 
