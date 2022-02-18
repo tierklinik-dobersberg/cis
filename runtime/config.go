@@ -243,12 +243,12 @@ func (schema *ConfigSchema) DecodeSection(ctx context.Context, section string, t
 	return conf.DecodeSections(s, spec, target)
 }
 
-// SetFileProvider sets the parsed configuration file for the schema.
-func (schema *ConfigSchema) SetFileProvider(file *conf.File) {
+// SetProvider sets the parsed configuration file for the schema.
+func (schema *ConfigSchema) SetProvider(provider ConfigProvider) {
 	schema.providerLock.Lock()
 	defer schema.providerLock.Unlock()
 
-	schema.provider = &FileProvider{File: file}
+	schema.provider = provider
 }
 
 func (schema *ConfigSchema) GetID(ctx context.Context, id string) (Section, error) {

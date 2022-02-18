@@ -1,4 +1,4 @@
-package runtime
+package fileprovider
 
 import (
 	"context"
@@ -7,34 +7,41 @@ import (
 	"strings"
 
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/runtime"
 )
 
 type FileProvider struct {
 	File *conf.File
 }
 
+// New creates a new runtime.ConfigProvider using data stored in
+// cfgFile.
+func New(cfgFile *conf.File) *FileProvider {
+	return &FileProvider{File: cfgFile}
+}
+
 func (cfg *FileProvider) Create(ctx context.Context, sec conf.Section) (string, error) {
-	return "", ErrReadOnly
+	return "", runtime.ErrReadOnly
 }
 
 func (cfg *FileProvider) Update(ctx context.Context, id, secType string, opts []conf.Option) error {
-	return ErrReadOnly
+	return runtime.ErrReadOnly
 }
 
 func (cfg *FileProvider) Delete(ctx context.Context, id string) error {
-	return ErrReadOnly
+	return runtime.ErrReadOnly
 }
 
-func (cfg *FileProvider) Get(ctx context.Context, sectionType string) ([]Section, error) {
+func (cfg *FileProvider) Get(ctx context.Context, sectionType string) ([]runtime.Section, error) {
 	sections := cfg.File.GetAll(sectionType)
 	if len(sections) == 0 {
-		return []Section{}, nil
+		return []runtime.Section{}, nil
 	}
 
-	result := make([]Section, len(sections))
+	result := make([]runtime.Section, len(sections))
 
 	for idx, sec := range sections {
-		result[idx] = Section{
+		result[idx] = runtime.Section{
 			ID:      cfg.makeKey(sectionType, idx),
 			Section: sec,
 		}
@@ -43,18 +50,18 @@ func (cfg *FileProvider) Get(ctx context.Context, sectionType string) ([]Section
 	return result, nil
 }
 
-func (cfg *FileProvider) GetID(ctx context.Context, id string) (Section, error) {
+func (cfg *FileProvider) GetID(ctx context.Context, id string) (runtime.Section, error) {
 	secType, idx, err := cfg.parseKey(id)
 	if err != nil {
-		return Section{}, err
+		return runtime.Section{}, err
 	}
 
 	sections := cfg.File.GetAll(secType)
 	if len(sections) <= idx {
-		return Section{}, ErrCfgSectionNotFound
+		return runtime.Section{}, runtime.ErrCfgSectionNotFound
 	}
 
-	return Section{
+	return runtime.Section{
 		ID:      id,
 		Section: sections[idx],
 	}, nil
