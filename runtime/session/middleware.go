@@ -261,6 +261,14 @@ func (mng *Manager) getAccessToken(ctx context.Context, c echo.Context) (*jwt.Cl
 		return nil, nil, err
 	}
 
+	// skip tokens that don't have our app metadata tag or that use
+	// an old token version.
+	// This can be useful to immediately revoke an active token
+	// by increasing the token version
+	if claims.AppMetadata == nil || claims.AppMetadata.TokenVersion != CurrentTokenVersion {
+		return nil, nil, nil
+	}
+
 	if hasScope(claims.Scopes, jwt.ScopeAccess) {
 		user, err := mng.GetUser(ctx, claims.Subject)
 		if err != nil {
@@ -283,6 +291,14 @@ func (mng *Manager) getRefreshToken(ctx context.Context, c echo.Context) (*jwt.C
 	claims, err := mng.VerifyUserToken(tokenValue)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	// skip tokens that don't have our app metadata tag or that use
+	// an old token version.
+	// This can be useful to immediately revoke an active token
+	// by increasing the token version
+	if claims.AppMetadata == nil || claims.AppMetadata.TokenVersion != CurrentTokenVersion {
+		return nil, nil, nil
 	}
 
 	if hasScope(claims.Scopes, jwt.ScopeRefresh) {

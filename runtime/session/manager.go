@@ -15,6 +15,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
 
+const CurrentTokenVersion = "1"
+
 // Manager takes care of session management.
 type Manager struct {
 	UserProvider
@@ -238,6 +240,7 @@ func (mng *Manager) CreateUserToken(user v1alpha.User, ttl time.Duration, scopes
 		ExpiresAt: time.Now().Add(ttl).Unix(),
 		NotBefore: time.Now().Unix(),
 		AppMetadata: &jwt.AppMetadata{
+			TokenVersion: CurrentTokenVersion,
 			Authorization: &jwt.Authorization{
 				Roles: user.Roles,
 			},
