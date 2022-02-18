@@ -1,9 +1,8 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { NzMessageRef, NzMessageService } from 'ng-zorro-antd/message';
-import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
-import { catchError, delay, map, retryWhen, tap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, Observable, throwError, timer } from 'rxjs';
+import { delayWhen, filter, map, retryWhen } from 'rxjs/operators';
 import { IdentityAPI } from './identity.api';
 
 export interface ExternalLink {
@@ -118,21 +117,27 @@ export class ConfigAPI {
 
     let loading: NzMessageRef | null = null;
     combineLatest([
-      this.identity.profileChange,
+      this.identity.profileChange
+        .pipe(filter(profile => !!profile)),
       this.reload$
     ]).subscribe(() => {
-
       this.loaddUIConfig()
         .pipe(
-          tap(undefined, err => {
-            if (!!loading) {
-              return;
-            }
+          retryWhen(errors => {
+            return errors.pipe(
+              delayWhen(err => {
+                if (!(err instanceof HttpErrorResponse) || err.status !== 401) {
+                  if (!loading) {
+                    loading = this.nzMessageService.loading("Trying to load configuration")
+                  }
+                  return timer(2000)
+                }
 
-            loading = this.nzMessageService.loading("Trying to load configuration")
-          }),
-          retryWhen(d => {
-            return d.pipe(delay(2000));
+                // this is an access denied error so abort now and wait for the next
+                // profileChange event
+                return throwError("access denied")
+              })
+            );
           })
         )
         .subscribe(cfg => {
@@ -149,7 +154,7 @@ export class ConfigAPI {
           // changes.
           this.onChange.next(cfg);
           console.log(cfg);
-        });
+        }, err => {});
 
     });
   }
