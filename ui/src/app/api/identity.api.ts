@@ -117,7 +117,7 @@ export interface Token extends JWTToken {
 }
 
 // TODO(ppacher): move to ui.conf and load from API
-const tokenThreshold = 48 * 60 * 60 * 1000;
+const tokenThreshold = 30 * 1000;
 
 @Injectable({
   providedIn: 'root'
@@ -136,7 +136,7 @@ export class IdentityAPI {
   constructor(
     private http: HttpClient,
   ) {
-    interval(60 * 1000)
+    interval(10 * 1000)
       .pipe(
         startWith(-1),
         filter(() => {
