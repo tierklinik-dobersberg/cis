@@ -33,7 +33,6 @@ var AccountSpec = conf.SectionSpec{
 	},
 	{
 		Name:        "Port",
-		Required:    true,
 		Default:     "587",
 		Description: "The port of the outgoing mail server",
 		Type:        conf.IntType,
