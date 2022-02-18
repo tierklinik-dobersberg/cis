@@ -1,6 +1,6 @@
 <div class="flex flex-row space-x-2"
-  *ngFor="let entry of value; trackBy: trackByIndex; let index=index; let last=last">
-  <input type="text" class="self-center tkd-input h-fit" [(ngModel)]="value[index]" (blur)="_onBlur()" (ngModelChange)="_onChanged(value)">
+  *ngFor="let entry of value; trackBy: trackByIndex; let index=index; let last=last; let first=first">
+  <input type="text" [attr.placeholder]="first ? placeholder : null" class="self-center tkd-input h-fit" [(ngModel)]="value[index]" (blur)="_onBlur()" (ngModelChange)="_onChanged(value)">
   <button class="tkd-icon-btn tkd-small tkd-secondary no-shadow" [nz-tooltip]="tooltip"
     nzTooltipPlacement="'right'" [ngClass]="{'opacity-0 pointer-events-none': !last}" (click)="addEntry()">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">

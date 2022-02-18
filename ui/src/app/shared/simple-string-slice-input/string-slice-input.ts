@@ -24,6 +24,9 @@ export class TkdStringSliceInputComponent implements ControlValueAccessor {
   tooltip: string | null = null;
 
   @Input()
+  placeholder: string | null = null;
+
+  @Input()
   set value(v: string[]) {
     if (!v || v.length === 0) {
       v = [''];
