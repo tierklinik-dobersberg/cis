@@ -24,9 +24,6 @@ var eventTriggerSpec = conf.SectionSpec{
 func AddTriggerType(name string, reg *trigger.Registry) error {
 	return reg.RegisterType(name, &trigger.Type{
 		OptionRegistry: confutil.MultiOptionRegistry{
-			// Within the trigger file all stanzas for the account
-			// are optional.
-			confutil.MakeOptional(AccountSpec),
 			MessageSpec,
 			eventTriggerSpec,
 		},
@@ -36,32 +33,14 @@ func AddTriggerType(name string, reg *trigger.Registry) error {
 				MessageSpec,
 			}
 			// Decode the Message and eventHandlerSpec into ev
-			var ev = new(EventHandler)
+			var ev = &EventHandler{
+				cs: globalCfg,
+			}
 			if err := conf.DecodeSections([]conf.Section{*s}, spec, ev); err != nil {
 				return nil, fmt.Errorf("failed to parse section: %w", err)
 			}
 
 			ev.Message.TemplateFile = confutil.AbsConfig(ev.Message.TemplateFile)
-
-			// detect the twilio account configuration. if AccountSid is defined
-			// in the Twilio trigger section we'll use that one. If not, we'll
-			// try to use the global one.
-			var acc Account
-			if _, err := s.GetString("AccountSid"); err == nil {
-				if err := conf.DecodeSections([]conf.Section{*s}, AccountSpec, &acc); err != nil {
-					return nil, fmt.Errorf("failed to decode twilio account settings: %w", err)
-				}
-			} else {
-				if err := globalCfg.DecodeSection(ctx, "Twilio", &acc); err != nil {
-					return nil, fmt.Errorf("failed to decode global twilio account section: %w", err)
-				}
-			}
-
-			sender, err := New(acc)
-			if err != nil {
-				return nil, fmt.Errorf("account: %w", err)
-			}
-			ev.sender = sender
 
 			return ev, nil
 		},
@@ -71,15 +50,25 @@ func AddTriggerType(name string, reg *trigger.Registry) error {
 type EventHandler struct {
 	AcceptBuffered bool
 	Message
-	sender SMSSender
+	cs *runtime.ConfigSchema
 }
 
 func (ev *EventHandler) HandleEvents(ctx context.Context, evts ...*event.Event) error {
 	log := log.From(ctx)
 	errors := new(multierr.Error)
 
+	var acc Account
+	if err := ev.cs.DecodeSection(ctx, "Twilio", &acc); err != nil {
+		return fmt.Errorf("failed to get twilio configuration: %w", err)
+	}
+
+	sender, err := New(acc)
+	if err != nil {
+		return fmt.Errorf("failed to create twilio sender from configuration: %w", err)
+	}
+
 	if ev.AcceptBuffered {
-		if err := ev.sender.Send(ctx, ev.Message, evts); err != nil {
+		if err := sender.Send(ctx, ev.Message, evts); err != nil {
 			errors.Add(err)
 			log.Errorf("failed to send SMS: %s", err)
 		}
@@ -87,7 +76,7 @@ func (ev *EventHandler) HandleEvents(ctx context.Context, evts ...*event.Event) 
 	}
 
 	for _, evt := range evts {
-		if err := ev.sender.Send(ctx, ev.Message, evt); err != nil {
+		if err := sender.Send(ctx, ev.Message, evt); err != nil {
 			errors.Add(err)
 			log.Errorf("failed to send SMS: %s", err)
 		}
