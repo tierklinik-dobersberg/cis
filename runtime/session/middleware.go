@@ -4,9 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"net/http/httputil"
 	"strings"
 	"time"
 
@@ -41,33 +39,25 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		ctx, sp := otel.Tracer("").Start(c.Request().Context(), "session.Middleware")
 		defer sp.End()
 
+		//
 		// get access and refresh tokens
+		// we only log errors here since the user of the token might
+		// have been deleted and returning and error here will block
+		// the user from authenticating using a different user.
 		//
 		accessToken, accessUser, err := mng.getAccessToken(ctx, c)
 		if err != nil {
 			log.V(3).Logf("failed to get access token: %s", err)
-			return err
 		}
 		refreshToken, refreshUser, err := mng.getRefreshToken(ctx, c)
 		if err != nil {
 			log.V(3).Logf("failed to get refresh token: %s", err)
-			return err
 		}
 
 		// if there's neither a refresh nor an access token we'll
 		// skip it.
 		if refreshToken == nil && accessToken == nil {
 			log.V(3).Log("unauthenticated request: no access or refresh token provided")
-
-			reqBlob, err := httputil.DumpRequest(c.Request(), true)
-			if err != nil {
-				log.Errorf("failed to dump request: %s", err)
-				return err
-			}
-			if err := ioutil.WriteFile("/log/request.dump", reqBlob, 0600); err != nil {
-				log.Errorf("failed to dump request: %s", err)
-			}
-
 			return next(c)
 		}
 
@@ -86,9 +76,9 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		if user == nil {
 			log.V(3).Log("request denied: failed to find user for token")
-			return httperr.InternalError().SetInternal(
-				fmt.Errorf("failed to find user for token"),
-			)
+			sp.RecordError(fmt.Errorf("failed to find user for access/refresh token"))
+
+			return next(c)
 		}
 
 		if user.Disabled != nil && *user.Disabled {

@@ -82,7 +82,7 @@ var IdentityConfigSpec = conf.SectionSpec{
 		Name:        "RefreshTokenTTL",
 		Description: "Duration a refresh token is considered valid",
 		Type:        conf.DurationType,
-		Default:     "24h",
+		Default:     "720h", // 30 days
 	},
 	{
 		Name:        "SessionIDCookie",
