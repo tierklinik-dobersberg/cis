@@ -16,7 +16,13 @@ func setupServer(ctx context.Context, app *app.App) (*echo.Echo, error) {
 	engine := echo.New()
 
 	engine.Use(
-		middleware.Logger(),
+		middleware.LoggerWithConfig(middleware.LoggerConfig{
+			Skipper: func(c echo.Context) bool {
+				// skip the health-check endpoint because it creates a lot of traces
+				// but does not provide any real value ...
+				return c.Path() == "/api/"
+			},
+		}),
 		middleware.Recover(),
 	)
 
