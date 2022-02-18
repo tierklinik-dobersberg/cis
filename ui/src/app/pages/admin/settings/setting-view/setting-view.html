@@ -19,7 +19,7 @@
 
   <div class="flex flex-row space-x-3">
 
-    <ng-container *ngIf="!schema.multi">
+    <ng-container *ngIf="singleMode">
       <button class="tkd-icon-btn tkd-primary tkd-small" (click)="saveSetting()" [disabled]="!singleValueModel?.dirty">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
           nz-tooltip="Speichern">
@@ -36,11 +36,19 @@
       </button>
     </ng-container>
 
+    <ng-container *ngIf="!singleMode">
+      <button class="tkd-icon-btn tkd-primary" nz-tooltip="Neuen Eintrag erstellen" [routerLink]="['new']">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+      </button>
+    </ng-container>
+
   </div>
 </div>
 
 <ng-container *ngIf="!!schema">
-  <ng-container *ngIf="schema.multi; else: singleSettingView">
+  <ng-container *ngIf="!singleMode; else: singleSettingView">
 
     <nz-table #configTable [nzData]="configs | keyvalue" class="bg-white rounded shadow">
       <thead>
@@ -56,7 +64,11 @@
             {{ data.value[spec.name] || 'N/A' }}
           </td>
           <td>
-            <!-- add actions -->
+            <button class="tkd-icon-btn tkd-small tkd-secondary no-shadow" [routerLink]="[data.key]">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
           </td>
         </tr>
       </tbody>
