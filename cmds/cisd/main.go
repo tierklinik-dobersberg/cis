@@ -64,6 +64,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
 	"github.com/tierklinik-dobersberg/cis/runtime/configprovider/fileprovider"
+	"github.com/tierklinik-dobersberg/cis/runtime/configprovider/mongoprovider"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
 	"github.com/tierklinik-dobersberg/cis/runtime/schema"
@@ -244,6 +245,10 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 			logger.Fatalf(ctx, "failed to validate runtime configuration: %s", err)
 		}
 		runtime.GlobalSchema.SetProvider(fileprovider.New(cfgFile))
+
+	case "mongo":
+		runtime.GlobalSchema.SetProvider(mongoprovider.New(mongoClient, cfg.DatabaseName, "config"))
+
 	default:
 		logger.Fatalf(ctx, "invalid configuration provider: %s", cfg.ConfigProvider)
 	}
