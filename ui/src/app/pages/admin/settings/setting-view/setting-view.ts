@@ -4,7 +4,7 @@ import { NgModel } from "@angular/forms";
 import { DomSanitizer } from "@angular/platform-browser";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NzMessageService } from "ng-zorro-antd/message";
-import { forkJoin, Observable, of, Subject, throwError } from "rxjs";
+import { BehaviorSubject, combineLatest, forkJoin, Observable, of, Subject, throwError } from "rxjs";
 import { map, switchMap, takeUntil } from "rxjs/operators";
 import { ConfigAPI, OptionSpec, Schema, SchemaInstance, WellKnownAnnotations } from "src/app/api";
 import { Breadcrump, HeaderTitleService } from "src/app/shared/header-title";
@@ -16,8 +16,9 @@ import { extractErrorMessage } from "src/app/utils";
 })
 export class SettingViewComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();
+  private reload$ = new BehaviorSubject<void>(undefined);
 
-  @ViewChild('singleValueModel', {static: false, read: NgModel})
+  @ViewChild('singleValueModel', { static: false, read: NgModel })
   singleValueModel: NgModel | null = null;
 
   tableKeys: OptionSpec[] = [];
@@ -45,14 +46,14 @@ export class SettingViewComponent implements OnInit, OnDestroy {
     private nzMessageService: NzMessageService,
     private cdr: ChangeDetectorRef,
     public domSanitizer: DomSanitizer,
-  ) {}
+  ) { }
 
   saveSetting() {
     if (!this.schema) {
       return;
     }
 
-    let stream: Observable<{warning?: string}>;
+    let stream: Observable<{ warning?: string }>;
 
     if (!!this.singleModeID) {
       stream = this.configAPI.updateSetting(this.schema.name, this.singleModeID, this.configs)
@@ -61,17 +62,22 @@ export class SettingViewComponent implements OnInit, OnDestroy {
     }
 
     stream.subscribe({
-            next: res => {
-              if (!!res.warning) {
-                this.nzMessageService.warning(res.warning)
-              } else {
-                this.nzMessageService.success("Einstellungen erfolgreich gespeichert")
-              }
+      next: res => {
+        if (!!res.warning) {
+          this.nzMessageService.warning(res.warning)
+        } else {
+          this.nzMessageService.success("Einstellungen erfolgreich gespeichert")
+        }
 
-              this.configAPI.reload();
-            },
-            error: err => this.nzMessageService.error(extractErrorMessage(err, "Fehler"))
-          })
+        this.configAPI.reload();
+        if (this.schema.multi) {
+          this.router.navigate([".."], { relativeTo: this.route });
+        } else {
+          this.reload$.next();
+        }
+      },
+      error: err => this.nzMessageService.error(extractErrorMessage(err, "Fehler"))
+    })
   }
 
   deleteSetting(id?: string) {
@@ -79,14 +85,18 @@ export class SettingViewComponent implements OnInit, OnDestroy {
       this.configAPI.deleteSetting(this.schema!.name, this.singleModeID)
         .subscribe({
           next: res => {
-              if (!!res.warning) {
-                this.nzMessageService.warning(res.warning)
-              } else {
-                this.nzMessageService.success("Einstellungen erfolgreich gelöscht.")
-              }
+            if (!!res.warning) {
+              this.nzMessageService.warning(res.warning)
+            } else {
+              this.nzMessageService.success("Einstellungen erfolgreich gelöscht.")
+            }
 
-              this.configAPI.reload();
-              this.router.navigate([".."], {relativeTo: this.route})
+            this.configAPI.reload();
+            if (this.schema.multi) {
+              this.router.navigate([".."], { relativeTo: this.route })
+            } else {
+              this.reload$.next();
+            }
           },
           error: err => this.nzMessageService.error(extractErrorMessage(err, "Fehler"))
         })
@@ -95,97 +105,101 @@ export class SettingViewComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-      this.route.paramMap
-        .pipe(
-          switchMap(params => {
-            let name = params.get("name").toLowerCase()
-            return forkJoin({
-              schema: this.configAPI.listSchemas().pipe(map(schemas => schemas.find(s => s.name.toLowerCase() === name))),
-              settings: this.configAPI.getSettings(name),
-              params: of(params),
-            })
-          }),
-          takeUntil(this.destroy$),
-        )
-        .subscribe(result => {
-          if (!result.schema) {
-            this.router.navigate(["/admin/settings"]);
-            return;
-          }
+    combineLatest([
+      this.route.paramMap,
+      this.reload$,
+    ])
+      .pipe(
+        switchMap(([params]) => {
+          let name = params.get("name").toLowerCase()
+          return forkJoin({
+            schema: this.configAPI.listSchemas().pipe(map(schemas => schemas.find(s => s.name.toLowerCase() === name))),
+            settings: this.configAPI.getSettings(name),
+            params: of(params),
+          })
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe(result => {
+        if (!result.schema) {
+          this.router.navigate(["/admin/settings"]);
+          return;
+        }
 
-          this.schema = result.schema;
-          this.configs = result.settings;
+        this.schema = result.schema;
+        this.configs = result.settings;
 
-          let specs = new Map<string, OptionSpec>();
-          this.schema.options.forEach(val => specs.set(val.name, val));
+        let specs = new Map<string, OptionSpec>();
+        this.schema.options.forEach(val => specs.set(val.name, val));
 
-          if (this.schema.annotations && this.schema.annotations[WellKnownAnnotations.OverviewFields]) {
-            this.tableKeys = [];
-            (this.schema.annotations[WellKnownAnnotations.OverviewFields] || []).forEach(key => {
-              const s = specs.get(key);
-              if (!!s) {
-                this.tableKeys.push(s)
-              }
-            })
-          }
-
-          // If this kind of configuration can only exist once make sure
-          // we have an empty model to work with.
-          const sid = result.params.get("sid")
-          if (!this.schema.multi || !!sid) {
-            this.singleMode = true;
-
-            if (!!sid) {
-              if (sid !== 'new') {
-                this.singleModeID = sid;
-              } else {
-                this.singleModeID = '';
-              }
-            } else {
-              this.singleModeID = Object.keys(result.settings)[0] || '';
+        if (this.schema.annotations && this.schema.annotations[WellKnownAnnotations.OverviewFields]) {
+          this.tableKeys = [];
+          (this.schema.annotations[WellKnownAnnotations.OverviewFields] || []).forEach(key => {
+            const s = specs.get(key);
+            if (!!s) {
+              this.tableKeys.push(s)
             }
+          })
+        }
 
-            if (!!this.singleModeID) {
-              this.configs = result.settings[this.singleModeID]
+        // If this kind of configuration can only exist once make sure
+        // we have an empty model to work with.
+        const sid = result.params.get("sid")
+        if (!this.schema.multi || !!sid) {
+          this.singleMode = true;
+
+          if (!!sid) {
+            if (sid !== 'new') {
+              this.singleModeID = sid;
             } else {
-              this.configs = {};
+              this.singleModeID = '';
             }
-
-            this.originalValue = {...this.configs};
           } else {
-            this.singleMode = false;
-            this.singleModeID = null;
-            this.originalValue = {}
-            Object.keys(result.settings).forEach(key => {
-              this.originalValue[key] = {
-                ...result.settings[key],
-              }
-            })
+            this.singleModeID = Object.keys(result.settings)[0] || '';
           }
 
-          let breadcrumps: Breadcrump[] = [
-              {name: 'Administration', route: '/admin/'},
-          ]
-
-          if (this.singleMode && this.schema.multi) {
-            breadcrumps.push({
-              name: this.schema.displayName || this.schema.name, route: '/admin/settings/' + this.schema.name
-            })
+          if (!!this.singleModeID) {
+            this.configs = result.settings[this.singleModeID]
+          } else {
+            this.configs = {};
           }
 
-          this.headerTitleService.set(
-            result.schema.displayName || result.schema.name,
-            '',
-            null,
-            breadcrumps
-          );
+          this.originalValue = { ...this.configs };
+        } else {
+          this.singleMode = false;
+          this.singleModeID = null;
+          this.originalValue = {}
+          Object.keys(result.settings).forEach(key => {
+            this.originalValue[key] = {
+              ...result.settings[key],
+            }
+          })
+        }
 
-          this.cdr.markForCheck();
-        })
+        let breadcrumps: Breadcrump[] = [
+          { name: 'Administration', route: '/admin/' },
+        ]
+
+        if (this.singleMode && this.schema.multi) {
+          breadcrumps.push({
+            name: this.schema.displayName || this.schema.name, route: '/admin/settings/' + this.schema.name
+          })
+        }
+
+        this.headerTitleService.set(
+          result.schema.displayName || result.schema.name,
+          '',
+          null,
+          breadcrumps
+        );
+
+        this.cdr.markForCheck();
+      })
   }
 
   ngOnDestroy(): void {
-      this.destroy$.next();
-      this.destroy$.complete();
+    this.reload$.complete();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
