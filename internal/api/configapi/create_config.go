@@ -52,8 +52,14 @@ func CreateConfigEndpoint(r *app.Router) {
 				options = append(options, opts...)
 			}
 
-			// validate the options against the spec
-			if err := conf.ValidateOptions(options, spec); err != nil {
+			section := conf.Section{
+				Name:    key,
+				Options: options,
+			}
+
+			// apply defaults and validate the options against the spec
+			sec, err := conf.Prepare(section, spec)
+			if err != nil {
 				return httperr.BadRequest(echo.Map{
 					"error": err.Error(),
 				}).SetInternal(err)
@@ -61,7 +67,7 @@ func CreateConfigEndpoint(r *app.Router) {
 
 			// finally, try to create it
 			var warning string
-			id, err := runtime.GlobalSchema.Create(ctx, key, options)
+			id, err := runtime.GlobalSchema.Create(ctx, key, sec.Options)
 			if err != nil {
 				warning, err = handleRuntimeError(err)
 				if err != nil {
