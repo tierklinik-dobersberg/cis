@@ -47,9 +47,17 @@ export interface OptionSpec {
   }
 }
 
-export interface UserProperty extends OptionSpec {
-  visibility: string;
-  displayName?: string;
+export interface UserProperty {
+  Visibility: string;
+  DisplayName?: string;
+  Name: string;
+  Description: string;
+  Type: string;
+  Required: boolean;
+  Default: string;
+  Annotations?: {
+    [key: string]: any;
+  }
 }
 
 export interface QuickRosterOverwrite {
