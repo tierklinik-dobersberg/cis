@@ -3,6 +3,7 @@ import { EventEmitter, ChangeDetectionStrategy, Component, forwardRef, Input, Ou
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
 
 @Component({
+  /* eslint '@angular-eslint/component-selector': 'off' */
   selector: 'tkd-string-slice-input',
   templateUrl: './string-slice-input.html',
   styleUrls: ['./string-slice-input.scss'],
