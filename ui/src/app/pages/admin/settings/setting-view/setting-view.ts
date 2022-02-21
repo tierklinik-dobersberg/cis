@@ -153,9 +153,10 @@ export class SettingViewComponent implements OnInit, OnDestroy {
         let specs = new Map<string, OptionSpec>();
         this.schema.options.forEach(val => specs.set(val.name, val));
 
-        if (this.schema.annotations && this.schema.annotations[WellKnownAnnotations.OverviewFields]) {
+        const overviewFieldAnnotation = this.configAPI.getAnnotation(this.schema, WellKnownAnnotations.OverviewFields) || [];
+        if (!!overviewFieldAnnotation) {
           this.tableKeys = [];
-          (this.schema.annotations[WellKnownAnnotations.OverviewFields] || []).forEach(key => {
+          overviewFieldAnnotation.forEach(key => {
             const s = specs.get(key);
             if (!!s) {
               this.tableKeys.push(s)

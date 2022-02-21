@@ -1,7 +1,7 @@
 import { coerceBooleanProperty } from "@angular/cdk/coercion";
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, forwardRef, Input, Output } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, forwardRef, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
-import { OptionSpec } from "src/app/api";
+import { ConfigAPI, OptionSpec, WellKnownAnnotations } from "src/app/api";
 
 export type NamedOptionSpec = OptionSpec & {displayName?: string};
 
@@ -14,7 +14,7 @@ export type NamedOptionSpec = OptionSpec & {displayName?: string};
     {provide: NG_VALUE_ACCESSOR, multi: true, useExisting: forwardRef(() => TkdOptionSpecInputComponent)}
   ]
 })
-export class TkdOptionSpecInputComponent implements ControlValueAccessor {
+export class TkdOptionSpecInputComponent implements ControlValueAccessor, OnChanges {
   private _disabled = false;
 
   @Input()
@@ -29,6 +29,8 @@ export class TkdOptionSpecInputComponent implements ControlValueAccessor {
   @Output()
   valueChange = new EventEmitter<any>();
 
+  isSecret = false;
+
   @Input()
   set disabled(v: any) {
     this.setDisabledState(coerceBooleanProperty(v))
@@ -36,8 +38,15 @@ export class TkdOptionSpecInputComponent implements ControlValueAccessor {
   get disabled() { return this._disabled };
 
   constructor(
-    private cdr: ChangeDetectorRef
+    private configapi: ConfigAPI,
+    private cdr: ChangeDetectorRef,
   ) {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if ('spec' in changes) {
+      this.isSecret = this.configapi.hasAnnotation(changes.spec.currentValue, WellKnownAnnotations.Secret);
+    }
+  }
 
   writeValue(obj: any): void {
     this.value = obj;

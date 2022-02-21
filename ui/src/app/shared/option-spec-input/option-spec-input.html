@@ -11,7 +11,7 @@
   <div class="mt-3">
     <div class="flex items-center mt-3 space-x-2 ">
       <ng-container [ngSwitch]="spec.type">
-        <input type="text" [attr.placeholder]="spec.default" class="flex-grow tkd-input" *ngSwitchCase="'string'" [(ngModel)]="value" (ngModelChange)="_onChanged($event)" (blur)="_onBlur()">
+        <input [type]="isSecret ? 'password' : 'text'" [attr.placeholder]="spec.default" class="flex-grow tkd-input" *ngSwitchCase="'string'" [(ngModel)]="value" (ngModelChange)="_onChanged($event)" (blur)="_onBlur()">
         <tkd-string-slice-input class="flex-grow" [placeholder]="spec.default"  *ngSwitchCase="'[]string'" [(ngModel)]="value"  (ngModelChange)="_onChanged($event)" (blur)="_onBlur()">
         </tkd-string-slice-input>
         <label *ngSwitchCase="'bool'" class="flex-grow" nz-checkbox [(ngModel)]="value" (ngModelChange)="_onChanged($event)" (blur)="_onBlur()">Enabled</label>

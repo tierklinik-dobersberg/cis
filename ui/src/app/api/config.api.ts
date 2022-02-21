@@ -19,7 +19,7 @@ export enum WellKnownAnnotations {
   OverviewFields = "vet.dobersberg.cis:schema/overviewFields"
 }
 
-export interface Schema {
+export interface Schema  extends Annotated {
   name: string;
   displayName: string;
   description: string;
@@ -27,9 +27,6 @@ export interface Schema {
   category: string;
   multi: boolean;
   options: OptionSpec[];
-  annotations?: {
-    [key: string]: any;
-  }
   tests?: ConfigTest[];
 }
 
@@ -43,13 +40,16 @@ export interface SchemaInstance {
   [key: string]: any;
 }
 
-export interface OptionSpec {
+export interface OptionSpec extends Annotated {
   name: string;
   description: string;
   type: string;
   required: boolean;
   default: string;
-  annotations?: {
+}
+
+export interface Annotated {
+  annotation?: {
     [key: string]: any;
   }
 }
@@ -185,6 +185,17 @@ export class ConfigAPI {
         .append("keys", "Roster")
         .append("keys", "UserProperty")
     });
+  }
+
+  hasAnnotation(obj: Annotated, annotationKey: WellKnownAnnotations): boolean {
+    return !!obj.annotation && annotationKey in obj.annotation;
+  }
+
+  getAnnotation<T = any>(obj: Annotated, key: WellKnownAnnotations): T | undefined {
+    if (!obj.annotation || obj.annotation[key] === undefined) {
+      return undefined
+    }
+    return obj.annotation[key];
   }
 
   listSchemas(): Observable<Schema[]> {
