@@ -47,6 +47,22 @@ var UserSchemaExtension = conf.SectionSpec{
 		Description: "Property visibility. One of 'public' (=visible for all), 'private' (=visible only for the user), 'internal' (=not exposed)",
 		Type:        conf.StringType,
 		Default:     "internal",
+		Annotations: new(conf.Annotation).With(
+			runtime.OneOf(
+				runtime.PossibleValue{
+					Display: "Internal",
+					Value:   "internal",
+				},
+				runtime.PossibleValue{
+					Display: "User Only",
+					Value:   "private",
+				},
+				runtime.PossibleValue{
+					Display: "Public",
+					Value:   "public",
+				},
+			),
+		),
 	},
 	{
 		Name:        "DisplayName",
