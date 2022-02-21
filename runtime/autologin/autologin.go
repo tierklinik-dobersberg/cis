@@ -44,7 +44,7 @@ type Manager struct {
 // NewManager returns a new autologin manager that uses reg
 // to build the conditions a HTTP request must fulfill to be
 // granted an automatic session token.
-func NewManager(ctx context.Context, sessionManager *session.Manager, reg *httpcond.Registry, sections []conf.Section) *Manager {
+func NewManager(ctx context.Context, sessionManager *session.Manager, reg *httpcond.Registry, sections []conf.Section) (*Manager, error) {
 	if reg == nil {
 		reg = httpcond.DefaultRegistry
 	}
@@ -53,8 +53,11 @@ func NewManager(ctx context.Context, sessionManager *session.Manager, reg *httpc
 		session:          sessionManager,
 	}
 
-	mng.buildConditions(ctx, sections)
-	return mng
+	if err := mng.buildConditions(ctx, sections); err != nil {
+		return nil, err
+	}
+
+	return mng, nil
 }
 
 func (mng *Manager) findMatchingRecords(c echo.Context) []*autologinRecord {
@@ -73,26 +76,29 @@ func (mng *Manager) findMatchingRecords(c echo.Context) []*autologinRecord {
 
 		if err != nil {
 			log.Errorf("failed to evaluate http request condition: %s", err)
+
 			continue
 		}
 		if matched {
 			result = append(result, rec)
 		}
 	}
+
 	return result
 }
 
 // PerformAutologin may add an autologin user session to c.
+// trunk-ignore(golangci-lint/cyclop)
 func (mng *Manager) PerformAutologin(c echo.Context) {
 	ctx := c.Request().Context()
 	log := log.From(c.Request().Context())
 
-	ctx, sp := otel.Tracer("").Start(ctx, "PerformAutologin")
-	defer sp.End()
+	ctx, span := otel.Tracer("").Start(ctx, "PerformAutologin")
+	defer span.End()
 
 	matchedConditions := mng.findMatchingRecords(c)
 
-	sp.SetAttributes(attribute.Int("autologin.matched_conditions.count", len(matchedConditions)))
+	span.SetAttributes(attribute.Int("autologin.matched_conditions.count", len(matchedConditions)))
 
 	if len(matchedConditions) == 0 {
 		return
@@ -125,13 +131,14 @@ func (mng *Manager) PerformAutologin(c echo.Context) {
 
 	// never try to issue an automatic session
 	// token if there is a valid user session
+	// trunk-ignore(golangci-lint/nestif)
 	if session.Get(c) == nil && user != "" {
 		if autologin, err := mng.session.GetUser(ctx, user); err != nil {
 			log.Errorf("failed to get user with name %s from provider: %s", user, err)
-			sp.RecordError(err)
-			sp.SetStatus(codes.Error, err.Error())
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 		} else {
-			sp.SetAttributes(
+			span.SetAttributes(
 				attribute.Bool("autologin.create_session", createSession),
 				attribute.String("autologin.user", user),
 			)
@@ -152,8 +159,8 @@ func (mng *Manager) PerformAutologin(c echo.Context) {
 				sess, _, err = mng.session.Create(*autologin, c.Response())
 				if err != nil {
 					log.Errorf("failed to create autologin session: %s", err.Error())
-					sp.RecordError(err)
-					sp.SetStatus(codes.Error, err.Error())
+					span.RecordError(err)
+					span.SetStatus(codes.Error, err.Error())
 				}
 			}
 
@@ -179,7 +186,7 @@ func (mng *Manager) PerformAutologin(c echo.Context) {
 }
 
 func (mng *Manager) buildConditions(ctx context.Context, sections []conf.Section) error {
-	var records []*autologinRecord
+	records := make([]*autologinRecord, 0, len(sections))
 
 	spec := Spec(mng.conditionBuilder.Registry())
 

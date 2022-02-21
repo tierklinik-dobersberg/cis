@@ -76,7 +76,8 @@ func (m *mailer) cacheBodyTemplate(ctx context.Context, email Message) (template
 	m.l.Lock()
 	defer m.l.Unlock()
 
-	t, ok := m.templateCache[key]
+	template, ok := m.templateCache[key]
+	// trunk-ignore(golangci-lint/nestif)
 	if !ok {
 		templateContent := email.Body
 		if email.BodyFile != "" {
@@ -93,7 +94,7 @@ func (m *mailer) cacheBodyTemplate(ctx context.Context, email Message) (template
 			if err != nil {
 				return nil, fmt.Errorf("parse text/template: %w", err)
 			}
-			t = _t
+			template = _t
 		} else {
 			// print a warning if the content-type does not explicitly specify text/html
 			if !strings.Contains(email.BodyContentType, "text/html") {
@@ -105,31 +106,32 @@ func (m *mailer) cacheBodyTemplate(ctx context.Context, email Message) (template
 			if err != nil {
 				return nil, fmt.Errorf("parse html/template: %w", err)
 			}
-			t = _t
+			template = _t
 		}
-		m.templateCache[key] = t
+		m.templateCache[key] = template
 	}
-	return t, nil
+
+	return template, nil
 }
 
 // New returns a new mailer that sends mail through account.
 func New(account Account) (Mailer, error) {
-	d := mail.NewDialer(account.Host, account.Port, account.Username, account.Password)
+	dialer := mail.NewDialer(account.Host, account.Port, account.Username, account.Password)
 
 	if account.AllowInsecure {
-		if d.TLSConfig == nil {
-			d.TLSConfig = new(tls.Config)
+		if dialer.TLSConfig == nil {
+			dialer.TLSConfig = new(tls.Config)
 		}
-		d.TLSConfig.InsecureSkipVerify = true
+		dialer.TLSConfig.InsecureSkipVerify = true
 	}
 
 	if account.UseSSL != nil {
-		d.SSL = *account.UseSSL
+		dialer.SSL = *account.UseSSL
 	}
 
 	// TODO(ppacher): should we try to connect to verify the credentials?
 	return &mailer{
-		dialer:        d,
+		dialer:        dialer,
 		defaultFrom:   account.From,
 		templateCache: make(map[string]templater),
 	}, nil

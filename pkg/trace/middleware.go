@@ -46,7 +46,8 @@ var DefaultConfig = Config{
 	LimitBodySize: defaultBodyLimit,
 }
 
-func TraceWithConfig(config Config) echo.MiddlewareFunc {
+// trunk-ignore(golangci-lint/cyclop)
+func WithConfig(config Config) echo.MiddlewareFunc {
 	if config.Tracer == nil {
 		config.Tracer = otel.Tracer("")
 	}
@@ -77,7 +78,7 @@ func TraceWithConfig(config Config) echo.MiddlewareFunc {
 			}
 			attrs = append(attrs, semconv.HTTPClientAttributesFromHTTPRequest(req)...)
 
-			// FIXME(ppacher): only allow in a debug build
+			// TODO(ppacher): only allow in a debug build
 			if specName := req.Header.Get("X-Spec-Name"); specName != "" {
 				attrs = append(attrs, attribute.String("spec.name", specName))
 			}
@@ -101,8 +102,8 @@ func TraceWithConfig(config Config) echo.MiddlewareFunc {
 				))
 			}
 
-			ctx, sp := config.Tracer.Start(req.Context(), opname, trace.WithAttributes(attrs...))
-			defer sp.End()
+			ctx, span := config.Tracer.Start(req.Context(), opname, trace.WithAttributes(attrs...))
+			defer span.End()
 
 			// TODO(ppacher): dump request
 
@@ -112,11 +113,11 @@ func TraceWithConfig(config Config) echo.MiddlewareFunc {
 			err := next(c)
 			if err != nil {
 				c.Error(err)
-				sp.RecordError(err)
-				sp.SetStatus(codes.Error, err.Error())
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 			}
 
-			sp.SetAttributes(
+			span.SetAttributes(
 				semconv.HTTPStatusCodeKey.Int(c.Response().Status),
 				semconv.HTTPResponseContentLengthKey.Int64(c.Response().Size),
 			)
@@ -131,11 +132,13 @@ func getRequestID(ctx echo.Context) string {
 	if requestID == "" {
 		requestID = generateToken() // missed request-id from proxy, we generate it manually
 	}
+
 	return requestID
 }
 
 func generateToken() string {
 	b := make([]byte, 16)
-	rand.Read(b)
+	_, _ = rand.Read(b)
+
 	return fmt.Sprintf("%x", b)
 }

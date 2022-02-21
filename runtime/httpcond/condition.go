@@ -128,17 +128,18 @@ func (reg *Registry) GetOption(name string) (conf.OptionSpec, bool) {
 	defer reg.rw.RUnlock()
 
 	lowerName := strings.ToLower(name)
-	for _, t := range reg.providers {
-		optName := "Condition" + t.Name
+	for _, providerType := range reg.providers {
+		optName := "Condition" + providerType.Name
 		if strings.ToLower(optName) == lowerName {
-			optType := t.Type
+			optType := providerType.Type
 			if optType == nil {
 				optType = conf.StringSliceType
 			}
+
 			return conf.OptionSpec{
 				Name:        optName,
 				Type:        optType,
-				Description: t.Description,
+				Description: providerType.Description,
 			}, true
 		}
 	}
@@ -150,6 +151,7 @@ func (reg *Registry) GetOption(name string) (conf.OptionSpec, bool) {
 // name. It implements conf.OptionRegistry.
 func (reg *Registry) HasOption(name string) bool {
 	_, ok := reg.GetOption(name)
+
 	return ok
 }
 

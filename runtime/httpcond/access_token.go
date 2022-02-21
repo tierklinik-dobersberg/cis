@@ -8,6 +8,7 @@ import (
 	"github.com/ppacher/system-conf/conf"
 )
 
+// trunk-ignore(golangci-lint/cyclop)
 func init() {
 	MustRegister(Type{
 		Name:        "AccessToken",
@@ -15,19 +16,21 @@ func init() {
 		ConcatFunc:  NewOr,
 		Type:        conf.StringSliceType,
 		Match: func(c echo.Context, value string) (bool, error) {
-			r := c.Request()
-			log := log.From(r.Context())
+			req := c.Request()
+			log := log.From(req.Context())
 			var token string
-			if h := r.Header.Get("Authorization"); h != "" {
+			// trunk-ignore(golangci-lint/nestif)
+			if authHeader := req.Header.Get("Authorization"); authHeader != "" {
 				switch {
-				case strings.HasPrefix(h, "Bearer "):
-					token = strings.TrimPrefix(h, "Bearer ")
-				case strings.HasPrefix(h, "Basic "):
-					tokenValue := strings.TrimPrefix(h, "Basic ")
+				case strings.HasPrefix(authHeader, "Bearer "):
+					token = strings.TrimPrefix(authHeader, "Bearer ")
+				case strings.HasPrefix(authHeader, "Basic "):
+					tokenValue := strings.TrimPrefix(authHeader, "Basic ")
 					tokenBlob, err := base64.URLEncoding.DecodeString(tokenValue)
 					if err != nil {
 						// do not report this as an error here
 						log.Infof("Found Basic authorization header but failed to base64 decode it: %q: %s", value, err)
+
 						return false, nil
 					}
 
@@ -40,26 +43,28 @@ func init() {
 						log.Infof("Testing access token %q against %q", parts[0], value)
 						if parts[0] == value {
 							log.Infof("Accepting access token in user part")
+
 							return true, nil
 						}
 
 						log.Infof("Testing access token %q against %q", parts[1], value)
 						if parts[1] == value {
 							log.Infof("Accepting access token in password part")
+
 							return true, nil
 						}
 					}
 				default:
 					return false, nil
 				}
-			} else if h := r.URL.Query().Get("access_token"); h != "" {
+			} else if h := req.URL.Query().Get("access_token"); h != "" {
 				token = h
-			} else if h := r.Header.Get("Content-Type"); strings.Contains(h, "application/x-www-form-urlencoded") {
-				if err := r.ParseForm(); err != nil {
+			} else if h := req.Header.Get("Content-Type"); strings.Contains(h, "application/x-www-form-urlencoded") {
+				if err := req.ParseForm(); err != nil {
 					return false, err
 				}
 
-				token = r.Form.Get("access_token")
+				token = req.Form.Get("access_token")
 			}
 
 			// no access token found so return immediately. Testing against an empty
@@ -69,6 +74,7 @@ func init() {
 			}
 
 			log.Infof("Testing access token %q against %q", token, value)
+
 			return token == value, nil
 		},
 	})

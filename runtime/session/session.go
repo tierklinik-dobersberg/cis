@@ -76,6 +76,7 @@ func (session *Session) MarkActive() {
 func (session *Session) LastAccess() time.Time {
 	session.lock.Lock()
 	defer session.lock.Unlock()
+
 	return session.lastAccess
 }
 
@@ -108,7 +109,7 @@ func (session *Session) GetEphemeral(ctx context.Context, key string, target int
 	}
 
 	dk := fmt.Sprintf("%s%s/%s", session.cacheKeyPrefix, session.id, key)
-	blob, mt, err := session.cache.Read(ctx, dk)
+	blob, meta, err := session.cache.Read(ctx, dk)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("cache.Read: %w", err)
 	}
@@ -118,9 +119,10 @@ func (session *Session) GetEphemeral(ctx context.Context, key string, target int
 	}
 
 	var eol time.Time
-	if mt.NotValidAfter != nil {
-		eol = *mt.NotValidAfter
+	if meta.NotValidAfter != nil {
+		eol = *meta.NotValidAfter
 	}
+
 	return eol, nil
 }
 
@@ -163,6 +165,7 @@ func (session *Session) DistinctRoles() []string {
 	for key := range lm {
 		distinctRoles = append(distinctRoles, key)
 	}
+
 	return distinctRoles
 }
 
@@ -175,6 +178,7 @@ func (session *Session) ExtraRoles() []string {
 
 	sl := make([]string, len(session.extraRoles))
 	copy(sl, session.extraRoles)
+
 	return sl
 }
 
@@ -183,6 +187,7 @@ func (session *Session) ExtraRoles() []string {
 // roles (like assigned by the autologin package).
 func (session *Session) HasRole(role string) bool {
 	added := session.addRole(role, true)
+
 	return !added
 }
 
@@ -208,29 +213,31 @@ func (session *Session) addRole(role string, dryRun bool) bool {
 	if !dryRun {
 		session.extraRoles = append(session.extraRoles, role)
 	}
+
 	return true
 }
 
 // Set sets the session s on c. It also creates and assigns
 // a request copy with a new context to c.
 // If s is nil then Set is a no-op.
-func Set(c echo.Context, s *Session) {
-	if s == nil {
+func Set(c echo.Context, session *Session) {
+	if session == nil {
 		return
 	}
 
 	req := c.Request().Clone(
-		context.WithValue(c.Request().Context(), contextSessionKey, s),
+		context.WithValue(c.Request().Context(), contextSessionKey, session),
 	)
 
 	c.SetRequest(req)
 
-	c.Set(SessionKey, s)
+	c.Set(SessionKey, session)
 }
 
 // Get returns the session associated with c.
 func Get(c echo.Context) *Session {
 	val, _ := c.Get(SessionKey).(*Session)
+
 	return val
 }
 
@@ -242,6 +249,7 @@ func FromCtx(ctx context.Context) *Session {
 	}
 
 	s, _ := val.(*Session)
+
 	return s
 }
 
