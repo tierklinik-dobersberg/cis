@@ -57,7 +57,7 @@ func setupServer(ctx context.Context, app *app.App) (*echo.Echo, error) {
 }
 
 func convertToCorsConfig(corsConfig *app.CORS) (middleware.CORSConfig, error) {
-	t, err := time.ParseDuration(corsConfig.MaxAge)
+	maxAge, err := time.ParseDuration(corsConfig.MaxAge)
 	if err != nil {
 		return middleware.DefaultCORSConfig, err
 	}
@@ -67,6 +67,7 @@ func convertToCorsConfig(corsConfig *app.CORS) (middleware.CORSConfig, error) {
 	if len(corsConfig.AllowOrigins) == 0 {
 		corsConfig.AllowOrigins = []string{"*"}
 	}
+
 	return middleware.CORSConfig{
 		Skipper:          middleware.DefaultSkipper,
 		AllowOrigins:     corsConfig.AllowOrigins,
@@ -74,6 +75,6 @@ func convertToCorsConfig(corsConfig *app.CORS) (middleware.CORSConfig, error) {
 		AllowHeaders:     corsConfig.AllowHeaders,
 		AllowCredentials: corsConfig.AllowCredentials,
 		ExposeHeaders:    corsConfig.ExposeHeaders,
-		MaxAge:           int(t / time.Second),
+		MaxAge:           int(maxAge / time.Second),
 	}, nil
 }

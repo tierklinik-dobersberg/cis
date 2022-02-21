@@ -558,7 +558,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	return appCtx, tracer, app.With(baseCtx, appCtx)
 }
 
-func setupAPI(app *app.App, grp *echo.Echo) error {
+func setupAPI(app *app.App, grp *echo.Echo) {
 	apis := grp.Group(
 		"/api/",
 		app.Sessions.Middleware,
@@ -567,6 +567,7 @@ func setupAPI(app *app.App, grp *echo.Echo) error {
 				if app.Autologin != nil {
 					app.Autologin.PerformAutologin(c)
 				}
+
 				return next(c)
 			}
 		},
@@ -575,8 +576,7 @@ func setupAPI(app *app.App, grp *echo.Echo) error {
 	// alive check
 	{
 		apis.GET("", func(c echo.Context) error {
-			c.NoContent(http.StatusOK)
-			return nil
+			return c.NoContent(http.StatusOK)
 		})
 	}
 	// API endpoints
@@ -626,8 +626,6 @@ func setupAPI(app *app.App, grp *echo.Echo) error {
 
 		statsapi.Setup(app, apis.Group("stats/"))
 	}
-
-	return nil
 }
 
 func getDoorInterface(ctx context.Context, client mqtt.Client) door.Interfacer {
@@ -658,15 +656,15 @@ func runMain() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	app, tp, ctx := getApp(ctx)
+	app, traceProvider, ctx := getApp(ctx)
 
 	// Cleanly shutdown and flush telemetry when the application exits.
-	if tp != nil {
+	if traceProvider != nil {
 		defer func(ctx context.Context) {
 			// Do not make the application hang when it is shutdown.
 			ctx, cancel = context.WithTimeout(ctx, time.Second*5)
 			defer cancel()
-			if err := tp.Shutdown(ctx); err != nil {
+			if err := traceProvider.Shutdown(ctx); err != nil {
 				log.Fatal(err)
 			}
 		}(ctx)
@@ -697,7 +695,7 @@ func runMain() {
 	if err != nil {
 		logger.Fatalf(ctx, "failed to setup server: %s", err)
 	}
-	if tp != nil {
+	if traceProvider != nil {
 		srv.Use(tracemw.TraceWithConfig(tracemw.Config{
 			Skipper: func(c echo.Context) bool {
 				// skip the health-check endpoint because it creates a lot of traces
