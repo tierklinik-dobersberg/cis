@@ -47,6 +47,7 @@ func (pr *MongoProvider) Create(ctx context.Context, sec conf.Section) (string, 
 		return "", err
 	}
 
+	// trunk-ignore(golangci-lint/forcetypeassert)
 	return res.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
@@ -79,6 +80,7 @@ func (pr *MongoProvider) Update(ctx context.Context, id, secType string, opts []
 	if res.MatchedCount == 0 {
 		return runtime.ErrCfgSectionNotFound
 	}
+
 	return nil
 }
 
@@ -97,6 +99,7 @@ func (pr *MongoProvider) Delete(ctx context.Context, id string) error {
 	if res.DeletedCount == 0 {
 		return runtime.ErrCfgSectionNotFound
 	}
+
 	return nil
 }
 
@@ -123,6 +126,7 @@ func (pr *MongoProvider) Get(ctx context.Context, sectionType string) ([]runtime
 			},
 		}
 	}
+
 	return sections, nil
 }
 
@@ -138,6 +142,7 @@ func (pr *MongoProvider) GetID(ctx context.Context, id string) (runtime.Section,
 		if errors.Is(queryResult.Err(), mongo.ErrNoDocuments) {
 			return runtime.Section{}, runtime.ErrCfgSectionNotFound
 		}
+
 		return runtime.Section{}, queryResult.Err()
 	}
 

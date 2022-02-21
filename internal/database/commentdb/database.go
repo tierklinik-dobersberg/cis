@@ -51,17 +51,18 @@ func New(ctx context.Context, url, dbName string) (Database, error) {
 		return nil, fmt.Errorf("failed to connect to server %s: %w", url, err)
 	}
 
-	db, err := NewWithClient(ctx, dbName, client)
+	commentDB, err := NewWithClient(ctx, dbName, client)
 	if err != nil {
 		defer func() {
 			if err := client.Disconnect(ctx); err != nil {
 				log.From(ctx).Errorf("failed to gracefully disconnect from MongoDB: %s", err)
 			}
 		}()
+
 		return nil, err
 	}
 
-	return db, nil
+	return commentDB, nil
 }
 
 // NewWithClient is like New but uses an already existing mongodb client.
@@ -70,17 +71,17 @@ func NewWithClient(ctx context.Context, dbName string, client *mongo.Client) (Da
 		return nil, err
 	}
 
-	db := &database{
+	commentDB := &database{
 		cli:      client,
 		comments: client.Database(dbName).Collection(CommentCollection),
 	}
 
 	// prepare collections and indexes.
-	if err := db.setup(ctx); err != nil {
+	if err := commentDB.setup(ctx); err != nil {
 		return nil, err
 	}
 
-	return db, nil
+	return commentDB, nil
 }
 
 func (db *database) setup(ctx context.Context) error {
@@ -104,6 +105,7 @@ func (db *database) setup(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("creating indexes: %w", err)
 	}
+
 	return nil
 }
 
@@ -170,6 +172,7 @@ func (db *database) ByID(ctx context.Context, id string) (*v1alpha.Comment, erro
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, httperr.NotFound("comment", id).SetInternal(err)
 		}
+
 		return nil, err
 	}
 
@@ -208,6 +211,7 @@ func (db *database) ByKey(ctx context.Context, key string, prefix bool) ([]v1alp
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, httperr.NotFound("comments", key).SetInternal(err)
 		}
+
 		return nil, fmt.Errorf("failed to query comments: %w", err)
 	}
 	defer results.Close(ctx)

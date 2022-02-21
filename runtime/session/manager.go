@@ -65,6 +65,7 @@ func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityCo
 		Domain:          identityConfig.CookieDomain,
 		BasePath:        base,
 	}
+
 	return nil
 }
 
@@ -95,6 +96,7 @@ func (mng *Manager) CreateByName(ctx context.Context, name string, w http.Respon
 	if err != nil {
 		return nil, "", fmt.Errorf("user %s: %w", name, err)
 	}
+
 	return mng.Create(*user, w)
 }
 
@@ -103,7 +105,7 @@ func (mng *Manager) CreateByName(ctx context.Context, name string, w http.Respon
 // issuing a new access and refresh token to the user.
 // Create will also create a new unique identifier for the
 // session and set that as the cis-sid cookie.
-func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, string, error) {
+func (mng *Manager) Create(user v1alpha.User, respWriter http.ResponseWriter) (*Session, string, error) {
 	// Issue a new access token for user.
 	accessToken, _, err := mng.GenerateAccessToken(user)
 	if err != nil {
@@ -115,7 +117,7 @@ func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, 
 		"",
 		mng.identityConfg.AccessTokenTTL,
 	)
-	http.SetCookie(w, accessCookie)
+	http.SetCookie(respWriter, accessCookie)
 
 	// Issue a new refresh token for user.
 	refreshToken, _, err := mng.GenerateRefreshToken(user)
@@ -128,7 +130,7 @@ func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, 
 		"api/identity/v1/refresh",
 		mng.identityConfg.RefreshTokenTTL,
 	)
-	http.SetCookie(w, refreshCookie)
+	http.SetCookie(respWriter, refreshCookie)
 
 	sess := &Session{
 		User:         user,
@@ -138,14 +140,14 @@ func (mng *Manager) Create(user v1alpha.User, w http.ResponseWriter) (*Session, 
 		destroyed:    make(chan struct{}),
 	}
 
-	if err := mng.saveSession(sess, w); err != nil {
+	if err := mng.saveSession(sess, respWriter); err != nil {
 		return nil, "", fmt.Errorf("save: %w", err)
 	}
 
 	return sess, accessToken, nil
 }
 
-func (mng *Manager) saveSession(sess *Session, w http.ResponseWriter) error {
+func (mng *Manager) saveSession(sess *Session, respWriter http.ResponseWriter) error {
 	// This is a NOOP if SessionIDCookie= is empty.
 	if mng.sessionIDCookie == "" {
 		return nil
@@ -162,7 +164,7 @@ func (mng *Manager) saveSession(sess *Session, w http.ResponseWriter) error {
 
 	// inform the browser about the session ID. this is best-effort only
 	// as the Set-Cookie header might just be ignored.
-	http.SetCookie(w, mng.cookieFactory.Create(
+	http.SetCookie(respWriter, mng.cookieFactory.Create(
 		mng.sessionIDCookie,
 		sess.id,
 		"/",
@@ -173,26 +175,27 @@ func (mng *Manager) saveSession(sess *Session, w http.ResponseWriter) error {
 	mng.sessionLock.Lock()
 	defer mng.sessionLock.Unlock()
 	mng.activeSession[sid.String()] = sess
+
 	return nil
 }
 
 func (mng *Manager) clearOrphandSessions() {
-	l := log.From(context.TODO()).V(4)
+	log := log.From(context.TODO()).V(4)
 
-	l.Logf("cleaning orphand sessions")
+	log.Logf("cleaning orphand sessions")
 	mng.sessionLock.Lock()
 	defer mng.sessionLock.Unlock()
 
 	for key, sess := range mng.activeSession {
 		// delete sessions that are unused for more than a week
 		if inactivity := time.Since(sess.LastAccess()); inactivity > time.Hour*24*7 {
-			l.Logf("deleting session for user %s after %s of inactivity", sess.User.Name, inactivity)
+			log.Logf("deleting session for user %s after %s of inactivity", sess.User.Name, inactivity)
 			delete(mng.activeSession, key)
 
 			func() {
 				defer func() {
 					if x := recover(); x != nil {
-						l.Logf("recovered from panic when closing session.destroyed channel")
+						log.Logf("recovered from panic when closing session.destroyed channel")
 					}
 				}()
 				close(sess.destroyed)

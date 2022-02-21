@@ -215,6 +215,7 @@ func ValidDay(day string) error {
 			return nil
 		}
 	}
+
 	return fmt.Errorf("invalid day: %s", day)
 }
 
@@ -232,20 +233,20 @@ func addOpeningHours(s *runtime.ConfigSchema) error {
 			runtime.OverviewFields("OnWeekday", "UseAtDate", "Holiday", "TimeRanges"),
 		),
 		OnChange: func(ctx context.Context, changeType, id string, sec *conf.Section) error {
-			var oh OpeningHours
+			var openingHour OpeningHours
 			if sec != nil {
-				if err := conf.DecodeSections(conf.Sections{*sec}, OpeningHoursSpec, &oh); err != nil {
+				if err := conf.DecodeSections(conf.Sections{*sec}, OpeningHoursSpec, &openingHour); err != nil {
 					return err
 				}
 			}
-			if err := oh.Validate(); err != nil {
+			if err := openingHour.Validate(); err != nil {
 				return err
 			}
 
-			oh.ID = id
+			openingHour.ID = id
 
 			if OnOpeningHourChangeFunc != nil {
-				return OnOpeningHourChangeFunc(ctx, changeType, oh)
+				return OnOpeningHourChangeFunc(ctx, changeType, openingHour)
 			}
 
 			return nil

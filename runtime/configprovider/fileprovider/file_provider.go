@@ -50,8 +50,8 @@ func (cfg *FileProvider) Get(ctx context.Context, sectionType string) ([]runtime
 	return result, nil
 }
 
-func (cfg *FileProvider) GetID(ctx context.Context, id string) (runtime.Section, error) {
-	secType, idx, err := cfg.parseKey(id)
+func (cfg *FileProvider) GetID(ctx context.Context, instanceID string) (runtime.Section, error) {
+	secType, idx, err := cfg.parseKey(instanceID)
 	if err != nil {
 		return runtime.Section{}, err
 	}
@@ -62,7 +62,7 @@ func (cfg *FileProvider) GetID(ctx context.Context, id string) (runtime.Section,
 	}
 
 	return runtime.Section{
-		ID:      id,
+		ID:      instanceID,
 		Section: sections[idx],
 	}, nil
 }

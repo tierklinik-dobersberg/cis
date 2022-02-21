@@ -48,7 +48,7 @@ type Type struct {
 	ConcatFunc ConcatFunc
 	// Annotation may be used to add configuration annotations
 	// to this condition type and is used when the type is
-	// coverted to a conf.OptionSpec.
+	// converted to a conf.OptionSpec.
 	Annotations conf.Annotation
 }
 
