@@ -15,6 +15,8 @@ services:
       - 9411:9411
     environment:
       COLLECTOR_ZIPKIN_HOST_PORT: ":9411"
+    profiles:
+      - development
   mongo:
     image: mongo
     ports:
@@ -39,6 +41,8 @@ services:
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
+    profiles:
+      - development
 
   #
   # Fake SMTP server to test mail delivery
@@ -138,4 +142,6 @@ services:
       TZ: ""
     working_dir: /project
     command: bash -c "npm install && ./node_modules/.bin/ng serve --configuration=compose --host=0.0.0.0 --port=4200 --proxy-config ./proxy.deploy.json"
+    profiles:
+      - development
     
