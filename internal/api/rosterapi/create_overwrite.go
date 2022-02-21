@@ -28,7 +28,6 @@ func CreateOverwriteEndpoint(router *app.Router) {
 			WriteRosterOverwriteAction,
 		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
-
 			var body setOverwriteRequest
 			if err := json.NewDecoder(c.Request().Body).Decode(&body); err != nil {
 				return httperr.BadRequest(err)
@@ -56,9 +55,7 @@ func CreateOverwriteEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.JSON(http.StatusOK, overwrite)
-
-			return nil
+			return c.JSON(http.StatusOK, overwrite)
 		},
 	)
 }

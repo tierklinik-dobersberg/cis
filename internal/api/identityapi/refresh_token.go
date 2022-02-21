@@ -25,10 +25,9 @@ func RefreshEndpoint(grp *app.Router) {
 				return err
 			}
 
-			c.JSON(http.StatusOK, gin.H{
+			return c.JSON(http.StatusOK, gin.H{
 				"token": token,
 			})
-			return nil
 		},
 		// session.Require() is not required here as IssueAccessToken() will
 		// verify the refresh-token while the access-token is allowed to have

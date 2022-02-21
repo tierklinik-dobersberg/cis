@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -67,9 +66,6 @@ func UpdateConfigEndpoint(r *app.Router) {
 				return echo.NewHTTPError(http.StatusBadRequest, err.Error()).SetInternal(err)
 			}
 
-			// NORELEASE: debug code
-			_ = conf.WriteSectionsTo(current.Sections, os.Stderr)
-
 			var warning string
 			if err := runtime.GlobalSchema.Update(ctx, id, key, options); err != nil {
 				warning, err = handleRuntimeError(ctx, err)
@@ -78,12 +74,10 @@ func UpdateConfigEndpoint(r *app.Router) {
 				}
 			}
 
-			c.JSON(http.StatusOK, UpdateConfigResponse{
+			return c.JSON(http.StatusOK, UpdateConfigResponse{
 				ID:      id,
 				Warning: warning,
 			})
-
-			return nil
 		},
 	)
 }
@@ -100,5 +94,6 @@ func handleRuntimeError(ctx context.Context, err error) (string, error) {
 	if errors.Is(err, runtime.ErrReadOnly) {
 		return "", echo.NewHTTPError(http.StatusNotImplemented, "configuration is read-only")
 	}
+
 	return "", err
 }

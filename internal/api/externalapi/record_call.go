@@ -26,6 +26,7 @@ type recordCallRequest struct {
 }
 
 // RecordCallEndpoint allows to record an incoming phone call in the calllog.
+// trunk-ignore(golangci-lint/cyclop)
 func RecordCallEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/calllog",
@@ -37,6 +38,7 @@ func RecordCallEndpoint(grp *app.Router) {
 
 			// If we have a caller than this is an "unidentified" call record
 			// send by the callflow app.
+			// trunk-ignore(golangci-lint/nestif)
 			if caller != "" {
 				record := v1alpha.CallLog{
 					Date:          time.Now(),
@@ -60,44 +62,46 @@ func RecordCallEndpoint(grp *app.Router) {
 				if err := app.CallLogs.CreateUnidentified(ctx, record); err != nil {
 					return httperr.InternalError().SetInternal(err)
 				}
-			} else {
-				// otherwise, we should have a body containing a calllog record
-				// for an identified customer
-				var payload recordCallRequest
-				if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
-					return httperr.BadRequest().SetInternal(err)
-				}
 
-				record := v1alpha.CallLog{
-					Caller:         payload.Number,
-					Agent:          payload.Agent,
-					CustomerID:     payload.CustomerID,
-					CustomerSource: payload.CustomerSource,
-					CallType:       payload.CallType,
-				}
-
-				if payload.Duration != "" {
-					durationSeconds, err := strconv.ParseUint(payload.Duration, 10, 64)
-					if err != nil {
-						return httperr.InvalidField("duration")
-					}
-					record.DurationSeconds = durationSeconds
-				}
-
-				date, err := app.ParseTime("02.01.2006 15:04", payload.DateTime)
-				if err != nil {
-					log.From(ctx).Errorf("failed to parse calllog dateTime %s: %s", payload.DateTime, err)
-					return httperr.InvalidField("dateTime")
-				}
-				record.Date = date
-
-				if err := app.CallLogs.RecordCustomerCall(ctx, record); err != nil {
-					return err
-				}
+				return c.NoContent(http.StatusNoContent)
 			}
 
-			c.NoContent(http.StatusNoContent)
-			return nil
+			// otherwise, we should have a body containing a calllog record
+			// for an identified customer
+			var payload recordCallRequest
+			if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
+				return httperr.BadRequest().SetInternal(err)
+			}
+
+			record := v1alpha.CallLog{
+				Caller:         payload.Number,
+				Agent:          payload.Agent,
+				CustomerID:     payload.CustomerID,
+				CustomerSource: payload.CustomerSource,
+				CallType:       payload.CallType,
+			}
+
+			if payload.Duration != "" {
+				durationSeconds, err := strconv.ParseUint(payload.Duration, 10, 64)
+				if err != nil {
+					return httperr.InvalidField("duration")
+				}
+				record.DurationSeconds = durationSeconds
+			}
+
+			date, err := app.ParseTime("02.01.2006 15:04", payload.DateTime)
+			if err != nil {
+				log.From(ctx).Errorf("failed to parse calllog dateTime %s: %s", payload.DateTime, err)
+
+				return httperr.InvalidField("dateTime")
+			}
+			record.Date = date
+
+			if err := app.CallLogs.RecordCustomerCall(ctx, record); err != nil {
+				return err
+			}
+
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 }

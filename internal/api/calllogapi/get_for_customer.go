@@ -41,9 +41,7 @@ func ForCustomerEndpoint(router *app.Router) {
 				records = make([]v1alpha.CallLog, 0)
 			}
 
-			c.JSON(http.StatusOK, records)
-
-			return nil
+			return c.JSON(http.StatusOK, records)
 		},
 	)
 }

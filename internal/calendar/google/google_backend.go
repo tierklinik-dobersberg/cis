@@ -133,6 +133,7 @@ func Authenticate(cfg CalendarConfig) error {
 	if err := saveTokenFile(token, cfg.TokenFile); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -222,6 +223,7 @@ func (svc *googleCalendarBackend) CreateEvent(ctx context.Context, calID, name, 
 	if cache, _ := svc.cacheFor(ctx, calID); cache != nil {
 		cache.triggerSync()
 	}
+
 	return nil
 }
 
@@ -230,6 +232,7 @@ func (svc *googleCalendarBackend) DeleteEvent(ctx context.Context, calID, eventI
 	if err != nil {
 		return fmt.Errorf("failed to delete event upstream: %w", err)
 	}
+
 	return nil
 }
 
@@ -253,6 +256,7 @@ func (svc *googleCalendarBackend) cacheFor(ctx context.Context, calID string) (*
 
 	svc.eventsCache[calID] = cache
 	log.From(ctx).V(7).Logf("created new event cache for calendar %s", calID)
+
 	return cache, nil
 }
 
@@ -309,7 +313,8 @@ func (svc *googleCalendarBackend) loadEvents(ctx context.Context, calendarID str
 		log.From(ctx).V(7).Logf("shared calendar load between multiple callers")
 	}
 
-	return res.([]ciscal.Event), err // nolint:wrapcheck // this one is already wrapped
+	// trunk-ignore(golangci-lint/forcetypeassert)
+	return res.([]ciscal.Event), err
 }
 
 func (svc *googleCalendarBackend) shouldIngore(item *calendar.CalendarListEntry) bool {
@@ -367,6 +372,7 @@ func credsFromFile(path string) (*oauth2.Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get configuration from JSON: %w", err)
 	}
+
 	return config, nil
 }
 
@@ -384,5 +390,6 @@ func getTokenFromWeb(config *oauth2.Config) (*oauth2.Token, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve token: %w", err)
 	}
+
 	return tok, nil
 }

@@ -15,10 +15,9 @@ func EnabledEndpoint(router *app.Router) {
 		"v1",
 		permission.Anyone,
 		func(ctx context.Context, app *app.App, c echo.Context) error {
-			c.JSON(http.StatusOK, gin.H{
+			return c.JSON(http.StatusOK, gin.H{
 				"enabled": app.Config.InfoScreenConfig.Enabled,
 			})
-			return nil
 		},
 	)
 }

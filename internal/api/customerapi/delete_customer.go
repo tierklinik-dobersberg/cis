@@ -2,6 +2,7 @@ package customerapi
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
@@ -34,7 +35,8 @@ func DeleteCustomerEndpoint(r *app.Router) {
 			if err := app.Customers.DeleteCustomer(ctx, cus.ID.Hex()); err != nil {
 				return err
 			}
-			return nil
+
+			return c.NoContent(http.StatusOK)
 		},
 	)
 }

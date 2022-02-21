@@ -25,12 +25,12 @@ func ResetDoorEndpoint(grp *app.Router) {
 			}
 
 			current, until, resetInProgress := app.Door.Current(ctx)
-			c.JSON(http.StatusOK, gin.H{
+
+			return c.JSON(http.StatusOK, gin.H{
 				"state":           current,
 				"until":           until,
 				"resetInProgress": resetInProgress,
 			})
-			return nil
 		},
 	)
 }

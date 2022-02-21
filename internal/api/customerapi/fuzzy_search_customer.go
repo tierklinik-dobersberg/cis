@@ -2,7 +2,6 @@ package customerapi
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -20,6 +19,7 @@ import (
 
 // FuzzySearchEndpoint allows searching for customers using
 // a double metaphone driven search on the customers name.
+// trunk-ignore(golangci-lint/gocognit)
 func FuzzySearchEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1",
@@ -54,7 +54,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 			matchedUsers := make(map[string]v1alpha.User)
 			if name := c.QueryParam("name"); name != "" {
 				textScore = true
-				//m1, m2 := matchr.DoubleMetaphone(name)
+				// m1, m2 := matchr.DoubleMetaphone(name)
 				filter["$text"] = bson.M{
 					"$search": name,
 				}
@@ -69,6 +69,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				}
 			}
 
+			// trunk-ignore(golangci-lint/nestif)
 			if phoneQueries, ok := c.QueryParams()["phone"]; ok && len(phoneQueries) > 0 {
 				phoneNumbers := []string{}
 				for _, phone := range phoneQueries {
@@ -95,6 +96,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 							number, err := phonenumbers.Parse(p, app.Config.Country)
 							if err != nil {
 								logger.From(ctx).Errorf("failed to parse phone number from user %s: %s", u.Name, err)
+
 								continue
 							}
 							international := phonenumbers.Format(number, phonenumbers.INTERNATIONAL)
@@ -139,6 +141,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 						for _, m := range u.Mail {
 							if m == mail {
 								matchedUsers[u.Name] = u.User
+
 								continue L
 							}
 						}
@@ -146,7 +149,6 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				}
 			}
 
-			fmt.Printf("%#v\n", filter)
 			customers, err := app.Customers.FilterCustomer(ctx, filter, textScore)
 			if err != nil {
 				return err
@@ -157,8 +159,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 					return httperr.NotFound("customer", "filter")
 				}
 
-				c.JSON(http.StatusOK, CustomerModel(ctx, customers[0]))
-				return nil
+				return c.JSON(http.StatusOK, CustomerModel(ctx, customers[0]))
 			}
 
 			models := make([]*v1.Customer, 0, len(customers))
@@ -182,8 +183,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				models = append(models, m)
 			}
 
-			c.JSON(http.StatusOK, models)
-			return nil
+			return c.JSON(http.StatusOK, models)
 		},
 	)
 }

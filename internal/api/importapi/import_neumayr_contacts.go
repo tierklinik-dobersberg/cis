@@ -52,13 +52,11 @@ func ImportNeumayrContactsEndpoint(grp *app.Router) {
 				return httperr.InternalError().SetInternal(err)
 			}
 
-			c.JSON(http.StatusOK, gin.H{
+			return c.JSON(http.StatusOK, gin.H{
 				"new":       countNew,
 				"updated":   countUpdated,
 				"unchanged": countUnchanged,
 			})
-
-			return nil
 		},
 	)
 }
@@ -77,5 +75,6 @@ func SaveUploadedFile(file *multipart.FileHeader, dst string) error {
 	defer out.Close()
 
 	_, err = io.Copy(out, src)
+
 	return err
 }

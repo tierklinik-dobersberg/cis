@@ -25,6 +25,7 @@ type Suggestion struct {
 	Data interface{} `json:"data"`
 }
 
+// trunk-ignore(golangci-lint/cyclop)
 func GetSuggestionsEndpoint(r *app.Router) {
 	r.GET(
 		"v1/suggestions",
@@ -49,29 +50,30 @@ func GetSuggestionsEndpoint(r *app.Router) {
 			}
 
 			var suggestions []Suggestion
-			for _, k := range keys {
-				blob, _, err := app.Cache.Read(ctx, k)
+			for _, key := range keys {
+				blob, _, err := app.Cache.Read(ctx, key)
 				if err != nil {
 					if errors.Is(err, cache.ErrNotFound) {
 						continue
 					}
+
 					return err
 				}
 
-				var s linkable.Suggestion
-				if err := json.Unmarshal(blob, &s); err != nil {
+				var suggestion linkable.Suggestion
+				if err := json.Unmarshal(blob, &suggestion); err != nil {
 					return err
 				}
 
 				// skip false-positives here as the user already marked
 				// them as not-applicable.
-				if s.FalsePositive {
+				if suggestion.FalsePositive {
 					continue
 				}
 				suggestions = append(suggestions, Suggestion{
-					ID:   base64.RawStdEncoding.EncodeToString([]byte(k)),
+					ID:   base64.RawStdEncoding.EncodeToString([]byte(key)),
 					Type: "customer-link",
-					Data: s,
+					Data: suggestion,
 				})
 
 				if len(suggestions) >= int(limit) && limit > 0 {
@@ -79,8 +81,7 @@ func GetSuggestionsEndpoint(r *app.Router) {
 				}
 			}
 
-			c.JSON(http.StatusOK, suggestions)
-			return nil
+			return c.JSON(http.StatusOK, suggestions)
 		},
 	)
 }
@@ -102,8 +103,10 @@ func ApplySuggestionEndpoint(r *app.Router) {
 				if err := linkable.LinkCustomers(ctx, app, payload); err != nil {
 					return err
 				}
-				return nil
+
+				return c.NoContent(http.StatusNoContent)
 			}
+
 			return httperr.BadRequest("unknown suggestion type")
 		},
 	)
@@ -118,28 +121,27 @@ func DeleteSuggestionEndpoint(r *app.Router) {
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			shouldDelete := c.QueryParams().Has("delete")
 			b64id := c.Param("id")
-			id, err := base64.RawStdEncoding.DecodeString(b64id)
+			suggestionID, err := base64.RawStdEncoding.DecodeString(b64id)
 			if err != nil {
 				return httperr.InvalidParameter("id", err.Error())
 			}
 
 			// for debugging purposes we add the decoded ID to the trace
 			trace.SpanFromContext(ctx).SetAttributes(
-				attribute.String("tkd.suggestion_id", string(id)),
+				attribute.String("tkd.suggestion_id", string(suggestionID)),
 			)
 
 			if shouldDelete {
-				if err := linkable.DeleteSuggestion(ctx, app, string(id)); err != nil {
-					return fmt.Errorf("failed to delete %s: %w", string(id), err)
+				if err := linkable.DeleteSuggestion(ctx, app, string(suggestionID)); err != nil {
+					return fmt.Errorf("failed to delete %s: %w", string(suggestionID), err)
 				}
 			} else {
-				if err := linkable.MarkFalsePositive(ctx, app, string(id)); err != nil {
-					return fmt.Errorf("failed to mark %s as false-positive: %w", string(id), err)
+				if err := linkable.MarkFalsePositive(ctx, app, string(suggestionID)); err != nil {
+					return fmt.Errorf("failed to mark %s as false-positive: %w", string(suggestionID), err)
 				}
 			}
 
-			c.NoContent(http.StatusNoContent)
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 }

@@ -24,6 +24,7 @@ func NewPermissionRequest(ctx context.Context, c echo.Context) (*permission.Requ
 		}
 
 		perm.User = user
+
 		return perm, nil
 	}
 

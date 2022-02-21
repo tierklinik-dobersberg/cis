@@ -61,7 +61,5 @@ func simpleGroupByHandler(ctx context.Context, app *app.App, c echo.Context) err
 		return err
 	}
 
-	c.JSON(http.StatusOK, res)
-
-	return nil
+	return c.JSON(http.StatusOK, res)
 }

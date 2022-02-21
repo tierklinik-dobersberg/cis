@@ -46,9 +46,7 @@ func CreateEventEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.NoContent(http.StatusNoContent)
-
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 }
@@ -94,15 +92,11 @@ func validateStructuredEvent(ctx context.Context, app *app.App, data *calendar.S
 		}
 	}
 	if data.CustomerSource != "" {
-		// FIXME(ppacher): we should allow values for unknown customers too.
-		// But we might need a different [CIS] stanza for the event description.
 		_, err := app.Customers.CustomerByCID(ctx, data.CustomerSource, data.CustomerID)
 		if err != nil {
 			return err
 		}
 		for _, animal := range data.AnimalID {
-			// FIXME(ppacher): we should allow values for unknown animals too.
-			// See FIXME above.
 			if _, err := app.Patients.ByCustomerAndAnimalID(
 				ctx,
 				data.CustomerSource,
@@ -121,5 +115,6 @@ func validateStructuredEvent(ctx context.Context, app *app.App, data *calendar.S
 			return err
 		}
 	}
+
 	return nil
 }

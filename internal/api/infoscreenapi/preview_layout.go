@@ -25,6 +25,7 @@ type slidePreview struct {
 	Content string
 }
 
+// trunk-ignore(golangci-lint/cyclop)
 func RenderLayoutPreviewEndpoint(router *app.Router) {
 	router.POST(
 		"v1/preview",
@@ -72,6 +73,7 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 				Theme:    theme,
 				Slides: []PlaySlide{
 					{
+						// trunk-ignore(golangci-lint/gosec)
 						Content:     template.HTML(content),
 						AutoAnimate: slide.AutoAnimate,
 						Background:  slide.Background,
@@ -87,10 +89,10 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 			if err := sess.SetEphemeral(ctx, key, entry, time.Minute); err != nil {
 				return err
 			}
-			c.JSON(http.StatusOK, gin.H{
+
+			return c.JSON(http.StatusOK, gin.H{
 				"key": key,
 			})
-			return nil
 		},
 	)
 
@@ -119,15 +121,15 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 			}
 
 			if strings.HasPrefix(resource, "uploaded/") {
-				c.File(filepath.Join(
+				return c.File(filepath.Join(
 					app.Config.InfoScreenConfig.UploadDataDirectory,
 					strings.TrimPrefix(resource, "uploaded/"),
 				))
-				return nil
 			}
 
 			c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
 			_, err = c.Response().Write([]byte(slide.Content))
+
 			return err
 		},
 	)

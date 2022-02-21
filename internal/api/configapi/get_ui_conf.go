@@ -27,15 +27,15 @@ func GetFlatConfigEndpoint(grp *app.Router) {
 			}
 
 			resp := make(map[string]interface{})
-			for _, k := range keys {
-				multi, ok := lm[k]
+			for _, key := range keys {
+				multi, ok := lm[key]
 				if !ok {
-					return httperr.NotFound("schema-type", k)
+					return httperr.NotFound("schema-type", key)
 				}
 
-				values, err := runtime.GlobalSchema.SchemaAsMap(ctx, k)
+				values, err := runtime.GlobalSchema.SchemaAsMap(ctx, key)
 				if err != nil {
-					return echo.NewHTTPError(http.StatusInternalServerError, "failed to get values for "+k).
+					return echo.NewHTTPError(http.StatusInternalServerError, "failed to get values for "+key).
 						SetInternal(err)
 				}
 
@@ -44,18 +44,16 @@ func GetFlatConfigEndpoint(grp *app.Router) {
 					for _, s := range values {
 						res = append(res, s)
 					}
-					resp[k] = res
+					resp[key] = res
 				} else {
 					// there should only be once entry in this map
 					for _, s := range values {
-						resp[k] = s
+						resp[key] = s
 					}
 				}
 			}
 
-			c.JSON(http.StatusOK, resp)
-
-			return nil
+			return c.JSON(http.StatusOK, resp)
 		},
 	)
 }

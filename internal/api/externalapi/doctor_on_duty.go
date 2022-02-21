@@ -34,13 +34,13 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 			ReadOnDutyAction,
 		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
-			ctx, sp := otel.Tracer("").Start(ctx, "getDoctorOnDutyEndpoint")
-			defer sp.End()
+			ctx, span := otel.Tracer("").Start(ctx, "getDoctorOnDutyEndpoint")
+			defer span.End()
 
-			d := time.Now()
+			dateTime := time.Now()
 			if at := c.QueryParam("at"); at != "" {
 				var err error
-				d, err = app.ParseTime(time.RFC3339, at)
+				dateTime, err = app.ParseTime(time.RFC3339, at)
 				if err != nil {
 					return httperr.InvalidParameter("at", err.Error())
 				}
@@ -55,31 +55,30 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 				ignoreOverwrites = b
 			}
 
-			response, err := getDoctorOnDuty(ctx, app, d, ignoreOverwrites)
+			response, err := getDoctorOnDuty(ctx, app, dateTime, ignoreOverwrites)
 			if err != nil {
-				sp.RecordError(err)
-				sp.SetStatus(codes.Error, err.Error())
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
+
 				return err
 			}
 
 			if blob, err := json.MarshalIndent(response, "", "  "); err == nil {
-				sp.SetAttributes(
+				span.SetAttributes(
 					attribute.String("tkd.doctor_on_duty.result", string(blob)),
 				)
 			} else if err != nil {
-				sp.SetAttributes(attribute.String("tkd.doctor_on_duty.result", err.Error()))
+				span.SetAttributes(attribute.String("tkd.doctor_on_duty.result", err.Error()))
 			}
 
-			c.JSON(http.StatusOK, response)
-
-			return nil
+			return c.JSON(http.StatusOK, response)
 		},
 	)
 }
 
-func activeOverwrite(ctx context.Context, app *app.App, t time.Time, lm map[string]cfgspec.User) *v1alpha.DoctorOnDutyResponse {
-	ctx, sp := otel.Tracer("").Start(ctx, "getActiveOverwrite")
-	defer sp.End()
+func activeOverwrite(ctx context.Context, app *app.App, t time.Time, userByName map[string]cfgspec.User) *v1alpha.DoctorOnDutyResponse {
+	ctx, span := otel.Tracer("").Start(ctx, "getActiveOverwrite")
+	defer span.End()
 
 	log := log.From(ctx)
 
@@ -93,6 +92,7 @@ func activeOverwrite(ctx context.Context, app *app.App, t time.Time, lm map[stri
 
 	if err != nil {
 		log.Errorf("failed to find active overwrite for %s: %s", t, err)
+
 		return nil
 	}
 
@@ -113,9 +113,10 @@ func activeOverwrite(ctx context.Context, app *app.App, t time.Time, lm map[stri
 		)
 	} else {
 		var phone string
-		user, ok := lm[overwrite.Username]
+		user, ok := userByName[overwrite.Username]
 		if !ok || overwrite.Username == "" {
 			log.Errorf("found invalid emergency duty overwrite for %s", t)
+
 			return nil
 		}
 
@@ -150,12 +151,13 @@ func activeOverwrite(ctx context.Context, app *app.App, t time.Time, lm map[stri
 	}
 }
 
-func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverwrites bool) (*v1alpha.DoctorOnDutyResponse, error) {
+// trunk-ignore(golangci-lint/cyclop)
+func getDoctorOnDuty(ctx context.Context, app *app.App, dateTime time.Time, ignoreOverwrites bool) (*v1alpha.DoctorOnDutyResponse, error) {
 	ctx, sp := otel.Tracer("").Start(ctx, "getDoctorOnDuty")
 	defer sp.End()
 
 	log := log.From(ctx)
-	t = t.In(app.Location())
+	dateTime = dateTime.In(app.Location())
 
 	// fetch all users so we can convert usernames to phone numbers,
 	// ...
@@ -167,51 +169,51 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverw
 	}
 
 	// build a small lookup map by username.
-	lm := make(map[string]cfgspec.User, len(allUsers))
+	userByName := make(map[string]cfgspec.User, len(allUsers))
 	for _, u := range allUsers {
-		lm[strings.ToLower(u.Name)] = u
+		userByName[strings.ToLower(u.Name)] = u
 	}
 
 	if !ignoreOverwrites {
 		// check if there's an active overwrite for t. In this case, just return
 		// that one and we're done.
-		if res := activeOverwrite(ctx, app, t, lm); res != nil {
+		if res := activeOverwrite(ctx, app, dateTime, userByName); res != nil {
 			return res, nil
 		}
 	}
 
 	// find out if we need to the doctor-on-duty from today or the day before
 	// depending on the ChangeOnDuty time for today.
-	changeDutyAt := app.Door.ChangeOnDuty(ctx, t)
+	changeDutyAt := app.Door.ChangeOnDuty(ctx, dateTime)
 	var nextChange time.Time
 	var isDayShift bool
 
-	if changeDutyAt.IsApplicable(t) {
-		if changeDutyAt.IsDayShift(t) {
-			nextChange = changeDutyAt.NightStartAt(t)
+	if changeDutyAt.IsApplicable(dateTime) {
+		if changeDutyAt.IsDayShift(dateTime) {
+			nextChange = changeDutyAt.NightStartAt(dateTime)
 			isDayShift = true
 		} else {
 			isDayShift = false
-			nextDay := t.Add(24 * time.Hour)
+			nextDay := dateTime.Add(24 * time.Hour)
 			nextDayChange := app.Door.ChangeOnDuty(ctx, nextDay)
 			nextChange = nextDayChange.DayStartAt(nextDay)
 		}
 	} else {
 		// we're during the night-shift of the previous day
 		// so we need to load that to get the responsible staff.
-		nextChange = changeDutyAt.DayStartAt(t)
-		newT := t.Add(-24 * time.Hour)
-		log.V(7).Logf("switching lookup time from %s to %s the previous night shift is active", t, newT)
-		t = newT
+		nextChange = changeDutyAt.DayStartAt(dateTime)
+		newT := dateTime.Add(-24 * time.Hour)
+		log.V(7).Logf("switching lookup time from %s to %s the previous night shift is active", dateTime, newT)
+		dateTime = newT
 	}
 
-	rosterDate := t.Format("2006-01-02")
+	rosterDate := dateTime.Format("2006-01-02")
 
 	log = log.WithFields(logger.Fields{
 		"nextChange": nextChange.Format(time.RFC3339),
 	})
 
-	day, err := app.DutyRosters.ForDay(ctx, t)
+	day, err := app.DutyRosters.ForDay(ctx, dateTime)
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +249,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, t time.Time, ignoreOverw
 	// v1alpha.DoctorOnDuty API model.
 	doctorsOnDuty := make([]v1alpha.DoctorOnDuty, len(activeShift))
 	for idx, u := range activeShift {
-		user, ok := lm[u]
+		user, ok := userByName[u]
 		if !ok {
 			log.Errorf("unknown user %s configured as doctor-on-duty", u)
 		}

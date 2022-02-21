@@ -22,6 +22,7 @@ import (
 	"github.com/tierklinik-dobersberg/logger"
 )
 
+// trunk-ignore(golangci-lint/cyclop)
 func UploadFileEndpoint(router *app.Router) {
 	router.POST(
 		"v1/upload/:layout/:varName",
@@ -42,6 +43,7 @@ func UploadFileEndpoint(router *app.Router) {
 					return httperr.RequestToLarge("maximum size is %s", app.Config.InfoScreenConfig.MaxUploadSize)
 				}
 				logger.From(ctx).Errorf("failed to process upload request: %s", err)
+
 				return httperr.InternalError("failed to process request")
 			}
 
@@ -90,11 +92,9 @@ func UploadFileEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.JSON(http.StatusOK, gin.H{
+			return c.JSON(http.StatusOK, gin.H{
 				"filename": fname,
 			})
-
-			return nil
 		},
 	)
 }
@@ -106,11 +106,11 @@ func saveUploadedFile(app *app.App, layoutName, varName string, file *multipart.
 	}
 
 	// actually perform the upload
-	f, err := file.Open()
+	multipartFile, err := file.Open()
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
+	defer multipartFile.Close()
 
 	ext := filepath.Ext(file.Filename)
 	fname := fmt.Sprintf("%s-%s-%d%s", layoutName, varName, time.Now().Unix(), ext)
@@ -125,9 +125,10 @@ func saveUploadedFile(app *app.App, layoutName, varName string, file *multipart.
 	}
 	defer uploadedFile.Close()
 
-	if _, err := io.Copy(uploadedFile, f); err != nil {
+	if _, err := io.Copy(uploadedFile, multipartFile); err != nil {
 		return "", err
 	}
+
 	return fname, nil
 }
 

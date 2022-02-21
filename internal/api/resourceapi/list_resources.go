@@ -14,11 +14,10 @@ func ListResourcesEndpoint(router *app.Router) {
 		"v1/",
 		permission.Anyone,
 		func(ctx context.Context, app *app.App, c echo.Context) error {
-			c.JSON(
+			return c.JSON(
 				http.StatusOK,
 				app.Resources.List(),
 			)
-			return nil
 		},
 	)
 }

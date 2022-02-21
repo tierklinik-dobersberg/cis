@@ -12,6 +12,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 func ExecuteTriggerGroupEndpoint(router *app.Router) {
@@ -35,29 +36,32 @@ func ExecuteTriggerGroupEndpoint(router *app.Router) {
 			}
 
 			result := make([]TriggerInstance, 0, len(instances))
-			for _, i := range instances {
-				if !i.Wants(externalTriggerID) {
+			for _, instance := range instances {
+				if !instance.Wants(externalTriggerID) {
 					continue
 				}
-				i.Handle(ctx, &event.Event{
+				err := instance.Handle(ctx, &event.Event{
 					ID:      "__external",
 					Created: time.Now(),
 				})
+				if err != nil {
+					logger.From(ctx).Errorf("failed to handle external trigger: %s: %s", instance.Name(), err.Error())
+				}
+
 				result = append(result, TriggerInstance{
-					Name:        i.Name(),
-					Description: i.Description(),
-					Pending:     i.Pending(),
-					Groups:      i.Groups(),
+					Name:        instance.Name(),
+					Description: instance.Description(),
+					Pending:     instance.Pending(),
+					Groups:      instance.Groups(),
 				})
 			}
 			if len(result) == 0 {
 				return httperr.PreconditionFailed("no instance in this group supports being triggered via API")
 			}
 
-			c.JSON(http.StatusAccepted, TriggerListResponse{
+			return c.JSON(http.StatusAccepted, TriggerListResponse{
 				Instances: result,
 			})
-			return nil
 		},
 	)
 }
@@ -68,6 +72,7 @@ func isInSlice(needle string, haystack []string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -76,22 +81,22 @@ func findAllowedGroupMembers(ctx context.Context, username string, extraRoles []
 		result     []*trigger.Instance
 		foundGroup bool
 	)
-	for _, i := range triggers {
-		if !isInSlice(groupName, i.Groups()) {
+	for _, instance := range triggers {
+		if !isInSlice(groupName, instance.Groups()) {
 			continue
 		}
 		foundGroup = true
 		req := &permission.Request{
 			User:     username,
 			Action:   ExecuteTriggerAction.Name,
-			Resource: i.Name(),
+			Resource: instance.Name(),
 		}
 		permitted, err := app.Matcher.Decide(ctx, req, extraRoles)
 		if err != nil {
 			return nil, err
 		}
 		if permitted {
-			result = append(result, i)
+			result = append(result, instance)
 		}
 	}
 	if !foundGroup {
@@ -100,5 +105,6 @@ func findAllowedGroupMembers(ctx context.Context, username string, extraRoles []
 	if len(result) == 0 {
 		return nil, httperr.Forbidden("permission denied")
 	}
+
 	return result, nil
 }

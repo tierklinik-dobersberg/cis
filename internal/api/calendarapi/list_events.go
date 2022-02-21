@@ -20,6 +20,7 @@ import (
 
 // ListEventsEndpoint returns all calendar events that match the
 // provided query.
+// trunk-ignore(golangci-lint/gocognit)
 func ListEventsEndpoint(router *app.Router) {
 	router.GET(
 		"v1/events",
@@ -79,7 +80,7 @@ func ListEventsEndpoint(router *app.Router) {
 
 			var (
 				events []calendar.Event
-				l      sync.Mutex
+				lock   sync.Mutex
 			)
 			grp, ctx := errgroup.WithContext(ctx)
 			for idx := range requestedCalendarIDs {
@@ -90,8 +91,8 @@ func ListEventsEndpoint(router *app.Router) {
 						return err
 					}
 
-					l.Lock()
-					defer l.Unlock()
+					lock.Lock()
+					defer lock.Unlock()
 					events = append(events, calEvents...)
 
 					return nil
@@ -116,9 +117,7 @@ func ListEventsEndpoint(router *app.Router) {
 				}
 			}
 
-			c.JSON(http.StatusOK, modelEvents)
-
-			return nil
+			return c.JSON(http.StatusOK, modelEvents)
 		},
 	)
 }
@@ -132,6 +131,7 @@ func getForDayQueryParam(c echo.Context, app *app.App) (time.Time, error) {
 			return time.Time{}, httperr.InvalidParameter("for-day", err.Error())
 		}
 	}
+
 	return day, nil
 }
 
@@ -145,5 +145,6 @@ func getCalendars(ctx context.Context, app *app.App) ([]calendar.Calendar, map[s
 	for _, cal := range calendars {
 		idToCal[cal.ID] = cal
 	}
+
 	return calendars, idToCal, nil
 }

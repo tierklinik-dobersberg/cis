@@ -25,22 +25,22 @@ func SearchEndpoint(router *app.Router) {
 			ReadRecordsAction,
 		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
-			q := new(calllogdb.SearchQuery)
+			query := new(calllogdb.SearchQuery)
 
 			if d, err := getQueryDate(c, app, "at"); !d.IsZero() {
-				q.AtDate(d)
+				query.AtDate(d)
 			} else if err != nil {
 				return err
 			}
 
 			if d, err := getQueryDate(c, app, "to"); !d.IsZero() {
-				q.Before(d)
+				query.Before(d)
 			} else if err != nil {
 				return err
 			}
 
 			if d, err := getQueryDate(c, app, "from"); !d.IsZero() {
-				q.After(d)
+				query.After(d)
 			} else if err != nil {
 				return err
 			}
@@ -51,17 +51,15 @@ func SearchEndpoint(router *app.Router) {
 					return httperr.InvalidParameter("cid")
 				}
 
-				q.Customer(ref.Source, ref.CustomerID)
+				query.Customer(ref.Source, ref.CustomerID)
 			}
 
-			results, err := app.CallLogs.Search(ctx, q)
+			results, err := app.CallLogs.Search(ctx, query)
 			if err != nil {
 				return err
 			}
 
-			c.JSON(http.StatusOK, SearchResult{Items: results})
-
-			return nil
+			return c.JSON(http.StatusOK, SearchResult{Items: results})
 		},
 	)
 }
@@ -75,5 +73,6 @@ func getQueryDate(c echo.Context, app *app.App, param string) (time.Time, error)
 	if err != nil {
 		return time.Time{}, httperr.InvalidParameter(param)
 	}
+
 	return d, nil
 }

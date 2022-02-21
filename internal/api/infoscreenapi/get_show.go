@@ -22,8 +22,7 @@ func GetShowEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.JSON(http.StatusOK, s)
-			return nil
+			return c.JSON(http.StatusOK, s)
 		},
 	)
 }

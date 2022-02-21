@@ -53,12 +53,10 @@ func TestConfigEndpoint(r *app.Router) {
 				}
 			}
 
-			c.JSON(
+			return c.JSON(
 				http.StatusOK,
 				testRes,
 			)
-
-			return nil
 		},
 	)
 }

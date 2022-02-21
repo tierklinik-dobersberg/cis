@@ -35,9 +35,7 @@ func ListSchemasEndpoint(grp *app.Router) {
 				})
 			}
 
-			c.JSON(http.StatusOK, res)
-
-			return nil
+			return c.JSON(http.StatusOK, res)
 		},
 	)
 }

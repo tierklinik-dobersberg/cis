@@ -44,11 +44,9 @@ func GetConfigByIDEndpoint(r *app.Router) {
 				return httperr.NotFound("schema-id", id)
 			}
 
-			c.JSON(http.StatusOK, GetConfigByIDResponse{
+			return c.JSON(http.StatusOK, GetConfigByIDResponse{
 				Config: cfg,
 			})
-
-			return nil
 		},
 	)
 }

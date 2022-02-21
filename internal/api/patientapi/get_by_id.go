@@ -25,9 +25,7 @@ func PatientByIDEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.JSON(http.StatusOK, patient)
-
-			return nil
+			return c.JSON(http.StatusOK, patient)
 		},
 	)
 }

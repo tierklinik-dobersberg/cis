@@ -29,8 +29,8 @@ func GetByIDEndpoint(grp *app.Router) {
 			}
 
 			model := CustomerModel(ctx, customer)
-			c.JSON(http.StatusOK, model)
-			return nil
+
+			return c.JSON(http.StatusOK, model)
 		},
 	)
 }

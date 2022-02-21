@@ -36,9 +36,7 @@ func CreateShowEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.NoContent(http.StatusCreated)
-
-			return nil
+			return c.NoContent(http.StatusCreated)
 		},
 	)
 }

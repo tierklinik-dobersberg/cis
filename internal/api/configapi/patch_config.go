@@ -29,7 +29,7 @@ func PatchConfigEndpoint(r *app.Router) {
 		permission.OneOf{ConfigManagementAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			key := c.Param("key")
-			id := c.Param("id")
+			instanceID := c.Param("id")
 
 			var req PatchConfigRequest
 			if err := c.Bind(&req); err != nil {
@@ -42,7 +42,7 @@ func PatchConfigEndpoint(r *app.Router) {
 				return err
 			}
 
-			val, err := runtime.GlobalSchema.GetID(ctx, id)
+			val, err := runtime.GlobalSchema.GetID(ctx, instanceID)
 			if err != nil {
 				return err
 			}
@@ -71,19 +71,17 @@ func PatchConfigEndpoint(r *app.Router) {
 			}
 
 			var warning string
-			if err := runtime.GlobalSchema.Update(ctx, id, key, current.Sections[0].Options); err != nil {
+			if err := runtime.GlobalSchema.Update(ctx, instanceID, key, current.Sections[0].Options); err != nil {
 				warning, err = handleRuntimeError(ctx, err)
 				if err != nil {
 					return err
 				}
 			}
 
-			c.JSON(http.StatusOK, PatchConfigResponse{
-				ID:      id,
+			return c.JSON(http.StatusOK, PatchConfigResponse{
+				ID:      instanceID,
 				Warning: warning,
 			})
-
-			return nil
 		},
 	)
 }

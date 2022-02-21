@@ -12,12 +12,13 @@ import (
 	"github.com/tevino/abool"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
+	"github.com/tierklinik-dobersberg/cis/runtime/session"
 )
 
 var log = pkglog.New("door")
 
-// DoorState describes the current state of the entry door.
-type DoorState string
+// State describes the current state of the entry door.
+type State string
 
 // Interfacer is used to interact and control
 // the entry door. The door itself may be locked,
@@ -36,8 +37,8 @@ type Interfacer interface {
 
 // Possible door states.
 const (
-	Locked   = DoorState("locked")
-	Unlocked = DoorState("unlocked")
+	Locked   = State("locked")
+	Unlocked = State("unlocked")
 )
 
 // Reset types.
@@ -47,7 +48,7 @@ var (
 )
 
 type stateOverwrite struct {
-	state       DoorState
+	state       State
 	until       time.Time
 	sessionUser string
 }
@@ -97,7 +98,7 @@ func NewDoorController(ohCtrl *openinghours.Controller, door Interfacer) (*Contr
 }
 
 // Overwrite overwrites the current door state with state until untilTime.
-func (dc *Controller) Overwrite(ctx context.Context, state DoorState, untilTime time.Time) error {
+func (dc *Controller) Overwrite(ctx context.Context, state State, untilTime time.Time) error {
 	log.From(ctx).V(7).Logf("overwritting door state to %s until %s", state, untilTime)
 
 	if err := isValidState(state); err != nil {
@@ -108,7 +109,7 @@ func (dc *Controller) Overwrite(ctx context.Context, state DoorState, untilTime 
 	{
 		dc.manualOverwrite = &stateOverwrite{
 			state:       state,
-			sessionUser: "", // FIXME(ppacher)
+			sessionUser: session.UserFromCtx(ctx),
 			until:       untilTime,
 		}
 	}
@@ -133,6 +134,7 @@ func (dc *Controller) Overwrite(ctx context.Context, state DoorState, untilTime 
 func (dc *Controller) Lock(ctx context.Context) error {
 	dc.wg.Add(1)
 	defer dc.wg.Done()
+
 	return dc.door.Lock(ctx)
 }
 
@@ -140,6 +142,7 @@ func (dc *Controller) Lock(ctx context.Context) error {
 func (dc *Controller) Unlock(ctx context.Context) error {
 	dc.wg.Add(1)
 	defer dc.wg.Done()
+
 	return dc.door.Unlock(ctx)
 }
 
@@ -147,6 +150,7 @@ func (dc *Controller) Unlock(ctx context.Context) error {
 func (dc *Controller) Open(ctx context.Context) error {
 	dc.wg.Add(1)
 	defer dc.wg.Done()
+
 	return dc.door.Open(ctx)
 }
 
@@ -217,10 +221,11 @@ func (dc *Controller) resetDoor(ctx context.Context) {
 	}
 }
 
+// trunk-ignore(golangci-lint/cyclop)
 func (dc *Controller) scheduler() {
 	defer dc.wg.Done()
-	var lastState DoorState
-	var state DoorState
+	var lastState State
+	var state State
 
 	const maxTriesLocked = 60
 	const maxTriesUnlocked = 20
@@ -242,7 +247,7 @@ func (dc *Controller) scheduler() {
 				dc.resetDoor(ctx)
 			}
 			// force applying the door state.
-			lastState = DoorState("")
+			lastState = State("")
 		case <-time.After(time.Until(until)):
 
 		// resend lock commands periodically as the door
@@ -289,6 +294,7 @@ func (dc *Controller) scheduler() {
 			default:
 				log.From(ctx).Errorf("invalid door state returned by Current(): %s", string(state))
 				cancel()
+
 				continue
 			}
 
@@ -303,7 +309,7 @@ func (dc *Controller) scheduler() {
 }
 
 // Current returns the current door state.
-func (dc *Controller) Current(ctx context.Context) (DoorState, time.Time, bool) {
+func (dc *Controller) Current(ctx context.Context) (State, time.Time, bool) {
 	state, until := dc.stateFor(ctx, time.Now().In(dc.Location()))
 
 	return state, until, dc.resetInProgress.IsSet()
@@ -313,16 +319,17 @@ func (dc *Controller) Current(ctx context.Context) (DoorState, time.Time, bool) 
 // It makes sure t is in the correct location. Like in ChangeOnDuty, the
 // caller must make sure that t is in the desired timezone as StateFor will copy
 // hour and date information.
-func (dc *Controller) StateFor(ctx context.Context, t time.Time) (DoorState, time.Time) {
+func (dc *Controller) StateFor(ctx context.Context, t time.Time) (State, time.Time) {
 	return dc.stateFor(ctx, t)
 }
 
-func (dc *Controller) stateFor(ctx context.Context, t time.Time) (DoorState, time.Time) {
+func (dc *Controller) stateFor(ctx context.Context, t time.Time) (State, time.Time) {
 	log := log.From(ctx)
 	// if we have an active overwrite we need to return it
 	// together with it's end time.
 	if overwrite := dc.getManualOverwrite(); overwrite != nil && overwrite.until.After(t) {
 		log.Infof("using manual door overwrite %q by %q until %s", overwrite.state, overwrite.sessionUser, overwrite.until)
+
 		return overwrite.state, overwrite.until
 	}
 
@@ -353,7 +360,7 @@ func (dc *Controller) getManualOverwrite() *stateOverwrite {
 	return dc.manualOverwrite
 }
 
-func isValidState(state DoorState) error {
+func isValidState(state State) error {
 	switch state {
 	case Locked, Unlocked:
 		return nil
