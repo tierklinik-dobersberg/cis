@@ -256,9 +256,11 @@ func (inst *Instance) fireBuffer(ctx context.Context) {
 	inst.buffer = nil
 
 	log.V(7).Logf("fireing %d buffered events", len(buffer))
-	for _, handler := range inst.handlers {
+	for idx, handler := range inst.handlers {
 		// FIXME(ppacher): what to do with those errors?
-		handler.HandleEvents(context.Background(), buffer...)
+		if err := handler.HandleEvents(context.Background(), buffer...); err != nil {
+			log.Errorf("failed to execute trigger handler %s/%d: %w", inst.name, idx, err)
+		}
 	}
 }
 

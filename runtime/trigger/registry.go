@@ -13,6 +13,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 var log = pkglog.New("trigger")
@@ -275,7 +276,11 @@ func (reg *Registry) subscribeAndDispatch(ctx context.Context, instance *Instanc
 			for {
 				select {
 				case msg := <-ch:
-					go instance.Handle(ctx, msg)
+					go func(msg *event.Event) {
+						if err := instance.Handle(ctx, msg); err != nil {
+							logger.From(ctx).Errorf("trigger instance %s failed to handle event: %w", instance.name, err)
+						}
+					}(msg)
 				case <-ctx.Done():
 					return
 				}
