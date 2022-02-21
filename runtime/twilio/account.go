@@ -20,13 +20,16 @@ var AccountSpec = conf.SectionSpec{
 		Type:        conf.StringType,
 		Required:    true,
 		Internal:    true,
-		Description: "The twilio accound SID",
+		Description: "The Twilio Account SID",
 	},
 	{
 		Name:        "Token",
 		Type:        conf.StringType,
 		Required:    true,
 		Internal:    true,
-		Description: "The twilio authentication token",
+		Description: "The Twilio authentication token",
+		Annotations: new(conf.Annotation).With(
+			conf.SecretValue(),
+		),
 	},
 }
