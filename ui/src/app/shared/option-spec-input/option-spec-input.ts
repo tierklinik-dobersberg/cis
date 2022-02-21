@@ -6,6 +6,7 @@ import { ConfigAPI, OptionSpec, PossibleValue, WellKnownAnnotations } from "src/
 export type NamedOptionSpec = OptionSpec & {displayName?: string};
 
 @Component({
+  /* eslint '@angular-eslint/component-selector': 'off' */
   selector: 'tkd-option-spec-input',
   templateUrl: './option-spec-input.html',
   styleUrls: ['./option-spec-input.scss'],

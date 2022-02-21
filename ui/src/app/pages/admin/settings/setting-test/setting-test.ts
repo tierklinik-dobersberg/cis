@@ -1,5 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, OnDestroy, OnInit, Optional } from "@angular/core";
-import { NzMessageService } from "ng-zorro-antd/message";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, OnInit, Optional } from "@angular/core";
 import { NzModalRef } from "ng-zorro-antd/modal";
 import { Subject } from "rxjs";
 import { ConfigAPI, ConfigTest, Schema, SchemaInstance } from "src/app/api";
@@ -13,7 +12,7 @@ export const APP_TEST_SETTINGS = new InjectionToken<SchemaInstance>('APP_TEST_SE
   styleUrls: ['./setting-test.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SettingTestComponent implements OnInit, OnDestroy {
+export class SettingTestComponent implements OnInit {
   private destroy$ = new Subject<void>();
 
   selectedTest: ConfigTest | null = null;
@@ -24,15 +23,10 @@ export class SettingTestComponent implements OnInit, OnDestroy {
   constructor(
     private configapi: ConfigAPI,
     private modalRef: NzModalRef,
-    private nzMessageService: NzMessageService,
     private cdr: ChangeDetectorRef,
     @Inject(APP_TEST_CONFIG) @Optional() public schema: Schema | null = null,
     @Inject(APP_TEST_SETTINGS) @Optional() public config: SchemaInstance = {},
   ) {}
-
-  ngOnDestroy(): void {
-
-  }
 
   ngOnInit(): void {
     this.destroy$.next();
