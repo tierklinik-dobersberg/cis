@@ -4,11 +4,13 @@ import { NgModel } from "@angular/forms";
 import { DomSanitizer } from "@angular/platform-browser";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NzMessageService } from "ng-zorro-antd/message";
+import { NzModalService } from "ng-zorro-antd/modal";
 import { BehaviorSubject, combineLatest, forkJoin, Observable, of, Subject, throwError } from "rxjs";
 import { map, switchMap, takeUntil } from "rxjs/operators";
 import { ConfigAPI, OptionSpec, Schema, SchemaInstance, WellKnownAnnotations } from "src/app/api";
 import { Breadcrump, HeaderTitleService } from "src/app/shared/header-title";
 import { extractErrorMessage } from "src/app/utils";
+import { SettingTestComponent } from "../setting-test";
 
 @Component({
   templateUrl: './setting-view.html',
@@ -45,6 +47,7 @@ export class SettingViewComponent implements OnInit, OnDestroy {
     private router: Router,
     private nzMessageService: NzMessageService,
     private cdr: ChangeDetectorRef,
+    private modal: NzModalService,
     public domSanitizer: DomSanitizer,
   ) { }
 
@@ -102,6 +105,24 @@ export class SettingViewComponent implements OnInit, OnDestroy {
         })
       return;
     }
+  }
+
+  testSetting() {
+    if (!this.singleMode || !this.schema.tests.length) {
+      return;
+    }
+
+    this.modal.create({
+      nzContent: SettingTestComponent,
+      nzComponentParams: {
+        schema: this.schema,
+        config: this.configs,
+      },
+      nzCloseOnNavigation: true,
+      nzWidth: null,
+      nzClassName: "w-1/2",
+      nzFooter: null,
+    })
   }
 
   ngOnInit(): void {
