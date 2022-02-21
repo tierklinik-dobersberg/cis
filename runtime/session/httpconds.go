@@ -3,6 +3,7 @@ package session
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 )
 
@@ -31,6 +32,9 @@ func init() {
 		Description: "Match against the available session roles.",
 		Type:        conf.StringSliceType,
 		ConcatFunc:  httpcond.NewAnd,
+		Annotations: new(conf.Annotation).With(
+			runtime.OneOfRoles,
+		),
 		Match: func(c echo.Context, value string) (bool, error) {
 			req := c.Request()
 			sess := FromCtx(req.Context())
