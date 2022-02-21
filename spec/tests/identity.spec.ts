@@ -78,6 +78,7 @@ describe("The Identity API:", () => {
                         }
                     })
                     expect(response.status).toBe(200, response.data)
+                    response.data.roles.sort()
                     expect(response.data).toEqual({
                         "name": "guest",
                         "fullname": "guest user",

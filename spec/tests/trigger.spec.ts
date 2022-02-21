@@ -52,6 +52,20 @@ describe("Triggers", () => {
             })
         })
 
+        it("should support defining a new mailer", async () => {
+            const response = await Alice.post(`/api/config/v1/schema/Mailer`, {
+                config: {
+                    Host: "smtp",
+                    Port: 1025,
+                    From: "noreply@example.com",
+                    AllowInsecure: true,
+                    UseSSL: false,
+                }
+            })
+            expect(response.status).toBe(200)
+            expect(response.data.id).toBeTruthy()
+        })
+
         it("should send a To and CC mails when triggered using inline-template", async () => {
             const response = await
                 Alice.post(`/api/triggers/v1/instance/${InlineMailTemplateTrigger}`);
