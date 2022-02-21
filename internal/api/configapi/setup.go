@@ -32,4 +32,7 @@ func Setup(a *app.App, grp *echo.Group) {
 
 	// DELETE /api/config/v1/schema/:key/:id
 	DeleteConfigEndpoint(router)
+
+	// POST /api/config/v1/test/:key/:testID
+	TestConfigEndpoint(router)
 }
