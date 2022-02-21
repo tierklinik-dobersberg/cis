@@ -31,6 +31,7 @@ func (factory *CookieFactory) Create(name, value, relPath string, ttl time.Durat
 	if ttl > 0 {
 		expires = time.Now().Add(ttl)
 	}
+
 	return &http.Cookie{
 		Name:     name,
 		Value:    value,

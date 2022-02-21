@@ -467,12 +467,15 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	//
 	// Create the autologin manager
 	//
-	autoLoginManager := autologin.NewManager(
+	autoLoginManager, err := autologin.NewManager(
 		ctx,
 		sessionManager,
 		httpcond.DefaultRegistry,
 		cfgFile.GetAll("Autologin"),
 	)
+	if err != nil {
+		logger.Fatalf(ctx, "autologin-manager: %s", err.Error())
+	}
 
 	//
 	// prepare
@@ -697,7 +700,7 @@ func runMain() {
 		logger.Fatalf(ctx, "failed to setup server: %s", err)
 	}
 	if traceProvider != nil {
-		srv.Use(tracemw.TraceWithConfig(tracemw.Config{
+		srv.Use(tracemw.WithConfig(tracemw.Config{
 			Skipper: func(c echo.Context) bool {
 				// skip the health-check endpoint because it creates a lot of traces
 				// but does not provide any real value ...

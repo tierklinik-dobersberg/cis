@@ -24,6 +24,7 @@ type SMSSender interface {
 // New creates a new SMSSender using acc.
 func New(acc Account) (SMSSender, error) {
 	client := twilio.NewClient(acc.AccountSid, acc.Token, nil)
+
 	return &sender{
 		defaultFrom:   acc.From,
 		client:        client,
@@ -63,7 +64,7 @@ func (s *sender) Send(ctx context.Context, msg Message, context interface{}) err
 	return nil
 }
 
-func (s *sender) cacheTemplate(ctx context.Context, msg Message) (*template.Template, error) {
+func (s *sender) cacheTemplate(_ context.Context, msg Message) (*template.Template, error) {
 	key := "template: " + msg.Template
 	if msg.TemplateFile != "" {
 		key = "file: " + msg.TemplateFile
@@ -90,6 +91,7 @@ func (s *sender) cacheTemplate(ctx context.Context, msg Message) (*template.Temp
 	}
 
 	s.templateCache[key] = t
+
 	return t, nil
 }
 
