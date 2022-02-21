@@ -110,9 +110,11 @@ func renderPlayer(playCtx *PlayContext, w http.ResponseWriter) error {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, err := w.Write(buf.Bytes())
+
 	return err
 }
 
+// trunk-ignore(golangci-lint/cyclop)
 func PlayShowEndpoint(router *app.Router) {
 	router.GET(
 		"v1/shows/:show/play/*resource",
@@ -140,11 +142,11 @@ func PlayShowEndpoint(router *app.Router) {
 				// TODO(ppacher): verify the show actually has a field
 				// that allows this resource!
 				path := strings.TrimPrefix(resource, "uploaded/")
-				c.File(filepath.Join(
+
+				return c.File(filepath.Join(
 					app.Config.InfoScreenConfig.UploadDataDirectory,
 					path,
 				))
-				return nil
 			} else if resource != "" {
 				return httperr.NotFound("asset", resource)
 			}
@@ -175,6 +177,7 @@ func PlayShowEndpoint(router *app.Router) {
 				l, err := app.LayoutStore.Get(ctx, slide.Layout)
 				if err != nil {
 					log.Errorf("failed to get layout %s: %s", slide.Layout, err)
+
 					continue
 				}
 
@@ -185,11 +188,13 @@ func PlayShowEndpoint(router *app.Router) {
 				})
 				if err != nil {
 					log.Errorf("failed to render layout %s: %s", slide.Layout, err)
+
 					continue
 				}
 
 				playCtx.Slides = append(playCtx.Slides, PlaySlide{
-					Duration:    slide.Duration.Seconds() * float64(1000),
+					Duration: slide.Duration.Seconds() * float64(1000),
+					// trunk-ignore(golangci-lint/gosec)
 					Content:     template.HTML(content),
 					AutoAnimate: slide.AutoAnimate,
 					Background:  slide.Background,

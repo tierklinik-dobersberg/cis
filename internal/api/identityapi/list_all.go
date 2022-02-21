@@ -28,8 +28,7 @@ func ListAllUsersEndpoint(grp *app.Router) {
 				result[idx] = u.User
 			}
 
-			c.JSON(http.StatusOK, result)
-			return nil
+			return c.JSON(http.StatusOK, result)
 		},
 		session.Require(),
 	)

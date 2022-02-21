@@ -51,9 +51,7 @@ func SearchEndpoint(router *app.Router) {
 				return httperr.InternalError().SetInternal(err)
 			}
 
-			c.JSON(http.StatusOK, records)
-
-			return nil
+			return c.JSON(http.StatusOK, records)
 		},
 	)
 }

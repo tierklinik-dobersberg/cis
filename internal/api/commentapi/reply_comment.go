@@ -38,9 +38,7 @@ func ReplyCommentEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.NoContent(http.StatusNoContent)
-
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 }

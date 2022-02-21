@@ -18,16 +18,14 @@ func LogoutEndpoint(grp *app.Router) {
 		permission.Anyone,
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			if session.Get(c) == nil {
-				c.NoContent(http.StatusNoContent)
-				return nil
+				return c.NoContent(http.StatusNoContent)
 			}
 
 			if err := app.Sessions.Delete(c); err != nil {
 				log.From(ctx).Errorf("failed to delete session: %s", err)
 			}
 
-			c.NoContent(http.StatusNoContent)
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 }

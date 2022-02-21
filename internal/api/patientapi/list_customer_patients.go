@@ -29,9 +29,7 @@ func ListCustomerPatientsEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.JSON(http.StatusOK, result)
-
-			return nil
+			return c.JSON(http.StatusOK, result)
 		},
 	)
 }

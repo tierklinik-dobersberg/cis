@@ -22,10 +22,9 @@ func ListShowsEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.JSON(http.StatusOK, v1alpha.ListShowsResponse{
+			return c.JSON(http.StatusOK, v1alpha.ListShowsResponse{
 				Shows: shows,
 			})
-			return nil
 		},
 	)
 }

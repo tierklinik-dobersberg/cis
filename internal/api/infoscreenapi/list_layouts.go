@@ -19,8 +19,7 @@ func ListLayoutNamesEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.JSON(http.StatusOK, layouts)
-			return nil
+			return c.JSON(http.StatusOK, layouts)
 		},
 	)
 }

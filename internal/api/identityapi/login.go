@@ -42,27 +42,27 @@ func GetSessionStatus(grp *app.Router) {
 				return httperr.Forbidden("not allowed")
 			}
 
-			r := gin.H{
+			response := gin.H{
 				"user":     sess.User.Name,
 				"mail":     sess.User.Mail,
 				"fullname": sess.User.Fullname,
 			}
 
 			if sess.AccessUntil != nil {
-				r["access"] = sess.AccessUntil.Format(time.RFC3339)
+				response["access"] = sess.AccessUntil.Format(time.RFC3339)
 			}
 			if sess.RefreshUntil != nil {
-				r["refresh"] = sess.RefreshUntil.Format(time.RFC3339)
+				response["refresh"] = sess.RefreshUntil.Format(time.RFC3339)
 			}
 
-			c.JSON(http.StatusOK, r)
-			return nil
+			return c.JSON(http.StatusOK, response)
 		},
 	)
 }
 
 // LoginEndpoint allows to user to log-in and create a
 // session cookie.
+// trunk-ignore(golangci-lint/gocognit)
 func LoginEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/login",
@@ -82,6 +82,7 @@ func LoginEndpoint(grp *app.Router) {
 			authHeader := c.Request().Header.Get("Authorization")
 			contentType := c.Request().Header.Get("Content-Type")
 
+			// trunk-ignore(golangci-lint/nestif)
 			if authHeader != "" {
 				// There's no session cookie available, check if the user
 				// is trying basic-auth.
@@ -119,7 +120,6 @@ func LoginEndpoint(grp *app.Router) {
 				}
 
 				if username != "" && password != "" {
-
 					trace.SpanFromContext(ctx).SetAttributes(
 						attribute.String("login.user", username),
 					)
@@ -134,6 +134,7 @@ func LoginEndpoint(grp *app.Router) {
 
 					if err != nil {
 						log.Errorf("failed to retrieve authenticated user %q", username)
+
 						return httperr.InternalError().SetInternal(err) // make sure we send 500 instead of 404
 					}
 
@@ -157,8 +158,8 @@ func LoginEndpoint(grp *app.Router) {
 					// TODO(ppacher): make configurable
 					if sess.AccessUntil != nil && time.Until(*sess.AccessUntil) > 5*time.Minute {
 						log.Infof("accepting request as cookie is still valid until %s", sess.AccessUntil)
-						c.NoContent(http.StatusOK)
-						return nil
+
+						return c.NoContent(http.StatusOK)
 					}
 
 					log.Infof("session expiration at %s, auto-renewing token", sess.AccessUntil)
@@ -177,15 +178,13 @@ func LoginEndpoint(grp *app.Router) {
 
 			rd := c.QueryParam("redirect")
 			if rd == "" {
-				c.JSON(http.StatusOK, gin.H{
+				return c.JSON(http.StatusOK, gin.H{
 					"token": accessToken,
 				})
-				return nil
 			}
 
 			// TODO(ppacher): verify rd is inside protected domain
-			c.Redirect(http.StatusFound, rd)
-			return nil
+			return c.Redirect(http.StatusFound, rd)
 		},
 	)
 }

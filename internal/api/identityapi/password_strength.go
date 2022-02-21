@@ -31,12 +31,11 @@ func PasswordStrengthEndpoint(grp *app.Router) {
 
 			result := zxcvbn.PasswordStrength(body.Password, nil)
 
-			c.JSON(http.StatusOK, gin.H{
+			return c.JSON(http.StatusOK, gin.H{
 				"entropy":   result.Entropy,
 				"crackTime": result.CrackTimeDisplay,
 				"score":     result.Score,
 			})
-			return nil
 		},
 		session.Require(),
 	)

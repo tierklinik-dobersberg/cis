@@ -29,5 +29,6 @@ func readCommentMessage(c echo.Context) (string, error) {
 	default:
 		return "", httperr.BadRequest("unsupported content type: " + contentType)
 	}
+
 	return msg, nil
 }

@@ -22,8 +22,7 @@ func DeleteShowEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.NoContent(http.StatusAccepted)
-			return nil
+			return c.NoContent(http.StatusAccepted)
 		},
 	)
 }

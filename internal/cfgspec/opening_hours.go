@@ -193,6 +193,7 @@ func ParseDay(day string) (time.Weekday, bool) {
 	}
 
 	d, ok := days[strings.ToLower(day[0:2])]
+
 	return d, ok
 }
 

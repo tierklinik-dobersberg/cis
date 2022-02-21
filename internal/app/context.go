@@ -145,6 +145,7 @@ func From(c echo.Context) (*App, error) {
 // FromContext returns the App associated with c.
 func FromContext(ctx context.Context) *App {
 	val, _ := ctx.Value(appContextKey).(*App)
+
 	return val
 }
 
@@ -160,6 +161,7 @@ func (app *App) BaseURL(c *gin.Context) string {
 	if !strings.HasSuffix(url, "/") {
 		url += "/"
 	}
+
 	return url
 }
 
@@ -172,6 +174,7 @@ func (app *App) BasePath() string {
 	u, err := url.Parse(app.Config.BaseURL)
 	if err != nil {
 		logger.DefaultLogger().Errorf("failed to parse BaseURl setting: %s", err)
+
 		return "/"
 	}
 
@@ -179,6 +182,7 @@ func (app *App) BasePath() string {
 	if !strings.HasSuffix(path, "/") {
 		path += "/"
 	}
+
 	return path
 }
 
@@ -231,6 +235,7 @@ func (app *App) MaxUploadSize() int64 {
 		if err != nil {
 			logger.Errorf(context.TODO(), "WARNING: invalid MaxUploadSize: %s", err)
 			app.maxUploadSize = 1 << 20 // 1MB
+
 			return
 		}
 
@@ -242,5 +247,6 @@ func (app *App) MaxUploadSize() int64 {
 		}
 		app.maxUploadSize = parsed
 	})
+
 	return app.maxUploadSize
 }

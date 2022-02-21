@@ -44,35 +44,35 @@ func OverwriteEndpoint(grp *app.Router) {
 			}
 
 			// ensure it contains a valid duration
-			d, err := time.ParseDuration(body.Duration)
+			setDuration, err := time.ParseDuration(body.Duration)
 			if err != nil {
 				return httperr.InvalidField("duration")
 			}
-			if d < 0 {
+			if setDuration < 0 {
 				return httperr.InvalidField("duration")
 			}
 
-			until := time.Now().Add(d)
+			until := time.Now().Add(setDuration)
 
 			log.From(ctx).WithFields(logger.Fields{
-				"duration": d.String(),
+				"duration": setDuration.String(),
 				"state":    body.State,
 				"until":    until.String(),
 			}).V(6).Logf("received manual door overwrite request")
 
 			// overwrite the current state
-			err = app.Door.Overwrite(ctx, door.DoorState(body.State), until)
+			err = app.Door.Overwrite(ctx, door.State(body.State), until)
 			if err != nil {
 				return err
 			}
 
 			current, next, resetInProgress := app.Door.Current(ctx)
-			c.JSON(http.StatusOK, gin.H{
+
+			return c.JSON(http.StatusOK, gin.H{
 				"state":           current,
 				"until":           next,
 				"resetInProgress": resetInProgress,
 			})
-			return nil
 		},
 	)
 }

@@ -68,12 +68,10 @@ func CreateConfigEndpoint(r *app.Router) {
 				}
 			}
 
-			c.JSON(http.StatusOK, CreateConfigResponse{
+			return c.JSON(http.StatusOK, CreateConfigResponse{
 				ID:      id,
 				Warning: warning,
 			})
-
-			return nil
 		},
 	)
 }

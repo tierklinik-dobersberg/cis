@@ -34,8 +34,7 @@ func GetForYearEndpoint(grp *app.Router) {
 				holidays = make([]openinghours.PublicHoliday, 0)
 			}
 
-			c.JSON(http.StatusOK, holidays)
-			return nil
+			return c.JSON(http.StatusOK, holidays)
 		},
 	)
 }

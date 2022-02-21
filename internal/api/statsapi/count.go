@@ -25,8 +25,7 @@ func CountEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.JSON(http.StatusOK, res)
-			return nil
+			return c.JSON(http.StatusOK, res)
 		},
 	)
 }

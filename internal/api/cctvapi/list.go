@@ -18,8 +18,7 @@ func ListCamerasEndpoint(router *app.Router) {
 			ReadCameraAction,
 		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
-			c.JSON(http.StatusOK, app.CCTV.ListDefinitions())
-			return nil
+			return c.JSON(http.StatusOK, app.CCTV.ListDefinitions())
 		},
 	)
 }

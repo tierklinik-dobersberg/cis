@@ -43,8 +43,7 @@ func ExtendedSearchEndpoint(grp *app.Router) {
 				models[idx] = m
 			}
 
-			c.JSON(http.StatusOK, models)
-			return nil
+			return c.JSON(http.StatusOK, models)
 		},
 	)
 }

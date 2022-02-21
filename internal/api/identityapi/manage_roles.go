@@ -12,8 +12,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
 
-func RoleManagementEndpoints(r *app.Router) {
-	r.GET(
+func RoleManagementEndpoints(router *app.Router) {
+	router.GET(
 		"v1/roles",
 		permission.OneOf{ManageUserAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
@@ -22,12 +22,11 @@ func RoleManagementEndpoints(r *app.Router) {
 				return err
 			}
 
-			c.JSON(http.StatusOK, roles)
-			return nil
+			return c.JSON(http.StatusOK, roles)
 		},
 	)
 
-	r.POST(
+	router.POST(
 		"v1/roles/:role",
 		permission.OneOf{ManageUserAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
@@ -47,9 +46,7 @@ func RoleManagementEndpoints(r *app.Router) {
 				return err
 			}
 
-			c.NoContent(http.StatusNoContent)
-
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 }
@@ -74,9 +71,7 @@ func EditRoleEndpoint(r *app.Router) {
 				return err
 			}
 
-			c.NoContent(http.StatusNoContent)
-
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 }
@@ -96,9 +91,7 @@ func DeleteRoleEndpoint(r *app.Router) {
 				return err
 			}
 
-			c.NoContent(http.StatusNoContent)
-
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 }
@@ -131,8 +124,7 @@ func GetRoleEndpoint(r *app.Router) {
 				response.Permissions = append(response.Permissions, p.Permission)
 			}
 
-			c.JSON(http.StatusOK, response)
-			return nil
+			return c.JSON(http.StatusOK, response)
 		},
 	)
 }
@@ -142,5 +134,6 @@ func getManager(app *app.App) (identity.ManageUserSupport, error) {
 	if !ok {
 		return nil, echo.NewHTTPError(http.StatusNotImplemented, "identity provider does not ")
 	}
+
 	return manager, nil
 }

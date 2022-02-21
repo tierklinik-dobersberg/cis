@@ -23,8 +23,7 @@ func GetLayoutEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.JSON(http.StatusOK, l)
-			return nil
+			return c.JSON(http.StatusOK, l)
 		},
 	)
 
@@ -46,8 +45,8 @@ func GetLayoutEndpoint(router *app.Router) {
 			}
 
 			iconPath := l.FilePath(l.PreviewIcon)
-			c.File(iconPath)
-			return nil
+
+			return c.File(iconPath)
 		},
 	)
 }

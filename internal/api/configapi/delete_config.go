@@ -30,11 +30,10 @@ func DeleteConfigEndpoint(r *app.Router) {
 				}
 			}
 
-			c.JSON(http.StatusOK, DeleteConfigResponse{
+			return c.JSON(http.StatusOK, DeleteConfigResponse{
 				ID:      id,
 				Warning: warning,
 			})
-			return nil
 		},
 	)
 }

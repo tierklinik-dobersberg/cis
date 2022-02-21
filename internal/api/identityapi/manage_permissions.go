@@ -37,11 +37,9 @@ func CreatePermissionEndpoint(r *app.Router) {
 				return err
 			}
 
-			c.JSON(http.StatusOK, echo.Map{
+			return c.JSON(http.StatusOK, echo.Map{
 				"id": permID,
 			})
-
-			return nil
 		},
 	)
 }
@@ -64,9 +62,7 @@ func DeletePermissionEndpoint(r *app.Router) {
 				return err
 			}
 
-			c.NoContent(http.StatusNoContent)
-
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 }

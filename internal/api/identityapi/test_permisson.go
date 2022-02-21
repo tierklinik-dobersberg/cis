@@ -37,7 +37,8 @@ func TestPermissionEndpoint(grp *app.Router) {
 
 			// test each permission request and record the result
 			result := make(map[string]*testResult, len(requests))
-			for key, req := range requests {
+			for key := range requests {
+				req := requests[key]
 				// only allow checks for the current session.
 				// TODO(ppacher): add special permission to test all users.
 				req.User = sess.User.Name
@@ -51,9 +52,7 @@ func TestPermissionEndpoint(grp *app.Router) {
 				}
 			}
 
-			c.JSON(http.StatusOK, result)
-
-			return nil
+			return c.JSON(http.StatusOK, result)
 		},
 		session.Require(),
 	)

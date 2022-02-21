@@ -36,8 +36,7 @@ func GetActiveOverwriteEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.JSON(http.StatusOK, overwrite)
-			return nil
+			return c.JSON(http.StatusOK, overwrite)
 		},
 	)
 }

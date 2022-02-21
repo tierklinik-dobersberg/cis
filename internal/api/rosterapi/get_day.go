@@ -38,9 +38,10 @@ func GetDayEndpoint(grp *app.Router) {
 				if errors.As(err, &he) && he.Code == http.StatusNotFound {
 					var d v1alpha.Day
 					addStartTimes(ctx, app, time.Date(year, month, int(day), 0, 0, 0, 0, app.Location()), &d)
-					c.JSON(http.StatusNotFound, d)
-					return nil
+
+					return c.JSON(http.StatusNotFound, d)
 				}
+
 				return err
 			}
 
@@ -51,8 +52,7 @@ func GetDayEndpoint(grp *app.Router) {
 
 			addStartTimes(ctx, app, time.Date(year, month, int(day), 0, 0, 0, 0, app.Location()), &d)
 
-			c.JSON(http.StatusOK, d)
-			return nil
+			return c.JSON(http.StatusOK, d)
 		},
 	)
 }

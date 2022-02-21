@@ -49,8 +49,7 @@ func ChangePasswordEndpoint(grp *app.Router) {
 				return err
 			}
 
-			c.NoContent(http.StatusNoContent)
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 		session.Require(),
 	)

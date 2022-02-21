@@ -46,11 +46,11 @@ func TestStateEndpoint(grp *app.Router) {
 			date := time.Date(year, time.Month(month), day, hour, minute, 0, 0, app.Location())
 
 			result, until := app.Door.StateFor(ctx, date)
-			c.JSON(http.StatusOK, gin.H{
+
+			return c.JSON(http.StatusOK, gin.H{
 				"desiredState": string(result),
 				"until":        until.Format(time.RFC3339),
 			})
-			return nil
 		},
 	)
 }

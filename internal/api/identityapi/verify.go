@@ -50,25 +50,26 @@ func VerifyEndpoint(grp *app.Router) {
 
 			if !allowed {
 				log.WithFields(req.AsFields()).Info("access denied")
+
 				return httperr.Forbidden()
 			}
 
 			addRemoteUserHeaders(sess.User, c.Response())
 
-			c.NoContent(http.StatusOK)
-			return nil
+			return c.NoContent(http.StatusOK)
 		},
 		session.Require(),
 	)
 }
 
-func verifyBasicAuth(ctx context.Context, db identity.Provider, header string) (*v1alpha.User, error) {
+func verifyBasicAuth(ctx context.Context, identityDB identity.Provider, header string) (*v1alpha.User, error) {
 	log := log.From(ctx)
 
 	// We only support "Basic" auth so error out immediately for any
 	// other technique.
 	if !strings.HasPrefix(header, "Basic ") {
 		log.Infof("basic-auth: invalid 'Authorization' header: Only 'Basic' auth is supported. ")
+
 		return nil, httperr.BadRequest("invalid authorization header")
 	}
 
@@ -76,6 +77,7 @@ func verifyBasicAuth(ctx context.Context, db identity.Provider, header string) (
 	blob, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(header, "Basic "))
 	if err != nil {
 		log.Infof("basic-auth: invalid 'Authorization' header: invalid base64 encoded value")
+
 		return nil, httperr.BadRequest("invalid authorization header")
 	}
 
@@ -83,37 +85,40 @@ func verifyBasicAuth(ctx context.Context, db identity.Provider, header string) (
 	parts := strings.SplitN(string(blob), ":", 2)
 	if len(parts) != 2 {
 		log.Infof("basic-auth: invalid 'Authorization' header: unexpcted number of parts")
+
 		return nil, httperr.BadRequest("invalid authorization header")
 	}
 
 	log.Infof("basic-auth: trying to authenticating user %s", parts[0])
 
 	// and finally try to authenticate the user.
-	if db.Authenticate(ctx, parts[0], parts[1]) {
-		user, err := db.GetUser(ctx, parts[0])
+	if identityDB.Authenticate(ctx, parts[0], parts[1]) {
+		user, err := identityDB.GetUser(ctx, parts[0])
 		if err != nil {
 			log.Errorf("basic-auth: failed to retrieve user object for authenticated session %s", parts[0])
+
 			return nil, httperr.BadRequest("invalid authorization header")
 		}
 
 		return &user.User, nil
 	}
+
 	return nil, httperr.Unauthorized("authentication failed")
 }
 
-func addRemoteUserHeaders(u v1alpha.User, w http.ResponseWriter) {
-	w.Header().Set("Remote-User", u.Name)
-	w.Header().Set("Remote-FullName", u.Fullname)
+func addRemoteUserHeaders(user v1alpha.User, respWriter http.ResponseWriter) {
+	respWriter.Header().Set("Remote-User", user.Name)
+	respWriter.Header().Set("Remote-FullName", user.Fullname)
 
-	for _, mail := range u.Mail {
-		w.Header().Add("Remote-Mail", mail)
+	for _, mail := range user.Mail {
+		respWriter.Header().Add("Remote-Mail", mail)
 	}
 
-	for _, phone := range u.PhoneNumber {
-		w.Header().Add("Remote-Phone", phone)
+	for _, phone := range user.PhoneNumber {
+		respWriter.Header().Add("Remote-Phone", phone)
 	}
 
-	for _, role := range u.Roles {
-		w.Header().Add("Remote-Role", role)
+	for _, role := range user.Roles {
+		respWriter.Header().Add("Remote-Role", role)
 	}
 }

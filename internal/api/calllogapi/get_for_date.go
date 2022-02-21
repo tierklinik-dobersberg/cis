@@ -56,8 +56,7 @@ func ForDateEndpoint(grp *app.Router) {
 				logs = make([]v1alpha.CallLog, 0)
 			}
 
-			c.JSON(http.StatusOK, logs)
-			return nil
+			return c.JSON(http.StatusOK, logs)
 		},
 	)
 }

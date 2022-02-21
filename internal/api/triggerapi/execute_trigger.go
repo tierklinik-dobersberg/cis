@@ -11,6 +11,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 func ExecuteTriggerEndpoint(router *app.Router) {
@@ -29,16 +30,18 @@ func ExecuteTriggerEndpoint(router *app.Router) {
 			// TODO(ppacher): we may add support for custom event IDs instead
 			// of the hard-coded __external.
 			if instance.Wants(externalTriggerID) {
-				instance.Handle(ctx, &event.Event{
+				err := instance.Handle(ctx, &event.Event{
 					ID:      externalTriggerID,
 					Created: time.Now(),
 				})
+				if err != nil {
+					logger.From(ctx).Errorf("failed to handle external trigger %s: %s", instance.Name(), err)
+				}
 			} else {
 				return httperr.PreconditionFailed("trigger does not support being triggered via API")
 			}
-			c.NoContent(http.StatusAccepted)
 
-			return nil
+			return c.NoContent(http.StatusAccepted)
 		},
 	)
 }
@@ -49,5 +52,6 @@ func findInstance(name string, instances []*trigger.Instance) *trigger.Instance 
 			return i
 		}
 	}
+
 	return nil
 }

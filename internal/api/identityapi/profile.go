@@ -30,8 +30,7 @@ func ProfileEndpoint(grp *app.Router) {
 			// so make sure we send the complete set of available roles here,
 			user.User.Roles = sess.DistinctRoles()
 
-			c.JSON(http.StatusOK, user.User)
-			return nil
+			return c.JSON(http.StatusOK, user.User)
 		},
 		session.Require(),
 	)

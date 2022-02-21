@@ -22,8 +22,7 @@ func ListMailboxesEndpoint(router *app.Router) {
 				names[idx] = cfg.Name
 			}
 
-			c.JSON(http.StatusOK, names)
-			return nil
+			return c.JSON(http.StatusOK, names)
 		},
 	)
 }

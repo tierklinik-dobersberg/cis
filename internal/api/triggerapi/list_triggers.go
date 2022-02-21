@@ -34,10 +34,10 @@ func ListTriggerEndpoint(router *app.Router) {
 
 			// collect all instances the user has access to.
 			var instances []TriggerInstance
-			for _, i := range trigger.DefaultRegistry.Instances() {
+			for _, instance := range trigger.DefaultRegistry.Instances() {
 				req := &permission.Request{
 					User:     sess.User.Name,
-					Resource: i.Name(),
+					Resource: instance.Name(),
 					Action:   ReadTriggerAction.Name,
 				}
 				permitted, err := app.Matcher.Decide(ctx, req, sess.ExtraRoles())
@@ -46,17 +46,17 @@ func ListTriggerEndpoint(router *app.Router) {
 				}
 				if permitted {
 					instances = append(instances, TriggerInstance{
-						Name:        i.Name(),
-						Description: i.Description(),
-						Pending:     i.Pending(),
-						Groups:      i.Groups(),
+						Name:        instance.Name(),
+						Description: instance.Description(),
+						Pending:     instance.Pending(),
+						Groups:      instance.Groups(),
 					})
 				}
 			}
-			c.JSON(http.StatusOK, TriggerListResponse{
+
+			return c.JSON(http.StatusOK, TriggerListResponse{
 				Instances: instances,
 			})
-			return nil
 		},
 	)
 }

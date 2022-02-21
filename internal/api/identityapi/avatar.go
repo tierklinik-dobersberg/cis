@@ -24,6 +24,7 @@ import (
 )
 
 // AvatarEndpoint serves the user avatar as an image.
+// trunk-ignore(golangci-lint/gocognit)
 func AvatarEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/avatar/:userName",
@@ -42,28 +43,30 @@ func AvatarEndpoint(grp *app.Router) {
 			user, err := app.Identities.GetUser(ctx, userName)
 			if err != nil {
 				log.Errorf("failed to get user %s: %s", userName, err)
+
 				return err
 			}
 
-			avatarFile := user.AvatarFile
-			if avatarFile == "" {
-				avatarFile = strings.ToLower(user.Name) + ".png"
+			avatarFilePath := user.AvatarFile
+			if avatarFilePath == "" {
+				avatarFilePath = strings.ToLower(user.Name) + ".png"
 			}
 
-			f, err := loadAvatar(ctx, app.Config.AvatarDirectory, avatarFile)
+			avatarFile, err := loadAvatar(ctx, app.Config.AvatarDirectory, avatarFilePath)
 			if err != nil {
 				if os.IsNotExist(err) {
-					return httperr.NotFound("avatar", avatarFile)
+					return httperr.NotFound("avatar", avatarFilePath)
 				}
 
 				return err
 			}
 
-			if closer, ok := f.(io.Closer); ok {
+			if closer, ok := avatarFile.(io.Closer); ok {
 				defer closer.Close()
 			}
 
-			http.ServeContent(c.Response(), c.Request(), userName, time.Now(), f)
+			http.ServeContent(c.Response(), c.Request(), userName, time.Now(), avatarFile)
+
 			return nil
 		},
 		session.Require(),
@@ -112,6 +115,7 @@ func AvatarEndpoint(grp *app.Router) {
 					return httperr.RequestToLarge("maximum size is %s", app.Config.InfoScreenConfig.MaxUploadSize)
 				}
 				logger.From(ctx).Errorf("failed to process upload request: %s", err)
+
 				return httperr.InternalError("failed to process request")
 			}
 
@@ -146,9 +150,7 @@ func AvatarEndpoint(grp *app.Router) {
 				return err
 			}
 
-			c.NoContent(http.StatusNoContent)
-
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 }
@@ -184,11 +186,7 @@ func isAllowedFile(file *multipart.FileHeader, maxSize int64) error {
 }
 
 func isAllowedMediaType(mt string) bool {
-	switch {
-	case strings.HasPrefix(mt, "image/"):
-		return true
-	}
-	return false
+	return strings.HasPrefix(mt, "image/")
 }
 
 func loadAvatar(ctx context.Context, path string, fileName string) (io.ReadSeeker, error) {

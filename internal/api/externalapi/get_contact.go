@@ -74,8 +74,7 @@ func GetContactEndpoint(grp *app.Router) {
 
 					log.From(ctx).Infof("returning unknown customer (%s/%d): %s for %q", contact.Source, contact.CustomerID, contact.Name, phone)
 
-					c.JSON(http.StatusOK, contact)
-					return nil
+					return c.JSON(http.StatusOK, contact)
 				}
 
 				return httperr.NotFound("customer", phone)
@@ -99,9 +98,7 @@ func GetContactEndpoint(grp *app.Router) {
 				response.Contact[fmt.Sprintf("phone%d", idx+1)] = strings.ReplaceAll(phone, " ", "")
 			}
 
-			c.JSON(http.StatusOK, response)
-
-			return nil
+			return c.JSON(http.StatusOK, response)
 		},
 	)
 }

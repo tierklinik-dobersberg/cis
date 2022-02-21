@@ -64,12 +64,12 @@ func CreateOrUpdateEndpoint(grp *app.Router) {
 				return err
 			}
 
-			c.NoContent(http.StatusNoContent)
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 }
 
+// trunk-ignore(golangci-lint/cyclop)
 func validateRoster(ctx context.Context, app *app.App, roster *v1alpha.DutyRoster) error {
 	// Come one, I guess 2100 is enough ...
 	if roster.Year < 2019 || roster.Year > 2100 {
@@ -84,9 +84,9 @@ func validateRoster(ctx context.Context, app *app.App, roster *v1alpha.DutyRoste
 	if err != nil {
 		return err
 	}
-	lm := make(map[string]cfgspec.User, len(allUsers))
+	userByName := make(map[string]cfgspec.User, len(allUsers))
 	for _, user := range allUsers {
-		lm[strings.ToLower(user.Name)] = user
+		userByName[strings.ToLower(user.Name)] = user
 	}
 
 	midnight := daytime.Midnight(time.Now())
@@ -96,18 +96,18 @@ func validateRoster(ctx context.Context, app *app.App, roster *v1alpha.DutyRoste
 		// roster even if it referes to a now disabled user on days already in the past.
 		allowDisabled := time.Date(roster.Year, roster.Month, date, 0, 0, 0, 0, app.Location()).Before(midnight)
 
-		if err := validateUsers(day.Forenoon, lm, allowDisabled); err != nil {
+		if err := validateUsers(day.Forenoon, userByName, allowDisabled); err != nil {
 			return fmt.Errorf("forenoon: %w", err)
 		}
-		if err := validateUsers(day.Afternoon, lm, allowDisabled); err != nil {
+		if err := validateUsers(day.Afternoon, userByName, allowDisabled); err != nil {
 			return fmt.Errorf("afternoon: %w", err)
 		}
 		// TODO(ppacher): let the user configure if on-call shifts
 		// should be required!
-		if err := validateUsers(day.OnCall.Day, lm, allowDisabled); err != nil {
+		if err := validateUsers(day.OnCall.Day, userByName, allowDisabled); err != nil {
 			return fmt.Errorf("onCal.day: %w", err)
 		}
-		if err := validateUsers(day.OnCall.Night, lm, allowDisabled); err != nil {
+		if err := validateUsers(day.OnCall.Night, userByName, allowDisabled); err != nil {
 			return fmt.Errorf("oncall.Night: %w", err)
 		}
 	}
@@ -125,5 +125,6 @@ func validateUsers(users []string, lm map[string]cfgspec.User, allowDisabled boo
 			return fmt.Errorf("user %s is disabled", u)
 		}
 	}
+
 	return nil
 }

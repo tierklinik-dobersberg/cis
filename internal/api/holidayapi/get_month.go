@@ -49,8 +49,7 @@ func GetForMonthEndpoint(grp *app.Router) {
 				}
 			}
 
-			c.JSON(http.StatusOK, result)
-			return nil
+			return c.JSON(http.StatusOK, result)
 		},
 	)
 }

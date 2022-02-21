@@ -25,9 +25,7 @@ func ListCalendarsEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.JSON(http.StatusOK, calendars)
-
-			return nil
+			return c.JSON(http.StatusOK, calendars)
 		},
 	)
 }

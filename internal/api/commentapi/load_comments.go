@@ -43,9 +43,7 @@ func LoadCommentsForKeyEndpoint(router *app.Router) {
 				comments = make([]v1alpha.Comment, 0)
 			}
 
-			c.JSON(http.StatusOK, comments)
-
-			return nil
+			return c.JSON(http.StatusOK, comments)
 		},
 	)
 }

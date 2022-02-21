@@ -14,8 +14,9 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
 
-func CreateEditUserEndpoint(r *app.Router) {
-	r.POST(
+// trunk-ignore(golangci-lint/gocognit)
+func CreateEditUserEndpoint(router *app.Router) {
+	router.POST(
 		"v1/users/:username",
 		permission.OneOf{ManageUserAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
@@ -66,18 +67,16 @@ func CreateEditUserEndpoint(r *app.Router) {
 			}
 
 			if returnPassword {
-				c.JSON(http.StatusOK, echo.Map{
+				return c.JSON(http.StatusOK, echo.Map{
 					"password": request.Password,
 				})
-			} else {
-				c.NoContent(http.StatusNoContent)
 			}
 
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 
-	r.PUT(
+	router.PUT(
 		"v1/users/:username",
 		permission.OneOf{ManageUserAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
@@ -102,13 +101,11 @@ func CreateEditUserEndpoint(r *app.Router) {
 				return err
 			}
 
-			c.NoContent(http.StatusNoContent)
-
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 
-	r.GET(
+	router.GET(
 		"v1/users/:username",
 		permission.OneOf{ManageUserAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
@@ -135,13 +132,11 @@ func CreateEditUserEndpoint(r *app.Router) {
 				response.Permissions = append(response.Permissions, p.Permission)
 			}
 
-			c.JSON(http.StatusOK, response)
-
-			return nil
+			return c.JSON(http.StatusOK, response)
 		},
 	)
 
-	r.PUT(
+	router.PUT(
 		"v1/users/:username/password",
 		permission.OneOf{ManageUserAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
@@ -160,13 +155,12 @@ func CreateEditUserEndpoint(r *app.Router) {
 			if err := changer.SetUserPassword(ctx, username, req.Password, "bcrypt"); err != nil {
 				return err
 			}
-			c.NoContent(http.StatusNoContent)
 
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 
-	r.PUT(
+	router.PUT(
 		"v1/users/:username/roles/:rolename",
 		permission.OneOf{ManageUserAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
@@ -182,13 +176,11 @@ func CreateEditUserEndpoint(r *app.Router) {
 				return err
 			}
 
-			c.NoContent(http.StatusNoContent)
-
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 
-	r.DELETE(
+	router.DELETE(
 		"v1/users/:username/roles/:rolename",
 		permission.OneOf{ManageUserAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
@@ -204,9 +196,7 @@ func CreateEditUserEndpoint(r *app.Router) {
 				return err
 			}
 
-			c.NoContent(http.StatusNoContent)
-
-			return nil
+			return c.NoContent(http.StatusNoContent)
 		},
 	)
 }

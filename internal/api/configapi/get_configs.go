@@ -38,11 +38,9 @@ func GetConfigsEndpoint(r *app.Router) {
 				cfgs = make(map[string]map[string]interface{}) // creat an empty map for the response
 			}
 
-			c.JSON(http.StatusOK, GetConfigsResponse{
+			return c.JSON(http.StatusOK, GetConfigsResponse{
 				Configs: cfgs,
 			})
-
-			return nil
 		},
 	)
 }

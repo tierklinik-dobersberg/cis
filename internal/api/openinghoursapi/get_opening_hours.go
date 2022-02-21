@@ -43,8 +43,7 @@ func GetOpeningHoursEndpoint(router *app.Router) {
 					return err
 				}
 
-				c.JSON(http.StatusOK, res)
-				return nil
+				return c.JSON(http.StatusOK, res)
 			}
 
 			at := c.QueryParam("at")
@@ -53,24 +52,22 @@ func GetOpeningHoursEndpoint(router *app.Router) {
 				return err
 			}
 
-			c.JSON(http.StatusOK, res)
-
-			return nil
+			return c.JSON(http.StatusOK, res)
 		},
 	)
 }
 
-func getSingleDayOpeningHours(ctx context.Context, app *app.App, at string, d time.Time) (*GetOpeningHoursResponse, error) {
+func getSingleDayOpeningHours(ctx context.Context, app *app.App, at string, date time.Time) (*GetOpeningHoursResponse, error) {
 	if at != "" {
 		var err error
-		d, err = app.ParseTime("2006-1-2", at)
+		date, err = app.ParseTime("2006-1-2", at)
 		if err != nil {
 			return nil, httperr.InvalidParameter("at", err.Error())
 		}
 	}
 
-	frames := app.Door.ForDate(ctx, d)
-	holiday, err := app.Holidays.IsHoliday(ctx, app.Config.Country, d)
+	frames := app.Door.ForDate(ctx, date)
+	holiday, err := app.Holidays.IsHoliday(ctx, app.Config.Country, date)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +75,7 @@ func getSingleDayOpeningHours(ctx context.Context, app *app.App, at string, d ti
 	timeRanges := make([]TimeRange, len(frames))
 	for idx, frame := range frames {
 		timeRanges[idx] = TimeRange{
-			TimeRange:  *frame.At(d, app.Location()),
+			TimeRange:  *frame.At(date, app.Location()),
 			Unofficial: frame.Unofficial,
 		}
 	}
@@ -90,17 +87,17 @@ func getSingleDayOpeningHours(ctx context.Context, app *app.App, at string, d ti
 }
 
 func getOpeningHoursRangeResponse(ctx context.Context, app *app.App, from, to string) (*GetOpeningHoursRangeResponse, error) {
-	f, err := app.ParseTime("2006-1-2", from)
+	fromTime, err := app.ParseTime("2006-1-2", from)
 	if err != nil {
 		return nil, httperr.InvalidParameter("from", err.Error())
 	}
-	t, err := app.ParseTime("2006-1-2", to)
+	toTime, err := app.ParseTime("2006-1-2", to)
 	if err != nil {
 		return nil, httperr.InvalidParameter("to", err.Error())
 	}
 	logger.From(ctx).Infof("loading opening hours in time range from %s to %s", from, to)
 
-	if t.Before(f) || t.Equal(f) {
+	if toTime.Before(fromTime) || toTime.Equal(fromTime) {
 		return nil, httperr.BadRequest("invalid from/to values")
 	}
 
@@ -108,8 +105,8 @@ func getOpeningHoursRangeResponse(ctx context.Context, app *app.App, from, to st
 		Dates: make(map[string]GetOpeningHoursResponse),
 	}
 
-	current := f
-	for current.Before(t) {
+	current := fromTime
+	for current.Before(toTime) {
 		day, err := getSingleDayOpeningHours(ctx, app, "", current)
 		if err != nil {
 			return nil, err
