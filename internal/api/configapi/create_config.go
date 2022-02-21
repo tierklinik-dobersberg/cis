@@ -8,6 +8,7 @@ import (
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 )
@@ -39,17 +40,9 @@ func CreateConfigEndpoint(r *app.Router) {
 			}
 
 			// create a slice of options
-			var options []conf.Option
-			for name, val := range req.Config {
-				opts, err := conf.EncodeToOptions(name, val)
-				if err != nil {
-					return httperr.BadRequest(echo.Map{
-						"error": "invalid values for option",
-						"name":  name,
-					}).SetInternal(err)
-				}
-
-				options = append(options, opts...)
+			options, err := confutil.MapToOptions(req.Config)
+			if err != nil {
+				return err
 			}
 
 			section := conf.Section{
