@@ -243,6 +243,7 @@ func (svc *googleCalendarBackend) cacheFor(ctx context.Context, calID string) (*
 	cache, ok := svc.eventsCache[calID]
 	if ok {
 		log.From(ctx).V(8).Logf("using existing event cache for %s", calID)
+
 		return cache, nil
 	}
 
@@ -260,6 +261,7 @@ func (svc *googleCalendarBackend) cacheFor(ctx context.Context, calID string) (*
 	return cache, nil
 }
 
+// trunk-ignore(golangci-lint/cyclop)
 func (svc *googleCalendarBackend) loadEvents(ctx context.Context, calendarID string, searchOpts *ciscal.EventSearchOptions) ([]ciscal.Event, error) {
 	call := svc.Events.List(calendarID).ShowDeleted(false).SingleEvents(true)
 

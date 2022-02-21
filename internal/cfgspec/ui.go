@@ -231,6 +231,7 @@ func addUISchema(schema *runtime.ConfigSchema) error {
 	); err != nil {
 		return err
 	}
+
 	return nil
 }
 

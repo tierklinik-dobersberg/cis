@@ -24,6 +24,7 @@ var log = pkglog.New("session")
 // Middleware is a echo MiddlewareFunc that extracts session data from incoming
 // HTTP requests and handles automatic issuing of new access tokens for
 // provided refresh tokens.
+// trunk-ignore(golangci-lint/gocognit)
 func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		log := log.From(c.Request().Context())
@@ -33,11 +34,12 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		session := Get(c)
 		if session != nil {
 			log.Infof("request is already assigned to %s", session)
+
 			return next(c)
 		}
 
-		ctx, sp := otel.Tracer("").Start(c.Request().Context(), "session.Middleware")
-		defer sp.End()
+		ctx, span := otel.Tracer("").Start(c.Request().Context(), "session.Middleware")
+		defer span.End()
 
 		//
 		// get access and refresh tokens
@@ -58,6 +60,7 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		// skip it.
 		if refreshToken == nil && accessToken == nil {
 			log.V(3).Log("unauthenticated request: no access or refresh token provided")
+
 			return next(c)
 		}
 
@@ -65,6 +68,7 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if accessUser != nil && refreshUser != nil && accessUser.Name != refreshUser.Name {
 			// TODO(ppacher): INCIDENT!
 			log.V(3).Logf("security alert: access and refresh token user differ: %s != %s", accessUser.Name, refreshUser.Name)
+
 			return httperr.BadRequest(
 				fmt.Errorf("access and refresh token do not belong to the same user"),
 			)
@@ -76,13 +80,14 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		if user == nil {
 			log.V(3).Log("request denied: failed to find user for token")
-			sp.RecordError(fmt.Errorf("failed to find user for access/refresh token"))
+			span.RecordError(fmt.Errorf("failed to find user for access/refresh token"))
 
 			return next(c)
 		}
 
 		if user.Disabled != nil && *user.Disabled {
 			log.V(3).Log("request denied: user has been disabled!")
+
 			return httperr.Forbidden(
 				fmt.Errorf("user has been disabled"),
 			)
@@ -94,6 +99,7 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		// we can now check if there's an active session ID
 		// and reuse that. otherwise, we just create a new session
 		// object and continue with that.
+		// trunk-ignore(golangci-lint/nestif)
 		if mng.sessionIDCookie != "" {
 			sid, err := c.Cookie(mng.sessionIDCookie)
 			if err != nil && !errors.Is(err, http.ErrNoCookie) {
@@ -106,6 +112,7 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 					// the user is the same ...
 					if session.User.Name != user.Name {
 						log.V(3).Log("request denied: sid-user does not match access token")
+
 						return httperr.BadRequest("session ID user does not match access token")
 					}
 				}
@@ -137,6 +144,7 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 			// return without setting a session on c.
 			if session.AccessUntil == nil && session.RefreshUntil == nil {
 				log.V(3).Logf("unauthenticated request: no valid access or refresh token found: %s", session)
+
 				return next(c)
 			}
 
@@ -177,6 +185,7 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 func (mng *Manager) getSessionByID(id string) *Session {
 	mng.sessionLock.Lock()
 	defer mng.sessionLock.Unlock()
+
 	return mng.activeSession[id]
 }
 
@@ -229,6 +238,7 @@ func Require() echo.MiddlewareFunc {
 				} else {
 					log.From(c.Request().Context()).Infof("Request session without access scope, aborting")
 				}
+
 				return httperr.Unauthorized("no access token provided")
 			}
 
@@ -320,5 +330,6 @@ func hasScope(haystack []jwt.Scope, needle jwt.Scope) bool {
 			return true
 		}
 	}
+
 	return false
 }

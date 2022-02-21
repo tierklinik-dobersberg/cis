@@ -13,7 +13,7 @@ var (
 	ErrCfgSectionNotFound = errors.New("config-provider: no configuration section found")
 	ErrReadOnly           = errors.New("config-provider: provider is read-only")
 	ErrUnknownConfigTest  = errors.New("config: unknown configuration tests identifier")
-	ErrUnknownType 	      = errors.New("config: unknown-type")
+	ErrUnknownType        = errors.New("config: unknown-type")
 )
 
 type NotificationError struct {

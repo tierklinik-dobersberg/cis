@@ -146,6 +146,7 @@ func (inst *Instance) Wants(eventTopic string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -190,6 +191,7 @@ func (inst *Instance) Handle(ctx context.Context, evt *event.Event) error {
 			errors.Addf("handler %d: %w", idx, err)
 		}
 	}
+
 	return errors.ToError()
 }
 
@@ -247,6 +249,7 @@ func (inst *Instance) fireBuffer(ctx context.Context) {
 	inst.pending = false
 	if len(inst.buffer) == 0 {
 		log.V(7).Logf("buffer empty, skipping BufferUntil= / DebounceUntil=")
+
 		return
 	}
 
@@ -257,8 +260,7 @@ func (inst *Instance) fireBuffer(ctx context.Context) {
 
 	log.V(7).Logf("fireing %d buffered events", len(buffer))
 	for idx, handler := range inst.handlers {
-		// FIXME(ppacher): what to do with those errors?
-		if err := handler.HandleEvents(context.Background(), buffer...); err != nil {
+		if err := handler.HandleEvents(ctx, buffer...); err != nil {
 			log.Errorf("failed to execute trigger handler %s/%d: %w", inst.name, idx, err)
 		}
 	}

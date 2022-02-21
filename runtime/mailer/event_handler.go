@@ -40,6 +40,7 @@ func (eh *eventHandler) HandleEvents(ctx context.Context, events ...*event.Event
 			log.From(ctx).Errorf("failed to send mail: %w", err)
 		}
 	}
+
 	return errors.ToError()
 }
 

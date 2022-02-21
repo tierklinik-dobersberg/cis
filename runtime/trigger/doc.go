@@ -91,6 +91,7 @@ func init() {
 			for name, factory := range DefaultRegistry.factories {
 				m[name] = factory
 			}
+
 			return m
 		},
 		Description: "Trigger can be used to perform actions whenever an internal event is fired. They are mainly useful to integrate with external systems.",

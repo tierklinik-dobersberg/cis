@@ -72,6 +72,7 @@ func (ev *EventHandler) HandleEvents(ctx context.Context, evts ...*event.Event) 
 			errors.Add(err)
 			log.Errorf("failed to send SMS: %s", err)
 		}
+
 		return errors.ToError()
 	}
 
@@ -81,5 +82,6 @@ func (ev *EventHandler) HandleEvents(ctx context.Context, evts ...*event.Event) 
 			log.Errorf("failed to send SMS: %s", err)
 		}
 	}
+
 	return errors.ToError()
 }

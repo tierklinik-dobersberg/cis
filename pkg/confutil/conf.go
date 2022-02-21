@@ -20,6 +20,7 @@ func AbsConfig(path string) string {
 	if !filepath.IsAbs(path) {
 		return filepath.Join(svcenv.Env().ConfigurationDirectory, path)
 	}
+
 	return path
 }
 
@@ -68,6 +69,7 @@ func (msr MultiSectionRegistry) OptionsForSection(sec string) (conf.OptionRegist
 			return reg, true
 		}
 	}
+
 	return nil, false
 }
 
@@ -91,13 +93,13 @@ func (mor MultiOptionRegistry) All() []conf.OptionSpec {
 			result = append(result, opt)
 		}
 	}
+
 	return result
 }
 
-// FIXME(ppacher): finally get rid of this method from conf.OptionRegistry.
-// It's just not useful to re-implement it the same way every time.
 func (mor MultiOptionRegistry) HasOption(opt string) bool {
 	_, ok := mor.GetOption(opt)
+
 	return ok
 }
 
@@ -109,6 +111,7 @@ func (mor MultiOptionRegistry) GetOption(opt string) (conf.OptionSpec, bool) {
 			return opt, true
 		}
 	}
+
 	return conf.OptionSpec{}, false
 }
 
@@ -123,6 +126,7 @@ func (optreg *OptionalOptionRegistry) GetOption(opt string) (conf.OptionSpec, bo
 		return conf.OptionSpec{}, false
 	}
 	spec.Required = false
+
 	return spec, true
 }
 
@@ -134,6 +138,7 @@ func (optreg *OptionalOptionRegistry) All() []conf.OptionSpec {
 		opt.Required = false
 		r[idx] = opt
 	}
+
 	return r
 }
 
@@ -158,5 +163,6 @@ func MapToOptions(m map[string]interface{}) ([]conf.Option, error) {
 
 		options = append(options, opts...)
 	}
+
 	return options, nil
 }

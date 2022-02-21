@@ -77,7 +77,7 @@ func New(cfg cfgspec.Config, globalSchema *runtime.ConfigSchema, holidays Holida
 		return nil, fmt.Errorf("option DefaultOnCallNightStart: %w", err)
 	}
 
-	dc := &Controller{
+	ctrl := &Controller{
 		location: loc,
 		country:  cfg.Country,
 		holidays: holidays,
@@ -95,7 +95,7 @@ func New(cfg cfgspec.Config, globalSchema *runtime.ConfigSchema, holidays Holida
 	// for each weekday, prepare the start times for the day and night
 	// on-call shifts.
 	for i := time.Sunday; i <= time.Saturday; i++ {
-		dc.changeOnDuty[i] = &ChangeOnCall{
+		ctrl.changeOnDuty[i] = &ChangeOnCall{
 			dayStart:   defaultOnCallDayStart,
 			nightStart: defaultOnCallNightStart,
 			loc:        loc,
@@ -108,11 +108,11 @@ func New(cfg cfgspec.Config, globalSchema *runtime.ConfigSchema, holidays Holida
 		return nil, fmt.Errorf("failed to load opening hours: %w", err)
 	}
 
-	if err := dc.AddOpeningHours(openingHours...); err != nil {
+	if err := ctrl.AddOpeningHours(openingHours...); err != nil {
 		return nil, err
 	}
 
-	return dc, nil
+	return ctrl, nil
 }
 
 func (s *state) clone() *state {
@@ -205,6 +205,7 @@ func (ctrl *Controller) deleteOpeningHour(id string) error {
 		for _, oh := range openingHours {
 			if oh.ID == id {
 				found = true
+
 				continue
 			}
 			res = append(res, oh)
@@ -216,6 +217,7 @@ func (ctrl *Controller) deleteOpeningHour(id string) error {
 		for _, oh := range openingHours {
 			if oh.ID == id {
 				found = true
+
 				continue
 			}
 			res = append(res, oh)
@@ -227,6 +229,7 @@ func (ctrl *Controller) deleteOpeningHour(id string) error {
 	for _, oh := range ctrl.holidayTimeRanges {
 		if oh.ID == id {
 			found = true
+
 			continue
 		}
 		res = append(res, oh)
@@ -240,9 +243,9 @@ func (ctrl *Controller) deleteOpeningHour(id string) error {
 	return nil
 }
 
-func (ctrl *Controller) parseWeekDays(c cfgspec.OpeningHours, newState *state) ([]time.Weekday, error) {
-	var days []time.Weekday
-	for _, d := range c.OnWeekday {
+func (ctrl *Controller) parseWeekDays(openingHourDef cfgspec.OpeningHours, newState *state) ([]time.Weekday, error) {
+	days := make([]time.Weekday, 0, len(openingHourDef.OnWeekday))
+	for _, d := range openingHourDef.OnWeekday {
 		if err := cfgspec.ValidDay(d); err != nil {
 			return nil, err
 		}
@@ -252,24 +255,24 @@ func (ctrl *Controller) parseWeekDays(c cfgspec.OpeningHours, newState *state) (
 			return nil, fmt.Errorf("failed to parse day: %s", d)
 		}
 
-		if c.OnCallDayStart != "" {
+		if openingHourDef.OnCallDayStart != "" {
 			if newState.changeOnDuty[parsed].dayStart != ctrl.defaultOnCallDayStart {
 				return nil, fmt.Errorf("multiple values for OnCallDayStart= at weekday %s", parsed)
 			}
 
-			dayStart, err := daytime.ParseDayTime(c.OnCallDayStart)
+			dayStart, err := daytime.ParseDayTime(openingHourDef.OnCallDayStart)
 			if err != nil {
 				return nil, fmt.Errorf("invalid OnCallDayStart: %w", err)
 			}
 			newState.changeOnDuty[parsed].dayStart = dayStart
 		}
 
-		if c.OnCallNightStart != "" {
+		if openingHourDef.OnCallNightStart != "" {
 			if newState.changeOnDuty[parsed].nightStart != ctrl.defaultOnCallNightStart {
 				return nil, fmt.Errorf("multiple values for OnCallNightStart= at weekday %s", parsed)
 			}
 
-			nightStart, err := daytime.ParseDayTime(c.OnCallNightStart)
+			nightStart, err := daytime.ParseDayTime(openingHourDef.OnCallNightStart)
 			if err != nil {
 				return nil, fmt.Errorf("invalid OnCallNightStart: %w", err)
 			}
@@ -312,36 +315,37 @@ func (ctrl *Controller) parseDates(c cfgspec.OpeningHours) ([]string, error) {
 	return dates, nil
 }
 
-func (ctrl *Controller) getTimeRanges(c cfgspec.OpeningHours) ([]OpeningHour, error) {
-	ranges := make([]OpeningHour, 0, len(c.TimeRanges))
-	for _, r := range c.TimeRanges {
-		tr, err := daytime.ParseRange(r)
+func (ctrl *Controller) getTimeRanges(openingHourDef cfgspec.OpeningHours) ([]OpeningHour, error) {
+	ranges := make([]OpeningHour, 0, len(openingHourDef.TimeRanges))
+	for _, r := range openingHourDef.TimeRanges {
+		timeRange, err := daytime.ParseRange(r)
 		if err != nil {
 			return nil, err
 		}
 
-		closeAfter := c.CloseAfter
+		closeAfter := openingHourDef.CloseAfter
 		if closeAfter == 0 {
 			closeAfter = ctrl.defaultCloseAfter
 		}
 
-		openBefore := c.OpenBefore
+		openBefore := openingHourDef.OpenBefore
 		if openBefore == 0 {
 			openBefore = ctrl.defaultOpenBefore
 		}
 
 		ranges = append(ranges, OpeningHour{
-			ID:         c.ID,
-			Range:      tr,
+			ID:         openingHourDef.ID,
+			Range:      timeRange,
 			CloseAfter: closeAfter,
 			OpenBefore: openBefore,
-			Unofficial: c.Unofficial,
+			Unofficial: openingHourDef.Unofficial,
 		})
 	}
 
 	return ranges, nil
 }
 
+// trunk-ignore(golangci-lint/cyclop)
 func (ctrl *Controller) addOpeningHours(timeRanges ...cfgspec.OpeningHours) error {
 	newState := ctrl.state.clone()
 
@@ -411,6 +415,7 @@ func (ctrl *Controller) ChangeOnDuty(ctx context.Context, date time.Time) *Chang
 	change, ok := ctrl.changeOnDuty[date.Weekday()]
 	if !ok {
 		log.From(ctx).Errorf("no time for change-on-duty configured for %s (%d)", date.Weekday(), date)
+
 		return nil
 	}
 
@@ -429,6 +434,7 @@ func (ctrl *Controller) UpcomingFrames(ctx context.Context, dateTime time.Time, 
 	// configuration issue.
 	if len(ctrl.regularOpeningHours) == 0 {
 		log.Errorf("no regular opening hours configured")
+
 		return nil
 	}
 

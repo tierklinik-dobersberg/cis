@@ -94,6 +94,7 @@ func SignToken(method string, secret []byte, claims Claims) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return signedToken, nil
 }
 

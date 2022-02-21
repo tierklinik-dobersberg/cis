@@ -140,6 +140,7 @@ func (csb *ConfigSchemaBuilder) AddToSchema(scheme *ConfigSchema) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -233,6 +234,7 @@ func (schema *ConfigSchema) SchemaAsMap(ctx context.Context, name string) (map[s
 	for _, sec := range configs {
 		result[sec.ID] = decoder.AsMap(sec.Section)
 	}
+
 	return result, nil
 }
 
@@ -250,6 +252,7 @@ func (schema *ConfigSchema) OptionsForSection(name string) (conf.OptionRegistry,
 	if !ok {
 		return nil, false
 	}
+
 	return reg.Spec, true
 }
 
@@ -275,6 +278,7 @@ func (schema *ConfigSchema) DecodeSection(ctx context.Context, section string, t
 	for idx, sec := range sections {
 		s[idx] = sec.Section
 	}
+
 	return conf.DecodeSections(s, spec, target)
 }
 
@@ -295,6 +299,7 @@ func (schema *ConfigSchema) GetID(ctx context.Context, id string) (Section, erro
 	}
 
 	sec, err := schema.provider.GetID(ctx, id)
+
 	return sec, err
 }
 
@@ -314,7 +319,7 @@ func (schema *ConfigSchema) Create(ctx context.Context, secType string, options 
 		return "", ErrNoProvider
 	}
 
-	id, err := schema.provider.Create(ctx, conf.Section{
+	instanceID, err := schema.provider.Create(ctx, conf.Section{
 		Name:    secType,
 		Options: options,
 	})
@@ -323,14 +328,15 @@ func (schema *ConfigSchema) Create(ctx context.Context, secType string, options 
 	}
 
 	if reg.OnChange != nil {
-		if err := reg.OnChange(ctx, "create", id, &conf.Section{
+		if err := reg.OnChange(ctx, "create", instanceID, &conf.Section{
 			Name:    secType,
 			Options: options,
 		}); err != nil {
-			return id, &NotificationError{Wrapped: err}
+			return instanceID, &NotificationError{Wrapped: err}
 		}
 	}
-	return id, err
+
+	return instanceID, err
 }
 
 func (schema *ConfigSchema) Update(ctx context.Context, id, secType string, opts []conf.Option) error {
@@ -361,6 +367,7 @@ func (schema *ConfigSchema) Update(ctx context.Context, id, secType string, opts
 			return &NotificationError{Wrapped: err}
 		}
 	}
+
 	return nil
 }
 
@@ -394,6 +401,7 @@ func (schema *ConfigSchema) Delete(ctx context.Context, id string) error {
 			return &NotificationError{Wrapped: err}
 		}
 	}
+
 	return nil
 }
 
@@ -429,7 +437,7 @@ func (schema *ConfigSchema) Test(ctx context.Context, schemaType, testID string,
 	return tester.TestFunc(ctx, confSec.Options, testSec.Options)
 }
 
-func (schema *ConfigSchema) getTest(ctx context.Context, schemaType, testID string) (Schema, ConfigTest, error) {
+func (schema *ConfigSchema) getTest(_ context.Context, schemaType, testID string) (Schema, ConfigTest, error) {
 	schema.rw.RLock()
 	defer schema.rw.RUnlock()
 
@@ -441,7 +449,9 @@ func (schema *ConfigSchema) getTest(ctx context.Context, schemaType, testID stri
 	var test *ConfigTest
 	for _, t := range entry.Tests {
 		if t.ID == testID {
+			// trunk-ignore(golangci-lint/gosec)
 			test = &t
+
 			break
 		}
 	}
@@ -449,6 +459,7 @@ func (schema *ConfigSchema) getTest(ctx context.Context, schemaType, testID stri
 	if test == nil {
 		return entry, ConfigTest{}, ErrUnknownConfigTest
 	}
+
 	return entry, *test, nil
 }
 

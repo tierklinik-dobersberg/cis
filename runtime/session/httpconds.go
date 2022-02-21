@@ -23,6 +23,7 @@ func init() {
 			if sess.User.Name == value {
 				return true, nil
 			}
+
 			return false, nil
 		},
 	})

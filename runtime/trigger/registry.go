@@ -112,6 +112,7 @@ func NewRegistry(eventReg *event.Registry, location *time.Location) *Registry {
 	if location == nil {
 		location = time.Local
 	}
+
 	return &Registry{
 		factories: make(map[string]Factory),
 		event:     eventReg,
@@ -184,8 +185,8 @@ func (reg *Registry) OptionsForSection(sec string) (conf.OptionRegistry, bool) {
 // It will create a new handler for each handler section found in the configuration
 // and will subscribe to all event topics specified in the [Match] section. The
 // event subscription will be cancelled as soon as ctx is cancelled.
-func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.ConfigSchema, f *conf.File) (*Instance, error) {
-	instanceCfg, err := reg.getInstanceCfg(f)
+func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.ConfigSchema, triggerConfig *conf.File) (*Instance, error) {
+	instanceCfg, err := reg.getInstanceCfg(triggerConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +194,7 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 	// copy over the configured location.
 	instanceCfg.Location = reg.location
 
-	fileBase := filepath.Base(f.Path)
+	fileBase := filepath.Base(triggerConfig.Path)
 	fileBase = strings.TrimSuffix(fileBase, filepath.Ext(fileBase))
 
 	reg.l.Lock()
@@ -205,9 +206,9 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 
 	// now iterate over all sections, call the associated factory and collect
 	// the created handlers.
-	var handlers []Handler
-	for idx := range f.Sections {
-		sec := f.Sections[idx]
+	handlers := make([]Handler, 0, len(triggerConfig.Sections))
+	for idx := range triggerConfig.Sections {
+		sec := triggerConfig.Sections[idx]
 
 		// we already parsed the [Match] section so we can skip
 		// it.
@@ -246,6 +247,7 @@ func (reg *Registry) Instances() []*Instance {
 	}
 
 	sort.Sort(byInstanceName(instances))
+
 	return instances
 }
 
@@ -262,6 +264,7 @@ func (reg *Registry) getInstanceCfg(f *conf.File) (*InstanceConfig, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return instanceCfg, nil
 }
 

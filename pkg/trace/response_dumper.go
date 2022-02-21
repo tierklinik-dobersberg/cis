@@ -20,6 +20,7 @@ type ResponseRecorder struct {
 // the body written to resp.
 func NewResponseRecorder(resp *echo.Response) *ResponseRecorder {
 	buf := new(bytes.Buffer)
+
 	return &ResponseRecorder{
 		ResponseWriter: resp.Writer,
 
