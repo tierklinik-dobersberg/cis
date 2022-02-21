@@ -37,7 +37,6 @@ export class OpeningHoursAPI {
         }).pipe(
             map(res => {
                 let converted: OpeningHoursRangeResponse<Date> = { dates: {} }
-
                 Object.keys(res.dates).forEach(key => {
                     converted.dates[new Date(key).toDateString()] = {
                         ...res.dates[key],

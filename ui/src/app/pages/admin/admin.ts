@@ -1,11 +1,18 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction } from "@angular/core";
-import { DomSanitizer } from "@angular/platform-browser";
-import { Subject } from "rxjs";
-import { takeUntil } from "rxjs/operators";
-import { ConfigAPI, Schema } from "src/app/api";
-import { HeaderTitleService } from "src/app/shared/header-title";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  TrackByFunction,
+} from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { ConfigAPI, Schema } from 'src/app/api';
+import { HeaderTitleService } from 'src/app/shared/header-title';
 
-interface Category  {
+interface Category {
   name: string;
   schemas: Schema[];
 }
@@ -19,8 +26,8 @@ export class AdminOverviewComponent implements OnInit, OnDestroy {
 
   categories: Category[] = [];
 
-  trackSchema: TrackByFunction<Schema> = (_: number, s: Schema) => s.name
-  trackCategory: TrackByFunction<Category> = (_: number, s: Category) => s.name
+  trackSchema: TrackByFunction<Schema> = (_: number, s: Schema) => s.name;
+  trackCategory: TrackByFunction<Category> = (_: number, s: Category) => s.name;
 
   constructor(
     private headerTitleService: HeaderTitleService,
@@ -30,38 +37,42 @@ export class AdminOverviewComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.headerTitleService.set("Administration", "Willkommen in der System-Administration.");
+    this.headerTitleService.set(
+      'Administration',
+      'Willkommen in der System-Administration.'
+    );
 
-    this.configAPI.listSchemas()
-      .pipe(
-        takeUntil(this.destroy$),
-      )
-      .subscribe(schemas => {
+    this.configAPI
+      .listSchemas()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((schemas) => {
         let categories = new Map<string, Schema[]>();
         let global: Schema[] = [];
 
         this.categories = [];
 
-        schemas.forEach(s => {
+        schemas.forEach((s) => {
           if (!!s.category) {
             let cat = categories.get(s.category) || [];
-            cat.push(s)
-            categories.set(s.category, cat)
+            cat.push(s);
+            categories.set(s.category, cat);
             return;
           }
 
-          global.push(s)
-        })
+          global.push(s);
+        });
 
         this.categories.push({
-          name: "Allgemein",
+          name: 'Allgemein',
           schemas: global,
-        })
+        });
 
-        categories.forEach((val, key) => this.categories.push({
-          name: key,
-          schemas: val
-        }))
+        categories.forEach((val, key) =>
+          this.categories.push({
+            name: key,
+            schemas: val,
+          })
+        );
         this.cdr.markForCheck();
       });
   }

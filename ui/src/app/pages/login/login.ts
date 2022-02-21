@@ -9,7 +9,7 @@ import { extractErrorMessage } from 'src/app/utils';
 
 @Component({
   templateUrl: './login.html',
-  styleUrls: ['./login.scss']
+  styleUrls: ['./login.scss'],
 })
 export class LoginComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
@@ -32,35 +32,14 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.messageService.remove(this.lastMessageID);
       }
 
-      this.lastMessageID = this.messageService.loading('Anmeldung ...').messageId;
+      this.lastMessageID =
+        this.messageService.loading('Anmeldung ...').messageId;
 
-      this.identityapi.login(this.username, this.password)
-        .subscribe(
-          () => {
-            this.messageService.remove(this.lastMessageID);
-            const target = this.activatedRoute.snapshot.queryParamMap.get('rd') || '/';
-
-            if (target.startsWith('http')) {
-              window.location.href = target;
-            } else {
-              this.router.navigate([target]);
-            }
-          },
-          err => {
-            this.messageService.remove(this.lastMessageID);
-            const msg = extractErrorMessage(err, 'Anmeldung fehlgeschlagen');
-            this.lastMessageID = this.messageService.error(msg).messageId;
-          }
-        );
-    }
-  }
-
-  continue(): void {
-    // try to refresh the access token
-    this.identityapi.refresh()
-      .subscribe(
+      this.identityapi.login(this.username, this.password).subscribe(
         () => {
-          const target = this.activatedRoute.snapshot.queryParamMap.get('rd') || '/';
+          this.messageService.remove(this.lastMessageID);
+          const target =
+            this.activatedRoute.snapshot.queryParamMap.get('rd') || '/';
 
           if (target.startsWith('http')) {
             window.location.href = target;
@@ -68,20 +47,45 @@ export class LoginComponent implements OnInit, OnDestroy {
             this.router.navigate([target]);
           }
         },
-        err => {
-          this.profile = null;
-          if (err instanceof HttpErrorResponse && err.status === 401) {
-            this.lastMessageID = this.messageService.error('Aus Sicherheitsgründen musst du dich erneut anmelden.').messageId;
-          } else {
-            this.messageService.error('Failed to refresh session access token');
-            console.error(err);
-          }
+        (err) => {
+          this.messageService.remove(this.lastMessageID);
+          const msg = extractErrorMessage(err, 'Anmeldung fehlgeschlagen');
+          this.lastMessageID = this.messageService.error(msg).messageId;
         }
       );
+    }
+  }
+
+  continue(): void {
+    // try to refresh the access token
+    this.identityapi.refresh().subscribe(
+      () => {
+        const target =
+          this.activatedRoute.snapshot.queryParamMap.get('rd') || '/';
+
+        if (target.startsWith('http')) {
+          window.location.href = target;
+        } else {
+          this.router.navigate([target]);
+        }
+      },
+      (err) => {
+        this.profile = null;
+        if (err instanceof HttpErrorResponse && err.status === 401) {
+          this.lastMessageID = this.messageService.error(
+            'Aus Sicherheitsgründen musst du dich erneut anmelden.'
+          ).messageId;
+        } else {
+          this.messageService.error('Failed to refresh session access token');
+          console.error(err);
+        }
+      }
+    );
   }
 
   logout(): void {
-    this.identityapi.logout()
+    this.identityapi
+      .logout()
       .subscribe(() => this.router.navigate(['/', 'login']));
   }
 
@@ -90,19 +94,21 @@ export class LoginComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private messageService: NzMessageService,
     private identityapi: IdentityAPI,
-    private activatedRoute: ActivatedRoute,
-  ) { }
+    private activatedRoute: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
     this.validateForm = this.fb.group({
       userName: [null, [Validators.required]],
       password: [null, [Validators.required]],
-      remember: [true]
+      remember: [true],
     });
 
     this.subscriptions = new Subscription();
 
-    const sub = this.identityapi.profileChange.subscribe(profile => this.profile = profile);
+    const sub = this.identityapi.profileChange.subscribe(
+      (profile) => (this.profile = profile)
+    );
     this.subscriptions.add(sub);
   }
 

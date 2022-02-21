@@ -6,12 +6,19 @@ import { ImportPageComponent } from './import';
 const routes: Routes = [
   { path: '', component: AdminOverviewComponent },
   { path: 'import', component: ImportPageComponent },
-  { path: 'identity', loadChildren: () => import("./users/users.module").then(m => m.UsersModule) },
-  { path: 'settings', loadChildren: () => import("./settings").then(m => m.SettingsModule) },
+  {
+    path: 'identity',
+    loadChildren: () =>
+      import('./users/users.module').then((m) => m.UsersModule),
+  },
+  {
+    path: 'settings',
+    loadChildren: () => import('./settings').then((m) => m.SettingsModule),
+  },
 ];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class AdminRoutingModule { }
+export class AdminRoutingModule {}

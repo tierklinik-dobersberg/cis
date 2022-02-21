@@ -10,4 +10,4 @@ jobs:
         uses: golangci/golangci-lint-action@v2
         with:
           only-new-issues: true
-          version: v1.29
+          version: v1.44

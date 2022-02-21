@@ -1,6 +1,5 @@
 @layer components {
   @variants responsive {
-
     .tkd-btn {
       @apply px-3 py-1.5 rounded cursor-pointer outline-none focus:outline-none font-medium focus:ring-2 focus:ring-primary focus:ring-opacity-light active:shadow-inner text-white;
       @apply transition-colors duration-75 ease-in-out;
@@ -57,24 +56,23 @@
         &.tkd-secondary {
           @apply border-secondary hover:bg-secondary text-color-secondary hover:bg-opacity-5 border-opacity-light;
           &[disabled] {
-            @apply  bg-subtle  text-opacity-light;
+            @apply bg-subtle  text-opacity-light;
           }
         }
         &.tkd-tertiary {
           @apply border-tertiary hover:bg-tertiary text-tertiary hover:bg-opacity-5 border-opacity-light;
           &[disabled] {
-            @apply  bg-subtle text-opacity-light;
+            @apply bg-subtle text-opacity-light;
           }
         }
         &.tkd-danger {
           @apply border-alert-red hover:bg-alert-red text-alert-red hover:bg-opacity-5 border-opacity-light;
           &[disabled] {
-            @apply  bg-subtle text-opacity-light;
+            @apply bg-subtle text-opacity-light;
           }
         }
       }
     }
-
 
     .tkd-icon-btn {
       @apply p-2 w-9 h-9  rounded-full shadow-sm cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-light active:shadow-inner;
@@ -109,14 +107,14 @@
       }
     }
 
-    .tkd-icon-btn, .tkd-icon-btn-inverse {
+    .tkd-icon-btn,
+    .tkd-icon-btn-inverse {
       &.no-shadow {
         @apply shadow-none;
       }
       &.with-shadow {
-        @apply shadow-sm
+        @apply shadow-sm;
       }
     }
   }
 }
-

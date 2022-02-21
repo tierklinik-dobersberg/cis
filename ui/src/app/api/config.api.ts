@@ -1,7 +1,17 @@
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpParams,
+} from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { NzMessageRef, NzMessageService } from 'ng-zorro-antd/message';
-import { BehaviorSubject, combineLatest, Observable, throwError, timer } from 'rxjs';
+import {
+  BehaviorSubject,
+  combineLatest,
+  Observable,
+  throwError,
+  timer,
+} from 'rxjs';
 import { delayWhen, filter, map, retryWhen } from 'rxjs/operators';
 import { IdentityAPI } from './identity.api';
 
@@ -15,9 +25,9 @@ export interface ExternalLink {
 }
 
 export enum WellKnownAnnotations {
-  Secret = "system-conf/secret",
-  OverviewFields = "vet.dobersberg.cis:schema/overviewFields",
-  OneOf = "vet.dobersberg.cis:schema/oneOf"
+  Secret = 'system-conf/secret',
+  OverviewFields = 'vet.dobersberg.cis:schema/overviewFields',
+  OneOf = 'vet.dobersberg.cis:schema/oneOf',
 }
 
 export interface PossibleValue<T = any> {
@@ -36,7 +46,7 @@ export interface OneOfRefAnnotation {
 
 export type OneOf = OneOfValuesAnnotation | OneOfRefAnnotation;
 
-export interface Schema  extends Annotated {
+export interface Schema extends Annotated {
   name: string;
   displayName: string;
   description: string;
@@ -68,7 +78,7 @@ export interface OptionSpec extends Annotated {
 export interface Annotated {
   annotation?: {
     [key: string]: any;
-  }
+  };
 }
 
 export interface UserProperty {
@@ -81,7 +91,7 @@ export interface UserProperty {
   Default: string;
   Annotations?: {
     [key: string]: any;
-  }
+  };
 }
 
 export interface QuickRosterOverwrite {
@@ -113,7 +123,7 @@ export interface UIConfig {
     HideUsersWithRole?: string[];
     UserPhoneExtensionProperties?: string[];
     CreateEventAlwaysAllowCalendar?: string[];
-  }
+  };
   ExternalLink?: ExternalLink[];
   UserProperty: UserProperty[];
   QuickRosterOverwrite?: QuickRosterOverwrite[];
@@ -123,7 +133,7 @@ export interface UIConfig {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ConfigAPI {
   private onChange = new BehaviorSubject<UIConfig | null>(null);
@@ -144,63 +154,65 @@ export class ConfigAPI {
   constructor(
     private http: HttpClient,
     private nzMessageService: NzMessageService,
-    private identity: IdentityAPI,
+    private identity: IdentityAPI
   ) {
-
     let loading: NzMessageRef | null = null;
     combineLatest([
-      this.identity.profileChange
-        .pipe(filter(profile => !!profile)),
-      this.reload$
+      this.identity.profileChange.pipe(filter((profile) => !!profile)),
+      this.reload$,
     ]).subscribe(() => {
       this.loaddUIConfig()
         .pipe(
-          retryWhen(errors => {
+          retryWhen((errors) => {
             return errors.pipe(
-              delayWhen(err => {
+              delayWhen((err) => {
                 if (!(err instanceof HttpErrorResponse) || err.status !== 401) {
                   if (!loading) {
-                    loading = this.nzMessageService.loading("Trying to load configuration")
+                    loading = this.nzMessageService.loading(
+                      'Trying to load configuration'
+                    );
                   }
-                  return timer(2000)
+                  return timer(2000);
                 }
 
                 // this is an access denied error so abort now and wait for the next
                 // profileChange event
-                return throwError("access denied")
+                return throwError('access denied');
               })
             );
           })
         )
-        .subscribe(cfg => {
-          if (!!loading) {
-            this.nzMessageService.remove(loading.messageId);
-            loading = null;
-          }
-          // we need to update the IdentityAPI ourself
-          // as importing ConfigAPI there would cause a circular
-          // dependency.
-          this.identity.applyUIConfig(cfg);
+        .subscribe(
+          (cfg) => {
+            if (!!loading) {
+              this.nzMessageService.remove(loading.messageId);
+              loading = null;
+            }
+            // we need to update the IdentityAPI ourself
+            // as importing ConfigAPI there would cause a circular
+            // dependency.
+            this.identity.applyUIConfig(cfg);
 
-          // finally, notify all other subscribes of UI config
-          // changes.
-          this.onChange.next(cfg);
-          console.log(cfg);
-        }, err => {});
-
+            // finally, notify all other subscribes of UI config
+            // changes.
+            this.onChange.next(cfg);
+            console.log(cfg);
+          },
+          (err) => {}
+        );
     });
   }
 
   loaddUIConfig(): Observable<UIConfig> {
     return this.http.get<UIConfig>('/api/config/v1/flat', {
       params: new HttpParams()
-        .append("keys", "UI")
-        .append("keys", "ExternalLink")
-        .append("keys", "QuickRosterOverwrite")
-        .append("keys", "TriggerAction")
-        .append("keys", "KnownPhoneExtension")
-        .append("keys", "Roster")
-        .append("keys", "UserProperty")
+        .append('keys', 'UI')
+        .append('keys', 'ExternalLink')
+        .append('keys', 'QuickRosterOverwrite')
+        .append('keys', 'TriggerAction')
+        .append('keys', 'KnownPhoneExtension')
+        .append('keys', 'Roster')
+        .append('keys', 'UserProperty'),
     });
   }
 
@@ -208,9 +220,12 @@ export class ConfigAPI {
     return !!obj.annotation && annotationKey in obj.annotation;
   }
 
-  getAnnotation<T = any>(obj: Annotated, key: WellKnownAnnotations): T | undefined {
+  getAnnotation<T = any>(
+    obj: Annotated,
+    key: WellKnownAnnotations
+  ): T | undefined {
     if (!obj.annotation || obj.annotation[key] === undefined) {
-      return undefined
+      return undefined;
     }
     return obj.annotation[key];
   }
@@ -224,7 +239,7 @@ export class ConfigAPI {
   }
 
   async resolvePossibleValues(obj: Annotated): Promise<PossibleValue[] | null> {
-    const oneOf = this.oneOf(obj)
+    const oneOf = this.oneOf(obj);
     if (oneOf === null) {
       return null;
     }
@@ -233,64 +248,97 @@ export class ConfigAPI {
       return oneOf.values;
     }
 
-    let values: {[key: string]: any}[] = [];
+    let values: { [key: string]: any }[] = [];
 
     switch (oneOf.schemaType) {
       case 'identity:roles':
         values = await this.identity.getRoles().toPromise();
         break;
       default:
-        const instances  = await this.getSettings(oneOf.schemaType).toPromise();
-        Object.keys(instances).forEach(key => values.push(instances[key]));
+        const instances = await this.getSettings(oneOf.schemaType).toPromise();
+        Object.keys(instances).forEach((key) => values.push(instances[key]));
     }
 
-
     var result: PossibleValue[] = [];
-    (values || []).forEach(val => {
+    (values || []).forEach((val) => {
       result.push({
         display: val[oneOf.displayField || oneOf.valueField],
         value: val[oneOf.valueField],
-      })
-    })
+      });
+    });
     return result;
   }
 
   listSchemas(): Observable<Schema[]> {
-    return this.http.get<{schemas: Schema[]}>(`/api/config/v1/schema`)
-      .pipe(map(res => res.schemas || []))
+    return this.http
+      .get<{ schemas: Schema[] }>(`/api/config/v1/schema`)
+      .pipe(map((res) => res.schemas || []));
   }
 
-  getSettings(key: string): Observable<{[key: string]: SchemaInstance}> {
-    return this.http.get<{configs: {[key: string]: SchemaInstance}}>(`/api/config/v1/schema/${key}`)
-      .pipe(map(res => res.configs));
+  getSettings(key: string): Observable<{ [key: string]: SchemaInstance }> {
+    return this.http
+      .get<{ configs: { [key: string]: SchemaInstance } }>(
+        `/api/config/v1/schema/${key}`
+      )
+      .pipe(map((res) => res.configs));
   }
 
-  createSetting(key: string, values: SchemaInstance): Observable<{id: string, warning?: string}> {
-    return this.http.post<{id: string, warning?: string}>(`/api/config/v1/schema/${key}`, {
-      config: values
-    })
+  createSetting(
+    key: string,
+    values: SchemaInstance
+  ): Observable<{ id: string; warning?: string }> {
+    return this.http.post<{ id: string; warning?: string }>(
+      `/api/config/v1/schema/${key}`,
+      {
+        config: values,
+      }
+    );
   }
 
-  patchSetting(key: string, id: string, values: Partial<SchemaInstance>): Observable<{warning?: string}> {
-    return this.http.patch<{warning?: string}>(`/api/config/v1/schema/${key}/${id}`, {
-      config: values,
-  })
+  patchSetting(
+    key: string,
+    id: string,
+    values: Partial<SchemaInstance>
+  ): Observable<{ warning?: string }> {
+    return this.http.patch<{ warning?: string }>(
+      `/api/config/v1/schema/${key}/${id}`,
+      {
+        config: values,
+      }
+    );
   }
 
-  updateSetting(key: string, id: string, values: Partial<SchemaInstance>): Observable<{warning?: string}> {
-    return this.http.put<{warning?: string}>(`/api/config/v1/schema/${key}/${id}`, {
-      config: values
-    })
+  updateSetting(
+    key: string,
+    id: string,
+    values: Partial<SchemaInstance>
+  ): Observable<{ warning?: string }> {
+    return this.http.put<{ warning?: string }>(
+      `/api/config/v1/schema/${key}/${id}`,
+      {
+        config: values,
+      }
+    );
   }
 
-  deleteSetting(key: string, id: string): Observable<{warning?: string}> {
-    return this.http.delete<{warning?: string}>(`/api/config/v1/schema/${key}/${id}`)
+  deleteSetting(key: string, id: string): Observable<{ warning?: string }> {
+    return this.http.delete<{ warning?: string }>(
+      `/api/config/v1/schema/${key}/${id}`
+    );
   }
 
-  testSetting(key: string, testID: string, config: SchemaInstance, testConfig: SchemaInstance): Observable<{error?: string}|null>{
-    return this.http.post<{error?: string}|null>(`/api/config/v1/test/${key}/${testID}`, {
-      config: config,
-      testConfig: testConfig,
-    });
+  testSetting(
+    key: string,
+    testID: string,
+    config: SchemaInstance,
+    testConfig: SchemaInstance
+  ): Observable<{ error?: string } | null> {
+    return this.http.post<{ error?: string } | null>(
+      `/api/config/v1/test/${key}/${testID}`,
+      {
+        config: config,
+        testConfig: testConfig,
+      }
+    );
   }
 }

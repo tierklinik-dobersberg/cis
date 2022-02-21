@@ -2,7 +2,14 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import jwt_decode, { JwtPayload as JWTToken } from 'jwt-decode';
 import { BehaviorSubject, interval, Observable, of } from 'rxjs';
-import { catchError, filter, map, mergeMap, startWith, tap } from 'rxjs/operators';
+import {
+  catchError,
+  filter,
+  map,
+  mergeMap,
+  startWith,
+  tap,
+} from 'rxjs/operators';
 import { getContrastFontColor } from '../utils';
 import { UIConfig } from './config.api';
 
@@ -67,10 +74,10 @@ export interface Role {
 }
 
 export interface RoleDetails extends Role {
-  permissions: Permission[]|null;
+  permissions: Permission[] | null;
 }
 export interface UserDetails extends Profile {
-  permissions: Permission[]|null;
+  permissions: Permission[] | null;
 }
 
 interface TokenReponse {
@@ -120,7 +127,7 @@ export interface Token extends JWTToken {
 const tokenThreshold = 30 * 1000;
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class IdentityAPI {
   private onLogin = new BehaviorSubject<ProfileWithPermissions | null>(null);
@@ -130,12 +137,10 @@ export class IdentityAPI {
 
   applyUIConfig(cfg: UIConfig): void {
     this.rolesToHide = new Set();
-    cfg?.UI?.HideUsersWithRole?.forEach(role => this.rolesToHide.add(role));
+    cfg?.UI?.HideUsersWithRole?.forEach((role) => this.rolesToHide.add(role));
   }
 
-  constructor(
-    private http: HttpClient,
-  ) {
+  constructor(private http: HttpClient) {
     interval(10 * 1000)
       .pipe(
         startWith(-1),
@@ -143,12 +148,15 @@ export class IdentityAPI {
           if (!this.token) {
             return true;
           }
-          return new Date().valueOf() + tokenThreshold >= this.token.expiresAt.valueOf();
+          return (
+            new Date().valueOf() + tokenThreshold >=
+            this.token.expiresAt.valueOf()
+          );
         }),
         mergeMap(() => this.refresh()),
-        catchError(err => of<Token | null>(null)),
+        catchError((err) => of<Token | null>(null))
       )
-      .subscribe(token => {
+      .subscribe((token) => {
         if (!!token) {
           console.log(`Got new access token: `, token);
         }
@@ -156,16 +164,16 @@ export class IdentityAPI {
       });
 
     // Whenever we switch user we need to load the profiles permissions as well.
-    this.profileChange
-      .pipe(filter(profile => !!profile))
-      .subscribe(() => { });
+    this.profileChange.pipe(filter((profile) => !!profile)).subscribe(() => {});
 
     // Upon creation try to get the user profile to check if we are currently
     // logged in.
-    this.profile()
-      .subscribe(p => {
+    this.profile().subscribe(
+      (p) => {
         this.onLogin.next(p);
-      }, err => console.error(err));
+      },
+      (err) => console.error(err)
+    );
   }
 
   get profileChange(): Observable<ProfileWithPermissions> {
@@ -187,20 +195,29 @@ export class IdentityAPI {
    * @param username The name of the user to login.
    * @param password The password of the user.
    */
-  login(username: string, password: string, rd: string = ''): Observable<ProfileWithPermissions> {
+  login(
+    username: string,
+    password: string,
+    rd: string = ''
+  ): Observable<ProfileWithPermissions> {
     let externalRd = '';
     if (rd !== '') {
       externalRd = `?redirect=${rd}`;
     }
 
-    return this.http.post<TokenReponse>(`/api/identity/v1/login${externalRd}`, {
-      username,
-      password,
-    }, {
-      observe: 'response',
-    })
+    return this.http
+      .post<TokenReponse>(
+        `/api/identity/v1/login${externalRd}`,
+        {
+          username,
+          password,
+        },
+        {
+          observe: 'response',
+        }
+      )
       .pipe(
-        map(resp => {
+        map((resp) => {
           if (!resp.ok) {
             throw resp;
           }
@@ -220,7 +237,7 @@ export class IdentityAPI {
           return undefined;
         }),
         mergeMap(() => this.profile()),
-        tap(profile => {
+        tap((profile) => {
           const last = this.onLogin.getValue();
           if (!last || last.name !== profile.name) {
             this.onLogin.next(profile);
@@ -233,8 +250,9 @@ export class IdentityAPI {
    * Refresh tries to renew the access token.
    */
   refresh(): Observable<Token> {
-    return this.http.post<TokenReponse>(`/api/identity/v1/refresh`, null)
-      .pipe(map(r => this.parseToken(r.token)));
+    return this.http
+      .post<TokenReponse>(`/api/identity/v1/refresh`, null)
+      .pipe(map((r) => this.parseToken(r.token)));
   }
 
   /**
@@ -246,7 +264,7 @@ export class IdentityAPI {
   changePassword(current: string, newPwd: string): Observable<void> {
     return this.http.put<void>(`/api/identity/v1/profile/password`, {
       current,
-      newPassword: newPwd
+      newPassword: newPwd,
     });
   }
 
@@ -257,9 +275,10 @@ export class IdentityAPI {
    * @param password The new password for the user
    */
   setUserPassword(username: string, password: string): Observable<void> {
-    return this.http.put<void>(`/api/identity/v1/users/${username}/password`, {password});
+    return this.http.put<void>(`/api/identity/v1/users/${username}/password`, {
+      password,
+    });
   }
-
 
   /**
    * Tests if a password is valid.
@@ -268,7 +287,7 @@ export class IdentityAPI {
    */
   testPassword(password: string): Observable<PasswordStrenght> {
     return this.http.post<PasswordStrenght>(`/api/identity/v1/password-check`, {
-      password
+      password,
     });
   }
 
@@ -277,10 +296,9 @@ export class IdentityAPI {
    * token.
    */
   logout(): Observable<void> {
-    return this.http.post<void>('/api/identity/v1/logout', null)
-      .pipe(
-        tap(() => this.onLogin.next(null))
-      );
+    return this.http
+      .post<void>('/api/identity/v1/logout', null)
+      .pipe(tap(() => this.onLogin.next(null)));
   }
 
   /**
@@ -294,42 +312,41 @@ export class IdentityAPI {
       filter = true;
     }
 
-    return this.http.get<Profile[]>('/api/identity/v1/users')
-      .pipe(
-        map(profiles => {
-          if (!filter) {
-            return profiles;
+    return this.http.get<Profile[]>('/api/identity/v1/users').pipe(
+      map((profiles) => {
+        if (!filter) {
+          return profiles;
+        }
+        const result = profiles.filter(
+          (p) => !p.roles || !p.roles.some((role) => this.rolesToHide.has(role))
+        );
+
+        return result;
+      }),
+      map((profiles) => {
+        return profiles.map((p) => {
+          return {
+            ...p,
+            avatar: this.avatarUrl(p.name),
+            color: p.color || null,
+            fontColor: !!p.color ? getContrastFontColor(p.color) : null,
+          };
+        });
+      }),
+      map((profiles) => {
+        return profiles.sort((a, b) => {
+          if (a.fullname > b.fullname) {
+            return 1;
           }
-          const result = profiles.filter(p => !p.roles || !p.roles.some(
-            role => this.rolesToHide.has(role)
-          ));
 
-          return result;
-        }),
-        map(profiles => {
-          return profiles.map(p => {
-            return {
-              ...p,
-              avatar: this.avatarUrl(p.name),
-              color: p.color || null,
-              fontColor: !!p.color ? getContrastFontColor(p.color) : null,
-            };
-          });
-        }),
-        map(profiles => {
-          return profiles.sort((a, b) => {
-            if (a.fullname > b.fullname) {
-              return 1;
-            }
+          if (b.fullname < a.fullname) {
+            return -1;
+          }
 
-            if (b.fullname < a.fullname) {
-              return -1;
-            }
-
-            return 0;
-          });
-        })
-      );
+          return 0;
+        });
+      })
+    );
   }
 
   /**
@@ -357,12 +374,13 @@ export class IdentityAPI {
     const headers = new HttpHeaders();
     headers.set('X-Original-URL', url);
 
-    return this.http.get('/api/identity/v1/verify', {
-      observe: 'response',
-      headers,
-    })
+    return this.http
+      .get('/api/identity/v1/verify', {
+        observe: 'response',
+        headers,
+      })
       .pipe(
-        map(resp => {
+        map((resp) => {
           if (!resp.ok) {
             return false;
           }
@@ -374,62 +392,60 @@ export class IdentityAPI {
 
   /** Returns the current user profile. */
   profile(): Observable<ProfileWithPermissions> {
-    return this.http.get<Profile>('/api/identity/v1/profile')
-      .pipe(
-        map(p => {
-          return {
-            ...p,
-            avatar: this.avatarUrl(p.name),
-            color: p.color || null,
-            fontColor: !!p.color ? getContrastFontColor(p.color) : null,
-          };
-        }),
-        mergeMap(pwa => {
-          const request: Partial<Record<Permissions, PermissionRequest>> = {};
-          const actions: Permissions[] = [
-            Permissions.RosterGetOverwrite,
-            Permissions.RosterRead,
-            Permissions.RosterWrite,
-            Permissions.RosterSetOverwrite,
-            Permissions.ExternalReadOnDuty,
-            Permissions.DoorGet,
-            Permissions.DoorSet,
-            Permissions.ImportNeumayrContacts,
-            Permissions.CustomerRead,
-            Permissions.CalllogReadRecords,
-            Permissions.VoicemailRead,
-            Permissions.CalendarDelete,
-            Permissions.CalendarRead,
-            Permissions.CalendarWrite,
-            Permissions.TriggerRead,
-            Permissions.InfoScreenShowsRead,
-            Permissions.InfoScreenShowWrite,
-            Permissions.InfoScreenShowDelete,
-            Permissions.SuggestionRead,
-            Permissions.SuggestionApply,
-          ];
+    return this.http.get<Profile>('/api/identity/v1/profile').pipe(
+      map((p) => {
+        return {
+          ...p,
+          avatar: this.avatarUrl(p.name),
+          color: p.color || null,
+          fontColor: !!p.color ? getContrastFontColor(p.color) : null,
+        };
+      }),
+      mergeMap((pwa) => {
+        const request: Partial<Record<Permissions, PermissionRequest>> = {};
+        const actions: Permissions[] = [
+          Permissions.RosterGetOverwrite,
+          Permissions.RosterRead,
+          Permissions.RosterWrite,
+          Permissions.RosterSetOverwrite,
+          Permissions.ExternalReadOnDuty,
+          Permissions.DoorGet,
+          Permissions.DoorSet,
+          Permissions.ImportNeumayrContacts,
+          Permissions.CustomerRead,
+          Permissions.CalllogReadRecords,
+          Permissions.VoicemailRead,
+          Permissions.CalendarDelete,
+          Permissions.CalendarRead,
+          Permissions.CalendarWrite,
+          Permissions.TriggerRead,
+          Permissions.InfoScreenShowsRead,
+          Permissions.InfoScreenShowWrite,
+          Permissions.InfoScreenShowDelete,
+          Permissions.SuggestionRead,
+          Permissions.SuggestionApply,
+        ];
 
-          actions.forEach(perm => {
-            request[perm] = { action: perm };
-          });
-          return this.testPerimissions(request)
-            .pipe(
-              catchError(() => of(null)),
-              map(permissions => {
-                const p: UIPermissions = {};
+        actions.forEach((perm) => {
+          request[perm] = { action: perm };
+        });
+        return this.testPerimissions(request).pipe(
+          catchError(() => of(null)),
+          map((permissions) => {
+            const p: UIPermissions = {};
 
-                Object.keys(permissions || {}).forEach(perm => {
-                  p[perm] = permissions[perm].allowed;
-                });
+            Object.keys(permissions || {}).forEach((perm) => {
+              p[perm] = permissions[perm].allowed;
+            });
 
-                return {
-                  ...pwa,
-                  permissions: p,
-                };
-              })
-            );
-        })
-      );
+            return {
+              ...pwa,
+              permissions: p,
+            };
+          })
+        );
+      })
+    );
   }
 
   avatarUrl(user: string): string {
@@ -448,11 +464,12 @@ export class IdentityAPI {
 
     // we use the current timestamp to avoid browser caching
     // since we already cache those avatars ourself.
-    return this.http.get(`/api/identity/v1/avatar/${user}`, {
-      responseType: 'blob'
-    })
+    return this.http
+      .get(`/api/identity/v1/avatar/${user}`, {
+        responseType: 'blob',
+      })
       .pipe(
-        mergeMap(blob => {
+        mergeMap((blob) => {
           return new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => {
@@ -467,7 +484,7 @@ export class IdentityAPI {
             }
           });
         }),
-        tap(data => {
+        tap((data) => {
           this.avatarCache[user] = data;
         })
       );
@@ -480,9 +497,16 @@ export class IdentityAPI {
    *             is given a random one will be generated and returned.
    */
   createUser(user: Profile): Observable<void>;
-  createUser(user: Profile & {password: string}): Observable<{password: string}>;
-  createUser(user: Profile & {password?: string}): Observable<{password: string}|void> {
-    return this.http.post<{password: string}|void>(`/api/identity/v1/users/${user.name}`, user)
+  createUser(
+    user: Profile & { password: string }
+  ): Observable<{ password: string }>;
+  createUser(
+    user: Profile & { password?: string }
+  ): Observable<{ password: string } | void> {
+    return this.http.post<{ password: string } | void>(
+      `/api/identity/v1/users/${user.name}`,
+      user
+    );
   }
 
   /**
@@ -491,7 +515,7 @@ export class IdentityAPI {
    * @param user The updated user.
    */
   editUser(user: Profile): Observable<void> {
-    return this.http.put<void>(`/api/identity/v1/users/${user.name}`, user)
+    return this.http.put<void>(`/api/identity/v1/users/${user.name}`, user);
   }
 
   /**
@@ -502,8 +526,8 @@ export class IdentityAPI {
    */
   uploadUserAvatar(user: string, avatar: File): Observable<void> {
     const formData = new FormData();
-    formData.append("file", avatar)
-    return this.http.post<void>(`/api/identity/v1/avatar/${user}`, formData)
+    formData.append('file', avatar);
+    return this.http.post<void>(`/api/identity/v1/avatar/${user}`, formData);
   }
 
   /**
@@ -551,19 +575,37 @@ export class IdentityAPI {
   /**
    * Assigns a new permission to either a user or a role.
    */
-  assignPermission(scope: 'users' | 'roles', target: string, perm: Permission): Observable<{id: string}> {
-    return this.http.post<{id: string}>(`/api/identity/v1/permissions/${scope}/${target}`, perm)
+  assignPermission(
+    scope: 'users' | 'roles',
+    target: string,
+    perm: Permission
+  ): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>(
+      `/api/identity/v1/permissions/${scope}/${target}`,
+      perm
+    );
   }
 
   /**
    * Removes a permission by ID from either a user or a role.
    */
-  unassignPermission(scope: 'users' | 'roles', target: string, permid: string): Observable<{id: string}> {
-    return this.http.delete<{id: string}>(`/api/identity/v1/permissions/${scope}/${target}/${permid}`)
+  unassignPermission(
+    scope: 'users' | 'roles',
+    target: string,
+    permid: string
+  ): Observable<{ id: string }> {
+    return this.http.delete<{ id: string }>(
+      `/api/identity/v1/permissions/${scope}/${target}/${permid}`
+    );
   }
 
-  testPerimissions<T extends { [key: string]: PermissionRequest }>(requests: T): Observable<{ [key: string]: PermissionTestResult }> {
-    return this.http.post<{ [key: string]: PermissionTestResult }>(`/api/identity/v1/permissions/test`, requests);
+  testPerimissions<T extends { [key: string]: PermissionRequest }>(
+    requests: T
+  ): Observable<{ [key: string]: PermissionTestResult }> {
+    return this.http.post<{ [key: string]: PermissionTestResult }>(
+      `/api/identity/v1/permissions/test`,
+      requests
+    );
   }
 
   private parseToken(token: string): Token {

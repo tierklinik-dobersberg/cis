@@ -1,23 +1,28 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { ConfigAPI, OptionSpec, ProfileWithAvatar, UserProperty, UserService } from 'src/app/api';
+import {
+  ConfigAPI,
+  OptionSpec,
+  ProfileWithAvatar,
+  UserProperty,
+  UserService,
+} from 'src/app/api';
 import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { NamedOptionSpec } from 'src/app/shared/option-spec-input';
 
 @Component({
   templateUrl: './users.html',
-  styleUrls: ['./users.scss']
+  styleUrls: ['./users.scss'],
 })
 export class UserListComponent implements OnInit, OnDestroy {
-
   constructor(
     private header: HeaderTitleService,
     private userService: UserService,
     private configapi: ConfigAPI,
-    public layout: LayoutService,
-  ) { }
+    public layout: LayoutService
+  ) {}
   private subscription = Subscription.EMPTY;
 
   expandSet = new Set<string>();
@@ -40,20 +45,19 @@ export class UserListComponent implements OnInit, OnDestroy {
       'Benutzer Verwaltung',
       'Erstelle, bearbeite oder lösche Benutzerkonten.',
       null,
-      [{name: 'Administration', route: '/admin/'}]
+      [{ name: 'Administration', route: '/admin/' }]
     );
 
     this.subscription.add(
-      this.configapi.change
-        .pipe(filter(cfg => !!cfg))
-        .subscribe(cfg => {
-          this.userProps = (cfg.UserProperty || []).filter(prop => prop.Visibility === 'public');
-        })
+      this.configapi.change.pipe(filter((cfg) => !!cfg)).subscribe((cfg) => {
+        this.userProps = (cfg.UserProperty || []).filter(
+          (prop) => prop.Visibility === 'public'
+        );
+      })
     );
 
     this.subscription.add(
-      this.userService.users
-        .subscribe(profiles => this.profiles = profiles)
+      this.userService.users.subscribe((profiles) => (this.profiles = profiles))
     );
   }
 

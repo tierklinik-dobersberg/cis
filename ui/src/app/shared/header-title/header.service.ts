@@ -14,12 +14,20 @@ export interface Breadcrump {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class HeaderTitleService {
-  private headerSubj = new BehaviorSubject<PageHeader>({title: '', description: ''});
+  private headerSubj = new BehaviorSubject<PageHeader>({
+    title: '',
+    description: '',
+  });
 
-  set(s: string, description = '', icon: TemplateRef<any> | null = null, breadcrumps: Breadcrump[] = []): void {
+  set(
+    s: string,
+    description = '',
+    icon: TemplateRef<any> | null = null,
+    breadcrumps: Breadcrump[] = []
+  ): void {
     this.headerSubj.next({
       title: s,
       description: description,
@@ -32,4 +40,3 @@ export class HeaderTitleService {
     return this.headerSubj.asObservable();
   }
 }
-

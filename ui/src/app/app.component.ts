@@ -1,13 +1,43 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { ApplicationRef, Component, HostListener, isDevMode, OnDestroy, OnInit } from '@angular/core';
+import {
+  ApplicationRef,
+  Component,
+  HostListener,
+  isDevMode,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { BehaviorSubject, combineLatest, interval, of, Subject } from 'rxjs';
-import { catchError, delay, filter, first, map, mergeMap, retryWhen, share, startWith, switchMap, take, takeUntil } from 'rxjs/operators';
+import {
+  catchError,
+  delay,
+  filter,
+  first,
+  map,
+  mergeMap,
+  retryWhen,
+  share,
+  startWith,
+  switchMap,
+  take,
+  takeUntil,
+} from 'rxjs/operators';
 import { LayoutService } from 'src/app/services';
-import { ConfigAPI, IdentityAPI, Overwrite, Permissions, ProfileWithAvatar, RosterAPI, UIConfig, UserService, VoiceMailAPI } from './api';
+import {
+  ConfigAPI,
+  IdentityAPI,
+  Overwrite,
+  Permissions,
+  ProfileWithAvatar,
+  RosterAPI,
+  UIConfig,
+  UserService,
+  VoiceMailAPI,
+} from './api';
 import { InfoScreenAPI } from './api/infoscreen.api';
 import { SuggestionCardComponent } from './pages/suggestions/suggestion-card';
 import { SuggestionService } from './pages/suggestions/suggestion.service';
@@ -28,7 +58,7 @@ interface SubMenu {
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit, OnDestroy {
   /** emits when the component is destroyed */
@@ -52,15 +82,14 @@ export class AppComponent implements OnInit, OnDestroy {
   /** Used to trigger a reload of the current overwrite target */
   private reloadOverwrite$ = new BehaviorSubject<void>(undefined);
 
-  isLogin = this.router.events
-    .pipe(
-      filter(e => e instanceof NavigationEnd),
-      map(() => {
-        const isLogin = this.router.url.startsWith('/login');
-        return isLogin;
-      }),
-      share()
-    );
+  isLogin = this.router.events.pipe(
+    filter((e) => e instanceof NavigationEnd),
+    map(() => {
+      const isLogin = this.router.url.startsWith('/login');
+      return isLogin;
+    }),
+    share()
+  );
 
   /** Returns true if the user has (at least read-only) access to the roster */
   get hasRoster(): boolean {
@@ -83,8 +112,10 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   get hasInfoScreen(): boolean {
-    return this.identity.hasPermission(Permissions.InfoScreenShowWrite)
-      || this.identity.hasPermission(Permissions.InfoScreenShowsRead)
+    return (
+      this.identity.hasPermission(Permissions.InfoScreenShowWrite) ||
+      this.identity.hasPermission(Permissions.InfoScreenShowsRead)
+    );
   }
 
   /**
@@ -92,10 +123,12 @@ export class AppComponent implements OnInit, OnDestroy {
    * this also requires hasCustomer, hasCalllog and hasRoster
    */
   get canCreateEvent(): boolean {
-    return this.identity.hasPermission(Permissions.CalendarWrite)
-      && this.hasCallLog
-      && this.hasCustomers
-      && this.hasRoster;
+    return (
+      this.identity.hasPermission(Permissions.CalendarWrite) &&
+      this.hasCallLog &&
+      this.hasCustomers &&
+      this.hasRoster
+    );
   }
 
   infoScreenEnabled = false;
@@ -115,27 +148,33 @@ export class AppComponent implements OnInit, OnDestroy {
     private http: HttpClient,
     private userService: UserService,
     private showAPI: InfoScreenAPI,
-    private suggestionService: SuggestionService,
-  ) {
-  }
+    private suggestionService: SuggestionService
+  ) {}
 
   logout(): void {
-    this.identity.logout()
+    this.identity
+      .logout()
       .subscribe(() => this.router.navigate(['/', 'login']));
   }
 
-  readonly toggleMenu = toggleRouteQueryParamFunc(this.router, this.activeRoute, 'show-menu')
+  readonly toggleMenu = toggleRouteQueryParamFunc(
+    this.router,
+    this.activeRoute,
+    'show-menu'
+  );
 
   openSuggestionDialog() {
     this.modal.create({
       nzContent: SuggestionCardComponent,
       nzWidth: '50vw',
-      nzTitle: "Vorschläge",
+      nzTitle: 'Vorschläge',
       nzFooter: null,
-    })
+    });
   }
 
-  get suggestionCount() { return this.suggestionService.count$ }
+  get suggestionCount() {
+    return this.suggestionService.count$;
+  }
 
   ngOnDestroy() {
     this.destory$.next();
@@ -145,108 +184,107 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.destory$ = new Subject();
 
-    combineLatest([
-      interval(15000),
-      this.reloadOverwrite$
-    ])
+    combineLatest([interval(15000), this.reloadOverwrite$])
       .pipe(
         startWith(-1),
         takeUntil(this.destory$),
-        switchMap(() => this.roster.getActiveOverwrite()
-          .pipe(
-            catchError(err => {
+        switchMap(() =>
+          this.roster.getActiveOverwrite().pipe(
+            catchError((err) => {
               if (!(err instanceof HttpErrorResponse) || err.status !== 404) {
                 console.error(err);
               }
               return of(null as Overwrite);
             })
-          ))
+          )
+        )
       )
-      .subscribe(overwrite => {
+      .subscribe((overwrite) => {
         this.overwriteTarget = '';
         if (!!overwrite) {
           if (!!overwrite.username) {
-            this.overwriteTarget = this.userService.byName(overwrite.username)?.fullname;
+            this.overwriteTarget = this.userService.byName(
+              overwrite.username
+            )?.fullname;
           } else {
-            this.overwriteTarget = overwrite.displayName || overwrite.phoneNumber;
+            this.overwriteTarget =
+              overwrite.displayName || overwrite.phoneNumber;
           }
         }
-      })
+      });
 
     this.checkReachability();
     this.activeRoute.queryParamMap
       .pipe(takeUntil(this.destory$))
-      .subscribe(params => {
+      .subscribe((params) => {
         this.isCollapsed = !params.has('show-menu');
-      })
-
-    this.updates.available
-      .pipe(take(1))
-      .subscribe(event => {
-        this.modal.info({
-          nzTitle: 'Neue Version verfügbar',
-          nzContent: 'Einen neue Version von CIS ist verfügbar!',
-          nzOkText: 'Update',
-          nzOnOk: async () => {
-            await this.updates.activateUpdate();
-            document.location.reload();
-          },
-          nzClosable: false,
-        });
       });
 
-    this.updates.activated.subscribe(event => {
-      this.nzMessage.info('Gratuliere! Du verwendest nun die neuste Version von CIS');
+    this.updates.available.pipe(take(1)).subscribe((event) => {
+      this.modal.info({
+        nzTitle: 'Neue Version verfügbar',
+        nzContent: 'Einen neue Version von CIS ist verfügbar!',
+        nzOkText: 'Update',
+        nzOnOk: async () => {
+          await this.updates.activateUpdate();
+          document.location.reload();
+        },
+        nzClosable: false,
+      });
+    });
+
+    this.updates.activated.subscribe((event) => {
+      this.nzMessage.info(
+        'Gratuliere! Du verwendest nun die neuste Version von CIS'
+      );
     });
 
     if (!isDevMode()) {
-      this.appRef.isStable.pipe(
-        first(stable => !!stable),
-        mergeMap(() => interval(10 * 60 * 1000).pipe(startWith(-1))),
-      )
+      this.appRef.isStable
+        .pipe(
+          first((stable) => !!stable),
+          mergeMap(() => interval(10 * 60 * 1000).pipe(startWith(-1)))
+        )
         .subscribe(() => {
           this.updates.checkForUpdate();
         });
     }
 
-    this.layout.change
-      .pipe(takeUntil(this.destory$))
-      .subscribe(() => {
+    this.layout.change.pipe(takeUntil(this.destory$)).subscribe(() => {
       this.isCollapsed = !this.layout.isTabletLandscapeUp;
     });
 
     this.configapi.change
       .pipe(takeUntil(this.destory$))
-      .subscribe(cfg => this.applyConfig(cfg));
+      .subscribe((cfg) => this.applyConfig(cfg));
 
-    this.identity.profileChange
-      .pipe(takeUntil(this.destory$))
-      .subscribe({
-        next: result => {
-          this.profile = result;
-          if (this.profile?.needsPasswordChange) {
-            this.layout.change.pipe(take(1))
-              .subscribe(() => {
-                if (!this.layout.isPhone) {
-                  this.modal.info({
-                    nzTitle: 'Ändere dein Passwort',
-                    nzContent: 'Dein Passwort wurde noch nicht geändert. Aus Sicherheitsgründen solltest du dies unverzüglich nachholen.',
-                    nzOkText: 'Passwort Ändern',
-                    nzOnOk: async () => {
-                      this.router.navigate(['/profile/change-password'])
-                    },
-                    nzCancelText: 'Jetzt nicht',
-                    nzClosable: true,
-                  });
-                }
-              })
-          }
+    this.identity.profileChange.pipe(takeUntil(this.destory$)).subscribe({
+      next: (result) => {
+        this.profile = result;
+        if (this.profile?.needsPasswordChange) {
+          this.layout.change.pipe(take(1)).subscribe(() => {
+            if (!this.layout.isPhone) {
+              this.modal.info({
+                nzTitle: 'Ändere dein Passwort',
+                nzContent:
+                  'Dein Passwort wurde noch nicht geändert. Aus Sicherheitsgründen solltest du dies unverzüglich nachholen.',
+                nzOkText: 'Passwort Ändern',
+                nzOnOk: async () => {
+                  this.router.navigate(['/profile/change-password']);
+                },
+                nzCancelText: 'Jetzt nicht',
+                nzClosable: true,
+              });
+            }
+          });
+        }
 
-          this.showAPI.isEnabled()
-            .subscribe(res => this.infoScreenEnabled = res);
-        },
-        error: console.error,
-      });
+        this.showAPI
+          .isEnabled()
+          .subscribe((res) => (this.infoScreenEnabled = res));
+      },
+      error: console.error,
+    });
 
     this.isCollapsed = this.layout.isPhone;
   }
@@ -257,29 +295,32 @@ export class AppComponent implements OnInit, OnDestroy {
       return;
     }
     this.checkRunning = true;
-    this.http.get('/api/')
-      .pipe(retryWhen(d => {
-        this.isReachable = false;
-        this.modal.closeAll();
-        return d.pipe(delay(2000));
-      }))
+    this.http
+      .get('/api/')
+      .pipe(
+        retryWhen((d) => {
+          this.isReachable = false;
+          this.modal.closeAll();
+          return d.pipe(delay(2000));
+        })
+      )
       .subscribe({
         next: () => {
           this.isReachable = true;
           this.checkRunning = false;
         },
         complete: () => {
-          console.log("reachability check done")
+          console.log('reachability check done');
         },
-        error: err => console.error(err)
-      })
+        error: (err) => console.error(err),
+      });
   }
 
   private applyConfig(cfg: UIConfig | null): void {
     const menus = new Map<string, SubMenu>();
     this.rootLinks = [];
 
-    (cfg?.ExternalLink || []).forEach(link => {
+    (cfg?.ExternalLink || []).forEach((link) => {
       if (!link.ParentMenu) {
         this.rootLinks.push(link);
         return;
@@ -289,7 +330,7 @@ export class AppComponent implements OnInit, OnDestroy {
       if (!m) {
         m = {
           Text: link.ParentMenu,
-          Items: []
+          Items: [],
         };
         menus.set(link.ParentMenu, m);
       }
@@ -298,7 +339,7 @@ export class AppComponent implements OnInit, OnDestroy {
     });
 
     this.subMenus = Array.from(menus.values());
-    this.voice.listMailboxes().subscribe(mailboxes => {
+    this.voice.listMailboxes().subscribe((mailboxes) => {
       console.log(mailboxes);
       this.mailboxes = mailboxes;
     });
