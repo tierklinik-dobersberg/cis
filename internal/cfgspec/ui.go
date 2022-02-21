@@ -9,6 +9,7 @@ var (
 	ConfigBuilder = runtime.NewConfigSchemaBuilder(
 		addUISchema,
 		addUserProperty,
+		addOpeningHours,
 	)
 	AddToSchema = ConfigBuilder.AddToSchema
 )

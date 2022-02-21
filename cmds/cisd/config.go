@@ -22,6 +22,7 @@ func newLineReader() io.Reader {
 	return strings.NewReader("\n")
 }
 
+// trunk-ignore(golangci-lint/cyclop)
 func loadConfig() (*app.Config, *conf.File, error) {
 	env := svcenv.Env()
 
@@ -39,6 +40,7 @@ func loadConfig() (*app.Config, *conf.File, error) {
 	log.Printf("configuration directory: %s", dir)
 
 	// a list of io.Readers for each configuration file.
+	// trunk-ignore(golangci-lint/prealloc)
 	var configurations []io.Reader
 	mainConfigFile := filepath.Join(dir, "cis.conf")
 
@@ -81,20 +83,21 @@ func loadConfig() (*app.Config, *conf.File, error) {
 	sort.Strings(matches)
 	for _, file := range matches {
 		log.Printf("found configuration file: %s", file)
-		f, err := os.Open(file)
+		configFile, err := os.Open(file)
 		if err != nil {
 			log.Printf("failed to open %s: %s, skipping", file, err)
+
 			continue
 		}
-		defer f.Close()
+		defer configFile.Close()
 		configurations = append(
 			configurations,
-			f,
+			configFile,
 			newLineReader(),
 		)
 	}
 
-	log.Printf("loading service configuration from %d sources", int(len(configurations)/2))
+	log.Printf("loading service configuration from %d sources", len(configurations)/2)
 
 	// finally deserialize all configuration files and convert it into a
 	// conf.File. Actual decoding of confFile into a struct type happens

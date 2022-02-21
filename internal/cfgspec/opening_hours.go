@@ -1,16 +1,20 @@
 package cfgspec
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
+	"github.com/tierklinik-dobersberg/cis/runtime"
 )
 
 // OpeningHours is used to describe the opening and office hours.
 type OpeningHours struct {
+	ID string `option:"-"`
+
 	// OnWeekday is a list of days (Mo, Tue, ...) on which this opening
 	// hours take effect.
 	OnWeekday []string
@@ -57,6 +61,38 @@ var OpeningHoursSpec = conf.SectionSpec{
 		Name:        "OnWeekday",
 		Description: "A list of days (Mo, Tue, Wed, Thu, Fri, Sat, Sun) at which this section takes effect",
 		Type:        conf.StringSliceType,
+		Annotations: new(conf.Annotation).With(
+			runtime.OneOf(
+				runtime.PossibleValue{
+					Value:   "Mon",
+					Display: "Monday",
+				},
+				runtime.PossibleValue{
+					Value:   "Tue",
+					Display: "Tuesday",
+				},
+				runtime.PossibleValue{
+					Value:   "Wed",
+					Display: "Wednesday",
+				},
+				runtime.PossibleValue{
+					Value:   "Thu",
+					Display: "Thursday",
+				},
+				runtime.PossibleValue{
+					Value:   "Fri",
+					Display: "Friday",
+				},
+				runtime.PossibleValue{
+					Value:   "Sat",
+					Display: "Saturday",
+				},
+				runtime.PossibleValue{
+					Value:   "Sun",
+					Display: "Sunday",
+				},
+			),
+		),
 	},
 	{
 		Name:        "UseAtDate",
@@ -82,6 +118,22 @@ var OpeningHoursSpec = conf.SectionSpec{
 		Name:        "Holiday",
 		Type:        conf.StringType,
 		Description: "Whether or not this opening hour counts on holidays. Possible values are 'yes' (normal and holidays), 'no' (normal only) or 'only' (holiday only).",
+		Annotations: new(conf.Annotation).With(
+			runtime.OneOf(
+				runtime.PossibleValue{
+					Value:   "yes",
+					Display: "Yes",
+				},
+				runtime.PossibleValue{
+					Value:   "no",
+					Display: "No",
+				},
+				runtime.PossibleValue{
+					Value:   "only",
+					Display: "Only",
+				},
+			),
+		),
 	},
 	{
 		Name:        "OnCallDayStart",
@@ -163,4 +215,39 @@ func ValidDay(day string) error {
 		}
 	}
 	return fmt.Errorf("invalid day: %s", day)
+}
+
+var OnOpeningHourChangeFunc func(ctx context.Context, changeType string, oh OpeningHours) error
+
+func addOpeningHours(s *runtime.ConfigSchema) error {
+	return s.Register(runtime.Schema{
+		Name:        "OpeningHour",
+		DisplayName: "Öffnungszeiten",
+		Description: "Opening hours definitions",
+		Spec:        OpeningHoursSpec,
+		Multi:       true,
+		SVGData:     `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />`,
+		Annotations: new(conf.Annotation).With(
+			runtime.OverviewFields("OnWeekday", "UseAtDate", "Holiday", "TimeRanges"),
+		),
+		OnChange: func(ctx context.Context, changeType, id string, sec *conf.Section) error {
+			var oh OpeningHours
+			if sec != nil {
+				if err := conf.DecodeSections(conf.Sections{*sec}, OpeningHoursSpec, &oh); err != nil {
+					return err
+				}
+			}
+			if err := oh.Validate(); err != nil {
+				return err
+			}
+
+			oh.ID = id
+
+			if OnOpeningHourChangeFunc != nil {
+				return OnOpeningHourChangeFunc(ctx, changeType, oh)
+			}
+
+			return nil
+		},
+	})
 }
