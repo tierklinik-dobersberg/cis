@@ -1,6 +1,7 @@
-<span class="text-2xl text-color-primary-dark font-lato" *ngIf="index !== null">
+<span *ngIf="index !== null" class="text-2xl text-color-primary-dark font-lato">
   {{index}}.
 </span>
+
 <div class="flex flex-col flex-grow">
   <span class="text-base font-medium font-lato">
     {{ spec.displayName || spec.name }}
@@ -77,7 +78,7 @@
 
           <div
             *ngSwitchDefault
-            class="flex-grow p-3 border  border-alert-red text-alert-red font-lato"
+            class="flex-grow p-3 border border-alert-red text-alert-red font-lato"
           >
             Option type
             <span class="font-semibold underline">{{ spec.type }}</span> is not
