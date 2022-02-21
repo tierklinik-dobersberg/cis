@@ -149,7 +149,26 @@ func (s *state) clone() *state {
 	return &newState
 }
 
-func (ctrl *Controller) OnOpeningHourChange(ctx context.Context, changeType string, oh cfgspec.OpeningHours) error {
+func (s *state) sortAndValidate() error {
+	// finally, sort all opening hours and make sure we don't have overlapping ones
+	for k := range s.regularOpeningHours {
+		if err := sortAndValidate(s.regularOpeningHours[k]); err != nil {
+			return err
+		}
+	}
+	for k := range s.dateSpecificHours {
+		if err := sortAndValidate(s.dateSpecificHours[k]); err != nil {
+			return err
+		}
+	}
+	if err := sortAndValidate(s.holidayTimeRanges); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ctrl *Controller) OnOpeningHourChange(ctx context.Context, changeType string, openingHour cfgspec.OpeningHours) error {
 	ctrl.rw.Lock()
 	defer ctrl.rw.Unlock()
 
@@ -157,14 +176,14 @@ func (ctrl *Controller) OnOpeningHourChange(ctx context.Context, changeType stri
 
 	// we delete for "delete" and "update".
 	if changeType != "create" {
-		if err := ctrl.deleteOpeningHour(oh.ID); err != nil {
+		if err := ctrl.deleteOpeningHour(openingHour.ID); err != nil {
 			errs.Addf("failed to delete: %w", err)
 		}
 	}
 
 	// we "create" for "create" and "update".
 	if changeType != "delete" {
-		if err := ctrl.addOpeningHours(oh); err != nil {
+		if err := ctrl.addOpeningHours(openingHour); err != nil {
 			errs.Addf("failed to create: %w", err)
 		}
 	}
@@ -221,105 +240,127 @@ func (ctrl *Controller) deleteOpeningHour(id string) error {
 	return nil
 }
 
+func (ctrl *Controller) parseWeekDays(c cfgspec.OpeningHours, newState *state) ([]time.Weekday, error) {
+	var days []time.Weekday
+	for _, d := range c.OnWeekday {
+		if err := cfgspec.ValidDay(d); err != nil {
+			return nil, err
+		}
+
+		parsed, ok := cfgspec.ParseDay(d)
+		if !ok {
+			return nil, fmt.Errorf("failed to parse day: %s", d)
+		}
+
+		if c.OnCallDayStart != "" {
+			if newState.changeOnDuty[parsed].dayStart != ctrl.defaultOnCallDayStart {
+				return nil, fmt.Errorf("multiple values for OnCallDayStart= at weekday %s", parsed)
+			}
+
+			dayStart, err := daytime.ParseDayTime(c.OnCallDayStart)
+			if err != nil {
+				return nil, fmt.Errorf("invalid OnCallDayStart: %w", err)
+			}
+			newState.changeOnDuty[parsed].dayStart = dayStart
+		}
+
+		if c.OnCallNightStart != "" {
+			if newState.changeOnDuty[parsed].nightStart != ctrl.defaultOnCallNightStart {
+				return nil, fmt.Errorf("multiple values for OnCallNightStart= at weekday %s", parsed)
+			}
+
+			nightStart, err := daytime.ParseDayTime(c.OnCallNightStart)
+			if err != nil {
+				return nil, fmt.Errorf("invalid OnCallNightStart: %w", err)
+			}
+			newState.changeOnDuty[parsed].nightStart = nightStart
+		}
+
+		days = append(days, parsed)
+	}
+
+	return days, nil
+}
+
+func (ctrl *Controller) parseDates(c cfgspec.OpeningHours) ([]string, error) {
+	dates := make([]string, 0, len(c.UseAtDate))
+	for _, dateStr := range c.UseAtDate {
+		parts := strings.Split(dateStr, "/")
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid date: %q", dateStr)
+		}
+
+		month, err := strconv.ParseInt(strings.TrimLeft(parts[0], "0"), 0, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid date: %q: %w", dateStr, err)
+		}
+		if month < 0 || month > 12 {
+			return nil, fmt.Errorf("invalid month: %d", month)
+		}
+
+		day, err := strconv.ParseInt(strings.TrimLeft(parts[1], "0"), 0, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid date: %q: %w", dateStr, err)
+		}
+		if day < 0 || day > 31 {
+			return nil, fmt.Errorf("invalid day: %d", day)
+		}
+
+		dates = append(dates, fmt.Sprintf("%02d/%02d", month, day))
+	}
+
+	return dates, nil
+}
+
+func (ctrl *Controller) getTimeRanges(c cfgspec.OpeningHours) ([]OpeningHour, error) {
+	ranges := make([]OpeningHour, 0, len(c.TimeRanges))
+	for _, r := range c.TimeRanges {
+		tr, err := daytime.ParseRange(r)
+		if err != nil {
+			return nil, err
+		}
+
+		closeAfter := c.CloseAfter
+		if closeAfter == 0 {
+			closeAfter = ctrl.defaultCloseAfter
+		}
+
+		openBefore := c.OpenBefore
+		if openBefore == 0 {
+			openBefore = ctrl.defaultOpenBefore
+		}
+
+		ranges = append(ranges, OpeningHour{
+			ID:         c.ID,
+			Range:      tr,
+			CloseAfter: closeAfter,
+			OpenBefore: openBefore,
+			Unofficial: c.Unofficial,
+		})
+	}
+
+	return ranges, nil
+}
+
 func (ctrl *Controller) addOpeningHours(timeRanges ...cfgspec.OpeningHours) error {
 	newState := ctrl.state.clone()
 
-	for _, c := range timeRanges {
-
-		var (
-			days  []time.Weekday
-			dates []string
-		)
-
-		for _, d := range c.OnWeekday {
-			if err := cfgspec.ValidDay(d); err != nil {
-				return err
-			}
-
-			parsed, ok := cfgspec.ParseDay(d)
-			if !ok {
-				return fmt.Errorf("failed to parse day: %s", d)
-			}
-
-			if c.OnCallDayStart != "" {
-				if newState.changeOnDuty[parsed].dayStart != ctrl.defaultOnCallDayStart {
-					return fmt.Errorf("multiple values for OnCallDayStart= at weekday %s", parsed)
-				}
-
-				dayStart, err := daytime.ParseDayTime(c.OnCallDayStart)
-				if err != nil {
-					return fmt.Errorf("invalid OnCallDayStart: %w", err)
-				}
-				newState.changeOnDuty[parsed].dayStart = dayStart
-			}
-
-			if c.OnCallNightStart != "" {
-				if newState.changeOnDuty[parsed].nightStart != ctrl.defaultOnCallNightStart {
-					return fmt.Errorf("multiple values for OnCallNightStart= at weekday %s", parsed)
-				}
-
-				nightStart, err := daytime.ParseDayTime(c.OnCallNightStart)
-				if err != nil {
-					return fmt.Errorf("invalid OnCallNightStart: %w", err)
-				}
-				newState.changeOnDuty[parsed].nightStart = nightStart
-			}
-
-			days = append(days, parsed)
+	for _, openingHourDef := range timeRanges {
+		days, err := ctrl.parseWeekDays(openingHourDef, newState)
+		if err != nil {
+			return err
 		}
 
-		for _, d := range c.UseAtDate {
-			parts := strings.Split(d, "/")
-			if len(parts) != 2 {
-				return fmt.Errorf("invalid date: %q", d)
-			}
-
-			month, err := strconv.ParseInt(strings.TrimLeft(parts[0], "0"), 0, 64)
-			if err != nil {
-				return fmt.Errorf("invalid date: %q: %w", d, err)
-			}
-			if month < 0 || month > 12 {
-				return fmt.Errorf("invalid month: %d", month)
-			}
-
-			day, err := strconv.ParseInt(strings.TrimLeft(parts[1], "0"), 0, 64)
-			if err != nil {
-				return fmt.Errorf("invalid date: %q: %w", d, err)
-			}
-			if day < 0 || day > 31 {
-				return fmt.Errorf("invalid day: %d", day)
-			}
-
-			dates = append(dates, fmt.Sprintf("%02d/%02d", month, day))
+		dates, err := ctrl.parseDates(openingHourDef)
+		if err != nil {
+			return err
+		}
+		ranges, err := ctrl.getTimeRanges(openingHourDef)
+		if err != nil {
+			return err
 		}
 
-		var ranges []OpeningHour
-		for _, r := range c.TimeRanges {
-			tr, err := daytime.ParseRange(r)
-			if err != nil {
-				return err
-			}
-
-			closeAfter := c.CloseAfter
-			if closeAfter == 0 {
-				closeAfter = ctrl.defaultCloseAfter
-			}
-
-			openBefore := c.OpenBefore
-			if openBefore == 0 {
-				openBefore = ctrl.defaultOpenBefore
-			}
-
-			ranges = append(ranges, OpeningHour{
-				ID:         c.ID,
-				Range:      tr,
-				CloseAfter: closeAfter,
-				OpenBefore: openBefore,
-				Unofficial: c.Unofficial,
-			})
-		}
-
-		holiday := strings.ToLower(c.Holiday)
+		holiday := strings.ToLower(openingHourDef.Holiday)
 
 		// if its a setting for holidays as well (or holidays only)
 		// add it to the correct slice.
@@ -344,18 +385,7 @@ func (ctrl *Controller) addOpeningHours(timeRanges ...cfgspec.OpeningHours) erro
 		}
 	}
 
-	// finally, sort all opening hours and make sure we don't have overlapping ones
-	for k := range newState.regularOpeningHours {
-		if err := sortAndValidate(newState.regularOpeningHours[k]); err != nil {
-			return err
-		}
-	}
-	for k := range newState.dateSpecificHours {
-		if err := sortAndValidate(newState.dateSpecificHours[k]); err != nil {
-			return err
-		}
-	}
-	if err := sortAndValidate(newState.holidayTimeRanges); err != nil {
+	if err := newState.sortAndValidate(); err != nil {
 		return err
 	}
 
@@ -370,23 +400,24 @@ func (ctrl *Controller) addOpeningHours(timeRanges ...cfgspec.OpeningHours) erro
 // Note that ChangeOnDuty requires the Weekday of d which might differ
 // depending on t's zone information. The caller must make sure to have
 // t in the desired time zone!
-func (ctrl *Controller) ChangeOnDuty(ctx context.Context, d time.Time) *ChangeOnCall {
+func (ctrl *Controller) ChangeOnDuty(ctx context.Context, date time.Time) *ChangeOnCall {
 	ctrl.rw.RLock()
 	defer ctrl.rw.RUnlock()
 
-	if d.Location() == time.UTC {
+	if date.Location() == time.UTC {
 		log.From(ctx).Errorf("WARNING: ChangeOnDuty called with time in UTC")
 	}
 
-	change, ok := ctrl.changeOnDuty[d.Weekday()]
+	change, ok := ctrl.changeOnDuty[date.Weekday()]
 	if !ok {
-		log.From(ctx).Errorf("no time for change-on-duty configured for %s (%d)", d.Weekday(), d)
+		log.From(ctx).Errorf("no time for change-on-duty configured for %s (%d)", date.Weekday(), date)
 		return nil
 	}
+
 	return change
 }
 
-func (ctrl *Controller) UpcomingFrames(ctx context.Context, t time.Time, limit int) []daytime.TimeRange {
+func (ctrl *Controller) UpcomingFrames(ctx context.Context, dateTime time.Time, limit int) []daytime.TimeRange {
 	ctrl.rw.RLock()
 	defer ctrl.rw.RUnlock()
 
@@ -402,17 +433,17 @@ func (ctrl *Controller) UpcomingFrames(ctx context.Context, t time.Time, limit i
 	}
 
 	for len(result) < limit {
-		ranges := ctrl.forDate(ctx, t)
+		ranges := ctrl.forDate(ctx, dateTime)
 
 		// Find the first frame that's after or covers t
 		var idx int
 		found := false
 		for idx = range ranges {
-			tr := ranges[idx].At(t, ctrl.location)
+			tr := ranges[idx].At(dateTime, ctrl.location)
 			tr.From = tr.From.Add(-ranges[idx].OpenBefore)
 			tr.To = tr.To.Add(ranges[idx].CloseAfter)
 
-			if tr.From.After(t) || tr.Covers(t) {
+			if tr.From.After(dateTime) || tr.Covers(dateTime) {
 				found = true
 
 				break
@@ -422,7 +453,7 @@ func (ctrl *Controller) UpcomingFrames(ctx context.Context, t time.Time, limit i
 		if found {
 			// all frames following idx are up-coming.
 			for _, d := range ranges[idx:] {
-				tr := d.At(t, ctrl.location)
+				tr := d.At(dateTime, ctrl.location)
 				tr.From = tr.From.Add(-d.OpenBefore)
 				tr.To = tr.To.Add(d.CloseAfter)
 				result = append(result, *tr)
@@ -430,8 +461,8 @@ func (ctrl *Controller) UpcomingFrames(ctx context.Context, t time.Time, limit i
 		}
 
 		// proceed to the next week day
-		t = t.Add(24 * time.Hour)
-		t = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+		dateTime = dateTime.Add(24 * time.Hour)
+		dateTime = time.Date(dateTime.Year(), dateTime.Month(), dateTime.Day(), 0, 0, 0, 0, dateTime.Location())
 	}
 
 	// truncate the result to the exact size requested
@@ -439,18 +470,18 @@ func (ctrl *Controller) UpcomingFrames(ctx context.Context, t time.Time, limit i
 	return result[0:limit]
 }
 
-func (ctrl *Controller) ForDate(ctx context.Context, t time.Time) []OpeningHour {
+func (ctrl *Controller) ForDate(ctx context.Context, date time.Time) []OpeningHour {
 	ctrl.rw.RLock()
 	defer ctrl.rw.RUnlock()
 
-	return ctrl.forDate(ctx, t)
+	return ctrl.forDate(ctx, date)
 }
 
-func (ctrl *Controller) forDate(ctx context.Context, t time.Time) []OpeningHour {
-	t = t.In(ctrl.location)
+func (ctrl *Controller) forDate(ctx context.Context, date time.Time) []OpeningHour {
+	date = date.In(ctrl.location)
 
 	log := log.From(ctx)
-	key := fmt.Sprintf("%02d/%02d", t.Month(), t.Day())
+	key := fmt.Sprintf("%02d/%02d", date.Month(), date.Day())
 
 	// First we check for date specific overwrites ...
 	ranges, ok := ctrl.dateSpecificHours[key]
@@ -459,7 +490,7 @@ func (ctrl *Controller) forDate(ctx context.Context, t time.Time) []OpeningHour 
 	}
 
 	// Check if we need to use holiday ranges ...
-	isHoliday, err := ctrl.holidays.IsHoliday(ctx, ctrl.country, t)
+	isHoliday, err := ctrl.holidays.IsHoliday(ctx, ctrl.country, date)
 	if err != nil {
 		isHoliday = false
 		log.Errorf("failed to load holidays: %s", err.Error())
@@ -469,13 +500,14 @@ func (ctrl *Controller) forDate(ctx context.Context, t time.Time) []OpeningHour 
 	}
 
 	// Finally use the regular opening hours
-	ranges, ok = ctrl.regularOpeningHours[t.Weekday()]
+	ranges, ok = ctrl.regularOpeningHours[date.Weekday()]
 	if ok {
 		return ranges
 	}
 
 	// There are no ranges for that day!
-	log.V(4).Logf("No opening hour ranges found for %s", t)
+	log.V(4).Logf("No opening hour ranges found for %s", date)
+
 	return nil
 }
 
