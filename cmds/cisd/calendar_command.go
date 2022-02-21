@@ -31,6 +31,7 @@ func calendarService() google.Service {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	return svc
 }
 
@@ -66,6 +67,7 @@ func getCalendarAuthCommand() *cobra.Command {
 			}
 		},
 	}
+
 	return cmd
 }
 
@@ -89,6 +91,7 @@ func getCalendarListCommand() *cobra.Command {
 	}
 }
 
+// trunk-ignore(golangci-lint/cyclop)
 func getEventsCommand() *cobra.Command {
 	var (
 		forDay string
@@ -213,5 +216,6 @@ func getCreateEventCommand() *cobra.Command {
 	runtime.Must(cmd.MarkFlagRequired("at"))
 	runtime.Must(cmd.MarkFlagRequired("summary"))
 	runtime.Must(cmd.MarkFlagRequired("calendar"))
+
 	return cmd
 }

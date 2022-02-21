@@ -18,6 +18,7 @@ func getValidateCommand() *cobra.Command {
 				f, ok := autodoc.DefaultRegistry.DocsFor(file)
 				if !ok {
 					log.Printf("%s: unknown configuration file", file)
+
 					continue
 				}
 
@@ -25,10 +26,12 @@ func getValidateCommand() *cobra.Command {
 				// here
 				if _, err := f.LoadFile(file, nil); err != nil {
 					log.Printf("%s (type: %s): %s", file, f.Name, err)
+
 					continue
 				}
 			}
 		},
 	}
+
 	return cmd
 }

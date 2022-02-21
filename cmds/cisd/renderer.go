@@ -9,7 +9,7 @@ import (
 var Render func(string) string
 
 func init() {
-	r, err := glamour.NewTermRenderer(
+	termRenderer, err := glamour.NewTermRenderer(
 		// detect background color and pick either the default dark or light theme
 		glamour.WithAutoStyle(),
 	)
@@ -17,15 +17,18 @@ func init() {
 		log.Println(err.Error())
 	}
 
-	Render = func(s string) string {
-		if r == nil {
-			return s
+	Render = func(input string) string {
+		if termRenderer == nil {
+			return input
 		}
-		res, err := r.Render(s)
+
+		res, err := termRenderer.Render(input)
 		if err != nil {
 			log.Println(err)
-			return s
+
+			return input
 		}
+
 		return res
 	}
 }

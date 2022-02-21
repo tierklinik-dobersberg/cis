@@ -13,7 +13,7 @@ type logAdapter struct {
 	adapters    []logger.Adapter
 }
 
-// Write implements logger.Adapter
+// Write implements logger.Adapter.
 func (l *logAdapter) Write(clock time.Time, severity logger.Severity, msg string, fields logger.Fields) {
 	l.rw.RLock()
 	defer l.rw.RUnlock()
