@@ -19,6 +19,7 @@ func getManCommand() *cobra.Command {
 				for _, file := range autodoc.DefaultRegistry.List() {
 					fmt.Printf(" - %s\n", file.Name)
 				}
+
 				return
 			}
 

@@ -17,9 +17,9 @@ import (
 // TracerProvider will also use a Resource configured with all the information
 // about the application.
 func tracerProvider(cfg *cfgspec.Config) (*tracesdk.TracerProvider, error) {
-	b, _ := debug.ReadBuildInfo()
-	if b == nil {
-		b = new(debug.BuildInfo)
+	buildInfo, _ := debug.ReadBuildInfo()
+	if buildInfo == nil {
+		buildInfo = new(debug.BuildInfo)
 	}
 
 	// Create the Jaeger exporter
@@ -27,7 +27,7 @@ func tracerProvider(cfg *cfgspec.Config) (*tracesdk.TracerProvider, error) {
 	if err != nil {
 		return nil, err
 	}
-	tp := tracesdk.NewTracerProvider(
+	traceProvider := tracesdk.NewTracerProvider(
 		// Always be sure to batch in production.
 		tracesdk.WithBatcher(exp),
 		// Record information about this application in a Resource.
@@ -37,9 +37,10 @@ func tracerProvider(cfg *cfgspec.Config) (*tracesdk.TracerProvider, error) {
 			attribute.String("environment", cfg.Environment),
 			attribute.String("ID", cfg.ID),
 			attribute.String("GOOS", runtime.GOOS),
-			attribute.String("main.version", b.Main.Version),
-			attribute.String("main.sum", b.Main.Sum),
+			attribute.String("main.version", buildInfo.Main.Version),
+			attribute.String("main.sum", buildInfo.Main.Sum),
 		)),
 	)
-	return tp, nil
+
+	return traceProvider, nil
 }

@@ -450,6 +450,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		if err != nil {
 			return nil, err
 		}
+
 		return &u.User, nil
 	})
 	if err := sessionManager.Configure(
@@ -735,8 +736,10 @@ func mailSyncStore(mongoClient *mongo.Client, dbName string) mailsync.Store {
 				if err := result.Decode(&state); err != nil {
 					return nil, fmt.Errorf("decoding state: %w", err)
 				}
+
 				return &state, nil
 			}
+
 			return nil, nil
 		},
 		Save: func(ctx context.Context, state mailsync.State) error {
@@ -744,6 +747,7 @@ func mailSyncStore(mongoClient *mongo.Client, dbName string) mailsync.Store {
 			if _, err := col.ReplaceOne(ctx, bson.M{"name": state.Name}, state, opts); err != nil {
 				return err
 			}
+
 			return nil
 		},
 	}
