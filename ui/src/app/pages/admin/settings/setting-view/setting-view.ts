@@ -120,31 +120,35 @@ export class SettingViewComponent implements OnInit, OnDestroy {
   }
 
   deleteSetting(id?: string) {
-    if (id === undefined && this.singleModeID) {
-      this.configAPI
-        .deleteSetting(this.schema!.name, this.singleModeID)
-        .subscribe({
-          next: (res) => {
-            if (!!res.warning) {
-              this.nzMessageService.warning(res.warning);
-            } else {
-              this.nzMessageService.success(
-                'Einstellungen erfolgreich gelöscht.'
-              );
-            }
-
-            this.configAPI.reload();
-            if (this.schema.multi) {
-              this.router.navigate(['..'], { relativeTo: this.route });
-            } else {
-              this.reload$.next();
-            }
-          },
-          error: (err) =>
-            this.nzMessageService.error(extractErrorMessage(err, 'Fehler')),
-        });
+    if (id === undefined && this.singleMode) {
+      id = this.singleModeID;
+    }
+    if (id === undefined) {
       return;
     }
+
+    this.configAPI
+      .deleteSetting(this.schema!.name, id)
+      .subscribe({
+        next: (res) => {
+          if (!!res.warning) {
+            this.nzMessageService.warning(res.warning);
+          } else {
+            this.nzMessageService.success(
+              'Einstellungen erfolgreich gelöscht.'
+            );
+          }
+
+          this.configAPI.reload();
+          if (this.schema.multi && !this.singleMode) {
+            this.router.navigate(['..'], { relativeTo: this.route });
+          } else {
+            this.reload$.next();
+          }
+        },
+        error: (err) =>
+          this.nzMessageService.error(extractErrorMessage(err, 'Fehler')),
+      });
   }
 
   testSetting() {
