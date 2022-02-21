@@ -30,6 +30,13 @@ export interface Schema {
   annotations?: {
     [key: string]: any;
   }
+  tests?: ConfigTest[];
+}
+
+export interface ConfigTest {
+  id: string;
+  name: string;
+  spec: OptionSpec[];
 }
 
 export interface SchemaInstance {
@@ -210,5 +217,12 @@ export class ConfigAPI {
 
   deleteSetting(key: string, id: string): Observable<{warning?: string}> {
     return this.http.delete<{warning?: string}>(`/api/config/v1/schema/${key}/${id}`)
+  }
+
+  testSetting(key: string, testID: string, config: SchemaInstance, testConfig: SchemaInstance): Observable<{error?: string}|null>{
+    return this.http.post<{error?: string}|null>(`/api/config/v1/test/${key}/${testID}`, {
+      config: config,
+      testConfig: testConfig,
+    });
   }
 }

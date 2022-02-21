@@ -1,0 +1,54 @@
+<div class="pb-4 font-lato text-color-primary test-xl">
+  Test Settings:
+</div>
+
+<ng-container [ngSwitch]="testState">
+  <ng-template [ngSwitchCase]="''">
+    <div class="space-y-2 overflow-auto">
+      <nz-select [(ngModel)]="selectedTest" class="w-full mb-4 border-b border-subtle"
+        nzPlaceHolder="Bitten wähle eine Test">
+        <nz-option *ngFor="let test of schema.tests" [nzValue]="test" [nzLabel]="test.name || test.id"
+          (ngModelChange)="values={}"></nz-option>
+      </nz-select>
+
+      <ng-container *ngFor="let spec of selectedTest?.spec">
+        <tkd-option-spec-input [spec]="spec" class="pb-2 border-b border-primary border-opacity-20"
+          [(ngModel)]="values[spec.name]"></tkd-option-spec-input>
+      </ng-container>
+    </div>
+  </ng-template>
+  <ng-template ngSwitchCase="running">
+
+    <div class="flex flex-col items-center justify-center w-full">
+      <i nz-icon [nzType]="'loading'" style="font-size: 4rem"></i>
+      Test wird ausgeführt
+    </div>
+
+  </ng-template>
+  <ng-template ngSwitchCase="success">
+    <div class="flex flex-col items-center justify-center w-full space-y-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 p-2 border rounded-full border-meadow-dark text-meadow-dark " fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+      <span class="text-xl text-color-primary font-lato">
+        Test erfolgreich!
+      </span>
+    </div>
+  </ng-template>
+  <ng-template ngSwitchDefault>
+    <div class="flex flex-col items-center justify-center w-full space-y-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 p-2 border rounded-full text-alert-red border-alert-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+      <span class="text-xl text-alert-red-dark font-lato">
+        {{ testState }}
+      </span>
+      <button class="tkd-btn tkd-outlint tkd-danger" (click)="testState = ''">Erneut versuchen</button>
+    </div>
+  </ng-template>
+</ng-container>
+
+<div class="flex flex-row justify-end mt-4 space-x-2">
+  <button class="tkd-btn tkd-outline tkd-secondary" (click)="cancel()">Close</button>
+  <button class="tkd-btn tkd-primary" (click)="executeTest()" *ngIf="testState === ''">Test</button>
+</div>
