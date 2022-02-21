@@ -14,6 +14,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type UpdateConfigResponse struct {
@@ -71,7 +72,7 @@ func UpdateConfigEndpoint(r *app.Router) {
 
 			var warning string
 			if err := runtime.GlobalSchema.Update(ctx, id, key, options); err != nil {
-				warning, err = handleRuntimeError(err)
+				warning, err = handleRuntimeError(ctx, err)
 				if err != nil {
 					return err
 				}
@@ -87,9 +88,12 @@ func UpdateConfigEndpoint(r *app.Router) {
 	)
 }
 
-func handleRuntimeError(err error) (string, error) {
+func handleRuntimeError(ctx context.Context, err error) (string, error) {
 	var notifErr *runtime.NotificationError
 	if errors.As(err, &notifErr) {
+		sp := trace.SpanFromContext(ctx)
+		sp.RecordError(notifErr.Wrapped)
+
 		return notifErr.Wrapped.Error(), nil
 	}
 

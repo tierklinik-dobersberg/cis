@@ -375,7 +375,7 @@ func (ctrl *Controller) ChangeOnDuty(ctx context.Context, d time.Time) *ChangeOn
 	defer ctrl.rw.RUnlock()
 
 	if d.Location() == time.UTC {
-		log.From(ctx).Errorf("WARNING: ChnageOnDuty called with time in UTC")
+		log.From(ctx).Errorf("WARNING: ChangeOnDuty called with time in UTC")
 	}
 
 	change, ok := ctrl.changeOnDuty[d.Weekday()]

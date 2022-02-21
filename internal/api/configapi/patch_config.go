@@ -72,7 +72,7 @@ func PatchConfigEndpoint(r *app.Router) {
 
 			var warning string
 			if err := runtime.GlobalSchema.Update(ctx, id, key, current.Sections[0].Options); err != nil {
-				warning, err = handleRuntimeError(err)
+				warning, err = handleRuntimeError(ctx, err)
 				if err != nil {
 					return err
 				}
