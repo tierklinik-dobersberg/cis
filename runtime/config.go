@@ -26,7 +26,7 @@ type (
 
 	// ConfigSchemaBuilder collects functions that add configuration
 	// sections to a configuration scheme. It's to allow code to be used
-	// with mutliple configuration schemes while still being allowed to
+	// with multiple configuration schemes while still being allowed to
 	// register on the global configuration.
 	ConfigSchemaBuilder []func(*ConfigSchema) error
 
@@ -81,8 +81,8 @@ type (
 		// interface.
 		Category string `json:"category"`
 
-		// Spec holds the actual option registry that defines which values and which types
-		// are allowed for instances of the configuration block.
+		// Spec holds the actual section registry that defines which sections, values and
+		// which types are allowed for instances of the configuration block.
 		// Spec is required when registering a new configuration block.
 		Spec conf.OptionRegistry `json:"-"`
 
@@ -354,7 +354,7 @@ func (schema *ConfigSchema) Update(ctx context.Context, id, secType string, opts
 	}
 
 	if reg.OnChange != nil {
-		if err := reg.OnChange(ctx, "delete", id, &conf.Section{
+		if err := reg.OnChange(ctx, "update", id, &conf.Section{
 			Name:    secType,
 			Options: opts,
 		}); err != nil {
@@ -455,7 +455,7 @@ func (schema *ConfigSchema) getTest(ctx context.Context, schemaType, testID stri
 // GlobalSchema is the global configuration schema.
 var GlobalSchema = new(ConfigSchema)
 
-// Sorting schemas by name
+// Sorting schemas by name.
 type schemaByName []Schema
 
 func (sn schemaByName) Len() int           { return len(sn) }

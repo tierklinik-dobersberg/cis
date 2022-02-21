@@ -56,24 +56,24 @@ func setupServer(ctx context.Context, app *app.App) (*echo.Echo, error) {
 	return engine, nil
 }
 
-func convertToCorsConfig(c *app.CORS) (middleware.CORSConfig, error) {
-	t, err := time.ParseDuration(c.MaxAge)
+func convertToCorsConfig(corsConfig *app.CORS) (middleware.CORSConfig, error) {
+	t, err := time.ParseDuration(corsConfig.MaxAge)
 	if err != nil {
 		return middleware.DefaultCORSConfig, err
 	}
-	if len(c.AllowMethods) == 0 {
-		c.AllowMethods = []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete}
+	if len(corsConfig.AllowMethods) == 0 {
+		corsConfig.AllowMethods = []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete}
 	}
-	if len(c.AllowOrigins) == 0 {
-		c.AllowOrigins = []string{"*"}
+	if len(corsConfig.AllowOrigins) == 0 {
+		corsConfig.AllowOrigins = []string{"*"}
 	}
 	return middleware.CORSConfig{
 		Skipper:          middleware.DefaultSkipper,
-		AllowOrigins:     c.AllowOrigins,
-		AllowMethods:     c.AllowMethods,
-		AllowHeaders:     c.AllowHeaders,
-		AllowCredentials: c.AllowCredentials,
-		ExposeHeaders:    c.ExposeHeaders,
+		AllowOrigins:     corsConfig.AllowOrigins,
+		AllowMethods:     corsConfig.AllowMethods,
+		AllowHeaders:     corsConfig.AllowHeaders,
+		AllowCredentials: corsConfig.AllowCredentials,
+		ExposeHeaders:    corsConfig.ExposeHeaders,
 		MaxAge:           int(t / time.Second),
 	}, nil
 }

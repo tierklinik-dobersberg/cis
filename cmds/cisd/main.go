@@ -101,7 +101,6 @@ import (
 	// CardDAV importer.
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/carddav"
 	// Task: Find linkable customers.
-	//_ "github.com/tierklinik-dobersberg/cis/internal/tasks/linkable"
 	// Schema migrations.
 	_ "github.com/tierklinik-dobersberg/cis/migrations"
 )
@@ -132,6 +131,7 @@ func getRootCommand() *cobra.Command {
 	return cmd
 }
 
+// trunk-ignore(golangci-lint/gocognit)
 func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, context.Context) {
 	var (
 		sessionManager = new(session.Manager)
@@ -140,14 +140,14 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	log.Printf("CIS - running on %s (%s)", goruntime.GOOS, goruntime.GOARCH)
 
 	// setup logging
-	l := new(logAdapter)
-	l.addAdapter(new(logger.StdlibAdapter))
-	logger.SetDefaultAdapter(l)
+	logApt := new(logAdapter)
+	logApt.addAdapter(new(logger.StdlibAdapter))
+	logger.SetDefaultAdapter(logApt)
 
 	// load the configuration file
 	cfg, cfgFile, err := loadConfig()
 	if err != nil {
-		log.Fatalf("configuration: %w", err)
+		log.Fatalf("configuration: %s", err)
 	}
 
 	//
@@ -157,22 +157,22 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	if err != nil {
 		log.Fatalf("failed to parse log-level: %s", err)
 	}
-	l.setMaxSeverity(lvl)
+	logApt.setMaxSeverity(lvl)
 
 	//
 	// prepare tracing
 	//
 	var ctx = baseCtx
-	var tp *tracesdk.TracerProvider
+	var tracer *tracesdk.TracerProvider
 	if cfg.JaegerTracingURL != "" {
 		var span trace.Span
-		tp, err = tracerProvider(&cfg.Config)
+		tracer, err = tracerProvider(&cfg.Config)
 		if err != nil {
 			log.Fatalf("failed to configure trace provider: %s", err)
 		}
-		otel.SetTracerProvider(tp)
+		otel.SetTracerProvider(tracer)
 
-		tr := tp.Tracer("")
+		tr := tracer.Tracer("")
 		ctx, span = tr.Start(ctx, "init")
 		defer span.End()
 	}
@@ -186,8 +186,8 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 			logger.Fatalf(ctx, "failed to configure rocketchat integration: %s", err)
 		}
 
-		l.addAdapter(logger.AdapterFunc(func(t time.Time, s logger.Severity, msg string, f logger.Fields) {
-			if s != logger.Error {
+		logApt.addAdapter(logger.AdapterFunc(func(logTime time.Time, severity logger.Severity, msg string, fields logger.Fields) {
+			if severity != logger.Error {
 				return
 			}
 			content := rocket.WebhookContent{
@@ -198,14 +198,14 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 						Fields: []rocket.AttachmentField{
 							{
 								Title: "Time",
-								Value: t.String(),
+								Value: logTime.String(),
 							},
 						},
 					},
 				},
 			}
 
-			for k, v := range f {
+			for k, v := range fields {
 				content.Attachments[0].Fields = append(content.Attachments[0].Fields, rocket.AttachmentField{
 					Title: k,
 					Value: fmt.Sprintf("%v", v),
@@ -227,7 +227,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		if err != nil {
 			logger.Fatalf(ctx, "mongolog: %s", err.Error())
 		}
-		l.addAdapter(mongoLogger)
+		logApt.addAdapter(mongoLogger)
 	}
 
 	//
@@ -389,6 +389,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
 			logger.Errorf(ctx, "failed to connect to mqtt: %s", err)
 			time.Sleep(time.Second)
+
 			continue
 		}
 
@@ -401,9 +402,34 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	// prepare opeing hours controller
 	//
 	holidayCache := openinghours.NewHolidayCache()
-	openingHoursCtrl, err := openinghours.New(cfg.Config, cfg.OpeningHours, holidayCache)
+	openingHoursCtrl, err := openinghours.New(cfg.Config, runtime.GlobalSchema, holidayCache)
 	if err != nil {
 		logger.Fatalf(ctx, "opening-hours-controler: %s", err.Error())
+	}
+
+	// FIXME(ppacher):
+	cfgspec.OnOpeningHourChangeFunc = openingHoursCtrl.OnOpeningHourChange
+	for _, oh := range cfg.OpeningHours {
+		opts := map[string]interface{}{
+			"OnWeekday":        oh.OnWeekday,
+			"UseAtDate":        oh.UseAtDate,
+			"OpenBefore":       oh.OpenBefore.String(),
+			"CloseAfter":       oh.CloseAfter.String(),
+			"TimeRanges":       oh.TimeRanges,
+			"OnCallDayStart":   oh.OnCallDayStart,
+			"OnCallNightStart": oh.OnCallNightStart,
+			"Holiday":          oh.Holiday,
+			"Unofficial":       oh.Unofficial,
+		}
+
+		options, err := confutil.MapToOptions(opts)
+		if err != nil {
+			logger.Fatalf(ctx, "failed to import data: %s", err)
+		}
+
+		if _, err := runtime.GlobalSchema.Create(ctx, "OpeningHour", options); err != nil {
+			logger.Fatalf(ctx, "failed to import data: %s", err)
+		}
 	}
 
 	//
@@ -529,7 +555,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 
 	logger.Infof(ctx, "initialization complete")
 
-	return appCtx, tp, app.With(baseCtx, appCtx)
+	return appCtx, tracer, app.With(baseCtx, appCtx)
 }
 
 func setupAPI(app *app.App, grp *echo.Echo) error {
