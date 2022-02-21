@@ -11,6 +11,7 @@ import (
 var (
 	ErrNoProvider         = errors.New("config-provider: not initialized")
 	ErrCfgSectionNotFound = errors.New("config-provider: no configuration section found")
+	ErrUnknownConfigTest  = errors.New("config: unknown configuration tests identifier")
 	ErrReadOnly           = errors.New("config-provider: provider is read-only")
 )
 

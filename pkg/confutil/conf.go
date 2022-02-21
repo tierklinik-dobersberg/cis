@@ -4,7 +4,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
 )
 
@@ -141,4 +143,20 @@ func MakeOptional(reg conf.OptionRegistry) conf.OptionRegistry {
 	return &OptionalOptionRegistry{
 		OptionRegistry: reg,
 	}
+}
+
+func MapToOptions(m map[string]interface{}) ([]conf.Option, error) {
+	var options []conf.Option
+	for name, val := range m {
+		opts, err := conf.EncodeToOptions(name, val)
+		if err != nil {
+			return nil, httperr.BadRequest(echo.Map{
+				"error": "invalid values for option",
+				"name":  name,
+			}).SetInternal(err)
+		}
+
+		options = append(options, opts...)
+	}
+	return options, nil
 }

@@ -7,12 +7,10 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/ppacher/system-conf/conf"
-)
-
-var (
-	CategoryNotifications = "vet.dobersberg.cis/schema/category/notifications"
+	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
 type (
@@ -32,6 +30,31 @@ type (
 	// register on the global configuration.
 	ConfigSchemaBuilder []func(*ConfigSchema) error
 
+	// ConfigTest can be added to Schema to support testing a
+	// configuration before is stored in the backend.
+	ConfigTest struct {
+		// ID is a unique ID for this configuration test and used to identify
+		// and trigger the test.
+		ID string `json:"id"`
+
+		// Name holds a human readable name of the test and is used when the user
+		// can select between available config tests.
+		Name string `json:"name"`
+
+		// Spec defines a set of options that the user can or must provide in order to
+		// test a configuration schema.
+		Spec conf.OptionRegistry `json:"spec"`
+
+		// TestFunc is called to verify that config works as expected. config adheres to the
+		// schema specification. testSpec is the configuration to execute the test and may hold
+		// additional data like the receiver of a test notification.
+		TestFunc func(ctx context.Context, config []conf.Option, testSpec []conf.Option) (*TestResult, error) `json:"-"`
+	}
+
+	TestResult struct {
+		Error string `json:"error"`
+	}
+
 	// Schema is passed to ConfigSchema.Register and holds metadata and information
 	// about the registered configuration block.
 	Schema struct {
@@ -44,6 +67,8 @@ type (
 		// in the user interface. If omitted, DisplayName is set to equal Name.
 		DisplayName string `json:"displayName"`
 
+		// SVGData may hold an icon definition that may be rendered in a <svg> tag
+		// in a user interface.
 		SVGData string `json:"svgData,omitempty"`
 
 		// Description holds a human readable description of the configuration block and
@@ -70,6 +95,10 @@ type (
 		// best display the configuration setting.
 		Annotations conf.Annotation `json:"annotations"`
 
+		// Tests may hold one or more configuration test that a user may perform in order to
+		// be certain that a configuration schema works as expected.
+		Tests []ConfigTest `json:"tests,omitempty"`
+
 		// OnChange is called when an instance of a specific configuration section
 		// is created, modified or deleted. The changeType parameter will be set to
 		// "create", "update" or "delete" respectively with id holding a unique identifier
@@ -80,6 +109,12 @@ type (
 		OnChange func(ctx context.Context, changeType, id string, sec *conf.Section) error `json:"-"`
 	}
 )
+
+func NewTestError(err error) *TestResult {
+	return &TestResult{
+		Error: err.Error(),
+	}
+}
 
 // NewConfigSchemaBuilder returns a new config schema builder using funcs.
 func NewConfigSchemaBuilder(funcs ...func(s *ConfigSchema) error) ConfigSchemaBuilder {
@@ -360,6 +395,61 @@ func (schema *ConfigSchema) Delete(ctx context.Context, id string) error {
 		}
 	}
 	return nil
+}
+
+// Test validates configSpec using the defined configuration test testID. testSpec holds configuration
+// values required for the test as defined in ConfigTest.Spec.
+// Test automatically applies defaults for configSpec and testSpec and validates them against the
+// respective configuration specification.
+func (schema *ConfigSchema) Test(ctx context.Context, schemaType, testID string, configSpec, testSpec []conf.Option) (*TestResult, error) {
+	s, tester, err := schema.getTest(ctx, schemaType, testID)
+	if err != nil {
+		return nil, err
+	}
+
+	confSec, err := conf.Prepare(conf.Section{
+		Name:    schemaType,
+		Options: configSpec,
+	}, s.Spec)
+	if err != nil {
+		return nil, httperr.BadRequest(err.Error())
+	}
+
+	testSec, err := conf.Prepare(conf.Section{
+		Name:    "Test",
+		Options: testSpec,
+	}, tester.Spec)
+	if err != nil {
+		return nil, httperr.BadRequest(err.Error())
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, time.Minute*2)
+	defer cancel()
+
+	return tester.TestFunc(ctx, confSec.Options, testSec.Options)
+}
+
+func (schema *ConfigSchema) getTest(ctx context.Context, schemaType, testID string) (Schema, ConfigTest, error) {
+	schema.rw.RLock()
+	defer schema.rw.RUnlock()
+
+	entry, ok := schema.entries[strings.ToLower(schemaType)]
+	if !ok {
+		return Schema{}, ConfigTest{}, ErrCfgSectionNotFound
+	}
+
+	var test *ConfigTest
+	for _, t := range entry.Tests {
+		if t.ID == testID {
+			test = &t
+			break
+		}
+	}
+
+	if test == nil {
+		return entry, ConfigTest{}, ErrUnknownConfigTest
+	}
+	return entry, *test, nil
 }
 
 // GlobalSchema is the global configuration schema.
