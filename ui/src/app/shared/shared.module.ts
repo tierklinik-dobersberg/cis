@@ -88,4 +88,4 @@ import { TkdStringSliceInputComponent } from './simple-string-slice-input';
     TkdOptionSpecInputComponent,
   ],
 })
-export class SharedModule { }
+export class SharedModule {}

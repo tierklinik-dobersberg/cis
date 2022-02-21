@@ -1,4 +1,8 @@
-import { ActivatedRoute, ActivatedRouteSnapshot, Router } from '@angular/router';
+import {
+  ActivatedRoute,
+  ActivatedRouteSnapshot,
+  Router,
+} from '@angular/router';
 import { SearchParserResult } from 'search-query-parser';
 
 /**
@@ -9,18 +13,28 @@ import { SearchParserResult } from 'search-query-parser';
  * @param key The name of the query parameter to toggle
  * @returns the promise returned from router.navigate
  */
-export function toggleRouteQueryParam(router: Router, activeRoute: ActivatedRouteSnapshot, key: string, value = '1'): Promise<boolean> {
+export function toggleRouteQueryParam(
+  router: Router,
+  activeRoute: ActivatedRouteSnapshot,
+  key: string,
+  value = '1'
+): Promise<boolean> {
   let params = { ...activeRoute.queryParams };
   if (params[key] !== undefined) {
-    delete (params[key])
+    delete params[key];
   } else {
     params[key] = value;
   }
-  return router.navigate([], { queryParams: params })
+  return router.navigate([], { queryParams: params });
 }
 
-export function toggleRouteQueryParamFunc(router: Router, activeRoute: ActivatedRoute, key: string, value = '1'): () => Promise<boolean> {
-  return () => toggleRouteQueryParam(router, activeRoute.snapshot, key, value)
+export function toggleRouteQueryParamFunc(
+  router: Router,
+  activeRoute: ActivatedRoute,
+  key: string,
+  value = '1'
+): () => Promise<boolean> {
+  return () => toggleRouteQueryParam(router, activeRoute.snapshot, key, value);
 }
 
 export function parseColor(input: string): number[] {
@@ -30,11 +44,15 @@ export function parseColor(input: string): number[] {
     return [
       Math.round(parseInt(input.substr(1, collen), 16) * fact),
       Math.round(parseInt(input.substr(1 + collen, collen), 16) * fact),
-      Math.round(parseInt(input.substr(1 + 2 * collen, collen), 16) * fact)
+      Math.round(parseInt(input.substr(1 + 2 * collen, collen), 16) * fact),
     ];
   }
 
-  return input.split('(')[1].split(')')[0].split(',').map(x => +x);
+  return input
+    .split('(')[1]
+    .split(')')[0]
+    .split(',')
+    .map((x) => +x);
 }
 
 export function getContrastFontColor(bgColor: string): string {
@@ -47,7 +65,7 @@ export function getContrastFontColor(bgColor: string): string {
   }
   const [r, g, b] = parseColor(col);
 
-  if ((r * 0.299 + g * 0.587 + b * 0.114) > 186) {
+  if (r * 0.299 + g * 0.587 + b * 0.114 > 186) {
     return '#000000';
   }
 
@@ -60,13 +78,16 @@ export function extractErrorMessage(err: any, prefix: string = ''): string {
   console.error(err);
 
   if (err === null) {
-    msg = '<null>'
-  }
-  else if (typeof err === 'string') {
+    msg = '<null>';
+  } else if (typeof err === 'string') {
     msg = err;
   } else if ('error' in err && typeof err.error === 'string') {
     msg = err.error;
-  } else if ('error' in err && typeof err.error === 'object' && 'message' in err.error) {
+  } else if (
+    'error' in err &&
+    typeof err.error === 'object' &&
+    'message' in err.error
+  ) {
     msg = err.error.message;
   } else if ('error' in err && typeof err.error?.error === 'string') {
     msg = err.error.error;
@@ -97,7 +118,7 @@ export function splitCombinedCustomerAnimalIDs(str: string): [string, string] {
   }
 
   const animalID = str.slice(-6);
-  const customerID = str.slice(- str.length, -6);
+  const customerID = str.slice(-str.length, -6);
 
   return [customerID, animalID];
 }
@@ -105,7 +126,7 @@ export function splitCombinedCustomerAnimalIDs(str: string): [string, string] {
 export function toMongoDBFilter(res: SearchParserResult): object {
   const filter = {};
 
-  Object.keys(res).forEach(key => {
+  Object.keys(res).forEach((key) => {
     if (['exclude', 'text', 'offsets'].includes(key)) {
       return;
     }
@@ -129,29 +150,26 @@ export function toMongoDBFilter(res: SearchParserResult): object {
   return filter;
 }
 
-
 /**
-* Performs a deep merge of objects and returns new object. Does not modify
-* objects (immutable) and merges arrays via concatenation.
-*
-* @param {...object} objects - Objects to merge
-* @returns {object} New object with merged key/values
-*/
+ * Performs a deep merge of objects and returns new object. Does not modify
+ * objects (immutable) and merges arrays via concatenation.
+ *
+ * @param {...object} objects - Objects to merge
+ * @returns {object} New object with merged key/values
+ */
 export function mergeDeep(...objects) {
-  const isObject = obj => obj && typeof obj === 'object';
+  const isObject = (obj) => obj && typeof obj === 'object';
 
   return objects.reduce((prev, obj) => {
-    Object.keys(obj).forEach(key => {
+    Object.keys(obj).forEach((key) => {
       const pVal = prev[key];
       const oVal = obj[key];
 
       if (Array.isArray(pVal) && Array.isArray(oVal)) {
         prev[key] = pVal.concat(...oVal);
-      }
-      else if (isObject(pVal) && isObject(oVal)) {
+      } else if (isObject(pVal) && isObject(oVal)) {
         prev[key] = mergeDeep(pVal, oVal);
-      }
-      else {
+      } else {
         prev[key] = oVal;
       }
     });

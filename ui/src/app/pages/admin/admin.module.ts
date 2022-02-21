@@ -9,20 +9,15 @@ import { AdminRoutingModule } from './admin-routing.module';
 import { ImportPageComponent } from './import';
 
 @NgModule({
-    imports: [
-        AdminRoutingModule,
-        NzDescriptionsModule,
-        NzListModule,
-        NzSpinModule,
-        NzGridModule,
-        SharedModule,
-    ],
-    declarations: [
-        ImportPageComponent,
-        AdminOverviewComponent,
-    ],
-    exports: [
-        ImportPageComponent,
-    ]
+  imports: [
+    AdminRoutingModule,
+    NzDescriptionsModule,
+    NzListModule,
+    NzSpinModule,
+    NzGridModule,
+    SharedModule,
+  ],
+  declarations: [ImportPageComponent, AdminOverviewComponent],
+  exports: [ImportPageComponent],
 })
-export class AdminModule { }
+export class AdminModule {}

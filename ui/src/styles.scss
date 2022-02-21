@@ -2,18 +2,18 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-@import './csslib/index';
-@import './utils';
+@import "./csslib/index";
+@import "./utils";
 
 @layer base {
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400&display=swap');
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400&display=swap");
 }
 
-@import '~@angular/material/theming';
+@import "~@angular/material/theming";
 @include mat-core();
 
 // Use the desired palette
-$palette:  mat-palette($mat-indigo);
+$palette: mat-palette($mat-indigo);
 // Create the theme
 $theme: mat-light-theme($palette, $palette);
 
@@ -24,7 +24,7 @@ $theme: mat-light-theme($palette, $palette);
 html,
 body {
   -webkit-font-smoothing: antialiased;
-  background-color      : #50566310;
+  background-color: #50566310;
 }
 
 nz-tag {
@@ -33,7 +33,7 @@ nz-tag {
 
 .ant-avatar {
   img {
-    width : 100%;
+    width: 100%;
     height: auto;
   }
 }
@@ -47,11 +47,11 @@ i[nz-icon] svg {
 }
 
 .ant-drawer-body {
-  padding       : 0px;
-  padding-top   : 12px;
+  padding: 0px;
+  padding-top: 12px;
   padding-bottom: 12px;
-  padding-left  : 24px;
-  padding-right : 24px;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
 .menu-container {
@@ -70,7 +70,7 @@ i[nz-icon] svg {
   }
 }
 
-.content-section~.content-section {
+.content-section ~ .content-section {
   @apply mt-3 sm:mt-6;
 }
 
@@ -87,7 +87,7 @@ i[nz-icon] svg {
 }
 
 .flex-row {
-  display       : flex;
+  display: flex;
   flex-direction: row;
 }
 
@@ -96,23 +96,23 @@ i[nz-icon] svg {
 }
 
 .page-header {
-  background    : white;
-  display       : flex;
+  background: white;
+  display: flex;
   flex-direction: column;
-  align-items   : stretch;
-  margin-bottom : 24px;
-  box-shadow    : 0 1px 4px rgba(0, 21, 41, 0.08);
+  align-items: stretch;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
 
   h2 {
-    margin     : 0px;
+    margin: 0px;
     font-weight: 400;
-    font-size  : 120%;
+    font-size: 120%;
     font-family: "Poppins";
-    display    : flex;
+    display: flex;
     align-items: center;
 
     i[nz-icon] {
-      color       : #40617c;
+      color: #40617c;
       margin-right: 6px;
     }
   }
@@ -120,54 +120,53 @@ i[nz-icon] svg {
   fieldset {
     align-self: stretch;
 
-    >* {
+    > * {
       font-weight: 400;
       font-family: "Poppins";
     }
 
     legend {
-      font-family   : Lato, sans-serif;
-      margin        : 0;
-      margin-left   : -3px;
-      margin-bottom : -3px;
-      padding-left  : 3px;
-      padding-right : 3px;
-      display       : inline;
-      font-size     : 75%;
-      color         : gray;
+      font-family: Lato, sans-serif;
+      margin: 0;
+      margin-left: -3px;
+      margin-bottom: -3px;
+      padding-left: 3px;
+      padding-right: 3px;
+      display: inline;
+      font-size: 75%;
+      color: gray;
       text-transform: uppercase;
-      width         : auto;
+      width: auto;
     }
 
     i[nz-icon] {
-      color    : #40617c;
+      color: #40617c;
       font-size: 90%;
     }
 
-    position     : relative;
-    padding-left : 12px;
+    position: relative;
+    padding-left: 12px;
     padding-right: 12px;
-    border       : thin solid #cccccc81;
+    border: thin solid #cccccc81;
     border-radius: 3px;
   }
 
   .label {
-    display       : flex;
-    align-items   : center;
-    flex-wrap     : nowrap;
-    font-size     : 90%;
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    font-size: 90%;
     text-transform: uppercase;
-    color         : rgb(64, 97, 124);
+    color: rgb(64, 97, 124);
 
     i[nz-icon] {
       margin-right: 3px;
     }
 
     padding: {
-      left : 6px;
+      left: 6px;
       right: 6px;
     }
-
 
     &:not(:first-child) {
       margin-left: 6px;
@@ -176,25 +175,24 @@ i[nz-icon] svg {
     &:not(:last-child) {
       margin-right: 6px;
     }
-
   }
 
   .main-row,
   .secondary-row {
-    display        : flex;
-    align-items    : center;
+    display: flex;
+    align-items: center;
     justify-content: space-around;
   }
 
   .row-container {
-    display      : flex;
-    padding-left : 6px;
+    display: flex;
+    padding-left: 6px;
     padding-right: 6px;
-    width        : 100%;
-    max-width    : 1280px;
-    align-items  : center;
+    width: 100%;
+    max-width: 1280px;
+    align-items: center;
 
-    &>*:not(:last-child) {
+    & > *:not(:last-child) {
       margin-right: 6px;
     }
 
@@ -204,7 +202,7 @@ i[nz-icon] svg {
   }
 
   .main-row {
-    padding-top   : 12px;
+    padding-top: 12px;
     padding-bottom: 12px;
   }
 
@@ -216,63 +214,63 @@ i[nz-icon] svg {
     }
 
     &:last-of-type {
-      border-bottom : 1px solid #cccccc81;
+      border-bottom: 1px solid #cccccc81;
       padding-bottom: 6px;
     }
   }
 
   .secondary-row .row-container {
-    padding-top   : 3px;
+    padding-top: 3px;
     padding-bottom: 3px;
 
-    &>span {
+    & > span {
       text-transform: uppercase;
-      color         : rgb(64, 97, 124);
+      color: rgb(64, 97, 124);
     }
   }
 }
 
 .info {
-  display       : flex;
+  display: flex;
   flex-direction: column;
 
   padding: {
-    left : 12px;
+    left: 12px;
     right: 12px;
   }
 
   label:first-child {
-    font-family   : Lato, sans-serif;
+    font-family: Lato, sans-serif;
     text-transform: uppercase;
-    color         : #40617c;
-    font-size     : 80%;
+    color: #40617c;
+    font-size: 80%;
   }
 
   *:not(:first-child) {
     font-weight: bold;
-    display    : block;
-    color      : rgb(64, 97, 124);
+    display: block;
+    color: rgb(64, 97, 124);
   }
 }
 
-
 .content-wrapper {
-  flex-grow     : 1;
-  display       : flex;
+  flex-grow: 1;
+  display: flex;
   flex-direction: column;
-  align-items   : center;
-  padding-left  : 12px;
-  padding-right : 12px;
+  align-items: center;
+  padding-left: 12px;
+  padding-right: 12px;
 
-  &>* {
+  & > * {
     max-width: 1280px;
-    width    : 100%;
-    display  : block;
+    width: 100%;
+    display: block;
     flex-grow: 1;
   }
 }
 
-button, [nz-menu-item] {
+button,
+[nz-menu-item] {
   user-select: none;
 }
 

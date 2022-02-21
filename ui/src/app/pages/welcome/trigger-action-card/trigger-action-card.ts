@@ -1,8 +1,40 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  TrackByFunction,
+} from '@angular/core';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, Subject } from 'rxjs';
-import { delay, distinctUntilChanged, retryWhen, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { ConfigAPI, IdentityAPI, Permissions, PermissionRequest, PermissionTestResult, TriggerAction, TriggerAPI, TriggerInstance } from 'src/app/api';
+import {
+  BehaviorSubject,
+  combineLatest,
+  forkJoin,
+  interval,
+  Observable,
+  of,
+  Subject,
+} from 'rxjs';
+import {
+  delay,
+  distinctUntilChanged,
+  retryWhen,
+  startWith,
+  switchMap,
+  takeUntil,
+  tap,
+} from 'rxjs/operators';
+import {
+  ConfigAPI,
+  IdentityAPI,
+  Permissions,
+  PermissionRequest,
+  PermissionTestResult,
+  TriggerAction,
+  TriggerAPI,
+  TriggerInstance,
+} from 'src/app/api';
 import { extractErrorMessage } from 'src/app/utils';
 
 interface Action extends TriggerAction {
@@ -30,69 +62,69 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
     private config: ConfigAPI,
     private identityapi: IdentityAPI,
     private nzMessageService: NzMessageService,
-    private cdr: ChangeDetectorRef,
-  ) { }
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     let checkedPermissions = new Set<string>();
-    let cachedPermissionResponse: { [key: string]: PermissionTestResult } | null = null;
+    let cachedPermissionResponse: {
+      [key: string]: PermissionTestResult;
+    } | null = null;
 
-    let loadTriggers = interval(5000)
-      .pipe(
-        startWith(-1),
-        switchMap(() => this.triggerapi.listInstances()),
-        switchMap(triggers => {
-          const permRequest: { [key: string]: PermissionRequest } = {};
-          let foundUnchecked = false;
-          const newCheckedPermissions = new Set<string>();
-          triggers.forEach(instance => {
-            const name = stripTriggerSuffix(instance.name)
-            if (!checkedPermissions.has(name)) {
-              foundUnchecked = true;
-            }
-            newCheckedPermissions.add(name)
-            permRequest[name] = {
-              action: Permissions.TriggerExecute,
-            }
-          })
-          let findExecutables = this.identityapi.testPerimissions(permRequest)
-            .pipe(
-              tap(result => {
-                checkedPermissions = newCheckedPermissions;
-                cachedPermissionResponse = result
-              })
-            )
-          if (!foundUnchecked) {
-            findExecutables = of(cachedPermissionResponse!)
+    let loadTriggers = interval(5000).pipe(
+      startWith(-1),
+      switchMap(() => this.triggerapi.listInstances()),
+      switchMap((triggers) => {
+        const permRequest: { [key: string]: PermissionRequest } = {};
+        let foundUnchecked = false;
+        const newCheckedPermissions = new Set<string>();
+        triggers.forEach((instance) => {
+          const name = stripTriggerSuffix(instance.name);
+          if (!checkedPermissions.has(name)) {
+            foundUnchecked = true;
           }
+          newCheckedPermissions.add(name);
+          permRequest[name] = {
+            action: Permissions.TriggerExecute,
+          };
+        });
+        let findExecutables = this.identityapi
+          .testPerimissions(permRequest)
+          .pipe(
+            tap((result) => {
+              checkedPermissions = newCheckedPermissions;
+              cachedPermissionResponse = result;
+            })
+          );
+        if (!foundUnchecked) {
+          findExecutables = of(cachedPermissionResponse!);
+        }
 
-          return forkJoin({
-            triggers: of(triggers),
-            allowed: findExecutables,
-          })
-        })
-      );
+        return forkJoin({
+          triggers: of(triggers),
+          allowed: findExecutables,
+        });
+      })
+    );
 
-    combineLatest([
-      this.config.change,
-      loadTriggers,
-      this.reload$,
-    ])
+    combineLatest([this.config.change, loadTriggers, this.reload$])
       .pipe(
         takeUntil(this.destroy$),
         distinctUntilChanged(),
-        retryWhen(err => {
+        retryWhen((err) => {
           console.error(err);
-          return err.pipe(delay(1000))
+          return err.pipe(delay(1000));
         })
       )
-      .subscribe(cfg => {
+      .subscribe((cfg) => {
         let instances = new Map<string, TriggerInstance>();
-        cfg[1].triggers.forEach(i => instances.set(stripTriggerSuffix(i.name), i));
+        cfg[1].triggers.forEach((i) =>
+          instances.set(stripTriggerSuffix(i.name), i)
+        );
 
         this.actions = [];
-        cfg[0].TriggerAction?.forEach(a => {
-          const name = stripTriggerSuffix(a.PrimaryTrigger)
+        cfg[0].TriggerAction?.forEach((a) => {
+          const name = stripTriggerSuffix(a.PrimaryTrigger);
           this.actions.push({
             ...a,
             trigger: instances.get(name),
@@ -103,10 +135,10 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
             // we just default to "allow" here. The user will be prompted with an error anyway
             // if all triggers are denied.
             canExecute: cfg[1]?.allowed[name]?.allowed || true,
-          })
+          });
         });
         this.cdr.markForCheck();
-      })
+      });
   }
 
   ngOnDestroy() {
@@ -120,27 +152,30 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
     if (!action.TriggerGroup || action.TriggerGroup?.length == 0) {
       exec = this.triggerapi.executeInstance(action.trigger.name);
     } else {
-      exec = forkJoin(action.TriggerGroup.map(grp => {
-        return this.triggerapi.executeGroup(grp)
-      }))
+      exec = forkJoin(
+        action.TriggerGroup.map((grp) => {
+          return this.triggerapi.executeGroup(grp);
+        })
+      );
     }
     exec.subscribe({
       next: () => {
-        this.nzMessageService.success('Aktion ' + action.Name + ' gestartet')
+        this.nzMessageService.success('Aktion ' + action.Name + ' gestartet');
         this.reload$.next();
       },
-      error: err => {
+      error: (err) => {
         this.reload$.next();
-        this.nzMessageService.error(extractErrorMessage(err, action.Name + " fehlgeschlagen"))
+        this.nzMessageService.error(
+          extractErrorMessage(err, action.Name + ' fehlgeschlagen')
+        );
         action.running = false;
       },
       complete: () => {
         action.running = false;
-      }
-    })
+      },
+    });
   }
 }
 function stripTriggerSuffix(name: string): string {
-  return name.replace(/\.trigger$/, '')
+  return name.replace(/\.trigger$/, '');
 }
-

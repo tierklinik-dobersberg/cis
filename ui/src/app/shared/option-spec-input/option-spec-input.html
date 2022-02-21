@@ -3,33 +3,85 @@
 </span>
 <div class="flex flex-col flex-grow">
   <span class="text-base font-medium font-lato">
-    {{ spec.displayName || spec.name }} <span *ngIf="spec.required" class="text-color-primary-dark">*</span>
+    {{ spec.displayName || spec.name }}
+    <span *ngIf="spec.required" class="text-color-primary-dark">*</span>
   </span>
-  <span class="text-sm text-secondary font-lato">
-    {{ spec.description }}
-  </span>
+  <span class="text-sm text-secondary font-lato"> {{ spec.description }} </span>
   <div class="mt-3">
-    <div class="flex items-center mt-3 space-x-2 ">
-      <ng-container *ngIf="possibleValues?.length > 0; else: typeSwitchTempalte">
-        <nz-select class="flex-grow w-full" [nzMode]="isSliceType ? 'multiple' : 'default'"
-          nzPlaceHolder="Please select" [(ngModel)]="value" (ngModelChange)="_onChanged($event)" (nzBlur)="_onBlur()">
-          <nz-option *ngFor="let item of possibleValues" [nzLabel]="item.display" [nzValue]="item.value"></nz-option>
+    <div class="flex items-center mt-3 space-x-2">
+      <ng-container
+        *ngIf="possibleValues?.length > 0; else: typeSwitchTempalte"
+      >
+        <nz-select
+          class="flex-grow w-full"
+          [nzMode]="isSliceType ? 'multiple' : 'default'"
+          nzPlaceHolder="Please select"
+          [(ngModel)]="value"
+          (ngModelChange)="_onChanged($event)"
+          (nzBlur)="_onBlur()"
+        >
+          <nz-option
+            *ngFor="let item of possibleValues"
+            [nzLabel]="item.display"
+            [nzValue]="item.value"
+          ></nz-option>
         </nz-select>
       </ng-container>
       <ng-template #typeSwitchTempalte>
         <ng-container [ngSwitch]="spec.type">
-          <input [type]="isSecret ? 'password' : 'text'" [attr.placeholder]="spec.default" class="flex-grow tkd-input"
-            *ngSwitchCase="'string'" [(ngModel)]="value" (ngModelChange)="_onChanged($event)" (blur)="_onBlur()">
-          <tkd-string-slice-input class="flex-grow" [placeholder]="spec.default" *ngSwitchCase="'[]string'"
-            [(ngModel)]="value" (ngModelChange)="_onChanged($event)" (blur)="_onBlur()">
+          <input
+            [type]="isSecret ? 'password' : 'text'"
+            [attr.placeholder]="spec.default"
+            class="flex-grow tkd-input"
+            *ngSwitchCase="'string'"
+            [(ngModel)]="value"
+            (ngModelChange)="_onChanged($event)"
+            (blur)="_onBlur()"
+          />
+          <input
+            [type]="isSecret ? 'password' : 'text'"
+            [attr.placeholder]="spec.default"
+            class="flex-grow tkd-input"
+            *ngSwitchCase="'duration'"
+            [(ngModel)]="value"
+            (ngModelChange)="_onChanged($event)"
+            (blur)="_onBlur()"
+          />
+          <tkd-string-slice-input
+            class="flex-grow"
+            [placeholder]="spec.default"
+            *ngSwitchCase="'[]string'"
+            [(ngModel)]="value"
+            (ngModelChange)="_onChanged($event)"
+            (blur)="_onBlur()"
+          >
           </tkd-string-slice-input>
-          <label *ngSwitchCase="'bool'" class="flex-grow" nz-checkbox [(ngModel)]="value"
-            (ngModelChange)="_onChanged($event)" (blur)="_onBlur()">Enabled</label>
-          <input type="number" [attr.placeholder]="spec.default" class="flex-grow tkd-input" *ngSwitchCase="'int'"
-            [(ngModel)]="value" (ngModelChange)="_onChanged($event)" (blur)="_onBlur()">
+          <label
+            *ngSwitchCase="'bool'"
+            class="flex-grow"
+            nz-checkbox
+            [(ngModel)]="value"
+            (ngModelChange)="_onChanged($event)"
+            (blur)="_onBlur()"
+            >Enabled</label
+          >
+          <input
+            type="number"
+            [attr.placeholder]="spec.default"
+            class="flex-grow tkd-input"
+            *ngSwitchCase="'int'"
+            [(ngModel)]="value"
+            (ngModelChange)="_onChanged($event)"
+            (blur)="_onBlur()"
+          />
 
-          <div *ngSwitchDefault class="flex-grow p-3 border border-alert-red text-alert-red font-lato">
-            Option type <span class="font-semibold underline">{{ spec.type }}</span> is not yet supported
+          <div
+            *ngSwitchDefault
+            class="flex-grow p-3 border  border-alert-red text-alert-red font-lato"
+          >
+            Option type
+            <span class="font-semibold underline">{{ spec.type }}</span> is not
+            yet supported
           </div>
         </ng-container>
       </ng-template>
