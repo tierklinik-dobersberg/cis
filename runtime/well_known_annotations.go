@@ -60,3 +60,7 @@ func OneOfRef(ref, valueField, displayField string) conf.KeyValue {
 		},
 	}
 }
+
+var (
+	OneOfRoles = OneOfRef("identity:roles", "name", "")
+)

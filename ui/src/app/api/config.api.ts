@@ -16,8 +16,25 @@ export interface ExternalLink {
 
 export enum WellKnownAnnotations {
   Secret = "system-conf/secret",
-  OverviewFields = "vet.dobersberg.cis:schema/overviewFields"
+  OverviewFields = "vet.dobersberg.cis:schema/overviewFields",
+  OneOf = "vet.dobersberg.cis:schema/oneOf"
 }
+
+export interface PossibleValue<T = any> {
+  display: string;
+  value: T;
+}
+export interface OneOfValuesAnnotation {
+  values: PossibleValue[];
+}
+
+export interface OneOfRefAnnotation {
+  schemaType: string;
+  valueField: string;
+  displayField: string;
+}
+
+export type OneOf = OneOfValuesAnnotation | OneOfRefAnnotation;
 
 export interface Schema  extends Annotated {
   name: string;
@@ -196,6 +213,46 @@ export class ConfigAPI {
       return undefined
     }
     return obj.annotation[key];
+  }
+
+  oneOf(obj: Annotated): OneOf | null {
+    const val = this.getAnnotation<OneOf>(obj, WellKnownAnnotations.OneOf);
+    if (val === undefined) {
+      return null;
+    }
+    return val;
+  }
+
+  async resolvePossibleValues(obj: Annotated): Promise<PossibleValue[] | null> {
+    const oneOf = this.oneOf(obj)
+    if (oneOf === null) {
+      return null;
+    }
+
+    if ('values' in oneOf) {
+      return oneOf.values;
+    }
+
+    let values: {[key: string]: any}[] = [];
+
+    switch (oneOf.schemaType) {
+      case 'identity:roles':
+        values = await this.identity.getRoles().toPromise();
+        break;
+      default:
+        const instances  = await this.getSettings(oneOf.schemaType).toPromise();
+        Object.keys(instances).forEach(key => values.push(instances[key]));
+    }
+
+
+    var result: PossibleValue[] = [];
+    (values || []).forEach(val => {
+      result.push({
+        display: val[oneOf.displayField || oneOf.valueField],
+        value: val[oneOf.valueField],
+      })
+    })
+    return result;
   }
 
   listSchemas(): Observable<Schema[]> {

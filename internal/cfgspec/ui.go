@@ -20,7 +20,7 @@ var UISpec = conf.SectionSpec{
 		Description: "A list or role names. All users that have one of the given roles are hidden from (most parts of) the UI",
 		Type:        conf.StringSliceType,
 		Annotations: new(conf.Annotation).With(
-			runtime.OneOfRef("identity:roles", "Name", "Name"),
+			runtime.OneOfRoles,
 		),
 	},
 	{
@@ -41,7 +41,7 @@ var RosterUISpec = conf.SectionSpec{
 		Type:        conf.StringSliceType,
 		Description: "A list of role names that are eligible for roster overwrites",
 		Annotations: new(conf.Annotation).With(
-			runtime.OneOfRef("identity:roles", "Name", "Name"),
+			runtime.OneOfRoles,
 		),
 	},
 	{
@@ -88,7 +88,7 @@ var ExternalLinkSpec = conf.SectionSpec{
 		Description: "The link requires one of the defined roles",
 		Type:        conf.StringSliceType,
 		Annotations: new(conf.Annotation).With(
-			runtime.OneOfRef("identity:roles", "Name", "Name"),
+			runtime.OneOfRoles,
 		),
 	},
 	{

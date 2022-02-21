@@ -1,7 +1,7 @@
 import { coerceBooleanProperty } from "@angular/cdk/coercion";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, forwardRef, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
-import { ConfigAPI, OptionSpec, WellKnownAnnotations } from "src/app/api";
+import { ConfigAPI, OptionSpec, PossibleValue, WellKnownAnnotations } from "src/app/api";
 
 export type NamedOptionSpec = OptionSpec & {displayName?: string};
 
@@ -30,6 +30,8 @@ export class TkdOptionSpecInputComponent implements ControlValueAccessor, OnChan
   valueChange = new EventEmitter<any>();
 
   isSecret = false;
+  isSliceType = false;
+  possibleValues: PossibleValue[] | null = null;
 
   @Input()
   set disabled(v: any) {
@@ -42,9 +44,15 @@ export class TkdOptionSpecInputComponent implements ControlValueAccessor, OnChan
     private cdr: ChangeDetectorRef,
   ) {}
 
-  ngOnChanges(changes: SimpleChanges): void {
+  ngOnChanges(changes: SimpleChanges) {
     if ('spec' in changes) {
       this.isSecret = this.configapi.hasAnnotation(changes.spec.currentValue, WellKnownAnnotations.Secret);
+      this.isSliceType = (changes.spec.currentValue as OptionSpec).type?.includes("[]") || false;
+      this.configapi.resolvePossibleValues(changes.spec.currentValue)
+        .then(values => {
+          this.possibleValues = values;
+          this.cdr.markForCheck();
+        })
     }
   }
 
