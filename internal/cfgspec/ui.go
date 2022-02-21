@@ -19,6 +19,9 @@ var UISpec = conf.SectionSpec{
 		Name:        "HideUsersWithRole",
 		Description: "A list or role names. All users that have one of the given roles are hidden from (most parts of) the UI",
 		Type:        conf.StringSliceType,
+		Annotations: new(conf.Annotation).With(
+			runtime.OneOfRef("identity:roles", "Name", "Name"),
+		),
 	},
 	{
 		Name:        "UserPhoneExtensionProperties",
@@ -37,6 +40,9 @@ var RosterUISpec = conf.SectionSpec{
 		Name:        "EligibleRolesForOverwrite",
 		Type:        conf.StringSliceType,
 		Description: "A list of role names that are eligible for roster overwrites",
+		Annotations: new(conf.Annotation).With(
+			runtime.OneOfRef("identity:roles", "Name", "Name"),
+		),
 	},
 	{
 		Name:        "AllowAnyUserAsOverwrite",
@@ -81,6 +87,9 @@ var ExternalLinkSpec = conf.SectionSpec{
 		Name:        "RequiresRole",
 		Description: "The link requires one of the defined roles",
 		Type:        conf.StringSliceType,
+		Annotations: new(conf.Annotation).With(
+			runtime.OneOfRef("identity:roles", "Name", "Name"),
+		),
 	},
 	{
 		Name:        "BlankTarget",
@@ -206,6 +215,9 @@ func addUISchema(schema *runtime.ConfigSchema) error {
 			Spec:        KnownPhoneExtensionSpec,
 			Multi:       true,
 			SVGData:     `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />`,
+			Annotations: new(conf.Annotation).With(
+				runtime.OverviewFields("DisplayName", "ExtensionNumber"),
+			),
 		},
 		runtime.Schema{
 			Name:        "Roster",
