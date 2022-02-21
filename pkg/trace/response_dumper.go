@@ -8,16 +8,19 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type responseDumper struct {
+// ResponseRecorder can record a labstack/echo response body.
+type ResponseRecorder struct {
 	http.ResponseWriter
 
 	mw  io.Writer
 	buf *bytes.Buffer
 }
 
-func newResponseDumper(resp *echo.Response) *responseDumper {
+// New ResponseRecorder returns a new response recorder that stores
+// the body written to resp.
+func NewResponseRecorder(resp *echo.Response) *ResponseRecorder {
 	buf := new(bytes.Buffer)
-	return &responseDumper{
+	return &ResponseRecorder{
 		ResponseWriter: resp.Writer,
 
 		mw:  io.MultiWriter(resp.Writer, buf),
@@ -25,10 +28,13 @@ func newResponseDumper(resp *echo.Response) *responseDumper {
 	}
 }
 
-func (d *responseDumper) Write(b []byte) (int, error) {
+// Write proxies calls to the actual *echo.Response and a
+// buffer.
+func (d *ResponseRecorder) Write(b []byte) (int, error) {
 	return d.mw.Write(b)
 }
 
-func (d *responseDumper) GetResponse() string {
+// GetResponse returns the response recorded in d.
+func (d *ResponseRecorder) GetResponse() string {
 	return d.buf.String()
 }
