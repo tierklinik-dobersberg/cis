@@ -46,6 +46,10 @@ type Type struct {
 	// are concatenated together. Only required if Type is a slice.
 	// Defaults to NewAnd
 	ConcatFunc ConcatFunc
+	// Annotation may be used to add configuration annotations
+	// to this condition type and is used when the type is
+	// coverted to a conf.OptionSpec.
+	Annotations conf.Annotation
 }
 
 // Instance is the instance of a ConditionType bound
@@ -110,6 +114,7 @@ func (reg *Registry) All() []conf.OptionSpec {
 			Name:        "Condition" + t.Name,
 			Type:        optType,
 			Description: t.Description,
+			Annotations: t.Annotations,
 		})
 	}
 
