@@ -42,10 +42,9 @@ var MessageSpec = conf.SectionSpec{
 		Required:    true,
 	},
 	{
-		Name:     "BodyContentType",
-		Type:     conf.StringType,
-		Default:  "text/plain",
-		Required: true,
+		Name:    "BodyContentType",
+		Type:    conf.StringType,
+		Default: "text/plain",
 	},
 	{
 		Name:        "Body",
