@@ -46,6 +46,9 @@ var AccountSpec = conf.SectionSpec{
 		Name:        "Password",
 		Description: "The password of the user.",
 		Type:        conf.StringType,
+		Annotations: new(conf.Annotation).With(
+			conf.SecretValue(),
+		),
 	},
 	{
 		Name:        "From",
