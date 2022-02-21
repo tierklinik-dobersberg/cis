@@ -62,7 +62,7 @@ func CreateConfigEndpoint(r *app.Router) {
 			var warning string
 			id, err := runtime.GlobalSchema.Create(ctx, key, sec.Options)
 			if err != nil {
-				warning, err = handleRuntimeError(err)
+				warning, err = handleRuntimeError(ctx, err)
 				if err != nil {
 					return err
 				}
