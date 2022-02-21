@@ -93,7 +93,7 @@ type (
 		// Annotations may hold additional annotations about the configuration schema. Those
 		// annotations may be, for example, used by user interfaces to determine how to
 		// best display the configuration setting.
-		Annotations conf.Annotation `json:"annotations"`
+		Annotations conf.Annotation `json:"annotation"`
 
 		// Tests may hold one or more configuration test that a user may perform in order to
 		// be certain that a configuration schema works as expected.
