@@ -11,14 +11,17 @@ import (
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
+	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
 )
 
 type (
 	// ConfigSchema defines the allowed sections for a configuration
 	// file.
 	ConfigSchema struct {
-		rw      sync.RWMutex
-		entries map[string]Schema
+		rw         sync.RWMutex
+		entries    map[string]Schema
+		validators map[string][]Validator
+		listeners  map[string][]ChangeListener
 
 		providerLock sync.RWMutex
 		provider     ConfigProvider
@@ -98,15 +101,26 @@ type (
 		// Tests may hold one or more configuration test that a user may perform in order to
 		// be certain that a configuration schema works as expected.
 		Tests []ConfigTest `json:"tests,omitempty"`
+	}
 
-		// OnChange is called when an instance of a specific configuration section
+	Validator interface {
+		// Validate can be set if if the configuration section must be externally validated
+		// before being created or updated.
+		// The parameter id is only set in case of an update. Users should be aware that
+		// even if ValidateFunc returns a nil-error the section might fail to be saved successfully.
+		// Users should use a ChangeListener callback instead.
+		Validate(ctx context.Context, sec Section) error
+	}
+
+	ChangeListener interface {
+		// NotifyChange is called when an instance of a specific configuration section
 		// is created, modified or deleted. The changeType parameter will be set to
 		// "create", "update" or "delete" respectively with id holding a unique identifier
 		// for the section. Note that sec is only set for create or update operations but MAY
 		// be omitted during deletes.
 		// Note that any error returned from this callback is displayed to the user but does
 		// NOT prevent that change from happening!
-		OnChange func(ctx context.Context, changeType, id string, sec *conf.Section) error `json:"-"`
+		NotifyChange(ctx context.Context, changeType, id string, sec *conf.Section) error
 	}
 )
 
@@ -180,6 +194,32 @@ func (schema *ConfigSchema) Register(regs ...Schema) error {
 	}
 
 	return nil
+}
+
+func (schema *ConfigSchema) AddNotifier(listener ChangeListener, types ...string) {
+	schema.rw.Lock()
+	defer schema.rw.Unlock()
+
+	if schema.listeners == nil {
+		schema.listeners = map[string][]ChangeListener{}
+	}
+	for _, t := range types {
+		t = strings.ToLower(t)
+		schema.listeners[t] = append(schema.listeners[t], listener)
+	}
+}
+
+func (schema *ConfigSchema) AddValidator(validator Validator, types ...string) {
+	schema.rw.Lock()
+	defer schema.rw.Unlock()
+
+	if schema.validators == nil {
+		schema.validators = map[string][]Validator{}
+	}
+	for _, t := range types {
+		t = strings.ToLower(t)
+		schema.validators[t] = append(schema.validators[t], validator)
+	}
 }
 
 // FileSpec returns the current file spec described by the config schema.
@@ -310,7 +350,7 @@ func (schema *ConfigSchema) Create(ctx context.Context, secType string, options 
 	schema.providerLock.RLock()
 	defer schema.providerLock.RUnlock()
 
-	reg, ok := schema.entries[strings.ToLower(secType)]
+	_, ok := schema.entries[strings.ToLower(secType)]
 	if !ok {
 		return "", ErrCfgSectionNotFound
 	}
@@ -319,22 +359,21 @@ func (schema *ConfigSchema) Create(ctx context.Context, secType string, options 
 		return "", ErrNoProvider
 	}
 
-	instanceID, err := schema.provider.Create(ctx, conf.Section{
+	sec := conf.Section{
 		Name:    secType,
 		Options: options,
-	})
+	}
+
+	if err := schema.runValidators(ctx, Section{Section: sec}); err != nil {
+		return "", err
+	}
+
+	instanceID, err := schema.provider.Create(ctx, sec)
 	if err != nil {
 		return "", err
 	}
 
-	if reg.OnChange != nil {
-		if err := reg.OnChange(ctx, "create", instanceID, &conf.Section{
-			Name:    secType,
-			Options: options,
-		}); err != nil {
-			return instanceID, &NotificationError{Wrapped: err}
-		}
-	}
+	err = schema.notifyChangeListeners(ctx, "create", instanceID, sec.Name, &sec)
 
 	return instanceID, err
 }
@@ -350,22 +389,29 @@ func (schema *ConfigSchema) Update(ctx context.Context, id, secType string, opts
 		return ErrNoProvider
 	}
 
-	reg, ok := schema.entries[strings.ToLower(secType)]
+	_, ok := schema.entries[strings.ToLower(secType)]
 	if !ok {
 		return ErrCfgSectionNotFound
+	}
+
+	sec := Section{
+		ID: id,
+		Section: conf.Section{
+			Name:    secType,
+			Options: opts,
+		},
+	}
+
+	if err := schema.runValidators(ctx, sec); err != nil {
+		return err
 	}
 
 	if err := schema.provider.Update(ctx, id, secType, opts); err != nil {
 		return err
 	}
 
-	if reg.OnChange != nil {
-		if err := reg.OnChange(ctx, "update", id, &conf.Section{
-			Name:    secType,
-			Options: opts,
-		}); err != nil {
-			return &NotificationError{Wrapped: err}
-		}
+	if err := schema.notifyChangeListeners(ctx, "update", id, secType, &sec.Section); err != nil {
+		return err
 	}
 
 	return nil
@@ -379,7 +425,7 @@ func (schema *ConfigSchema) Delete(ctx context.Context, id string) error {
 		return ErrNoProvider
 	}
 
-	val, err := schema.provider.GetID(ctx, id)
+	value, err := schema.provider.GetID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -387,19 +433,12 @@ func (schema *ConfigSchema) Delete(ctx context.Context, id string) error {
 	schema.rw.RLock()
 	defer schema.rw.RUnlock()
 
-	reg, ok := schema.entries[strings.ToLower(val.Name)]
-	if !ok {
-		return ErrCfgSectionNotFound
-	}
-
 	if err := schema.provider.Delete(ctx, id); err != nil {
 		return err
 	}
 
-	if reg.OnChange != nil {
-		if err := reg.OnChange(ctx, "delete", val.ID, &val.Section); err != nil {
-			return &NotificationError{Wrapped: err}
-		}
+	if err := schema.notifyChangeListeners(ctx, "delete", id, value.Name, nil); err != nil {
+		return err
 	}
 
 	return nil
@@ -415,6 +454,7 @@ func (schema *ConfigSchema) Test(ctx context.Context, schemaType, testID string,
 		return nil, err
 	}
 
+	// TODO(ppacher): should we call schema.ValidateFunc here as wel?
 	confSec, err := conf.Prepare(conf.Section{
 		Name:    schemaType,
 		Options: configSpec,
@@ -461,6 +501,46 @@ func (schema *ConfigSchema) getTest(_ context.Context, schemaType, testID string
 	}
 
 	return entry, *test, nil
+}
+
+func (schema *ConfigSchema) runValidators(ctx context.Context, sec Section) error {
+	errs := new(multierr.Error)
+	for _, validator := range schema.validators[""] {
+		if err := validator.Validate(ctx, sec); err != nil {
+			errs.Add(err)
+		}
+	}
+	for _, validator := range schema.validators[strings.ToLower(sec.Name)] {
+		if err := validator.Validate(ctx, sec); err != nil {
+			errs.Add(err)
+		}
+	}
+
+	if err := errs.ToError(); err != nil {
+		return httperr.BadRequest(err.Error())
+	}
+
+	return nil
+}
+
+func (schema *ConfigSchema) notifyChangeListeners(ctx context.Context, changeType, id string, secName string, sec *conf.Section) error {
+	errs := new(multierr.Error)
+	for _, listener := range schema.listeners[""] {
+		if err := listener.NotifyChange(ctx, changeType, id, sec); err != nil {
+			errs.Add(err)
+		}
+	}
+	for _, listener := range schema.listeners[strings.ToLower(secName)] {
+		if err := listener.NotifyChange(ctx, changeType, id, sec); err != nil {
+			errs.Add(err)
+		}
+	}
+
+	if err := errs.ToError(); err != nil {
+		return &NotificationError{Wrapped: err}
+	}
+
+	return nil
 }
 
 // GlobalSchema is the global configuration schema.
