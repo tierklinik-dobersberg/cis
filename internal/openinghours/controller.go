@@ -71,13 +71,14 @@ func New(ctx context.Context, cfg cfgspec.Config, globalSchema *runtime.ConfigSc
 	globalSchema.AddValidator(ctrl, "OpeningHour")
 	globalSchema.AddNotifier(ctrl, "OpeningHour")
 
-	var openingHours []Definition
-	if err := globalSchema.DecodeSection(ctx, "OpeningHour", &openingHours); err != nil {
-		return nil, fmt.Errorf("failed to load opening hours: %w", err)
+	sections, err := globalSchema.All(ctx, "OpeningHour")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get existing configuration: %w", err)
 	}
-
-	if err := ctrl.AddOpeningHours(ctx, openingHours...); err != nil {
-		return nil, err
+	for _, def := range sections {
+		if err := ctrl.NotifyChange(ctx, "create", def.ID, &def.Section); err != nil {
+			return nil, fmt.Errorf("failed to create opening hour %s: %w", def.ID, err)
+		}
 	}
 
 	return ctrl, nil
