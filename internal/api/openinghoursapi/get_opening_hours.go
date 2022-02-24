@@ -23,8 +23,10 @@ type TimeRange struct {
 }
 
 type GetOpeningHoursResponse struct {
-	Frames    []TimeRange `json:"openingHours"`
-	IsHoliday bool        `json:"holiday"`
+	Frames           []TimeRange `json:"openingHours"`
+	IsHoliday        bool        `json:"holiday"`
+	OnCallStartDay   time.Time   `json:"onCallStartDay,omitempty"`
+	OnCallStartNight time.Time   `json:"onCallStartNight,omitempty"`
 }
 
 func GetOpeningHoursEndpoint(router *app.Router) {
@@ -80,9 +82,13 @@ func getSingleDayOpeningHours(ctx context.Context, app *app.App, at string, date
 		}
 	}
 
+	coc := app.Door.ChangeOnDuty(ctx, date)
+
 	return &GetOpeningHoursResponse{
-		Frames:    timeRanges,
-		IsHoliday: holiday,
+		Frames:           timeRanges,
+		IsHoliday:        holiday,
+		OnCallStartDay:   coc.DayStartAt(date),
+		OnCallStartNight: coc.NightStartAt(date),
 	}, nil
 }
 
