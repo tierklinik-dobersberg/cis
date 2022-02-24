@@ -124,6 +124,7 @@ func addMqttSchema(cs *runtime.ConfigSchema) error {
 		Spec:        ConnectionConfigSpec,
 		Multi:       true,
 		Annotations: new(conf.Annotation).With(
+			runtime.Unique("Name"),
 			runtime.OverviewFields("Name", "Server", "User", "ClientID"),
 		),
 		Tests: []runtime.ConfigTest{

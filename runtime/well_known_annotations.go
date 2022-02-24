@@ -61,6 +61,13 @@ func OneOfRef(ref, valueField, displayField string) conf.KeyValue {
 	}
 }
 
+func Unique(uniqueFields ...string) conf.KeyValue {
+	return conf.KeyValue{
+		Key:   "vet.dobersberg.cis:schema/unqiueFields",
+		Value: uniqueFields,
+	}
+}
+
 var (
 	OneOfRoles = OneOfRef("identity:roles", "name", "")
 )
