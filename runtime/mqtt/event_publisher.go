@@ -36,6 +36,7 @@ func getConnectedClient(ctx context.Context, name string, cs *runtime.ConfigSche
 		for _, cfg := range mqttConfigs {
 			if cfg.Name == name {
 				selectedConfig = cfg
+
 				break
 			}
 		}
