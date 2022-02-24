@@ -6,6 +6,8 @@ import { map } from 'rxjs/operators';
 export interface OpeningHoursResponse<T = Date> {
   openingHours: OpeningHour<T>[];
   isHoliday: boolean;
+  onCallStartDay: T;
+  onCallStartNight: T;
 }
 
 export interface OpeningHoursRangeResponse<T = Date> {
@@ -52,6 +54,8 @@ export class OpeningHoursAPI {
                 to: new Date(frame.to),
                 unofficial: frame.unofficial,
               })),
+              onCallStartDay: new Date(res.dates[key].onCallStartDay),
+              onCallStartNight: new Date(res.dates[key].onCallStartNight),
             };
           });
 
@@ -94,6 +98,8 @@ export class OpeningHoursAPI {
             to: new Date(frame.to),
             unofficial: frame.unofficial,
           })),
+          onCallStartDay: new Date(res.onCallStartDay),
+          onCallStartNight: new Date(res.onCallStartNight)
         }))
       );
   }

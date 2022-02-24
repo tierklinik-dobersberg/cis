@@ -22,6 +22,8 @@ interface OpeningHours {
   frames: OpeningHour[];
   hasForenoon: boolean;
   hasAfternoon: boolean;
+  onCallStartDay: Date;
+  onCallStartNight: Date;
 }
 
 @Component({
@@ -60,7 +62,7 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
   dates: Date[] = [];
 
   /** The currently selected day for the day-edit-menu */
-  selectedDay: Day | null = null;
+  selectedDay: Day<Date> | null = null;
 
   /** All selectable, available user names */
   selectableUserNames: string[] = [];
@@ -131,6 +133,7 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
 
   private updateOnCallIsDifferent(date?: Date) {
     this.onCallIsDifferent = false;
+
     if (!this.selectedDay) {
       return;
     }
@@ -466,13 +469,17 @@ export class RosterComponent extends CdkScrollable implements OnInit, OnDestroy 
       this.openingHours = {};
       Object.keys(range.dates).forEach(key => {
         const date = new Date(key);
+
         const lunch = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0).getTime();
         const hasForenoon = range.dates[key].openingHours.some(frame => frame.to.getTime() <= lunch && !frame.unofficial);
         const hasAfternoon = range.dates[key].openingHours.some(frame => frame.to.getTime() > lunch && !frame.unofficial);
+
         this.openingHours[key] = {
           frames: range.dates[key].openingHours,
           hasAfternoon: hasAfternoon,
           hasForenoon: hasForenoon,
+          onCallStartDay: range.dates[key].onCallStartDay,
+          onCallStartNight: range.dates[key].onCallStartNight,
         };
       })
 
