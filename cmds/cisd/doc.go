@@ -25,7 +25,6 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 			cfgspec.ConfigSpec,
 			cfgspec.DatabaseSpec,
 			session.IdentityConfigSpec,
-			cfgspec.MqttSpec,
 		},
 		"InfoScreen":     cfgspec.InfoScreenConfigSpec,
 		"Import":         cfgspec.VetInfSpec,

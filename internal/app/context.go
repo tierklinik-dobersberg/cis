@@ -10,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
@@ -55,7 +54,6 @@ type App struct {
 	Door            *door.Controller
 	Holidays        openinghours.HolidayGetter
 	CallLogs        calllogdb.Database
-	MQTTClient      mqtt.Client
 	Calendar        calendar.Backend
 	Resources       *resourcedb.Registry
 	CCTV            *cctv.Manager
@@ -90,7 +88,6 @@ func NewApp(
 	sessionManager *session.Manager,
 	holidays openinghours.HolidayGetter,
 	calllogs calllogdb.Database,
-	mqttClient mqtt.Client,
 	calendarEvents calendar.Backend,
 	resourceRegistry *resourcedb.Registry,
 	cctvmng *cctv.Manager,
@@ -113,7 +110,6 @@ func NewApp(
 		Sessions:        sessionManager,
 		Holidays:        holidays,
 		CallLogs:        calllogs,
-		MQTTClient:      mqttClient,
 		Calendar:        calendarEvents,
 		Resources:       resourceRegistry,
 		CCTV:            cctvmng,

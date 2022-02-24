@@ -92,7 +92,7 @@ import (
 	// Twilio trigger type.
 	_ "github.com/tierklinik-dobersberg/cis/runtime/twilio"
 	// MQTT trigger type.
-	_ "github.com/tierklinik-dobersberg/cis/internal/integration/mqtt"
+	runtimeMQTT "github.com/tierklinik-dobersberg/cis/runtime/mqtt"
 	// VetInf importer.
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/vetinf"
 	// Neumayr importer.
@@ -336,24 +336,37 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	//
 	// prepare MQTT client and connect to broker
 	//
-	mqttClient, err := cfg.MqttConfig.GetClient(ctx)
-	if err != nil {
+	// FIXME(ppacher): remove as soon as the door interfacer can be configured
+	var doorInterfacer door.Interfacer = door.NoOp{}
+	var mqttConfigs []runtimeMQTT.ConnectionConfig
+
+	if err := runtime.GlobalSchema.DecodeSection(ctx, "MQTT", &mqttConfigs); err != nil {
 		logger.Fatalf(ctx, "mqtt: %s", err.Error())
 	}
 
-	// TODO(ppacher): try to connect in background
-	for {
-		if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
-			logger.Errorf(ctx, "failed to connect to mqtt: %s", err)
-			time.Sleep(time.Second)
-
-			continue
+	if len(mqttConfigs) > 0 {
+		mqttClient, err := mqttConfigs[0].GetClient(ctx)
+		if err != nil {
+			logger.Fatalf(ctx, "mqtt-config: %s", err.Error())
 		}
 
-		break
-	}
+		// TODO(ppacher): try to connect in background
+		for {
+			if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
+				logger.Errorf(ctx, "failed to connect to mqtt: %s", err)
+				time.Sleep(time.Second)
 
-	logger.Infof(ctx, "successfully connected to MQTT")
+				continue
+			}
+
+			break
+		}
+		logger.Infof(ctx, "successfully connected to MQTT")
+
+		doorInterfacer = getDoorInterface(ctx, mqttClient)
+	} else {
+		logger.Errorf(ctx, "failed to find a MQTT configuration")
+	}
 
 	//
 	// prepare opeing hours controller
@@ -367,8 +380,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	//
 	// prepare entry door controller
 	//
-	dint := getDoorInterface(ctx, mqttClient)
-	doorController, err := door.NewDoorController(openingHoursCtrl, dint)
+	doorController, err := door.NewDoorController(openingHoursCtrl, doorInterfacer)
 	if err != nil {
 		logger.Fatalf(ctx, "door-controler: %s", err.Error())
 	}
@@ -456,7 +468,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		sessionManager,
 		holidayCache,
 		calllogs,
-		mqttClient,
 		calendarService,
 		resources,
 		cctvManager,
