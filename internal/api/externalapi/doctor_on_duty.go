@@ -185,23 +185,29 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, dateTime time.Time, igno
 	// find out if we need to the doctor-on-duty from today or the day before
 	// depending on the ChangeOnDuty time for today.
 	changeDutyAt := app.Door.ChangeOnDuty(ctx, dateTime)
-	var nextChange time.Time
-	var isDayShift bool
+	var (
+		nextChange time.Time
+		source     string
+		isDayShift bool
+	)
 
 	if changeDutyAt.IsApplicable(dateTime) {
 		if changeDutyAt.IsDayShift(dateTime) {
 			nextChange = changeDutyAt.NightStartAt(dateTime)
 			isDayShift = true
+			source = changeDutyAt.SourceNightStart
 		} else {
 			isDayShift = false
 			nextDay := dateTime.Add(24 * time.Hour)
 			nextDayChange := app.Door.ChangeOnDuty(ctx, nextDay)
 			nextChange = nextDayChange.DayStartAt(nextDay)
+			source = nextDayChange.SourceDayStart
 		}
 	} else {
 		// we're during the night-shift of the previous day
 		// so we need to load that to get the responsible staff.
 		nextChange = changeDutyAt.DayStartAt(dateTime)
+		source = changeDutyAt.SourceDayStart
 		newT := dateTime.Add(-24 * time.Hour)
 		log.V(7).Logf("switching lookup time from %s to %s the previous night shift is active", dateTime, newT)
 		dateTime = newT
@@ -268,11 +274,12 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, dateTime time.Time, igno
 	}
 
 	return &v1alpha.DoctorOnDutyResponse{
-		Doctors:      doctorsOnDuty,
-		Until:        nextChange,
-		IsOverwrite:  false,
-		IsDayShift:   isDayShift,
-		IsNightShift: isNightShift,
-		RosterDate:   rosterDate,
+		Doctors:       doctorsOnDuty,
+		Until:         nextChange,
+		IsOverwrite:   false,
+		IsDayShift:    isDayShift,
+		IsNightShift:  isNightShift,
+		RosterDate:    rosterDate,
+		EndTimeSource: source,
 	}, nil
 }
