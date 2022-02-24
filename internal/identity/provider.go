@@ -3,7 +3,6 @@ package identity
 import (
 	"context"
 
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
 
@@ -28,11 +27,11 @@ type Provider interface {
 
 	// GetUserPermissions returns a slice of permissions directly attached to
 	// the user identified by name.
-	GetUserPermissions(ctx context.Context, name string) ([]cfgspec.Permission, error)
+	GetUserPermissions(ctx context.Context, name string) ([]Permission, error)
 
 	// GetRolePermissions returns a slice of permissions directly attached to
 	// the role identified by name.
-	GetRolePermissions(ctx context.Context, name string) ([]cfgspec.Permission, error)
+	GetRolePermissions(ctx context.Context, name string) ([]Permission, error)
 }
 
 type PasswortChangeSupport interface {
@@ -70,7 +69,7 @@ type ManageUserSupport interface {
 
 	// CreatePermission creates a new permission that is either attached to a role or to
 	// a user.
-	CreatePermission(ctx context.Context, scope string, target string, perm cfgspec.Permission) (string, error)
+	CreatePermission(ctx context.Context, scope string, target string, perm Permission) (string, error)
 
 	// DeletePermission deletes a permission from either a role or a user.
 	DeletePermission(ctx context.Context, scope string, owner string, permissionID string) error

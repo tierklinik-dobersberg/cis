@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
@@ -14,7 +14,7 @@ func TestMatcher_IsApplicable(t *testing.T) {
 
 	cases := []struct {
 		r permission.Request
-		p cfgspec.Permission
+		p identity.Permission
 		a bool
 	}{
 		{
@@ -22,7 +22,7 @@ func TestMatcher_IsApplicable(t *testing.T) {
 				User:     "admin",
 				Resource: "/foo",
 			},
-			cfgspec.Permission{
+			identity.Permission{
 				Permission: v1alpha.Permission{
 					Domains:   []string{".*"},
 					Resources: []string{"foo$"},

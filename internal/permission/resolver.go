@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.opentelemetry.io/otel/trace"
@@ -26,8 +25,8 @@ func NewResolver(db identity.Provider) *Resolver {
 // Permissions are returned in slices ordered as they should be evaluated.
 // Permissions in the same slice have the same priority. If additional roles
 // are passed they will be appended to the end of the returned permission sets.
-func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string, additionalRoles []string) ([][]cfgspec.Permission, error) {
-	var permissions [][]cfgspec.Permission
+func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string, additionalRoles []string) ([][]identity.Permission, error) {
+	var permissions [][]identity.Permission
 
 	// start with user permissions
 	directUserPermissions, err := res.db.GetUserPermissions(ctx, user)
@@ -43,13 +42,14 @@ func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string, ad
 	}
 
 	// collect permissions of direct roles
-	var rolePermissions []cfgspec.Permission
+	var rolePermissions []identity.Permission
 	for _, roleName := range userObj.Roles {
 		rolePerms, err := res.db.GetRolePermissions(ctx, roleName)
 		if err != nil {
 			err = fmt.Errorf("failed to load permissions for role %s: %w", roleName, err)
 			trace.SpanFromContext(ctx).RecordError(err)
 			logger.From(ctx).Errorf(err.Error())
+
 			continue
 		}
 		rolePermissions = append(rolePermissions, rolePerms...)
@@ -60,13 +60,14 @@ func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string, ad
 
 	// append any additional roles that are specified at the command
 	// call.
-	var extraRolePermissions []cfgspec.Permission
+	var extraRolePermissions []identity.Permission
 	for _, roleName := range additionalRoles {
 		rolePerms, err := res.db.GetRolePermissions(ctx, roleName)
 		if err != nil {
 			err = fmt.Errorf("failed to load permissions for extra session role %s: %w", roleName, err)
 			trace.SpanFromContext(ctx).RecordError(err)
 			logger.From(ctx).Errorf(err.Error())
+
 			continue
 		}
 		extraRolePermissions = append(extraRolePermissions, rolePerms...)

@@ -6,7 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
@@ -30,7 +30,7 @@ func CreatePermissionEndpoint(r *app.Router) {
 				return httperr.BadRequest().SetInternal(err)
 			}
 
-			permID, err := manager.CreatePermission(ctx, scope, owner, cfgspec.Permission{
+			permID, err := manager.CreatePermission(ctx, scope, owner, identity.Permission{
 				Permission: req,
 			})
 			if err != nil {
