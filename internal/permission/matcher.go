@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 )
 
@@ -26,7 +26,7 @@ func NewMatcher(resolver *Resolver) *Matcher {
 // returned. The caller may pass a slice of additional roles that are not directly
 // assigned to the user but should be evaluted as well.
 func (match *Matcher) Decide(ctx context.Context, req *Request, extraRoles []string) (bool, error) {
-	l := log.From(ctx).WithFields(req.AsFields())
+	log := log.From(ctx).WithFields(req.AsFields())
 
 	permissions, err := match.resolver.ResolveUserPermissions(ctx, req.User, extraRoles)
 	if err != nil {
@@ -47,25 +47,28 @@ func (match *Matcher) Decide(ctx context.Context, req *Request, extraRoles []str
 				} else {
 					// default is deny and that's stronger than
 					// allow so we can abort and return immediately.
-					l.Infof("denied by %q", perm.Description)
+					log.Infof("denied by %q", perm.Description)
+
 					return false, nil
 				}
 			}
 		}
 
 		if isAllowed {
-			l.V(7).Logf("allowed by %q", allowedDescr)
+			log.V(7).Logf("allowed by %q", allowedDescr)
+
 			return true, nil
 		}
 	}
 
-	l.V(3).Logf("denied by default (no matching permissions)")
+	log.V(3).Logf("denied by default (no matching permissions)")
+
 	return false, nil
 }
 
 // IsApplicable returns true if perm is applicable to be used for a
 // decision on req.
-func (match *Matcher) IsApplicable(ctx context.Context, req *Request, perm *cfgspec.Permission) bool {
+func (match *Matcher) IsApplicable(ctx context.Context, req *Request, perm *identity.Permission) bool {
 	if len(perm.Resources) > 0 && !MatchNeedle(ctx, req.Resource, perm.Resources) {
 		return false
 	}
@@ -84,6 +87,7 @@ func MatchNeedle(ctx context.Context, needle string, haystack []string) bool {
 		re, err := regexp.Compile(hay)
 		if err != nil {
 			log.From(ctx).Errorf("failed to compile regexp %q: %s", hay, err)
+
 			continue
 		}
 

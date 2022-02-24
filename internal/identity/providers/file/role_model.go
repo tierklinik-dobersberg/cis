@@ -5,21 +5,20 @@ import (
 	"strings"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 )
 
-type role struct {
+type roleModel struct {
 	identity.Role `section:"Role"`
 
-	Permissions []*cfgspec.Permission `section:"Permission"`
+	Permissions []*identity.Permission `section:"Permission"`
 }
 
 func (db *identDB) loadRoles(identityDir string) error {
 	spec := conf.FileSpec{
 		"Role":       identity.RoleSpec,
-		"Permission": cfgspec.PermissionSpec,
+		"Permission": identity.PermissionSpec,
 	}
 
 	roleFiles, err := confutil.LoadFiles(identityDir, ".role", spec)
@@ -29,33 +28,34 @@ func (db *identDB) loadRoles(identityDir string) error {
 
 	// build the roles map
 	for _, f := range roleFiles {
-		g, err := decodeRole(f)
+		role, err := decodeRole(f)
 		if err != nil {
 			return fmt.Errorf("%s: %w", f.Path, err)
 		}
-		lowerName := strings.ToLower(g.Name)
+		lowerName := strings.ToLower(role.Name)
 
 		// ensure there are not duplicates and add ot the
 		// role map.
 		if _, ok := db.roles[lowerName]; ok {
 			return fmt.Errorf("role with name %s already defined", lowerName)
 		}
-		db.roles[lowerName] = g
+		db.roles[lowerName] = role
 	}
+
 	return nil
 }
 
-func decodeRole(f *conf.File) (*role, error) {
+func decodeRole(f *conf.File) (*roleModel, error) {
 	spec := conf.FileSpec{
 		"Role":       identity.RoleSpec,
-		"Permission": cfgspec.PermissionSpec,
+		"Permission": identity.PermissionSpec,
 	}
 
-	var grp role
+	var role roleModel
 
-	if err := conf.DecodeFile(f, &grp, spec); err != nil {
+	if err := conf.DecodeFile(f, &role, spec); err != nil {
 		return nil, err
 	}
 
-	return &grp, nil
+	return &role, nil
 }

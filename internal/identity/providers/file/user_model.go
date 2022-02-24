@@ -7,7 +7,6 @@ import (
 
 	"github.com/nyaruka/phonenumbers"
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 )
@@ -15,10 +14,10 @@ import (
 type UserModel struct {
 	identity.User `section:"User"`
 
-	Permissions []*cfgspec.Permission `section:"Permission"`
+	Permissions []*identity.Permission `section:"Permission"`
 }
 
-func (db *identDB) loadUsers(identityDir string) error {
+func (db *identDB) loadUsers(ctx context.Context, identityDir string) error {
 	userPropertySpecs := make([]conf.OptionSpec, len(db.userPropertySpecs))
 	for idx, opt := range db.userPropertySpecs {
 		userPropertySpecs[idx] = opt.OptionSpec
@@ -26,7 +25,7 @@ func (db *identDB) loadUsers(identityDir string) error {
 
 	spec := conf.FileSpec{
 		"User":       append(identity.UserSpec, userPropertySpecs...),
-		"Permission": cfgspec.PermissionSpec,
+		"Permission": identity.PermissionSpec,
 	}
 
 	userFiles, err := confutil.LoadFiles(identityDir, ".user", spec)
@@ -36,7 +35,7 @@ func (db *identDB) loadUsers(identityDir string) error {
 
 	// build the user map
 	for _, f := range userFiles {
-		u, err := buildUser(f, userPropertySpecs, db.country)
+		u, err := buildUser(ctx, f, userPropertySpecs, db.country)
 		if err != nil {
 			return fmt.Errorf("%s: %w", f.Path, err)
 		}
@@ -52,27 +51,27 @@ func (db *identDB) loadUsers(identityDir string) error {
 	return nil
 }
 
-func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, country string) (*UserModel, error) {
+func buildUser(ctx context.Context, userCfgFile *conf.File, userPropertySpecs []conf.OptionSpec, country string) (*UserModel, error) {
 	spec := conf.FileSpec{
 		"User":       identity.UserSpec,
-		"Permission": cfgspec.PermissionSpec,
+		"Permission": identity.PermissionSpec,
 	}
-	var u UserModel
-	if err := conf.DecodeFile(f, &u, spec); err != nil {
+	var user UserModel
+	if err := conf.DecodeFile(userCfgFile, &user, spec); err != nil {
 		return nil, err
 	}
 
 	// validate phone numbers and convert them to international
 	// format
-	for idx, phone := range u.PhoneNumber {
+	for idx, phone := range user.PhoneNumber {
 		parsed, err := phonenumbers.Parse(phone, country)
 		if err != nil {
-			log.From(context.TODO()).Errorf("Failed to parse phone number %s from user %s: %s", phone, u.Name, err)
+			log.From(ctx).Errorf("Failed to parse phone number %s from user %s: %s", phone, user.Name, err)
 
 			continue
 		}
 
-		u.PhoneNumber[idx] = strings.ReplaceAll(
+		user.PhoneNumber[idx] = strings.ReplaceAll(
 			phonenumbers.Format(parsed, phonenumbers.INTERNATIONAL),
 			" ",
 			"",
@@ -83,10 +82,10 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, country string
 	// We do not perform any validation here as sec.Options
 	// is expected to have been validated already using Validate()
 	// and Prepare.
-	sec := f.Get("User") // there can only be one User section
+	sec := userCfgFile.Get("User") // there can only be one User section
 
 	if len(userPropertySpecs) > 0 {
-		u.Properties = make(map[string]interface{})
+		user.Properties = make(map[string]interface{})
 		for _, spec := range userPropertySpecs {
 			hasValue := false
 
@@ -100,10 +99,10 @@ func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, country string
 			}
 
 			if hasValue {
-				u.Properties[spec.Name] = sec.GetAs(spec.Name, spec.Type)
+				user.Properties[spec.Name] = sec.GetAs(spec.Name, spec.Type)
 			}
 		}
 	}
 
-	return &u, nil
+	return &user, nil
 }

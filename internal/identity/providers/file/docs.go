@@ -2,7 +2,6 @@ package file
 
 import (
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
@@ -17,7 +16,7 @@ func init() {
 		DropinsAllowed: true,
 		Sections: conf.FileSpec{
 			"Role":       identity.RoleSpec,
-			"Permission": cfgspec.PermissionSpec,
+			"Permission": identity.PermissionSpec,
 		},
 		Example: `
 		[Role]
@@ -51,8 +50,7 @@ func init() {
 		DropinsAllowed: true,
 		Sections: conf.FileSpec{
 			"User":       identity.UserSpec,
-			"Permission": cfgspec.PermissionSpec,
-			// FIXME(ppacher): see comment above.
+			"Permission": identity.PermissionSpec,
 			"AutoLogin": confutil.MultiOptionRegistry{
 				httpcond.DefaultRegistry,
 				conf.SectionSpec{

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
@@ -123,7 +122,7 @@ func (p *Provider) GetRole(ctx context.Context, name string) (identity.Role, err
 	return r.Role, nil
 }
 
-func (p *Provider) GetUserPermissions(ctx context.Context, name string) ([]cfgspec.Permission, error) {
+func (p *Provider) GetUserPermissions(ctx context.Context, name string) ([]identity.Permission, error) {
 	user, err := p.getUser(ctx, name)
 	if err != nil {
 		return nil, err
@@ -132,7 +131,7 @@ func (p *Provider) GetUserPermissions(ctx context.Context, name string) ([]cfgsp
 	return user.Permissions, nil
 }
 
-func (p *Provider) GetRolePermissions(ctx context.Context, name string) ([]cfgspec.Permission, error) {
+func (p *Provider) GetRolePermissions(ctx context.Context, name string) ([]identity.Permission, error) {
 	role, err := p.getRole(ctx, name)
 	if err != nil {
 		return nil, err
@@ -236,8 +235,7 @@ func (p *Provider) DisableUser(ctx context.Context, username string) error {
 }
 
 func (p *Provider) AssignUserRole(ctx context.Context, user, role string) error {
-	_, err := p.getRole(ctx, role)
-	if err != nil {
+	if _, err := p.getRole(ctx, role); err != nil {
 		return err
 	}
 
@@ -338,7 +336,7 @@ func (p *Provider) DeleteRole(ctx context.Context, roleName string) error {
 	return nil
 }
 
-func (p *Provider) CreatePermission(ctx context.Context, scope, owner string, perm cfgspec.Permission) (string, error) {
+func (p *Provider) CreatePermission(ctx context.Context, scope, owner string, perm identity.Permission) (string, error) {
 	perm.ID = primitive.NewObjectID().Hex()
 
 	var col *mongo.Collection
@@ -402,20 +400,20 @@ func (p *Provider) DeletePermission(ctx context.Context, scope, owner, permID st
 //
 
 func (p *Provider) getUser(ctx context.Context, name string) (*UserModel, error) {
-	r := p.users.FindOne(ctx, bson.M{
+	queryResult := p.users.FindOne(ctx, bson.M{
 		"name": name,
 	})
 
-	if r.Err() != nil {
-		if errors.Is(r.Err(), mongo.ErrNoDocuments) {
-			return nil, httperr.NotFound("user", name).SetInternal(r.Err())
+	if queryResult.Err() != nil {
+		if errors.Is(queryResult.Err(), mongo.ErrNoDocuments) {
+			return nil, httperr.NotFound("user", name).SetInternal(queryResult.Err())
 		}
 
-		return nil, fmt.Errorf("failed to query: %w", r.Err())
+		return nil, fmt.Errorf("failed to query: %w", queryResult.Err())
 	}
 
 	var res UserModel
-	if err := r.Decode(&res); err != nil {
+	if err := queryResult.Decode(&res); err != nil {
 		return nil, fmt.Errorf("failed to decode: %w", err)
 	}
 	res.User = p.applyPrivacy(ctx, &res)
@@ -424,20 +422,20 @@ func (p *Provider) getUser(ctx context.Context, name string) (*UserModel, error)
 }
 
 func (p *Provider) getRole(ctx context.Context, name string) (*RoleModel, error) {
-	r := p.roles.FindOne(ctx, bson.M{
+	queryResult := p.roles.FindOne(ctx, bson.M{
 		"name": name,
 	})
 
-	if r.Err() != nil {
-		if errors.Is(r.Err(), mongo.ErrNoDocuments) {
-			return nil, httperr.NotFound("role", name).SetInternal(r.Err())
+	if queryResult.Err() != nil {
+		if errors.Is(queryResult.Err(), mongo.ErrNoDocuments) {
+			return nil, httperr.NotFound("role", name).SetInternal(queryResult.Err())
 		}
 
-		return nil, fmt.Errorf("failed to query: %w", r.Err())
+		return nil, fmt.Errorf("failed to query: %w", queryResult.Err())
 	}
 
 	var res RoleModel
-	if err := r.Decode(&res); err != nil {
+	if err := queryResult.Decode(&res); err != nil {
 		return nil, fmt.Errorf("failed to decode: %w", err)
 	}
 
@@ -464,7 +462,7 @@ func (p *Provider) applyPrivacy(ctx context.Context, u *UserModel) identity.User
 	return schemaUser
 }
 
-// compile time checks for identity provider features
+// compile time checks for identity provider features.
 var (
 	_ identity.Provider              = new(Provider)
 	_ identity.PasswortChangeSupport = new(Provider)

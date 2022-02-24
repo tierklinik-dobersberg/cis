@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/hashicorp/go-version"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	identityProvider "github.com/tierklinik-dobersberg/cis/internal/identity/providers/mongo"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
@@ -68,7 +67,7 @@ func init() {
 					PasswordAlgo: "bcrypt",
 					PasswordHash: hash,
 				},
-				Permissions: []cfgspec.Permission{
+				Permissions: []identity.Permission{
 					{
 						Permission: v1alpha.Permission{
 							Description: "Built-in admin user",

@@ -11,7 +11,6 @@ import (
 
 	"github.com/google/renameio"
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/passwd"
@@ -36,7 +35,7 @@ type identDB struct {
 	userPropertySpecs []identity.UserPropertyDefinition
 	rw                sync.RWMutex
 	users             map[string]*UserModel
-	roles             map[string]*role
+	roles             map[string]*roleModel
 }
 
 // New returns a new database that uses ldr.
@@ -63,17 +62,20 @@ func (db *identDB) Authenticate(ctx context.Context, name, password string) bool
 	u, ok := db.users[strings.ToLower(name)]
 	if !ok {
 		log.Infof("identity: user with name %q does not exist", name)
+
 		return false
 	}
 
 	if u.Disabled != nil && *u.Disabled {
 		// TODO(ppacher): incident report!
 		log.Infof("identity: user %s is disabled. Authentication denied", name)
+
 		return false
 	}
 
 	if u.PasswordAlgo == "" {
 		log.Infof("identity: user with name %q does not have a password", name)
+
 		return false
 	}
 
@@ -105,6 +107,7 @@ func (db *identDB) ListRoles(ctx context.Context) ([]identity.Role, error) {
 	for _, role := range db.roles {
 		roles = append(roles, role.Role)
 	}
+
 	return roles, nil
 }
 
@@ -132,7 +135,7 @@ func (db *identDB) GetRole(ctx context.Context, name string) (identity.Role, err
 	return g.Role, nil
 }
 
-func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]cfgspec.Permission, error) {
+func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]identity.Permission, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
@@ -141,14 +144,15 @@ func (db *identDB) GetUserPermissions(ctx context.Context, name string) ([]cfgsp
 		return nil, httperr.NotFound("user", name).SetInternal(ErrNotFound)
 	}
 
-	perms := make([]cfgspec.Permission, len(u.Permissions))
+	perms := make([]identity.Permission, len(u.Permissions))
 	for idx, p := range u.Permissions {
 		perms[idx] = *p
 	}
+
 	return perms, nil
 }
 
-func (db *identDB) GetRolePermissions(ctx context.Context, name string) ([]cfgspec.Permission, error) {
+func (db *identDB) GetRolePermissions(ctx context.Context, name string) ([]identity.Permission, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
@@ -157,14 +161,15 @@ func (db *identDB) GetRolePermissions(ctx context.Context, name string) ([]cfgsp
 		return nil, httperr.NotFound("role", name).SetInternal(ErrNotFound)
 	}
 
-	perms := make([]cfgspec.Permission, len(g.Permissions))
+	perms := make([]identity.Permission, len(g.Permissions))
 	for idx, p := range g.Permissions {
 		perms[idx] = *p
 	}
+
 	return perms, nil
 }
 
-func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo string) error {
+func (db *identDB) SetUserPassword(ctx context.Context, userName, password, algo string) error {
 	hash, err := passwd.Hash(ctx, algo, password)
 	if err != nil {
 		return err
@@ -173,21 +178,21 @@ func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo str
 	db.rw.Lock()
 	defer db.rw.Unlock()
 
-	u, ok := db.users[user]
+	user, ok := db.users[userName]
 	if !ok {
-		return httperr.NotFound("user", user).SetInternal(ErrNotFound)
+		return httperr.NotFound("user", userName).SetInternal(ErrNotFound)
 	}
 
 	// create a shallow copy of u
 	// so we don't modify u in place.
-	var cu = *u
-	u = &cu
+	var cu = *user
+	user = &cu
 
-	u.PasswordAlgo = algo
-	u.PasswordHash = hash
-	u.NeedsPasswordChange = false
+	user.PasswordAlgo = algo
+	user.PasswordHash = hash
+	user.NeedsPasswordChange = false
 
-	opts, err := conf.ConvertToFile(u, "")
+	opts, err := conf.ConvertToFile(user, "")
 	if err != nil {
 		return err
 	}
@@ -199,7 +204,7 @@ func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo str
 		return fmt.Errorf("expected [User] section to exist")
 	}
 	for _, spec := range db.userPropertySpecs {
-		val, ok := u.Properties[spec.Name]
+		val, ok := user.Properties[spec.Name]
 		if !ok {
 			continue
 		}
@@ -217,12 +222,13 @@ func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo str
 		return err
 	}
 
-	path := filepath.Join(db.dir, "identity", user+".user")
+	path := filepath.Join(db.dir, "identity", userName+".user")
 	if err := renameio.WriteFile(path, buf.Bytes(), 0600); err != nil {
 		return err
 	}
 
-	db.users[user] = u
+	db.users[userName] = user
+
 	return nil
 }
 
@@ -252,12 +258,12 @@ func (db *identDB) reload(ctx context.Context) error {
 
 	// clear the current user and roles maps
 	db.users = make(map[string]*UserModel, len(db.users))
-	db.roles = make(map[string]*role, len(db.roles))
+	db.roles = make(map[string]*roleModel, len(db.roles))
 
 	identityDir := filepath.Join(db.dir, "identity")
 
 	// load all users files
-	if err := db.loadUsers(identityDir); err != nil {
+	if err := db.loadUsers(ctx, identityDir); err != nil {
 		return fmt.Errorf("loading users: %w", err)
 	}
 
