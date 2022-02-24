@@ -317,20 +317,18 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	matcher := permission.NewMatcher(permission.NewResolver(identities))
 
 	//
-	// setup voicemails
+	// setup voicemails. We don't need a reference to the voicemail manager
+	// here.
 	//
-	for _, vcfg := range cfg.VoiceMails {
-		_, err := voicemail.New(
-			ctx,
-			customers,
-			voicemails,
-			vcfg,
-			cfg.Country,
-			mailsyncManager,
-		)
-		if err != nil {
-			logger.Fatalf(ctx, "voicemail %s: %w", vcfg.Name, err)
-		}
+	if _, err := voicemail.NewManager(
+		ctx,
+		cfg.Country,
+		mailsyncManager,
+		customers,
+		voicemails,
+		runtime.GlobalSchema,
+	); err != nil {
+		logger.Fatalf(ctx, "voicemail: %s", err)
 	}
 
 	logger.Infof(ctx, "database system initialized")

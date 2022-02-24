@@ -36,12 +36,14 @@ type Mailbox struct {
 }
 
 // New creates a new voicmail mailbox.
+// TODO(ppacher): move most parts of the setup routine into
+// voicemail.Manager.
 func New(
 	ctx context.Context,
 	customers customerdb.Database,
 	voicemails voicemaildb.Database,
-	cfg Definition,
 	country string,
+	cfg Definition,
 	mng *mailsync.Manager,
 ) (*Mailbox, error) {
 	syncer, err := mng.NewSyncer(ctx, cfg.Name, 3*time.Minute, &cfg.Config)
@@ -81,6 +83,10 @@ func New(
 	return box, nil
 }
 
+func (box *Mailbox) Dispose() error {
+	return box.syncer.Stop()
+}
+
 func (box *Mailbox) getCustomer(ctx context.Context, caller string) (customerdb.Customer, error) {
 	if caller == "" {
 		return customerdb.Customer{}, nil
@@ -111,6 +117,7 @@ func (box *Mailbox) getCustomer(ctx context.Context, caller string) (customerdb.
 	return customerdb.Customer{}, fmt.Errorf("unknown customer")
 }
 
+// trunk-ignore(golangci-lint/cyclop)
 func (box *Mailbox) extractData(_ context.Context, mail *mailbox.EMail) (caller, target string) {
 	texts := mail.FindByMIME("text/plain")
 	if len(texts) == 0 {
