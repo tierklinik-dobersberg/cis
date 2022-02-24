@@ -23,6 +23,7 @@ func (err *Error) ToError() error {
 	if len(err.Errors) == 0 {
 		return nil
 	}
+
 	return err
 }
 
@@ -31,6 +32,7 @@ func (err *Error) Error() string {
 	for _, e := range err.Errors {
 		msg += "\n * " + e.Error()
 	}
+
 	return msg
 }
 
@@ -41,6 +43,7 @@ func (err *Error) Is(what error) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -50,5 +53,6 @@ func (err *Error) As(what interface{}) bool {
 			return true
 		}
 	}
+
 	return false
 }
