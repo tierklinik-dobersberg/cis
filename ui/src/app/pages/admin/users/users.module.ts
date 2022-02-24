@@ -7,7 +7,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { ColorTwitterModule } from 'ngx-color/twitter';
 import { SharedModule } from 'src/app/shared/shared.module';
-import { CreateUserComponent } from './create-user';
+import { ManageUserComponent } from './manage-user';
 import { PermissionsViewComponent } from './permissions-view';
 import { RoleListComponent } from './role-list';
 import { RoleViewComponent } from './role-view';
@@ -28,7 +28,7 @@ import { UsersRoutingModule } from './users-routing.module';
   ],
   declarations: [
     UserListComponent,
-    CreateUserComponent,
+    ManageUserComponent,
     RoleListComponent,
     RoleViewComponent,
     PermissionsViewComponent,

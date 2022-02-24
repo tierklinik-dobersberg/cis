@@ -6,7 +6,7 @@ import {
   IterableDiffers,
   OnDestroy,
   OnInit,
-  TrackByFunction,
+  TrackByFunction
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -17,7 +17,7 @@ import {
   filter,
   switchMap,
   take,
-  takeUntil,
+  takeUntil
 } from 'rxjs/operators';
 import {
   Calendar,
@@ -27,9 +27,7 @@ import {
   PasswordStrenght,
   Permission,
   Role,
-  UserDetails,
-  UserProperty,
-  UserService,
+  UserDetails, UserService
 } from 'src/app/api';
 import { Breadcrump, HeaderTitleService } from 'src/app/shared/header-title';
 import { NamedOptionSpec } from 'src/app/shared/option-spec-input';
@@ -57,11 +55,11 @@ const breadcrumps: Breadcrump[] = [
 ];
 
 @Component({
-  templateUrl: './create-user.html',
-  styleUrls: ['./create-user.scss'],
+  templateUrl: './manage-user.html',
+  styleUrls: ['./manage-user.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CreateUserComponent implements OnInit, OnDestroy {
+export class ManageUserComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();
 
   editMode = false;
