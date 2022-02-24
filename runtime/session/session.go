@@ -20,6 +20,25 @@ const SessionKey = "http:session"
 
 var contextSessionKey = struct{ key string }{key: SessionKey}
 
+type stickySession struct {
+	// lock protects all fields an members below it.
+	sync.Mutex
+
+	// destroyed is closed when the session is destroyed and garbage collected.
+	destroyed chan struct{}
+
+	// cache is used to store session related data under
+	// ephemeral/<session-id>/key
+	cache cache.Cache
+
+	// cacheKeyPrefix is the prefix used for cache keys.
+	cacheKeyPrefix string
+
+	// lastAccess holds the last time the session has accessed
+	// the api.
+	lastAccess time.Time
+}
+
 // Session represents an user session.
 type Session struct {
 	// id holds the ID of the session.
@@ -41,75 +60,73 @@ type Session struct {
 	// token with scope refresh.
 	RefreshUntil *time.Time
 
-	// destroyed is closed when the session is destroyed and garbage collected.
-	destroyed chan struct{}
+	// sticky is a reference to the sticky session data
+	sticky *stickySession
 
-	// lock protects all fields an members below it.
-	lock sync.Mutex
-
-	// cache is used to store session related data under
-	// ephemeral/<session-id>/key
-	cache cache.Cache
-
-	// cacheKeyPrefix is the prefix used for cache keys.
-	cacheKeyPrefix string
+	// roleLock protects all fields an members below it.
+	roleLock sync.Mutex
 
 	// extraRoles holds additional roles that are assigned to this
 	// session.
 	// This also includes auto-assigned roles (see autologin package).
 	extraRoles []string
-
-	// lastAccess holds the last time the session has accessed
-	// the api.
-	lastAccess time.Time
 }
 
 // MarkActive marks the session as still being active.
 func (session *Session) MarkActive() {
-	session.lock.Lock()
-	defer session.lock.Unlock()
-	session.lastAccess = time.Now()
+	if session.sticky == nil {
+		return
+	}
+
+	session.sticky.Lock()
+	defer session.sticky.Unlock()
+	session.sticky.lastAccess = time.Now()
 }
 
 // LastAccess returns the time the session has talked to the
-// API the last time.
+// API the last time. If the session is not sticky the zero
+// time is returned.
 func (session *Session) LastAccess() time.Time {
-	session.lock.Lock()
-	defer session.lock.Unlock()
+	if session.sticky == nil {
+		return time.Time{}
+	}
 
-	return session.lastAccess
+	session.sticky.Lock()
+	defer session.sticky.Unlock()
+
+	return session.sticky.lastAccess
 }
 
 // SetEphemeral stores data under key inside the ephemeral data store of the
 // session. Note that this only works for "sticky" sessions.
 func (session *Session) SetEphemeral(ctx context.Context, key string, data interface{}, ttl time.Duration) error {
-	if session.id == "" {
+	if session.sticky == nil || session.id == "" {
 		return fmt.Errorf("session %s is not sticky", session)
 	}
-	if session.cache == nil {
+	if session.sticky.cache == nil {
 		return fmt.Errorf("session %s does not have a cache", session)
 	}
-	dk := fmt.Sprintf("%s%s/%s", session.cacheKeyPrefix, session.id, key)
+	dk := fmt.Sprintf("%s%s/%s", session.sticky.cacheKeyPrefix, session.id, key)
 	blob, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
-	return session.cache.Write(ctx, dk, blob, cache.WithTTL(ttl))
+	return session.sticky.cache.Write(ctx, dk, blob, cache.WithTTL(ttl))
 }
 
 // GetEphemeral retrieves the data stored under key. This only works
 // for "sticky" sessions.
 func (session *Session) GetEphemeral(ctx context.Context, key string, target interface{}) (time.Time, error) {
-	if session.id == "" {
+	if session.sticky == nil || session.id == "" {
 		return time.Time{}, fmt.Errorf("session %s is not sticky", session)
 	}
-	if session.cache == nil {
+	if session.sticky.cache == nil {
 		return time.Time{}, fmt.Errorf("session %s does not have a cache", session)
 	}
 
-	dk := fmt.Sprintf("%s%s/%s", session.cacheKeyPrefix, session.id, key)
-	blob, meta, err := session.cache.Read(ctx, dk)
+	dk := fmt.Sprintf("%s%s/%s", session.sticky.cacheKeyPrefix, session.id, key)
+	blob, meta, err := session.sticky.cache.Read(ctx, dk)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("cache.Read: %w", err)
 	}
@@ -128,7 +145,7 @@ func (session *Session) GetEphemeral(ctx context.Context, key string, target int
 
 // IsSticky returns true if the session is sticky.
 func (session *Session) IsSticky() bool {
-	return session.id != ""
+	return session.id != "" && session.sticky != nil
 }
 
 func (session *Session) String() string {
@@ -151,8 +168,8 @@ func (session *Session) String() string {
 // DistinctRoles returns an aggregates list of roles
 // that apply to this session.
 func (session *Session) DistinctRoles() []string {
-	session.lock.Lock()
-	defer session.lock.Unlock()
+	session.roleLock.Lock()
+	defer session.roleLock.Unlock()
 
 	var lm = make(map[string]struct{})
 	for _, r := range session.User.Roles {
@@ -173,8 +190,8 @@ func (session *Session) DistinctRoles() []string {
 // session.
 // This also includes auto-assigned roles (see autologin package).
 func (session *Session) ExtraRoles() []string {
-	session.lock.Lock()
-	defer session.lock.Unlock()
+	session.roleLock.Lock()
+	defer session.roleLock.Unlock()
 
 	sl := make([]string, len(session.extraRoles))
 	copy(sl, session.extraRoles)
@@ -203,8 +220,9 @@ func (session *Session) addRole(role string, dryRun bool) bool {
 			return false
 		}
 	}
-	session.lock.Lock()
-	defer session.lock.Unlock()
+
+	session.roleLock.Lock()
+	defer session.roleLock.Unlock()
 	for _, r := range session.extraRoles {
 		if r == role {
 			return false

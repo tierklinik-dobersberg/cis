@@ -30,14 +30,14 @@ type Manager struct {
 	cachePrefix     string
 
 	sessionLock   sync.RWMutex
-	activeSession map[string]*Session
+	activeSession map[string]*stickySession
 }
 
 // Configure configures the session manager.
 func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityConfig, secret, baseURL string, cache cache.Cache, cachePrefix string) error {
 	mng.UserProvider = identites
 	mng.identityConfg = identityConfig
-	mng.activeSession = make(map[string]*Session)
+	mng.activeSession = make(map[string]*stickySession)
 	mng.sessionIDCookie = identityConfig.SessionIDCookie
 	mng.secret = secret
 	mng.cache = cache
@@ -136,8 +136,6 @@ func (mng *Manager) Create(user v1alpha.User, respWriter http.ResponseWriter) (*
 		User:         user,
 		AccessUntil:  &accessCookie.Expires,
 		RefreshUntil: &refreshCookie.Expires,
-		lastAccess:   time.Now(),
-		destroyed:    make(chan struct{}),
 	}
 
 	if err := mng.saveSession(sess, respWriter); err != nil {
@@ -153,14 +151,19 @@ func (mng *Manager) saveSession(sess *Session, respWriter http.ResponseWriter) e
 		return nil
 	}
 
+	data := &stickySession{
+		lastAccess:     time.Now(),
+		cache:          mng.cache,
+		cacheKeyPrefix: mng.cachePrefix,
+	}
+
 	// create a new sid for the session.
 	sid, err := uuid.NewV4()
 	if err != nil {
 		return fmt.Errorf("failed to generate session id")
 	}
 	sess.id = sid.String()
-	sess.cache = mng.cache
-	sess.cacheKeyPrefix = mng.cachePrefix
+	sess.sticky = data
 
 	// inform the browser about the session ID. this is best-effort only
 	// as the Set-Cookie header might just be ignored.
@@ -174,7 +177,7 @@ func (mng *Manager) saveSession(sess *Session, respWriter http.ResponseWriter) e
 	// store the session within activeSessions under sid.
 	mng.sessionLock.Lock()
 	defer mng.sessionLock.Unlock()
-	mng.activeSession[sid.String()] = sess
+	mng.activeSession[sid.String()] = data
 
 	return nil
 }
@@ -187,9 +190,10 @@ func (mng *Manager) clearOrphandSessions() {
 	defer mng.sessionLock.Unlock()
 
 	for key, sess := range mng.activeSession {
+		sess.Lock()
 		// delete sessions that are unused for more than a week
-		if inactivity := time.Since(sess.LastAccess()); inactivity > time.Hour*24*7 {
-			log.Logf("deleting session for user %s after %s of inactivity", sess.User.Name, inactivity)
+		if inactivity := time.Since(sess.lastAccess); inactivity > time.Hour*24*7 {
+			log.Logf("deleting session %s after %s of inactivity", key, inactivity)
 			delete(mng.activeSession, key)
 
 			func() {
@@ -201,6 +205,7 @@ func (mng *Manager) clearOrphandSessions() {
 				close(sess.destroyed)
 			}()
 		}
+		sess.Unlock()
 	}
 }
 
