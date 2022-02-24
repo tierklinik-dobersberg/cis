@@ -51,7 +51,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/integration/mongolog"
-	"github.com/tierklinik-dobersberg/cis/internal/integration/rocket"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/roster"
@@ -175,46 +174,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		tr := tracer.Tracer("")
 		ctx, span = tr.Start(ctx, "init")
 		defer span.End()
-	}
-
-	//
-	// configure rocket.chat error log integration
-	//
-	if cfg.IntegrationConfig.RocketChatAddress != "" {
-		rocketClient, err := rocket.NewClient(cfg.IntegrationConfig.RocketChatAddress, nil)
-		if err != nil {
-			logger.Fatalf(ctx, "failed to configure rocketchat integration: %s", err)
-		}
-
-		logApt.addAdapter(logger.AdapterFunc(func(logTime time.Time, severity logger.Severity, msg string, fields logger.Fields) {
-			if severity != logger.Error {
-				return
-			}
-			content := rocket.WebhookContent{
-				Text: msg,
-				Attachments: []rocket.Attachment{
-					{
-						Title: "Error",
-						Fields: []rocket.AttachmentField{
-							{
-								Title: "Time",
-								Value: logTime.String(),
-							},
-						},
-					},
-				},
-			}
-
-			for k, v := range fields {
-				content.Attachments[0].Fields = append(content.Attachments[0].Fields, rocket.AttachmentField{
-					Title: k,
-					Value: fmt.Sprintf("%v", v),
-				})
-			}
-
-			// ignore the return code because there's nothing we can do ...
-			_ = rocketClient.Send(ctx, content)
-		}))
 	}
 
 	//
