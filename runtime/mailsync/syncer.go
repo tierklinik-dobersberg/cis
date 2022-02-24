@@ -196,5 +196,6 @@ func (sync *Syncer) Stop() error {
 	sync.rw.Unlock()
 
 	sync.wg.Wait()
+
 	return nil
 }

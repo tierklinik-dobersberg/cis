@@ -5,7 +5,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
-	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 )
 
@@ -41,5 +40,4 @@ type Config struct {
 
 	OpeningHours   []openinghours.Definition         `section:"OpeningHour"`
 	UserProperties []identity.UserPropertyDefinition `section:"UserProperty"`
-	VoiceMails     []voicemail.Definition            `section:"VoiceMail"`
 }

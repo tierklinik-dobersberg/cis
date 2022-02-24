@@ -7,6 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
+	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
+	"github.com/tierklinik-dobersberg/cis/runtime"
 )
 
 // ListMailboxesEndpoint returns a list of all configured voice-
@@ -16,9 +18,15 @@ func ListMailboxesEndpoint(router *app.Router) {
 		"v1/list",
 		permission.OneOf{ReadVoicemailsAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
-			names := make([]string, len(app.Config.VoiceMails))
+			var voicemails []voicemail.Definition
 
-			for idx, cfg := range app.Config.VoiceMails {
+			if err := runtime.GlobalSchema.DecodeSection(ctx, "VoiceMail", &voicemails); err != nil {
+				return err
+			}
+
+			names := make([]string, len(voicemails))
+
+			for idx, cfg := range voicemails {
 				names[idx] = cfg.Name
 			}
 
