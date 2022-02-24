@@ -53,15 +53,15 @@ func (dt DayTime) Equals(other DayTime) bool {
 
 // ParseDayTime parses a HH:MM time specification.
 func ParseDayTime(str string) (DayTime, error) {
-	var dt DayTime
+	var dayTime DayTime
 
 	parts := strings.Split(str, ":")
 	if len(parts) != 2 {
-		return dt, fmt.Errorf("%q: %w", str, ErrInvalidFormat)
+		return dayTime, fmt.Errorf("%q: %w", str, ErrInvalidFormat)
 	}
 
 	if parts[0] == "" || parts[1] == "" {
-		return dt, fmt.Errorf("%q: %w", str, ErrInvalidFormat)
+		return dayTime, fmt.Errorf("%q: %w", str, ErrInvalidFormat)
 	}
 
 	hourStr := strings.TrimLeft(parts[0], "0")
@@ -70,12 +70,12 @@ func ParseDayTime(str string) (DayTime, error) {
 	}
 	hour, err := strconv.ParseInt(hourStr, 0, 64)
 	if err != nil {
-		return dt, fmt.Errorf("hour %q: %w", parts[0], ErrInvalidValue)
+		return dayTime, fmt.Errorf("hour %q: %w", parts[0], ErrInvalidValue)
 	}
 	if hour < 0 || hour > 23 {
-		return dt, fmt.Errorf("hour %d: %w", hour, ErrInvalidValue)
+		return dayTime, fmt.Errorf("hour %d: %w", hour, ErrInvalidValue)
 	}
-	dt[0] = int(hour)
+	dayTime[0] = int(hour)
 
 	minStr := strings.TrimLeft(parts[1], "0")
 	if minStr == "" {
@@ -83,14 +83,14 @@ func ParseDayTime(str string) (DayTime, error) {
 	}
 	min, err := strconv.ParseInt(minStr, 0, 64)
 	if err != nil {
-		return dt, fmt.Errorf("minute: %q: %w", parts[1], ErrInvalidValue)
+		return dayTime, fmt.Errorf("minute: %q: %w", parts[1], ErrInvalidValue)
 	}
 	if min < 0 || min > 59 {
-		return dt, fmt.Errorf("minute %d: %w", min, ErrInvalidValue)
+		return dayTime, fmt.Errorf("minute %d: %w", min, ErrInvalidValue)
 	}
-	dt[1] = int(min)
+	dayTime[1] = int(min)
 
-	return dt, nil
+	return dayTime, nil
 }
 
 // Range represents a range at any day.

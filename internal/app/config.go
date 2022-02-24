@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 )
 
@@ -37,7 +38,7 @@ type Config struct {
 
 	GoogleCalendar google.CalendarConfig `section:"GoogleCalendar"`
 
-	OpeningHours   []cfgspec.OpeningHours           `section:"OpeningHour"`
+	OpeningHours   []openinghours.Definition        `section:"OpeningHour"`
 	UserProperties []cfgspec.UserPropertyDefinition `section:"UserProperty"`
 	VoiceMails     []cfgspec.VoiceMail              `section:"VoiceMail"`
 }

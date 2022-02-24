@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
 )
 
@@ -122,14 +121,14 @@ func (s *state) deleteOpeningHour(_ context.Context, id string) error {
 	return nil
 }
 
-func (s *state) parseWeekDays(openingHourDef cfgspec.OpeningHours) ([]time.Weekday, error) {
+func (s *state) parseWeekDays(openingHourDef Definition) ([]time.Weekday, error) {
 	days := make([]time.Weekday, 0, len(openingHourDef.OnWeekday))
 	for _, d := range openingHourDef.OnWeekday {
-		if err := cfgspec.ValidDay(d); err != nil {
+		if err := ValidDay(d); err != nil {
 			return nil, err
 		}
 
-		parsed, ok := cfgspec.ParseDay(d)
+		parsed, ok := ParseDay(d)
 		if !ok {
 			return nil, fmt.Errorf("failed to parse day: %s", d)
 		}
@@ -140,7 +139,7 @@ func (s *state) parseWeekDays(openingHourDef cfgspec.OpeningHours) ([]time.Weekd
 	return days, nil
 }
 
-func (s *state) parseDates(c cfgspec.OpeningHours) ([]string, error) {
+func (s *state) parseDates(c Definition) ([]string, error) {
 	dates := make([]string, 0, len(c.UseAtDate))
 	for _, dateStr := range c.UseAtDate {
 		parts := strings.Split(dateStr, "/")
@@ -170,7 +169,7 @@ func (s *state) parseDates(c cfgspec.OpeningHours) ([]string, error) {
 	return dates, nil
 }
 
-func (s *state) parseOnCallStartTimes(openingHourDef cfgspec.OpeningHours) (day *daytime.DayTime, night *daytime.DayTime, err error) {
+func (s *state) parseOnCallStartTimes(openingHourDef Definition) (day *daytime.DayTime, night *daytime.DayTime, err error) {
 	if openingHourDef.OnCallDayStart != "" {
 		dayStart, err := daytime.ParseDayTime(openingHourDef.OnCallDayStart)
 		if err != nil {
@@ -190,7 +189,7 @@ func (s *state) parseOnCallStartTimes(openingHourDef cfgspec.OpeningHours) (day 
 	return day, night, nil
 }
 
-func (s *state) getTimeRanges(openingHourDef cfgspec.OpeningHours) ([]OpeningHour, error) {
+func (s *state) getTimeRanges(openingHourDef Definition) ([]OpeningHour, error) {
 	ranges := make([]OpeningHour, 0, len(openingHourDef.TimeRanges))
 	for _, r := range openingHourDef.TimeRanges {
 		timeRange, err := daytime.ParseRange(r)
@@ -214,7 +213,7 @@ func (s *state) getTimeRanges(openingHourDef cfgspec.OpeningHours) ([]OpeningHou
 		}
 
 		ranges = append(ranges, OpeningHour{
-			ID:               openingHourDef.ID,
+			ID:               openingHourDef.id,
 			Range:            timeRange,
 			CloseAfter:       closeAfter,
 			OpenBefore:       openBefore,
@@ -228,7 +227,7 @@ func (s *state) getTimeRanges(openingHourDef cfgspec.OpeningHours) ([]OpeningHou
 }
 
 // trunk-ignore(golangci-lint/cyclop)
-func (s *state) addOpeningHours(_ context.Context, timeRanges ...cfgspec.OpeningHours) error {
+func (s *state) addOpeningHours(_ context.Context, timeRanges ...Definition) error {
 	for _, openingHourDef := range timeRanges {
 		days, err := s.parseWeekDays(openingHourDef)
 		if err != nil {

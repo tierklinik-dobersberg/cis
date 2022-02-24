@@ -4,6 +4,7 @@ import (
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
@@ -28,7 +29,7 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 		"InfoScreen":     cfgspec.InfoScreenConfigSpec,
 		"Import":         cfgspec.VetInfSpec,
 		"UserProperty":   cfgspec.UserSchemaExtension,
-		"OpeningHour":    cfgspec.OpeningHoursSpec,
+		"OpeningHour":    openinghours.Spec,
 		"Integration":    cfgspec.IntegrationConfigSpec,
 		"Voicemail":      cfgspec.VoiceMailSpec,
 		"MongoLog":       cfgspec.MongoLogSpec,

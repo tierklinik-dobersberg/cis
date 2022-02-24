@@ -1,4 +1,4 @@
-package cfgspec
+package openinghours
 
 import (
 	"fmt"
@@ -10,9 +10,9 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime"
 )
 
-// OpeningHours is used to describe the opening and office hours.
-type OpeningHours struct {
-	ID string `option:"-"`
+// Definition is used to describe the opening and office hours.
+type Definition struct {
+	id string `option:"-"`
 
 	// OnWeekday is a list of days (Mo, Tue, ...) on which this opening
 	// hours take effect.
@@ -54,8 +54,8 @@ type OpeningHours struct {
 	Unofficial bool
 }
 
-// OpeningHoursSpec describes the different configuration stanzas for the OpeningHours struct.
-var OpeningHoursSpec = conf.SectionSpec{
+// Spec describes the different configuration stanzas for the Definition struct.
+var Spec = conf.SectionSpec{
 	{
 		Name:        "OnWeekday",
 		Description: "A list of days (Mo, Tue, Wed, Thu, Fri, Sat, Sun) at which this section takes effect",
@@ -154,7 +154,7 @@ var OpeningHoursSpec = conf.SectionSpec{
 }
 
 // Validate validates the opening hours defined in opt.
-func (opt *OpeningHours) Validate() error {
+func (opt *Definition) Validate() error {
 	// validate all days
 	for _, day := range opt.OnWeekday {
 		if err := ValidDay(day); err != nil {
@@ -224,7 +224,7 @@ func addOpeningHours(s *runtime.ConfigSchema) error {
 		Name:        "OpeningHour",
 		DisplayName: "Öffnungszeiten",
 		Description: "Opening hours definitions",
-		Spec:        OpeningHoursSpec,
+		Spec:        Spec,
 		Multi:       true,
 		SVGData:     `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />`,
 		Annotations: new(conf.Annotation).With(
