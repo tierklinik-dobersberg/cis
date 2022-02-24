@@ -18,6 +18,9 @@ type OpeningHour struct {
 	Holiday    bool          `json:"holiday"`
 	OpenBefore time.Duration `json:"closeBefore"`
 	CloseAfter time.Duration `json:"closeAfter"`
+
+	OnCallStartDay   *daytime.DayTime
+	OnCallStartNight *daytime.DayTime
 }
 
 // EffectiveOpen returns the duration from midnight at which
@@ -33,7 +36,7 @@ func (oh OpeningHour) EffectiveClose() time.Duration {
 }
 
 func (oh OpeningHour) String() string {
-	return fmt.Sprintf("<%s (-%s) - %s (+%s)>", oh.From, oh.OpenBefore, oh.To, oh.CloseAfter)
+	return fmt.Sprintf("<ID:%s %s (-%s) - %s (+%s)>", oh.ID, oh.From, oh.OpenBefore, oh.To, oh.CloseAfter)
 }
 
 // OpeningHourSlice is a slice of opening hours used
