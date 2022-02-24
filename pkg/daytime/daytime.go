@@ -39,11 +39,16 @@ func (dt DayTime) At(t time.Time, loc *time.Location) time.Time {
 		loc = t.Location()
 	}
 	midnight := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, loc)
+
 	return midnight.Add(dt.AsDuration())
 }
 
 func (dt DayTime) String() string {
 	return fmt.Sprintf("%02d:%02d", dt[0], dt[1])
+}
+
+func (dt DayTime) Equals(other DayTime) bool {
+	return dt.AsDuration() == other.AsDuration()
 }
 
 // ParseDayTime parses a HH:MM time specification.
