@@ -61,10 +61,26 @@ func OneOfRef(ref, valueField, displayField string) conf.KeyValue {
 	}
 }
 
+// Unique marks each field name passed as unique. This may be useful to
+// enforce unique names accros configuration instances.
 func Unique(uniqueFields ...string) conf.KeyValue {
 	return conf.KeyValue{
 		Key:   "vet.dobersberg.cis:schema/unqiueFields",
 		Value: uniqueFields,
+	}
+}
+
+type OnlyWhenValueAnnotation struct {
+	Field string `json:"field"`
+	Value string `json:"value"`
+}
+
+// OnlyWhenValue annotates a conf.Option to be only considered relevant in
+// case the option optionName is set to valueCondition.
+func OnlyWhenValue(optionName, valueCondition string) conf.KeyValue {
+	return conf.KeyValue{
+		Key:   "vet.dobersberg.cis:schema/onlyWhenValue",
+		Value: valueCondition,
 	}
 }
 

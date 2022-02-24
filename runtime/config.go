@@ -361,13 +361,17 @@ func (schema *ConfigSchema) Create(ctx context.Context, secType string, options 
 	schema.providerLock.RLock()
 	defer schema.providerLock.RUnlock()
 
-	_, ok := schema.entries[strings.ToLower(secType)]
+	if schema.provider == nil {
+		return "", ErrNoProvider
+	}
+
+	reg, ok := schema.entries[strings.ToLower(secType)]
 	if !ok {
 		return "", ErrCfgSectionNotFound
 	}
 
-	if schema.provider == nil {
-		return "", ErrNoProvider
+	if err := schema.ensureUniquness(ctx, reg, options); err != nil {
+		return "", err
 	}
 
 	sec := conf.Section{
@@ -400,9 +404,13 @@ func (schema *ConfigSchema) Update(ctx context.Context, id, secType string, opts
 		return ErrNoProvider
 	}
 
-	_, ok := schema.entries[strings.ToLower(secType)]
+	reg, ok := schema.entries[strings.ToLower(secType)]
 	if !ok {
 		return ErrCfgSectionNotFound
+	}
+
+	if err := schema.ensureUniquness(ctx, reg, opts); err != nil {
+		return err
 	}
 
 	sec := Section{
@@ -552,6 +560,43 @@ func (schema *ConfigSchema) notifyChangeListeners(ctx context.Context, changeTyp
 	}
 
 	return nil
+}
+
+func (schema *ConfigSchema) ensureUniquness(ctx context.Context, reg Schema, sec conf.Options) error {
+	uniqueFields, ok := reg.Annotations.Get("vet.dobersberg.cis:schema/unqiueFields").([]string)
+	if !ok {
+		return nil
+	}
+
+	all, err := schema.All(ctx, reg.Name)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range uniqueFields {
+		newValues := sec.GetStringSlice(f)
+
+		for _, instance := range all {
+			if match, ok := optionIncludesValues(instance.Options, f, newValues); ok {
+				return fmt.Errorf("field %q=%q already used in instance %s", f, match, instance.ID)
+			}
+		}
+	}
+
+	return nil
+}
+
+func optionIncludesValues(opts conf.Options, optionName string, values []string) (string, bool) {
+	lm := make(map[string]struct{}, len(values))
+	for _, f := range values {
+		lm[f] = struct{}{}
+	}
+	for _, v := range opts.GetStringSlice(optionName) {
+		if _, ok := lm[v]; ok {
+			return v, true
+		}
+	}
+	return "", false
 }
 
 // GlobalSchema is the global configuration schema.
