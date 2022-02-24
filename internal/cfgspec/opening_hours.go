@@ -1,7 +1,6 @@
 package cfgspec
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -113,6 +112,7 @@ var OpeningHoursSpec = conf.SectionSpec{
 		Name:        "TimeRanges",
 		Type:        conf.StringSliceType,
 		Description: "A list of office/opening hour time ranges (HH:MM - HH:MM).",
+		Required:    true,
 	},
 	{
 		Name:        "Holiday",
@@ -219,8 +219,6 @@ func ValidDay(day string) error {
 	return fmt.Errorf("invalid day: %s", day)
 }
 
-var OnOpeningHourChangeFunc func(ctx context.Context, changeType string, oh OpeningHours) error
-
 func addOpeningHours(s *runtime.ConfigSchema) error {
 	return s.Register(runtime.Schema{
 		Name:        "OpeningHour",
@@ -230,26 +228,7 @@ func addOpeningHours(s *runtime.ConfigSchema) error {
 		Multi:       true,
 		SVGData:     `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />`,
 		Annotations: new(conf.Annotation).With(
-			runtime.OverviewFields("OnWeekday", "UseAtDate", "Holiday", "TimeRanges"),
+			runtime.OverviewFields("OnWeekday", "UseAtDate", "Holiday", "TimeRanges", "OnCallDayStart", "OnCallNightStart"),
 		),
-		OnChange: func(ctx context.Context, changeType, id string, sec *conf.Section) error {
-			var openingHour OpeningHours
-			if sec != nil {
-				if err := conf.DecodeSections(conf.Sections{*sec}, OpeningHoursSpec, &openingHour); err != nil {
-					return err
-				}
-			}
-			if err := openingHour.Validate(); err != nil {
-				return err
-			}
-
-			openingHour.ID = id
-
-			if OnOpeningHourChangeFunc != nil {
-				return OnOpeningHourChangeFunc(ctx, changeType, openingHour)
-			}
-
-			return nil
-		},
 	})
 }
