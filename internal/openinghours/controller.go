@@ -71,7 +71,7 @@ func New(ctx context.Context, cfg cfgspec.Config, globalSchema *runtime.ConfigSc
 	globalSchema.AddValidator(ctrl, "OpeningHour")
 	globalSchema.AddNotifier(ctrl, "OpeningHour")
 
-	var openingHours []cfgspec.OpeningHours
+	var openingHours []Definition
 	if err := globalSchema.DecodeSection(ctx, "OpeningHour", &openingHours); err != nil {
 		return nil, fmt.Errorf("failed to load opening hours: %w", err)
 	}
@@ -83,11 +83,11 @@ func New(ctx context.Context, cfg cfgspec.Config, globalSchema *runtime.ConfigSc
 	return ctrl, nil
 }
 
-func decodeOpeningHour(sec *conf.Section) (cfgspec.OpeningHours, error) {
-	var entry cfgspec.OpeningHours
+func decodeOpeningHour(sec *conf.Section) (Definition, error) {
+	var entry Definition
 
 	if sec != nil {
-		if err := conf.DecodeSections(conf.Sections{*sec}, cfgspec.OpeningHoursSpec, &entry); err != nil {
+		if err := conf.DecodeSections(conf.Sections{*sec}, Spec, &entry); err != nil {
 			return entry, err
 		}
 		if err := entry.Validate(); err != nil {
@@ -103,15 +103,15 @@ func (ctrl *Controller) Validate(ctx context.Context, sec runtime.Section) error
 	if err != nil {
 		return err
 	}
-	openingHour.ID = sec.ID
+	openingHour.id = sec.ID
 
 	ctrl.rw.RLock()
 	defer ctrl.rw.RUnlock()
 
 	testState := ctrl.state.clone()
 
-	if openingHour.ID != "" {
-		if err := testState.deleteOpeningHour(ctx, openingHour.ID); err != nil {
+	if openingHour.id != "" {
+		if err := testState.deleteOpeningHour(ctx, openingHour.id); err != nil {
 			return err
 		}
 	}
@@ -128,7 +128,7 @@ func (ctrl *Controller) NotifyChange(ctx context.Context, changeType string, id 
 	if err != nil {
 		return err
 	}
-	openingHour.ID = id
+	openingHour.id = id
 
 	ctrl.rw.Lock()
 	defer ctrl.rw.Unlock()
@@ -139,7 +139,7 @@ func (ctrl *Controller) NotifyChange(ctx context.Context, changeType string, id 
 
 	// we delete for "delete" and "update".
 	if changeType != "create" {
-		if err := newState.deleteOpeningHour(ctx, openingHour.ID); err != nil {
+		if err := newState.deleteOpeningHour(ctx, openingHour.id); err != nil {
 			errs.Addf("failed to delete: %w", err)
 		}
 	}
@@ -160,7 +160,7 @@ func (ctrl *Controller) NotifyChange(ctx context.Context, changeType string, id 
 	return nil
 }
 
-func (ctrl *Controller) AddOpeningHours(ctx context.Context, timeRanges ...cfgspec.OpeningHours) error {
+func (ctrl *Controller) AddOpeningHours(ctx context.Context, timeRanges ...Definition) error {
 	ctrl.rw.Lock()
 	defer ctrl.rw.Unlock()
 
@@ -180,6 +180,7 @@ func (ctrl *Controller) AddOpeningHours(ctx context.Context, timeRanges ...cfgsp
 // Note that ChangeOnDuty requires the Weekday of d which might differ
 // depending on t's zone information. The caller must make sure to have
 // t in the desired time zone!
+// trunk-ignore(golangci-lint/cyclop)
 func (ctrl *Controller) ChangeOnDuty(ctx context.Context, date time.Time) ChangeOnCall {
 	ctrl.rw.RLock()
 	defer ctrl.rw.RUnlock()

@@ -78,5 +78,6 @@ func (cfg MqttConfig) GetClient(ctx context.Context) (mqtt.Client, error) {
 	}
 
 	client := mqtt.NewClient(opts)
+
 	return client, nil
 }
