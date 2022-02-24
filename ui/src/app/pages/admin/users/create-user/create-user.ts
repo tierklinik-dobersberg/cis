@@ -236,11 +236,15 @@ export class CreateUserComponent implements OnInit, OnDestroy {
     this.password = '';
     this.showPasswordModal = false;
     this.showGeneratedPasswordModal = false;
+
+    this.cdr.markForCheck();
   }
 
   handleGeneratedPasswordClose() {
     this.password = '';
     this.router.navigate(['/admin/identity/users']);
+
+    this.cdr.markForCheck();
   }
 
   handleOk() {
@@ -264,6 +268,8 @@ export class CreateUserComponent implements OnInit, OnDestroy {
     };
     this.showPasswordModal = false;
     this.showGeneratedPasswordModal = false;
+
+    this.cdr.markForCheck();
   }
 
   imagePreview(e: Event) {
@@ -388,6 +394,7 @@ export class CreateUserComponent implements OnInit, OnDestroy {
           );
           this.router.navigate(['/admin/identity/users/edit', this.name]);
         }
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.nzMessageService.error(

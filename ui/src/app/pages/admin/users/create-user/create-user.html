@@ -244,14 +244,7 @@
             >
           </header>
           <div
-            class="
-              grid
-              items-start
-              grid-cols-1
-              gap-4
-              md:gap-6
-              lg:gap-8 lg:grid-cols-2
-            "
+            class="grid items-start grid-cols-1 gap-4  md:gap-6 lg:gap-8 lg:grid-cols-2"
           >
             <div class="flex flex-row space-x-4">
               <span
@@ -345,14 +338,7 @@
             >
           </header>
           <div
-            class="
-              grid
-              items-start
-              grid-cols-1
-              gap-4
-              md:gap-6
-              lg:gap-8 lg:grid-cols-2
-            "
+            class="grid items-start grid-cols-1 gap-4  md:gap-6 lg:gap-8 lg:grid-cols-2"
           >
             <tkd-option-spec-input
               *ngFor="let prop of userProperties; let index=index"
@@ -373,12 +359,7 @@
               {{ 7 + userProperties.length }}.
             </span>
             <div
-              class="
-                flex flex-col
-                items-center
-                flex-grow
-                lg:justify-between lg:flex-row
-              "
+              class="flex flex-col items-center flex-grow  lg:justify-between lg:flex-row"
             >
               <div class="flex flex-col flex-grow">
                 <span class="text-base font-medium font-lato">
@@ -462,20 +443,7 @@
         <label
           for="file-upload"
           [class.h-96]="!preview"
-          class="
-            flex
-            items-center
-            justify-center
-            p-4
-            text-xl
-            border border-dashed
-            rounded
-            cursor-pointer
-            border-primary border-opacity-light
-            text-color-primary
-            font-lato
-            hover:bg-primary hover:bg-opacity-5
-          "
+          class="flex items-center justify-center p-4 text-xl border border-dashed rounded cursor-pointer  border-primary border-opacity-light text-color-primary font-lato hover:bg-primary hover:bg-opacity-5"
         >
           <img
             [attr.src]="preview"
@@ -561,7 +529,7 @@
 <nz-modal
   [(nzVisible)]="showGeneratedPasswordModal"
   nzTitle="Benutzer Passwort"
-  [nzCancelDisabled]="true"
+  (nzOnCancel)="handleGeneratedPasswordClose()"
 >
   <div *nzModalContent class="space-y-2">
     <span class="inline-block mb-4">
