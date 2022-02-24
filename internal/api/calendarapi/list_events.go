@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/calendar/v1alpha"
@@ -45,8 +45,8 @@ func ListEventsEndpoint(router *app.Router) {
 			if err != nil {
 				return err
 			}
-			userNameToUser := make(map[string]cfgspec.User)
-			calIDtoUser := make(map[string]cfgspec.User)
+			userNameToUser := make(map[string]identity.User)
+			calIDtoUser := make(map[string]identity.User)
 			for _, user := range users {
 				userNameToUser[user.Name] = user
 				if user.CalendarID != "" {

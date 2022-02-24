@@ -1,4 +1,4 @@
-package cfgspec
+package identity
 
 import (
 	"github.com/ppacher/system-conf/conf"

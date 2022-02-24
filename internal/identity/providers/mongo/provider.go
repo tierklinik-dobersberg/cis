@@ -32,6 +32,7 @@ const (
 
 func New(ctx context.Context, env identity.Environment) (identity.Provider, error) {
 	db := env.MongoClient.Database(env.MongoDatabaseName)
+
 	return &Provider{
 		env:   env,
 		users: db.Collection(UserCollection),
@@ -49,11 +50,13 @@ func (p *Provider) Authenticate(ctx context.Context, name, password string) bool
 	usr, err := p.getUser(ctx, name)
 	if err != nil {
 		log.V(7).Logf("failed to load user with name %q: %s", name, err)
+
 		return false
 	}
 
 	if usr.Disabled != nil && *usr.Disabled {
 		log.Infof("identity: user %s is disabled. Authentication denied", name)
+
 		return false
 	}
 
@@ -61,10 +64,11 @@ func (p *Provider) Authenticate(ctx context.Context, name, password string) bool
 	if err != nil {
 		log.Errorf("identity: failed to validate password for user %q: %s", name, err)
 	}
+
 	return ok
 }
 
-func (p *Provider) ListAllUsers(ctx context.Context) ([]cfgspec.User, error) {
+func (p *Provider) ListAllUsers(ctx context.Context) ([]identity.User, error) {
 	r, err := p.users.Find(ctx, bson.M{})
 	if err != nil {
 		return nil, err
@@ -73,17 +77,18 @@ func (p *Provider) ListAllUsers(ctx context.Context) ([]cfgspec.User, error) {
 		return nil, r.Err()
 	}
 
-	var result []cfgspec.User
+	var result []identity.User
 	if err := r.All(ctx, &result); err != nil {
 		return nil, err
 	}
 	for idx := range result {
 		result[idx] = p.applyPrivacy(ctx, &UserModel{User: result[idx]})
 	}
+
 	return result, nil
 }
 
-func (p *Provider) ListRoles(ctx context.Context) ([]cfgspec.Role, error) {
+func (p *Provider) ListRoles(ctx context.Context) ([]identity.Role, error) {
 	r, err := p.roles.Find(ctx, bson.M{})
 	if err != nil {
 		return nil, err
@@ -92,26 +97,29 @@ func (p *Provider) ListRoles(ctx context.Context) ([]cfgspec.Role, error) {
 		return nil, r.Err()
 	}
 
-	var result []cfgspec.Role
+	var result []identity.Role
 	if err := r.All(ctx, &result); err != nil {
 		return nil, err
 	}
+
 	return result, nil
 }
 
-func (p *Provider) GetUser(ctx context.Context, name string) (cfgspec.User, error) {
+func (p *Provider) GetUser(ctx context.Context, name string) (identity.User, error) {
 	usr, err := p.getUser(ctx, name)
 	if err != nil {
-		return cfgspec.User{}, err
+		return identity.User{}, err
 	}
+
 	return usr.User, nil
 }
 
-func (p *Provider) GetRole(ctx context.Context, name string) (cfgspec.Role, error) {
+func (p *Provider) GetRole(ctx context.Context, name string) (identity.Role, error) {
 	r, err := p.getRole(ctx, name)
 	if err != nil {
-		return cfgspec.Role{}, err
+		return identity.Role{}, err
 	}
+
 	return r.Role, nil
 }
 
@@ -120,6 +128,7 @@ func (p *Provider) GetUserPermissions(ctx context.Context, name string) ([]cfgsp
 	if err != nil {
 		return nil, err
 	}
+
 	return user.Permissions, nil
 }
 
@@ -128,6 +137,7 @@ func (p *Provider) GetRolePermissions(ctx context.Context, name string) ([]cfgsp
 	if err != nil {
 		return nil, err
 	}
+
 	return role.Permissions, nil
 }
 
@@ -149,6 +159,7 @@ func (p *Provider) SetUserPassword(ctx context.Context, name, password, algo str
 	if res.MatchedCount != 1 {
 		return fmt.Errorf("unexpected modify count %d", res.MatchedCount)
 	}
+
 	return nil
 }
 
@@ -162,7 +173,7 @@ func (p *Provider) CreateUser(ctx context.Context, u v1alpha.User, password stri
 	}
 
 	record := UserModel{
-		User: cfgspec.User{
+		User: identity.User{
 			User:         u,
 			PasswordHash: hash,
 			PasswordAlgo: "bcrypt",
@@ -176,8 +187,10 @@ func (p *Provider) CreateUser(ctx context.Context, u v1alpha.User, password stri
 		if mongo.IsDuplicateKeyError(err) {
 			return httperr.PreconditionFailed("user name already used").SetInternal(err)
 		}
+
 		return err
 	}
+
 	return nil
 }
 
@@ -218,6 +231,7 @@ func (p *Provider) DisableUser(ctx context.Context, username string) error {
 	if res.MatchedCount != 1 {
 		return httperr.NotFound("user", username)
 	}
+
 	return nil
 }
 
@@ -240,6 +254,7 @@ func (p *Provider) AssignUserRole(ctx context.Context, user, role string) error 
 	if res.MatchedCount != 1 {
 		return httperr.NotFound("user", user)
 	}
+
 	return nil
 }
 
@@ -257,12 +272,13 @@ func (p *Provider) UnassignUserRole(ctx context.Context, user, role string) erro
 	if res.MatchedCount != 1 {
 		return httperr.NotFound("user", user)
 	}
+
 	return nil
 }
 
 func (p *Provider) CreateRole(ctx context.Context, role v1alpha.Role) error {
 	record := RoleModel{
-		Role: cfgspec.Role{
+		Role: identity.Role{
 			Role: role,
 		},
 		Permissions: nil,
@@ -272,14 +288,16 @@ func (p *Provider) CreateRole(ctx context.Context, role v1alpha.Role) error {
 		if mongo.IsDuplicateKeyError(err) {
 			return httperr.PreconditionFailed("role name already used").SetInternal(err)
 		}
+
 		return err
 	}
+
 	return nil
 }
 
 func (p *Provider) EditRole(ctx context.Context, oldRoleName string, role v1alpha.Role) error {
 	record := RoleModel{
-		Role: cfgspec.Role{
+		Role: identity.Role{
 			Role: role,
 		},
 	}
@@ -288,11 +306,13 @@ func (p *Provider) EditRole(ctx context.Context, oldRoleName string, role v1alph
 		if mongo.IsDuplicateKeyError(err) {
 			return httperr.PreconditionFailed("role name already used").SetInternal(err)
 		}
+
 		return err
 	}
 	if upd.MatchedCount != 1 {
 		return httperr.NotFound("role", oldRoleName)
 	}
+
 	return nil
 }
 
@@ -314,6 +334,7 @@ func (p *Provider) DeleteRole(ctx context.Context, roleName string) error {
 	if res.DeletedCount != 1 {
 		return httperr.NotFound("role", roleName)
 	}
+
 	return nil
 }
 
@@ -373,6 +394,7 @@ func (p *Provider) DeletePermission(ctx context.Context, scope, owner, permID st
 	if res.MatchedCount != 1 {
 		return httperr.NotFound(scope, owner)
 	}
+
 	return nil
 }
 
@@ -388,6 +410,7 @@ func (p *Provider) getUser(ctx context.Context, name string) (*UserModel, error)
 		if errors.Is(r.Err(), mongo.ErrNoDocuments) {
 			return nil, httperr.NotFound("user", name).SetInternal(r.Err())
 		}
+
 		return nil, fmt.Errorf("failed to query: %w", r.Err())
 	}
 
@@ -396,6 +419,7 @@ func (p *Provider) getUser(ctx context.Context, name string) (*UserModel, error)
 		return nil, fmt.Errorf("failed to decode: %w", err)
 	}
 	res.User = p.applyPrivacy(ctx, &res)
+
 	return &res, nil
 }
 
@@ -408,6 +432,7 @@ func (p *Provider) getRole(ctx context.Context, name string) (*RoleModel, error)
 		if errors.Is(r.Err(), mongo.ErrNoDocuments) {
 			return nil, httperr.NotFound("role", name).SetInternal(r.Err())
 		}
+
 		return nil, fmt.Errorf("failed to query: %w", r.Err())
 	}
 
@@ -415,10 +440,11 @@ func (p *Provider) getRole(ctx context.Context, name string) (*RoleModel, error)
 	if err := r.Decode(&res); err != nil {
 		return nil, fmt.Errorf("failed to decode: %w", err)
 	}
+
 	return &res, nil
 }
 
-func (p *Provider) applyPrivacy(ctx context.Context, u *UserModel) cfgspec.User {
+func (p *Provider) applyPrivacy(ctx context.Context, u *UserModel) identity.User {
 	schemaUser := u.User
 
 	schemaUser.Properties = identity.FilterProperties(

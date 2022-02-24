@@ -33,14 +33,14 @@ var (
 type identDB struct {
 	dir               string
 	country           string
-	userPropertySpecs []cfgspec.UserPropertyDefinition
+	userPropertySpecs []identity.UserPropertyDefinition
 	rw                sync.RWMutex
 	users             map[string]*UserModel
 	roles             map[string]*role
 }
 
 // New returns a new database that uses ldr.
-func New(ctx context.Context, dir, country string, userProperties []cfgspec.UserPropertyDefinition) (identity.Provider, error) {
+func New(ctx context.Context, dir, country string, userProperties []identity.UserPropertyDefinition) (identity.Provider, error) {
 	db := &identDB{
 		dir:               dir,
 		userPropertySpecs: userProperties,
@@ -85,11 +85,11 @@ func (db *identDB) Authenticate(ctx context.Context, name, password string) bool
 	return match
 }
 
-func (db *identDB) ListAllUsers(ctx context.Context) ([]cfgspec.User, error) {
+func (db *identDB) ListAllUsers(ctx context.Context) ([]identity.User, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
-	users := make([]cfgspec.User, 0, len(db.users))
+	users := make([]identity.User, 0, len(db.users))
 	for _, user := range db.users {
 		users = append(users, db.applyPrivacy(ctx, user))
 	}
@@ -97,36 +97,36 @@ func (db *identDB) ListAllUsers(ctx context.Context) ([]cfgspec.User, error) {
 	return users, nil
 }
 
-func (db *identDB) ListRoles(ctx context.Context) ([]cfgspec.Role, error) {
+func (db *identDB) ListRoles(ctx context.Context) ([]identity.Role, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
-	roles := make([]cfgspec.Role, 0, len(db.roles))
+	roles := make([]identity.Role, 0, len(db.roles))
 	for _, role := range db.roles {
 		roles = append(roles, role.Role)
 	}
 	return roles, nil
 }
 
-func (db *identDB) GetUser(ctx context.Context, name string) (cfgspec.User, error) {
+func (db *identDB) GetUser(ctx context.Context, name string) (identity.User, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
 	u, ok := db.users[strings.ToLower(name)]
 	if !ok {
-		return cfgspec.User{}, httperr.NotFound("user", name).SetInternal(ErrNotFound)
+		return identity.User{}, httperr.NotFound("user", name).SetInternal(ErrNotFound)
 	}
 
 	return db.applyPrivacy(ctx, u), nil
 }
 
-func (db *identDB) GetRole(ctx context.Context, name string) (cfgspec.Role, error) {
+func (db *identDB) GetRole(ctx context.Context, name string) (identity.Role, error) {
 	db.rw.RLock()
 	defer db.rw.RUnlock()
 
 	g, ok := db.roles[strings.ToLower(name)]
 	if !ok {
-		return cfgspec.Role{}, httperr.NotFound("role", name).SetInternal(ErrNotFound)
+		return identity.Role{}, httperr.NotFound("role", name).SetInternal(ErrNotFound)
 	}
 
 	return g.Role, nil
@@ -226,7 +226,7 @@ func (db *identDB) SetUserPassword(ctx context.Context, user, password, algo str
 	return nil
 }
 
-func (db *identDB) applyPrivacy(ctx context.Context, u *UserModel) cfgspec.User {
+func (db *identDB) applyPrivacy(ctx context.Context, u *UserModel) identity.User {
 	schemaUser := u.User
 
 	schemaUser.Properties = identity.FilterProperties(

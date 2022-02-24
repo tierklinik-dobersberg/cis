@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/nyaruka/phonenumbers"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	v1 "github.com/tierklinik-dobersberg/cis/pkg/models/customer/v1alpha"
@@ -37,7 +37,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				return httperr.BadRequest("cannot mix query parameters single and includeUsers")
 			}
 
-			var allUsers []cfgspec.User
+			var allUsers []identity.User
 			if includeUsers {
 				var err error
 				allUsers, err = app.Identities.ListAllUsers(ctx)
@@ -90,7 +90,7 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				// phone numbers.
 				if includeUsers {
 					// build a lookup map for phone -> user
-					phoneToUser := make(map[string]cfgspec.User)
+					phoneToUser := make(map[string]identity.User)
 					for _, u := range allUsers {
 						for _, p := range u.PhoneNumber {
 							number, err := phonenumbers.Parse(p, app.Config.Country)

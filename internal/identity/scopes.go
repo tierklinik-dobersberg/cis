@@ -2,8 +2,6 @@ package identity
 
 import (
 	"context"
-
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 )
 
 // Scope defines the access scope.
@@ -42,17 +40,18 @@ func GetScope(ctx context.Context) Scope {
 	if scope, ok := s.(Scope); ok {
 		return scope
 	}
+
 	return Public
 }
 
 // FilterProperties applies the privacy settings to all user properties.
-func FilterProperties(scope Scope, defs []cfgspec.UserPropertyDefinition, props map[string]interface{}) map[string]interface{} {
+func FilterProperties(scope Scope, defs []UserPropertyDefinition, props map[string]interface{}) map[string]interface{} {
 	if scope == Internal {
 		return props
 	}
 
 	// build a lookup map for all defs.
-	lm := make(map[string]cfgspec.UserPropertyDefinition)
+	lm := make(map[string]UserPropertyDefinition)
 	for _, spec := range defs {
 		lm[spec.Name] = spec
 	}

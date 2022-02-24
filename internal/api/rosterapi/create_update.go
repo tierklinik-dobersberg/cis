@@ -11,7 +11,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/roster"
 	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
@@ -84,7 +84,7 @@ func validateRoster(ctx context.Context, app *app.App, roster *v1alpha.DutyRoste
 	if err != nil {
 		return err
 	}
-	userByName := make(map[string]cfgspec.User, len(allUsers))
+	userByName := make(map[string]identity.User, len(allUsers))
 	for _, user := range allUsers {
 		userByName[strings.ToLower(user.Name)] = user
 	}
@@ -115,7 +115,7 @@ func validateRoster(ctx context.Context, app *app.App, roster *v1alpha.DutyRoste
 	return nil
 }
 
-func validateUsers(users []string, lm map[string]cfgspec.User, allowDisabled bool) error {
+func validateUsers(users []string, lm map[string]identity.User, allowDisabled bool) error {
 	for _, u := range users {
 		user, ok := lm[strings.ToLower(u)]
 		if !ok {

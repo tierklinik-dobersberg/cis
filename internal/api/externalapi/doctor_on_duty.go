@@ -12,7 +12,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/nyaruka/phonenumbers"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -76,7 +75,7 @@ func CurrentDoctorOnDutyEndpoint(grp *app.Router) {
 	)
 }
 
-func activeOverwrite(ctx context.Context, app *app.App, t time.Time, userByName map[string]cfgspec.User) *v1alpha.DoctorOnDutyResponse {
+func activeOverwrite(ctx context.Context, app *app.App, t time.Time, userByName map[string]identity.User) *v1alpha.DoctorOnDutyResponse {
 	ctx, span := otel.Tracer("").Start(ctx, "getActiveOverwrite")
 	defer span.End()
 
@@ -169,7 +168,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, dateTime time.Time, igno
 	}
 
 	// build a small lookup map by username.
-	userByName := make(map[string]cfgspec.User, len(allUsers))
+	userByName := make(map[string]identity.User, len(allUsers))
 	for _, u := range allUsers {
 		userByName[strings.ToLower(u.Name)] = u
 	}
