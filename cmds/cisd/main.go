@@ -402,24 +402,27 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	// prepare opeing hours controller
 	//
 	holidayCache := openinghours.NewHolidayCache()
-	openingHoursCtrl, err := openinghours.New(cfg.Config, runtime.GlobalSchema, holidayCache)
+	openingHoursCtrl, err := openinghours.New(ctx, cfg.Config, runtime.GlobalSchema, holidayCache)
 	if err != nil {
 		logger.Fatalf(ctx, "opening-hours-controler: %s", err.Error())
 	}
 
 	// FIXME(ppacher):
-	cfgspec.OnOpeningHourChangeFunc = openingHoursCtrl.OnOpeningHourChange
 	for _, oh := range cfg.OpeningHours {
 		opts := map[string]interface{}{
 			"OnWeekday":        oh.OnWeekday,
 			"UseAtDate":        oh.UseAtDate,
-			"OpenBefore":       oh.OpenBefore.String(),
-			"CloseAfter":       oh.CloseAfter.String(),
 			"TimeRanges":       oh.TimeRanges,
-			"OnCallDayStart":   oh.OnCallDayStart,
-			"OnCallNightStart": oh.OnCallNightStart,
 			"Holiday":          oh.Holiday,
 			"Unofficial":       oh.Unofficial,
+			"OnCallDayStart":   oh.OnCallDayStart,
+			"OnCallNightStart": oh.OnCallNightStart,
+		}
+		if oh.OpenBefore > 0 {
+			opts["OpenBefore"] = oh.OpenBefore.String()
+		}
+		if oh.CloseAfter > 0 {
+			opts["CloseAfter"] = oh.CloseAfter.String()
 		}
 
 		options, err := confutil.MapToOptions(opts)
@@ -427,8 +430,10 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 			logger.Fatalf(ctx, "failed to import data: %s", err)
 		}
 
-		if _, err := runtime.GlobalSchema.Create(ctx, "OpeningHour", options); err != nil {
+		if id, err := runtime.GlobalSchema.Create(ctx, "OpeningHour", options); err != nil {
 			logger.Fatalf(ctx, "failed to import data: %s", err)
+		} else {
+			logger.Infof(ctx, "imported opening-hour with id %s", id)
 		}
 	}
 
