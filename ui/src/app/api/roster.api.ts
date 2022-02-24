@@ -3,25 +3,25 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-export interface OnCall {
+export interface OnCall<T> {
   day: string[];
-  dayStart?: string;
+  dayStart?: T;
   night: string[];
-  nightStart?: string;
+  nightStart?: T;
 }
 
-export interface Day {
+export interface Day<T = Date> {
   forenoon: string[];
   afternoon: string[];
-  onCall: OnCall;
+  onCall: OnCall<T>;
 }
 
-export interface Roster {
+export interface Roster<T = Date> {
   _id?: string;
   month: number;
   year: number;
   days: {
-    [key: number]: Day;
+    [key: number]: Day<T>;
   };
 }
 
@@ -43,10 +43,10 @@ export interface OverwriteBody {
 export type Overwrite = OverwriteMeta & OverwriteBody;
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class RosterAPI {
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   /**
    * Returns the duty roster for the given month in year.
@@ -66,59 +66,74 @@ export class RosterAPI {
       year = yearOrDate;
     }
 
-
-    return this.http.get<Roster>(`/api/dutyroster/v1/roster/${year}/${month}`)
+    return this.http
+      .get<Roster<string>>(`/api/dutyroster/v1/roster/${year}/${month}`)
       .pipe(
-        map(result => {
-          Object.keys(result.days).forEach(dayKey => {
-            const day: Day = result.days[dayKey];
+        map((result) => {
+          Object.keys(result.days).forEach((dayKey) => {
+            const day: Day<string> = result.days[dayKey];
 
-            day.afternoon = day.afternoon || [];
-            day.forenoon = day.forenoon || [];
-            day.onCall.day = day.onCall.day || [];
-            day.onCall.night = day.onCall.night || [];
-
-            result.days[dayKey] = day;
+            result.days[dayKey] = {
+              afternoon: day.afternoon || [],
+              forenoon: day.forenoon || [],
+              onCall: {
+                day: day.onCall.day || [],
+                night: day.onCall.night || [],
+                dayStart: new Date(day.onCall.dayStart!),
+                nightStart: new Date(day.onCall.nightStart!),
+              },
+            };
           });
-          return result;
+          return result as any as Roster<Date>;
         })
       );
   }
 
-  forDay(): Observable<Day>;
-  forDay(d: Date): Observable<Day>;
-  forDay(year: number, month: number, day: number): Observable<Day>;
-  forDay(yearOrDate?: number | Date, month?: number, day?: number ): Observable<Day> {
+  forDay(): Observable<Day<Date>>;
+  forDay(d: Date): Observable<Day<Date>>;
+  forDay(year: number, month: number, day: number): Observable<Day<Date>>;
+  forDay(
+    yearOrDate?: number | Date,
+    month?: number,
+    day?: number
+  ): Observable<Day<Date>> {
     let year: number;
     if (yearOrDate === undefined) {
       yearOrDate = new Date();
     }
     if (yearOrDate instanceof Date) {
       year = yearOrDate.getFullYear();
-      month = yearOrDate.getMonth() +1;
+      month = yearOrDate.getMonth() + 1;
       day = yearOrDate.getDate();
     } else {
       year = yearOrDate;
     }
 
-    return this.http.get<Day>(`/api/dutyroster/v1/roster/${year}/${month}/${day}`)
+    return this.http
+      .get<Day<string>>(`/api/dutyroster/v1/roster/${year}/${month}/${day}`)
       .pipe(
-        map(result => {
-          result.afternoon = result.afternoon || [];
-          result.forenoon = result.forenoon || [];
-          result.onCall.day = result.onCall.day || [];
-          result.onCall.night = result.onCall.night || [];
-          return result;
+        map((result) => {
+          return {
+            afternoon: result.afternoon || [],
+            forenoon: result.forenoon || [],
+            onCall: {
+              day: result.onCall.day || [],
+              night: result.onCall.night || [],
+              dayStart: new Date(result.onCall.dayStart!),
+              nightStart: new Date(result.onCall.nightStart!),
+            },
+          };
         })
-      )
+      );
   }
 
   /**
    * Delete the duty roster for the given month in year.
    */
   delete(year: number, month: number): Observable<void> {
-    return this.http.delete(`/api/dutyroster/v1/roster/${year}/${month}`)
-      .pipe(map(() => { }));
+    return this.http
+      .delete(`/api/dutyroster/v1/roster/${year}/${month}`)
+      .pipe(map(() => {}));
   }
 
   /**
@@ -127,8 +142,9 @@ export class RosterAPI {
    * @param roster The new duty roster.
    */
   create(roster: Roster): Observable<void> {
-    return this.http.put(`/api/dutyroster/v1/roster/${roster.year}/${roster.month}`, roster)
-      .pipe(map(() => { }));
+    return this.http
+      .put(`/api/dutyroster/v1/roster/${roster.year}/${roster.month}`, roster)
+      .pipe(map(() => {}));
   }
 
   /**
@@ -146,12 +162,12 @@ export class RosterAPI {
    *
    * @param date The date
    */
-  getActiveOverwrite(date?: Date): Observable<Overwrite|null> {
+  getActiveOverwrite(date?: Date): Observable<Overwrite | null> {
     let params = new HttpParams();
     if (!!date) {
-      params = params.set(`date`, date.toISOString())
+      params = params.set(`date`, date.toISOString());
     }
-    return this.http.get<Overwrite|null>(`/api/dutyroster/v1/overwrite`, {
+    return this.http.get<Overwrite | null>(`/api/dutyroster/v1/overwrite`, {
       params,
     });
   }
@@ -159,18 +175,18 @@ export class RosterAPI {
   /**
    * Queries all duty roster overwrites that are effective between from
    * and to.
-   * 
+   *
    * @param from The lower date boundary for the query
    * @param to  The upper date boundary for the query
-   * 
+   *
    * @returns A list of overwrites that are effective between from and to.
    */
   getOverwrites(from: Date, to: Date): Observable<Overwrite[]> {
     return this.http.get<Overwrite[]>(`/api/dutyroster/v1/overwrites`, {
       params: new HttpParams()
         .set('from', from.toISOString())
-        .set('to', to.toISOString())
-    })
+        .set('to', to.toISOString()),
+    });
   }
 
   /**
@@ -192,17 +208,17 @@ export class RosterAPI {
 
   /**
    * Deletes an overwrite by it's unique identifier.
-   * 
+   *
    * @param oid The overwrite object or the ID of the overwrite
    */
   deleteOverwriteById(oid: Overwrite | string): Observable<void> {
-    let id: string ='';
+    let id: string = '';
     if (typeof oid === 'string') {
       id = oid;
     } else {
       id = oid._id;
     }
 
-    return this.http.delete<void>(`/api/dutyroster/v1/overwrite/${id}`)
+    return this.http.delete<void>(`/api/dutyroster/v1/overwrite/${id}`);
   }
 }
