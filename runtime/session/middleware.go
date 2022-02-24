@@ -99,57 +99,52 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		// we can now check if there's an active session ID
 		// and reuse that. otherwise, we just create a new session
 		// object and continue with that.
-		// trunk-ignore(golangci-lint/nestif)
+		var (
+			sticky    *stickySession
+			sessionID string
+		)
 		if mng.sessionIDCookie != "" {
 			sid, err := c.Cookie(mng.sessionIDCookie)
 			if err != nil && !errors.Is(err, http.ErrNoCookie) {
 				return httperr.InternalError().SetInternal(err)
 			}
 			if err == nil {
-				session = mng.getSessionByID(sid.Value)
-				if session != nil {
-					// there's a session with that sid, make sure
-					// the user is the same ...
-					if session.User.Name != user.Name {
-						log.V(3).Log("request denied: sid-user does not match access token")
-
-						return httperr.BadRequest("session ID user does not match access token")
-					}
-				}
+				sessionID = sid.Value
+				sticky = mng.getSessionByID(sid.Value)
 			}
 		}
 
-		if session == nil {
-			// there's no existing session (that did a /login)
-			// so just create a new one and use that
-			session = &Session{
-				User:       *user,
-				lastAccess: time.Now(),
-				destroyed:  make(chan struct{}),
-			}
+		// there's no existing session (that did a /login)
+		// so just create a new one and use that
+		session = &Session{
+			id:     sessionID,
+			User:   *user,
+			sticky: sticky,
+		}
 
-			// expires-at must still be in the future, otherwise
-			// the tokens would not have been valid and we wouldn't
-			// get here anyway.
-			if accessToken != nil {
-				t := time.Unix(accessToken.ExpiresAt, 0)
-				session.AccessUntil = &t
-			}
-			if refreshToken != nil {
-				t := time.Unix(refreshToken.ExpiresAt, 0)
-				session.RefreshUntil = &t
-			}
+		// expires-at must still be in the future, otherwise
+		// the tokens would not have been valid and we wouldn't
+		// get here anyway.
+		if accessToken != nil {
+			t := time.Unix(accessToken.ExpiresAt, 0)
+			session.AccessUntil = &t
+		}
+		if refreshToken != nil {
+			t := time.Unix(refreshToken.ExpiresAt, 0)
+			session.RefreshUntil = &t
+		}
 
-			// if we don't have a valid access or refresh scope now
-			// return without setting a session on c.
-			if session.AccessUntil == nil && session.RefreshUntil == nil {
-				log.V(3).Logf("unauthenticated request: no valid access or refresh token found: %s", session)
+		// if we don't have a valid access or refresh scope now
+		// return without setting a session on c.
+		if session.AccessUntil == nil && session.RefreshUntil == nil {
+			log.V(3).Logf("unauthenticated request: no valid access or refresh token found: %s", session)
 
-				return next(c)
-			}
+			return next(c)
+		}
 
-			// this is a new session without a sid. Let's create one and
-			// save it as active
+		// this is a new session without a sid. Let's create one and
+		// save it as active.
+		if session.sticky == nil {
 			if err := mng.saveSession(session, c.Response()); err != nil {
 				log.V(3).Logf("failed to save session: %s", err)
 			}
@@ -182,7 +177,7 @@ func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func (mng *Manager) getSessionByID(id string) *Session {
+func (mng *Manager) getSessionByID(id string) *stickySession {
 	mng.sessionLock.Lock()
 	defer mng.sessionLock.Unlock()
 
