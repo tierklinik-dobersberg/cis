@@ -2,9 +2,7 @@ package openinghours
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 	"sort"
 	"sync"
 	"time"
@@ -152,10 +150,6 @@ func (ctrl *Controller) NotifyChange(ctx context.Context, changeType string, id 
 			errs.Addf("failed to create: %w", err)
 		}
 	}
-
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("state: ", "  ")
-	enc.Encode(newState)
 
 	if err := errs.ToError(); err != nil {
 		return err
