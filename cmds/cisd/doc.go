@@ -31,7 +31,6 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 		"Import":         cfgspec.VetInfSpec,
 		"UserProperty":   identity.UserSchemaExtension,
 		"OpeningHour":    openinghours.Spec,
-		"Integration":    cfgspec.IntegrationConfigSpec,
 		"Voicemail":      cfgspec.VoiceMailSpec,
 		"MongoLog":       cfgspec.MongoLogSpec,
 		"GoogleCalendar": google.GoogleConfigSpec,
