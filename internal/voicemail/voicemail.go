@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/nyaruka/phonenumbers"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/voicemail/v1alpha"
@@ -41,7 +40,7 @@ func New(
 	ctx context.Context,
 	customers customerdb.Database,
 	voicemails voicemaildb.Database,
-	cfg cfgspec.VoiceMail,
+	cfg Definition,
 	country string,
 	mng *mailsync.Manager,
 ) (*Mailbox, error) {
@@ -82,17 +81,41 @@ func New(
 	return box, nil
 }
 
-// HandleMail implements mailsync.MessageHandler.
-func (box *Mailbox) HandleMail(ctx context.Context, mail *mailbox.EMail) {
-	log := log.From(ctx)
+func (box *Mailbox) getCustomer(ctx context.Context, caller string) (customerdb.Customer, error) {
+	if caller == "" {
+		return customerdb.Customer{}, nil
+	}
 
+	parsed, err := phonenumbers.Parse(caller, box.country)
+	if err == nil {
+		customers, err := box.customers.FilterCustomer(ctx, bson.M{
+			"phoneNumbers": bson.M{
+				"$in": []string{
+					phonenumbers.Format(parsed, phonenumbers.INTERNATIONAL),
+					phonenumbers.Format(parsed, phonenumbers.NATIONAL),
+				},
+			},
+		}, false)
+		if len(customers) > 0 {
+			// TODO(ppacher): what to do on multiple results
+			return *customers[0], nil
+		}
+
+		if err != nil {
+			return customerdb.Customer{}, fmt.Errorf("failed to find customer: %w", err)
+		}
+	} else {
+		return customerdb.Customer{}, fmt.Errorf("failed to parse caller: %w", err)
+	}
+
+	return customerdb.Customer{}, fmt.Errorf("unknown customer")
+}
+
+func (box *Mailbox) extractData(_ context.Context, mail *mailbox.EMail) (caller, target string) {
 	texts := mail.FindByMIME("text/plain")
 	if len(texts) == 0 {
 		texts = mail.FindByMIME("text/html")
 	}
-
-	var caller string
-	var target string
 
 	for _, part := range texts {
 		if caller == "" && box.callerRegexp != nil {
@@ -110,39 +133,19 @@ func (box *Mailbox) HandleMail(ctx context.Context, mail *mailbox.EMail) {
 		}
 
 		if target != "" && caller != "" {
-			break
+			return caller, target
 		}
 	}
+
+	return caller, target
+}
+
+func (box *Mailbox) saveVoiceAttachment(ctx context.Context, caller string, mail *mailbox.EMail) (string, error) {
+	log := log.From(ctx)
 
 	var voiceFiles = mail.FindByMIME("application/octet-stream")
 	if len(voiceFiles) == 0 {
-		log.Errorf("no voice recordings found")
-		return
-	}
-
-	var customer customerdb.Customer
-	if caller != "" {
-		parsed, err := phonenumbers.Parse(caller, box.country)
-		if err == nil {
-			customers, err := box.customers.FilterCustomer(ctx, bson.M{
-				"phoneNumbers": bson.M{
-					"$in": []string{
-						phonenumbers.Format(parsed, phonenumbers.INTERNATIONAL),
-						phonenumbers.Format(parsed, phonenumbers.NATIONAL),
-					},
-				},
-			}, false)
-			if err == nil {
-				if len(customers) > 0 {
-					// TODO(ppacher): what to do on multiple results
-					customer = *customers[0]
-				}
-			} else {
-				log.Errorf("failed to find customer for %s: %s", caller, err)
-			}
-		} else {
-			log.Errorf("failed to parse caller number: %s", err)
-		}
+		return "", fmt.Errorf("no voice recordings found")
 	}
 
 	targetDir := filepath.Join(
@@ -151,6 +154,7 @@ func (box *Mailbox) HandleMail(ctx context.Context, mail *mailbox.EMail) {
 	)
 	if err := os.MkdirAll(targetDir, 0755); err != nil {
 		log.Errorf("failed to create target directory %s: %s", targetDir, err)
+		// continue for now, saving the file might still succeed
 	}
 
 	fileName := fmt.Sprintf(
@@ -163,22 +167,21 @@ func (box *Mailbox) HandleMail(ctx context.Context, mail *mailbox.EMail) {
 		targetDir,
 		fileName,
 	)
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	targetFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
-		log.Errorf("failed to create voice file at %s: %s", path, err)
-		return
+		return "", fmt.Errorf("failed to create voice file at %s: %w", path, err)
 	}
 
 	hasher := sha256.New()
-	multiwriter := io.MultiWriter(hasher, f)
+	multiwriter := io.MultiWriter(hasher, targetFile)
 
 	if _, err := multiwriter.Write(voiceFiles[0].Body); err != nil {
-		log.Errorf("failed to create voice file at %s: %s", path, err)
-		f.Close()
-		return
+		targetFile.Close()
+
+		return "", fmt.Errorf("failed to create voice file at %s: %w", path, err)
 	}
 
-	if err := f.Close(); err != nil {
+	if err := targetFile.Close(); err != nil {
 		log.Errorf("failed to close voice file at %s: %s", path, err)
 	}
 
@@ -188,12 +191,32 @@ func (box *Mailbox) HandleMail(ctx context.Context, mail *mailbox.EMail) {
 		fmt.Sprintf("%s%s", hash, filepath.Ext(voiceFiles[0].FileName)),
 	)
 	if err := os.Rename(path, newPath); err != nil {
-		log.Errorf("failed to rename voice file from %s to %s: %s", path, newPath, err)
+		return "", fmt.Errorf("failed to rename voice file from %s to %s: %w", path, newPath, err)
+	}
+
+	return newPath, nil
+}
+
+// HandleMail implements mailsync.MessageHandler.
+func (box *Mailbox) HandleMail(ctx context.Context, mail *mailbox.EMail) {
+	log := log.From(ctx)
+
+	caller, target := box.extractData(ctx, mail)
+
+	customer, err := box.getCustomer(ctx, caller)
+	if err != nil {
+		log.Errorf("caller %s: %s", caller, err)
+	}
+
+	filePath, err := box.saveVoiceAttachment(ctx, caller, mail)
+	if err != nil {
+		log.Errorf("failed to save attachment for caller %s: %s", caller, err)
+
 		return
 	}
 
 	record := v1alpha.VoiceMailRecord{
-		Filename:       newPath,
+		Filename:       filePath,
 		Name:           box.name,
 		Date:           time.Now(),
 		From:           caller,
@@ -204,7 +227,7 @@ func (box *Mailbox) HandleMail(ctx context.Context, mail *mailbox.EMail) {
 	if err := box.voicemails.Create(ctx, &record); err != nil {
 		log.Errorf("failed to create voicemail record: %s", err)
 	}
-	log.Infof("new voicemail from %q at %q stored at %s (%d bytes)", caller, target, path, len(voiceFiles[0].Body))
+	log.Infof("new voicemail from %q at %q stored at %s", caller, target, filePath)
 }
 
 // Stop stops the mailbox syncer.

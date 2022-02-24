@@ -1,12 +1,12 @@
-package cfgspec
+package voicemail
 
 import (
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/mailbox"
 )
 
-// VoiceMail describes a mailbox that receives voice-mails.
-type VoiceMail struct {
+// Definition describes a mailbox that receives voice-mails.
+type Definition struct {
 	Name                string
 	Disabled            bool
 	ExtractCallerRegexp string
@@ -14,9 +14,9 @@ type VoiceMail struct {
 	mailbox.Config
 }
 
-// VoiceMailSpec defines the configuration stanzas used to configure
+// Spec defines the configuration stanzas used to configure
 // a VoiceMail mailbox.
-var VoiceMailSpec = conf.SectionSpec(append([]conf.OptionSpec{
+var Spec = conf.SectionSpec(append([]conf.OptionSpec{
 	{
 		Name:        "Name",
 		Type:        conf.StringType,
