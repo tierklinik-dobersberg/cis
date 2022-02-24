@@ -33,6 +33,11 @@ type Section struct {
 	conf.Section
 }
 
+// Decode is a shortcut for using conf.DecodeSections with sec only.
+func (sec Section) Decode(spec conf.OptionRegistry, target interface{}) error {
+	return conf.DecodeSections([]conf.Section{sec.Section}, spec, target)
+}
+
 // ConfigProvider is used by ConfigSchema to provide access to configuration
 // values abstracting a way the actual storage and format of configuration
 // data.

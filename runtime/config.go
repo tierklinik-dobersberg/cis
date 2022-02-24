@@ -343,6 +343,17 @@ func (schema *ConfigSchema) GetID(ctx context.Context, id string) (Section, erro
 	return sec, err
 }
 
+func (schema *ConfigSchema) All(ctx context.Context, secType string) ([]Section, error) {
+	schema.providerLock.RLock()
+	defer schema.providerLock.RUnlock()
+
+	if schema.provider == nil {
+		return nil, ErrNoProvider
+	}
+
+	return schema.provider.Get(ctx, secType)
+}
+
 func (schema *ConfigSchema) Create(ctx context.Context, secType string, options []conf.Option) (string, error) {
 	schema.rw.RLock()
 	defer schema.rw.RUnlock()
