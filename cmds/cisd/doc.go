@@ -6,6 +6,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
+	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
 	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
@@ -31,7 +32,7 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 		"Import":         cfgspec.VetInfSpec,
 		"UserProperty":   identity.UserSchemaExtension,
 		"OpeningHour":    openinghours.Spec,
-		"Voicemail":      cfgspec.VoiceMailSpec,
+		"Voicemail":      voicemail.Spec,
 		"MongoLog":       cfgspec.MongoLogSpec,
 		"GoogleCalendar": google.GoogleConfigSpec,
 		"CardDAV Import": cfgspec.CardDAVSpec,
