@@ -64,3 +64,7 @@ func OneOfRef(ref, valueField, displayField string) conf.KeyValue {
 var (
 	OneOfRoles = OneOfRef("identity:roles", "name", "")
 )
+
+var (
+	IDRef = "_id"
+)
