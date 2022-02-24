@@ -8,7 +8,6 @@ import (
 var (
 	ConfigBuilder = runtime.NewConfigSchemaBuilder(
 		addUISchema,
-		addUserProperty,
 	)
 	AddToSchema = ConfigBuilder.AddToSchema
 )

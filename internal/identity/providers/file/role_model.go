@@ -6,18 +6,19 @@ import (
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 )
 
 type role struct {
-	cfgspec.Role `section:"Role"`
+	identity.Role `section:"Role"`
 
 	Permissions []*cfgspec.Permission `section:"Permission"`
 }
 
 func (db *identDB) loadRoles(identityDir string) error {
 	spec := conf.FileSpec{
-		"Role":       cfgspec.RoleSpec,
+		"Role":       identity.RoleSpec,
 		"Permission": cfgspec.PermissionSpec,
 	}
 
@@ -46,7 +47,7 @@ func (db *identDB) loadRoles(identityDir string) error {
 
 func decodeRole(f *conf.File) (*role, error) {
 	spec := conf.FileSpec{
-		"Role":       cfgspec.RoleSpec,
+		"Role":       identity.RoleSpec,
 		"Permission": cfgspec.PermissionSpec,
 	}
 

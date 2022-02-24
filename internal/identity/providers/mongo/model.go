@@ -1,13 +1,16 @@
 package mongo
 
-import "github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+import (
+	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
+)
 
 type UserModel struct {
-	cfgspec.User `bson:",inline"`
-	Permissions  []cfgspec.Permission `bson:"permissions,omitempty"`
+	identity.User `bson:",inline"`
+	Permissions   []cfgspec.Permission `bson:"permissions,omitempty"`
 }
 
 type RoleModel struct {
-	cfgspec.Role `bson:",inline"`
-	Permissions  []cfgspec.Permission `bson:"permissions,omitempty"`
+	identity.Role `bson:",inline"`
+	Permissions   []cfgspec.Permission `bson:"permissions,omitempty"`
 }

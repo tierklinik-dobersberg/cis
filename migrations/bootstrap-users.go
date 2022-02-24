@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	identityProvider "github.com/tierklinik-dobersberg/cis/internal/identity/providers/mongo"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/passwd"
@@ -60,7 +61,7 @@ func init() {
 			}
 
 			adminUser := identityProvider.UserModel{
-				User: cfgspec.User{
+				User: identity.User{
 					User: v1alpha.User{
 						Name: "admin",
 					},

@@ -8,11 +8,12 @@ import (
 	"github.com/nyaruka/phonenumbers"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
+	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 )
 
 type UserModel struct {
-	cfgspec.User `section:"User"`
+	identity.User `section:"User"`
 
 	Permissions []*cfgspec.Permission `section:"Permission"`
 }
@@ -24,7 +25,7 @@ func (db *identDB) loadUsers(identityDir string) error {
 	}
 
 	spec := conf.FileSpec{
-		"User":       append(cfgspec.UserSpec, userPropertySpecs...),
+		"User":       append(identity.UserSpec, userPropertySpecs...),
 		"Permission": cfgspec.PermissionSpec,
 	}
 
@@ -53,7 +54,7 @@ func (db *identDB) loadUsers(identityDir string) error {
 
 func buildUser(f *conf.File, userPropertySpecs []conf.OptionSpec, country string) (*UserModel, error) {
 	spec := conf.FileSpec{
-		"User":       cfgspec.UserSpec,
+		"User":       identity.UserSpec,
 		"Permission": cfgspec.PermissionSpec,
 	}
 	var u UserModel

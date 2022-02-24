@@ -1,8 +1,15 @@
-package cfgspec
+package identity
 
 import (
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/runtime"
+)
+
+var (
+	configBuiler = runtime.NewConfigSchemaBuilder(addUserProperty)
+
+	// AddToSchema adds the user property configuration schema.
+	AddToSchema = configBuiler.AddToSchema
 )
 
 // UserPropertyDefinition is the definition of a user property.
@@ -83,4 +90,10 @@ func addUserProperty(schema *runtime.ConfigSchema) error {
 			runtime.OverviewFields("DisplayName", "Name", "Description", "Type", "Required"),
 		),
 	})
+}
+
+func init() {
+	runtime.Must(
+		AddToSchema(runtime.GlobalSchema),
+	)
 }

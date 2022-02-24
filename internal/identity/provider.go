@@ -13,18 +13,18 @@ type Provider interface {
 	Authenticate(ctx context.Context, name string, password string) bool
 
 	// ListAllUsers returns all users stored in the database.
-	ListAllUsers(ctx context.Context) ([]cfgspec.User, error)
+	ListAllUsers(ctx context.Context) ([]User, error)
 
-	// ListRoles returns a list of all availabe roles.
-	ListRoles(ctx context.Context) ([]cfgspec.Role, error)
+	// ListRoles returns a list of all available roles.
+	ListRoles(ctx context.Context) ([]Role, error)
 
 	// GetUser returns the user object for the user identified by
 	// it's name.
-	GetUser(ctx context.Context, name string) (cfgspec.User, error)
+	GetUser(ctx context.Context, name string) (User, error)
 
 	// GetRole returns the role object for the role identified by
 	// it's name.
-	GetRole(ctx context.Context, name string) (cfgspec.Role, error)
+	GetRole(ctx context.Context, name string) (Role, error)
 
 	// GetUserPermissions returns a slice of permissions directly attached to
 	// the user identified by name.

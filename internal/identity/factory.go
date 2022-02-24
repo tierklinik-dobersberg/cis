@@ -33,7 +33,7 @@ type (
 		// UserPropertyDefinitions should hold the list of customer user properties.
 		// TODO(ppacher): add comment on what providers are expected to do with this
 		// information.
-		UserPropertyDefinitions []cfgspec.UserPropertyDefinition
+		UserPropertyDefinitions []UserPropertyDefinition
 		// Global contains a reference to the global configuration struct.
 		Global *cfgspec.Config
 		// ConfigSchema holds a reference to the global configuration schema.
@@ -90,6 +90,7 @@ func (reg *Registry) Register(name string, spec conf.OptionRegistry, factory Fac
 		Factory: factory,
 		Spec:    spec,
 	}
+
 	return nil
 }
 
@@ -135,11 +136,12 @@ func (reg *Registry) OptionsForSection(name string) (conf.OptionRegistry, bool) 
 	if ok && entry.Spec != nil {
 		return entry.Spec, ok
 	}
+
 	return nil, false
 }
 
 // DefaultRegistry is the default registry exported by this package and used
-// by package-level APIs
+// by package-level APIs.
 var DefaultRegistry = new(Registry)
 
 // compile time check if we correctly satisfy the SectionRegistry interface.
