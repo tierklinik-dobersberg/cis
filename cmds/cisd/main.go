@@ -449,7 +449,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 
 	// TODO(ppacher): this currently requires app.App to have been associated with ctx.
 	// I'm somewhat unhappy with that requirement so make it go away in the future.
-	logger.Infof(ctx, "tasks started, loading trigger files with %d available types", trigger.DefaultRegistry.TypeCount())
+	logger.Infof(ctx, "tasks started, loading trigger files with %d available types", len(trigger.DefaultRegistry.ActionTypes()))
 	if _, err := trigger.DefaultRegistry.LoadFiles(ctx, runtime.GlobalSchema, svcenv.Env().ConfigurationDirectory); err != nil {
 		logger.Fatalf(ctx, "triggers: %s", err)
 	}

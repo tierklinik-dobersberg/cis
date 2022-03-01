@@ -50,17 +50,14 @@ type (
 
 	ActionType struct {
 		// Name is the name of the action type. This must be unique.
-		Name string
-
+		Name string `json:"name"`
 		// Spec holds the configuration spec for the trigger handler type.
-		Spec conf.OptionRegistry
-
+		Spec conf.OptionRegistry `json:"spec"`
 		// Description holds an optional, human readable description about the
 		// trigger type.
-		Description string
-
+		Description string `json:"description"`
 		// CreateFunc is called when a new instance of the trigger handler should be created.
-		CreateFunc func(ctx context.Context, globalSchema *runtime.ConfigSchema, sec *conf.Section) (Handler, error)
+		CreateFunc func(ctx context.Context, globalSchema *runtime.ConfigSchema, sec *conf.Section) (Handler, error) `json:"-"`
 	}
 
 	// Registry manages trigger type factories and supports file based trigger
@@ -86,10 +83,10 @@ type (
 	// Registry also implements conf.SectionRegistry and may be directly used
 	// to validate .trigger files.
 	Registry struct {
-		event     *event.Registry
-		location  *time.Location
-		l         sync.RWMutex
-		factories map[string]ActionType
+		event       *event.Registry
+		location    *time.Location
+		l           sync.RWMutex
+		actionTypes map[string]ActionType
 
 		instances map[string]*Instance
 	}
@@ -105,10 +102,10 @@ func NewRegistry(eventReg *event.Registry, location *time.Location) *Registry {
 	}
 
 	return &Registry{
-		factories: make(map[string]ActionType),
-		event:     eventReg,
-		location:  location,
-		instances: make(map[string]*Instance),
+		actionTypes: make(map[string]ActionType),
+		event:       eventReg,
+		location:    location,
+		instances:   make(map[string]*Instance),
 	}
 }
 
@@ -119,13 +116,17 @@ func (reg *Registry) SetLocation(loc *time.Location) {
 	reg.location = loc
 }
 
-// TypeCount returns the number of trigger types that have been
-// registered so far.
-func (reg *Registry) TypeCount() int {
+// ActionTypes returns all available action types.
+func (reg *Registry) ActionTypes() []ActionType {
 	reg.l.RLock()
 	defer reg.l.RUnlock()
 
-	return len(reg.factories)
+	result := make([]ActionType, 0, len(reg.actionTypes))
+	for _, reg := range reg.actionTypes {
+		result = append(result, reg)
+	}
+
+	return result
 }
 
 // LoadFiles loads all .trigger files from path and creates new
@@ -164,7 +165,7 @@ func (reg *Registry) OptionsForSection(sec string) (conf.OptionRegistry, bool) {
 
 	reg.l.RLock()
 	defer reg.l.RUnlock()
-	factory, ok := reg.factories[sec]
+	factory, ok := reg.actionTypes[sec]
 	if !ok {
 		return nil, false
 	}
@@ -207,7 +208,7 @@ func (reg *Registry) CreateTrigger(ctx context.Context, globalConfig *runtime.Co
 			continue
 		}
 
-		factory, ok := reg.factories[strings.ToLower(sec.Name)]
+		factory, ok := reg.actionTypes[strings.ToLower(sec.Name)]
 		if !ok {
 			return nil, fmt.Errorf("found unknown trigger action %q", sec.Name)
 		}
@@ -292,11 +293,11 @@ func (reg *Registry) RegisterType(factory ActionType) error {
 	reg.l.Lock()
 	defer reg.l.Unlock()
 
-	if _, ok := reg.factories[name]; ok {
+	if _, ok := reg.actionTypes[name]; ok {
 		return fmt.Errorf("trigger handler type %s already registered", name)
 	}
 
-	reg.factories[name] = factory
+	reg.actionTypes[name] = factory
 
 	return nil
 }
