@@ -39,6 +39,18 @@ func OverwriteEndpoint(grp *app.Router) {
 				body.State = "locked"
 			case "unlock":
 				body.State = "unlocked"
+			case "open":
+				// open is not actually a overwrite but rather
+				// a short term action
+				ctx, cancel := context.WithTimeout(ctx, time.Second*2)
+				defer cancel()
+
+				if err := app.Door.Open(ctx); err != nil {
+					return httperr.InternalError(err.Error()).SetInternal(err)
+				}
+
+				return c.NoContent(http.StatusOK)
+
 			default:
 				return httperr.InvalidField("state")
 			}
