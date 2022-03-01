@@ -29,6 +29,11 @@ func ListSchemasEndpoint(grp *app.Router) {
 			var res ListSchemasResponse
 
 			for _, s := range schemas {
+				// skip schemas that are marked as internal.
+				if s.Internal {
+					continue
+				}
+
 				res.Schemas = append(res.Schemas, SchemaModel{
 					Schema:  s,
 					Options: s.Spec.All(),

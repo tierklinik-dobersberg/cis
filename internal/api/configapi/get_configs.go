@@ -24,6 +24,10 @@ func GetConfigsEndpoint(r *app.Router) {
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			key := c.Param("key")
 
+			if err := schemaAccessAllowed(key); err != nil {
+				return err
+			}
+
 			cfgs, err := runtime.GlobalSchema.SchemaAsMap(ctx, key)
 			if err != nil {
 				if errors.Is(err, runtime.ErrCfgSectionNotFound) {

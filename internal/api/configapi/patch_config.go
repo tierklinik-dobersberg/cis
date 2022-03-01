@@ -31,6 +31,10 @@ func PatchConfigEndpoint(r *app.Router) {
 			key := c.Param("key")
 			instanceID := c.Param("id")
 
+			if err := schemaAccessAllowed(key); err != nil {
+				return err
+			}
+
 			var req PatchConfigRequest
 			if err := c.Bind(&req); err != nil {
 				return err

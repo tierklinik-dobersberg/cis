@@ -25,6 +25,10 @@ func GetConfigByIDEndpoint(r *app.Router) {
 			key := c.Param("key")
 			id := c.Param("id")
 
+			if err := schemaAccessAllowed(key); err != nil {
+				return err
+			}
+
 			cfgs, err := runtime.GlobalSchema.SchemaAsMap(ctx, key)
 			if err != nil {
 				if errors.Is(err, runtime.ErrCfgSectionNotFound) {
@@ -49,4 +53,15 @@ func GetConfigByIDEndpoint(r *app.Router) {
 			})
 		},
 	)
+}
+
+func schemaAccessAllowed(key string) error {
+	schema, err := runtime.GlobalSchema.SchemaByName(key)
+	if err != nil {
+		return httperr.NotFound("schema-type", key)
+	}
+	if schema.Internal {
+		return httperr.PreconditionFailed("access to schema not allowed")
+	}
+	return nil
 }

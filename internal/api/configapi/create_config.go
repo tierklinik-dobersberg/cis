@@ -29,6 +29,10 @@ func CreateConfigEndpoint(r *app.Router) {
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			key := c.Param("key")
 
+			if err := schemaAccessAllowed(key); err != nil {
+				return err
+			}
+
 			spec, ok := runtime.GlobalSchema.OptionsForSection(key)
 			if !ok {
 				return httperr.NotFound("schema-type", key)

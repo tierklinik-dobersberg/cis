@@ -23,6 +23,10 @@ func GetFlatConfigEndpoint(grp *app.Router) {
 			schemas := runtime.GlobalSchema.Schemas()
 			lm := make(map[string]bool)
 			for _, s := range schemas {
+				// skip internal schemas
+				if s.Internal {
+					continue
+				}
 				lm[s.Name] = s.Multi
 			}
 
