@@ -2,230 +2,161 @@ package importer
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"sync"
-	"time"
 
+	"github.com/ppacher/system-conf/conf"
 	"github.com/robfig/cron/v3"
 	"github.com/tevino/abool"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
-	"github.com/tierklinik-dobersberg/cis/runtime/event"
+	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
+	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
-var log = pkglog.New("importer")
+var (
+	ErrImporterNameUsed = errors.New("importer name used")
+)
 
-// Handler is capable of importing data from an external source.
-type Handler interface {
-	// Import should import data from the external source.
-	// The returned interface is published as an event to
-	// "event/importer/<instance>/done"
-	Import(ctx context.Context) (interface{}, error)
-}
+type (
+	// FactoryFunc is called to create a one ore more importer instances from config.
+	FactoryFunc func(ctx context.Context, app *app.App, config runtime.Section) ([]*Instance, error)
 
-// ImportFunc implements Handler.
-type ImportFunc func(ctx context.Context) (interface{}, error)
+	// Factory creates a new import handler.
+	Factory struct {
+		runtime.Schema
+
+		// FactoryFunc is used
+		FactoryFunc FactoryFunc
+	}
+
+	Manager struct {
+		app    *app.App
+		config *runtime.ConfigSchema
+
+		lock      sync.Mutex
+		cron      *cron.Cron
+		factories map[string]Factory
+		importers map[string][]*Instance
+	}
+
+	// Handler is capable of importing data from an external source.
+	Handler interface {
+		// Import should import data from the external source.
+		// The returned interface is published as an event to
+		// "event/importer/<instance>/done"
+		Import(ctx context.Context) (interface{}, error)
+	}
+
+	// ImportFunc implements Handler.
+	ImportFunc func(ctx context.Context) (interface{}, error)
+)
 
 // Import imports data.
 func (fn ImportFunc) Import(ctx context.Context) (interface{}, error) {
 	return fn(ctx)
 }
 
-// Instance is a import handler instance that executes
-// at a certain schedule.
-type Instance struct {
-	ID             string
-	Schedule       string
-	RunImmediately bool
-	Handler        Handler
-	Disabled       *abool.AtomicBool
-
-	log      logger.Logger
-	schedule cron.Schedule
-	running  *abool.AtomicBool
-}
-
-// Enable enables the instance so it will run again.
-func (inst *Instance) Enable() error {
-	if inst.Disabled == nil {
-		return fmt.Errorf("instance cannot be enabled/disabled")
-	}
-	inst.Disabled.UnSet()
-	return nil
-}
-
-// Disable disables the instance. Any future runs of the instance
-// will be skipped as long as the instance is disabled.
-func (inst *Instance) Disable() error {
-	if inst.Disabled == nil {
-		return fmt.Errorf("instance cannot be enabled/disabled")
-	}
-	inst.Disabled.Set()
-	return nil
-}
-
-func (inst *Instance) IsDisabled() bool {
-	if inst.Disabled == nil {
-		return false
-	}
-	return inst.Disabled.IsSet()
-}
-
-// Run implements cron.Job.
-func (inst *Instance) Run() {
-	if !inst.running.SetToIf(false, true) {
-		inst.log.Infof("Import still running, skipping schedule")
-		return
-	}
-	if inst.IsDisabled() {
-		inst.log.Infof("Importer currently disabled")
-		return
-	}
-	defer inst.running.UnSet()
-
-	ctx := context.Background()
-	ctx = logger.With(ctx, inst.log)
-
-	start := time.Now()
-	event.Fire(
-		context.Background(),
-		fmt.Sprintf("event/importer/%s/start", inst.ID),
-		ImportStartedEvent{
-			Importer: inst.ID,
-			Time:     start,
-		},
-	)
-
-	inst.log.Info("Starting import")
-	defer func() {
-		inst.log.Infof("Import finished after %s", time.Since(start))
-	}()
-
-	data, err := inst.Handler.Import(ctx)
-	errMsg := ""
-	if err != nil {
-		inst.log.Errorf("importer %s failed: %s", inst.ID, err)
-		errMsg = err.Error()
+func NewManager(ctx context.Context, config *runtime.ConfigSchema, app *app.App) (*Manager, error) {
+	mng := &Manager{
+		app:       app,
+		config:    config,
+		cron:      cron.New(cron.WithLocation(app.Location())),
+		factories: make(map[string]Factory),
+		importers: make(map[string][]*Instance),
 	}
 
-	event.Fire(
-		context.Background(),
-		fmt.Sprintf("event/importer/%s/done", inst.ID),
-		ImportFinsihedEvent{
-			Importer: inst.ID,
-			Time:     time.Now(),
-			Duration: time.Since(start),
-			Data:     data,
-			Error:    errMsg,
-		},
-	)
+	mng.cron.Start()
+
+	return mng, nil
 }
 
-// FactoryFunc creates a new import handler based on cfg.
-type FactoryFunc func(app *app.App) ([]*Instance, error)
+func (mng *Manager) Config() *runtime.ConfigSchema { return mng.config }
 
-// Factory creates a new import handler.
-type Factory struct {
-	Name  string
-	Setup FactoryFunc
-}
+func (mng *Manager) NotifyChange(ctx context.Context, changeType, id string, sec *conf.Section) error {
+	mng.lock.Lock()
+	defer mng.lock.Unlock()
 
-// Factories holds all available import factories.
-var (
-	factoriesLock sync.RWMutex
-	factories     []Factory
-)
-
-// Register registers a new factory.
-func Register(factory Factory) {
-	factoriesLock.Lock()
-	defer factoriesLock.Unlock()
-
-	factories = append(factories, factory)
-}
-
-// Importer imports data from external systems.
-type Importer struct {
-	cron      *cron.Cron
-	instances []*Instance
-}
-
-// New creates a new importer from cfg.
-func New(ctx context.Context, app *app.App) (*Importer, error) {
-	imp := &Importer{}
-
-	c := cron.New(
-		cron.WithLocation(app.Location()),
-	)
-
-	imp.cron = c
-
-	if err := imp.setup(ctx, app); err != nil {
-		return nil, err
+	// we treat an "update" like a "delete"+"create" here
+	if changeType != "create" {
+		if instances, ok := mng.importers[id]; ok {
+			for _, instance := range instances {
+				mng.cron.Remove(instance.cronID)
+			}
+			delete(mng.importers, id)
+		}
 	}
 
-	return imp, nil
-}
+	errors := new(multierr.Error)
 
-func (imp *Importer) setup(ctx context.Context, app *app.App) error {
-	factoriesLock.RLock()
-	defer factoriesLock.RUnlock()
-
-	var instances []*Instance
-	for _, fn := range factories {
-		log.From(ctx).Infof("creating importers for %s", fn.Name)
-		res, err := fn.Setup(app)
-		if err != nil {
-			return fmt.Errorf("importer %s: %w", fn.Name, err)
+	if changeType != "delete" {
+		name := strings.ToLower(sec.Name)
+		reg, ok := mng.factories[name]
+		if !ok {
+			// we don't have a importer configuration for that schema type
+			// so abort without an error and ignore it
+			return nil
 		}
 
-		for _, inst := range res {
-			var err error
-			inst.schedule, err = cron.ParseStandard(inst.Schedule)
-			inst.log = log.From(ctx).WithFields(logger.Fields{
-				"importer": fn.Name,
-				"id":       inst.ID,
-			})
-			inst.running = abool.New()
+		instances, err := reg.FactoryFunc(ctx, mng.app, runtime.Section{
+			ID:      id,
+			Section: *sec,
+		})
+		if err != nil {
+			return err
+		}
 
+		for idx := range instances {
+			instance := instances[idx]
+
+			var err error
+			instance.log = logger.From(ctx).WithFields(logger.Fields{
+				"id":            id,
+				"instanceIndex": idx,
+				"type":          name,
+			})
+			instance.running = abool.New()
+			instance.schedule, err = cron.ParseStandard(instance.Schedule)
 			if err != nil {
-				return fmt.Errorf("invalid schedule %q: %w", inst.Schedule, err)
+				errors.Add(err)
+
+				continue
 			}
 
-			instances = append(instances, inst)
+			instance.cronID = mng.cron.Schedule(instance.schedule, instance)
+			mng.importers[name] = append(mng.importers[name], instance)
+
+			if instance.RunImmediately {
+				go instance.Run()
+			}
 		}
 	}
-
-	countDisabled := 0
-	for _, inst := range instances {
-		imp.cron.Schedule(inst.schedule, inst)
-		imp.instances = append(imp.instances, inst)
-		if inst.IsDisabled() {
-			countDisabled++
-		}
-	}
-
-	log.From(ctx).Infof("created and scheduled %d importers. %d are disabled right now", len(instances), countDisabled)
 
 	return nil
 }
 
-// Start starts the importer. It will run as long as ctx is not cancelled.
-func (imp *Importer) Start(ctx context.Context) error {
-	// kick of any instances that run immediately
-	for _, inst := range imp.instances {
-		if inst.RunImmediately {
-			go inst.Run()
-		}
+func (mng *Manager) Register(factory Factory) error {
+	mng.lock.Lock()
+	defer mng.lock.Unlock()
+
+	name := strings.ToLower(factory.Name)
+
+	if _, ok := mng.factories[name]; ok {
+		return fmt.Errorf("%w: %s", ErrImporterNameUsed, name)
 	}
 
-	imp.cron.Start()
+	if err := mng.config.Register(factory.Schema); err != nil {
+		return err
+	}
 
-	go func() {
-		<-ctx.Done()
-		<-imp.cron.Stop().Done()
-	}()
+	mng.factories[name] = factory
+
+	// register ourself as a  change notifier for
+	// the new importer type.
+	// TODO(ppacher): add validator support as well?
+	mng.config.AddNotifier(mng, name)
 
 	return nil
 }

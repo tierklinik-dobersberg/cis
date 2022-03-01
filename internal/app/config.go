@@ -3,8 +3,6 @@ package app
 import (
 	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/identity"
-	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 )
 
@@ -28,15 +26,8 @@ type Config struct {
 	session.IdentityConfig   `section:"Global"`
 	cfgspec.Config           `section:"Global"`
 	cfgspec.DatabaseConfig   `section:"Global"`
-	cfgspec.VetInf           `section:"Import"`
 	cfgspec.InfoScreenConfig `section:"InfoScreen"`
-	cfgspec.MongoLogConfig   `section:"MongoLog"`
 	CORS                     `section:"CORS"`
 
-	CardDAVImports []cfgspec.CardDAVConfig `section:"CardDAV Import"`
-
 	GoogleCalendar google.CalendarConfig `section:"GoogleCalendar"`
-
-	OpeningHours   []openinghours.Definition         `section:"OpeningHour"`
-	UserProperties []identity.UserPropertyDefinition `section:"UserProperty"`
 }

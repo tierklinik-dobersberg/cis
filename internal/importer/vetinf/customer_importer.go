@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/tevino/abool"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
@@ -12,12 +11,11 @@ import (
 	"github.com/tierklinik-dobersberg/logger"
 )
 
-func getCustomerImporter(app *app.App, exporter *Exporter) (*importer.Instance, error) {
+func getCustomerImporter(cfg VetInf, app *app.App, exporter *Exporter) (*importer.Instance, error) {
 	i := &importer.Instance{
-		ID:             "vetinf-customer:" + convertToID(app.Config.VetInfDirectory),
-		Schedule:       app.Config.VetInfImportSchedule,
+		ID:             "vetinf-customer:" + convertToID(cfg.Directory),
+		Schedule:       cfg.ImportSchedule,
 		RunImmediately: true,
-		Disabled:       abool.NewBool(app.Config.VetInf.VetInfImportDisabled),
 		Handler: importer.ImportFunc(func(ctx context.Context) (interface{}, error) {
 			log := log.From(ctx)
 
@@ -93,11 +91,12 @@ func getCustomerImporter(app *app.App, exporter *Exporter) (*importer.Instance, 
 		}),
 	}
 
+	// TODO(ppacher): get source manager as a parameter.
 	if err := customerdb.DefaultSourceManager.Register(customerdb.Source{
 		Name:        "vetinf",
 		Description: "Imports customer data from a VetInf installation",
 		Metadata: map[string]interface{}{
-			"Path": exporter.cfg.VetInfDirectory,
+			"Path": exporter.cfg.Directory,
 		},
 	}); err != nil {
 		return nil, err

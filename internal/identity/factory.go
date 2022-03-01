@@ -34,6 +34,7 @@ type (
 		// TODO(ppacher): add comment on what providers are expected to do with this
 		// information.
 		UserPropertyDefinitions []UserPropertyDefinition
+
 		// Global contains a reference to the global configuration struct.
 		Global *cfgspec.Config
 		// ConfigSchema holds a reference to the global configuration schema.

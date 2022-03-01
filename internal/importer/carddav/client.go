@@ -7,18 +7,17 @@ import (
 
 	"github.com/emersion/go-webdav"
 	"github.com/emersion/go-webdav/carddav"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
 // Client supports basic CardDAV operations.
 type Client struct {
 	cli *carddav.Client
-	cfg *cfgspec.CardDAVConfig
+	cfg *CardDAVConfig
 }
 
 // NewClient returns a new CardDAV client.
-func NewClient(cfg *cfgspec.CardDAVConfig) (*Client, error) {
+func NewClient(cfg *CardDAVConfig) (*Client, error) {
 	var cli webdav.HTTPClient = http.DefaultClient
 
 	if cfg.User != "" {
@@ -84,6 +83,7 @@ func (cli *Client) Sync(ctx context.Context, col, syncToken string, deleted chan
 			}
 		}
 	}
+
 	return syncResponse.SyncToken, nil
 }
 
@@ -91,6 +91,7 @@ func (cli *Client) DeleteObject(ctx context.Context, path string) error {
 	if err := cli.cli.RemoveAll(path); err != nil {
 		return err
 	}
+
 	return nil
 }
 

@@ -15,7 +15,6 @@ import (
 	"github.com/emersion/go-webdav/carddav"
 	"github.com/nyaruka/phonenumbers"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
@@ -28,39 +27,21 @@ import (
 
 var log = pkglog.New("carddav")
 
-func init() {
-	importer.Register(importer.Factory{
-		Name: "carddav",
-		Setup: func(app *app.App) ([]*importer.Instance, error) {
-			var instances []*importer.Instance
-
-			for _, cfg := range app.Config.CardDAVImports {
-				importer, err := getImporter(app, cfg)
-				if err != nil {
-					return nil, err
-				}
-				instances = append(instances, importer)
-			}
-
-			return instances, nil
-		},
-	})
-}
-
-func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, error) {
+func getImporter(app *app.App, cfg CardDAVConfig) (*importer.Instance, error) {
 	cli, err := NewClient(&cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	id := fmt.Sprintf("carddav-%s", cfg.ID)
-	i := &importer.Instance{
+	instance := &importer.Instance{
 		ID:             id,
 		Schedule:       cfg.Schedule,
 		RunImmediately: true,
 		Handler:        getImportFunc(id, cli, app, &cfg),
 	}
 
+	// TODO(ppacher): get source manager as a parameter
 	if err := customerdb.DefaultSourceManager.Register(customerdb.Source{
 		Name:        cfg.Source,
 		Description: "Imports contact data from a CardDAV server",
@@ -76,10 +57,10 @@ func getImporter(app *app.App, cfg cfgspec.CardDAVConfig) (*importer.Instance, e
 		return nil, err
 	}
 
-	return i, nil
+	return instance, nil
 }
 
-func getImportFunc(id string, cli *Client, app *app.App, cfg *cfgspec.CardDAVConfig) importer.ImportFunc {
+func getImportFunc(id string, cli *Client, app *app.App, cfg *CardDAVConfig) importer.ImportFunc {
 	return func(ctx context.Context) (interface{}, error) {
 		log := log.From(ctx)
 
@@ -152,7 +133,7 @@ func getImportFunc(id string, cli *Client, app *app.App, cfg *cfgspec.CardDAVCon
 	}
 }
 
-func findAddressBook(ctx context.Context, id string, cli *Client, cfg *cfgspec.CardDAVConfig) error {
+func findAddressBook(ctx context.Context, id string, cli *Client, cfg *CardDAVConfig) error {
 	if cfg.AddressBook != "" {
 		return nil
 	}
@@ -184,7 +165,7 @@ func findAddressBook(ctx context.Context, id string, cli *Client, cfg *cfgspec.C
 	return nil
 }
 
-func purgeLocalCustomers(ctx context.Context, id string, app *app.App, cfg *cfgspec.CardDAVConfig) error {
+func purgeLocalCustomers(ctx context.Context, id string, app *app.App, cfg *CardDAVConfig) error {
 	var (
 		errors = new(multierr.Error)
 		log    = logger.From(ctx)
@@ -209,7 +190,7 @@ func purgeLocalCustomers(ctx context.Context, id string, app *app.App, cfg *cfgs
 	return errors.ToError()
 }
 
-func processUpdates(ctx context.Context, app *app.App, id string, cfg *cfgspec.CardDAVConfig, deleted <-chan string, updated <-chan carddav.AddressObject) error {
+func processUpdates(ctx context.Context, app *app.App, id string, cfg *CardDAVConfig, deleted <-chan string, updated <-chan carddav.AddressObject) error {
 	log := logger.From(ctx)
 	ticker := time.NewTicker(10 * time.Second)
 	defer func() {
@@ -295,7 +276,7 @@ func deleteContact(ctx context.Context, cus *customerdb.Customer, cli *Client) e
 	return cli.DeleteObject(ctx, path)
 }
 
-func handleDelete(ctx context.Context, cfg *cfgspec.CardDAVConfig, app *app.App, path string) error {
+func handleDelete(ctx context.Context, cfg *CardDAVConfig, app *app.App, path string) error {
 	cus, err := findByPath(ctx, app, path)
 	if err != nil {
 		return err
@@ -311,7 +292,7 @@ func handleDelete(ctx context.Context, cfg *cfgspec.CardDAVConfig, app *app.App,
 	return nil
 }
 
-func handleUpdate(ctx context.Context, cfg *cfgspec.CardDAVConfig, app *app.App, ao carddav.AddressObject) (bool, error) {
+func handleUpdate(ctx context.Context, cfg *CardDAVConfig, app *app.App, ao carddav.AddressObject) (bool, error) {
 	if ao.Card == nil {
 		return false, fmt.Errorf("no VCARD data available")
 	}

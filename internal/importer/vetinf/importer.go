@@ -1,30 +1,41 @@
 package vetinf
 
 import (
+	"context"
 	"strings"
 
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
+	"github.com/tierklinik-dobersberg/cis/runtime"
 )
 
-func init() {
-	importer.Register(importer.Factory{
-		Name: "vetinf",
-		Setup: func(app *app.App) ([]*importer.Instance, error) {
-			if app.Config.VetInf.VetInfDirectory == "" {
-				return nil, nil
+func Register(manager *importer.Manager) error {
+	return manager.Register(importer.Factory{
+		Schema: runtime.Schema{
+			Name:        "vetinf",
+			DisplayName: "VetInf",
+			Description: "Configure import from a VetINF installation",
+			SVGData:     `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />`,
+			Spec:        VetInfSpec,
+			Multi:       false,
+		},
+		FactoryFunc: func(ctx context.Context, app *app.App, config runtime.Section) ([]*importer.Instance, error) {
+			var cfg VetInf
+
+			if err := config.Decode(VetInfSpec, &cfg); err != nil {
+				return nil, err
 			}
 
-			exporter, err := NewExporter(app.Config.VetInf, app.Config.Country, app.Identities)
+			exporter, err := NewExporter(cfg, app.Config.Country)
 			if err != nil {
 				return nil, err
 			}
 
-			ci, err := getCustomerImporter(app, exporter)
+			ci, err := getCustomerImporter(cfg, app, exporter)
 			if err != nil {
 				return nil, err
 			}
-			ai, err := getAnimalImporter(app, exporter)
+			ai, err := getAnimalImporter(cfg, app, exporter)
 			if err != nil {
 				return nil, err
 			}
