@@ -14,9 +14,11 @@ import {
   ConfigAPI,
   OptionSpec,
   PossibleValue,
+  StringFormatAnnotation,
   WellKnownAnnotations,
 } from 'src/app/api';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import * as ClassicEditor from 'ckeditor/build/ckeditor';
 
 export type NamedOptionSpec = OptionSpec & { displayName?: string };
 
@@ -37,6 +39,8 @@ export type NamedOptionSpec = OptionSpec & { displayName?: string };
 export class TkdOptionSpecInputComponent
   implements ControlValueAccessor, OnChanges
 {
+  public readonly Editor = ClassicEditor;
+
   private _disabled = false;
 
   @Input()
@@ -51,8 +55,19 @@ export class TkdOptionSpecInputComponent
   @Output()
   valueChange = new EventEmitter<any>();
 
-  isSecret = false;
+  /** Whether or not the current spec is a slice type */
   isSliceType = false;
+
+  /** for strings only: Whether or not the current spec describes a secret */
+  isSecret = false;
+
+  /** for strings only: whether or not the current spec is interpreted as markdown */
+  isMarkdown = false;
+
+  /** for strings only: whether or not the current spec is multi-line plain-text string */
+  isPlainText = false;
+
+  /** a list of possible values for the current spec */
   possibleValues: PossibleValue[] | null = null;
 
   @Input()
@@ -71,8 +86,19 @@ export class TkdOptionSpecInputComponent
         changes.spec.currentValue,
         WellKnownAnnotations.Secret
       );
+
       this.isSliceType =
         (changes.spec.currentValue as OptionSpec).type?.includes('[]') || false;
+
+      const format: StringFormatAnnotation = this.configapi.getAnnotation(changes.spec.currentValue, WellKnownAnnotations.StringFormat)
+      if (!!format && typeof format.format === 'string') {
+        this.isMarkdown = format.format === 'text/markdown';
+        this.isPlainText = format.format === 'text/plain';
+      } else {
+        this.isMarkdown = false;
+        this.isPlainText = false;
+      }
+
       this.configapi
         .resolvePossibleValues(changes.spec.currentValue)
         .then((values) => {
