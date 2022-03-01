@@ -44,6 +44,9 @@ var Spec = conf.SectionSpec{
 		Type:        conf.StringType,
 		Description: "The payload to publish to the command topic",
 		Default:     `{"replyTo": "${responseTopic}", "command": "${command}"}`,
+		Annotations: new(conf.Annotation).With(
+			runtime.StringFormat("text/plain"),
+		),
 	},
 	{
 		Name:        "ResponseTopic",

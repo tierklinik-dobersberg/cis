@@ -1,6 +1,9 @@
 package mailer
 
-import "github.com/ppacher/system-conf/conf"
+import (
+	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/runtime"
+)
 
 type Message struct {
 	From            string
@@ -50,6 +53,9 @@ var MessageSpec = conf.SectionSpec{
 		Name:        "Body",
 		Description: "The email body template. If used BodyFile= must be empty",
 		Type:        conf.StringType,
+		Annotations: new(conf.Annotation).With(
+			runtime.StringFormat("text/plain"),
+		),
 	},
 	{
 		Name:        "BodyFile",
