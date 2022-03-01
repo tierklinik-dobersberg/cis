@@ -33,6 +33,10 @@ func UpdateConfigEndpoint(r *app.Router) {
 			key := c.Param("key")
 			id := c.Param("id")
 
+			if err := schemaAccessAllowed(key); err != nil {
+				return err
+			}
+
 			var req UpdateConfigRequest
 			if err := c.Bind(&req); err != nil {
 				return err

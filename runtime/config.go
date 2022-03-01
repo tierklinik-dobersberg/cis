@@ -93,6 +93,10 @@ type (
 		// configuration can exist at the same time.
 		Multi bool `json:"multi"`
 
+		// Internal can be set to true if the schema should not be exposed via
+		// the REST API.
+		Internal bool `json:"internal"`
+
 		// Annotations may hold additional annotations about the configuration schema. Those
 		// annotations may be, for example, used by user interfaces to determine how to
 		// best display the configuration setting.
@@ -248,6 +252,18 @@ func (schema *ConfigSchema) Schemas() []Schema {
 	sort.Sort(schemaByName(res))
 
 	return res
+}
+
+// SchemaByName returns the schema definition by name.
+func (schema *ConfigSchema) SchemaByName(name string) (Schema, error) {
+	schema.rw.RLock()
+	defer schema.rw.RUnlock()
+
+	s, ok := schema.entries[strings.ToLower(name)]
+	if ok {
+		return s, nil
+	}
+	return Schema{}, ErrUnknownType
 }
 
 func (schema *ConfigSchema) SchemaAsMap(ctx context.Context, name string) (map[string]map[string]interface{}, error) {
