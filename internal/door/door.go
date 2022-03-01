@@ -9,10 +9,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ppacher/system-conf/conf"
 	"github.com/tevino/abool"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
+	"github.com/tierklinik-dobersberg/cis/runtime"
+	"github.com/tierklinik-dobersberg/cis/runtime/mqtt"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
+	"go.opentelemetry.io/otel"
 )
 
 var log = pkglog.New("door")
@@ -23,7 +27,7 @@ type State string
 // Interfacer is used to interact and control
 // the entry door. The door itself may be locked,
 // unlocked or "opened". If it's state is "opened",
-// it will lock against after it was closed.
+// it will lock as soon as it closes.
 type Interfacer interface {
 	// Lock the door.
 	Lock(context.Context) error
@@ -33,6 +37,10 @@ type Interfacer interface {
 
 	// Open the door for the next visitor to enter.
 	Open(context.Context) error
+
+	// Release is called to release and shut-down the door
+	// interfacer.
+	Release()
 }
 
 // Possible door states.
@@ -61,9 +69,6 @@ type Controller struct {
 	// overwriteLock protects access to manualOverwrite.
 	overwriteLock sync.Mutex
 
-	// door is the actual interface to control the door.
-	door Interfacer
-
 	// manualOverwrite is set when a user has manually overwritten
 	// the current state of the entry door.
 	manualOverwrite *stateOverwrite
@@ -80,21 +85,93 @@ type Controller struct {
 	// Whether or not a door reset is currently in progress.
 	resetInProgress *abool.AtomicBool
 
+	mqttConnectionManager *mqtt.ConnectionManager
+
 	// wg is used to wait for door controller operations to finish.
 	wg sync.WaitGroup
+
+	// interfacerLock protects access to door
+	interfacerLock sync.Mutex
+
+	// door is the actual interface to control the door.
+	door Interfacer
 }
 
 // NewDoorController returns a new door controller.
-func NewDoorController(ohCtrl *openinghours.Controller, door Interfacer) (*Controller, error) {
+func NewDoorController(ctx context.Context, ohCtrl *openinghours.Controller, cs *runtime.ConfigSchema, mqttConnectionManager *mqtt.ConnectionManager) (*Controller, error) {
 	dc := &Controller{
-		Controller:      ohCtrl,
-		door:            door,
-		stop:            make(chan struct{}),
-		reset:           make(chan *struct{}),
-		resetInProgress: abool.NewBool(false),
+		Controller:            ohCtrl,
+		stop:                  make(chan struct{}),
+		reset:                 make(chan *struct{}),
+		resetInProgress:       abool.NewBool(false),
+		mqttConnectionManager: mqttConnectionManager,
+		door:                  NoOp{},
+	}
+
+	cs.AddNotifier(dc, "Door")
+	cs.AddValidator(dc, "Door")
+
+	// initialize now
+	all, err := cs.All(ctx, "Door")
+	if err != nil {
+		return nil, err
+	}
+
+	if len(all) > 0 {
+		if err := dc.NotifyChange(ctx, "create", all[0].ID, &all[0].Section); err != nil {
+			return nil, err
+		}
 	}
 
 	return dc, nil
+}
+
+func (dc *Controller) Validate(ctx context.Context, sec runtime.Section) error {
+	var cfg MqttConfig
+	if err := conf.DecodeSections([]conf.Section{sec.Section}, Spec, &cfg); err != nil {
+		return err
+	}
+
+	cli, err := dc.mqttConnectionManager.Client(ctx, cfg.ConnectionName)
+	if err != nil {
+		return err
+	}
+	defer cli.Release()
+
+	return nil
+}
+
+func (dc *Controller) NotifyChange(ctx context.Context, changeType, id string, sec *conf.Section) error {
+	dc.interfacerLock.Lock()
+	defer dc.interfacerLock.Unlock()
+
+	// release the previously configured door interfacer
+	if dc.door != nil {
+		dc.door.Release()
+	}
+
+	dc.door = NoOp{}
+
+	switch changeType {
+	case "update", "create":
+		var cfg MqttConfig
+		if err := conf.DecodeSections([]conf.Section{*sec}, Spec, &cfg); err != nil {
+			return err
+		}
+
+		cli, err := dc.mqttConnectionManager.Client(ctx, cfg.ConnectionName)
+		if err != nil {
+			return err
+		}
+
+		interfacer, err := NewMqttDoor(cli, cfg)
+		if err != nil {
+			return err
+		}
+		dc.door = interfacer
+	}
+
+	return nil
 }
 
 // Overwrite overwrites the current door state with state until untilTime.
@@ -132,24 +209,54 @@ func (dc *Controller) Overwrite(ctx context.Context, state State, untilTime time
 
 // Lock implements DoorInterfacer.
 func (dc *Controller) Lock(ctx context.Context) error {
+	ctx, sp := otel.Tracer("").Start(ctx, "door.Controller.Lock")
+	defer sp.End()
+
 	dc.wg.Add(1)
 	defer dc.wg.Done()
+
+	dc.interfacerLock.Lock()
+	defer dc.interfacerLock.Unlock()
+
+	if dc.door == nil {
+		return fmt.Errorf("unconfigured door interfacer")
+	}
 
 	return dc.door.Lock(ctx)
 }
 
 // Unlock implements DoorInterfacer.
 func (dc *Controller) Unlock(ctx context.Context) error {
+	ctx, sp := otel.Tracer("").Start(ctx, "door.Controller.Unlock")
+	defer sp.End()
+
 	dc.wg.Add(1)
 	defer dc.wg.Done()
+
+	dc.interfacerLock.Lock()
+	defer dc.interfacerLock.Unlock()
+
+	if dc.door == nil {
+		return fmt.Errorf("unconfigured door interfacer")
+	}
 
 	return dc.door.Unlock(ctx)
 }
 
 // Open implements DoorInterfacer.
 func (dc *Controller) Open(ctx context.Context) error {
+	ctx, sp := otel.Tracer("").Start(ctx, "door.Controller.Open")
+	defer sp.End()
+
 	dc.wg.Add(1)
 	defer dc.wg.Done()
+
+	dc.interfacerLock.Lock()
+	defer dc.interfacerLock.Unlock()
+
+	if dc.door == nil {
+		return fmt.Errorf("unconfigured door interfacer")
+	}
 
 	return dc.door.Open(ctx)
 }
