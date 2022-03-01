@@ -4,14 +4,5 @@
     <span *ngIf="schema.description">{{ schema.description }}</span>
   </header>
 
-  <div class="space-y-8">
-    <tkd-option-spec-input
-      *ngFor="let option of schema.options; trackBy: trackOption; let index=index"
-      [spec]="option"
-      [(ngModel)]="value[option.name]"
-      (blur)="_onBlur()"
-      (ngModelChange)="_onChange(value)"
-      [index]="showIndex ? index + 1 : null"
-    ></tkd-option-spec-input>
-  </div>
+  <tkd-option-list-input [disabled]="disabled" class="tkd-card-content" [showIndex]="showIndex" [specs]="schema.options" [(ngModel)]="value" (ngModelChange)="_onChange(value)" (blur)="_onBlur()"></tkd-option-list-input>
 </div>

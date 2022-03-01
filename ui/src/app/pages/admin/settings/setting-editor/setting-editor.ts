@@ -61,9 +61,6 @@ export class SettingEditorComponent implements ControlValueAccessor {
   }
   private _disabled = false;
 
-  trackOption: TrackByFunction<OptionSpec> = (_: number, spec: OptionSpec) =>
-    spec.name;
-
   constructor(private cdr: ChangeDetectorRef) {}
 
   writeValue(obj: SchemaInstance): void {
