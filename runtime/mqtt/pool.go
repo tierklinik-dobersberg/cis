@@ -36,7 +36,7 @@ func NewConnectionManager(cs *runtime.ConfigSchema) *ConnectionManager {
 
 // ClientWithRandomID returns a new, connected MQTT client created from the configration
 // identified by name. The ID of the client is a random string to not interfer with other
-// instances of the above configuration
+// instances of the above configuration.
 func (cm *ConnectionManager) ClientWithRandomID(ctx context.Context, name string) (*Client, error) {
 	randomID, err := utils.Nonce(16)
 	if err != nil {

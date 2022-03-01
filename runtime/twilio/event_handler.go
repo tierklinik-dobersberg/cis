@@ -22,8 +22,10 @@ var eventTriggerSpec = conf.SectionSpec{
 }
 
 func AddTriggerType(name string, reg *trigger.Registry) error {
-	return reg.RegisterType(name, &trigger.Type{
-		OptionRegistry: confutil.MultiOptionRegistry{
+	return reg.RegisterType(trigger.ActionType{
+		Name:        name,
+		Description: "Send a SMS using Twilio to one or more receipients.",
+		Spec: confutil.MultiOptionRegistry{
 			MessageSpec,
 			eventTriggerSpec,
 		},

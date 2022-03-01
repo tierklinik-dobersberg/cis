@@ -89,7 +89,7 @@ func init() {
 			defer DefaultRegistry.l.RUnlock()
 			m := make(conf.FileSpec)
 			for name, factory := range DefaultRegistry.factories {
-				m[name] = factory
+				m[name] = factory.Spec
 			}
 
 			return m
