@@ -20,7 +20,7 @@ export class TriggerAPI {
 
     /** Returns all available trigger instances */
     listInstances(): Observable<TriggerInstance[]> {
-        return this.http.get<TriggerListResponse>(`/api/triggers/v1`)
+        return this.http.get<TriggerListResponse>(`/api/triggers/v1/instance`)
             .pipe(map(res => res.instances))
     }
 

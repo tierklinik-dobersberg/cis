@@ -25,7 +25,7 @@ type TriggerListResponse struct {
 
 func ListTriggerEndpoint(router *app.Router) {
 	router.GET(
-		"v1",
+		"v1/instance",
 		permission.OneOf{
 			ReadTriggerAction,
 		},
