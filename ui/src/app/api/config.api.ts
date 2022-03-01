@@ -256,7 +256,10 @@ export class ConfigAPI {
         break;
       default:
         const instances = await this.getSettings(oneOf.schemaType).toPromise();
-        Object.keys(instances).forEach((key) => values.push(instances[key]));
+        Object.keys(instances).forEach((key) => values.push({
+          ...instances[key],
+          _id: key,
+        }));
     }
 
     var result: PossibleValue[] = [];

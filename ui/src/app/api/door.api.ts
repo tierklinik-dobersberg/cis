@@ -85,17 +85,22 @@ export class DoorAPI {
    * @param state The new door state
    * @param duration THe duration for the overwrite. Follows golang time.Duration string
    */
-  overwrite(state: 'lock' | 'unlock', duration: string | number): Observable<State> {
+  overwrite(state: 'open', duration?: string | number): Observable<undefined>;
+  overwrite(state: 'lock' | 'unlock', duration: string | number): Observable<State>;
+  overwrite(state: string, duration: string | number): Observable<State|undefined> {
     return this.http.post<RemoteState>(`/api/door/v1/overwrite`, {
       state,
-      duration,
+      duration: duration || '0',
     })
       .pipe(
         map(resp => {
-          return {
-            state: resp.state,
-            until: new Date(resp.until),
-          };
+          if (state !== 'open') {
+            return {
+              state: resp.state,
+              until: new Date(resp.until),
+            };
+          }
+          return undefined;
         })
       );
   }

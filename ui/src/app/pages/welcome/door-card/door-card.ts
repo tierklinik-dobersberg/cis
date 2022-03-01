@@ -1,8 +1,22 @@
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, combineLatest, interval, Subscription } from 'rxjs';
-import { delay, mergeMap, retryWhen, startWith, takeWhile, tap } from 'rxjs/operators';
+import {
+  delay,
+  mergeMap,
+  retryWhen,
+  startWith,
+  takeWhile,
+  tap,
+} from 'rxjs/operators';
 import { DoorAPI, IdentityAPI, Permissions, State } from 'src/app/api';
+import { extractErrorMessage } from 'src/app/utils';
 
 @Component({
   selector: 'app-door-card',
@@ -10,7 +24,6 @@ import { DoorAPI, IdentityAPI, Permissions, State } from 'src/app/api';
   styleUrls: ['./door-card.scss'],
 })
 export class DoorCardComponent implements OnInit, OnDestroy {
-
   get hasWriteAccess(): boolean {
     return this.identityapi.hasPermission(Permissions.DoorSet);
   }
@@ -18,8 +31,8 @@ export class DoorCardComponent implements OnInit, OnDestroy {
   constructor(
     private identityapi: IdentityAPI,
     private doorapi: DoorAPI,
-    private nzMessageService: NzMessageService,
-  ) { }
+    private nzMessageService: NzMessageService
+  ) {}
 
   clock: Date = new Date();
   doorState: State;
@@ -42,28 +55,35 @@ export class DoorCardComponent implements OnInit, OnDestroy {
 
   private allSub = new Subscription();
 
-  overwriteDoor(state: 'lock' | 'unlock', duration: string): void {
-    this.doorapi.overwrite(state, duration)
-      .subscribe(updatedState => {
-        this.updateDoorState(updatedState);
-      }, err => console.error(err));
+  overwriteDoor(state: 'lock' | 'unlock' | 'open', duration?: string): void {
+    const messageId = this.nzMessageService.loading("Befehl wird gesendet ...");
+    this.doorapi.overwrite(state as any, duration).subscribe(
+      (updatedState) => {
+        this.nzMessageService.remove(messageId.messageId);
+        if (!!updatedState) {
+          this.updateDoorState(updatedState);
+        } else {
+          this.nzMessageService.success('Eingangstür geöffnet');
+        }
+      },
+      (err) => {
+        this.nzMessageService.remove(messageId.messageId);
+        this.nzMessageService.error(extractErrorMessage(err));
+      }
+    );
   }
 
   ngOnInit(): void {
-    const sub =
-      combineLatest([
-        interval(10000),
-        this.triggerDoorReload,
-      ])
-        .pipe(
-          startWith(0),
-          mergeMap(() => this.doorapi.state()),
-          retryWhen(err => err.pipe(delay(10000))),
-        )
-        .subscribe(state => {
-          this.clock = new Date();
-          this.updateDoorState(state);
-        });
+    const sub = combineLatest([interval(10000), this.triggerDoorReload])
+      .pipe(
+        startWith(0),
+        mergeMap(() => this.doorapi.state()),
+        retryWhen((err) => err.pipe(delay(10000)))
+      )
+      .subscribe((state) => {
+        this.clock = new Date();
+        this.updateDoorState(state);
+      });
     this.allSub.add(sub);
   }
 
@@ -72,16 +92,9 @@ export class DoorCardComponent implements OnInit, OnDestroy {
 
     const now = new Date();
 
-    this.doorActions = [
-      this.lockAction,
-      this.resetAction,
-    ];
+    this.doorActions = [this.lockAction, this.resetAction];
     if (this.doorState.state === 'locked') {
-      this.doorActions = [
-        this.unlockAction,
-        this.openAction,
-        this.resetAction,
-      ];
+      this.doorActions = [this.unlockAction, this.openAction, this.resetAction];
     }
 
     this.stateUntilDay = '';
@@ -93,25 +106,29 @@ export class DoorCardComponent implements OnInit, OnDestroy {
   }
 
   resetDoor(): void {
-    const resetMessageID = this.nzMessageService.loading('Tür wird zurückgesetzt', {
-      nzDuration: 0,
-    }).messageId;
+    const resetMessageID = this.nzMessageService.loading(
+      'Tür wird zurückgesetzt',
+      {
+        nzDuration: 0,
+      }
+    ).messageId;
 
     let resetStarted = false;
-    this.doorapi.reset()
+    this.doorapi
+      .reset()
       .pipe(
-        mergeMap(state => interval(1000)),
+        mergeMap((state) => interval(1000)),
         mergeMap(() => this.doorapi.state()),
-        tap(state => {
+        tap((state) => {
           if (state.resetInProgress) {
             resetStarted = true;
           }
         }),
-        takeWhile(state => !resetStarted || state.resetInProgress)
+        takeWhile((state) => !resetStarted || state.resetInProgress)
       )
       .subscribe(
-        state => this.updateDoorState(state),
-        err => console.error(err),
+        (state) => this.updateDoorState(state),
+        (err) => console.error(err),
         () => {
           this.nzMessageService.remove(resetMessageID);
           this.nzMessageService.success('Tür wurde zurückgesetzt');
