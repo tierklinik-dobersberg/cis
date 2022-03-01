@@ -265,20 +265,14 @@ func (ctrl *Controller) UpcomingFrames(ctx context.Context, dateTime time.Time, 
 	ctrl.rw.RLock()
 	defer ctrl.rw.RUnlock()
 
-	log := log.From(ctx)
 	var result []daytime.TimeRange
-
-	// Nothing to search for if there aren't any regular opening hours.
-	// There could be some holiday-only or date-specific hours but that's rather a
-	// configuration issue.
-	if len(ctrl.state.Regular) == 0 {
-		log.Errorf("no regular opening hours configured")
-
-		return nil
-	}
 
 	for len(result) < limit {
 		ranges := ctrl.forDate(ctx, dateTime)
+
+		if len(ranges) == 0 {
+			break
+		}
 
 		// Find the first frame that's after or covers t
 		var idx int
@@ -312,7 +306,11 @@ func (ctrl *Controller) UpcomingFrames(ctx context.Context, dateTime time.Time, 
 
 	// truncate the result to the exact size requested
 	// by the caller
-	return result[0:limit]
+	if len(result) > limit {
+		return result[0:limit]
+	}
+
+	return result
 }
 
 func (ctrl *Controller) ForDate(ctx context.Context, date time.Time) []OpeningHour {
