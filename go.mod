@@ -51,6 +51,7 @@ require (
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.2.1 // indirect
 	github.com/ugorji/go v1.2.6 // indirect
+	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	github.com/yuin/goldmark v1.4.4
 	github.com/zclconf/go-cty v1.10.0
