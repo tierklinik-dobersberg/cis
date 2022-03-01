@@ -1,24 +1,13 @@
 <!-- Header Row -->
-<div class="flex flex-row items-center -mb-6 space-x-4" *ngIf="editMode">
+<header class="tkd-header" *ngIf="editMode">
   <img
     [attr.src]="preview"
     *ngIf="!!preview && !previewError; else: noUserAvatar"
-    class="block w-12 h-12 bg-white rounded-full shadow text-color-primary"
     (error)="previewError = true"
   />
   <ng-template #noUserAvatar>
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      class="
-        block
-        p-2.5
-        w-12
-        h-12
-        bg-white
-        rounded-full
-        shadow
-        text-color-primary
-      "
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -32,16 +21,13 @@
     </svg>
   </ng-template>
 
-  <div class="flex flex-col">
-    <span class="text-base font-semibold font-lato text-primary">
-      {{ fullname || name }}
-    </span>
-    <span class="text-secondary" *ngIf="!!fullname"> {{ name }} </span>
+  <div class="tkd-header-title">
+    <h1>{{ fullname || name }}</h1>
+    <span *ngIf="!!fullname">{{ name }}</span>
   </div>
 
-  <div class="flex-grow"></div>
 
-  <div class="flex flex-row space-x-3">
+  <div class="tkd-actions">
     <button class="tkd-icon-btn tkd-primary tkd-small" (click)="saveUser()">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -77,7 +63,7 @@
       </svg>
     </button>
   </div>
-</div>
+</header>
 
 <nz-tabset>
   <nz-tab nzTitle="Übersicht">
@@ -244,7 +230,7 @@
             >
           </header>
           <div
-            class="grid items-start grid-cols-1 gap-4  md:gap-6 lg:gap-8 lg:grid-cols-2"
+            class="grid items-start grid-cols-1 gap-4 md:gap-6 lg:gap-8 lg:grid-cols-2"
           >
             <div class="flex flex-row space-x-4">
               <span
@@ -338,7 +324,7 @@
             >
           </header>
           <div
-            class="grid items-start grid-cols-1 gap-4  md:gap-6 lg:gap-8 lg:grid-cols-2"
+            class="grid items-start grid-cols-1 gap-4 md:gap-6 lg:gap-8 lg:grid-cols-2"
           >
             <tkd-option-spec-input
               *ngFor="let prop of userProperties; let index=index"
@@ -359,7 +345,7 @@
               {{ 7 + userProperties.length }}.
             </span>
             <div
-              class="flex flex-col items-center flex-grow  lg:justify-between lg:flex-row"
+              class="flex flex-col items-center flex-grow lg:justify-between lg:flex-row"
             >
               <div class="flex flex-col flex-grow">
                 <span class="text-base font-medium font-lato">
@@ -443,7 +429,7 @@
         <label
           for="file-upload"
           [class.h-96]="!preview"
-          class="flex items-center justify-center p-4 text-xl border border-dashed rounded cursor-pointer  border-primary border-opacity-light text-color-primary font-lato hover:bg-primary hover:bg-opacity-5"
+          class="flex items-center justify-center p-4 text-xl border border-dashed rounded cursor-pointer border-primary border-opacity-light text-color-primary font-lato hover:bg-primary hover:bg-opacity-5"
         >
           <img
             [attr.src]="preview"
