@@ -1,0 +1,30 @@
+@layer components {
+  header.tkd-header {
+    @apply flex flex-row items-center -mb-6 space-x-4;
+
+    // Avatar / Page Title Image
+    & > img,
+    & > svg {
+      @apply block w-12 h-12 bg-white rounded-full shadow text-color-primary;
+    }
+    & > svg {
+      @apply p-2.5 overflow-visible;
+    }
+
+    div.tkd-header-title {
+      @apply flex flex-col flex-grow leading-4;
+
+      h1 {
+        @apply text-base font-semibold font-lato text-primary;
+      }
+      span {
+        @apply text-secondary;
+      }
+    }
+
+    div.tkd-actions {
+      @apply flex flex-row space-x-3;
+    }
+
+  }
+}
