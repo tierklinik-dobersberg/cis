@@ -18,7 +18,7 @@ var TriggerSpec = conf.SectionSpec{
 		Description: "The name of the MQTT connection configuration. Defaults to the first configuration.",
 		Type:        conf.StringType,
 		Annotations: new(conf.Annotation).With(
-			runtime.OneOfRef("MQTT", "Name", "name"),
+			runtime.OneOfRef("MQTT", "Name", "Name"),
 		),
 	},
 	{
