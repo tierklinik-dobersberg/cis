@@ -10,9 +10,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 )
 
-// TODO(ppacher):
-//	- add support for connection pooling so we don't re-create for each "publish"
-
 var log = pkglog.New("mqtt")
 
 var TriggerSpec = conf.SectionSpec{
@@ -21,7 +18,7 @@ var TriggerSpec = conf.SectionSpec{
 		Description: "The name of the MQTT connection configuration. Defaults to the first configuration.",
 		Type:        conf.StringType,
 		Annotations: new(conf.Annotation).With(
-			runtime.OneOfRef("MQTT", runtime.IDRef, "name"),
+			runtime.OneOfRef("MQTT", "Name", "name"),
 		),
 	},
 	{
@@ -45,12 +42,17 @@ var TriggerSpec = conf.SectionSpec{
 }
 
 // RegisterTriggerOn registers the MQTT trigger on the registry reg.
-func RegisterTriggerOn(reg *trigger.Registry) error {
+func RegisterTriggerOn(reg *trigger.Registry, connectionManager *ConnectionManager) error {
 	return reg.RegisterType("mqtt-publish", &trigger.Type{
 		OptionRegistry: TriggerSpec,
 		CreateFunc: func(ctx context.Context, globalCfg *runtime.ConfigSchema, sec *conf.Section) (trigger.Handler, error) {
 			pub := &EventPublisher{
-				cs: globalCfg,
+				cm: connectionManager,
+			}
+
+			// guard against mis-use
+			if globalCfg != connectionManager.config {
+				return nil, fmt.Errorf("mqtt-publish trigger created with different *runtime.ConfigSchema")
 			}
 
 			if err := conf.DecodeSections([]conf.Section{*sec}, TriggerSpec, pub); err != nil {
@@ -64,7 +66,10 @@ func RegisterTriggerOn(reg *trigger.Registry) error {
 
 func init() {
 	runtime.Must(
-		RegisterTriggerOn(trigger.DefaultRegistry),
+		RegisterTriggerOn(
+			trigger.DefaultRegistry,
+			DefaultConnectionManager,
+		),
 	)
 	runtime.Must(
 		AddToSchema(runtime.GlobalSchema),
