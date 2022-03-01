@@ -11,7 +11,6 @@ import (
 
 	goruntime "runtime"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/spf13/cobra"
@@ -50,7 +49,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
-	"github.com/tierklinik-dobersberg/cis/internal/integration/mongolog"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/roster"
@@ -93,12 +91,11 @@ import (
 	_ "github.com/tierklinik-dobersberg/cis/runtime/twilio"
 	// MQTT trigger type.
 	runtimeMQTT "github.com/tierklinik-dobersberg/cis/runtime/mqtt"
-	// VetInf importer.
-	_ "github.com/tierklinik-dobersberg/cis/internal/importer/vetinf"
 	// Neumayr importer.
+	"github.com/tierklinik-dobersberg/cis/internal/importer/carddav"
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/neumayr"
-	// CardDAV importer.
-	_ "github.com/tierklinik-dobersberg/cis/internal/importer/carddav"
+	"github.com/tierklinik-dobersberg/cis/internal/importer/vetinf"
+
 	// Task: Find linkable customers.
 	// Schema migrations.
 	_ "github.com/tierklinik-dobersberg/cis/migrations"
@@ -181,14 +178,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	//
 	mongoClient := getMongoClient(ctx, cfg.DatabaseURI)
 
-	if cfg.MongoLogConfig.Enabled {
-		mongoLogger, err := mongolog.NewWithClient(ctx, cfg.DatabaseName, mongoClient, cfg.MongoLogConfig)
-		if err != nil {
-			logger.Fatalf(ctx, "mongolog: %s", err.Error())
-		}
-		logApt.addAdapter(mongoLogger)
-	}
-
 	//
 	// At this point we can prepare the actual configuration provider
 	//
@@ -270,7 +259,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		ConfigurationDirectory:  svcenv.Env().ConfigurationDirectory,
 		MongoClient:             mongoClient,
 		MongoDatabaseName:       cfg.DatabaseName,
-		UserPropertyDefinitions: cfg.UserProperties,
+		UserPropertyDefinitions: nil, // FIXME(ppacher): providers need cfg.UserProperties for privacy features,
 		Global:                  &cfg.Config,
 		ConfigSchema:            runtime.GlobalSchema,
 	})
@@ -334,41 +323,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	logger.Infof(ctx, "database system initialized")
 
 	//
-	// prepare MQTT client and connect to broker
-	//
-	// FIXME(ppacher): remove as soon as the door interfacer can be configured
-	var doorInterfacer door.Interfacer = door.NoOp{}
-	var mqttConfigs []runtimeMQTT.ConnectionConfig
-
-	if err := runtime.GlobalSchema.DecodeSection(ctx, "MQTT", &mqttConfigs); err != nil {
-		logger.Fatalf(ctx, "mqtt: %s", err.Error())
-	}
-
-	if len(mqttConfigs) > 0 {
-		mqttClient, err := mqttConfigs[0].GetClient(ctx)
-		if err != nil {
-			logger.Fatalf(ctx, "mqtt-config: %s", err.Error())
-		}
-
-		// TODO(ppacher): try to connect in background
-		for {
-			if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
-				logger.Errorf(ctx, "failed to connect to mqtt: %s", err)
-				time.Sleep(time.Second)
-
-				continue
-			}
-
-			break
-		}
-		logger.Infof(ctx, "successfully connected to MQTT")
-
-		doorInterfacer = getDoorInterface(ctx, mqttClient)
-	} else {
-		logger.Errorf(ctx, "failed to find a MQTT configuration")
-	}
-
-	//
 	// prepare opeing hours controller
 	//
 	holidayCache := openinghours.NewHolidayCache()
@@ -380,7 +334,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	//
 	// prepare entry door controller
 	//
-	doorController, err := door.NewDoorController(openingHoursCtrl, doorInterfacer)
+	doorController, err := door.NewDoorController(ctx, openingHoursCtrl, runtime.GlobalSchema, runtimeMQTT.DefaultConnectionManager)
 	if err != nil {
 		logger.Fatalf(ctx, "door-controler: %s", err.Error())
 	}
@@ -575,15 +529,6 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 	}
 }
 
-func getDoorInterface(ctx context.Context, client mqtt.Client) door.Interfacer {
-	cli, err := door.NewMqttDoor(client)
-	if err != nil {
-		logger.Fatalf(ctx, err.Error())
-	}
-
-	return cli
-}
-
 func getMongoClient(ctx context.Context, uri string) *mongo.Client {
 	monitor := otelmongo.NewMonitor()
 	clientConfig := options.Client().ApplyURI(uri).SetMonitor(monitor)
@@ -617,17 +562,24 @@ func runMain() {
 		}(ctx)
 	}
 
-	logger.Infof(ctx, "starting importers ...")
-
-	importManager, err := importer.New(ctx, app)
+	manager, err := importer.NewManager(ctx, runtime.GlobalSchema, app)
 	if err != nil {
-		logger.Fatalf(ctx, "failed to create importers: %s", err)
+		logger.Fatalf(ctx, "importer: %s", err)
 	}
 
-	if err := importManager.Start(ctx); err != nil {
-		logger.Fatalf(ctx, "failed to start importers: %s", err)
+	//
+	// Register available importers
+	//
+	if err := vetinf.Register(manager); err != nil {
+		logger.Fatalf(ctx, "failed to register vetinf importer: %s", err)
+	}
+	if err := carddav.Register(manager); err != nil {
+		logger.Fatalf(ctx, "failed to register vetinf importer: %s", err)
 	}
 
+	//
+	// Start the door scheduler
+	//
 	logger.Infof(ctx, "starting door scheduler ...")
 
 	if err := app.Door.Start(); err != nil {

@@ -4,19 +4,17 @@ import (
 	"context"
 	"errors"
 
-	"github.com/tevino/abool"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
-func getAnimalImporter(app *app.App, exporter *Exporter) (*importer.Instance, error) {
+func getAnimalImporter(cfg VetInf, app *app.App, exporter *Exporter) (*importer.Instance, error) {
 	return &importer.Instance{
-		ID:             "vetinf-animals: " + convertToID(app.Config.VetInfDirectory),
+		ID:             "vetinf-animals: " + convertToID(cfg.Directory),
 		RunImmediately: true,
-		Schedule:       app.Config.VetInfImportSchedule,
-		Disabled:       abool.NewBool(app.Config.VetInfImportDisabled),
+		Schedule:       cfg.ImportSchedule,
 		Handler: importer.ImportFunc(func(ctx context.Context) (interface{}, error) {
 			log := log.From(ctx)
 

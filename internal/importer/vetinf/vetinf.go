@@ -4,14 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
-	"sync"
 
 	"github.com/nyaruka/phonenumbers"
 	"github.com/spf13/afero"
-	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
-	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/patient/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/go-vetinf/vetinf"
@@ -36,13 +32,13 @@ type ExportedAnimal struct {
 // Exporter is capable of exporting and extracting
 // data of a VetInf installation.
 type Exporter struct {
-	cfg      cfgspec.VetInf
+	cfg      VetInf
 	db       *vetinf.Infdat
 	country  string
 	usersMap map[int]string // nolint:unused
 
-	identities    identity.Provider
-	loadUsersOnce sync.Once // nolint:unused
+	// identities    identity.Provider
+	// loadUsersOnce sync.Once // nolint:unused
 }
 
 type ImportResults struct {
@@ -53,77 +49,77 @@ type ImportResults struct {
 }
 
 // NewExporter creates a new exporter for vetinf.
-func NewExporter(cfg cfgspec.VetInf, country string, users identity.Provider) (*Exporter, error) {
-	stat, err := os.Stat(cfg.VetInfDirectory)
+func NewExporter(cfg VetInf, country string) (*Exporter, error) {
+	stat, err := os.Stat(cfg.Directory)
 	if err != nil {
 		return nil, err
 	}
 
 	if !stat.IsDir() {
-		return nil, fmt.Errorf("%q is not a directory", cfg.VetInfDirectory)
+		return nil, fmt.Errorf("%q is not a directory", cfg.Directory)
 	}
 
-	infdat := vetinf.OpenReadonlyFs(cfg.VetInfDirectory, afero.NewOsFs())
+	infdat := vetinf.OpenReadonlyFs(cfg.Directory, afero.NewOsFs())
 
 	return &Exporter{
-		db:         infdat,
-		cfg:        cfg,
-		country:    country,
-		identities: users,
+		db:      infdat,
+		cfg:     cfg,
+		country: country,
+		// identities: users,
 	}, nil
 }
 
 // nolint:unused
-func (e *Exporter) buildUsersMap() error {
-	// create a lookup map for converting vetinf user identifiers to
-	// user names CIS knows.
-	// TODO(ppacher): this needs to be redone once we support config/identity
-	// reload.
-	e.usersMap = make(map[int]string)
-	if e.cfg.VetInfUserIDProperty != "" {
-		ctx := identity.WithScope(context.Background(), identity.Internal)
-		allUsers, err := e.identities.ListAllUsers(ctx)
-		if err != nil {
-			return fmt.Errorf("failed to build user-lookup map: %s", err)
-		}
-
-		for _, u := range allUsers {
-			prop, ok := u.Properties[e.cfg.VetInfUserIDProperty]
-			if !ok {
-				continue
-			}
-
-			switch v := prop.(type) {
-			case int:
-				e.usersMap[v] = u.Name
-			case string:
-				d, err := strconv.ParseInt(v, 10, 0)
-				if err != nil {
-					return fmt.Errorf("failed to parse VetInf user ID %q for user %s: %w", u.Name, v, err)
-				}
-				e.usersMap[int(d)] = u.Name
-			default:
-				return fmt.Errorf("unsupported type for VetInf user ID in user %s: %T", u.Name, prop)
-			}
-		}
-	}
-
-	return nil
-}
-
-// nolint:unused
-func (e *Exporter) getUserNameByID(userID int) string {
-	e.loadUsersOnce.Do(func() {
-		if err := e.buildUsersMap(); err != nil {
-			log.From(context.Background()).Errorf("failed to build vetinf user lookup map: %s", err)
-		}
-	})
-
-	if u, ok := e.usersMap[userID]; ok {
-		return u
-	}
-	return fmt.Sprintf("<%d>", userID)
-}
+// func (e *Exporter) buildUsersMap() error {
+// 	// create a lookup map for converting vetinf user identifiers to
+// 	// user names CIS knows.
+// 	// TODO(ppacher): this needs to be redone once we support config/identity
+// 	// reload.
+// 	e.usersMap = make(map[int]string)
+// 	if e.cfg.VetInfUserIDProperty != "" {
+// 		ctx := identity.WithScope(context.Background(), identity.Internal)
+// 		allUsers, err := e.identities.ListAllUsers(ctx)
+// 		if err != nil {
+// 			return fmt.Errorf("failed to build user-lookup map: %s", err)
+// 		}
+//
+// 		for _, u := range allUsers {
+// 			prop, ok := u.Properties[e.cfg.VetInfUserIDProperty]
+// 			if !ok {
+// 				continue
+// 			}
+//
+// 			switch v := prop.(type) {
+// 			case int:
+// 				e.usersMap[v] = u.Name
+// 			case string:
+// 				d, err := strconv.ParseInt(v, 10, 0)
+// 				if err != nil {
+// 					return fmt.Errorf("failed to parse VetInf user ID %q for user %s: %w", u.Name, v, err)
+// 				}
+// 				e.usersMap[int(d)] = u.Name
+// 			default:
+// 				return fmt.Errorf("unsupported type for VetInf user ID in user %s: %T", u.Name, prop)
+// 			}
+// 		}
+// 	}
+//
+// 	return nil
+// }
+//
+// // nolint:unused
+// func (e *Exporter) getUserNameByID(userID int) string {
+// 	e.loadUsersOnce.Do(func() {
+// 		if err := e.buildUsersMap(); err != nil {
+// 			log.From(context.Background()).Errorf("failed to build vetinf user lookup map: %s", err)
+// 		}
+// 	})
+//
+// 	if u, ok := e.usersMap[userID]; ok {
+// 		return u
+// 	}
+// 	return fmt.Sprintf("<%d>", userID)
+// }
 
 // ExportCustomers exports all vetinf customers and streams them to
 // the returned channel. Errors encountered when exporting single
@@ -131,7 +127,7 @@ func (e *Exporter) getUserNameByID(userID int) string {
 func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *ExportedCustomer, int, error) {
 	log := log.From(ctx)
 
-	customerDB, err := e.db.CustomerDB(e.cfg.VetInfEncoding)
+	customerDB, err := e.db.CustomerDB(e.cfg.Encoding)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -214,7 +210,7 @@ func (e *Exporter) ExportCustomers(ctx context.Context) (<-chan *ExportedCustome
 
 func (e *Exporter) ExportAnimals(ctx context.Context) (<-chan *ExportedAnimal, int, error) {
 	log := log.From(ctx)
-	animaldb, err := e.db.AnimalDB(e.cfg.VetInfEncoding)
+	animaldb, err := e.db.AnimalDB(e.cfg.Encoding)
 	if err != nil {
 		return nil, 0, err
 	}

@@ -1,4 +1,4 @@
-package cfgspec
+package carddav
 
 import "github.com/ppacher/system-conf/conf"
 
@@ -67,6 +67,9 @@ var CardDAVSpec = conf.SectionSpec{
 		Name:        "Password",
 		Description: "The password required for HTTP Basic authentication",
 		Type:        conf.StringType,
+		Annotations: new(conf.Annotation).With(
+			conf.SecretValue(),
+		),
 	},
 	{
 		Name:        "AddressBook",
