@@ -22,12 +22,15 @@ func (eh *eventHandler) HandleEvents(ctx context.Context, evts ...*event.Event) 
 			log.From(ctx).Errorf("failed to run command: %s", err)
 		}
 	}
+
 	return errors.ToError()
 }
 
 func AddTriggerType(name string, reg *trigger.Registry) error {
-	return reg.RegisterType(name, &trigger.Type{
-		OptionRegistry: ExecerSpec,
+	return reg.RegisterType(trigger.ActionType{
+		Name:        name,
+		Spec:        ExecerSpec,
+		Description: "Execute a custom command.",
 		CreateFunc: func(c context.Context, _ *runtime.ConfigSchema, s *conf.Section) (trigger.Handler, error) {
 			var e Execer
 			if err := conf.DecodeSections([]conf.Section{*s}, ExecerSpec, &e); err != nil {

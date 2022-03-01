@@ -46,8 +46,10 @@ func (eh *eventHandler) HandleEvents(ctx context.Context, events ...*event.Event
 
 // AddTriggerType registers a "SendMail" trigger on reg using typeName.
 func AddTriggerType(typeName string, reg *trigger.Registry) error {
-	return reg.RegisterType(typeName, &trigger.Type{
-		OptionRegistry: MessageSpec,
+	return reg.RegisterType(trigger.ActionType{
+		Name:        typeName,
+		Description: "Send an E-Mail to one or more receipients.",
+		Spec:        MessageSpec,
 		CreateFunc: func(ctx context.Context, cs *runtime.ConfigSchema, s *conf.Section) (trigger.Handler, error) {
 			var msg Message
 
