@@ -4,6 +4,7 @@ package trace
 import (
 	"crypto/rand"
 	"fmt"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -110,11 +111,29 @@ func WithConfig(config Config) echo.MiddlewareFunc {
 			req = req.WithContext(ctx)
 			c.SetRequest(req)
 
-			err := next(c)
-			if err != nil {
-				c.Error(err)
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
+			var returnErr error
+
+			defer func() {
+				if x := recover(); x != nil {
+					err, ok := x.(error)
+					if !ok {
+						err = fmt.Errorf("%+v", x)
+					}
+
+					span.RecordError(err, trace.WithStackTrace(true))
+					span.SetStatus(codes.Error, err.Error())
+
+					if !c.Response().Committed {
+						returnErr = c.NoContent(http.StatusInternalServerError)
+					}
+				}
+			}()
+
+			returnErr = next(c)
+			if returnErr != nil {
+				c.Error(returnErr)
+				span.RecordError(returnErr)
+				span.SetStatus(codes.Error, returnErr.Error())
 			}
 
 			span.SetAttributes(
