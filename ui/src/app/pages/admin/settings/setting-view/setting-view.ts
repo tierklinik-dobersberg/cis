@@ -161,6 +161,7 @@ export class SettingViewComponent implements OnInit, OnDestroy {
       nzWidth: null,
       nzClassName: 'w-1/2',
       nzFooter: null,
+      nzTitle: "Test your Settings"
     });
   }
 
