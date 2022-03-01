@@ -14,8 +14,9 @@
       }
     }
 
-    & > div {
-      @apply p-4 sm:p-6 md:p-8;
+    & > div,
+    .tkd-card-content {
+      @apply block p-4 sm:p-6 md:p-8;
     }
   }
 }
