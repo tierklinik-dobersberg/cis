@@ -3,11 +3,8 @@ package mqtt
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
-	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 )
 
@@ -17,52 +14,16 @@ type EventPublisher struct {
 	EventAsTopic     bool
 	QualityOfService int
 
-	cs *runtime.ConfigSchema
-}
-
-func getConnectedClient(ctx context.Context, name string, cs *runtime.ConfigSchema) (mqtt.Client, error) {
-	var mqttConfigs []ConnectionConfig
-
-	if err := cs.DecodeSection(ctx, "MQTT", &mqttConfigs); err != nil {
-		return nil, fmt.Errorf("failed to decode mqtt configuration sections")
-	}
-
-	if len(mqttConfigs) == 0 {
-		return nil, fmt.Errorf("no mqtt configuration defined")
-	}
-
-	var selectedConfig ConnectionConfig
-	if name != "" {
-		for _, cfg := range mqttConfigs {
-			if cfg.Name == name {
-				selectedConfig = cfg
-
-				break
-			}
-		}
-	} else {
-		selectedConfig = mqttConfigs[0]
-	}
-
-	cli, err := selectedConfig.GetClient(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if token := cli.Connect(); token.Wait() && token.Error() != nil {
-		return nil, token.Error()
-	}
-
-	return cli, nil
+	cm *ConnectionManager
 }
 
 // HandleEvent implements (event.Handler).
 func (pub *EventPublisher) HandleEvents(ctx context.Context, evts ...*event.Event) error {
-	cli, err := getConnectedClient(ctx, pub.ConnectionName, pub.cs)
+	cli, err := pub.cm.Client(ctx, pub.ConnectionName)
 	if err != nil {
 		return err
 	}
-	defer cli.Disconnect(1000)
+	defer cli.Release()
 
 	errors := new(multierr.Error)
 	for _, evt := range evts {

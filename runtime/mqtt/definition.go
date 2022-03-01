@@ -6,6 +6,7 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/internal/utils"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -42,8 +43,7 @@ var ConnectionConfigSpec = conf.SectionSpec{
 	{
 		Name:        "ClientID",
 		Type:        conf.StringType,
-		Default:     "cisd",
-		Description: "Client ID for mqtt",
+		Description: "Client ID for MQTT. A random ID will be created for each connection if left empty.",
 	},
 	{
 		Name:        "KeepAliveSeconds",
@@ -74,7 +74,15 @@ func (cfg ConnectionConfig) GetClient(ctx context.Context) (mqtt.Client, error) 
 		opts.AddBroker(srv)
 	}
 
-	opts.SetClientID(cfg.ClientID)
+	var clientID = cfg.ClientID
+	if clientID == "" {
+		var err error
+		clientID, err = utils.Nonce(16)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate client ID: %w", err)
+		}
+	}
+	opts.SetClientID(clientID)
 
 	if cfg.User != "" {
 		opts.SetUsername(cfg.User)
