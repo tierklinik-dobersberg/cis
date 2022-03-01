@@ -3,12 +3,16 @@
 </span>
 
 <div class="flex flex-col flex-grow">
-  <span class="text-base font-medium font-lato">
-    {{ spec.displayName || spec.name }}
-    <span *ngIf="spec.required" class="text-color-primary-dark">*</span>
-  </span>
-  <span class="text-sm text-secondary font-lato"> {{ spec.description }} </span>
-  <div class="mt-3">
+  <div class="flex flex-col">
+    <span class="text-sm font-medium font-lato">
+      {{ spec.displayName || spec.name }}
+      <span *ngIf="spec.required" class="text-color-primary-dark">*</span>
+    </span>
+    <span class="text-sm text-secondary font-lato">
+      {{ spec.description }}
+    </span>
+  </div>
+  <div>
     <div class="flex items-center mt-3 space-x-2">
       <ng-container
         *ngIf="possibleValues?.length > 0; else: typeSwitchTempalte"
@@ -30,17 +34,36 @@
       </ng-container>
       <ng-template #typeSwitchTempalte>
         <ng-container [ngSwitch]="spec.type">
+          <ng-container *ngSwitchCase="'string'">
+            <input
+              *ngIf="!isMarkdown && !isPlainText; else: multiLineText"
+              [type]="isSecret ? 'password' : 'text'"
+              [attr.placeholder]="spec.default"
+              class="flex-grow tkd-input"
+              [(ngModel)]="value"
+              (ngModelChange)="_onChanged($event)"
+              (blur)="_onBlur()"
+            />
+            <ng-template #multiLineText>
+              <ckeditor
+                *ngIf="isMarkdown; else: plainTextTemplate"
+                class="flex-grow tkd-input"
+                [config]="{}"
+                [editor]="Editor"
+                [(ngModel)]="value"
+                (ngModelChange)="_onChanged($event)"
+                (blur)="_onBlur()"
+              >
+              </ckeditor>
+
+              <ng-template #plainTextTemplate>
+                <textarea [attr.placeholder]="spec.default" class="flex-grow tkd-input" [(ngModel)]="value" (ngModelChange)="_onChanged($event)" (blur)="_onBlur()" #input nz-input></textarea>
+              </ng-template>
+            </ng-template>
+          </ng-container>
+
           <input
-            [type]="isSecret ? 'password' : 'text'"
-            [attr.placeholder]="spec.default"
-            class="flex-grow tkd-input"
-            *ngSwitchCase="'string'"
-            [(ngModel)]="value"
-            (ngModelChange)="_onChanged($event)"
-            (blur)="_onBlur()"
-          />
-          <input
-            [type]="isSecret ? 'password' : 'text'"
+            type="text"
             [attr.placeholder]="spec.default"
             class="flex-grow tkd-input"
             *ngSwitchCase="'duration'"
@@ -78,13 +101,7 @@
 
           <div
             *ngSwitchDefault
-            class="
-              flex-grow
-              p-3
-              border border-alert-red
-              text-alert-red
-              font-lato
-            "
+            class="flex-grow p-3 border border-alert-red text-alert-red font-lato"
           >
             Option type
             <span class="font-semibold underline">{{ spec.type }}</span> is not

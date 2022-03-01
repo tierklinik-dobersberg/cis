@@ -70,17 +70,25 @@ func Unique(uniqueFields ...string) conf.KeyValue {
 	}
 }
 
-type OnlyWhenValueAnnotation struct {
-	Field string `json:"field"`
-	Value string `json:"value"`
+type StringFormatAnnotation struct {
+	// Format defines the format of the annotated string
+	// value.
+	//
+	// Valid values are:
+	//
+	//	- text/plain
+	//	- text/markdown
+	//	- application/json
+	//
+	Format string `json:"format"`
 }
 
-// OnlyWhenValue annotates a conf.Option to be only considered relevant in
-// case the option optionName is set to valueCondition.
-func OnlyWhenValue(optionName, valueCondition string) conf.KeyValue {
+func StringFormat(format string) conf.KeyValue {
 	return conf.KeyValue{
-		Key:   "vet.dobersberg.cis:schema/onlyWhenValue",
-		Value: valueCondition,
+		Key: "vet.dobersberg.cis:schema/stringFormat",
+		Value: StringFormatAnnotation{
+			Format: format,
+		},
 	}
 }
 
