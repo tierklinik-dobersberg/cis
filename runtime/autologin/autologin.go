@@ -68,11 +68,6 @@ func (mng *Manager) findMatchingRecords(c echo.Context) []*autologinRecord {
 	defer mng.rw.RUnlock()
 	for _, rec := range mng.conditions {
 		matched, err := rec.Match(c)
-		log.WithFields(logger.Fields{
-			"policy":  rec.Name,
-			"matched": matched,
-			"error":   fmt.Sprintf("%s", err),
-		}).V(7).Logf("evaluated condition %s", rec.Name)
 
 		if err != nil {
 			log.Errorf("failed to evaluate http request condition: %s", err)
@@ -80,6 +75,11 @@ func (mng *Manager) findMatchingRecords(c echo.Context) []*autologinRecord {
 			continue
 		}
 		if matched {
+			log.WithFields(logger.Fields{
+				"policy": rec.Name,
+				"error":  fmt.Sprintf("%s", err),
+			}).V(7).Logf("found matching condition %s", rec.Name)
+
 			result = append(result, rec)
 		}
 	}
