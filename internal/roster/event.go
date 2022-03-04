@@ -2,12 +2,23 @@ package roster
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/logger"
+)
+
+var (
+	eventCreate = event.MustRegisterType(event.Type{
+		ID: "vet.dobersberg.cis/roster/overwrite/create",
+	})
+	eventUpdate = event.MustRegisterType(event.Type{
+		ID: "vet.dobersberg.cis/roster/overwrite/update",
+	})
+	eventDelete = event.MustRegisterType(event.Type{
+		ID: "vet.dobersberg.cis/roster/overwrite/delete",
+	})
 )
 
 type RosterUpdateEvent struct {
@@ -38,20 +49,20 @@ func (db *database) fireChangeEvent(ctx context.Context, month time.Month, year 
 		return
 	}
 
-	event.Fire(ctx, fmt.Sprintf("event/roster/update/%04d/%02d", year, month), RosterUpdateEvent{
+	eventCreate.Fire(ctx, RosterUpdateEvent{
 		DutyRoster: *roster,
 	})
 }
 
 func (db *database) fireDeleteEvent(ctx context.Context, month time.Month, year int) {
-	event.Fire(ctx, fmt.Sprintf("event/roster/delete/%04d/%02d", year, month), RosterDeleteEvent{
+	eventDelete.Fire(ctx, RosterDeleteEvent{
 		Year:  year,
 		Month: month,
 	})
 }
 
 func (db *database) fireOverwriteDeleteEvent(ctx context.Context, from, to time.Time) {
-	event.Fire(ctx, "event/roster/overwrite/delete", OverwriteEvent{
+	eventDelete.Fire(ctx, OverwriteEvent{
 		Reset: true,
 		From:  from.Format(time.RFC3339),
 		To:    to.Format(time.RFC3339),
@@ -59,7 +70,7 @@ func (db *database) fireOverwriteDeleteEvent(ctx context.Context, from, to time.
 }
 
 func (db *database) fireOverwriteEvent(ctx context.Context, from, to time.Time, user, phone, name string) {
-	event.Fire(ctx, "event/roster/overwrite/create", OverwriteEvent{
+	eventCreate.Fire(ctx, OverwriteEvent{
 		DisplayName: name,
 		User:        user,
 		Phone:       phone,
