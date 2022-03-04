@@ -1,3 +1,4 @@
+import { keyframes } from '@angular/animations';
 import {
   HttpClient,
   HttpErrorResponse,
@@ -13,6 +14,7 @@ import {
   timer,
 } from 'rxjs';
 import { delayWhen, filter, map, retryWhen } from 'rxjs/operators';
+import { TriggerAPI } from '.';
 import { IdentityAPI } from './identity.api';
 
 export interface ExternalLink {
@@ -28,6 +30,7 @@ export enum WellKnownAnnotations {
   Secret = 'system-conf/secret',
   OverviewFields = 'vet.dobersberg.cis:schema/overviewFields',
   OneOf = 'vet.dobersberg.cis:schema/oneOf',
+  StringFormat = 'vet.dobersberg.cis:schema/stringFormat'
 }
 
 export interface PossibleValue<T = any> {
@@ -36,12 +39,18 @@ export interface PossibleValue<T = any> {
 }
 export interface OneOfValuesAnnotation {
   values: PossibleValue[];
+  allowCustomValue: boolean;
 }
 
 export interface OneOfRefAnnotation {
   schemaType: string;
   valueField: string;
   displayField: string;
+  allowCustomValue: boolean;
+}
+
+export interface StringFormatAnnotation {
+  format: string;
 }
 
 export type OneOf = OneOfValuesAnnotation | OneOfRefAnnotation;
@@ -154,7 +163,8 @@ export class ConfigAPI {
   constructor(
     private http: HttpClient,
     private nzMessageService: NzMessageService,
-    private identity: IdentityAPI
+    private identity: IdentityAPI,
+    private triggerapi: TriggerAPI
   ) {
     let loading: NzMessageRef | null = null;
     combineLatest([
@@ -238,6 +248,14 @@ export class ConfigAPI {
     return val;
   }
 
+  customValueAllowed(obj: Annotated): boolean {
+    const oneOf = this.oneOf(obj);
+    if (oneOf === null) {
+      return true;
+    }
+    return oneOf.allowCustomValue;
+  }
+
   async resolvePossibleValues(obj: Annotated): Promise<PossibleValue[] | null> {
     const oneOf = this.oneOf(obj);
     if (oneOf === null) {
@@ -254,6 +272,21 @@ export class ConfigAPI {
       case 'identity:roles':
         values = await this.identity.getRoles().toPromise();
         break;
+      case 'identity:users':
+        values = await this.identity.listUsers().toPromise();
+        break;
+      case 'trigger':
+        const triggers = await this.triggerapi.listInstances().toPromise()
+        values = triggers.map(instance => {
+          return {
+            ...instance.config,
+            _id: instance.id,
+          }
+        })
+        break;
+      case 'events':
+        values = await this.triggerapi.listEventTypes().toPromise()
+        break;
       default:
         const instances = await this.getSettings(oneOf.schemaType).toPromise();
         Object.keys(instances).forEach((key) => values.push({
@@ -262,14 +295,29 @@ export class ConfigAPI {
         }));
     }
 
-    var result: PossibleValue[] = [];
-    (values || []).forEach((val) => {
-      result.push({
-        display: val[oneOf.displayField || oneOf.valueField],
-        value: val[oneOf.valueField],
-      });
+    var resultSet = new Map<string, PossibleValue>();
+    (values || []).forEach((config) => {
+      let value: string | string[] = config[oneOf.valueField];
+      if (!Array.isArray(value)) {
+        value = [value];
+      }
+
+      value.forEach(val => {
+        let display: string = config[oneOf.displayField]
+
+        if (!display || oneOf.displayField === oneOf.valueField) {
+          display = val;
+        }
+
+        const pv = {
+          display: display,
+          value: val,
+        }
+        resultSet.set(`${pv.value}:${pv.display}`, pv);
+      })
+
     });
-    return result;
+    return Array.from(resultSet.values());
   }
 
   listSchemas(): Observable<Schema[]> {

@@ -9,7 +9,13 @@ export class UsersReadyGuard implements CanActivate {
     constructor(private users: UserService) { }
 
     canActivate(): Observable<boolean> {
-        return this.users.updated
-            .pipe(map(() => true))
+      const timeout = setTimeout(() => {
+        debugger;
+      }, 5000)
+      return this.users.updated
+            .pipe(map(() => {
+              clearTimeout(timeout)
+              return true;
+            }))
     }
 }
