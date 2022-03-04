@@ -12,6 +12,9 @@ import (
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type (
@@ -263,6 +266,7 @@ func (schema *ConfigSchema) SchemaByName(name string) (Schema, error) {
 	if ok {
 		return s, nil
 	}
+
 	return Schema{}, ErrUnknownType
 }
 
@@ -347,6 +351,13 @@ func (schema *ConfigSchema) SetProvider(provider ConfigProvider) {
 }
 
 func (schema *ConfigSchema) GetID(ctx context.Context, id string) (Section, error) {
+	ctx, sp := otel.Tracer("").Start(ctx, "runtime.ConfigSchema.GetID",
+		trace.WithAttributes(
+			attribute.String("schema_instance_id", id),
+		),
+	)
+	defer sp.End()
+
 	schema.providerLock.RLock()
 	defer schema.providerLock.RUnlock()
 
@@ -360,6 +371,13 @@ func (schema *ConfigSchema) GetID(ctx context.Context, id string) (Section, erro
 }
 
 func (schema *ConfigSchema) All(ctx context.Context, secType string) ([]Section, error) {
+	ctx, sp := otel.Tracer("").Start(ctx, "runtime.ConfigSchema.All",
+		trace.WithAttributes(
+			attribute.String("schema_type", secType),
+		),
+	)
+	defer sp.End()
+
 	schema.providerLock.RLock()
 	defer schema.providerLock.RUnlock()
 
@@ -371,6 +389,13 @@ func (schema *ConfigSchema) All(ctx context.Context, secType string) ([]Section,
 }
 
 func (schema *ConfigSchema) Create(ctx context.Context, secType string, options []conf.Option) (string, error) {
+	ctx, sp := otel.Tracer("").Start(ctx, "runtime.ConfigSchema.Create",
+		trace.WithAttributes(
+			attribute.String("schema_type", secType),
+		),
+	)
+	defer sp.End()
+
 	schema.rw.RLock()
 	defer schema.rw.RUnlock()
 
@@ -386,7 +411,12 @@ func (schema *ConfigSchema) Create(ctx context.Context, secType string, options 
 		return "", ErrCfgSectionNotFound
 	}
 
-	if err := schema.ensureUniquness(ctx, reg, options); err != nil {
+	// ensure spec compliance
+	if err := conf.ValidateOptions(options, reg.Spec); err != nil {
+		return "", httperr.BadRequest(err.Error())
+	}
+
+	if err := schema.ensureUniquness(ctx, reg, options, ""); err != nil {
 		return "", err
 	}
 
@@ -410,6 +440,14 @@ func (schema *ConfigSchema) Create(ctx context.Context, secType string, options 
 }
 
 func (schema *ConfigSchema) Update(ctx context.Context, id, secType string, opts []conf.Option) error {
+	ctx, sp := otel.Tracer("").Start(ctx, "runtime.ConfigSchema.Update",
+		trace.WithAttributes(
+			attribute.String("schema_instance_id", id),
+			attribute.String("schema_type", secType),
+		),
+	)
+	defer sp.End()
+
 	schema.providerLock.RLock()
 	defer schema.providerLock.RUnlock()
 
@@ -425,7 +463,12 @@ func (schema *ConfigSchema) Update(ctx context.Context, id, secType string, opts
 		return ErrCfgSectionNotFound
 	}
 
-	if err := schema.ensureUniquness(ctx, reg, opts); err != nil {
+	// ensure spec compliance
+	if err := conf.ValidateOptions(opts, reg.Spec); err != nil {
+		return httperr.BadRequest(err.Error())
+	}
+
+	if err := schema.ensureUniquness(ctx, reg, opts, id); err != nil {
 		return err
 	}
 
@@ -453,6 +496,13 @@ func (schema *ConfigSchema) Update(ctx context.Context, id, secType string, opts
 }
 
 func (schema *ConfigSchema) Delete(ctx context.Context, id string) error {
+	ctx, sp := otel.Tracer("").Start(ctx, "runtime.ConfigSchema.Delete",
+		trace.WithAttributes(
+			attribute.String("schema_instance_id", id),
+		),
+	)
+	defer sp.End()
+
 	schema.providerLock.RLock()
 	defer schema.providerLock.RUnlock()
 
@@ -559,6 +609,13 @@ func (schema *ConfigSchema) runValidators(ctx context.Context, sec Section) erro
 }
 
 func (schema *ConfigSchema) notifyChangeListeners(ctx context.Context, changeType, id string, secName string, sec *conf.Section) error {
+	ctx, sp := otel.Tracer("").Start(ctx, "runtime.ConfigSchema.notifyChangeListeners",
+		trace.WithAttributes(
+			attribute.String("change_type", changeType),
+		),
+	)
+	defer sp.End()
+
 	errs := new(multierr.Error)
 	for _, listener := range schema.listeners[""] {
 		if err := listener.NotifyChange(ctx, changeType, id, sec); err != nil {
@@ -578,7 +635,7 @@ func (schema *ConfigSchema) notifyChangeListeners(ctx context.Context, changeTyp
 	return nil
 }
 
-func (schema *ConfigSchema) ensureUniquness(ctx context.Context, reg Schema, sec conf.Options) error {
+func (schema *ConfigSchema) ensureUniquness(ctx context.Context, reg Schema, sec conf.Options, self string) error {
 	uniqueFields, ok := reg.Annotations.Get("vet.dobersberg.cis:schema/unqiueFields").([]string)
 	if !ok {
 		return nil
@@ -593,6 +650,10 @@ func (schema *ConfigSchema) ensureUniquness(ctx context.Context, reg Schema, sec
 		newValues := sec.GetStringSlice(f)
 
 		for _, instance := range all {
+			if instance.ID == self {
+				continue
+			}
+
 			if match, ok := optionIncludesValues(instance.Options, f, newValues); ok {
 				return fmt.Errorf("field %q=%q already used in instance %s", f, match, instance.ID)
 			}
@@ -612,6 +673,7 @@ func optionIncludesValues(opts conf.Options, optionName string, values []string)
 			return v, true
 		}
 	}
+
 	return "", false
 }
 
