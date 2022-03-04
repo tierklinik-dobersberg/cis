@@ -2,11 +2,19 @@ package voicemaildb
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+var (
+	eventVoicemailUnread = event.MustRegisterType(event.Type{
+		ID: "vet.dobersberg.cis/voicemail/unread",
+	})
+	eventVoicemailRead = event.MustRegisterType(event.Type{
+		ID: "vet.dobersberg.cis/voicemail/read",
+	})
 )
 
 // VoiceMailEvent is fired when a voicemail message is read or unread.
@@ -27,21 +35,13 @@ func (db *database) fireEvent(ctx context.Context, id string, created bool) {
 		return
 	}
 
-	readStr := "unread"
-	if created {
-		readStr = "created"
-	} else if record.Read {
-		readStr = "read"
-	}
-	eventID := fmt.Sprintf("event/voicemails/%s", readStr)
-
 	// count number of unread documents in the same mailbox
 	all, err := db.Search(ctx, new(SearchOptions).ByVoiceMail(record.Name).BySeen(false))
 	if err != nil {
 		logger.From(ctx).Errorf("failed to count unread voicemails for %s: %s", record.Name, err)
 	}
 
-	event.Fire(ctx, eventID, VoicemailEvent{
+	payload := VoicemailEvent{
 		VoiceMail:      record.Name,
 		From:           record.From,
 		CustomerID:     record.CustomerID,
@@ -49,5 +49,11 @@ func (db *database) fireEvent(ctx context.Context, id string, created bool) {
 		Read:           record.Read,
 		ID:             record.ID,
 		CountUnread:    len(all),
-	})
+	}
+
+	if created {
+		eventVoicemailUnread.Fire(ctx, payload)
+	} else if record.Read {
+		eventVoicemailRead.Fire(ctx, payload)
+	}
 }
