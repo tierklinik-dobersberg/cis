@@ -2,6 +2,8 @@ package event
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,9 +19,58 @@ type subscription struct {
 	ch         chan<- *Event
 }
 
+// Type describes an avaialble event type.
+type Type struct {
+	// ID is the name of the event type
+	ID string
+
+	// Description is a human readable descriptin of
+	// the event type.
+	Description string
+}
+
+type TypeRef struct {
+	reg *Registry
+	Type
+}
+
+func (ref *TypeRef) Fire(ctx context.Context, payload Data) {
+	ref.reg.Fire(ctx, ref.ID, payload)
+}
+
 type Registry struct {
 	l           sync.RWMutex
 	subscribers []subscription
+	types       map[string]Type
+}
+
+func (reg *Registry) RegisterType(eventType Type) (*TypeRef, error) {
+	reg.l.Lock()
+	defer reg.l.Unlock()
+
+	if reg.types == nil {
+		reg.types = make(map[string]Type)
+	}
+
+	if _, ok := reg.types[strings.ToLower(eventType.ID)]; ok {
+		return nil, fmt.Errorf("event-type: name taken")
+	}
+
+	reg.types[strings.ToLower(eventType.ID)] = eventType
+
+	return &TypeRef{Type: eventType, reg: reg}, nil
+}
+
+func (reg *Registry) ListTypes() []Type {
+	reg.l.RLock()
+	defer reg.l.RUnlock()
+
+	result := make([]Type, 0, len(reg.types))
+	for _, t := range reg.types {
+		result = append(result, t)
+	}
+
+	return result
 }
 
 // Fire fires a new event of the given ID to all subscribers.
@@ -101,3 +152,11 @@ func Fire(ctx context.Context, id string, payload Data) {
 
 // DefaultRegistry is the event registry used by package level functions.
 var DefaultRegistry = new(Registry)
+
+func MustRegisterType(t Type) *TypeRef {
+	tref, err := DefaultRegistry.RegisterType(t)
+	if err != nil {
+		panic(fmt.Sprintf("%s: %s", t.ID, err))
+	}
+	return tref
+}
