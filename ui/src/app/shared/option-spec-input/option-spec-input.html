@@ -19,7 +19,7 @@
       >
         <nz-select
           class="flex-grow w-full"
-          [nzMode]="isSliceType ? 'multiple' : 'default'"
+          [nzMode]="allowCustomValues ? 'tags' : isSliceType ? 'multiple' : 'default'"
           nzPlaceHolder="Please select"
           [(ngModel)]="value"
           (ngModelChange)="_onChanged($event)"
