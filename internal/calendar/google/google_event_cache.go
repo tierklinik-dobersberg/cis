@@ -9,7 +9,6 @@ import (
 	"time"
 
 	ciscal "github.com/tierklinik-dobersberg/cis/internal/calendar"
-	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/googleapi"
 )
@@ -159,7 +158,14 @@ func (ec *googleEventCache) syncAndEmit(ctx context.Context, item *calendar.Even
 	if evt != nil {
 		log.From(ctx).V(7).Logf("event %s: %s %s (%s)", action, evt.ID, evt.StartTime.Format("2006-01-02 15:04:05"), evt.Summary)
 		if emit {
-			event.Fire(ctx, fmt.Sprintf("event/calendar/%s/%s", evt.CalendarID, action), evt)
+			switch action {
+			case "created":
+				eventCreated.Fire(ctx, evt)
+			case "updated":
+				eventUpdated.Fire(ctx, evt)
+			case "deleted":
+				eventDeleted.Fire(ctx, evt)
+			}
 		}
 	}
 }
