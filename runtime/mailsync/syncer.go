@@ -116,6 +116,7 @@ func (sync *Syncer) poll() {
 	cli, err := mailbox.Connect(*sync.cfg)
 	if err != nil {
 		sync.log.Errorf("failed to connect: %w", err)
+
 		return
 	}
 	defer func() {
@@ -143,6 +144,7 @@ func (sync *Syncer) poll() {
 	mails, err := cli.FetchUIDs(ctx, seqset)
 	if err != nil {
 		sync.log.Errorf("failed to fetch mails: %s", err)
+
 		return
 	}
 
@@ -151,6 +153,7 @@ func (sync *Syncer) poll() {
 	for mail := range mails {
 		if mail.Err != nil {
 			sync.log.Errorf("failed to fetch mail: %s", err)
+
 			continue
 		}
 
@@ -190,6 +193,7 @@ func (sync *Syncer) Stop() error {
 	sync.rw.Lock()
 	if sync.close == nil {
 		sync.rw.Unlock()
+
 		return fmt.Errorf("not running")
 	}
 	close(sync.close)
