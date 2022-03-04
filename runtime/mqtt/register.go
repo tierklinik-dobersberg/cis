@@ -41,12 +41,14 @@ var TriggerSpec = conf.SectionSpec{
 	},
 }
 
-// RegisterTriggerOn registers the MQTT trigger on the registry reg.
-func RegisterTriggerOn(name string, reg *trigger.Registry, connectionManager *ConnectionManager) error {
+// AddTriggerType registers the MQTT trigger on the registry reg.
+func AddTriggerType(reg *trigger.Registry, connectionManager *ConnectionManager) error {
 	return reg.RegisterType(trigger.ActionType{
-		Name:        name,
-		Description: "Publish to an MQTT topic",
-		Spec:        TriggerSpec,
+		Schema: runtime.Schema{
+			Name:        "MQTT-Publish",
+			Description: "Publish to an MQTT topic",
+			Spec:        TriggerSpec,
+		},
 		CreateFunc: func(ctx context.Context, globalCfg *runtime.ConfigSchema, sec *conf.Section) (trigger.Handler, error) {
 			pub := &EventPublisher{
 				cm: connectionManager,
@@ -67,13 +69,6 @@ func RegisterTriggerOn(name string, reg *trigger.Registry, connectionManager *Co
 }
 
 func init() {
-	runtime.Must(
-		RegisterTriggerOn(
-			"mqtt-publish",
-			trigger.DefaultRegistry,
-			DefaultConnectionManager,
-		),
-	)
 	runtime.Must(
 		AddToSchema(runtime.GlobalSchema),
 	)

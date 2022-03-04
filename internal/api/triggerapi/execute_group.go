@@ -28,7 +28,7 @@ func ExecuteTriggerGroupEndpoint(router *app.Router) {
 				sess.User.Name,
 				sess.ExtraRoles(),
 				app,
-				trigger.DefaultRegistry.Instances(),
+				app.Trigger.Instances(),
 				groupName,
 			)
 			if err != nil {
@@ -45,14 +45,15 @@ func ExecuteTriggerGroupEndpoint(router *app.Router) {
 					Created: time.Now(),
 				})
 				if err != nil {
-					logger.From(ctx).Errorf("failed to handle external trigger: %s: %s", instance.Name(), err.Error())
+					logger.From(ctx).Errorf("failed to handle external trigger: %s: %s", instance.ID(), err.Error())
 				}
 
+				// FIXME
 				result = append(result, TriggerInstance{
-					Name:        instance.Name(),
-					Description: instance.Description(),
-					Pending:     instance.Pending(),
-					Groups:      instance.Groups(),
+					Pending: instance.Pending(),
+					TriggerDefinition: TriggerDefinition{
+						ID: instance.ID(),
+					},
 				})
 			}
 			if len(result) == 0 {
@@ -89,7 +90,7 @@ func findAllowedGroupMembers(ctx context.Context, username string, extraRoles []
 		req := &permission.Request{
 			User:     username,
 			Action:   ExecuteTriggerAction.Name,
-			Resource: instance.Name(),
+			Resource: instance.ID(),
 		}
 		permitted, err := app.Matcher.Decide(ctx, req, extraRoles)
 		if err != nil {

@@ -16,16 +16,16 @@ import (
 
 func ExecuteTriggerEndpoint(router *app.Router) {
 	router.POST(
-		"v1/instance/:trigger",
+		"v1/instance/:id",
 		permission.OneOf{
 			ExecuteTriggerAction,
 		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
-			triggerName := c.Param("trigger")
+			triggerName := c.Param("id")
 
-			instance := findInstance(triggerName, trigger.DefaultRegistry.Instances())
+			instance := findInstance(triggerName, app.Trigger.Instances())
 			if instance == nil {
-				return httperr.BadRequest("trigger " + triggerName)
+				return httperr.NotFound("trigger ", triggerName)
 			}
 			// TODO(ppacher): we may add support for custom event IDs instead
 			// of the hard-coded __external.
@@ -35,7 +35,7 @@ func ExecuteTriggerEndpoint(router *app.Router) {
 					Created: time.Now(),
 				})
 				if err != nil {
-					logger.From(ctx).Errorf("failed to handle external trigger %s: %s", instance.Name(), err)
+					logger.From(ctx).Errorf("failed to handle external trigger %s: %s", instance.ID(), err)
 				}
 			} else {
 				return httperr.PreconditionFailed("trigger does not support being triggered via API")
@@ -48,7 +48,7 @@ func ExecuteTriggerEndpoint(router *app.Router) {
 
 func findInstance(name string, instances []*trigger.Instance) *trigger.Instance {
 	for _, i := range instances {
-		if i.Name() == name {
+		if i.ID() == name {
 			return i
 		}
 	}

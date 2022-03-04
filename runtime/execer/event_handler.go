@@ -8,6 +8,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 type eventHandler struct {
@@ -19,18 +20,20 @@ func (eh *eventHandler) HandleEvents(ctx context.Context, evts ...*event.Event) 
 	for _, e := range evts {
 		if err := eh.execer.Run(ctx, e); err != nil {
 			errors.Add(err)
-			log.From(ctx).Errorf("failed to run command: %s", err)
+			logger.From(ctx).Errorf("failed to run command: %s", err)
 		}
 	}
 
 	return errors.ToError()
 }
 
-func AddTriggerType(name string, reg *trigger.Registry) error {
+func AddTriggerType(reg *trigger.Registry) error {
 	return reg.RegisterType(trigger.ActionType{
-		Name:        name,
-		Spec:        ExecerSpec,
-		Description: "Execute a custom command.",
+		Schema: runtime.Schema{
+			Name:        "Exec",
+			Spec:        ExecerSpec,
+			Description: "Execute a custom command.",
+		},
 		CreateFunc: func(c context.Context, _ *runtime.ConfigSchema, s *conf.Section) (trigger.Handler, error) {
 			var e Execer
 			if err := conf.DecodeSections([]conf.Section{*s}, ExecerSpec, &e); err != nil {

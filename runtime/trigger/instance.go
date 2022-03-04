@@ -10,6 +10,9 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/logger"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Handler is the interface that can be attached to trigger instances and
@@ -26,6 +29,9 @@ type Handler interface {
 // InstanceConfig holds additional configuration values
 // for trigger instances.
 type InstanceConfig struct {
+	// Name is the name of the instance as set by the user.
+	Name string
+
 	// EventFilters holds a topic subscription that's evaluated using
 	// event.MatchSubscription. It's only used when calling Wants() on the
 	// final instance returned by NewInstance. This field is not required
@@ -72,32 +78,37 @@ type InstanceConfig struct {
 type Instance struct {
 	cfg      *InstanceConfig
 	handlers []Handler
-	name     string
+	id       string
 
+	wg        sync.WaitGroup
 	l         sync.Mutex
 	buffer    []*event.Event
 	startOnce sync.Once
 	pending   bool
 	flush     chan struct{}
+	cancel    context.CancelFunc
 }
 
 // NewInstance creates a new trigger instance for the set of handlers.
 // Note that the instance does not listen for events by itself. The caller
 // will want to make sure to call Handle(*event.Event) at appropriate
 // places or create a event subscription.
-func NewInstance(instanceName string, handlers []Handler, instanceCfg *InstanceConfig) *Instance {
-	return &Instance{
+func NewInstance(baseCtx context.Context, instanceName string, handlers []Handler, instanceCfg *InstanceConfig) (context.Context, *Instance) {
+	ctx, cancel := context.WithCancel(baseCtx)
+
+	return ctx, &Instance{
 		cfg:      instanceCfg,
-		name:     instanceName,
+		id:       instanceName,
 		handlers: handlers,
 		pending:  false,
 		flush:    make(chan struct{}),
+		cancel:   cancel,
 	}
 }
 
-// Name returns the name of the instance.
-func (inst *Instance) Name() string {
-	return inst.name
+// ID returns the name of the instance.
+func (inst *Instance) ID() string {
+	return inst.id
 }
 
 // Groups returns list of trigger group names this instance belongs
@@ -160,6 +171,14 @@ func (inst *Instance) Wants(eventTopic string) bool {
 // caller should use Wants() before or otherwise make sure this instance
 // can handle the provided event.
 func (inst *Instance) Handle(ctx context.Context, evt *event.Event) error {
+	ctx, sp := otel.Tracer("").Start(ctx, "trigger.Instance.Handle",
+		trace.WithAttributes(
+			attribute.String("instance_id", inst.id),
+			attribute.String("instance_name", inst.cfg.Name),
+		),
+	)
+	defer sp.End()
+
 	errors := new(multierr.Error)
 
 	// if we're buffering or debouncing event handling we need a separate
@@ -167,7 +186,7 @@ func (inst *Instance) Handle(ctx context.Context, evt *event.Event) error {
 	if len(inst.cfg.BufferUntil) > 0 || len(inst.cfg.DebounceUntil) > 0 {
 		inst.startOnce.Do(func() {
 			ctx := logger.WithFields(context.TODO(), logger.Fields{
-				"tigger": inst.name,
+				"tigger": inst.id,
 			})
 			go inst.waitAndFire(ctx)
 		})
@@ -189,6 +208,12 @@ func (inst *Instance) Handle(ctx context.Context, evt *event.Event) error {
 	for idx, handler := range inst.handlers {
 		if err := handler.HandleEvents(ctx, evt); err != nil {
 			errors.Addf("handler %d: %w", idx, err)
+			sp.RecordError(
+				err,
+				trace.WithAttributes(
+					attribute.Int("handler_index", idx),
+				),
+			)
 		}
 	}
 
@@ -261,7 +286,7 @@ func (inst *Instance) fireBuffer(ctx context.Context) {
 	log.V(7).Logf("fireing %d buffered events", len(buffer))
 	for idx, handler := range inst.handlers {
 		if err := handler.HandleEvents(ctx, buffer...); err != nil {
-			log.Errorf("failed to execute trigger handler %s/%d: %w", inst.name, idx, err)
+			log.Errorf("failed to execute trigger handler %s/%d: %w", inst.id, idx, err)
 		}
 	}
 }
@@ -288,6 +313,7 @@ func matchToInstanceConfig(match MatchConfig) (*InstanceConfig, error) {
 		return nil, fmt.Errorf("DebounceUntil= and BufferUntil= are mutually exclusive")
 	}
 
+	instanceCfg.Name = match.Name
 	instanceCfg.Location = time.Local
 	instanceCfg.EventFilters = match.EventFilter
 	instanceCfg.Description = match.Description

@@ -10,6 +10,12 @@ import (
 const externalTriggerID = "__external"
 
 var (
+	ManageTriggerAction = permission.MustDefineAction(
+		"trigger:manage",
+		"Permission to manage trigger instances",
+		nil,
+	)
+
 	ReadTriggerAction = permission.MustDefineAction(
 		"trigger:read",
 		"Permission to read exposed triggers",
@@ -20,10 +26,11 @@ var (
 		"trigger:execute",
 		"Permission to execute a trigger",
 		func(c echo.Context) (string, error) {
-			name := c.Param("trigger")
+			name := c.Param("id")
 			if name == "" {
 				return "", fmt.Errorf("permission not applicable")
 			}
+
 			return name, nil
 		},
 	)
