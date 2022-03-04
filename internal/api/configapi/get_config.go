@@ -63,5 +63,6 @@ func schemaAccessAllowed(key string) error {
 	if schema.Internal {
 		return httperr.PreconditionFailed("access to schema not allowed")
 	}
+
 	return nil
 }

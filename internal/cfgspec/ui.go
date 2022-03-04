@@ -139,13 +139,19 @@ var TriggerActionSpec = conf.SectionSpec{
 	},
 	{
 		Name:        "PrimaryTrigger",
-		Description: "The name of the primary trigger used to detect if the action is already pending.",
+		Description: "The ID of the primary trigger used to detect if the action is already pending.",
 		Type:        conf.StringType,
+		Annotations: new(conf.Annotation).With(
+			runtime.OneOfRef("trigger", runtime.IDRef, "Name"),
+		),
 	},
 	{
 		Name:        "TriggerGroup",
 		Description: "The name of the trigger group to execute. If set, PrimaryTrigger is expected to be part of the group",
 		Type:        conf.StringSliceType,
+		Annotations: new(conf.Annotation).With(
+			runtime.OneOfRef("trigger", "Group", "Group"),
+		),
 	},
 	{
 		Name:        "ActionText",
