@@ -67,6 +67,9 @@ export class TkdOptionSpecInputComponent
   /** for strings only: whether or not the current spec is multi-line plain-text string */
   isPlainText = false;
 
+  /** whether or not custom values are allowed. */
+  allowCustomValues = false;
+
   /** a list of possible values for the current spec */
   possibleValues: PossibleValue[] | null = null;
 
@@ -98,6 +101,7 @@ export class TkdOptionSpecInputComponent
         this.isMarkdown = false;
         this.isPlainText = false;
       }
+      this.allowCustomValues = this.configapi.customValueAllowed(changes.spec.currentValue);
 
       this.configapi
         .resolvePossibleValues(changes.spec.currentValue)
