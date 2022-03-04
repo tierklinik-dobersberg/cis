@@ -2,13 +2,21 @@ package importer
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/robfig/cron/v3"
 	"github.com/tevino/abool"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/logger"
+)
+
+var (
+	eventImportStarted = event.MustRegisterType(event.Type{
+		ID: "vet.dobserberg.cis/importer/start",
+	})
+	eventImportDone = event.MustRegisterType(event.Type{
+		ID: "vet.dobserberg.cis/importer/done",
+	})
 )
 
 // Instance is a import handler instance that executes
@@ -38,9 +46,8 @@ func (inst *Instance) Run() {
 	ctx = logger.With(ctx, inst.log)
 
 	start := time.Now()
-	event.Fire(
-		context.Background(),
-		fmt.Sprintf("event/importer/%s/start", inst.ID),
+	eventImportStarted.Fire(
+		ctx,
 		ImportStartedEvent{
 			Importer: inst.ID,
 			Time:     start,
@@ -59,9 +66,8 @@ func (inst *Instance) Run() {
 		errMsg = err.Error()
 	}
 
-	event.Fire(
+	eventImportDone.Fire(
 		context.Background(),
-		fmt.Sprintf("event/importer/%s/done", inst.ID),
 		ImportFinsihedEvent{
 			Importer: inst.ID,
 			Time:     time.Now(),

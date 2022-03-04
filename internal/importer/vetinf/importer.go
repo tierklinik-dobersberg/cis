@@ -9,8 +9,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime"
 )
 
-func Register(manager *importer.Manager) error {
-	return manager.Register(importer.Factory{
+func Register(ctx context.Context, manager *importer.Manager) error {
+	return manager.Register(ctx, importer.Factory{
 		Schema: runtime.Schema{
 			Name:        "vetinf",
 			DisplayName: "VetInf",

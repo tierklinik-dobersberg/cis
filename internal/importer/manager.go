@@ -80,6 +80,7 @@ func (mng *Manager) NotifyChange(ctx context.Context, changeType, id string, sec
 	defer mng.lock.Unlock()
 
 	// we treat an "update" like a "delete"+"create" here
+	// FIXME(ppacher): importers continue to run after delete
 	if changeType != "create" {
 		if instances, ok := mng.importers[id]; ok {
 			for _, instance := range instances {
@@ -89,55 +90,60 @@ func (mng *Manager) NotifyChange(ctx context.Context, changeType, id string, sec
 		}
 	}
 
-	errors := new(multierr.Error)
-
-	if changeType != "delete" {
-		name := strings.ToLower(sec.Name)
-		reg, ok := mng.factories[name]
-		if !ok {
-			// we don't have a importer configuration for that schema type
-			// so abort without an error and ignore it
-			return nil
-		}
-
-		instances, err := reg.FactoryFunc(ctx, mng.app, runtime.Section{
-			ID:      id,
-			Section: *sec,
-		})
-		if err != nil {
+	if changeType != "delete" && sec != nil {
+		if err := mng.create(ctx, runtime.Section{ID: id, Section: *sec}); err != nil {
 			return err
-		}
-
-		for idx := range instances {
-			instance := instances[idx]
-
-			var err error
-			instance.log = logger.From(ctx).WithFields(logger.Fields{
-				"id":            id,
-				"instanceIndex": idx,
-				"type":          name,
-			})
-			instance.running = abool.New()
-			instance.schedule, err = cron.ParseStandard(instance.Schedule)
-			if err != nil {
-				errors.Add(err)
-
-				continue
-			}
-
-			instance.cronID = mng.cron.Schedule(instance.schedule, instance)
-			mng.importers[name] = append(mng.importers[name], instance)
-
-			if instance.RunImmediately {
-				go instance.Run()
-			}
 		}
 	}
 
 	return nil
 }
 
-func (mng *Manager) Register(factory Factory) error {
+func (mng *Manager) create(ctx context.Context, sec runtime.Section) error {
+	errors := new(multierr.Error)
+
+	name := strings.ToLower(sec.Name)
+	reg, ok := mng.factories[name]
+	if !ok {
+		// we don't have a importer configuration for that schema type
+		// so abort without an error and ignore it
+		return nil
+	}
+
+	instances, err := reg.FactoryFunc(ctx, mng.app, sec)
+	if err != nil {
+		return err
+	}
+
+	for idx := range instances {
+		instance := instances[idx]
+
+		var err error
+		instance.log = logger.From(ctx).WithFields(logger.Fields{
+			"id":            sec.ID,
+			"instanceIndex": idx,
+			"type":          name,
+		})
+		instance.running = abool.New()
+		instance.schedule, err = cron.ParseStandard(instance.Schedule)
+		if err != nil {
+			errors.Add(err)
+
+			continue
+		}
+
+		instance.cronID = mng.cron.Schedule(instance.schedule, instance)
+		mng.importers[name] = append(mng.importers[name], instance)
+
+		if instance.RunImmediately {
+			go instance.Run()
+		}
+	}
+
+	return errors.ToError()
+}
+
+func (mng *Manager) Register(ctx context.Context, factory Factory) error {
 	mng.lock.Lock()
 	defer mng.lock.Unlock()
 
@@ -157,6 +163,17 @@ func (mng *Manager) Register(factory Factory) error {
 	// the new importer type.
 	// TODO(ppacher): add validator support as well?
 	mng.config.AddNotifier(mng, name)
+
+	all, err := mng.config.All(ctx, factory.Name)
+	if err != nil {
+		return err
+	}
+
+	for _, sec := range all {
+		if err := mng.create(ctx, sec); err != nil {
+			logger.From(ctx).Errorf("failed to create importer for existing configuration %s: %s", sec.ID, err)
+		}
+	}
 
 	return nil
 }
