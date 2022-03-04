@@ -62,12 +62,17 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
 	"github.com/tierklinik-dobersberg/cis/runtime/configprovider/fileprovider"
 	"github.com/tierklinik-dobersberg/cis/runtime/configprovider/mongoprovider"
+	"github.com/tierklinik-dobersberg/cis/runtime/event"
+	"github.com/tierklinik-dobersberg/cis/runtime/execer"
 	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
+	"github.com/tierklinik-dobersberg/cis/runtime/mailer"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
+	runtimeMQTT "github.com/tierklinik-dobersberg/cis/runtime/mqtt"
 	"github.com/tierklinik-dobersberg/cis/runtime/schema"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/cis/runtime/tasks"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
+	"github.com/tierklinik-dobersberg/cis/runtime/twilio"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -83,14 +88,7 @@ import (
 
 	// All available/build-in identity providers.
 	_ "github.com/tierklinik-dobersberg/cis/internal/identity/providers"
-	// Exec trigger type.
-	_ "github.com/tierklinik-dobersberg/cis/runtime/execer"
-	// SendMail trigger type and SMTP support.
-	_ "github.com/tierklinik-dobersberg/cis/runtime/mailer"
-	// Twilio trigger type.
-	_ "github.com/tierklinik-dobersberg/cis/runtime/twilio"
-	// MQTT trigger type.
-	runtimeMQTT "github.com/tierklinik-dobersberg/cis/runtime/mqtt"
+
 	// Neumayr importer.
 	"github.com/tierklinik-dobersberg/cis/internal/importer/carddav"
 	_ "github.com/tierklinik-dobersberg/cis/internal/importer/neumayr"
@@ -404,6 +402,21 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		}
 	}
 
+	triggerReg := trigger.NewRegistry(ctx, event.DefaultRegistry, cfg.Location(), runtime.GlobalSchema)
+
+	if err := twilio.AddTriggerType(triggerReg); err != nil {
+		logger.Fatalf(ctx, "failed to add trigger type twilio: %s", err)
+	}
+	if err := runtimeMQTT.AddTriggerType(triggerReg, runtimeMQTT.DefaultConnectionManager); err != nil {
+		logger.Fatalf(ctx, "failed to add trigger type mqtt: %s", err)
+	}
+	if err := mailer.AddTriggerType(triggerReg); err != nil {
+		logger.Fatalf(ctx, "failed to add trigger type mailer: %s", err)
+	}
+	if err := execer.AddTriggerType(triggerReg); err != nil {
+		logger.Fatalf(ctx, "failed to add trigger type mailer: %s", err)
+	}
+
 	//
 	// Create a new application context and make sure it's added
 	// to each incoming HTTP Request.
@@ -429,6 +442,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		infoScreens,
 		cache,
 		autoLoginManager,
+		triggerReg,
 	)
 
 	ctx = app.With(baseCtx, appCtx)
@@ -440,19 +454,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	// All tasks can get access to appCtx by using app.From(ctx).
 	//
 	tasks.DefaultManager.Start(ctx)
-
-	//
-	// Prepare triggers
-	//
-	// update the timezone of the default trigger registry
-	trigger.DefaultRegistry.SetLocation(appCtx.Location())
-
-	// TODO(ppacher): this currently requires app.App to have been associated with ctx.
-	// I'm somewhat unhappy with that requirement so make it go away in the future.
-	logger.Infof(ctx, "tasks started, loading trigger files with %d available types", len(trigger.DefaultRegistry.ActionTypes()))
-	if _, err := trigger.DefaultRegistry.LoadFiles(ctx, runtime.GlobalSchema, svcenv.Env().ConfigurationDirectory); err != nil {
-		logger.Fatalf(ctx, "triggers: %s", err)
-	}
 
 	logger.Infof(ctx, "initialization complete")
 
@@ -570,11 +571,18 @@ func runMain() {
 	//
 	// Register available importers
 	//
-	if err := vetinf.Register(manager); err != nil {
+	if err := vetinf.Register(ctx, manager); err != nil {
 		logger.Fatalf(ctx, "failed to register vetinf importer: %s", err)
 	}
-	if err := carddav.Register(manager); err != nil {
+	if err := carddav.Register(ctx, manager); err != nil {
 		logger.Fatalf(ctx, "failed to register vetinf importer: %s", err)
+	}
+
+	//
+	// Bootstrap triggers from existing configurations
+	//
+	if err := app.Trigger.LoadAndCreate(ctx); err != nil {
+		logger.Errorf(ctx, "failed to boostrap trigger registry: %s", err)
 	}
 
 	//
