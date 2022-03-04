@@ -15,6 +15,10 @@ const routes: Routes = [
     path: 'settings',
     loadChildren: () => import('./settings').then((m) => m.SettingsModule),
   },
+  {
+    path: 'trigger',
+    loadChildren: () => import('./trigger').then((m) => m.TriggerModule),
+  }
 ];
 
 @NgModule({

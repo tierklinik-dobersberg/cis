@@ -5,7 +5,6 @@ import (
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/runtime"
-	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 )
 
 var (
@@ -77,10 +76,5 @@ func init() {
 	// create a global [Mailer] configuration section
 	runtime.Must(
 		AddToSchema(runtime.GlobalSchema),
-	)
-	// Register the mailer as a trigger type at the default
-	// registry as [SendMail]
-	runtime.Must(
-		AddTriggerType("SendMail", trigger.DefaultRegistry),
 	)
 }

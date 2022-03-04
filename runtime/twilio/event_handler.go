@@ -21,13 +21,15 @@ var eventTriggerSpec = conf.SectionSpec{
 	},
 }
 
-func AddTriggerType(name string, reg *trigger.Registry) error {
+func AddTriggerType(reg *trigger.Registry) error {
 	return reg.RegisterType(trigger.ActionType{
-		Name:        name,
-		Description: "Send a SMS using Twilio to one or more receipients.",
-		Spec: confutil.MultiOptionRegistry{
-			MessageSpec,
-			eventTriggerSpec,
+		Schema: runtime.Schema{
+			Name:        "SendSMS",
+			Description: "Send a SMS using Twilio to one or more receipients.",
+			Spec: confutil.MultiOptionRegistry{
+				MessageSpec,
+				eventTriggerSpec,
+			},
 		},
 		CreateFunc: func(ctx context.Context, globalCfg *runtime.ConfigSchema, s *conf.Section) (trigger.Handler, error) {
 			spec := confutil.MultiOptionRegistry{

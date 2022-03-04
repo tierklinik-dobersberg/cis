@@ -5,7 +5,6 @@ import (
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/runtime"
-	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 )
 
 var (
@@ -80,9 +79,5 @@ func init() {
 	// configuration.
 	runtime.Must(
 		AddToSchema(runtime.GlobalSchema),
-	)
-	// Add a [SendSMS] trigger type
-	runtime.Must(
-		AddTriggerType("SendSMS", trigger.DefaultRegistry),
 	)
 }

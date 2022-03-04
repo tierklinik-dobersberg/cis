@@ -1,0 +1,7 @@
+::ng-deep .ant-tabs-content {
+  max-height: 100%;
+
+  .ant-tabs-tabpane {
+    overflow: auto;
+  }
+}

@@ -5,18 +5,16 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
-	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 type TriggerInstance struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description,omitempty"`
-	Pending     bool     `json:"pending"`
-	Groups      []string `json:"groups"`
+	TriggerDefinition
+	Pending bool `json:"pending"`
 }
 
 type TriggerListResponse struct {
@@ -30,33 +28,51 @@ func ListTriggerEndpoint(router *app.Router) {
 			ReadTriggerAction,
 		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
-			sess := session.Get(c)
-
-			// collect all instances the user has access to.
-			var instances []TriggerInstance
-			for _, instance := range trigger.DefaultRegistry.Instances() {
-				req := &permission.Request{
-					User:     sess.User.Name,
-					Resource: instance.Name(),
-					Action:   ReadTriggerAction.Name,
-				}
-				permitted, err := app.Matcher.Decide(ctx, req, sess.ExtraRoles())
-				if err != nil {
-					return httperr.InternalError().SetInternal(err)
-				}
-				if permitted {
-					instances = append(instances, TriggerInstance{
-						Name:        instance.Name(),
-						Description: instance.Description(),
-						Pending:     instance.Pending(),
-						Groups:      instance.Groups(),
-					})
-				}
+			triggers, err := app.Trigger.ListTriggers(ctx)
+			if err != nil {
+				return err
 			}
 
-			return c.JSON(http.StatusOK, TriggerListResponse{
-				Instances: instances,
-			})
+			var response TriggerListResponse
+
+			for _, cfg := range triggers {
+				response.Instances = append(response.Instances, toTriggerAPIModel(ctx, cfg, app))
+			}
+
+			return c.JSON(http.StatusOK, response)
 		},
 	)
+}
+
+func toTriggerAPIModel(ctx context.Context, cfg trigger.Definition, app *app.App) TriggerInstance {
+	configMap := conf.NewSectionDecoder(trigger.MatchSpec).AsMap(conf.Section{
+		Name:    "TriggerInstance",
+		Options: cfg.Match,
+	})
+
+	actions := make([]ActionDef, 0, len(cfg.Actions))
+	for _, sec := range cfg.Actions {
+		actionType, err := app.Trigger.GetType(sec.Name)
+		if err != nil {
+			logger.From(ctx).Errorf("failed to get action type for action %s: %s", sec.ID, err)
+
+			continue
+		}
+		actionMap := conf.NewSectionDecoder(actionType.Spec.All()).AsMap(sec.Section)
+
+		actions = append(actions, ActionDef{
+			ID:      sec.ID,
+			Type:    sec.Name,
+			Options: actionMap,
+		})
+	}
+
+	return TriggerInstance{
+		TriggerDefinition: TriggerDefinition{
+			ID:      cfg.ID,
+			Config:  configMap,
+			Actions: actions,
+		},
+		Pending: false, // FIXME
+	}
 }

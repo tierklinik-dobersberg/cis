@@ -32,6 +32,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
+	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
@@ -61,9 +62,7 @@ type App struct {
 	InfoScreenShows infoscreendb.Database
 	Cache           cache.Cache
 	Autologin       *autologin.Manager
-
-	loadLocationOnce sync.Once
-	location         *time.Location
+	Trigger         *trigger.Registry
 
 	maxUploadSize     int64
 	maxUploadSizeOnce sync.Once
@@ -95,6 +94,7 @@ func NewApp(
 	infoScreens infoscreendb.Database,
 	cache cache.Cache,
 	autologinManager *autologin.Manager,
+	triggerRegistry *trigger.Registry,
 ) *App {
 	return &App{
 		Config:          cfg,
@@ -117,6 +117,7 @@ func NewApp(
 		InfoScreenShows: infoScreens,
 		Cache:           cache,
 		Autologin:       autologinManager,
+		Trigger:         triggerRegistry,
 	}
 }
 
@@ -188,22 +189,9 @@ func (app *App) EndpointPath(relativePath string) string {
 }
 
 // Location returns the location CIS is running at.
+// DEPRECATED: use Config.Location() instead.
 func (app *App) Location() *time.Location {
-	app.loadLocationOnce.Do(func() {
-		loc, err := time.LoadLocation(app.Config.TimeZone)
-		if err != nil {
-			logger.Errorf(context.Background(), "failed to parse location: %s (%w). using time.Local instead", app.Config.TimeZone, err)
-			loc = time.Local
-		}
-		app.location = loc
-		if app.location.String() != time.Local.String() {
-			// warn for now if there's a difference. We should have all times fixed already
-			// but better make sure the user knowns.
-			logger.Errorf(context.Background(), "WARNING: local time zone and configured TimeZone= differ. It's recommended to keep them the same!")
-		}
-	})
-
-	return app.location
+	return app.Config.Location()
 }
 
 // ParseTime is like time.Parse but makes sure the returned time is put
