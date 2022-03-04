@@ -212,6 +212,8 @@ func (dc *Controller) Lock(ctx context.Context) error {
 	ctx, sp := otel.Tracer("").Start(ctx, "door.Controller.Lock")
 	defer sp.End()
 
+	eventDoorLock.Fire(ctx, nil)
+
 	dc.wg.Add(1)
 	defer dc.wg.Done()
 
@@ -230,6 +232,8 @@ func (dc *Controller) Unlock(ctx context.Context) error {
 	ctx, sp := otel.Tracer("").Start(ctx, "door.Controller.Unlock")
 	defer sp.End()
 
+	eventDoorUnlock.Fire(ctx, nil)
+
 	dc.wg.Add(1)
 	defer dc.wg.Done()
 
@@ -247,6 +251,8 @@ func (dc *Controller) Unlock(ctx context.Context) error {
 func (dc *Controller) Open(ctx context.Context) error {
 	ctx, sp := otel.Tracer("").Start(ctx, "door.Controller.Open")
 	defer sp.End()
+
+	eventDoorOpen.Fire(ctx, nil)
 
 	dc.wg.Add(1)
 	defer dc.wg.Done()
