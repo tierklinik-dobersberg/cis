@@ -79,12 +79,11 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
         let foundUnchecked = false;
         const newCheckedPermissions = new Set<string>();
         triggers.forEach((instance) => {
-          const name = stripTriggerSuffix(instance.name);
-          if (!checkedPermissions.has(name)) {
+          if (!checkedPermissions.has(instance.id)) {
             foundUnchecked = true;
           }
-          newCheckedPermissions.add(name);
-          permRequest[name] = {
+          newCheckedPermissions.add(instance.id);
+          permRequest[instance.id] = {
             action: Permissions.TriggerExecute,
           };
         });
@@ -119,12 +118,12 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
       .subscribe((cfg) => {
         let instances = new Map<string, TriggerInstance>();
         cfg[1].triggers.forEach((i) =>
-          instances.set(stripTriggerSuffix(i.name), i)
+          instances.set(i.id, i)
         );
 
         this.actions = [];
         cfg[0].TriggerAction?.forEach((a) => {
-          const name = stripTriggerSuffix(a.PrimaryTrigger);
+          const name = a.PrimaryTrigger;
           this.actions.push({
             ...a,
             trigger: instances.get(name),
@@ -150,7 +149,7 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
     action.running = true;
     let exec: Observable<any>;
     if (!action.TriggerGroup || action.TriggerGroup?.length == 0) {
-      exec = this.triggerapi.executeInstance(action.trigger.name);
+      exec = this.triggerapi.executeInstance(action.trigger.id);
     } else {
       exec = forkJoin(
         action.TriggerGroup.map((grp) => {
@@ -175,7 +174,4 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
       },
     });
   }
-}
-function stripTriggerSuffix(name: string): string {
-  return name.replace(/\.trigger$/, '');
 }
