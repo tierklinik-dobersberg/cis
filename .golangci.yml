@@ -66,3 +66,6 @@ linters-settings:
       - const C
       - t time.Time
       - id string
+      - wg sync.WaitGroup
+      - ok bool
+      - sp trace.Span
