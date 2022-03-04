@@ -30,12 +30,18 @@ type OneOfReference struct {
 	// DisplayFiled is the name fo the field that should be diplayed
 	// in the user interface.
 	DisplayField string `json:"displayField,omitempty"`
+	// AllowCustomValue can be set to true if custom values
+	// should also be allowed for the annoated option.
+	AllowCustomValue bool `json:"allowCustomValue"`
 }
 
 // OneOfAnnotation is used to describe a "select" type of
 // configuration option.
 type OneOfAnnotation struct {
 	Values []PossibleValue `json:"values,omitempty"`
+	// AllowCustomValue can be set to true if custom values
+	// should also be allowed for the annoated option.
+	AllowCustomValue bool `json:"allowCustomValue"`
 }
 
 // OneOf returns a new KeyValue for a OneOfAnnotation conf.Option
@@ -49,14 +55,28 @@ func OneOf(values ...PossibleValue) conf.KeyValue {
 	}
 }
 
+// OneOfWithCustom returns a new KeyValue for a OneOfAnnotation conf.Option
+// with it's allowe .Values member set to values. This annoation also allows
+// for custom values.
+func OneOfWithCustom(values ...PossibleValue) conf.KeyValue {
+	return conf.KeyValue{
+		Key: "vet.dobersberg.cis:schema/oneOf",
+		Value: OneOfAnnotation{
+			Values:           values,
+			AllowCustomValue: true,
+		},
+	}
+}
+
 // OneOfRef returns a new KeyValue for a OneOfReference conf.Option annotation.
-func OneOfRef(ref, valueField, displayField string) conf.KeyValue {
+func OneOfRef(ref, valueField, displayField string, allowCustomValue ...bool) conf.KeyValue {
 	return conf.KeyValue{
 		Key: "vet.dobersberg.cis:schema/oneOf",
 		Value: OneOfReference{
-			SchemaType:   ref,
-			ValueField:   valueField,
-			DisplayField: displayField,
+			SchemaType:       ref,
+			ValueField:       valueField,
+			DisplayField:     displayField,
+			AllowCustomValue: len(allowCustomValue) > 0 && allowCustomValue[0],
 		},
 	}
 }
@@ -94,6 +114,7 @@ func StringFormat(format string) conf.KeyValue {
 
 var (
 	OneOfRoles = OneOfRef("identity:roles", "name", "")
+	OneOfUsers = OneOfRef("identity:users", "name", "")
 )
 
 var (
