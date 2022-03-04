@@ -1,4 +1,4 @@
-version: '3.1'
+version: "3.1"
 
 services:
   jaeger:
@@ -15,8 +15,7 @@ services:
       - 9411:9411
     environment:
       COLLECTOR_ZIPKIN_HOST_PORT: ":9411"
-    profiles:
-      - development
+
   mongo:
     image: mongo
     ports:
@@ -41,8 +40,6 @@ services:
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
-    profiles:
-      - development
 
   #
   # Fake SMTP server to test mail delivery
@@ -72,15 +69,15 @@ services:
     image: curlimages/curl:latest
     depends_on:
       radicale:
-          condition: service_started
+        condition: service_started
     volumes:
       - ../testdata/dump/carddav-collection.vcf:/tmp/addressbook.vcf
     command:
-      - 'http://admin:password@radicale:8091/admin/2876ee8f-c693-8a49-bf95-25d41c97b674/' 
+      - "http://admin:password@radicale:8091/admin/2876ee8f-c693-8a49-bf95-25d41c97b674/"
       - -XPUT
-      - '-HContent-Type: text/vcard'
+      - "-HContent-Type: text/vcard"
       - --data-binary
-      - '@/tmp/addressbook.vcf'
+      - "@/tmp/addressbook.vcf"
 
   mosquitto:
     image: eclipse-mosquitto
@@ -94,20 +91,23 @@ services:
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
 
-#  dxray:
-#    image: tkd/dxray
-#    build: https://github.com/tierklinik-dobersberg/dxray.git
-#    ports:
-#      - 9100:9100
-#    volumes:
-#      - ./dxray.conf:/config/dxray.conf
-#      - ../testdata/dxray:/mnt
-#    environment:
-#      CONFIGURATION_DIRECTORY: /config
+  #  dxray:
+  #    image: tkd/dxray
+  #    build: https://github.com/tierklinik-dobersberg/dxray.git
+  #    ports:
+  #      - 9100:9100
+  #    volumes:
+  #      - ./dxray.conf:/config/dxray.conf
+  #      - ../testdata/dxray:/mnt
+  #    environment:
+  #      CONFIGURATION_DIRECTORY: /config
 
-  cisd: 
+  cisd:
     image: tkd/cisd
-    build: ../
+    build: 
+      context: ../
+      dockerfile: ./Dockerfile
+      #dockerfile: ./Dockerfile.debug
     depends_on:
       mongo:
         condition: service_started
@@ -119,6 +119,7 @@ services:
         condition: service_completed_successfully
     ports:
       - 3000:3000
+      - 40000:40000
     volumes:
       - ../:/project
       - /home/ppc/mnt/Infdat:/mnt
@@ -126,7 +127,6 @@ services:
     environment:
       CIS_BOOTSTRAP_ADMIN: "${CIS_BOOTSTRAP_ADMIN}"
       CIS_IMPORT_VETINFIMPORTDISABLED: "yes"
-      CIS_GLOBAL_CONFIGPROVIDER: "${CIS_GLOBAL_CONFIGPROVIDER}"
       CONFIGURATION_DIRECTORY: /project/testdata/config
       STATE_DIRECTORY: /project/testdata/state
       TZ: ""
@@ -142,6 +142,3 @@ services:
       TZ: ""
     working_dir: /project
     command: bash -c "npm install && ./node_modules/.bin/ng serve --configuration=compose --host=0.0.0.0 --port=4200 --proxy-config ./proxy.deploy.json"
-    profiles:
-      - development
-    
