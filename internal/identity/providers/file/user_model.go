@@ -18,8 +18,16 @@ type UserModel struct {
 }
 
 func (db *identDB) loadUsers(ctx context.Context, identityDir string) error {
-	userPropertySpecs := make([]conf.OptionSpec, len(db.userPropertySpecs))
-	for idx, opt := range db.userPropertySpecs {
+
+	// TODO(ppacher): we should actually reload the users once the property
+	// changes.
+	var defs []identity.UserPropertyDefinition
+	if err := db.cfg.DecodeSection(ctx, "UserProperty", &defs); err != nil {
+		return fmt.Errorf("failed to get user properties: %w", err)
+	}
+
+	userPropertySpecs := make([]conf.OptionSpec, len(defs))
+	for idx, opt := range defs {
 		userPropertySpecs[idx] = opt.OptionSpec
 	}
 

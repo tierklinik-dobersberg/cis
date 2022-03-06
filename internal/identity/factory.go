@@ -30,11 +30,6 @@ type (
 		// MongoDatabaseName should be set to the name of the target database
 		// that should be used.
 		MongoDatabaseName string
-		// UserPropertyDefinitions should hold the list of customer user properties.
-		// TODO(ppacher): add comment on what providers are expected to do with this
-		// information.
-		UserPropertyDefinitions []UserPropertyDefinition
-
 		// Global contains a reference to the global configuration struct.
 		Global *cfgspec.Config
 		// ConfigSchema holds a reference to the global configuration schema.

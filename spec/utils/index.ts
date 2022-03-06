@@ -72,6 +72,23 @@ async function bootstrapIdentities() {
     let response: AxiosResponse;
     let Admin =  await createSession("admin", "password")
 
+    response = await Admin.post(`/api/config/v1/schema/UserProperty`, {
+        config:{
+            Name: "PhoneExtension",
+            Type: "string",
+            Visibility: "public"
+        }
+    })
+    expectResponse(response, 200)
+    response = await Admin.post(`/api/config/v1/schema/UserProperty`, {
+        config:{
+            Name: "PrivateProperty",
+            Type: "string",
+            Visibility: "private"
+        }
+    })
+    expectResponse(response, 200)
+
     response = await Admin.post(`/api/identity/v1/roles/default-role`, {
         description: 'A default role for all users'
     })

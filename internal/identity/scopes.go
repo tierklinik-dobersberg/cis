@@ -2,6 +2,9 @@ package identity
 
 import (
 	"context"
+
+	"github.com/tierklinik-dobersberg/cis/runtime"
+	"github.com/tierklinik-dobersberg/logger"
 )
 
 // Scope defines the access scope.
@@ -45,7 +48,13 @@ func GetScope(ctx context.Context) Scope {
 }
 
 // FilterProperties applies the privacy settings to all user properties.
-func FilterProperties(scope Scope, defs []UserPropertyDefinition, props map[string]interface{}) map[string]interface{} {
+func FilterProperties(ctx context.Context, scope Scope, cfg *runtime.ConfigSchema, props map[string]interface{}) map[string]interface{} {
+	var defs []UserPropertyDefinition
+
+	if err := cfg.DecodeSection(ctx, "UserProperty", &defs); err != nil {
+		logger.From(ctx).Errorf("failed to get user property definitions: %s", err)
+	}
+
 	if scope == Internal {
 		return props
 	}

@@ -254,12 +254,11 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	}
 
 	identities, err := identity.DefaultRegistry.Create(ctx, cfg.IdentityBackend, cfgFile, identity.Environment{
-		ConfigurationDirectory:  svcenv.Env().ConfigurationDirectory,
-		MongoClient:             mongoClient,
-		MongoDatabaseName:       cfg.DatabaseName,
-		UserPropertyDefinitions: nil, // FIXME(ppacher): providers need cfg.UserProperties for privacy features,
-		Global:                  &cfg.Config,
-		ConfigSchema:            runtime.GlobalSchema,
+		ConfigurationDirectory: svcenv.Env().ConfigurationDirectory,
+		MongoClient:            mongoClient,
+		MongoDatabaseName:      cfg.DatabaseName,
+		Global:                 &cfg.Config,
+		ConfigSchema:           runtime.GlobalSchema,
 	})
 	if err != nil {
 		logger.Fatalf(ctx, "file: %s", err)

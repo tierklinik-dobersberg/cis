@@ -9,7 +9,7 @@ import (
 )
 
 func Factory(ctx context.Context, _ conf.Section, env identity.Environment) (identity.Provider, error) {
-	return New(ctx, env.ConfigurationDirectory, env.Global.Country, env.UserPropertyDefinitions)
+	return New(ctx, env.ConfigurationDirectory, env.Global.Country, env.ConfigSchema)
 }
 
 func init() {

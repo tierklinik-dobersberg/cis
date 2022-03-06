@@ -74,6 +74,34 @@ describe("Door management", () => {
     });
   });
 
+  it("should support using a custom MQTT configuration", async () => {
+    const mqttConfigResponse = await Alice.post(`/api/config/v1/schema/MQTT`, {
+      config: {
+        Name: "door-connection",
+        Server: "mosquitto:1883",
+        ClientID: "door-test",
+      }
+    })
+
+    expect(mqttConfigResponse.status).toBe(200)
+    expect(mqttConfigResponse.data.id).toBeTruthy()
+    expect(mqttConfigResponse.data.warning).toBeFalsy();
+
+    const doorConfigResponse = await Alice.post(`/api/config/v1/schema/Door`, {
+      config: {
+        ConnectionName: "door-connection",
+        CommandTopic: 'cliny/rpc/service/door/${command}',
+        CommandPayload: '{"replyTo": "${responseTopic}", "command": "${command}"}',
+        ResponseTopic: 'cliny/rpc/response/${uuid}',
+        Timeout: '0.5s',
+      }
+    })
+
+    expect(doorConfigResponse.status).toBe(200)
+    expect(doorConfigResponse.data.id).toBeTruthy()
+    expect(doorConfigResponse.data.warning).toBeFalsy()
+  })
+
   it("should support resetting the door", async () => {
     const response = Alice.post("/api/door/v1/reset", null);
     let commands = [await receive(), await receive(), await receive()];

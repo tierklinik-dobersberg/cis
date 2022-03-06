@@ -15,6 +15,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/passwd"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
+	"github.com/tierklinik-dobersberg/cis/runtime"
 )
 
 var log = pkglog.New("file")
@@ -30,20 +31,20 @@ var (
 
 // The actual in-memory implementation for identDB.
 type identDB struct {
-	dir               string
-	country           string
-	userPropertySpecs []identity.UserPropertyDefinition
-	rw                sync.RWMutex
-	users             map[string]*UserModel
-	roles             map[string]*roleModel
+	dir     string
+	country string
+	cfg     *runtime.ConfigSchema
+	rw      sync.RWMutex
+	users   map[string]*UserModel
+	roles   map[string]*roleModel
 }
 
 // New returns a new database that uses ldr.
-func New(ctx context.Context, dir, country string, userProperties []identity.UserPropertyDefinition) (identity.Provider, error) {
+func New(ctx context.Context, dir, country string, cfg *runtime.ConfigSchema) (identity.Provider, error) {
 	db := &identDB{
-		dir:               dir,
-		userPropertySpecs: userProperties,
-		country:           country,
+		dir:     dir,
+		country: country,
+		cfg:     cfg,
 	}
 
 	if err := db.reload(ctx); err != nil {
@@ -197,13 +198,20 @@ func (db *identDB) SetUserPassword(ctx context.Context, userName, password, algo
 		return err
 	}
 
+	// TODO(ppacher): we should actually reload the users once the property
+	// changes.
+	var defs []identity.UserPropertyDefinition
+	if err := db.cfg.DecodeSection(ctx, "UserProperty", &defs); err != nil {
+		return fmt.Errorf("failed to get user properties: %w", err)
+	}
+
 	// make sure we add all extra user-properties as well
 	// as ConvertToFile will skip them.
 	userSec := opts.Get("User")
 	if userSec == nil {
 		return fmt.Errorf("expected [User] section to exist")
 	}
-	for _, spec := range db.userPropertySpecs {
+	for _, spec := range defs {
 		val, ok := user.Properties[spec.Name]
 		if !ok {
 			continue
@@ -236,8 +244,9 @@ func (db *identDB) applyPrivacy(ctx context.Context, u *UserModel) identity.User
 	schemaUser := u.User
 
 	schemaUser.Properties = identity.FilterProperties(
+		ctx,
 		identity.GetScope(ctx),
-		db.userPropertySpecs,
+		db.cfg,
 		schemaUser.Properties,
 	)
 

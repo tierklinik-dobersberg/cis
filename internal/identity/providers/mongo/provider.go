@@ -446,8 +446,9 @@ func (p *Provider) applyPrivacy(ctx context.Context, u *UserModel) identity.User
 	schemaUser := u.User
 
 	schemaUser.Properties = identity.FilterProperties(
+		ctx,
 		identity.GetScope(ctx),
-		p.env.UserPropertyDefinitions,
+		p.env.ConfigSchema,
 		schemaUser.Properties,
 	)
 
