@@ -15,4 +15,5 @@ func Setup(a *app.App, grp *echo.Group) {
 	ExecuteTriggerGroupEndpoint(router)
 	CreateUpdateDeleteTriggerEndpoints(router)
 	ListEventTypesEndpoint(router)
+	WaitForEventEndpoint(router)
 }
