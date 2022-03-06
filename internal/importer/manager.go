@@ -135,9 +135,8 @@ func (mng *Manager) create(ctx context.Context, sec runtime.Section) error {
 		instance.cronID = mng.cron.Schedule(instance.schedule, instance)
 		mng.importers[name] = append(mng.importers[name], instance)
 
-		if instance.RunImmediately {
-			go instance.Run()
-		}
+		// trigger the instance now
+		go instance.Run()
 	}
 
 	return errors.ToError()

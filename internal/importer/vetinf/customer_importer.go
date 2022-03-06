@@ -13,9 +13,8 @@ import (
 
 func getCustomerImporter(cfg VetInf, app *app.App, exporter *Exporter) (*importer.Instance, error) {
 	i := &importer.Instance{
-		ID:             "vetinf-customer:" + convertToID(cfg.Directory),
-		Schedule:       cfg.ImportSchedule,
-		RunImmediately: true,
+		ID:       "vetinf-customer:" + convertToID(cfg.Directory),
+		Schedule: cfg.ImportSchedule,
 		Handler: importer.ImportFunc(func(ctx context.Context) (interface{}, error) {
 			log := log.From(ctx)
 

@@ -35,10 +35,9 @@ func getImporter(app *app.App, cfg CardDAVConfig) (*importer.Instance, error) {
 
 	id := fmt.Sprintf("carddav-%s", cfg.ID)
 	instance := &importer.Instance{
-		ID:             id,
-		Schedule:       cfg.Schedule,
-		RunImmediately: true,
-		Handler:        getImportFunc(id, cli, app, &cfg),
+		ID:       id,
+		Schedule: cfg.Schedule,
+		Handler:  getImportFunc(id, cli, app, &cfg),
 	}
 
 	// TODO(ppacher): get source manager as a parameter
@@ -103,6 +102,9 @@ func getImportFunc(id string, cli *Client, app *app.App, cfg *CardDAVConfig) imp
 			defer wg.Done()
 
 			nextToken, err = cli.Sync(ctx, cfg.AddressBook, string(syncToken), deleted, updated)
+			if err != nil {
+				log.Errorf("%s: client.Sync returned error %s", id, err)
+			}
 		}()
 
 		// process all updates streamed from sync to the 'deleted' and 'updated' channels.
@@ -248,6 +250,13 @@ L:
 			return ctx.Err()
 		}
 	}
+
+	log.WithFields(logger.Fields{
+		"deleted": countDeleted,
+		"updated": countUpdated,
+		"new":     countNew,
+		"failed":  countFailedDelete + countFailedUpdate,
+	}).Infof("%s: import done", id)
 
 	return nil
 }

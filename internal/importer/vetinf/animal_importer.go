@@ -12,9 +12,8 @@ import (
 
 func getAnimalImporter(cfg VetInf, app *app.App, exporter *Exporter) (*importer.Instance, error) {
 	return &importer.Instance{
-		ID:             "vetinf-animals: " + convertToID(cfg.Directory),
-		RunImmediately: true,
-		Schedule:       cfg.ImportSchedule,
+		ID:       "vetinf-animals: " + convertToID(cfg.Directory),
+		Schedule: cfg.ImportSchedule,
 		Handler: importer.ImportFunc(func(ctx context.Context) (interface{}, error) {
 			log := log.From(ctx)
 

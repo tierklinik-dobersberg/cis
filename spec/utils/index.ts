@@ -43,6 +43,31 @@ export const expectResponse = (response: AxiosResponse, code: number = 200) => {
     expect(response.status).toBe(code, response.data)
 }
 
+export async function waitForEvent(inst: AxiosInstance, eventID: string, filter: (r: any) => boolean = () => true): Promise<any> {
+    while (true) {
+        const response = await inst.get(`/api/triggers/v1/wait`, {params: {
+            event: eventID,
+            timeout: '10s',
+        }})
+
+        if (response.status === 200) {
+            if (filter(response.data)) {
+                return response.data;
+            }
+
+            // try again because the filter did not match
+            continue
+        }
+
+        // 408 === RequestTimeout is returned when the specified timeout
+        // expired.
+        if (response.status !== 408) {
+            console.error(`unexpected status code ${response.status} ${response.statusText}`)
+            throw response;
+        }
+    }
+}
+
 async function bootstrapIdentities() {
     let response: AxiosResponse;
     let Admin =  await createSession("admin", "password")

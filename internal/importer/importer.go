@@ -12,26 +12,41 @@ import (
 
 var (
 	eventImportStarted = event.MustRegisterType(event.Type{
-		ID: "vet.dobserberg.cis/importer/start",
+		ID: "vet.dobersberg.cis/importer/start",
 	})
+
 	eventImportDone = event.MustRegisterType(event.Type{
-		ID: "vet.dobserberg.cis/importer/done",
+		ID: "vet.dobersberg.cis/importer/done",
 	})
 )
 
-// Instance is a import handler instance that executes
-// at a certain schedule.
-type Instance struct {
-	ID             string
-	Schedule       string
-	RunImmediately bool
-	Handler        Handler
+type (
+	ImportFinsihedEvent struct {
+		Importer string
+		Time     time.Time
+		Duration time.Duration
+		Data     interface{}
+		Error    string
+	}
 
-	cronID   cron.EntryID
-	log      logger.Logger
-	schedule cron.Schedule
-	running  *abool.AtomicBool
-}
+	ImportStartedEvent struct {
+		Importer string
+		Time     time.Time
+	}
+
+	// Instance is a import handler instance that executes
+	// at a certain schedule.
+	Instance struct {
+		ID       string
+		Schedule string
+		Handler  Handler
+
+		cronID   cron.EntryID
+		log      logger.Logger
+		schedule cron.Schedule
+		running  *abool.AtomicBool
+	}
+)
 
 // Run implements cron.Job.
 func (inst *Instance) Run() {

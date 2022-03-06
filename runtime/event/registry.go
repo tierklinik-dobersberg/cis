@@ -82,6 +82,8 @@ func (reg *Registry) Fire(ctx context.Context, id string, payload Data) {
 		"eventID": id,
 	})
 
+	log.Infof("fireing event")
+
 	evt := &Event{
 		ID:      id,
 		Data:    payload,
@@ -94,7 +96,8 @@ func (reg *Registry) Fire(ctx context.Context, id string, payload Data) {
 			"subscription": sub.topic,
 		})
 		if !MatchSubscription(id, sub.topic) {
-			//l.Infof("skipping subscriber %s, topic %s does not match %s.", sub.subscriber, sub.topic, id)
+			// l.Infof("skipping subscriber %s, topic %s does not match %s.", sub.subscriber, sub.topic, id)
+
 			continue
 		}
 
