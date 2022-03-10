@@ -271,7 +271,9 @@ func (db *database) CreateOverwrite(ctx context.Context, from, to time.Time, use
 	}
 
 	if len(overlapping) > 0 {
-		return v1alpha.Overwrite{}, httperr.Conflict("Found existing overwrites between %s and %s", from.Format(time.RFC3339), to.Format(time.RFC3339))
+		return v1alpha.Overwrite{}, httperr.Conflict(
+			fmt.Sprintf("Found existing overwrites between %s and %s", from.Format(time.RFC3339), to.Format(time.RFC3339)),
+		)
 	}
 
 	if res, err := db.overwrites.InsertOne(ctx, overwrite); err == nil {
