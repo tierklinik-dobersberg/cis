@@ -19,9 +19,14 @@ import (
 var log = pkglog.New("openinghours")
 
 type (
+	// ChangeNotifyFunc can be registered at the Controller to get notified
+	// when new opening hours have been configured.
+	ChangeNotifyFunc func()
+
 	// Controller keeps track of opening hours.
 	Controller struct {
-		rw sync.RWMutex
+		rw       sync.RWMutex
+		notifier []ChangeNotifyFunc
 
 		location *time.Location
 
@@ -157,6 +162,11 @@ func (ctrl *Controller) NotifyChange(ctx context.Context, changeType string, id 
 	}
 
 	ctrl.state = newState
+
+	// notify all subscribers that we got new opening hours
+	for _, fn := range ctrl.notifier {
+		fn()
+	}
 
 	return nil
 }
@@ -363,6 +373,15 @@ func (ctrl *Controller) Location() *time.Location {
 // for. The country is important to detect public holidays.
 func (ctrl *Controller) Country() string {
 	return ctrl.country
+}
+
+// OnChange registers fn to be called whenever the configured opening
+// hours change.
+func (ctrl *Controller) OnChange(fn ChangeNotifyFunc) {
+	ctrl.rw.Lock()
+	defer ctrl.rw.Unlock()
+
+	ctrl.notifier = append(ctrl.notifier, fn)
 }
 
 func sortAndValidate(slice []OpeningHour) error {

@@ -151,7 +151,7 @@ func (s *state) parseDates(c Definition) ([]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid date: %q: %w", dateStr, err)
 		}
-		if month < 0 || month > 12 {
+		if month <= 0 || month > 12 {
 			return nil, fmt.Errorf("invalid month: %d", month)
 		}
 
@@ -159,7 +159,7 @@ func (s *state) parseDates(c Definition) ([]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid date: %q: %w", dateStr, err)
 		}
-		if day < 0 || day > 31 {
+		if day <= 0 || day > 31 {
 			return nil, fmt.Errorf("invalid day: %d", day)
 		}
 
