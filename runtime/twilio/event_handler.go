@@ -44,8 +44,6 @@ func AddTriggerType(reg *trigger.Registry) error {
 				return nil, fmt.Errorf("failed to parse section: %w", err)
 			}
 
-			ev.Message.TemplateFile = confutil.AbsConfig(ev.Message.TemplateFile)
-
 			return ev, nil
 		},
 	})

@@ -6,10 +6,9 @@ import (
 )
 
 type Message struct {
-	From         string
-	To           []string
-	Template     string
-	TemplateFile string
+	From     string
+	To       []string
+	Template string
 }
 
 var MessageSpec = conf.SectionSpec{
@@ -31,10 +30,5 @@ var MessageSpec = conf.SectionSpec{
 		Annotations: new(conf.Annotation).With(
 			runtime.StringFormat("text/plain"),
 		),
-	},
-	{
-		Name:        "TemplateFile",
-		Type:        conf.StringType,
-		Description: "A template file for the message body using Golang text/template.",
 	},
 }

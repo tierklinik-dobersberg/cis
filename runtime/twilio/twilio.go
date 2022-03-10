@@ -1,15 +1,12 @@
 package twilio
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
-	"sync"
-	"text/template"
 
 	"github.com/kevinburke/twilio-go"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
+	"github.com/tierklinik-dobersberg/cis/pkg/tmpl"
 )
 
 var log = pkglog.New("twilio")
@@ -26,73 +23,34 @@ func New(acc Account) (SMSSender, error) {
 	client := twilio.NewClient(acc.AccountSid, acc.Token, nil)
 
 	return &sender{
-		defaultFrom:   acc.From,
-		client:        client,
-		templateCache: make(map[string]*template.Template),
+		defaultFrom: acc.From,
+		client:      client,
 	}, nil
 }
 
 type sender struct {
-	client        *twilio.Client
-	defaultFrom   string
-	l             sync.Mutex
-	templateCache map[string]*template.Template
+	client      *twilio.Client
+	defaultFrom string
 }
 
-func (s *sender) Send(ctx context.Context, msg Message, context interface{}) error {
+func (s *sender) Send(ctx context.Context, msg Message, renderContext interface{}) error {
 	if msg.From == "" {
 		msg.From = s.defaultFrom
 	}
 
-	t, err := s.cacheTemplate(ctx, msg)
+	body, err := tmpl.Render(ctx, msg.Template, renderContext)
 	if err != nil {
-		return err
-	}
-
-	var buf = new(bytes.Buffer)
-	if err := t.Execute(buf, context); err != nil {
-		return fmt.Errorf("executing template: %w", err)
+		return fmt.Errorf("failed to render template: %w", err)
 	}
 
 	for _, to := range msg.To {
-		_, err := s.client.Messages.SendMessage(msg.From, to, buf.String(), nil)
+		_, err := s.client.Messages.SendMessage(msg.From, to, body, nil)
 		if err != nil {
 			return fmt.Errorf("sending message to %s: %w", to, err)
 		}
 	}
 
 	return nil
-}
-
-func (s *sender) cacheTemplate(_ context.Context, msg Message) (*template.Template, error) {
-	key := "template: " + msg.Template
-	if msg.TemplateFile != "" {
-		key = "file: " + msg.TemplateFile
-	}
-
-	s.l.Lock()
-	defer s.l.Unlock()
-	if t, ok := s.templateCache[key]; ok {
-		return t, nil
-	}
-
-	body := msg.Template
-	if msg.TemplateFile != "" {
-		blob, err := ioutil.ReadFile(msg.TemplateFile)
-		if err != nil {
-			return nil, fmt.Errorf("template-file: %w", err)
-		}
-		body = string(blob)
-	}
-
-	t, err := template.New("sms").Parse(body)
-	if err != nil {
-		return nil, fmt.Errorf("parsing template: %w", err)
-	}
-
-	s.templateCache[key] = t
-
-	return t, nil
 }
 
 // compile time check.
