@@ -73,6 +73,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/runtime/tasks"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 	"github.com/tierklinik-dobersberg/cis/runtime/twilio"
+	"github.com/tierklinik-dobersberg/cis/runtime/webhook"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -80,7 +81,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo"
 	"go.opentelemetry.io/otel"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/trace"
 
 	//
 	// underscore imports that register themself somewhere.
@@ -159,16 +159,11 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	var ctx = baseCtx
 	var tracer *tracesdk.TracerProvider
 	if cfg.JaegerTracingURL != "" {
-		var span trace.Span
 		tracer, err = tracerProvider(&cfg.Config)
 		if err != nil {
 			log.Fatalf("failed to configure trace provider: %s", err)
 		}
 		otel.SetTracerProvider(tracer)
-
-		tr := tracer.Tracer("")
-		ctx, span = tr.Start(ctx, "init")
-		defer span.End()
 	}
 
 	//
@@ -414,6 +409,9 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	}
 	if err := execer.AddTriggerType(triggerReg); err != nil {
 		logger.Fatalf(ctx, "failed to add trigger type mailer: %s", err)
+	}
+	if err := webhook.AddTriggerType(triggerReg); err != nil {
+		logger.Fatalf(ctx, "failed to add trigger type webhook: %s", err)
 	}
 
 	//
