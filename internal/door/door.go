@@ -123,6 +123,14 @@ func NewDoorController(ctx context.Context, ohCtrl *openinghours.Controller, cs 
 		}
 	}
 
+	// reset the scheduler whenever new opening hours got configured.
+	dc.Controller.OnChange(func() {
+		select {
+		case dc.reset <- resetSoft:
+		default:
+		}
+	})
+
 	return dc, nil
 }
 
