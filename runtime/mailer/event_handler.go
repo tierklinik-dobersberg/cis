@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
@@ -58,7 +57,6 @@ func AddTriggerType(reg *trigger.Registry) error {
 			if err := conf.DecodeSections([]conf.Section{*s}, MessageSpec, &msg); err != nil {
 				return nil, fmt.Errorf("parsing message: %w", err)
 			}
-			msg.BodyFile = confutil.AbsConfig(msg.BodyFile)
 
 			return &eventHandler{
 				msg: msg,

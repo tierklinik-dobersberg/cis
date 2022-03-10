@@ -13,7 +13,6 @@ type Message struct {
 	Subject         string // text/template
 	BodyContentType string
 	Body            string // text/template
-	BodyFile        string // text/template
 }
 
 var MessageSpec = conf.SectionSpec{
@@ -56,10 +55,5 @@ var MessageSpec = conf.SectionSpec{
 		Annotations: new(conf.Annotation).With(
 			runtime.StringFormat("text/plain"),
 		),
-	},
-	{
-		Name:        "BodyFile",
-		Description: "Path to the email body template file. If used Body= must be empty",
-		Type:        conf.StringType,
 	},
 }

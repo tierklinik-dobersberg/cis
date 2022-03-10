@@ -161,5 +161,6 @@ func MustRegisterType(t Type) *TypeRef {
 	if err != nil {
 		panic(fmt.Sprintf("%s: %s", t.ID, err))
 	}
+
 	return tref
 }
