@@ -2,6 +2,7 @@ FROM node:14 as builder
 WORKDIR /app
 COPY . .
 RUN npm install
+RUN npm run build-ckeditor
 RUN npm run build-limited --prod
 
 FROM caddy
