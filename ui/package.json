@@ -7,6 +7,7 @@
     "start": "ng serve",
     "build": "ng build",
     "build:ci": "ng build --configuration production --aot",
+    "build-limited": "node --max-old-space-size=1024 ./node_modules/.bin/ng build --configuration production --aot",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
