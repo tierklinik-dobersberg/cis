@@ -1,7 +1,7 @@
 import { EventEmitter, ChangeDetectionStrategy, Component, Output, Input } from "@angular/core";
 
 @Component({
-  selector: 'tkd-list-action-buttons',
+  selector: 'tkd-list-action-buttons', // eslint-disable-line
   templateUrl: './list-btn-group.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -10,8 +10,8 @@ export class ListActionButtonGroupComponent<T> {
   value: T | undefined;
 
   @Output()
-  onEdit = new EventEmitter<T | undefined>();
+  edit = new EventEmitter<T | undefined>();
 
   @Output()
-  onDelete = new EventEmitter<T | undefined>();
+  delete = new EventEmitter<T | undefined>();
 }

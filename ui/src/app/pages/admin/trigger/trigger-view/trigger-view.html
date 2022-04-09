@@ -58,8 +58,8 @@
               <tkd-list-action-buttons
                 class="flex flex-row items-center justify-end"
                 [value]="row"
-                (onDelete)="deleteAction(index)"
-                (onEdit)="addOrEditAction(index, $event)"
+                (delete)="deleteAction(index)"
+                (edit)="addOrEditAction(index, $event)"
               ></tkd-list-action-buttons>
             </td>
           </tr>

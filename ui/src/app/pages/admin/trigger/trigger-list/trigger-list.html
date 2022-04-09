@@ -39,13 +39,19 @@
       <td>{{ row.config?.Name }}</td>
       <td>{{ row.config?.Description }}</td>
       <td>{{ row.config?.Group }}</td>
-      <td>{{ row.config?.EventFilter }}</td>
+      <td>
+        <ul class="space-y-0.5">
+          <li *ngFor="let filter of row.config?.EventFilter">
+            <pre class="text-xs bg-subtle py-0.4 px-1 border border-tertiary rounded text-secondary">{{ filter }}</pre>
+          </li>
+        </ul>
+      </td>
       <td>{{ row.actions?.length || 0 }}</td>
       <td class="flex flex-row items-center justify-end">
         <tkd-list-action-buttons
           [value]="row.id"
-          (onDelete)="deleteTrigger($event)"
-          (onEdit)="editTrigger($event)"
+          (delete)="deleteTrigger($event)"
+          (edit)="editTrigger($event)"
         >
         </tkd-list-action-buttons>
       </td>

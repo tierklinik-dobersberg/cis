@@ -4,14 +4,14 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
 import { OptionSpec } from "src/app/api";
 
 @Component({
-  selector: 'tkd-option-list-input',
+  selector: 'tkd-option-list-input', // eslint-disable-line
   templateUrl: './option-list-input.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
-    { provide: NG_VALUE_ACCESSOR, multi: true, useExisting: forwardRef(() => TkdOptionListInput)}
+    { provide: NG_VALUE_ACCESSOR, multi: true, useExisting: forwardRef(() => TkdOptionListInputComponent)}
   ]
 })
-export class TkdOptionListInput implements ControlValueAccessor {
+export class TkdOptionListInputComponent implements ControlValueAccessor {
   @Input()
   specs: OptionSpec[] = []
 
