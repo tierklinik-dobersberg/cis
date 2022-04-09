@@ -43,11 +43,23 @@ func setupServer(ctx context.Context, app *app.App) (*echo.Echo, error) {
 		}
 
 		for _, r := range app.Config.TrustedProxy {
-			_, n, err := net.ParseCIDR(r)
+			_, network, err := net.ParseCIDR(r)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse %s: %w", n, err)
+				// try to parse a hostname
+				ips, err := net.LookupIP(r)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse %s: %w", network, err)
+				}
+
+				for _, ip := range ips {
+					trusts = append(trusts, echo.TrustIPRange(&net.IPNet{
+						IP:   ip,
+						Mask: net.CIDRMask(net.IPv6len*8, net.IPv6len*8),
+					}))
+				}
+			} else {
+				trusts = append(trusts, echo.TrustIPRange(network))
 			}
-			trusts = append(trusts, echo.TrustIPRange(n))
 		}
 
 		engine.IPExtractor = echo.ExtractIPFromXFFHeader(trusts...)

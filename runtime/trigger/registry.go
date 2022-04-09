@@ -51,6 +51,8 @@ type (
 		Description string
 		// Group is a list of group names the trigger instance belongs to
 		Group []string
+		// Condition is a maja42/goval condition that must evaluate to true.
+		Condition string
 	}
 
 	Definition struct {

@@ -68,6 +68,12 @@ var MatchSpec = conf.SectionSpec{
 			runtime.OneOfRef("trigger", "Group", "Group", true),
 		),
 	},
+	{
+		Name:        "Condition",
+		Type:        conf.StringType,
+		Description: "A condition using maja42/goval that must evaluate to true for the trigger to fire",
+		Default:     "",
+	},
 }
 
 var triggerRefSpec = conf.SectionSpec{

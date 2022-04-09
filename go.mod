@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
+	github.com/PaesslerAG/gval v1.1.2 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/alecthomas/chroma v0.9.4 // indirect
 	github.com/antzucaro/matchr v0.0.0-20210222213004-b04723ef80f0

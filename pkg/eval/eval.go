@@ -6,52 +6,35 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/maja42/goval"
+	"github.com/PaesslerAG/gval"
 )
 
-func Evaluate(ctx context.Context, expr string, vars map[string]interface{}) (interface{}, error) {
-	return goval.NewEvaluator().Evaluate(
+func Evaluate(ctx context.Context, expr string, vars interface{}) (interface{}, error) {
+	return gval.EvaluateWithContext(
+		ctx,
 		expr,
 		vars,
-		getFuncMap(),
+		getFuncMap()...,
 	)
 }
 
-func getFuncMap() map[string]func(args ...interface{}) (interface{}, error) {
-	fn := make(map[string]func(args ...interface{}) (interface{}, error))
+func getFuncMap() []gval.Language {
+	funcs := []gval.Language{}
 
-	fn["len"] = lenFunc
-	fn["rand"] = randFunc
-	fn["parseDate"] = parseDateFunc
-	fn["now"] = now
+	funcs = append(funcs, gval.Function(
+		"now",
+		now,
+	))
+	funcs = append(funcs, gval.Function(
+		"len",
+		lenFunc,
+	))
+	funcs = append(funcs, gval.Function(
+		"rand",
+		randFunc,
+	))
 
-	return fn
-}
-
-func parseDateFunc(args ...interface{}) (interface{}, error) {
-	if len(args) < 1 || len(args) > 2 {
-		return nil, fmt.Errorf("expected 1 or 2 arguments")
-	}
-
-	value, ok := args[0].(string)
-	if !ok {
-		return nil, fmt.Errorf("expected value to be a string, got %T", args[0])
-	}
-
-	format := time.RFC3339
-	if len(args) == 2 {
-		format, ok = args[1].(string)
-		if !ok {
-			return nil, fmt.Errorf("expected time format as string, got %T", args[1])
-		}
-	}
-
-	d, err := time.Parse(format, value)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse date: %w", err)
-	}
-
-	return d.Unix(), nil
+	return funcs
 }
 
 func now(args ...interface{}) (interface{}, error) {
@@ -63,6 +46,7 @@ func now(args ...interface{}) (interface{}, error) {
 }
 
 func randFunc(...interface{}) (interface{}, error) {
+	// trunk-ignore(golangci-lint/gosec)
 	return rand.Float64(), nil
 }
 
@@ -82,5 +66,6 @@ func lenFunc(args ...interface{}) (interface{}, error) {
 	if ok {
 		return len(obj), nil
 	}
+
 	return nil, fmt.Errorf("expected string, array or object")
 }

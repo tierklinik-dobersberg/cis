@@ -7,86 +7,101 @@ import (
 	"time"
 
 	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
+	"github.com/tierklinik-dobersberg/cis/pkg/eval"
 	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 )
 
-// Handler is the interface that can be attached to trigger instances and
-// can handle and react to different kinds of events. For configuration
-// based triggers it's possible to register Handler factories and their
-// supported configuration stanzas at the trigger registry. See Registry
-// for more information on file based trigger configuration.
-type Handler interface {
-	// HandleEvents is called for each set of events fired. There might
-	// be multiple events if the users configures BufferUntil.
-	HandleEvents(ctx context.Context, event ...*event.Event) error
-}
+type (
+	// Handler is the interface that can be attached to trigger instances and
+	// can handle and react to different kinds of events. For configuration
+	// based triggers it's possible to register Handler factories and their
+	// supported configuration stanzas at the trigger registry. See Registry
+	// for more information on file based trigger configuration.
+	Handler interface {
+		// HandleEvents is called for each set of events fired. There might
+		// be multiple events if the users configures BufferUntil.
+		HandleEvents(ctx context.Context, event ...*event.Event) error
+	}
 
-// InstanceConfig holds additional configuration values
-// for trigger instances.
-type InstanceConfig struct {
-	// Name is the name of the instance as set by the user.
-	Name string
+	// InstanceConfig holds additional configuration values
+	// for trigger instances.
+	InstanceConfig struct {
+		// Name is the name of the instance as set by the user.
+		Name string
 
-	// EventFilters holds a topic subscription that's evaluated using
-	// event.MatchSubscription. It's only used when calling Wants() on the
-	// final instance returned by NewInstance. This field is not required
-	// and only for convenience purpopses when manually triggering instances
-	// using Handle().
-	EventFilters []string
-	// DebounceUntil can be set to different day-times (minute resolution)
-	// until which the handling of events is debounced. A trigger instance
-	// that is currently debouncing events and waiting for the next "until"
-	// time returns true from Pending(). Trigger instances with DebounceUntil=
-	// will never fire more than one event at the specified day times and never
-	// fire in between.
-	//
-	// Note that DebounceUntil and BufferUntil are mutually exclusive.
-	// Configuring both will cause NewInstance to return an error.
-	DebounceUntil []daytime.DayTime
-	// BufferUntil works similar to DebounceUntil but instead of dropping older
-	// events and just keeping the latest one BufferUntil keeps track of all
-	// events that occurred between the configured day times. Once a day time is
-	// reached with minute resolution, the complete buffer of events is handed to
-	// each handler of the instance.
-	//
-	// Note that DebounceUntil and BufferUntnil are mutually exclusive.
-	// Configuring both will cause NewInstance to return an error.
-	BufferUntil []daytime.DayTime
-	// Location may defined the timezone the instance should operate in. The
-	// timezone is mainly required if DebounceUntil or BufferUntil is configured.
-	Location *time.Location
-	// Description holds an optional, human-readable description
-	Description string
-	// Group is a list of group names the trigger instance belongs to.
-	// Groups have no special meaning in this package but may be used
-	// by package users for different purposes. I.e. in CIS the trigger
-	// group is used to allow execution of multiple trigger instances via
-	// the API.
-	Groups []string
-}
+		// EventFilters holds a topic subscription that's evaluated using
+		// event.MatchSubscription. It's only used when calling Wants() on the
+		// final instance returned by NewInstance. This field is not required
+		// and only for convenience purpopses when manually triggering instances
+		// using Handle().
+		EventFilters []string
+		// DebounceUntil can be set to different day-times (minute resolution)
+		// until which the handling of events is debounced. A trigger instance
+		// that is currently debouncing events and waiting for the next "until"
+		// time returns true from Pending(). Trigger instances with DebounceUntil=
+		// will never fire more than one event at the specified day times and never
+		// fire in between.
+		//
+		// Note that DebounceUntil and BufferUntil are mutually exclusive.
+		// Configuring both will cause NewInstance to return an error.
+		DebounceUntil []daytime.DayTime
+		// BufferUntil works similar to DebounceUntil but instead of dropping older
+		// events and just keeping the latest one BufferUntil keeps track of all
+		// events that occurred between the configured day times. Once a day time is
+		// reached with minute resolution, the complete buffer of events is handed to
+		// each handler of the instance.
+		//
+		// Note that DebounceUntil and BufferUntnil are mutually exclusive.
+		// Configuring both will cause NewInstance to return an error.
+		BufferUntil []daytime.DayTime
+		// Location may defined the timezone the instance should operate in. The
+		// timezone is mainly required if DebounceUntil or BufferUntil is configured.
+		Location *time.Location
+		// Description holds an optional, human-readable description
+		Description string
+		// Group is a list of group names the trigger instance belongs to.
+		// Groups have no special meaning in this package but may be used
+		// by package users for different purposes. I.e. in CIS the trigger
+		// group is used to allow execution of multiple trigger instances via
+		// the API.
+		Groups []string
+		// Condition holds a maja42/goval condtion that must evaluate to true for
+		// the trigger to fire.
+		Condition string
+	}
 
-// Instance is a dedicated trigger instance that handles a set of events
-// and executes specified handlers for each of them. Instances may directly
-// forward events to their handlers or buffer/debounce them until certain
-// conditions apply. See InstanceConfig for more information on deboucing and
-// buffering.
-type Instance struct {
-	cfg      *InstanceConfig
-	handlers []Handler
-	id       string
+	// Instance is a dedicated trigger instance that handles a set of events
+	// and executes specified handlers for each of them. Instances may directly
+	// forward events to their handlers or buffer/debounce them until certain
+	// conditions apply. See InstanceConfig for more information on deboucing and
+	// buffering.
+	Instance struct {
+		cfg      *InstanceConfig
+		handlers []Handler
+		id       string
 
-	wg        sync.WaitGroup
-	l         sync.Mutex
-	buffer    []*event.Event
-	startOnce sync.Once
-	pending   bool
-	flush     chan struct{}
-	cancel    context.CancelFunc
+		wg        sync.WaitGroup
+		l         sync.Mutex
+		buffer    []*event.Event
+		startOnce sync.Once
+		pending   bool
+		flush     chan struct{}
+		cancel    context.CancelFunc
+	}
+
+	// HandlerFunc is a convenience type for implementing Handler.
+	HandlerFunc func(ctx context.Context, event ...*event.Event) error
+)
+
+// HandleEvents calls through to fn.
+func (fn HandlerFunc) HandleEvents(ctx context.Context, event ...*event.Event) error {
+	return fn(ctx, event...)
 }
 
 // NewInstance creates a new trigger instance for the set of handlers.
@@ -173,13 +188,38 @@ func (inst *Instance) Wants(eventTopic string) bool {
 func (inst *Instance) Handle(ctx context.Context, evt *event.Event) error {
 	ctx, sp := otel.Tracer("").Start(ctx, "trigger.Instance.Handle",
 		trace.WithAttributes(
-			attribute.String("instance_id", inst.id),
-			attribute.String("instance_name", inst.cfg.Name),
+			attribute.String("trigger.instance.id", inst.id),
+			attribute.String("trigger.instance.condition", inst.cfg.Condition),
+			attribute.String("trigger.instance.name", inst.cfg.Name),
 		),
 	)
 	defer sp.End()
 
 	errors := new(multierr.Error)
+
+	if inst.cfg.Condition != "" {
+		// convert the event to map for evaluation
+		res, err := eval.Evaluate(
+			ctx,
+			inst.cfg.Condition,
+			evt,
+		)
+		if err != nil {
+			sp.RecordError(err)
+			sp.SetStatus(codes.Error, err.Error())
+
+			return fmt.Errorf("failed to evaluate trigger condition: %w", err)
+		}
+
+		resBool, ok := res.(bool)
+		if !ok {
+			return fmt.Errorf("trigger condition returned wrong type: %T", res)
+		}
+
+		if !resBool {
+			return nil
+		}
+	}
 
 	// if we're buffering or debouncing event handling we need a separate
 	// goroutine and will fill / overwrite the instance buffer.
@@ -318,6 +358,7 @@ func matchToInstanceConfig(match MatchConfig) (*InstanceConfig, error) {
 	instanceCfg.EventFilters = match.EventFilter
 	instanceCfg.Description = match.Description
 	instanceCfg.Groups = match.Group
+	instanceCfg.Condition = match.Condition
 
 	return instanceCfg, nil
 }
