@@ -70,7 +70,6 @@ export class ManageUserComponent implements OnInit, OnDestroy {
   phoneNumbers: string[] = [''];
   password = '';
   preview = '';
-  previewError = false;
   file: File | null = null;
   color = '';
   createCalendar = false;

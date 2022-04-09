@@ -28,8 +28,9 @@ import { LinkNoBubbleDirective } from './a-no-bubble.directive';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { TkdOptionSpecInputComponent } from './option-spec-input';
 import { TkdStringSliceInputComponent } from './simple-string-slice-input';
-import { TkdOptionListInput } from './option-list-input';
+import { TkdOptionListInputComponent } from './option-list-input';
 import { ListActionButtonGroupComponent } from './list-btn-group';
+import { UserAvatarComponent } from './user-avatar';
 
 @NgModule({
   imports: [
@@ -58,8 +59,9 @@ import { ListActionButtonGroupComponent } from './list-btn-group';
     LinkNoBubbleDirective,
     TkdStringSliceInputComponent,
     TkdOptionSpecInputComponent,
-    TkdOptionListInput,
+    TkdOptionListInputComponent,
     ListActionButtonGroupComponent,
+    UserAvatarComponent,
   ],
   exports: [
     CommonModule,
@@ -90,8 +92,9 @@ import { ListActionButtonGroupComponent } from './list-btn-group';
     MatBottomSheetModule,
     TkdStringSliceInputComponent,
     TkdOptionSpecInputComponent,
-    TkdOptionListInput,
+    TkdOptionListInputComponent,
     ListActionButtonGroupComponent,
+    UserAvatarComponent,
   ],
 })
 export class SharedModule {}
