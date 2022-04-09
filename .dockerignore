@@ -5,3 +5,6 @@
 ./testdata
 ./spec
 ./ui
+./assets
+./.trunk
+./.github

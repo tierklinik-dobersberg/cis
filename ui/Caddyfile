@@ -1,0 +1,5 @@
+:3000
+root * /srv/www
+encode gzip zstd
+try_files {path} {path}/ /index.html
+file_server
