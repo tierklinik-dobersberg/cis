@@ -1,38 +1,46 @@
-<div class="p-16 bg-white rounded-md shadow-md w-96 sm:p-12">
-    <div class="w-full">
-        <img src="assets/logo-big.png" alt="logo">
+<div class="flex flex-col flex-grow gap-4 p-16 m-1 text-white rounded shadow-inner bg-primary w-96 sm:p-12">
+    <div class="w-full my-6 mb-12 text-white font-lato">
+      <span class="text-white text-opacity-75">Willkommen im Assistenzsystem der</span>
+      <h1 class="text-2xl text-white">Tierklinik Dobersberg</h1>
     </div>
 
-    <div class="text-secondary" *ngIf="!!profile">
-        <div class="center">
-            <h1>Hallo {{ profile.fullname || profile.name }},</h1>
-            Du bist derzeit im CIS angemeldet. <br />
-            Möchtest du dich <a (click)="logout()" nz-button nzType="link">Abmelden</a> oder
-
-            <button (click)="continue()" class="w-full my-2 text-xs uppercase rounded-xl tkd-btn tkd-secondary">
-                Weiter als
-                &nbsp;
-                <u>{{(profile.fullname || profile.name)}}</u>
-            </button>
+    <div class="flex flex-col items-center justify-center gap-4" *ngIf="!!profile; else: loginForm">
+      <div class="flex flex-row items-center self-stretch justify-start w-full gap-4">
+        <tkd-user-avatar *ngIf="!!profile" [avatar]="profile.avatar" class="block w-20 h-20 bg-white border-2 rounded-full shadow-lg border-primary-dark text-color-primary"></tkd-user-avatar>
+        <div class="leading-3 font-lato">
+          <span class="text-white text-opacity-75 ">Hallo</span>
+          <h1 class="text-2xl text-white">{{ profile.fullname || profile.name }}</h1>
         </div>
-        <p class="block py-2 my-2 border-t border-text-tertiary text-secondary">Du kannst dich auch als neuer Benutzer anmelden:</p>
+      </div>
+        <div class="flex flex-row items-center self-stretch justify-between w-full gap-4 mt-6">
+          <button class="w-1/3 py-2.5 tkd-btn tkd-outline tkd-secondary" (click)="logout()">Abmelden</button>
+          <button class="w-1/3 py-2.5 tkd-btn tkd-secondary" (click)="continue()">Weiter</button>
+        </div>
     </div>
 
-    <div class="">
-        <form nz-form [formGroup]="validateForm" class="space-y-4 login-form" (ngSubmit)="submitForm()">
-            <input class="tkd-input" type="text" [(ngModel)]="username" formControlName="userName"
-                placeholder="Benutzername" />
+    <ng-template #loginForm>
+      <div class="">
+          <form nz-form [formGroup]="validateForm" class="space-y-4 login-form" (ngSubmit)="submitForm()">
+              <input class="bg-transparent border border-white border-opacity-light rounded px-3 py-1.5 w-full outline-none text-white font-lato" type="text" [(ngModel)]="username" formControlName="userName"
+                  placeholder="Benutzername" />
 
-            <input class="tkd-input" type="password" [(ngModel)]="password" formControlName="password"
-                placeholder="Passwort" autocomplete="current-password" />
-            <div nz-row>
-                <div nz-col [nzSpan]="24">
-                    <label nz-checkbox formControlName="remember">
-                        <span>Angemeldet bleiben?</span>
-                    </label>
-                </div>
-            </div>
-            <button class="w-full text-xs uppercase rounded-xl tkd-btn tkd-primary">Sign in</button>
-        </form>
+              <input class="bg-transparent border border-white border-opacity-light rounded px-3 py-1.5 w-full outline-none text-white font-lato" type="password" [(ngModel)]="password" formControlName="password"
+                  placeholder="Passwort" autocomplete="current-password" />
+              <div nz-row>
+                  <div nz-col [nzSpan]="24">
+                      <label nz-checkbox formControlName="remember">
+                          <span class="text-white">Angemeldet bleiben?</span>
+                      </label>
+                  </div>
+              </div>
+              <button class="w-full text-xs uppercase rounded-xl tkd-btn tkd-secondary">Sign in</button>
+          </form>
+      </div>
+    </ng-template>
+
+    <div class="flex-grow"></div>
+    <div class="text-xs text-white font-lato">
+      System-Version <b>1.0</b><br>
+      (c) 2022 Tierklinik Dobersberg, Patrick Pacher
     </div>
 </div>

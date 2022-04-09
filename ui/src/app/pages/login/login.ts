@@ -1,15 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { Subscription } from 'rxjs';
-import { IdentityAPI, Profile } from 'src/app/api';
+import { IdentityAPI, ProfileWithAvatar } from 'src/app/api';
 import { extractErrorMessage } from 'src/app/utils';
 
 @Component({
   templateUrl: './login.html',
   styleUrls: ['./login.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LoginComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
@@ -17,7 +18,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   lastMessageID = '';
   username = '';
   password = '';
-  profile: Profile | null = null;
+  profile: ProfileWithAvatar | null = null;
 
   validateForm!: FormGroup;
 
@@ -94,7 +95,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private messageService: NzMessageService,
     private identityapi: IdentityAPI,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -107,7 +109,10 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.subscriptions = new Subscription();
 
     const sub = this.identityapi.profileChange.subscribe(
-      (profile) => (this.profile = profile)
+      (profile) => {
+        this.profile = profile;
+        this.cdr.markForCheck();
+      }
     );
     this.subscriptions.add(sub);
   }

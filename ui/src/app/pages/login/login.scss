@@ -1,4 +1,8 @@
 :host {
-  @apply w-full h-full absolute flex justify-around items-center;
+  @apply w-full h-full absolute flex justify-start items-start;
+  padding: 0;
+
+  background-image: url("/assets/login-bg.webp");
+  background-size: cover;
 }
 
