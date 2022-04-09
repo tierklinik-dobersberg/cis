@@ -1,30 +1,30 @@
-<div class="flex flex-col flex-grow gap-4 p-16 m-1 text-white rounded shadow-inner bg-primary w-96 sm:p-12">
-    <div class="w-full my-6 mb-12 text-white font-lato">
+<div class="flex flex-col flex-grow gap-4 p-16 m-1 w-96 text-white rounded shadow-inner bg-primary sm:p-12">
+    <div class="my-6 mb-12 w-full text-white font-lato">
       <span class="text-white text-opacity-75">Willkommen im Assistenzsystem der</span>
       <h1 class="text-2xl text-white">Tierklinik Dobersberg</h1>
     </div>
 
-    <div class="flex flex-col items-center justify-center gap-4" *ngIf="!!profile; else: loginForm">
-      <div class="flex flex-row items-center self-stretch justify-start w-full gap-4">
-        <tkd-user-avatar *ngIf="!!profile" [avatar]="profile.avatar" class="block w-20 h-20 bg-white border-2 rounded-full shadow-lg border-primary-dark text-color-primary"></tkd-user-avatar>
+    <div class="flex flex-col gap-4 justify-center items-center" *ngIf="!!profile; else: loginForm">
+      <div class="flex flex-row gap-4 justify-start items-center self-stretch w-full">
+        <tkd-user-avatar *ngIf="!!profile" [avatar]="profile.avatar" class="block w-20 h-20 bg-white rounded-full border-2 border-white shadow-lg text-color-primary"></tkd-user-avatar>
         <div class="leading-3 font-lato">
-          <span class="text-white text-opacity-75 ">Hallo</span>
+          <span class="text-white text-opacity-75">Hallo</span>
           <h1 class="text-2xl text-white">{{ profile.fullname || profile.name }}</h1>
         </div>
       </div>
-        <div class="flex flex-row items-center self-stretch justify-between w-full gap-4 mt-6">
-          <button class="w-1/3 py-2.5 tkd-btn tkd-outline tkd-secondary" (click)="logout()">Abmelden</button>
-          <button class="w-1/3 py-2.5 tkd-btn tkd-secondary" (click)="continue()">Weiter</button>
+        <div class="flex flex-row gap-4 justify-between items-center self-stretch mt-6 w-full">
+          <button class="py-2.5 w-1/3 tkd-btn tkd-outline tkd-secondary" (click)="logout()">Abmelden</button>
+          <button class="py-2.5 w-1/3 tkd-btn tkd-secondary" (click)="continue()">Weiter</button>
         </div>
     </div>
 
     <ng-template #loginForm>
       <div class="">
           <form nz-form [formGroup]="validateForm" class="space-y-4 login-form" (ngSubmit)="submitForm()">
-              <input class="bg-transparent border border-white border-opacity-light rounded px-3 py-1.5 w-full outline-none text-white font-lato" type="text" [(ngModel)]="username" formControlName="userName"
+              <input class="px-3 py-1.5 w-full text-white bg-transparent rounded border border-white outline-none border-opacity-light font-lato" type="text" [(ngModel)]="username" formControlName="userName"
                   placeholder="Benutzername" />
 
-              <input class="bg-transparent border border-white border-opacity-light rounded px-3 py-1.5 w-full outline-none text-white font-lato" type="password" [(ngModel)]="password" formControlName="password"
+              <input class="px-3 py-1.5 w-full text-white bg-transparent rounded border border-white outline-none border-opacity-light font-lato" type="password" [(ngModel)]="password" formControlName="password"
                   placeholder="Passwort" autocomplete="current-password" />
               <div nz-row>
                   <div nz-col [nzSpan]="24">

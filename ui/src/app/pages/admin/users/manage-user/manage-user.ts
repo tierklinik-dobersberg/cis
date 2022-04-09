@@ -70,6 +70,7 @@ export class ManageUserComponent implements OnInit, OnDestroy {
   phoneNumbers: string[] = [''];
   password = '';
   preview = '';
+  previewError = false;
   file: File | null = null;
   color = '';
   createCalendar = false;
@@ -276,6 +277,8 @@ export class ManageUserComponent implements OnInit, OnDestroy {
     const reader = new FileReader();
     reader.onload = () => {
       this.preview = reader.result as string;
+      this.previewError = false;
+      this.cdr.markForCheck();
     };
     reader.readAsDataURL(file);
   }
@@ -331,9 +334,17 @@ export class ManageUserComponent implements OnInit, OnDestroy {
       updatePermissions = forkJoin(observables);
     }
 
+    let updateAvatar: Observable<any> = of(null);
+    if (this.userService.byName(this.name).avatar !== this.preview) {
+      updateAvatar = this.identityapi.uploadUserAvatar(this.name, this.file)
+    }
+
     this.identityapi
       .editUser(this.getProfile())
-      .pipe(switchMap(() => updatePermissions))
+      .pipe(
+        switchMap(() => updatePermissions),
+        switchMap(() => updateAvatar),
+      )
       .subscribe({
         next: () => {
           this.nzMessageService.success(
