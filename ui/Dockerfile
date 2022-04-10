@@ -1,7 +1,10 @@
 FROM node:14 as builder
 WORKDIR /app
-COPY . .
+
+COPY package.json package-lock.json .
 RUN npm install
+
+COPY . .
 RUN npx browserslist@latest --update-db
 RUN npm run build-ckeditor
 RUN npm run build-limited --prod
