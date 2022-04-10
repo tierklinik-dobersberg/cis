@@ -1,7 +1,8 @@
 module.exports = {
+  mode: 'jit',
   purge: {
-    enabled: false,// TODO(ppacher): only for production build
-    content: ['./src/**/*.{html,ts}']
+    enabled: process.env.TAILWIND_MODE === 'build',
+    content: ['./src/**/*.{html,scss,ts}']
   },
   darkMode: false, // or 'media', 'class'
   theme: {
