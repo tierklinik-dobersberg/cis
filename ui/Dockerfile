@@ -2,6 +2,7 @@ FROM node:14 as builder
 WORKDIR /app
 COPY . .
 RUN npm install
+RUN npx browserslist@latest --update-db
 RUN npm run build-ckeditor
 RUN npm run build-limited --prod
 
