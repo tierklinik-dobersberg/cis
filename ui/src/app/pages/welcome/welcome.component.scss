@@ -77,6 +77,10 @@
   .ant-card-meta-title {
     @apply text-color-primary font-lato text-sm font-semibold;
   }
+
+  .ant-card-body {
+    height: 100%;
+  }
 }
 
 app-clock-card {
