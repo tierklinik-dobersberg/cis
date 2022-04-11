@@ -33,7 +33,6 @@ import { SuggestionModule } from './pages/suggestions/suggestion.module';
 import { SharedModule } from './shared/shared.module';
 import { NgChartsModule } from 'ng2-charts';
 
-
 registerLocaleData(de);
 
 @NgModule({

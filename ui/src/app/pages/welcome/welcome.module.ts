@@ -1,47 +1,46 @@
-import { NgModule } from '@angular/core';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { NzGridModule } from 'ng-zorro-antd/grid';
-import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzAvatarModule } from 'ng-zorro-antd/avatar';
-import { NzCalendarModule } from 'ng-zorro-antd/calendar';
-import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzStepsModule } from 'ng-zorro-antd/steps';
-import { NzListModule } from 'ng-zorro-antd/list';
-import { NzDividerModule } from 'ng-zorro-antd/divider';
-import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
-import { NzResultModule } from 'ng-zorro-antd/result';
-
-import { WelcomeRoutingModule } from './welcome-routing.module';
-
-import { WelcomeComponent } from './welcome.component';
+import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { far } from '@fortawesome/free-regular-svg-icons';
 import { fas } from '@fortawesome/free-solid-svg-icons';
-import { NzIconModule, NzIconService } from 'ng-zorro-antd/icon';
-import { CommonModule } from '@angular/common';
-import { NzSelectModule } from 'ng-zorro-antd/select';
-import { FormsModule } from '@angular/forms';
+import { NzAvatarModule } from 'ng-zorro-antd/avatar';
+import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCalendarModule } from 'ng-zorro-antd/calendar';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzDividerModule } from 'ng-zorro-antd/divider';
+import { NzDrawerModule } from 'ng-zorro-antd/drawer';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzEmptyModule } from 'ng-zorro-antd/empty';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NzIconModule, NzIconService } from 'ng-zorro-antd/icon';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzListModule } from 'ng-zorro-antd/list';
+import { NzMessageServiceModule } from 'ng-zorro-antd/message';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { NzPopoverModule } from 'ng-zorro-antd/popover';
+import { NzResultModule } from 'ng-zorro-antd/result';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzStatisticModule } from 'ng-zorro-antd/statistic';
+import { NzStepsModule } from 'ng-zorro-antd/steps';
+import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
-import { NzDropdownButtonDirective, NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { SharedModule } from 'src/app/shared/shared.module';
+import { CalendarModule } from '../calendar/calendar.module';
+import { ClockCardComponent } from './clock-card';
 import { DoorCardComponent } from './door-card';
 import { EmergencyCardComponent } from './emergency-card';
-import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { ClockCardComponent } from './clock-card';
-import { NzStatisticModule } from 'ng-zorro-antd/statistic';
-import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
-import { NzMessageServiceModule } from 'ng-zorro-antd/message';
-import { NzPopoverModule } from 'ng-zorro-antd/popover';
-import { NzDrawerModule } from 'ng-zorro-antd/drawer';
-import { RosterCardComponent } from './roster-card';
 import { VoiceMailCardComponent } from './mail-card';
-import { UpcomingEventsCardComponent } from './upcoming-events-card';
-import { NzEmptyModule } from 'ng-zorro-antd/empty';
-import { SharedModule } from 'src/app/shared/shared.module';
-import { TriggerActionCardComponent } from './trigger-action-card';
 import { MobileWelcomeCardComponent } from './mobile-welcome-card';
-import { NzBadgeModule } from 'ng-zorro-antd/badge';
+import { RosterCardComponent } from './roster-card';
+import { TriggerActionCardComponent } from './trigger-action-card';
+import { UpcomingEventsCardComponent } from './upcoming-events-card';
+import { WelcomeRoutingModule } from './welcome-routing.module';
+import { WelcomeComponent } from './welcome.component';
 
 @NgModule({
   imports: [
@@ -74,6 +73,7 @@ import { NzBadgeModule } from 'ng-zorro-antd/badge';
     NzStatisticModule,
     NzEmptyModule,
     NzBadgeModule,
+    CalendarModule,
     SharedModule,
   ],
   declarations: [

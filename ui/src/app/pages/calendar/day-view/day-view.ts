@@ -1,3 +1,4 @@
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, TrackByFunction, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
@@ -78,6 +79,13 @@ export class DayViewComponent implements OnInit, OnDestroy {
         'all': 'Alle Kalender',
         'selected': 'Nur ausgewählte'
     };
+
+    @Input()
+    set inlineView(v: any) {
+        this._inlineView = coerceBooleanProperty(v)
+    }
+    get inlineView() { return this._inlineView }
+    private _inlineView = false;
 
     /** track by function for all calendars */
     trackCalendar: TrackByFunction<Calendar> = (_: number, item: Calendar) => {

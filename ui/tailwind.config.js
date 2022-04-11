@@ -1,7 +1,12 @@
+enablePurge = false
+try {
+  enablePurge = process.env.TAILWIND_MODE === 'build';
+} catch(err) {}
+
 module.exports = {
   mode: 'jit',
   purge: {
-    enabled: process.env.TAILWIND_MODE === 'build',
+    enabled: enablePurge,
     content: ['./src/**/*.{html,scss,ts}']
   },
   darkMode: false, // or 'media', 'class'

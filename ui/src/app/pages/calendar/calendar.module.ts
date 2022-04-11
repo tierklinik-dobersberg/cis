@@ -9,6 +9,9 @@ import { DayViewComponent } from './day-view';
     declarations: [
         DayViewComponent,
     ],
+    exports: [
+        DayViewComponent,
+    ],
     imports: [
         SharedModule,
         CalendarRoutingModule,

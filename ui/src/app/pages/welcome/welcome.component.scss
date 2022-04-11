@@ -52,7 +52,8 @@
     }
   }
 
-  app-upcoming-events-card {
+  app-upcoming-events-card,
+  .app-calendar-day-view-container {
     grid-row: auto / span 3;
     @include for-tablet-portrait-up {
       grid-column: 1 / span 2;
