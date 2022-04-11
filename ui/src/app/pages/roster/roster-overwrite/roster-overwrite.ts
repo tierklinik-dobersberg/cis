@@ -93,7 +93,7 @@ interface _Overwrite extends Overwrite {
   ],
 })
 export class RosterOverwritePageComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private checkOverlapping$ = new Subject<{ to: Date; from: Date }>();
   private reloadToday$ = new BehaviorSubject<void>(undefined);
 

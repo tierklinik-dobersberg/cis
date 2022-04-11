@@ -109,7 +109,7 @@ export class QuickTimeSelectorComponent implements OnInit, OnDestroy {
     private renderer: Renderer2
   ) {}
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private onDate$ = new BehaviorSubject<Date>(new Date());
 
   /** Whether or not the current day is a public holiday */

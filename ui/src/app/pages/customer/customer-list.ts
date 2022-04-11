@@ -16,7 +16,7 @@ import { customerTagColor, ExtendedCustomer, getMapsRouteUrl } from './utils';
 })
 export class CustomerListComponent implements OnInit, OnDestroy {
   private search$ = new Subject<string>();
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   @ViewChild('customerSelectPhone', { static: true, read: TemplateRef })
   customerSelectPhone: TemplateRef<any> | null = null;

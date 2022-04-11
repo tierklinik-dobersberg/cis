@@ -15,7 +15,7 @@ import { Counter } from "./counter";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StatsPageComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private reload$ = new Subject<void>();
   private debounce$ = new Subject<[Date, Date]>();
 

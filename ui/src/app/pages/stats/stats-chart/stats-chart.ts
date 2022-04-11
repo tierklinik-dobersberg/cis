@@ -23,7 +23,7 @@ export class StatsChartComponent implements OnDestroy, OnChanges, OnInit {
     };
 
     private destroy$ = new Subject<void>();
-    private reload$ = new Subject<{from: Date, to: Date}>();
+    private reload$ = new Subject<void>();
 
     constructor(
         private cdr: ChangeDetectorRef,

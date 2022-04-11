@@ -62,7 +62,7 @@ interface SubMenu {
 })
 export class AppComponent implements OnInit, OnDestroy {
   /** emits when the component is destroyed */
-  private destory$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   isCollapsed = false;
   isDevMode = isDevMode();
@@ -177,17 +177,17 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.destory$.next();
-    this.destory$.complete();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngOnInit(): void {
-    this.destory$ = new Subject();
+    this.destroy$ = new Subject();
 
     combineLatest([interval(15000), this.reloadOverwrite$])
       .pipe(
         startWith(-1),
-        takeUntil(this.destory$),
+        takeUntil(this.destroy$),
         switchMap(() =>
           this.roster.getActiveOverwrite().pipe(
             catchError((err) => {
@@ -215,7 +215,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.checkReachability();
     this.activeRoute.queryParamMap
-      .pipe(takeUntil(this.destory$))
+      .pipe(takeUntil(this.destroy$))
       .subscribe((params) => {
         this.isCollapsed = !params.has('show-menu');
       });
@@ -250,15 +250,15 @@ export class AppComponent implements OnInit, OnDestroy {
         });
     }
 
-    this.layout.change.pipe(takeUntil(this.destory$)).subscribe(() => {
+    this.layout.change.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.isCollapsed = !this.layout.isTabletLandscapeUp;
     });
 
     this.configapi.change
-      .pipe(takeUntil(this.destory$))
+      .pipe(takeUntil(this.destroy$))
       .subscribe((cfg) => this.applyConfig(cfg));
 
-    this.identity.profileChange.pipe(takeUntil(this.destory$)).subscribe({
+    this.identity.profileChange.pipe(takeUntil(this.destroy$)).subscribe({
       next: (result) => {
         this.profile = result;
         if (this.profile?.needsPasswordChange) {

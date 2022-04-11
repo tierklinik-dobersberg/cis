@@ -23,7 +23,7 @@ interface LocalCustomer extends Customer {
   styleUrls: ['./suggestion-card.scss'],
 })
 export class SuggestionCardComponent implements OnInit, OnDestroy {
-  private _destroy$ = new Subject();
+  private _destroy$ = new Subject<void>();
 
   customerTagColor = customerTagColor;
 

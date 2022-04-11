@@ -1,6 +1,6 @@
 import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild, ɵSWITCH_VIEW_CONTAINER_REF_FACTORY__POST_R3__ } from "@angular/core";
-import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { SafeResourceUrl } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import * as ClassicEditor from 'ckeditor/build/ckeditor';
 import { NzMessageService } from "ng-zorro-antd/message";

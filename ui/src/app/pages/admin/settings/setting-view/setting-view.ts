@@ -38,7 +38,7 @@ import { SettingTestComponent } from '../setting-test';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingViewComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private reload$ = new BehaviorSubject<void>(undefined);
 
   @ViewChild('singleValueModel', { static: false, read: NgModel })

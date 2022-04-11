@@ -60,7 +60,7 @@ const breadcrumps: Breadcrump[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ManageUserComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   editMode = false;
 

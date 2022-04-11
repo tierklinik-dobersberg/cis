@@ -1,20 +1,13 @@
-<div class="grid">
+<div class="grid overflow-x-hidden">
   <app-mobile-welcome-card *ngIf="layout.isPhone"></app-mobile-welcome-card>
   <app-door-card *ngIf="hasDoorAccess" class="dash-card"></app-door-card>
   <app-emergency-card *ngIf="hasDoctorOnDutyAccess" class="dash-card"></app-emergency-card>
-    <!--
-    (userClick)="upcomingEvents.selectUserFilter = $event"
-    (userHover)="upcomingEvents.highlightUser = $event"
-    -->
-  <app-roster-card class="dash-card" *ngIf="hasRosterAccess"
-    >
+  <app-roster-card class="dash-card" *ngIf="hasRosterAccess">
   </app-roster-card>
   <app-voicemail-card class="dash-card" *ngFor="let name of mailboxes" [mailboxName]="name"></app-voicemail-card>
-  <!--
-  <app-upcoming-events-card #upcomingEvents class="dash-card"></app-upcoming-events-card>
-  -->
-  <div class="dash-card app-calendar-day-view-container">
-    <nz-card class="overflow-auto">
+  <app-upcoming-events-card #upcomingEvents class="dash-card" *ngIf="!layout.isTabletLandscapeUp"></app-upcoming-events-card>
+  <div class="dash-card app-calendar-day-view-container" *ngIf="layout.isTabletLandscapeUp">
+    <nz-card class="max-w-full">
       <app-calendar-day-view inlineView="true"></app-calendar-day-view>
     </nz-card>
   </div>

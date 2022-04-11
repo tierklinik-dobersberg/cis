@@ -107,14 +107,11 @@
       }
     }
 
-    .tkd-icon-btn,
-    .tkd-icon-btn-inverse {
-      &.no-shadow {
-        @apply shadow-none;
-      }
-      &.with-shadow {
-        @apply shadow-sm;
-      }
+    .tkd-icon-btn.no-shadow {
+      box-shadow: none;
+    }
+    .tkd-icon-btn-inverse.no-shadow {
+      box-shadow: none;
     }
   }
 }

@@ -19,7 +19,7 @@ const breadcrumps: Breadcrump[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RoleViewComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   editMode = false;
   name = '';
