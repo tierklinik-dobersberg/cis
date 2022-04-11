@@ -32,7 +32,7 @@
     "@fortawesome/free-brands-svg-icons": "^5.15.4",
     "@fortawesome/free-regular-svg-icons": "^5.15.4",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
-    "@ngx-pwa/local-storage": "^12.1.0",
+    "@ngx-pwa/local-storage": "^13.0.2",
     "@swimlane/ngx-charts": "^19.0.1",
     "@tinymce/tinymce-angular": "^4.2.4",
     "@webcomponents/custom-elements": "^1.5.0",
