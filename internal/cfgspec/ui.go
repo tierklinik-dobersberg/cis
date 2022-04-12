@@ -120,12 +120,23 @@ var QuickRosterOverwriteSpec = conf.SectionSpec{
 		Type:        conf.StringType,
 		Description: "The display name for the quick-overwrite",
 		Required:    true,
+		Annotations: new(conf.Annotation).With(
+			runtime.Unique(),
+		),
 	},
 	{
 		Name:        "TargetNumber",
 		Type:        conf.StringType,
 		Description: "Target phone number or extension",
 		Required:    true,
+	},
+	{
+		Name:        "RequiresRole",
+		Type:        conf.StringSliceType,
+		Description: "List access to this quick-selector to one or more roles",
+		Annotations: new(conf.Annotation).With(
+			runtime.OneOfRoles,
+		),
 	},
 }
 

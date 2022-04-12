@@ -107,6 +107,7 @@ export interface UserProperty {
 export interface QuickRosterOverwrite {
   DisplayName: string;
   TargetNumber: string;
+  RequiresRole: string[] | null;
 }
 
 export interface KnownPhoneExtension {

@@ -38,6 +38,7 @@ import {
   Day,
   DoctorOnDutyResponse,
   ExternalAPI,
+  IdentityAPI,
   Overwrite,
   OverwriteBody,
   ProfileWithAvatar,
@@ -241,6 +242,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     private roster: RosterAPI,
     private externalapi: ExternalAPI,
     private userService: UserService,
+    private identityAPI: IdentityAPI,
     private config: ConfigAPI,
     private cdr: ChangeDetectorRef,
     private modal: NzModalService,
@@ -431,9 +433,16 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe((c) => {
+        let currentUserRoles = new Set<string>();
+        this.identityAPI.currentProfile?.roles.forEach(role => {
+          currentUserRoles.add(role)
+        })
+
         this.preferredUsers = c.users.preferred;
         this.otherAllowedUsers = c.users.others;
-        this.quickSettings = c.cfg.QuickRosterOverwrite || [];
+        this.quickSettings = (c.cfg.QuickRosterOverwrite || []).filter(setting => {
+          return !setting.RequiresRole || setting.RequiresRole.length === 0 || setting.RequiresRole.some(role => currentUserRoles.has(role));
+        });
         this.allowPhone = c.cfg.Roster?.AllowPhoneNumberOverwrite || false;
         this.cdr.markForCheck();
       });
