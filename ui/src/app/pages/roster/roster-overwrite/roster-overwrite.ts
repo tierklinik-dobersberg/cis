@@ -265,7 +265,6 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
 
   /** @private template-only - select the user that should be used for the new overwrite */
   selectUser(u: string) {
-    debugger;
     this.selectedUser = u;
     this.selectedQuickTargetNumber = '';
     this.customPhoneNumber = '';

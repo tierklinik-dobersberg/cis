@@ -1,9 +1,6 @@
-import { WHITE_ON_BLACK_CSS_CLASS } from "@angular/cdk/a11y/high-contrast-mode/high-contrast-mode-detector";
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, IterableDifferFactory, IterableDiffers, OnDestroy, OnInit, TrackByFunction } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, IterableDiffers, OnDestroy, OnInit, TrackByFunction } from "@angular/core";
 import { ChartData } from "chart.js";
-import { time } from "console";
-import { Local } from "protractor/built/driverProviders";
-import { forkJoin, interval, map, Observable, of, startWith, Subject, switchMap, takeUntil } from "rxjs";
+import { interval, map, Observable, startWith, Subject, switchMap, takeUntil } from "rxjs";
 import { ConfigAPI, HealthchecksAPI, PingDefinition } from "src/app/api";
 import { ColorService } from "src/app/shared/charts/color.service";
 import { HeaderTitleService } from "src/app/shared/header-title";
@@ -26,6 +23,7 @@ export class StatusPageComponent implements OnInit, OnDestroy {
 
   from = new Date(new Date().getTime() - 24*60*60*1000)
   to = new Date()
+  loading = true;
 
   datasets: {
     [pingID: string]: any;
@@ -81,6 +79,8 @@ export class StatusPageComponent implements OnInit, OnDestroy {
         })),
       )
       .subscribe(result => {
+        this.loading = false;
+
         const diffs = differ.diff(result)
         diffs.forEachAddedItem(record => {
           this.pings.push(record.item);
