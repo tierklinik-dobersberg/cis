@@ -81,6 +81,14 @@ func OneOfRef(ref, valueField, displayField string, allowCustomValue ...bool) co
 	}
 }
 
+// Readonly returns a new Keyvalue that marks an entity as read-only.
+func Readonly() conf.KeyValue {
+	return conf.KeyValue{
+		Key:   "vet.dobersberg.cis:schema/readonly",
+		Value: true,
+	}
+}
+
 // Unique marks each field name passed as unique. This may be useful to
 // enforce unique names accros configuration instances.
 func Unique(uniqueFields ...string) conf.KeyValue {

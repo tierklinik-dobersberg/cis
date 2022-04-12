@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ppacher/system-conf/conf"
+	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
 	"go.opentelemetry.io/otel"
@@ -129,6 +130,12 @@ type (
 		// NOT prevent that change from happening!
 		NotifyChange(ctx context.Context, changeType, id string, sec *conf.Section) error
 	}
+)
+
+var (
+	ChangeTypeCreate = "create"
+	ChangeTypeUpdate = "update"
+	ChangeTypeDelete = "delete"
 )
 
 func NewTestError(err error) *TestResult {
@@ -337,6 +344,23 @@ func (schema *ConfigSchema) DecodeSection(ctx context.Context, section string, t
 	s := make([]conf.Section, len(sections))
 	for idx, sec := range sections {
 		s[idx] = sec.Section
+		s[idx].Options = append(s[idx].Options,
+			conf.Option{
+				Name:  "_id",
+				Value: sec.ID,
+			},
+		)
+	}
+
+	// add the spec for the "virtual _id" field.
+	spec = confutil.MultiOptionRegistry{
+		spec,
+		conf.SectionSpec{
+			{
+				Name: "_id",
+				Type: conf.StringType,
+			},
+		},
 	}
 
 	return conf.DecodeSections(s, spec, target)
@@ -434,7 +458,7 @@ func (schema *ConfigSchema) Create(ctx context.Context, secType string, options 
 		return "", err
 	}
 
-	err = schema.notifyChangeListeners(ctx, "create", instanceID, sec.Name, &sec)
+	err = schema.notifyChangeListeners(ctx, ChangeTypeCreate, instanceID, sec.Name, &sec)
 
 	return instanceID, err
 }
@@ -463,6 +487,8 @@ func (schema *ConfigSchema) Update(ctx context.Context, id, secType string, opts
 		return ErrCfgSectionNotFound
 	}
 
+	opts = filterPrivateID(opts)
+
 	// ensure spec compliance
 	if err := conf.ValidateOptions(opts, reg.Spec); err != nil {
 		return httperr.BadRequest(err.Error())
@@ -488,7 +514,7 @@ func (schema *ConfigSchema) Update(ctx context.Context, id, secType string, opts
 		return err
 	}
 
-	if err := schema.notifyChangeListeners(ctx, "update", id, secType, &sec.Section); err != nil {
+	if err := schema.notifyChangeListeners(ctx, ChangeTypeUpdate, id, secType, &sec.Section); err != nil {
 		return err
 	}
 
@@ -522,7 +548,7 @@ func (schema *ConfigSchema) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	if err := schema.notifyChangeListeners(ctx, "delete", id, value.Name, nil); err != nil {
+	if err := schema.notifyChangeListeners(ctx, ChangeTypeDelete, id, value.Name, nil); err != nil {
 		return err
 	}
 
@@ -661,6 +687,17 @@ func (schema *ConfigSchema) ensureUniquness(ctx context.Context, reg Schema, sec
 	}
 
 	return nil
+}
+
+func filterPrivateID(opts []conf.Option) []conf.Option {
+	res := make([]conf.Option, 0, len(opts))
+	for _, opt := range opts {
+		if opt.Name != "_id" {
+			res = append(res, opt)
+		}
+	}
+
+	return res
 }
 
 func optionIncludesValues(opts conf.Options, optionName string, values []string) (string, bool) {

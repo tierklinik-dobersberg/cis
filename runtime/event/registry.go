@@ -9,6 +9,8 @@ import (
 
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/logger"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 var log = pkglog.New("event")
@@ -35,6 +37,13 @@ type TypeRef struct {
 }
 
 func (ref *TypeRef) Fire(ctx context.Context, payload Data) {
+	ctx, sp := otel.Tracer("").Start(ctx, "cis_event_fire")
+	defer sp.End()
+
+	sp.SetAttributes(
+		attribute.String("id", ref.ID),
+	)
+
 	ref.reg.Fire(ctx, ref.ID, payload)
 }
 
