@@ -93,6 +93,12 @@ export class TkdStringSliceInputComponent implements ControlValueAccessor {
     this.emitChanged();
   }
 
+  removeEntry(idx: number) {
+    this.value.splice(idx, 1);
+    this.value = [...this.value];
+    this.emitChanged();
+  }
+
   private emitChanged() {
     this._onChanged(this.value);
     this.valueChange.next(this.value);
