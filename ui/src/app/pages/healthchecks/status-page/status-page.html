@@ -25,3 +25,8 @@
 <div *ngFor="let ping of pings; trackBy: trackPing">
   <tkd-time-chart chartType="line" timeRound="hour" timeRange="minute" [from]="from" [to]="to" [title]="ping.Description" [description]="ping.Comment" [load]="ping.load"></tkd-time-chart>
 </div>
+
+<div *ngIf="!pings?.length" class="flex flex-col items-center justify-center w-full gap-4 p-4 md:p-8 lg:p-12">
+  <h1 class="text-xl text-color-primary-dark">Es sind noch keine Healthchecks konfiguriert.</h1>
+  <button routerLink="/admin/settings/healthchecks" class="text-base tkd-btn tkd-primary">Einstellungen</button>
+</div>
