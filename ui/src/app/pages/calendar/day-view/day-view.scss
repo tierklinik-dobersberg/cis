@@ -11,7 +11,7 @@
     flex: 1 1;
     background-color: white;
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
     border-right: solid 1px lightgray;
     height: fit-content;
 
@@ -40,31 +40,20 @@
     }
 }
 
-.times {
-    position: relative;
-
     .current-time {
-        border-top: 2px dashed rgb(243, 123, 107);
-        width: 100%;
-        position: absolute;
         text-align: right;
         line-height: .9rem;
         z-index: 2;
 
         span {
-            position: relative;
-            top: -0.5rem;
-            font-size: 0.85rem;
-            background-color: rgb(243, 123, 107);
-            color: white;
-            margin-right: 4px;
-            border-radius: 3px;
-            padding-left: 6px;
-            padding-right: 6px;
-            padding-top: 3px;
-            padding-bottom: 3px;
+            top: 0.25rem;
+            @apply rounded-b text-xs mr-1 py-1 px-2;
         }
     }
+
+
+.times {
+    position: relative;
 
     .hours {
         div {

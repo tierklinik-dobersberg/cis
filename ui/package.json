@@ -46,6 +46,7 @@
     "ng2-charts": "^3.0.8",
     "ngx-color": "^7.3.3",
     "ngx-markdown": "^13.1.0",
+    "ngx-timeago": "^2.0.0",
     "npm-check-updates": "^12.5.8",
     "rxjs": "^7.5.5",
     "search-query-parser": "^1.6.0",

@@ -24,6 +24,10 @@ import { NzDropDownModule } from "ng-zorro-antd/dropdown";
         TimeChartComponent,
         StatsChartComponent,
         CounterStatComponent,
+    ],
+    exports: [
+      TimeChartComponent,
+      StatsChartComponent,
     ]
 })
 export class StatsModule { }

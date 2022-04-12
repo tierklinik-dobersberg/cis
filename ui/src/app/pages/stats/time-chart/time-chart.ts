@@ -63,6 +63,9 @@ export class TimeChartComponent implements OnDestroy, OnChanges, OnInit {
     timeRange: string = '';
 
     @Input()
+    timeRound: string = '';
+
+    @Input()
     chartType: 'bar' | 'line' = 'line';
 
     @Input()
@@ -103,8 +106,12 @@ export class TimeChartComponent implements OnDestroy, OnChanges, OnInit {
                   scales: {
                     x: {
                       time: {
-                        unit: this.timeRange || 'day',
+                        unit: this.timeRound || this.timeRange || 'day',
                         round: this.timeRange || 'day',
+                        displayFormats: {
+                            quarter: 'MMM YYYY',
+                            hour: "HH:MM",
+                        }
                       },
                       min: this.from.getTime(),
                       max: this.to.getTime(),

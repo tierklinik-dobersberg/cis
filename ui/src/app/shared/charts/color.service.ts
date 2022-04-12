@@ -52,6 +52,8 @@ export class ColorService {
     colorizeDatasets(data: ChartDataset<any, any>[]) {
         data.forEach((d, idx) => {
             d.backgroundColor = this.byIndex(idx);
+            d.borderColor = this.byIndex(idx);
+            d.pointBackgroundColor = this.byIndex(idx);
         })
     }
 }

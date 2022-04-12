@@ -3,6 +3,7 @@ import { NzImageDirective } from 'ng-zorro-antd/image';
 import { interval, Subject } from 'rxjs';
 import { delay, retryWhen, takeUntil } from 'rxjs/operators';
 import { CctvAPI, LocalCamera } from 'src/app/api';
+import { HeaderTitleService } from 'src/app/shared/header-title';
 
 @Component({
   selector: 'app-camera-list',
@@ -24,9 +25,12 @@ export class CameraListComponent implements OnInit, OnDestroy {
 
   constructor(
     private cctvapi: CctvAPI,
+    private headerService: HeaderTitleService,
   ) { }
 
   ngOnInit() {
+    this.headerService.set("Video-Kameras")
+
     this.cctvapi.listCameras()
       .pipe(
         takeUntil(this.destroy$),

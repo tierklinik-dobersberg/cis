@@ -24,6 +24,7 @@ const routes: Routes = [
   { canActivate, path: 'cctv', loadChildren: () => import('./pages/cctv/cctv.module').then(m => m.CctvModule) },
   { canActivate, path: 'infoscreen', loadChildren: () => import('./pages/infoscreen/infoscreen.module').then(m => m.InfoScreenModule) },
   { canActivate, path: 'statistics', loadChildren: () => import('./pages/stats/stats.module').then(m => m.StatsModule) },
+  { canActivate, path: 'healthchecks', loadChildren: () => import('./pages/healthchecks/hc.module').then(m => m.HealthchecksModule) },
 ];
 
 @NgModule({

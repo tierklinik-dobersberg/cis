@@ -30,7 +30,8 @@ export enum WellKnownAnnotations {
   Secret = 'system-conf/secret',
   OverviewFields = 'vet.dobersberg.cis:schema/overviewFields',
   OneOf = 'vet.dobersberg.cis:schema/oneOf',
-  StringFormat = 'vet.dobersberg.cis:schema/stringFormat'
+  StringFormat = 'vet.dobersberg.cis:schema/stringFormat',
+  Readonly = 'vet.dobersberg.cis:schema/readonly'
 }
 
 export interface PossibleValue<T = any> {

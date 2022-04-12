@@ -32,6 +32,7 @@ import { LoginModule } from './pages/login/login.module';
 import { SuggestionModule } from './pages/suggestions/suggestion.module';
 import { SharedModule } from './shared/shared.module';
 import { NgChartsModule } from 'ng2-charts';
+import { TimeagoModule } from 'ngx-timeago';
 
 registerLocaleData(de);
 
@@ -62,6 +63,7 @@ registerLocaleData(de);
     LoginModule,
     RouterModule,
     LayoutModule,
+    TimeagoModule.forRoot(),
     ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
     NgChartsModule,
   ],

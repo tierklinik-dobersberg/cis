@@ -19,6 +19,7 @@
       >
         <nz-select
           class="flex-grow w-full"
+          [nzDisabled]="isReadonly"
           [nzMode]="allowCustomValues ? 'tags' : isSliceType ? 'multiple' : 'default'"
           nzPlaceHolder="Please select"
           [(ngModel)]="value"
@@ -40,6 +41,7 @@
               [type]="isSecret ? 'password' : 'text'"
               [attr.placeholder]="spec.default"
               class="flex-grow tkd-input"
+              [disabled]="isReadonly"
               [(ngModel)]="value"
               (ngModelChange)="_onChanged($event)"
               (blur)="_onBlur()"
@@ -48,6 +50,7 @@
               <ckeditor
                 *ngIf="isMarkdown; else: plainTextTemplate"
                 class="flex-grow tkd-input"
+                [disabled]="isReadonly"
                 [config]="{}"
                 [editor]="Editor"
                 [(ngModel)]="value"
@@ -68,6 +71,7 @@
             class="flex-grow tkd-input"
             *ngSwitchCase="'duration'"
             [(ngModel)]="value"
+              [disabled]="isReadonly"
             (ngModelChange)="_onChanged($event)"
             (blur)="_onBlur()"
           />
@@ -76,6 +80,7 @@
             [placeholder]="spec.default"
             *ngSwitchCase="'[]string'"
             [(ngModel)]="value"
+              [disabled]="isReadonly"
             (ngModelChange)="_onChanged($event)"
             (blur)="_onBlur()"
           >
@@ -84,6 +89,7 @@
             *ngSwitchCase="'bool'"
             class="flex-grow"
             nz-checkbox
+              [disabled]="isReadonly"
             [(ngModel)]="value"
             (ngModelChange)="_onChanged($event)"
             (blur)="_onBlur()"
@@ -93,6 +99,7 @@
             type="number"
             [attr.placeholder]="spec.default"
             class="flex-grow tkd-input"
+              [disabled]="isReadonly"
             *ngSwitchCase="'int'"
             [(ngModel)]="value"
             (ngModelChange)="_onChanged($event)"

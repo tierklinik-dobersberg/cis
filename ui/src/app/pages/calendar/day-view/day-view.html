@@ -1,4 +1,4 @@
-<div class="flex justify-between items-center p-2 -mb-3">
+<div class="flex items-center justify-between p-2 -mb-3">
     <div>
         <nz-button-group>
             <button nz-button (click)="prevDay()" nzType="text">
@@ -40,9 +40,23 @@
     </div>
 </div>
 
-<div class="flex overflow-hidden flex-grow p-2  sm:p-4 md:p-8" [ngClass]="{'bg-white rounded shadow': !inlineView}">
-    <div class="flex overflow-auto flex-grow" cdkScrollable #scrollContainer>
-        <ng-container="calendar" *ngFor="let cal of calendars; trackBy: trackCalendar; let last=last">
+<div class="flex flex-grow p-2 overflow-hidden md:p-4 lg:p-8" [ngClass]="{'bg-white rounded shadow': !inlineView}">
+    <div class="relative flex flex-grow overflow-auto" cdkScrollable #scrollContainer>
+        <div id="height-wrapper absolute top-0"></div>
+
+            <div class="calendar" *ngIf="!calendars?.length">
+                <div class="header">
+                </div>
+                <div class="times">
+                    <div class="hours">
+                        <div *ngFor="let hour of hours" [ngStyle]="{height: hourHeight + 'px'}">
+                            <caption>{{hour < 10 ? '0' + hour : hour}}:00</caption>
+                        </div>
+                    </div>
+                </div>
+              </div>
+
+        <ng-container  *ngFor="let cal of calendars; trackBy: trackCalendar; let last=last">
             <div class="calendar" *ngIf="cal.displayed">
                 <div class="header" (dblclick)="onFilterDblClick(cal)">
                     {{ cal.user?.fullname || cal.user?.name || cal.name }}
@@ -65,13 +79,15 @@
                             {{ event.description }}
                         </ng-container>
                     </span>
-                    <div class="current-time" [ngStyle]="{top: todayOffset + 'px'}" *ngIf="isToday">
-                        <span *ngIf="last">
-                            {{ currentTime | date:'HH:mm' }}
-                        </span>
-                    </div>
                 </div>
             </div>
-            </ng-container>
+        </ng-container>
+
+
+        <div class="absolute w-full border-t-2 border-opacity-75 current-time border-alert-red" [ngStyle]="{top: todayOffset + 'px', left: scrollable.nativeElement.scrollLeft}">
+          <span class="relative text-white bg-opacity-75 bg-alert-red">
+            {{ currentTime | date:'HH:mm' }}
+          </span>
+        </div>
     </div>
 </div>

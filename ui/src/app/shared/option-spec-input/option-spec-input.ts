@@ -70,6 +70,9 @@ export class TkdOptionSpecInputComponent
   /** whether or not custom values are allowed. */
   allowCustomValues = false;
 
+  /** whether or not the option is marked as read-only */
+  isReadonly = false;
+
   /** a list of possible values for the current spec */
   possibleValues: PossibleValue[] | null = null;
 
@@ -102,6 +105,8 @@ export class TkdOptionSpecInputComponent
         this.isPlainText = false;
       }
       this.allowCustomValues = this.configapi.customValueAllowed(changes.spec.currentValue);
+
+      this.isReadonly = this.configapi.hasAnnotation(changes.spec.currentValue, WellKnownAnnotations.Readonly )
 
       this.configapi
         .resolvePossibleValues(changes.spec.currentValue)

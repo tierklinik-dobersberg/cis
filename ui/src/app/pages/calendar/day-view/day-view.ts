@@ -1,11 +1,8 @@
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { CdkScrollable } from '@angular/cdk/scrolling';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, TrackByFunction, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { colorSets } from '@swimlane/ngx-charts';
-import { NzPopoverDirective } from 'ng-zorro-antd/popover';
 import { BehaviorSubject, combineLatest, forkJoin, interval, of, Subject } from 'rxjs';
-import { startWith, switchMap, take, takeUntil, tap } from 'rxjs/operators';
+import { catchError, startWith, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import { CalendarAPI, IdentityAPI, LocalEvent, ProfileWithAvatar, UserService } from 'src/app/api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { getContrastFontColor } from 'src/app/utils';
@@ -262,22 +259,27 @@ export class DayViewComponent implements OnInit, OnDestroy {
             this._currentDate$.pipe(
                 tap(() => first = true),
             ),
-            this.calendarapi.listCalendars(),
+            this.calendarapi.listCalendars()
+              .pipe(catchError(err => of([]))),
             start$,
         ])
             .pipe(
                 takeUntil(this._destroy$),
                 switchMap(([date, calendars, _]) => {
                     return forkJoin({
-                        events: this.calendarapi.listEvents(date),
+                        events: this.calendarapi.listEvents(date)
+                          .pipe(catchError(err => of([]))),
                         calendars: of(calendars),
                     })
                 }),
             )
-            .subscribe(result => {
+            .subscribe({
+              next: result => {
                 const events = result.events;
                 let lm = new Map<string, Calendar>();
                 let earliestEvent: Date | null = null;
+
+                ((this.scrollable.nativeElement as HTMLElement).firstChild as HTMLElement).style.height = `${24 * this.hourHeight}px`
 
                 result.calendars.forEach(c => {
                     const wasDisplayed = this.calendars.find(cal => cal.id === c._id)?.displayed;
@@ -407,7 +409,9 @@ export class DayViewComponent implements OnInit, OnDestroy {
                         })
                     first = false;
                 }
-            }, err => console.error(err));
+            },
+            error: err => console.error(err)
+          });
 
         this._layouting$.pipe(takeUntil(this._destroy$))
             .subscribe(() => {

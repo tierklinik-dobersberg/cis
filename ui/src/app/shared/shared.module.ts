@@ -17,6 +17,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { MarkdownModule } from 'ngx-markdown';
+import { TimeagoModule } from 'ngx-timeago';
 import { CallLogTableComponent } from './callog-table';
 import { CommentComponent } from './comment';
 import { HeaderTitleOutletComponent } from './header-title';
@@ -48,6 +49,7 @@ import { UserAvatarComponent } from './user-avatar';
     FormsModule,
     RouterModule,
     CKEditorModule,
+    TimeagoModule,
   ],
   declarations: [
     DurationPipe,
@@ -95,6 +97,7 @@ import { UserAvatarComponent } from './user-avatar';
     TkdOptionListInputComponent,
     ListActionButtonGroupComponent,
     UserAvatarComponent,
+    TimeagoModule,
   ],
 })
 export class SharedModule {}
