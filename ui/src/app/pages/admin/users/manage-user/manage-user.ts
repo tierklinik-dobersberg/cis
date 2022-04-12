@@ -206,6 +206,7 @@ export class ManageUserComponent implements OnInit, OnDestroy {
     this.calendarapi.listCalendars().subscribe({
       next: (calendars) => {
         this.availableCalendars = calendars || [];
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.nzMessageService.error(

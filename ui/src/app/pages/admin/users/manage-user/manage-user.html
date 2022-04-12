@@ -133,7 +133,7 @@
                   vergessen" funktionieren.
                 </span>
                 <tkd-string-slice-input
-                  class="mt-3 w-full xl:w-1/2"
+                  class="w-full mt-3 xl:w-1/2"
                   [(ngModel)]="emailAddresses"
                   tooltip="E-Mail Adresse hinzufügen"
                 >
@@ -157,7 +157,7 @@
                   2-Faktor-Authentifizierung (2FA) einzurichten.
                 </span>
                 <tkd-string-slice-input
-                  class="mt-3 w-full xl:w-1/2"
+                  class="w-full mt-3 xl:w-1/2"
                   [(ngModel)]="phoneNumbers"
                   tooltip="Telefonnummer hinzufügen"
                 >
@@ -178,7 +178,7 @@
                   Wähle die entsprechenden Rollen für den Bentuzer.
                 </span>
                 <nz-select
-                  class="mt-3 w-full xl:w-1/2"
+                  class="w-full mt-3 xl:w-1/2"
                   nzMode="multiple"
                   nzPlaceHolder="Please select"
                   [(ngModel)]="roles"
@@ -211,7 +211,7 @@
             >
           </header>
           <div
-            class="grid grid-cols-1 gap-4 items-start md:gap-6 lg:gap-8 lg:grid-cols-2"
+            class="grid items-start grid-cols-1 gap-4 md:gap-6 lg:gap-8 lg:grid-cols-2"
           >
             <div class="flex flex-row space-x-4">
               <span
@@ -266,7 +266,6 @@
                       <nz-option
                         *ngFor="let cal of availableCalendars"
                         [nzValue]="cal._id"
-                        ,
                         [nzLabel]="cal.name"
                       >
                       </nz-option>
@@ -305,7 +304,7 @@
             >
           </header>
           <div
-            class="grid grid-cols-1 gap-4 items-start md:gap-6 lg:gap-8 lg:grid-cols-2"
+            class="grid items-start grid-cols-1 gap-4 md:gap-6 lg:gap-8 lg:grid-cols-2"
           >
             <tkd-option-spec-input
               *ngFor="let prop of userProperties; let index=index"
@@ -326,7 +325,7 @@
               {{ 7 + userProperties.length }}.
             </span>
             <div
-              class="flex flex-col flex-grow items-center lg:justify-between lg:flex-row"
+              class="flex flex-col items-center flex-grow lg:justify-between lg:flex-row"
             >
               <div class="flex flex-col flex-grow">
                 <span class="text-base font-medium font-lato">
@@ -344,7 +343,7 @@
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="mr-2 w-6 h-6"
+                    class="w-6 h-6 mr-2"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -369,7 +368,7 @@
         </div>
 
         <div class="tkd-card" *ngIf="!editMode">
-          <header class="flex flex-row justify-between items-center">
+          <header class="flex flex-row items-center justify-between">
             <div>
               <h1>Benutzer anlegen</h1>
               <span
@@ -386,7 +385,7 @@
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="mr-2 w-6 h-6"
+                  class="w-6 h-6 mr-2"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -410,7 +409,7 @@
         <label
           for="file-upload"
           [class.h-96]="!preview || previewError"
-          class="flex justify-center items-center p-4 text-xl rounded border border-dashed cursor-pointer border-primary border-opacity-light text-color-primary font-lato hover:bg-primary hover:bg-opacity-5"
+          class="flex items-center justify-center p-4 text-xl border border-dashed rounded cursor-pointer border-primary border-opacity-light text-color-primary font-lato hover:bg-primary hover:bg-opacity-5"
         >
           <img
             [attr.src]="preview"

@@ -265,7 +265,12 @@ export class ConfigAPI {
     }
 
     if ('values' in oneOf) {
-      return oneOf.values;
+      return oneOf.values.map(val => {
+        return {
+          ...val,
+          display: val.display || val.value,
+        }
+      });
     }
 
     let values: { [key: string]: any }[] = [];
@@ -307,7 +312,7 @@ export class ConfigAPI {
       value.forEach(val => {
         let display: string = config[oneOf.displayField]
 
-        if (!display || oneOf.displayField === oneOf.valueField) {
+        if (!display || oneOf.displayField === oneOf.valueField || !oneOf.displayField) {
           display = val;
         }
 
