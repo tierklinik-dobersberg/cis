@@ -2,12 +2,14 @@
 package trace
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/tierklinik-dobersberg/logger"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -47,6 +49,57 @@ var DefaultConfig = Config{
 	LimitBodySize: defaultBodyLimit,
 }
 
+func RecordAndLog(ctx context.Context, err error, keyVals ...string) {
+	sp := trace.SpanFromContext(ctx)
+
+	if err != nil {
+		sp.RecordError(err)
+	}
+
+	var attributes []attribute.KeyValue
+	var fields = make(logger.Fields)
+	for i := 0; i < len(keyVals); i += 2 {
+		key := keyVals[i]
+
+		value := ""
+		if len(keyVals) < i+1 {
+			value = keyVals[i+1]
+		}
+
+		attributes = append(attributes, attribute.String(key, value))
+		fields[key] = value
+	}
+
+	sp.SetAttributes(attributes...)
+
+	if err != nil {
+		logger.From(ctx).WithFields(fields).Errorf(err.Error())
+	}
+}
+
+// Record adds an error to the current span and appends keyVal as attributes.
+func Record(ctx context.Context, err error, keyVals ...string) {
+	sp := trace.SpanFromContext(ctx)
+
+	if err != nil {
+		sp.RecordError(err)
+	}
+
+	var attributes []attribute.KeyValue
+	for i := 0; i < len(keyVals); i += 2 {
+		key := keyVals[i]
+
+		value := ""
+		if len(keyVals) < i+1 {
+			value = keyVals[i+1]
+		}
+
+		attributes = append(attributes, attribute.String(key, value))
+	}
+
+	sp.SetAttributes(attributes...)
+}
+
 // trunk-ignore(golangci-lint/cyclop)
 func WithConfig(config Config) echo.MiddlewareFunc {
 	if config.Tracer == nil {
@@ -60,7 +113,7 @@ func WithConfig(config Config) echo.MiddlewareFunc {
 	}
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c echo.Context) (returnErr error) {
 			if config.Skipper(c) {
 				return next(c)
 			}
@@ -111,8 +164,6 @@ func WithConfig(config Config) echo.MiddlewareFunc {
 			req = req.WithContext(ctx)
 			c.SetRequest(req)
 
-			var returnErr error
-
 			defer func() {
 				if x := recover(); x != nil {
 					err, ok := x.(error)
@@ -132,6 +183,7 @@ func WithConfig(config Config) echo.MiddlewareFunc {
 			returnErr = next(c)
 			if returnErr != nil {
 				c.Error(returnErr)
+				logger.From(ctx).Errorf("%s, %+v", returnErr.Error(), returnErr)
 				span.RecordError(returnErr)
 				span.SetStatus(codes.Error, returnErr.Error())
 			}
@@ -141,7 +193,7 @@ func WithConfig(config Config) echo.MiddlewareFunc {
 				semconv.HTTPResponseContentLengthKey.Int64(c.Response().Size),
 			)
 
-			return nil
+			return returnErr
 		}
 	}
 }
