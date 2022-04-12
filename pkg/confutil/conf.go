@@ -166,3 +166,34 @@ func MapToOptions(m map[string]interface{}) ([]conf.Option, error) {
 
 	return options, nil
 }
+
+// SetOption sets a the option key to value by replacing all occurences of the
+// same option in opts.
+func SetOption(opts conf.Options, key, val string) conf.Options {
+	key = strings.ToLower(key)
+
+	var result = make(conf.Options, 0, len(opts))
+
+	found := false
+	for _, opt := range opts {
+		if strings.ToLower(opt.Name) == key {
+			if found {
+				continue
+			}
+
+			opt.Value = val
+			found = true
+		}
+
+		result = append(result, opt)
+	}
+
+	if !found {
+		result = append(result, conf.Option{
+			Name:  key,
+			Value: val,
+		})
+	}
+
+	return result
+}
