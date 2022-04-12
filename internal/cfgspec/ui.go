@@ -26,6 +26,9 @@ var UISpec = conf.SectionSpec{
 		Name:        "UserPhoneExtensionProperties",
 		Description: "A list of user properties that hold phone extensions and should be used to link from call log records to users",
 		Type:        conf.StringSliceType,
+		Annotations: new(conf.Annotation).With(
+			runtime.OneOfRef("UserProperty", "Name", "Name"),
+		),
 	},
 	{
 		Name:        "CreateEventAlwaysAllowCalendar",
