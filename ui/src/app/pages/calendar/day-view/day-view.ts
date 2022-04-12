@@ -81,7 +81,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
     set inlineView(v: any) {
         this._inlineView = coerceBooleanProperty(v)
     }
-    get inlineView() { return this._inlineView }
+    get inlineView(): boolean { return this._inlineView }
     private _inlineView = false;
 
     /** track by function for all calendars */
@@ -379,10 +379,15 @@ export class DayViewComponent implements OnInit, OnDestroy {
 
                 if (this.isToday) {
                     this.todayOffset = this.adjustToHours(this.offset(new Date()));
-                    this.headerService.set('Kalender: Heute')
+
+                    if (!this.inlineView) {
+                      this.headerService.set('Kalender: Heute')
+                    }
                 } else {
                     this.todayOffset = 0;
-                    this.headerService.set('Kalender: ' + this._currentDate$.getValue().toLocaleDateString())
+                    if (!this.inlineView) {
+                      this.headerService.set('Kalender: ' + this._currentDate$.getValue().toLocaleDateString())
+                    }
                 }
 
                 // if we are in "auto" mode and no calendars are displayed we should

@@ -69,7 +69,7 @@
       ></nz-avatar>
       <div class="flex flex-col justify-start flex-grow ml-4">
         <span class="font-semibold text-primary"
-          >{{ today.onDuty.users[0].fullname }}</span
+          >{{ today.onDuty.users[0].fullname || today.onDuty.users[0].name }}</span
         >
         <span class="text-secondary">
           Anrufe werden
@@ -231,21 +231,13 @@
               <div class="flex flex-col py-1 space-y-1 text-xs w-36">
                 <span class="text-secondary">oder Dienstbeginn: </span>
                 <button
-                  class="
-                    self-center
-                    w-32
-                    tkd-btn tkd-small tkd-tertiary tkd-outline
-                  "
+                  class="self-center w-32 tkd-btn tkd-small tkd-tertiary tkd-outline"
                   (click)="selectTime(what, 'day')"
                 >
                   Tagdienst
                 </button>
                 <button
-                  class="
-                    self-center
-                    w-32
-                    tkd-btn tkd-small tkd-tertiary tkd-outline
-                  "
+                  class="self-center w-32 tkd-btn tkd-small tkd-tertiary tkd-outline"
                   (click)="selectTime(what, 'night')"
                 >
                   Nachtdienst
@@ -291,11 +283,7 @@
       <!-- User avatars for day/night on-duty on the selected date -->
       <div
         *ngIf="!!statesForRange?.length"
-        class="
-          flex flex-col
-          space-y-2
-          sm:space-x-2 sm:space-y-0 sm:flex-row sm:items-center
-        "
+        class="flex flex-col space-y-2 sm:space-x-2 sm:space-y-0 sm:flex-row sm:items-center"
       >
         <span class="text-primary">Im Dienst laut Plan:</span>
         <nz-avatar-group
@@ -336,15 +324,7 @@
       <!-- List of overlapping overwrites -->
       <div
         *ngIf="overlapping?.length && !firstLoad"
-        class="
-          p-4
-          text-white
-          border
-          rounded
-          shadow
-          bg-alert-red
-          border-alert-red-dark
-        "
+        class="p-4 text-white border rounded shadow bg-alert-red border-alert-red-dark"
         [@scaleInOut]
       >
         <div class="mb-2">
@@ -362,14 +342,7 @@
         <ul class="mx-4">
           <li
             *ngFor="let ov of overlapping"
-            class="
-              flex flex-col-reverse
-              items-start
-              p-2
-              space-x-4
-              border-b border-white border-opacity-20
-              md:items-center md:flex-row
-            "
+            class="flex flex-col-reverse items-start p-2 space-x-4 border-b border-white border-opacity-20 md:items-center md:flex-row"
           >
             <div class="flex-col items-center justify-around hidden md:flex">
               <svg
@@ -391,14 +364,7 @@
               <span>{{ ov.to | date:"short" }}</span>
             </div>
             <div
-              class="
-                relative
-                flex flex-row
-                items-center
-                self-stretch
-                flex-grow
-                space-x-2
-              "
+              class="relative flex flex-row items-center self-stretch flex-grow space-x-2 "
             >
               <ng-container *ngIf="ov.user; else: noUserTemplate">
                 <nz-avatar
@@ -406,7 +372,7 @@
                   nzShape="circle"
                   [nzSrc]="ov.user.avatar"
                 ></nz-avatar>
-                <div>{{ ov.user.fullname }}</div>
+                <div>{{ ov.user.fullname || ov.user.name }}</div>
               </ng-container>
               <ng-template #noUserTemplate>
                 <span>{{ ov.displayName || ov.phoneNumber }}</span>
@@ -414,14 +380,7 @@
               </ng-template>
 
               <button
-                class="
-                  absolute
-                  inline-block
-                  right-2
-                  md:hidden
-                  tkd-icon-btn-inverse tkd-danger
-                  no-shadow
-                "
+                class="absolute inline-block right-2 md:hidden tkd-icon-btn-inverse tkd-danger no-shadow"
                 (click)="deleteOverwrite(ov)"
               >
                 <svg
@@ -440,13 +399,7 @@
               </button>
             </div>
             <button
-              class="
-                hidden
-                mr-4
-                md:inline-block
-                tkd-icon-btn-inverse tkd-danger
-                no-shadow
-              "
+              class="hidden mr-4 md:inline-block tkd-icon-btn-inverse tkd-danger no-shadow"
               (click)="deleteOverwrite(ov)"
             >
               <svg
@@ -508,7 +461,7 @@
             nzShape="circle"
             [nzSrc]="user.avatar"
           ></nz-avatar>
-          <span>{{ user.fullname }}</span>
+          <span>{{ user.fullname || user.name }}</span>
         </div>
 
         <ng-container *ngIf="showAllUsers">
@@ -523,7 +476,7 @@
               nzShape="circle"
               [nzSrc]="user.avatar"
             ></nz-avatar>
-            <span>{{ user.fullname }}</span>
+            <span>{{ user.fullname || user.name }}</span>
           </div>
         </ng-container>
       </div>
