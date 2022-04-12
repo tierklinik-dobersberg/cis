@@ -22,6 +22,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/customerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/doorapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/externalapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/healthcheckapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/holidayapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/identityapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/importapi"
@@ -46,6 +47,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/door"
+	"github.com/tierklinik-dobersberg/cis/internal/healthchecks"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
@@ -415,6 +417,14 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	}
 
 	//
+	// Setup all configured healthchecks
+	//
+	checks, err := healthchecks.NewController(baseCtx, cfg.DatabaseName, mongoClient, runtime.GlobalSchema)
+	if err != nil {
+		logger.Fatalf(ctx, "failed to setup healthchecks: %w", err)
+	}
+
+	//
 	// Create a new application context and make sure it's added
 	// to each incoming HTTP Request.
 	//
@@ -440,6 +450,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		cache,
 		autoLoginManager,
 		triggerReg,
+		checks,
 	)
 
 	ctx = app.With(baseCtx, appCtx)
@@ -522,7 +533,9 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 		infoscreenapi.SetupPlayer(app, apis.Group("infoscreen/"))
 		// access to the suggestion API
 		suggestionapi.Setup(app, apis.Group("suggestion/", session.Require()))
-
+		// access to the healthchecks API
+		healthcheckapi.Setup(app, apis.Group("hc/"))
+		// access to the statistics API
 		statsapi.Setup(app, apis.Group("stats/"))
 	}
 }
@@ -591,6 +604,11 @@ func runMain() {
 		logger.Fatalf(ctx, "failed to start door scheduler: %s", err)
 	}
 
+	//
+	// Start healthchecks monitor
+	//
+	app.Healtchecks.Start(ctx)
+
 	// we log on error so this one get's forwarded to error reporters.
 	logger.Errorf(ctx, "startup complete, serving API ....")
 
@@ -609,6 +627,9 @@ func runMain() {
 		}))
 	}
 	setupAPI(app, srv)
+
+	// We're ready now so fire the started event and start listening
+	app.MarkReady(ctx)
 
 	if err := srv.Start(app.Config.Config.Listen); err != nil {
 		logger.Fatalf(ctx, "failed to start listening: %s", err)

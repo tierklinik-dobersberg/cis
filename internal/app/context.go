@@ -22,6 +22,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/door"
+	"github.com/tierklinik-dobersberg/cis/internal/healthchecks"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
@@ -63,6 +64,7 @@ type App struct {
 	Cache           cache.Cache
 	Autologin       *autologin.Manager
 	Trigger         *trigger.Registry
+	Healtchecks     *healthchecks.Controller
 
 	maxUploadSize     int64
 	maxUploadSizeOnce sync.Once
@@ -95,6 +97,7 @@ func NewApp(
 	cache cache.Cache,
 	autologinManager *autologin.Manager,
 	triggerRegistry *trigger.Registry,
+	healthchecks *healthchecks.Controller,
 ) *App {
 	return &App{
 		Config:          cfg,
@@ -118,7 +121,13 @@ func NewApp(
 		Cache:           cache,
 		Autologin:       autologinManager,
 		Trigger:         triggerRegistry,
+		Healtchecks:     healthchecks,
 	}
+}
+
+// MarkReady fires the started event and marks the app as being ready.
+func (app *App) MarkReady(ctx context.Context) {
+	appStartedEvent.Fire(ctx, nil)
 }
 
 // With adds app to ctx.
@@ -189,7 +198,7 @@ func (app *App) EndpointPath(relativePath string) string {
 }
 
 // Location returns the location CIS is running at.
-// DEPRECATED: use Config.Location() instead.
+// Deprecated: use Config.Location() instead.
 func (app *App) Location() *time.Location {
 	return app.Config.Location()
 }
