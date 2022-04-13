@@ -48,6 +48,9 @@ export class DayViewComponent implements OnInit, OnDestroy {
 
     readonly hourHeight = 120;
 
+    /** Whether or not we're still in the initial load */
+    loading = true;
+
     /** Whether or not the _currentDate$ is for today */
     isToday = false;
 
@@ -77,7 +80,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
         'selected': 'Nur ausgewählte'
     };
 
-    openingHours: {y: number, height: number}[] = [];
+    openingHours: {y: string, height: string}[] = [];
 
     @Input()
     set inlineView(v: any) {
@@ -293,8 +296,8 @@ export class DayViewComponent implements OnInit, OnDestroy {
                 this.openingHours = [];
                 result.openingHours.forEach(oh => {
                   this.openingHours.push({
-                    y: this.adjustToHours(this.offset(oh.from)),
-                    height: this.adjustToHours(this.offset(oh.to) - this.offset(oh.from))
+                    y: this.adjustToHours(this.offset(oh.from)) + 'px',
+                    height: this.adjustToHours(this.offset(oh.to) - this.offset(oh.from)) + 'px',
                   })
                 })
 
@@ -437,6 +440,9 @@ export class DayViewComponent implements OnInit, OnDestroy {
                         })
                     first = false;
                 }
+
+                this.loading = false;
+                this.cdr.markForCheck();
             },
             error: err => console.error(err)
           });

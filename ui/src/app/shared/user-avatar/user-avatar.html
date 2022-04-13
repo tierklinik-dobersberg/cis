@@ -1,4 +1,4 @@
-  <img class="w-full h-full" [attr.src]="avatar" *ngIf="!!avatar && !displayError; else: noUserAvatar" (error)="displayError = true" />
+  <img class="w-full aspect-auto" [attr.src]="avatar" *ngIf="!!avatar && !displayError; else: noUserAvatar" (error)="displayError = true" />
   <ng-template #noUserAvatar>
     <div class="p-3 w-full h-full">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-full h-full">

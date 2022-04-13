@@ -82,16 +82,18 @@ export class StatusPageComponent implements OnInit, OnDestroy {
         this.loading = false;
 
         const diffs = differ.diff(result)
-        diffs.forEachAddedItem(record => {
-          this.pings.push(record.item);
-        })
-        diffs.forEachRemovedItem(record => {
-          this.pings.splice(record.currentIndex, 1)
-        })
-        diffs.forEachIdentityChange(record => {
-          this.pings[record.currentIndex].State = record.item.State;
-          this.pings[record.currentIndex].LastPingReceived = record.item.LastPingReceived;
-        })
+        if (!!diffs) {
+          diffs.forEachAddedItem(record => {
+            this.pings.push(record.item);
+          })
+          diffs.forEachRemovedItem(record => {
+            this.pings.splice(record.currentIndex, 1)
+          })
+          diffs.forEachIdentityChange(record => {
+            this.pings[record.currentIndex].State = record.item.State;
+            this.pings[record.currentIndex].LastPingReceived = record.item.LastPingReceived;
+          })
+        }
 
         this.pings = [...this.pings]
 

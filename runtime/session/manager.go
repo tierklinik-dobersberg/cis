@@ -34,7 +34,7 @@ type Manager struct {
 }
 
 // Configure configures the session manager.
-func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityConfig, secret, baseURL string, cache cache.Cache, cachePrefix string) error {
+func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityConfig, secret, baseURL string, cache cache.Cache, cachePrefix string, sameSite http.SameSite) error {
 	mng.UserProvider = identites
 	mng.identityConfg = identityConfig
 	mng.activeSession = make(map[string]*stickySession)
@@ -64,6 +64,7 @@ func (mng *Manager) Configure(identites UserProvider, identityConfig *IdentityCo
 		InsecureCookies: identityConfig.InsecureCookies,
 		Domain:          identityConfig.CookieDomain,
 		BasePath:        base,
+		SameSite:        sameSite,
 	}
 
 	return nil

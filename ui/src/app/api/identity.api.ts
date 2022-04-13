@@ -10,6 +10,7 @@ import {
   startWith,
   tap,
 } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 import { getContrastFontColor } from '../utils';
 import { UIConfig } from './config.api';
 
@@ -449,7 +450,7 @@ export class IdentityAPI {
   }
 
   avatarUrl(user: string): string {
-    return `/api/identity/v1/avatar/${user}`;
+    return `${environment.baseURL||''}/api/identity/v1/avatar/${user}`;
   }
 
   /**

@@ -1,4 +1,6 @@
 ./node_modules
+./ckeditor/node_modules
 ./dist
 ./e2e
 ./Dockerfile
+./.angular

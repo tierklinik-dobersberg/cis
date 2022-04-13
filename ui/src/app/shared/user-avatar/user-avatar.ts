@@ -6,7 +6,7 @@ import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
   styles: [
     `
     :host {
-      @apply rounded-full overflow-hidden block;
+      @apply rounded-full overflow-hidden inline-block;
     }
     `
   ],

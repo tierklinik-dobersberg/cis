@@ -27,7 +27,10 @@ var log = pkglog.New("session")
 // trunk-ignore(golangci-lint/gocognit)
 func (mng *Manager) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		log := log.From(c.Request().Context())
+		log := log.From(c.Request().Context()).WithFields(logger.Fields{
+			"url":    c.Request().RequestURI,
+			"client": c.RealIP(),
+		})
 
 		// if someone else already added a session we'll skip
 		// everything here.

@@ -345,6 +345,15 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 
 		return &u.User, nil
 	})
+
+	sameSite := map[string]http.SameSite{
+		"":        http.SameSiteDefaultMode,
+		"default": http.SameSiteDefaultMode,
+		"lax":     http.SameSiteLaxMode,
+		"none":    http.SameSiteNoneMode,
+		"strict":  http.SameSiteStrictMode,
+	}[cfg.SameSite]
+
 	if err := sessionManager.Configure(
 		userProvider,
 		&cfg.IdentityConfig,
@@ -352,6 +361,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		cfg.BaseURL,
 		cache,
 		"ephemeral/",
+		sameSite,
 	); err != nil {
 		logger.Fatalf(ctx, "session-manager: %s", err.Error())
 	}

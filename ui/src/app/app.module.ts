@@ -33,6 +33,7 @@ import { SuggestionModule } from './pages/suggestions/suggestion.module';
 import { SharedModule } from './shared/shared.module';
 import { NgChartsModule } from 'ng2-charts';
 import { TimeagoModule } from 'ngx-timeago';
+import { BaseURLInjector } from './api/base-url';
 
 registerLocaleData(de);
 
@@ -70,6 +71,7 @@ registerLocaleData(de);
   providers: [
     { provide: NZ_I18N, useValue: de_DE },
     { provide: HTTP_INTERCEPTORS, useExisting: AuthorizationInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useExisting: BaseURLInjector, multi: true },
     { provide: NZ_DATE_CONFIG, useValue: { firstDayOfWeek: 1 } },
     { provide: LOCALE_ID, useValue: 'de'}
   ],

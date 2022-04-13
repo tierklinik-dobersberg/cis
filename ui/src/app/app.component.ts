@@ -220,7 +220,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.isCollapsed = !params.has('show-menu');
       });
 
-    this.updates.available.pipe(take(1)).subscribe((event) => {
+    this.updates.versionUpdates.pipe(take(1)).subscribe((event) => {
       this.modal.info({
         nzTitle: 'Neue Version verfügbar',
         nzContent: 'Einen neue Version von CIS ist verfügbar!',

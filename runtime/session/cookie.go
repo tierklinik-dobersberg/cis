@@ -13,6 +13,7 @@ type CookieFactory struct {
 	Domain          string
 	BasePath        string
 	InsecureCookies bool
+	SameSite        http.SameSite
 }
 
 // Clear removes the cookie with the given name.
@@ -40,5 +41,6 @@ func (factory *CookieFactory) Create(name, value, relPath string, ttl time.Durat
 		HttpOnly: true,
 		Secure:   !factory.InsecureCookies,
 		Expires:  expires,
+		SameSite: factory.SameSite,
 	}
 }

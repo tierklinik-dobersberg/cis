@@ -2,16 +2,15 @@
 
 
 .grid {
-  display: grid;
-  grid-gap: 12px;
+  @apply flex flex-col;
+  @apply gap-3;
 
   @include for-phone-only {
-    padding: 0px;
-    grid-gap: 6px;
+    @apply p-0 gap-2;
   }
-  grid-auto-rows: minmax(145px, auto);
 
   @include for-tablet-landscape-up {
+    display: grid;
     grid-template-columns: repeat(2, 1fr);
   }
 

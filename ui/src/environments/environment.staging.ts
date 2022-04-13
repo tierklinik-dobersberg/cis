@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  baseURL: ''
+  baseURL: "https://cis-staging.dobersberg.vet"
 };
 
 /*

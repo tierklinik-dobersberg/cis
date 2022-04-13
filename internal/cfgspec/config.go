@@ -45,6 +45,7 @@ type Config struct {
 	Listen                    string
 	TrustedProxy              []string
 	PrometheusMetricsListener string
+	SameSite                  string
 
 	UnknownContactName   string
 	UnknownContactSource string
@@ -177,6 +178,12 @@ var ConfigSpec = conf.SectionSpec{
 		Description: "The type of configuration provider to use. Currently 'file' and 'mongo' are supported.",
 		Type:        conf.StringType,
 		Default:     "file",
+	},
+	{
+		Name:        "SameSite",
+		Description: "Value for the SameSite cookie attribute.",
+		Default:     "default",
+		Type:        conf.StringType,
 	},
 }
 

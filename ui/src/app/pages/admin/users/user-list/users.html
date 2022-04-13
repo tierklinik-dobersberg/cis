@@ -42,8 +42,8 @@
   <tbody>
     <ng-container *ngFor="let  data of userTable.data">
       <tr [class.disabled]="!!data.disabled">
-        <td class="username">
-          <nz-avatar nzIcon="user" [nzSrc]="data.avatar"> </nz-avatar>
+        <td class="flex gap-3 items-center username">
+          <tkd-user-avatar [avatar]="data.avatar" class="inline-block w-12 h-12 border border-opacity-25 border-primary"></tkd-user-avatar>
 
           {{data.fullname}}
         </td>

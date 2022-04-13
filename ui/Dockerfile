@@ -1,12 +1,14 @@
 FROM node:14 as builder
 WORKDIR /app
 
-COPY package.json package-lock.json .
+COPY package.json package-lock.json ./
 RUN npm install
 
-COPY . .
-RUN npx browserslist@latest --update-db
+COPY ckeditor/ ./ckeditor
 RUN npm run build-ckeditor
+RUN npx browserslist@latest --update-db
+
+COPY . .
 RUN npm run build-limited --prod
 
 FROM caddy
