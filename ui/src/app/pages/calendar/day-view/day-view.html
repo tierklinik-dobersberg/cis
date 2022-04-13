@@ -44,19 +44,21 @@
     <div class="relative flex flex-grow overflow-auto" cdkScrollable #scrollContainer>
         <div id="height-wrapper absolute top-0"></div>
 
-            <div class="calendar" *ngIf="!calendars?.length">
-                <div class="header">
+          <div class="calendar" *ngIf="!calendars?.length">
+            <div class="header">
+            </div>
+            <div class="times">
+                <div class="absolute w-full bg-white opening-hour" *ngFor="let oh of openingHours;" [ngStyle]="{top: oh.y+'px', height: oh.height+'px'}" >
                 </div>
-                <div class="times">
-                    <div class="hours">
-                        <div *ngFor="let hour of hours" [ngStyle]="{height: hourHeight + 'px'}">
-                            <caption>{{hour < 10 ? '0' + hour : hour}}:00</caption>
-                        </div>
+                <div class="bg-opacity-25 hours bg-text-deEmphasized">
+                    <div *ngFor="let hour of hours" [ngStyle]="{height: hourHeight + 'px'}">
+                        <caption>{{hour < 10 ? '0' + hour : hour}}:00</caption>
                     </div>
                 </div>
-              </div>
+            </div>
+          </div>
 
-        <ng-container  *ngFor="let cal of calendars; trackBy: trackCalendar; let last=last">
+          <ng-container  *ngFor="let cal of calendars; trackBy: trackCalendar; let last=last">
             <div class="calendar" *ngIf="cal.displayed">
                 <div class="header" (dblclick)="onFilterDblClick(cal)">
                     {{ cal.user?.fullname || cal.user?.name || cal.name }}
@@ -66,6 +68,9 @@
                         <div *ngFor="let hour of hours" [ngStyle]="{height: hourHeight + 'px'}">
                             <caption>{{hour < 10 ? '0' + hour : hour}}:00</caption>
                         </div>
+                    </div>
+
+                    <div class="absolute w-full bg-opacity-25 opening-hour bg-text-tertiary" *ngFor="let oh of openingHours;" [ngStyle]="{top: oh.y, height: oh.height}" >
                     </div>
 
                     <span class="event" *ngFor="let event of cal.events; trackBy: trackEvent"
@@ -81,7 +86,7 @@
                     </span>
                 </div>
             </div>
-        </ng-container>
+          </ng-container>
 
 
         <div class="absolute w-full border-t-2 border-opacity-75 current-time border-alert-red" [ngStyle]="{top: todayOffset + 'px', left: scrollable.nativeElement.scrollLeft}">

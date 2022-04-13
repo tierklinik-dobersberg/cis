@@ -2,8 +2,8 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, TrackByFunction, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, forkJoin, interval, of, Subject } from 'rxjs';
-import { catchError, startWith, switchMap, take, takeUntil, tap } from 'rxjs/operators';
-import { CalendarAPI, IdentityAPI, LocalEvent, ProfileWithAvatar, UserService } from 'src/app/api';
+import { catchError, map, startWith, switchMap, take, takeUntil, tap } from 'rxjs/operators';
+import { CalendarAPI, IdentityAPI, LocalEvent, OpeningHoursAPI, OpeningHoursResponse, ProfileWithAvatar, UserService } from 'src/app/api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { getContrastFontColor } from 'src/app/utils';
 import { Duration } from 'src/utils/duration';
@@ -76,6 +76,8 @@ export class DayViewComponent implements OnInit, OnDestroy {
         'all': 'Alle Kalender',
         'selected': 'Nur ausgewählte'
     };
+
+    openingHours: {y: number, height: number}[] = [];
 
     @Input()
     set inlineView(v: any) {
@@ -249,7 +251,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
         private cdr: ChangeDetectorRef,
         private ngZone: NgZone,
         private router: Router,
-        private elementRef: ElementRef,
+        private openingHoursAPI: OpeningHoursAPI,
     ) { }
 
     ngOnInit() {
@@ -267,6 +269,19 @@ export class DayViewComponent implements OnInit, OnDestroy {
                 takeUntil(this._destroy$),
                 switchMap(([date, calendars, _]) => {
                     return forkJoin({
+                        openingHours: this.openingHoursAPI.getOpeningHours(date)
+                          .pipe(
+                            catchError(err => {
+                              console.error("failed to load opening hours", err);
+                              return of({
+                                  openingHours: [],
+                                  isHoliday: false,
+                                  onCallStartDay: null,
+                                  onCallStartNight: null,
+                              } as OpeningHoursResponse<Date>)
+                            }),
+                            map(result => result.openingHours),
+                          ),
                         events: this.calendarapi.listEvents(date)
                           .pipe(catchError(err => of([]))),
                         calendars: of(calendars),
@@ -275,6 +290,14 @@ export class DayViewComponent implements OnInit, OnDestroy {
             )
             .subscribe({
               next: result => {
+                this.openingHours = [];
+                result.openingHours.forEach(oh => {
+                  this.openingHours.push({
+                    y: this.adjustToHours(this.offset(oh.from)),
+                    height: this.adjustToHours(this.offset(oh.to) - this.offset(oh.from))
+                  })
+                })
+
                 const events = result.events;
                 let lm = new Map<string, Calendar>();
                 let earliestEvent: Date | null = null;
