@@ -89,7 +89,7 @@
             opacity: 1;
             line-height: unset;
             height: fit-content !important;
-            @apply border-none shadow-md;
+            @apply border-text-deEmphasized border-opacity-50 shadow-md text-primary;
             background-color: white !important;
             z-index: 3;
             animation: activate .1s linear 0s 1 normal forwards;

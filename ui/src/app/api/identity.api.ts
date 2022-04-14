@@ -69,6 +69,12 @@ export interface Permission {
   domain: string[];
 }
 
+export interface Action {
+  scope: string;
+  description: string;
+  validatesResourcePath: boolean;
+}
+
 export interface Role {
   name: string;
   description: string;
@@ -364,6 +370,16 @@ export class IdentityAPI {
     }
 
     return this.verifyURL(`${scheme}//${host}${path}`);
+  }
+
+  /**
+   *  Returns all available actions
+   */
+  listActions(): Observable<Action[]> {
+    return this.http.get<{actions: Action[]}>(`/api/identity/v1/actions`)
+      .pipe(map(result => {
+        return result.actions;
+      }))
   }
 
   /**

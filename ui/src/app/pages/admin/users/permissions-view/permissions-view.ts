@@ -1,7 +1,8 @@
 import { coerceBooleanProperty } from "@angular/cdk/coercion";
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, Input, TrackByFunction } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, Input, OnInit, TrackByFunction } from "@angular/core";
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
-import { Permission } from "src/app/api";
+import { Action, IdentityAPI, Permission } from "src/app/api";
+import { NamedOptionSpec } from "src/app/shared/option-spec-input";
 
 @Component({
   selector: 'app-permissions-view',
@@ -11,11 +12,15 @@ import { Permission } from "src/app/api";
     {provide: NG_VALUE_ACCESSOR, multi: true, useExisting: forwardRef(() => PermissionsViewComponent)},
   ]
 })
-export class PermissionsViewComponent implements ControlValueAccessor {
+export class PermissionsViewComponent implements ControlValueAccessor, OnInit {
   showNewDialog = false;
 
   @Input()
   permissions: Permission[] = [];
+
+  allActions: Action[] = [];
+
+  validatesResourcePath: boolean = true;
 
   newPermission: Permission = {
     id: '',
@@ -36,6 +41,14 @@ export class PermissionsViewComponent implements ControlValueAccessor {
       effect: 'allow',
     }
     this.showNewDialog = true;
+  }
+
+  updateSelectedActions(scopes: string[]) {
+    if (scopes.length === 0) {
+      this.validatesResourcePath = true;
+    } else {
+      this.validatesResourcePath = scopes.some(scope => this.allActions.some(action => action.scope === scope && action.validatesResourcePath ))
+    }
   }
 
   handleCancel() {
@@ -94,6 +107,15 @@ export class PermissionsViewComponent implements ControlValueAccessor {
   trackPermission: TrackByFunction<Permission> = (_: number, perm: Permission) => perm.id;
 
   constructor(
+    private identityAPI: IdentityAPI,
     private cdr: ChangeDetectorRef
   ) { }
+
+  ngOnInit() {
+    this.identityAPI.listActions()
+      .subscribe(actions => {
+        this.allActions = actions;
+        this.cdr.markForCheck();
+      });
+  }
 }

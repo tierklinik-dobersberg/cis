@@ -11,10 +11,10 @@
     <td class="p-2 uppercase" [class.text-alert-green-dark]="row.effect === 'allow'" [class.text-alert-red]="row.effect !== 'allow'">{{ row.effect }}</td>
     <td class="p-2">{{ row.description }}</td>
     <td class="p-2 space-x-2">
-      <pre *ngFor="let res of row.resources; let last=last" class="bg-text-secondary text-white px-2 py-0.5 inline-block w-auto text-xs rounded">{{ res }}</pre>
+      <pre *ngFor="let res of row.resources; let last=last" class="inline-block px-2 py-0.5 w-auto text-xs text-white rounded bg-text-secondary">{{ res }}</pre>
     </td>
     <td class="p-2 space-x-2">
-      <pre *ngFor="let act of row.actions; let last=last" class="bg-text-secondary  text-white px-2 py-0.5 inline-block w-auto text-xs rounded">{{ act }}</pre>
+      <pre *ngFor="let act of row.actions; let last=last" class="inline-block px-2 py-0.5 w-auto text-xs text-white rounded bg-text-secondary">{{ act }}</pre>
     </td>
     <td>
       <button class="tkd-btn tkd-outline tkd-small tkd-danger" (click)="remove(index)" *ngIf="!!row.id">
@@ -28,7 +28,7 @@
 
 <div class="flex justify-end mt-5">
   <button class="space-x-2 text-sm tkd-btn tkd-primary font-lato" (click)="addNew()">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+    <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
       <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
     </svg>
     Neue Berechtigung
@@ -37,12 +37,12 @@
 
 <nz-modal [nzVisible]="showNewDialog" (nzOnCancel)="handleCancel()" nzTitle="Neue Berechtigung">
   <div *nzModalContent class="space-y-2">
-    <div class="flex flex-row items-baseline justify-between space-x-3">
+    <div class="flex flex-row justify-between items-baseline space-x-3">
       <span class="block w-1/3 text-primary">Beschreibung:</span>
       <input type="text" class="flex-grow w-auto tkd-input" [(ngModel)]="newPermission.description">
     </div>
 
-    <div class="flex flex-row items-baseline justify-between">
+    <div class="flex flex-row justify-between items-baseline">
       <span class="text-primary">Effect:</span>
       <nz-select [(ngModel)]="newPermission.effect">
         <nz-option nzLabel="Allow" nzValue="allow"></nz-option>
@@ -50,21 +50,23 @@
       </nz-select>
     </div>
 
-    <div class="flex flex-row items-baseline justify-between space-x-3">
+    <div class="flex flex-row justify-between items-baseline space-x-3">
+      <span class="block w-1/3 text-primary">Actions:</span>
+      <nz-select nzMode="tags" [(ngModel)]="newPermission.actions" class="flex-grow" (ngModelChange)="updateSelectedActions($event)">
+        <nz-option *ngFor="let action of allActions" [nzValue]="action.scope" [nzLabel]="action.scope"></nz-option>
+      </nz-select>
+    </div>
+    <div class="flex flex-row justify-between items-baseline space-x-3" *ngIf="validatesResourcePath">
       <span class="block w-1/3 text-primary">Resources:</span>
       <tkd-string-slice-input class="flex-grow" [(ngModel)]="newPermission.resources"></tkd-string-slice-input>
     </div>
 
-    <div class="flex flex-row items-baseline justify-between space-x-3">
-      <span class="block w-1/3 text-primary">Actions:</span>
-      <tkd-string-slice-input class="flex-grow" [(ngModel)]="newPermission.actions"></tkd-string-slice-input>
-    </div>
 
   </div>
 
   <div *nzModalFooter class="flex flex-row justify-end space-x-2">
     <button class="tkd-btn tkd-primary" (click)="handleSave()" [disabled]="!newPermission.actions[0]">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+      <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
       </svg>
       OK
