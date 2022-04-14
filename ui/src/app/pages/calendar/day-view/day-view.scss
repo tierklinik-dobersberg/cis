@@ -85,6 +85,10 @@
             opacity: .65;
         }
 
+        &:hover {
+          opacity: 0.9;
+        }
+
         &.active {
           @apply shadow opacity-100;
           /*

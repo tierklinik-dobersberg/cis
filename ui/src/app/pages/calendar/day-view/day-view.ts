@@ -1,5 +1,5 @@
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { ConnectedPosition, Overlay, OverlayRef, PositionStrategy, ScrollStrategy } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, TemplateRef, TrackByFunction, ViewChild, ViewContainerRef } from '@angular/core';
@@ -94,12 +94,36 @@ export class DayViewComponent implements OnInit, OnDestroy {
     @ViewChild('eventDetailsTemplate', { read: TemplateRef, static: true})
     eventDetailsTemplate: TemplateRef<any>;
 
+    @ViewChild('createEventTemplate', { read: TemplateRef, static: true})
+    createEventTemplate: TemplateRef<any>;
+
     @Input()
     set inlineView(v: any) {
         this._inlineView = coerceBooleanProperty(v)
     }
     get inlineView(): boolean { return this._inlineView }
     private _inlineView = false;
+
+    private positions: ConnectedPosition[] = [
+      {
+        originX: 'end',
+        originY: 'top',
+        overlayX: 'start',
+        overlayY: 'top',
+      },
+      {
+        originX: 'start',
+        originY: 'top',
+        overlayX: 'end',
+        overlayY: 'top',
+      },
+      {
+        originX: 'start',
+        originY: 'bottom',
+        overlayX: 'start',
+        overlayY: 'top',
+      },
+    ];
 
     /** track by function for all calendars */
     trackCalendar: TrackByFunction<Calendar> = (_: number, item: Calendar) => {
@@ -176,17 +200,66 @@ export class DayViewComponent implements OnInit, OnDestroy {
 
         const rect = target.getBoundingClientRect();
         const offset = event.y - rect.top;
-        const minutes = offset * (60 / this.hourHeight);
+        let minutes = offset * (60 / this.hourHeight);
+
+        let realMinutes = minutes % 60;
+        if (realMinutes <= 7) {
+          realMinutes = 0;
+        } else
+        if (realMinutes <= 7+15) {
+          realMinutes = 15
+        } else
+        if (realMinutes <= 7+30) {
+          realMinutes = 30
+        } else
+        if (realMinutes <= 7+45) {
+          realMinutes = 45
+        } else {
+          realMinutes = 0;
+          minutes += (minutes % 60) * (60 / this.hourHeight);
+        }
+
         const duration = Duration.minutes(minutes);
         const current = this._currentDate$.getValue();
-        let startTime = new Date(current.getFullYear(), current.getMonth(), current.getDate(), duration.hours, duration.minutes - (duration.hours * 60))
+        let startTime = new Date(current.getFullYear(), current.getMonth(), current.getDate(), duration.hours, realMinutes)
 
+        /*
         this.router.navigate(['/', 'create-event'], {
             queryParams: {
                 calendar: cal.user?.name || cal.id,
                 start: startTime.toISOString(),
             }
         })
+        */
+
+        const overlay = this.overlay.create({
+          scrollStrategy: this.overlay.scrollStrategies.reposition(),
+          positionStrategy: this.overlay.position()
+            .flexibleConnectedTo(event.target as Element)
+            .withPositions(this.positions),
+          })
+
+        let data = {
+          start: startTime.toISOString(),
+          duration: 15,
+          summary: '',
+          description: '',
+          user: cal.user,
+          calName: cal.name
+        }
+
+        overlay.attach(new TemplatePortal(
+          this.createEventTemplate,
+          this.viewContainer,
+          {
+            $implicit: data,
+            overlay: overlay,
+          }
+        ))
+
+        overlay.outsidePointerEvents()
+          .pipe(take(1))
+          .subscribe(() => overlay.dispose())
     }
 
     toggleAll() {
@@ -555,27 +628,10 @@ export class DayViewComponent implements OnInit, OnDestroy {
 
     private attachDetais(event: DisplayEvent, origin: ElementRef<any>): void {
       const overlay = this.overlay.create({
-        positionStrategy: this.overlay.position().flexibleConnectedTo(origin.nativeElement).withPositions([
-          {
-            originX: 'end',
-            originY: 'top',
-            overlayX: 'start',
-            overlayY: 'top',
-          },
-          {
-            originX: 'start',
-            originY: 'top',
-            overlayX: 'end',
-            overlayY: 'top',
-          },
-          {
-            originX: 'start',
-            originY: 'bottom',
-            overlayX: 'start',
-            overlayY: 'top',
-          },
-        ]),
         scrollStrategy: this.overlay.scrollStrategies.reposition(),
+        positionStrategy: this.overlay.position()
+          .flexibleConnectedTo(origin)
+          .withPositions(this.positions),
       })
 
       overlay.attach(

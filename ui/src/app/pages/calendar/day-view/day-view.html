@@ -77,13 +77,13 @@
                             <div class="absolute w-full bg-white opening-hour" *ngFor="let oh of openingHours;"
                                 [ngStyle]="{top: oh.y, height: oh.height}"></div>
 
-                            <div class="hours">
+                            <div class="cursor-pointer select-none hours">
                                 <div *ngFor="let hour of hours" [ngStyle]="{height: hourHeight + 'px'}">
                                     <caption>{{hour < 10 ? '0' + hour : hour}}:00</caption>
                                 </div>
                             </div>
 
-                            <span class=" event hover:w-auto" *ngFor="let event of cal.events; trackBy: trackEvent"
+                            <span class="select-none event hover:w-auto" *ngFor="let event of cal.events; trackBy: trackEvent"
                                 [class.inactive]="activeEventID !== ''" #origin (click)="onEventActivate(event, origin)"
                                 [class.active]="activeEventID === event._id"
                                 [ngStyle]="{top: (event.top +  event.offsettop) + 'px', 'min-height': event.height + 'px', height: event.height + 'px', left: event.left + 'px', right: '0px', backgroundColor: event.color, color: event.fontColor}">
@@ -114,6 +114,9 @@
     </div>
 </div>
 
+<!--
+  Details Template
+-->
 <ng-template #eventDetailsTemplate let-event let-overlay="overlay">
   <div class="relative p-4 space-y-2 bg-white border rounded-sm shadow-lg w-72 border-text-deEmphasized">
     <h1 class="mr-4 text-base text-color-primary font-lato">
@@ -130,6 +133,52 @@
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
       </svg>
+    </div>
+  </div>
+</ng-template>
+
+
+<!--
+  Create Event Template
+-->
+<ng-template #createEventTemplate let-data let-overlay="overlay">
+  <div class="relative flex flex-col gap-4 p-4 space-y-2 bg-white border rounded-sm shadow-lg border-text-deEmphasized">
+    <h1 class="flex flex-row items-center justify-start gap-4 text-base text-color-primary font-lato">
+      <div>
+        <tkd-user-avatar class="block shadow-md w-14 h-14" [avatar]="data.user.avatar"></tkd-user-avatar>
+      </div>
+      <span class="flex flex-col">
+        <span class="leading-3">
+          Termin erstellen für
+        </span>
+        <span class="text-lg text-color-primary-dark">
+          {{ data.user?.fullname || data.user?.name || data.calName }}
+        </span>
+      </span>
+
+    </h1>
+
+    <div class="flex flex-row items-center gap-3 justify-evenly">
+      am
+        <nz-time-picker [(ngModel)]="data.start" nzFormat="HH:mm" [nzMinuteStep]="15"></nz-time-picker>
+      für
+      <nz-select [(ngModel)]="data.duration" class="w-28">
+        <nz-option [nzValue]="15" nzLabel="15 min"></nz-option>
+        <nz-option [nzValue]="30" nzLabel="30 min"></nz-option>
+        <nz-option [nzValue]="45" nzLabel="45 min"></nz-option>
+        <nz-option [nzValue]="60" nzLabel="1h"></nz-option>
+        <nz-option [nzValue]="75" nzLabel="1h 15min"></nz-option>
+        <nz-option [nzValue]="90" nzLabel="1h 30min"></nz-option>
+        <nz-option [nzValue]="105" nzLabel="1h 45min"></nz-option>
+        <nz-option [nzValue]="120" nzLabel="2h"></nz-option>
+      </nz-select>
+    </div>
+    <input placeholder="Zusammenfassung" type="text" class="tkd-input" [(ngModel)]="data.summary">
+    <app-text-input multiline="true" placeholder="Beschreibung" [format]="'plain'" [(ngModel)]="data.description"></app-text-input>
+
+    <div class="flex flex-row items-center justify-between">
+      <button class="tkd-btn tkd-outline tkd-danger" (click)="overlay.dispose()">Abbrechen</button>
+      <button class="tkd-btn tkd-primary">Erstellen</button>
     </div>
   </div>
 </ng-template>
