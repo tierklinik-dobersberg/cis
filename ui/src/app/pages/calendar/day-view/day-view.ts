@@ -1,9 +1,12 @@
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, TrackByFunction, ViewChild } from '@angular/core';
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, TemplateRef, TrackByFunction, ViewChild, ViewContainerRef } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, combineLatest, forkJoin, interval, of, Subject } from 'rxjs';
+import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, Subject } from 'rxjs';
 import { catchError, map, startWith, switchMap, take, takeUntil, tap } from 'rxjs/operators';
-import { CalendarAPI, IdentityAPI, LocalEvent, OpeningHoursAPI, OpeningHoursResponse, ProfileWithAvatar, UserService } from 'src/app/api';
+import { Day, CalendarAPI, IdentityAPI, LocalEvent, OpeningHoursAPI, OpeningHoursResponse, ProfileWithAvatar, RosterAPI, UserService } from 'src/app/api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { getContrastFontColor } from 'src/app/utils';
 import { Duration } from 'src/utils/duration';
@@ -48,6 +51,9 @@ export class DayViewComponent implements OnInit, OnDestroy {
 
     readonly hourHeight = 120;
 
+    /** Reference to the event details overlay */
+    private _eventDetailsOverlay: OverlayRef | null = null;
+
     /** Whether or not we're still in the initial load */
     loading = true;
 
@@ -77,10 +83,16 @@ export class DayViewComponent implements OnInit, OnDestroy {
         'auto': 'Automatisch',
         'mine': 'Mein Kalender',
         'all': 'Alle Kalender',
-        'selected': 'Nur ausgewählte'
+        'selected': 'Nur ausgewählte',
     };
 
+    /** The current roster of the day */
+    roster: Day | null = null;
+
     openingHours: {y: string, height: string}[] = [];
+
+    @ViewChild('eventDetailsTemplate', { read: TemplateRef, static: true})
+    eventDetailsTemplate: TemplateRef<any>;
 
     @Input()
     set inlineView(v: any) {
@@ -100,12 +112,23 @@ export class DayViewComponent implements OnInit, OnDestroy {
     }
 
     /** Callback used when clicking on events. */
-    onEventActivate(event: DisplayEvent) {
+    onEventActivate(event: DisplayEvent, origin: HTMLElement) {
         if (this.activeEventID === event._id) {
-            this.activeEventID = '';
+            this.onDeactivate(null)
             return;
         }
         this.activeEventID = event._id;
+        this.attachDetais(event, new ElementRef(origin));
+    }
+
+    onDeactivate(overlay: OverlayRef) {
+      this.activeEventID = '';
+      overlay?.dispose();
+
+      if (overlay === this._eventDetailsOverlay) {
+        this._eventDetailsOverlay = null;
+      }
+      this.cdr.markForCheck();
     }
 
     /** Callback function for a dblclick event on calendars. */
@@ -255,6 +278,9 @@ export class DayViewComponent implements OnInit, OnDestroy {
         private ngZone: NgZone,
         private router: Router,
         private openingHoursAPI: OpeningHoursAPI,
+        private rosterAPI: RosterAPI,
+        private viewContainer: ViewContainerRef,
+        private overlay: Overlay,
     ) { }
 
     ngOnInit() {
@@ -285,8 +311,22 @@ export class DayViewComponent implements OnInit, OnDestroy {
                             }),
                             map(result => result.openingHours),
                           ),
+                        roster: this.rosterAPI.forDay(date)
+                            .pipe(
+                              catchError(err => {
+                                if (err instanceof HttpErrorResponse && err.status === 404) {
+                                  return of(err.error) as Observable<Day<Date>>;
+                                }
+
+                                console.error("failed to load roster", err);
+                                return of({
+                                  forenoon: [],
+                                  afternoon: [],
+                                } as Day<Date>)
+                              })
+                            ),
                         events: this.calendarapi.listEvents(date)
-                          .pipe(catchError(err => of([]))),
+                          .pipe(catchError(err => of([] as LocalEvent[]))),
                         calendars: of(calendars),
                     })
                 }),
@@ -300,6 +340,8 @@ export class DayViewComponent implements OnInit, OnDestroy {
                     height: this.adjustToHours(this.offset(oh.to) - this.offset(oh.from)) + 'px',
                   })
                 })
+
+                this.roster = result.roster;
 
                 const events = result.events;
                 let lm = new Map<string, Calendar>();
@@ -353,6 +395,14 @@ export class DayViewComponent implements OnInit, OnDestroy {
                     return 0;
                 });
 
+                const usersByRoster = new Set<string>();
+                this.roster.afternoon?.forEach(user => {
+                  usersByRoster.add(user);
+                })
+                this.roster.forenoon?.forEach(user => {
+                  usersByRoster.add(user);
+                })
+
                 // determine if new calendars should start visible or not.
                 // also make sure we have a stable event order
                 this.calendars.forEach(cal => {
@@ -382,7 +432,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
                             cal.displayed = true;
                             break;
                         case 'auto':
-                            cal.displayed = cal.events?.length > 0;
+                            cal.displayed = cal.events?.length > 0 || (!!cal.user && usersByRoster.has(cal.user.name));
                             break;
                         case 'mine':
                             cal.displayed = cal.user?.name === this.identityapi.currentProfile?.name;
@@ -501,5 +551,52 @@ export class DayViewComponent implements OnInit, OnDestroy {
     private adjustToHours(n: number): number {
         const factor = this.hourHeight / 60;
         return n * factor;
+    }
+
+    private attachDetais(event: DisplayEvent, origin: ElementRef<any>): void {
+      const overlay = this.overlay.create({
+        positionStrategy: this.overlay.position().flexibleConnectedTo(origin.nativeElement).withPositions([
+          {
+            originX: 'end',
+            originY: 'top',
+            overlayX: 'start',
+            overlayY: 'top',
+          },
+          {
+            originX: 'start',
+            originY: 'top',
+            overlayX: 'end',
+            overlayY: 'top',
+          },
+          {
+            originX: 'start',
+            originY: 'bottom',
+            overlayX: 'start',
+            overlayY: 'top',
+          },
+        ]),
+        scrollStrategy: this.overlay.scrollStrategies.reposition(),
+      })
+
+      overlay.attach(
+        new TemplatePortal(
+          this.eventDetailsTemplate,
+          this.viewContainer,
+          {
+            $implicit: {
+              ...event,
+              user: this.userService.byName(event.username),
+            },
+            overlay: overlay,
+          }
+        )
+      )
+      overlay.outsidePointerEvents()
+        .pipe(take(1))
+        .subscribe(() => {
+          this.activeEventID = '';
+          overlay.dispose()
+          this.cdr.markForCheck();
+        })
     }
 }

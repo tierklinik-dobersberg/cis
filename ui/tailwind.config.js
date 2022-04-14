@@ -1,4 +1,5 @@
-var enablePurge = false
+var enablePurge = false;
+
 try {
   enablePurge = process.env.TAILWIND_MODE === 'build';
 } catch(err) {}
@@ -6,7 +7,6 @@ try {
 module.exports = {
   mode: 'jit',
   content: ['./src/**/*.{html,scss,ts}'],
-  darkMode: false, // or 'media', 'class'
   theme: {
     colors: (theme) => ({
       transparent: 'transparent',

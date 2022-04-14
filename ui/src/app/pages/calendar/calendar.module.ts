@@ -1,3 +1,5 @@
+import { OverlayModule } from '@angular/cdk/overlay';
+import { PortalModule } from '@angular/cdk/portal';
 import { NgModule } from '@angular/core';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
@@ -17,6 +19,8 @@ import { DayViewComponent } from './day-view';
         CalendarRoutingModule,
         NzDatePickerModule,
         NzDropDownModule,
+        OverlayModule,
+        PortalModule,
     ],
 })
 export class CalendarModule { }
