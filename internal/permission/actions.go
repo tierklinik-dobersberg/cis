@@ -84,3 +84,16 @@ func ActionByName(name string) (*Action, error) {
 	}
 	return a, nil
 }
+
+// AllActions returns a list of all available actions.
+func AllActions() []*Action {
+	actionsLock.RLock()
+	defer actionsLock.RUnlock()
+
+	result := make([]*Action, 0, len(actions))
+	for _, action := range actions {
+		result = append(result, action)
+	}
+
+	return result
+}

@@ -12,6 +12,37 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 )
 
+type Action struct {
+	Scope                 string `json:"scope"`
+	Description           string `json:"description"`
+	ValidatesResourcePath bool   `json:"validatesResourcePath"`
+}
+
+type ListActionsResult struct {
+	Actions []Action `json:"actions"`
+}
+
+func ListActionsEndpoint(r *app.Router) {
+	r.GET(
+		"v1/actions",
+		permission.OneOf{ManageUserAction},
+		func(ctx context.Context, app *app.App, c echo.Context) error {
+			allActions := permission.AllActions()
+			var result ListActionsResult
+
+			for _, action := range allActions {
+				result.Actions = append(result.Actions, Action{
+					Scope:                 action.Name,
+					Description:           action.Description,
+					ValidatesResourcePath: action.ResourceName != nil,
+				})
+			}
+
+			return c.JSON(http.StatusOK, result)
+		},
+	)
+}
+
 func CreatePermissionEndpoint(r *app.Router) {
 	r.POST(
 		"v1/permissions/:scope/:owner",
