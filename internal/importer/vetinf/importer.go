@@ -32,11 +32,11 @@ func Register(ctx context.Context, manager *importer.Manager) error {
 				return nil, err
 			}
 
-			ci, err := getCustomerImporter(cfg, app, exporter)
+			ci, err := getCustomerImporter(cfg, app.Customers, exporter)
 			if err != nil {
 				return nil, err
 			}
-			ai, err := getAnimalImporter(cfg, app, exporter)
+			ai, err := getAnimalImporter(cfg, app.Patients, exporter)
 			if err != nil {
 				return nil, err
 			}
