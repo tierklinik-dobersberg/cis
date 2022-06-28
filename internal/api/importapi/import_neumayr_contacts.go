@@ -45,7 +45,7 @@ func ImportNeumayrContactsEndpoint(grp *app.Router) {
 			}
 			defer f.Close()
 
-			importer := neumayr.NewImporter(app)
+			importer := neumayr.NewImporter(app.Config.Country, app.Customers)
 
 			countNew, countUpdated, countUnchanged, err := importer.Import(ctx, f)
 			if err != nil {

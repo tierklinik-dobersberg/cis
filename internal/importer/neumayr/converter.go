@@ -110,6 +110,7 @@ func (conv *Converter) Convert(ctx context.Context, mdb *os.File) ([]customerdb.
 				}
 			}
 			isHeader = false
+
 			continue
 		}
 

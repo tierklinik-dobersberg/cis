@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/importer/importutils"
 	"github.com/tierklinik-dobersberg/cis/runtime"
@@ -14,18 +13,20 @@ import (
 )
 
 type Importer struct {
-	app *app.App
+	customers customerdb.Database
+	country   string
 }
 
-func NewImporter(app *app.App) *Importer {
+func NewImporter(country string, customers customerdb.Database) *Importer {
 	return &Importer{
-		app: app,
+		customers: customers,
+		country:   country,
 	}
 }
 
 func (imp *Importer) Import(ctx context.Context, mdb *os.File) (countNew, countUpdated, countUnchanged int, err error) {
 	log := log.From(ctx)
-	converter, err := NewConverter(imp.app.Config.Country)
+	converter, err := NewConverter(imp.country)
 	if err != nil {
 		return 0, 0, 0, err
 	}
@@ -35,19 +36,21 @@ func (imp *Importer) Import(ctx context.Context, mdb *os.File) (countNew, countU
 		return 0, 0, 0, fmt.Errorf("failed to convert: %w", err)
 	}
 
-	for _, customer := range customers {
-		existing, err := imp.app.Customers.CustomerByCID(ctx, "neumayr", customer.CustomerID)
+	for idx := range customers {
+		customer := customers[idx]
+
+		existing, err := imp.customers.CustomerByCID(ctx, "neumayr", customer.CustomerID)
 
 		switch {
 		case errors.Is(err, customerdb.ErrNotFound):
-			err = imp.app.Customers.CreateCustomer(ctx, &customer)
+			err = imp.customers.CreateCustomer(ctx, &customer)
 			if err == nil {
 				countNew++
 			}
 		case existing != nil && existing.Hash() != customer.Hash():
 			importutils.CopyCustomerAttributes(existing, &customer)
 
-			err = imp.app.Customers.UpdateCustomer(ctx, &customer)
+			err = imp.customers.UpdateCustomer(ctx, &customer)
 			if err == nil {
 				countUpdated++
 			}
