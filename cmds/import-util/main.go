@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/tierklinik-dobersberg/cis/internal/importer/vetinf"
@@ -13,10 +14,9 @@ import (
 )
 
 var (
-	mongoServerURI        string
-	databaseName          string
-	vetinfInfdatDirectory string
-	country               string
+	mongoServerURI string
+	databaseName   string
+	country        string
 )
 
 func main() {
@@ -29,24 +29,26 @@ func getRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "import",
 		Short: "Import data from various sources",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if mongoServerURI == "" {
+				return fmt.Errorf("--mongo-server/-s is required")
+			}
+			if databaseName == "" {
+				return fmt.Errorf("--db/-d is required")
+			}
+			if country == "" {
+				return fmt.Errorf("--country/-c is required")
+			}
+
+			return nil
+		},
 	}
 
 	flags := cmd.PersistentFlags()
 	{
-		flags.StringVarP(&mongoServerURI, "mongo-server", "s", "", "The connection URI for the MongoDB server")
-		if err := cmd.MarkPersistentFlagRequired("mongo-server"); err != nil {
-			panic(err)
-		}
-
-		flags.StringVarP(&databaseName, "db", "d", "", "The name of the CIS database to import data to")
-		if err := cmd.MarkPersistentFlagRequired("db"); err != nil {
-			panic(err)
-		}
-
-		flags.StringVarP(&country, "country", "c", "", "The country code to use when parsing national phone numbers")
-		if err := cmd.MarkPersistentFlagRequired("country"); err != nil {
-			panic(err)
-		}
+		flags.StringVarP(&mongoServerURI, "mongo-server", "s", os.Getenv("DATABASE_URI"), "The connection URI for the MongoDB server")
+		flags.StringVarP(&databaseName, "db", "d", os.Getenv("DATABASE_NAME"), "The name of the CIS database to import data to")
+		flags.StringVarP(&country, "country", "c", os.Getenv("COUNTRY"), "The country code to use when parsing national phone numbers")
 	}
 
 	cmd.AddCommand(
@@ -87,6 +89,7 @@ func checkDatabaseExists(ctx context.Context, cli *mongo.Client) error {
 func getVetinfExporter() (*vetinf.Exporter, error) {
 	exporter, err := vetinf.NewExporter(vetinf.VetInf{
 		Directory: vetinfInfdatDirectory,
+		Encoding:  vetinfEncoding,
 	}, country)
 	if err != nil {
 		return nil, err

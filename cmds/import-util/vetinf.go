@@ -6,6 +6,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	vetinfInfdatDirectory string
+	vetinfEncoding        string
+)
+
 func getVetinfCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "vetinf",
@@ -19,6 +24,8 @@ func getVetinfCmd() *cobra.Command {
 		if err := cmd.MarkPersistentFlagRequired("infdat"); err != nil {
 			panic(err)
 		}
+
+		flags.StringVar(&vetinfEncoding, "encoding", "IBM852", "The character encoding to use")
 	}
 
 	cmd.AddCommand(
