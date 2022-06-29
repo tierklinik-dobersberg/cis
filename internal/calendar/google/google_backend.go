@@ -15,7 +15,10 @@ import (
 	ciscal "github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
+	"github.com/tierklinik-dobersberg/cis/pkg/trace"
 	"github.com/tierklinik-dobersberg/logger"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"golang.org/x/sync/singleflight"
@@ -188,6 +191,17 @@ func (svc *googleCalendarBackend) ListEvents(ctx context.Context, calendarID str
 }
 
 func (svc *googleCalendarBackend) CreateEvent(ctx context.Context, calID, name, description string, startTime time.Time, duration time.Duration, data *ciscal.StructuredEvent) error {
+	ctx, sp := otel.Tracer("").Start(ctx, "google.backend#CreateEvent")
+	defer sp.End()
+
+	sp.SetAttributes(
+		attribute.String("calendar.id", calID),
+		attribute.String("calendar.name", name),
+		attribute.String("calendar.description", description),
+		attribute.String("calendar.start_time", startTime.String()),
+		attribute.String("calendar.duration", duration.String()),
+	)
+
 	// convert structured event data to it's string representation
 	// and append to description.
 	if data != nil {
@@ -216,6 +230,8 @@ func (svc *googleCalendarBackend) CreateEvent(ctx context.Context, calID, name, 
 		Status: "confirmed",
 	}).Do()
 	if err != nil {
+		trace.RecordAndLog(ctx, err)
+
 		return fmt.Errorf("failed to insert event upstream: %w", err)
 	}
 	log.From(ctx).Infof("created event with id %s", res.Id)
@@ -231,6 +247,11 @@ func (svc *googleCalendarBackend) DeleteEvent(ctx context.Context, calID, eventI
 	err := svc.Service.Events.Delete(calID, eventID).Do()
 	if err != nil {
 		return fmt.Errorf("failed to delete event upstream: %w", err)
+	}
+
+	cache, err := svc.cacheFor(ctx, calID)
+	if err == nil {
+		cache.triggerSync()
 	}
 
 	return nil

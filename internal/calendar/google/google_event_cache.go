@@ -184,6 +184,7 @@ func (ec *googleEventCache) syncEvent(ctx context.Context, item *calendar.Event)
 		if item.Start == nil {
 			evt := ec.events[foundAtIndex]
 			ec.events = append(ec.events[:foundAtIndex], ec.events[foundAtIndex+1:]...)
+
 			return &evt, "deleted"
 		}
 
@@ -194,6 +195,7 @@ func (ec *googleEventCache) syncEvent(ctx context.Context, item *calendar.Event)
 			return nil, ""
 		}
 		ec.events[foundAtIndex] = *evt
+
 		return evt, "updated"
 	}
 
@@ -203,6 +205,7 @@ func (ec *googleEventCache) syncEvent(ctx context.Context, item *calendar.Event)
 		return nil, ""
 	}
 	ec.events = append(ec.events, *evt)
+
 	return evt, "created"
 }
 
