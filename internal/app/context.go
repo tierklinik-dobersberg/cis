@@ -28,6 +28,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/roster"
+	"github.com/tierklinik-dobersberg/cis/internal/tmpl2pdf"
+	"github.com/tierklinik-dobersberg/cis/internal/wiki"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
@@ -65,6 +67,8 @@ type App struct {
 	Autologin       *autologin.Manager
 	Trigger         *trigger.Registry
 	Healtchecks     *healthchecks.Controller
+	Tmpl2PDF        *tmpl2pdf.Creator
+	Wiki            *wiki.Database
 
 	maxUploadSize     int64
 	maxUploadSizeOnce sync.Once
@@ -98,6 +102,8 @@ func NewApp(
 	autologinManager *autologin.Manager,
 	triggerRegistry *trigger.Registry,
 	healthchecks *healthchecks.Controller,
+	pdfCreator *tmpl2pdf.Creator,
+	wiki *wiki.Database,
 ) *App {
 	return &App{
 		Config:          cfg,
@@ -122,6 +128,8 @@ func NewApp(
 		Autologin:       autologinManager,
 		Trigger:         triggerRegistry,
 		Healtchecks:     healthchecks,
+		Tmpl2PDF:        pdfCreator,
+		Wiki:            wiki,
 	}
 }
 
