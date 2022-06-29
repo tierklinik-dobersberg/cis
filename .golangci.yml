@@ -69,3 +69,5 @@ linters-settings:
       - wg sync.WaitGroup
       - ok bool
       - sp trace.Span
+      - to time.Time
+      - to *time.Time
