@@ -59,6 +59,10 @@ func NewExporter(cfg VetInf, country string) (*Exporter, error) {
 		return nil, fmt.Errorf("%q is not a directory", cfg.Directory)
 	}
 
+	if cfg.Encoding == "" {
+		return nil, fmt.Errorf("missing character encoding")
+	}
+
 	infdat := vetinf.OpenReadonlyFs(cfg.Directory, afero.NewOsFs())
 
 	return &Exporter{
