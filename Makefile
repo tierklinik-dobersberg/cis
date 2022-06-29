@@ -20,6 +20,11 @@ import-util-container:
 import-util-staging: import-util-container
 	docker push $(REPO)/cis-import-util:staging
 
-staging: backend-staging frontend-staging
+update-containers: backend-staging frontend-staging import-util-staging
+
+run-import: import-util-staging
+	nomad job dispatch cis-staging-import-util
+
+redeploy-staging: backend-staging frontend-staging
 	nomad job scale cis-staging 0
 	nomad job scale cis-staging 1
