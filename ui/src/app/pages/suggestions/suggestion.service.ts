@@ -4,6 +4,8 @@ import { delay, map, mergeMap, retryWhen, startWith, switchMap } from 'rxjs/oper
 import { IdentityAPI, UserService } from 'src/app/api';
 import { CustomerAPI, CustomerRef, Suggestion } from 'src/app/api/customer.api';
 
+const pollDelay = 10 * 60 * 1000;
+
 @Injectable({ providedIn: 'root' })
 export class SuggestionService {
   private _reload: BehaviorSubject<void> = new BehaviorSubject(undefined);
@@ -14,21 +16,23 @@ export class SuggestionService {
     private users: UserService,
     private identityapi: IdentityAPI,
   ) {
+
     this.identityapi.profileChange
       .pipe(
         switchMap(profile => {
           if (profile === null) {
             return of([] as Suggestion[]);
           }
-          const poll$ = interval(10 * 60 * 1000).pipe(startWith(-1))
+          const poll$ = interval(pollDelay).pipe(startWith(-1))
           return combineLatest([poll$, this._reload])
             .pipe(
               mergeMap(() => this.customerapi.getSuggestions({ limit: 100 })),
-              retryWhen(err => err.pipe(delay(2000)))
+              retryWhen(err => err.pipe(delay(pollDelay)))
             )
         })
       )
       .subscribe(suggestions => this._updateSuggestions(suggestions));
+
   }
 
   private _updateSuggestions(suggestions: Suggestion[]) {
