@@ -20,8 +20,7 @@ func InternalError(msg ...interface{}) *echo.HTTPError {
 	return echo.NewHTTPError(http.StatusInternalServerError, msg...)
 }
 
-// BadRequest returns a new bad requets error. If err is nil
-// ErrBadRequest is used instead.
+// BadRequest returns a new bad requets error.
 func BadRequest(msg ...interface{}) *echo.HTTPError {
 	return echo.NewHTTPError(http.StatusBadRequest, msg...)
 }
