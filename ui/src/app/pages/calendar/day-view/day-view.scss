@@ -85,20 +85,9 @@
             opacity: .65;
         }
 
-        &:hover {
-          opacity: 0.9;
-        }
-
         &.active {
           @apply shadow opacity-100;
-          /*
-            opacity: 1;
-            line-height: unset;
-            height: fit-content !important;
-            @apply border-text-deEmphasized border-opacity-50 shadow-md ;
-            z-index: 3;
-            animation: activate .1s linear 0s 1 normal forwards;
-          */
+
         }
     }
 }

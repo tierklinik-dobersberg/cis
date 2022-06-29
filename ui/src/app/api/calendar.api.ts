@@ -57,6 +57,10 @@ export class CalendarAPI {
     });
   }
 
+  deleteEvent(calID: string, eventID: string): Observable<void> {
+    return this.http.delete<void>(`/api/calendar/v1/events/${calID}/${eventID}`)
+  }
+
   listCalendars(): Observable<Calendar[]> {
     return this.http.get<Calendar[]>('/api/calendar/v1/');
   }

@@ -1,14 +1,16 @@
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { coerceBooleanProperty, coerceCssPixelValue } from '@angular/cdk/coercion';
 import { ConnectedPosition, Overlay, OverlayRef, PositionStrategy, ScrollStrategy } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, TemplateRef, TrackByFunction, ViewChild, ViewContainerRef } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, QueryList, TemplateRef, TrackByFunction, ViewChild, ViewChildren, ViewContainerRef } from '@angular/core';
 import { Router } from '@angular/router';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalService } from 'ng-zorro-antd/modal';
 import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, Subject } from 'rxjs';
 import { catchError, map, startWith, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import { Day, CalendarAPI, IdentityAPI, LocalEvent, OpeningHoursAPI, OpeningHoursResponse, ProfileWithAvatar, RosterAPI, UserService } from 'src/app/api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
-import { getContrastFontColor } from 'src/app/utils';
+import { extractErrorMessage, getContrastFontColor } from 'src/app/utils';
 import { Duration } from 'src/utils/duration';
 
 interface DisplayEvent extends LocalEvent {
@@ -29,6 +31,19 @@ interface Calendar {
     displayed?: boolean;
     color: string;
     fontColor: string;
+}
+
+interface CreateEventData {
+  start: string;
+  duration: number,
+  summary: string,
+  description: string,
+  user?: ProfileWithAvatar;
+  calName: string;
+  calID: string;
+  marker?: ElementRef,
+  update: () => void,
+  close: () => void,
 }
 
 type CalendarMode = 'auto' | 'mine' | 'all' | 'selected';
@@ -96,6 +111,9 @@ export class DayViewComponent implements OnInit, OnDestroy {
 
     @ViewChild('createEventTemplate', { read: TemplateRef, static: true})
     createEventTemplate: TemplateRef<any>;
+
+    @ViewChildren('createEventMarker', { read: ElementRef })
+    createEventMarkers!: QueryList<ElementRef>;
 
     @Input()
     set inlineView(v: any) {
@@ -180,7 +198,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
         this.updateCalendarMode();
     }
 
-    createEvent(event: MouseEvent, cal: Calendar) {
+    showCreateEventModal(event: MouseEvent, cal: Calendar) {
         let target: HTMLElement;
         let iter: HTMLElement = event.target as HTMLElement;
         while (!iter.classList.contains('times')) {
@@ -203,20 +221,16 @@ export class DayViewComponent implements OnInit, OnDestroy {
         let minutes = offset * (60 / this.hourHeight);
 
         let realMinutes = minutes % 60;
-        if (realMinutes <= 7) {
+        if (realMinutes <= 15) {
           realMinutes = 0;
         } else
-        if (realMinutes <= 7+15) {
+        if (realMinutes <= 30) {
           realMinutes = 15
         } else
-        if (realMinutes <= 7+30) {
+        if (realMinutes <= 45) {
           realMinutes = 30
-        } else
-        if (realMinutes <= 7+45) {
-          realMinutes = 45
         } else {
-          realMinutes = 0;
-          minutes += (minutes % 60) * (60 / this.hourHeight);
+          realMinutes = 45
         }
 
         const duration = Duration.minutes(minutes);
@@ -239,14 +253,36 @@ export class DayViewComponent implements OnInit, OnDestroy {
             .withPositions(this.positions),
           })
 
-        let data = {
+        let marker = this.createEventMarkers.find(elem => (elem.nativeElement as HTMLDivElement).getAttribute("calid") === cal.id)
+
+        let data: CreateEventData = {
           start: startTime.toISOString(),
           duration: 15,
           summary: '',
           description: '',
           user: cal.user,
-          calName: cal.name
+          calName: cal.name,
+          calID: cal.id,
+          marker: marker,
+          update: null,
+          close: () => {
+            // FIXME: use this one
+            overlay.dispose();
+            marker?.nativeElement.classList.add("hidden")
+          }
         }
+
+        data.update = () => {
+          const el: HTMLDivElement = marker.nativeElement;
+          el.classList.remove("hidden")
+          el.style.top = coerceCssPixelValue(
+            this.adjustToHours(this.offset(new Date(data.start)))
+          )
+          el.style.height = coerceCssPixelValue(data.duration * (this.hourHeight / 60))
+          this.cdr.markForCheck();
+        }
+
+        data.update()
 
         overlay.attach(new TemplatePortal(
           this.createEventTemplate,
@@ -260,6 +296,42 @@ export class DayViewComponent implements OnInit, OnDestroy {
         overlay.outsidePointerEvents()
           .pipe(take(1))
           .subscribe(() => overlay.dispose())
+    }
+
+    createEvent(data: CreateEventData, overlay: OverlayRef) {
+      this.calendarapi.createEvent({
+        summary: data.summary,
+        duration: Duration.minutes(data.duration),
+        calendarID: data.calID,
+        description: data.description,
+        username: this.identityapi.currentProfile.name,
+        startTime: new Date(data.start),
+      }).subscribe({
+        next: () => {
+          overlay.dispose();
+          this._currentDate$.next(this._currentDate$.getValue());
+          data.marker?.nativeElement.classList.add('hidden');
+        },
+        error: err => this.nzMessageService.error(extractErrorMessage(err, 'Termin konnte nicht erstellt werden')),
+      })
+    }
+
+    deleteEvent(event: DisplayEvent, overlay: OverlayRef) {
+      const user = this.userService.byName(event.username);
+      this.modal.confirm({
+        nzTitle: "Termin löschen",
+        nzContent: `Möchtest du "${event.summary}" von "${user?.fullname || user?.name || event.calendarName}" um ${event.startTime.toLocaleTimeString()} wirklich löschen?`,
+        nzOnOk: () => {
+          this.calendarapi.deleteEvent(event.calendarID, event._id)
+            .subscribe({
+              next: () => {
+                this._currentDate$.next(this._currentDate$.getValue())
+                overlay.dispose();
+              },
+              error: err => this.nzMessageService.error(extractErrorMessage(err, 'Termin konnte nicht gelöscht werden'))
+            })
+        }
+      })
     }
 
     toggleAll() {
@@ -354,15 +426,16 @@ export class DayViewComponent implements OnInit, OnDestroy {
         private rosterAPI: RosterAPI,
         private viewContainer: ViewContainerRef,
         private overlay: Overlay,
+        private modal: NzModalService,
+        private nzMessageService: NzMessageService,
     ) { }
 
     ngOnInit() {
-        let first = true;
+        let prevDate: Date | null = null;
+
         const start$ = interval(20000).pipe(startWith(-1));
         combineLatest([
-            this._currentDate$.pipe(
-                tap(() => first = true),
-            ),
+            this._currentDate$,
             this.calendarapi.listCalendars()
               .pipe(catchError(err => of([]))),
             start$,
@@ -401,11 +474,14 @@ export class DayViewComponent implements OnInit, OnDestroy {
                         events: this.calendarapi.listEvents(date)
                           .pipe(catchError(err => of([] as LocalEvent[]))),
                         calendars: of(calendars),
+                        date: of(date),
                     })
                 }),
             )
             .subscribe({
               next: result => {
+                let changed = !prevDate || prevDate.valueOf() !== result.date.valueOf();
+
                 this.openingHours = [];
                 result.openingHours.forEach(oh => {
                   this.openingHours.push({
@@ -425,6 +501,10 @@ export class DayViewComponent implements OnInit, OnDestroy {
                 result.calendars.forEach(c => {
                     const wasDisplayed = this.calendars.find(cal => cal.id === c._id)?.displayed;
                     const user = this.userService.byCalendarID(c._id);
+                    if (wasDisplayed === undefined) {
+                      changed = true;
+                    }
+
                     lm.set(c._id, {
                         id: c._id,
                         name: c.name,
@@ -500,23 +580,26 @@ export class DayViewComponent implements OnInit, OnDestroy {
                         return 0;
                     });
 
-                    switch (this.calendarMode) {
-                        case 'all':
-                            cal.displayed = true;
-                            break;
-                        case 'auto':
-                            cal.displayed = cal.events?.length > 0 || (!!cal.user && usersByRoster.has(cal.user.name));
-                            break;
-                        case 'mine':
-                            cal.displayed = cal.user?.name === this.identityapi.currentProfile?.name;
-                            break;
-                        case 'selected':
-                            // for "selected", we keep the current setting and only update
-                            // it if it's a new calendar.
-                            if (cal.displayed === undefined) {
-                                cal.displayed = false;
-                            }
-                            break;
+                    // only update
+                    if (changed) {
+                      switch (this.calendarMode) {
+                          case 'all':
+                              cal.displayed = true;
+                              break;
+                          case 'auto':
+                              cal.displayed = cal.events?.length > 0 || (!!cal.user && usersByRoster.has(cal.user.name));
+                              break;
+                          case 'mine':
+                              cal.displayed = cal.user?.name === this.identityapi.currentProfile?.name;
+                              break;
+                          case 'selected':
+                              // for "selected", we keep the current setting and only update
+                              // it if it's a new calendar.
+                              if (cal.displayed === undefined) {
+                                  cal.displayed = false;
+                              }
+                              break;
+                      }
                     }
                 })
                 this._layouting$.next();
@@ -548,7 +631,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
                     this.updateCalendarMode()
                 }
 
-                if (first && !!this.scrollable) {
+                if (changed && !!this.scrollable) {
                     let offset = this.isToday
                         ? this.todayOffset - this.hourHeight / 4
                         : this.adjustToHours(this.offset(earliestEvent));
@@ -561,9 +644,9 @@ export class DayViewComponent implements OnInit, OnDestroy {
                                 behavior: 'smooth'
                             })
                         })
-                    first = false;
                 }
 
+                prevDate = result.date;
                 this.loading = false;
                 this.cdr.markForCheck();
             },
