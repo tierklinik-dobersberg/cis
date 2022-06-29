@@ -1,3 +1,5 @@
+const typography = require('@tailwindcss/typography');
+
 var enablePurge = false;
 
 try {
@@ -82,7 +84,7 @@ module.exports = {
       },
       'golden-rod': {
         DEFAULT: '#dba11c',
-        dark: 'ba8918',
+        dark: '#ba8918',
       },
     },
     textColor: (theme) => {
@@ -111,6 +113,9 @@ module.exports = {
       roboto: 'Roboto, sans-serif',
     },
     extend: {
+      screens: {
+        'print': { 'raw': 'print' },
+      },
       opacity: {
         light: '0.5',
       },
@@ -120,6 +125,70 @@ module.exports = {
       height: {
         'fit': 'fit-content'
       },
+      typography: (theme) => ({
+        important: true,
+				light: {
+					css: [
+						{
+							color: theme('colors.text.primary'),
+							'[class~="lead"]': {
+								color: theme('colors.primary'),
+							},
+							a: {
+								color: theme('colors.white'),
+							},
+							strong: {
+								color: theme('colors.white'),
+							},
+							'ol > li::before': {
+								color: theme('colors.text.secondary'),
+							},
+							'ul > li::before': {
+								backgroundColor: theme('textColor.secondary'),
+							},
+							hr: {
+								borderColor: theme('colors.subtle'),
+							},
+							blockquote: {
+								color: theme('colors.gray.primary'),
+								borderLeftColor: theme('colors.subtle'),
+							},
+							h1: {
+								color: theme('colors.white'),
+							},
+							h2: {
+								color: theme('colors.white'),
+							},
+							h3: {
+								color: theme('colors.white'),
+							},
+							h4: {
+								color: theme('colors.white'),
+							},
+							'figure figcaption': {
+								color: theme('colors.text.secondary'),
+							},
+							code: {
+								color: theme('colors.white'),
+							},
+							'a code': {
+								color: theme('colors.white'),
+							},
+							pre: {
+								color: theme('colors.gray.200'),
+								backgroundColor: theme('colors.subtle'),
+							},
+							thead: {
+								color: theme('colors.white'),
+								borderBottomColor: theme('colors.subtle'),
+							},
+							'tbody tr': {
+								borderBottomColor: theme('colors.subtle'),
+							},
+						},
+					],
+				},
+			}),
     },
   },
   variants: {
@@ -130,5 +199,7 @@ module.exports = {
       borderRadius: ['hover'],
     }
   },
-  plugins: [],
+  plugins: [
+    typography
+  ],
 };

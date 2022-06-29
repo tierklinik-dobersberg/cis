@@ -35,6 +35,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/suggestionapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/triggerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/voicemailapi"
+	"github.com/tierklinik-dobersberg/cis/internal/api/wikiapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
 	"github.com/tierklinik-dobersberg/cis/internal/cctv"
@@ -54,7 +55,9 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/roster"
+	"github.com/tierklinik-dobersberg/cis/internal/tmpl2pdf"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
+	"github.com/tierklinik-dobersberg/cis/internal/wiki"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
@@ -292,6 +295,11 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		logger.Fatalf(ctx, "calendar: %s", err)
 	}
 
+	wiki, err := wiki.NewDatabase(ctx, mongoClient.Database(cfg.DatabaseName))
+	if err != nil {
+		logger.Fatalf(ctx, "failed to setup wiki database: %s", err)
+	}
+
 	infoScreens, err := infoscreendb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
 		logger.Fatalf(ctx, "infoscreendb: %s", err)
@@ -404,7 +412,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		var err error
 		layoutStore, err = layouts.NewFileStore(ctx, paths)
 		if err != nil {
-			logger.Fatalf(ctx, "layouts.NewFileStore: %w", err)
+			logger.Fatalf(ctx, "layouts.NewFileStore: %s", err)
 		}
 	}
 
@@ -431,7 +439,15 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	//
 	checks, err := healthchecks.NewController(baseCtx, cfg.DatabaseName, mongoClient, runtime.GlobalSchema)
 	if err != nil {
-		logger.Fatalf(ctx, "failed to setup healthchecks: %w", err)
+		logger.Fatalf(ctx, "failed to setup healthchecks: %s", err)
+	}
+
+	//
+	// Setup PDf generation support
+	//
+	pdfCreator, err := tmpl2pdf.NewCreator(ctx, cfg.BaseURL, runtime.GlobalSchema)
+	if err != nil {
+		logger.Fatalf(ctx, "failed to setup tmpl2pdf: %s", err)
 	}
 
 	//
@@ -461,6 +477,8 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		autoLoginManager,
 		triggerReg,
 		checks,
+		pdfCreator,
+		wiki,
 	)
 
 	ctx = app.With(baseCtx, appCtx)
@@ -498,6 +516,12 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 		apis.GET("", func(c echo.Context) error {
 			return c.NoContent(http.StatusOK)
 		})
+	}
+	// system APIs not designed to be consumed by users.
+	// they are more for M2M communication
+	{
+		sys := apis.Group("_sys/")
+		app.Tmpl2PDF.SetupAPI(sys.Group("pdf/"))
 	}
 	// API endpoints
 	{
@@ -547,6 +571,8 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 		healthcheckapi.Setup(app, apis.Group("hc/"))
 		// access to the statistics API
 		statsapi.Setup(app, apis.Group("stats/"))
+		// access to the wiki API
+		wikiapi.Setup(app, apis.Group("wiki/"))
 	}
 }
 

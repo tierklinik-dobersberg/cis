@@ -34,8 +34,24 @@ import { SharedModule } from './shared/shared.module';
 import { NgChartsModule } from 'ng2-charts';
 import { TimeagoModule } from 'ngx-timeago';
 import { BaseURLInjector } from './api/base-url';
+import { WikiModule } from './pages/wiki/wiki.module';
+import * as iconExports from 'ng-heroicon';
+import { HeroIconModule } from 'ng-heroicon';
 
 registerLocaleData(de);
+
+const icons: Record<string, {
+        solid: string;
+        outline: string;
+    }> = {};
+
+Object.keys(iconExports).forEach(key => {
+  const value = iconExports[key];
+  if (typeof value === 'object' && 'solid' in value && 'outline' in value) {
+    icons[key] = value;
+  }
+})
+
 
 @NgModule({
   declarations: [
@@ -67,6 +83,15 @@ registerLocaleData(de);
     TimeagoModule.forRoot(),
     ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
     NgChartsModule,
+    WikiModule, // TODO(ppacher): make this lazy loaded in the future. We need it here for the
+                // navigation component right now ...
+    HeroIconModule.forRoot(
+      icons,
+      {
+        defaultHostDisplay: 'inlineBlock',
+        attachDefaultDimensionsIfNoneFound: true,
+      }
+    ),
   ],
   providers: [
     { provide: NZ_I18N, useValue: de_DE },

@@ -1,3 +1,4 @@
+import { animate, style, transition, trigger } from '@angular/animations';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import {
   ApplicationRef,
@@ -59,6 +60,27 @@ interface SubMenu {
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
+  animations: [
+    trigger('moveInOut', [
+      transition('void => *', [
+        style({
+          transform: 'translateX(-100%)',
+          opacity: 0,
+          position: 'absolute',
+        }),
+        animate('150ms ease-in-out', style({
+          transform: 'translateX(0%)',
+          opacity: 1
+        }))
+      ]),
+      transition('* => void', [
+        animate('150ms ease-in-out', style({
+          transform: 'translateX(-100%)',
+          opacity: 0,
+        }))
+      ]),
+    ])
+  ]
 })
 export class AppComponent implements OnInit, OnDestroy {
   /** emits when the component is destroyed */
@@ -82,12 +104,17 @@ export class AppComponent implements OnInit, OnDestroy {
   /** Used to trigger a reload of the current overwrite target */
   private reloadOverwrite$ = new BehaviorSubject<void>(undefined);
 
+  /** isLogin emits whether or not the login page is currently displayed */
   isLogin = this.router.events.pipe(
     filter((e) => e instanceof NavigationEnd),
-    map(() => {
-      const isLogin = this.router.url.startsWith('/login');
-      return isLogin;
-    }),
+    map(() =>  this.router.url.startsWith('/login')),
+    share()
+  );
+
+  /** isWiki emits whether or not the user is currently inside the wiki module */
+  isWiki = this.router.events.pipe(
+    filter((e) => e instanceof NavigationEnd),
+    map(() => this.router.url.startsWith('/wiki')),
     share()
   );
 

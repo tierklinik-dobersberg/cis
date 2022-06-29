@@ -31,11 +31,13 @@ import CloudServices from '@ckeditor/ckeditor5-cloud-services/src/cloudservices'
 import { FontColor, FontSize, FontBackgroundColor } from '@ckeditor/ckeditor5-font';
 import SourceEditing from '@ckeditor/ckeditor5-source-editing/src/sourceediting';
 import Markdown from '@ckeditor/ckeditor5-markdown-gfm/src/markdown';
+import CodeBlock from '@ckeditor/ckeditor5-code-block/src/codeblock';
 
 export default class ClassicEditor extends ClassicEditorBase { }
 
 // Plugins to include in the build.
 ClassicEditor.builtinPlugins = [
+  Markdown,
   Essentials,
   UploadAdapter,
   Autoformat,
@@ -62,7 +64,7 @@ ClassicEditor.builtinPlugins = [
   FontSize,
   FontBackgroundColor,
   SourceEditing,
-  Markdown,
+  CodeBlock,
 ];
 
 // Editor configuration.

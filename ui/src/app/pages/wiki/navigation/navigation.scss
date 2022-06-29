@@ -1,0 +1,35 @@
+:host {
+  @apply flex flex-col gap-8;
+}
+
+nav {
+  h2 {
+    @apply text-xs text-secondary uppercase px-2 mb-2;
+  }
+
+  ul {
+    @apply flex flex-col items-start justify-start w-full gap-2 font-lato;
+
+    li {
+      @apply flex items-center gap-2 cursor-pointer px-2 py-1 w-full outline-none hover:bg-primary rounded hover:bg-opacity-10;
+
+      &.active {
+        @apply font-semibold bg-primary bg-opacity-25;
+      }
+
+      &:hover {
+        span {
+          @apply text-color-primary;
+        }
+      }
+
+      svg, hero-icon {
+        @apply inline-block w-4 h-4;
+      }
+
+      span {
+        @apply ml-6 text-primary
+      }
+    }
+  }
+}

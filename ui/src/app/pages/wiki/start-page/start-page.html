@@ -1,0 +1,23 @@
+<h1 class="text-2xl font-thin font-lato">Willkommen im Wiki der <span class="font-medium underline">Tierklinik Dobersberg</span></h1>
+
+<div class="grid w-full grid-cols-2 gap-4 prose">
+  <div class="flex flex-col justify-start gap-2 p-6 prose-sm border rounded border-subtle">
+    <h3>Bereiche</h3>
+    <ul>
+      <li *ngFor="let col of collections" class="outline-none cursor-pointer hover:text-color-primary-dark" [routerLink]="['/wiki/collection', col.name]">
+        <span class="!mt-0">{{ col.name }}</span>
+        <span class="text-sm text-secondary">{{ col.description }}</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="flex flex-col justify-start gap-2 p-6 prose-sm border rounded border-subtle">
+    <h3>Letzte Aktivitäten</h3>
+    <ul>
+      <li *ngFor="let doc of recentlyUpdated" class="flex flex-col justify-start outline-none cursor-pointer hover:text-color-primary-dark" [routerLink]="['/wiki/collection', doc.collection]" [fragment]="doc.path">
+        <span class="!mt-0">{{ doc.title }}</span>
+        <span class="text-sm text-secondary">{{ doc.metadata.updatedAt == doc.metadata.createdAt ? 'Erstellt' : 'Bearbeitet' }} von {{ doc.metadata.updatedBy }} am {{ doc.metadata.updatedAt | date:'shortDate'}}</span>
+      </li>
+    </ul>
+  </div>
+</div>

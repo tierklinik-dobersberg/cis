@@ -1,0 +1,27 @@
+<div class="w-full p-4 bg-opacity-75 border rounded bg-subtle border-subtle">
+  <span class="block mb-2 text-lg font-thin font-lato">Weitere Dokumente</span>
+
+  <div class="prose-sm prose">
+    <ul *ngIf="!!children?.length; else: noChildrenTemplate">
+      <li *ngFor="let child of children" [routerLink]="['/wiki/collection', child.collection]" [fragment]="child.path" class="outline-none cursor-pointer hover:text-color-primary-dark">
+        {{ child.title }}
+      </li>
+    </ul>
+
+    <ng-template #noChildrenTemplate>
+      <i class="w-full text-sm text-center text-secondary">Dieser Bereich hat noch keine Dokumente</i>
+    </ng-template>
+
+  </div>
+
+  <div class="flex flex-row items-center justify-center w-full mt-6">
+    <button class="tkd-btn tkd-primary tkd-outline" [routerLink]="['/wiki/edit/document', collection?.name]">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+      </svg>
+      <span>
+        Dokument erstellen
+      </span>
+    </button>
+  </div>
+</div>

@@ -5,12 +5,13 @@
 @import "./csslib/index";
 @import "./utils";
 
+@import "@angular/material/theming";
+@include mat-core();
+
+
 @layer base {
   @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400&display=swap");
 }
-
-@import "@angular/material/theming";
-@include mat-core();
 
 // Use the desired palette
 $palette: mat-palette($mat-indigo);
@@ -280,4 +281,17 @@ button,
 
 .ant-table-pagination.ant-pagination {
   margin-right: 1rem !important;
+}
+
+.ck-content {
+  & > pre {
+    background-color: unset;
+  }
+
+  @apply prose;
+  max-width: unset;
+}
+
+.ant-picker-calendar-full .ant-picker-panel .ant-picker-calendar-date-today {
+  @apply print:border-none ;
 }

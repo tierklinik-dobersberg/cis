@@ -77,6 +77,15 @@
     .tkd-icon-btn {
       @apply p-2 w-9 h-9  rounded-full shadow-sm cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-light active:shadow-inner;
       @apply transition-all duration-75 ease-in-out;
+
+      &.tkd-small {
+        @apply text-xs px-1.5 py-1 w-7 h-7;
+
+        & > svg {
+          @apply w-4 h-4;
+        }
+      }
+
       &.tkd-primary {
         @apply bg-white  text-color-primary;
         &:not([disabled]) {

@@ -1,0 +1,46 @@
+<div class="flex flex-col gap-4">
+  <wiki-doc-path [collection]="collection" [path]="path"></wiki-doc-path>
+
+  <!-- Path input or path "view-only" template -->
+  <div class="flex flex-col gap-1" *ngIf="canEditPath">
+    <span class="font-medium font-lato">Pfad für das Dokuments:</span>
+    <input type="text" class="tkd-input" [(ngModel)]="path">
+  </div>
+
+  <!-- Document title -->
+  <div class="flex flex-col gap-4 lg:flex-row">
+    <div class="flex flex-col flex-grow gap-1">
+      <span class="font-medium font-lato">Titel des Dokuments:</span>
+      <input type="text" class="tkd-input" [(ngModel)]="title">
+    </div>
+
+    <div class="flex flex-col flex-grow gap-1">
+      <span class="font-medium font-lato">Tags:</span>
+      <nz-select
+        [(ngModel)]="tags"
+        nzMode="tags"
+        [nzTokenSeparators]="[',']">
+        <!--
+          FIXME: load all available tags
+          <nz-option *ngFor="let option of listOfOption" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+        -->
+      </nz-select>
+    </div>
+  </div>
+
+  <!-- Document description -->
+  <div class="flex flex-col gap-1">
+    <span class="font-medium font-lato">Beschreibung des Dokuments:</span>
+    <textarea class="tkd-input" [(ngModel)]="description"></textarea>
+  </div>
+
+  <!-- document content editor-->
+  <app-text-input format="markdown" class="flex-grow" [(ngModel)]="content"></app-text-input>
+
+  <!-- Button row -->
+  <div class="flex flex-row items-center justify-end gap-4">
+    <button class="tkd-btn tkd-primary" (click)="saveOrCreate()">
+      {{ isNewDocument ? 'Erstellen' : 'Speichern' }}
+    </button>
+  </div>
+</div>

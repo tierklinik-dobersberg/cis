@@ -1,0 +1,21 @@
+<div class="p-4 prose prose-light">
+  <h1>Neuen Bereich erstellen</h1>
+
+  <p class="text-sm text-primary">Ein Bereich im Wiki kann verwendet werden um Dokumente und Inhalte thematisch zu gruppieren oder kategorisieren. Es ist außerdem möglich den Zugriff auf Wiki-Bereiche mit dem integrierten Berechtigungssystem einzuschränken.</p>
+
+  <div class="flex flex-col gap-4 mt-8">
+    <div class="flex flex-col gap-1">
+      <span class="font-medium font-lato">Name des Bereiches:</span>
+      <input type="text" class="tkd-input" [(ngModel)]="name" placeholder="Name des neuen Bereiches">
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <span class="font-medium font-lato">Beschreibung:</span>
+      <input type="text" class="tkd-input" [(ngModel)]="description" placeholder="Optionale Beschreibung des Bereiches">
+    </div>
+
+    <button type="button" (click)="createCollection()" class="tkd-btn tkd-primary">
+      Bereich erstellen
+    </button>
+  </div>
+</div>
