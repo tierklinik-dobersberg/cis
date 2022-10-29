@@ -26,6 +26,7 @@ const routes: Routes = [
   { canActivate, path: 'statistics', loadChildren: () => import('./pages/stats/stats.module').then(m => m.StatsModule) },
   { canActivate, path: 'healthchecks', loadChildren: () => import('./pages/healthchecks/hc.module').then(m => m.HealthchecksModule) },
   { canActivate, path: 'wiki', loadChildren: () => import('./pages/wiki/wiki.module').then(m => m.WikiModule) },
+  { canActivate, path: 'offtime', loadChildren: () => import('./pages/offtime/offtime.module').then(m => m.TkdOfftimeModule) },
 ];
 
 @NgModule({

@@ -29,6 +29,7 @@
         <th>Benutzername</th>
         <th>Telefon</th>
         <th>Mail</th>
+        <th *ngIf="hasWorkTime">Stunden/Woche</th>
         <th>Farbe</th>
 
         <th *ngFor="let prop of userProps">
@@ -58,6 +59,9 @@
             <li *ngFor="let mail of data.mail">
               <a [attr.href]="'mailto:' + mail">{{ mail }}</a>
             </li>
+          </td>
+          <td *ngIf="hasWorkTime">
+            {{ data.timePerWeek.format() }}
           </td>
           <td>
             <span

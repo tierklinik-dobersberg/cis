@@ -9,15 +9,19 @@ import {
   TrackByFunction
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Permission } from '@tkd/api';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { ThemeService } from 'ng2-charts';
 import { forkJoin, Observable, of, Subject } from 'rxjs';
 import {
   catchError,
+  map,
   debounceTime,
   filter,
   switchMap,
   take,
-  takeUntil
+  takeUntil,
+  finalize
 } from 'rxjs/operators';
 import {
   Calendar,
@@ -25,13 +29,14 @@ import {
   ConfigAPI,
   IdentityAPI,
   PasswordStrenght,
-  Permission,
   Role,
   UserDetails, UserService
 } from 'src/app/api';
+import { Roster2Service, WorkTime } from 'src/app/api/roster2';
 import { Breadcrump, HeaderTitleService } from 'src/app/shared/header-title';
 import { NamedOptionSpec } from 'src/app/shared/option-spec-input';
 import { extractErrorMessage } from 'src/app/utils';
+import { Duration, formatDate } from 'src/utils/duration';
 import { getOperations } from '../permissions-view';
 
 interface TranslatedStrength extends PasswordStrenght {
@@ -89,6 +94,13 @@ export class ManageUserComponent implements OnInit, OnDestroy {
   showPasswordModal = false;
   showGeneratedPasswordModal = false;
 
+  timePerWeek: string = '';
+
+  newTimePerWeek: string = '';
+  timeApplicableFrom: Date | null = null;
+
+  showSetWorkTime = false;
+
   pwdStrength: TranslatedStrength | null = null;
   passwordModal = {
     password: '',
@@ -108,6 +120,7 @@ export class ManageUserComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private calendarapi: CalendarAPI,
     private configapi: ConfigAPI,
+    private roster2: Roster2Service,
     private cdr: ChangeDetectorRef,
     iterableDiffers: IterableDiffers
   ) {
@@ -119,6 +132,7 @@ export class ManageUserComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
     this.loadPwdStrenth$.complete();
   }
+
 
   ngOnInit() {
     this.name = this.route.snapshot.paramMap.get('username');
@@ -159,8 +173,16 @@ export class ManageUserComponent implements OnInit, OnDestroy {
       });
 
     if (this.editMode) {
-      this.identityapi.getUser(this.name).subscribe({
-        next: (user) => {
+      forkJoin({
+        user: this.identityapi.getUser(this.name),
+        workTime: this.roster2.workTimes.current()
+          .pipe(
+            catchError(err => of({})),
+            map(result => result[this.name] as (WorkTime|undefined))
+          )
+      }).subscribe({
+        next: ({user, workTime}) => {
+
           this.headerService.set(
             'Benutzer bearbeiten',
             'Bearbeite einen bereits existierenden Benutzeraccount.',
@@ -178,6 +200,13 @@ export class ManageUserComponent implements OnInit, OnDestroy {
           this.roles = user.roles || [];
           this.permissions = user.permissions || [];
           this.originalPermissions = [...this.permissions];
+          this.timePerWeek = '';
+          if (!!workTime) {
+            this.timePerWeek = new Duration(workTime.timePerWeek).toString()
+          }
+          this.newTimePerWeek = this.timePerWeek;
+          this.timeApplicableFrom = null;
+
           this.cdr.markForCheck();
         },
 
@@ -230,6 +259,37 @@ export class ManageUserComponent implements OnInit, OnDestroy {
         };
       });
   }
+
+  handleSetTimeCancel() {
+    this.newTimePerWeek = this.timePerWeek;
+    this.timeApplicableFrom = null;
+    this.showSetWorkTime = false;
+
+    this.cdr.markForCheck();
+  }
+
+  handleSetTimeSave() {
+    if (this.editMode) {
+      const newTimePerWeek = this.newTimePerWeek;
+      this.roster2.workTimes.set({
+        id: '',
+        applicableFrom: this.timeApplicableFrom?.toISOString() || '',
+        staff: this.name,
+        timePerWeek: Duration.parseString(this.newTimePerWeek).nanoseconds,
+        overtimePenaltyRatio: 0,
+        undertimePenaltyRatio: 0
+      })
+      .pipe(finalize(() => this.handleSetTimeCancel()))
+      .subscribe({
+        next: () => {
+          this.nzMessageService.success('Arbeitszeit erfolgreich geändert')
+          this.timePerWeek = newTimePerWeek;
+        },
+        error: err => this.nzMessageService.error(extractErrorMessage(err, 'Arbeitszeit konnte nicht geändert werden'))
+      })
+    }
+  }
+
 
   handleCancel() {
     this.password = '';
@@ -348,6 +408,10 @@ export class ManageUserComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: () => {
+          if (this.newTimePerWeek !== '') {
+            this.handleSetTimeSave()
+          }
+
           this.nzMessageService.success(
             'Benutzer wurde erfolgreich gespeichert'
           );

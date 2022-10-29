@@ -1,10 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ProfileWithAvatar, TkdAccountService } from '@tkd/api';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { of, Subject, Subscription } from 'rxjs';
 import { catchError, debounceTime, switchMap } from 'rxjs/operators';
-import { IdentityAPI, PasswordStrenght, ProfileWithAvatar } from 'src/app/api';
+import { IdentityAPI, PasswordStrenght  } from 'src/app/api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 
 interface TranslatedStrength extends PasswordStrenght {
@@ -77,6 +78,7 @@ export class ChangePasswordComponent implements OnInit, OnDestroy {
     private header: HeaderTitleService,
     private fb: FormBuilder,
     private identityapi: IdentityAPI,
+    private account: TkdAccountService,
     private router: Router,
     private messageService: NzMessageService) { }
 
@@ -89,7 +91,7 @@ export class ChangePasswordComponent implements OnInit, OnDestroy {
     });
 
     this.subscriptions = new Subscription();
-    const profileSub = this.identityapi.profileChange
+    const profileSub = this.account.profileChange
       .subscribe(p => {
         this.profile = p;
       });

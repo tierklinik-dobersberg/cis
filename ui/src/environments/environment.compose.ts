@@ -4,7 +4,8 @@
 
 export const environment = {
   baseURL: '',
-  production: false
+  production: false,
+  rosterdURL: '/api/roster',
 };
 
 /*

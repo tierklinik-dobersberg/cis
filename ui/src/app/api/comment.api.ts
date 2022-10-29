@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { UserService } from './user.service';
-import { IdentityAPI, ProfileWithAvatar } from './identity.api';
+import { ProfileWithAvatar } from '@tkd/api';
 
 export interface CommentModel {
   _id: string;

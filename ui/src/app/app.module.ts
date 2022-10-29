@@ -37,6 +37,10 @@ import { BaseURLInjector } from './api/base-url';
 import { WikiModule } from './pages/wiki/wiki.module';
 import * as iconExports from 'ng-heroicon';
 import { HeroIconModule } from 'ng-heroicon';
+import { ROSTERD_API } from './api/roster2';
+import { TkdOfftimeModule } from './pages/offtime';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { TKD_CIS_ENDPOINT } from '@tkd/api';
 
 registerLocaleData(de);
 
@@ -61,6 +65,7 @@ Object.keys(iconExports).forEach(key => {
     BrowserModule,
     AppRoutingModule,
     IconsProviderModule,
+    OverlayModule,
     NzLayoutModule,
     NzMenuModule,
     NzAvatarModule,
@@ -75,6 +80,7 @@ Object.keys(iconExports).forEach(key => {
     NzBadgeModule,
     BrowserAnimationsModule,
     NzModalModule,
+    TkdOfftimeModule,
     FontAwesomeModule,
     MarkdownModule.forRoot(),
     LoginModule,
@@ -98,7 +104,9 @@ Object.keys(iconExports).forEach(key => {
     { provide: HTTP_INTERCEPTORS, useExisting: AuthorizationInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useExisting: BaseURLInjector, multi: true },
     { provide: NZ_DATE_CONFIG, useValue: { firstDayOfWeek: 1 } },
-    { provide: LOCALE_ID, useValue: 'de'}
+    { provide: LOCALE_ID, useValue: 'de'},
+    { provide: ROSTERD_API, useValue: environment.rosterdURL },
+    { provide: TKD_CIS_ENDPOINT, useValue: environment.baseURL }
   ],
   bootstrap: [AppComponent]
 })

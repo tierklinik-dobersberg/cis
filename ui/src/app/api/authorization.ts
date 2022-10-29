@@ -28,7 +28,7 @@ export class AuthorizationInterceptor implements HttpInterceptor {
                             }
                         }
                     }
-                    return throwError(err);
+                    return throwError(() => err);
                 })
             );
     }

@@ -1,0 +1,31 @@
+<nz-tabset #tabSet (nzSelectedIndexChange)="updateRouterState($event)">
+    <nz-tab nzTitle="Übersicht" >
+        <div class="grid grid-cols-3 gap-3" nzTabContent>
+            <div class="px-5 py-5 bg-white rounded-md border shadow-sm border-tertiary">
+                <h1 class="mb-5 text-lg font-light uppercase font-lato text-color-primary-dark">Resturlaub</h1> 
+                <ul>
+                    <li *ngFor="let state of currentUserCredits" class="flex flex-row gap-3 items-center cursor-pointer outline-none" [routerLink]="['.']" [queryParams]="{tab: 'requests', user: state.name, all: 'true'}" queryParamsHandling="merge">
+                        <nz-avatar [nzSrc]="state.avatar"></nz-avatar>
+                        {{ state.fullname || state.name }}
+                        <span class="flex flex-grow gap-2 justify-end items-center">
+                            {{ state.creditsLeft | jsDuration }}
+
+                            <svg (click)="$event.stopPropagation(); grant(state.name)" nz-tooltip="Urlaubsguthaben anpassen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 cursor-hover hover:text-white hover:bg-alert-green hover:rounded-full hover:bg-opacity-85 text-alert-green">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nz-tab>
+    <nz-tab [nzTitle]="requestTitle">
+        <tkd-offtime-request-management *nz-tab (onRequestDecision)="load()"></tkd-offtime-request-management>
+    </nz-tab>
+
+    <ng-template #requestTitle>
+        <span>Anträge bearbeiten</span>
+        <nz-badge class="ml-2" [nzCount]="countNewRequests" nzStandalone></nz-badge>
+    </ng-template>
+</nz-tabset>

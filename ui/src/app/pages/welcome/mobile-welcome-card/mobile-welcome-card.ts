@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
+import { ProfileWithAvatar, TkdAccountService } from '@tkd/api';
 import { forkJoin, interval, Observable, Subject } from 'rxjs';
 import { map, mergeMap, startWith, takeUntil } from 'rxjs/operators';
-import { IdentityAPI, ProfileWithAvatar, UserService, VoiceMailAPI } from 'src/app/api';
+import { IdentityAPI, VoiceMailAPI } from 'src/app/api';
 
 @Component({
   selector: 'app-mobile-welcome-card',
@@ -17,12 +18,12 @@ export class MobileWelcomeCardComponent implements OnInit, OnDestroy {
   unreadMailboxes: { name: string, count: number }[] = [];
 
   constructor(
-    private identityAPI: IdentityAPI,
+    private account: TkdAccountService,
     private voicemail: VoiceMailAPI,
   ) { }
 
   ngOnInit() {
-    this.user$ = this.identityAPI.profile()
+    this.user$ = this.account.profileChange
       .pipe(takeUntil(this.destroy$));
 
     const update$ = interval(10000)

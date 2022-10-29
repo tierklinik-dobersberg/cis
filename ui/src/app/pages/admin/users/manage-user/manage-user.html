@@ -133,7 +133,7 @@
                   vergessen" funktionieren.
                 </span>
                 <tkd-string-slice-input
-                  class="w-full mt-3 xl:w-1/2"
+                  class="mt-3 w-full xl:w-1/2"
                   [(ngModel)]="emailAddresses"
                   tooltip="E-Mail Adresse hinzufügen"
                 >
@@ -157,7 +157,7 @@
                   2-Faktor-Authentifizierung (2FA) einzurichten.
                 </span>
                 <tkd-string-slice-input
-                  class="w-full mt-3 xl:w-1/2"
+                  class="mt-3 w-full xl:w-1/2"
                   [(ngModel)]="phoneNumbers"
                   tooltip="Telefonnummer hinzufügen"
                 >
@@ -178,7 +178,7 @@
                   Wähle die entsprechenden Rollen für den Bentuzer.
                 </span>
                 <nz-select
-                  class="w-full mt-3 xl:w-1/2"
+                  class="mt-3 w-full xl:w-1/2"
                   nzMode="multiple"
                   nzPlaceHolder="Please select"
                   [(ngModel)]="roles"
@@ -211,7 +211,7 @@
             >
           </header>
           <div
-            class="grid items-start grid-cols-1 gap-4 md:gap-6 lg:gap-8 lg:grid-cols-2"
+            class="grid grid-cols-1 gap-4 items-start md:gap-6 lg:gap-8 lg:grid-cols-2"
           >
             <div class="flex flex-row space-x-4">
               <span
@@ -295,7 +295,7 @@
           </div>
         </div>
 
-        <div class="tkd-card" *ngIf="userProperties.length > 0">
+        <div class="tkd-card">
           <header>
             <h1>Zusätzliche Eigenschaften</h1>
             <span
@@ -304,12 +304,36 @@
             >
           </header>
           <div
-            class="grid items-start grid-cols-1 gap-4 md:gap-6 lg:gap-8 lg:grid-cols-2"
+            class="grid grid-cols-1 gap-4 items-start md:gap-6 lg:gap-8 lg:grid-cols-2"
           >
+
+            <ng-template #customButtonTemplate>
+              <button class="tkd-btn tkd-primary tkd-outline" (click)="showSetWorkTime = true">Ändern</button>
+
+              <nz-modal [(nzVisible)]="showSetWorkTime" nzTitle="Arbeitszeit festlegen" (nzOnCancel)="handleSetTimeCancel()" (nzOnOk)="handleSetTimeSave()">
+                <div *nzModalContent class="flex flex-col">
+                  <span>Neue Arbeitszeit:</span>
+                  <input type="text" class="tkd-input" [(ngModel)]="newTimePerWeek">
+
+                  <span class="mt-2">Gültig ab:</span>
+                  <nz-date-picker [(ngModel)]="timeApplicableFrom"></nz-date-picker>
+                </div>
+              </nz-modal>
+            </ng-template>
+
+            <tkd-option-spec-input disabled="true" [(ngModel)]="timePerWeek" index="7" [spec]="{
+              name: 'timePerWeek',
+              description: 'Normal Arbeitszeit pro Woche',
+              type: 'string',
+              displayName: 'Wöchentliche Arbeitszeit',
+              default: '',
+              required: false
+            }" [inputTailSlot]="customButtonTemplate"></tkd-option-spec-input>
+
             <tkd-option-spec-input
               *ngFor="let prop of userProperties; let index=index"
               [spec]="prop"
-              [index]="index + 7"
+              [index]="index + 8"
               [(ngModel)]="properties[prop.name]"
             ></tkd-option-spec-input>
           </div>
@@ -325,7 +349,7 @@
               {{ 7 + userProperties.length }}.
             </span>
             <div
-              class="flex flex-col items-center flex-grow lg:justify-between lg:flex-row"
+              class="flex flex-col flex-grow items-center lg:justify-between lg:flex-row"
             >
               <div class="flex flex-col flex-grow">
                 <span class="text-base font-medium font-lato">
@@ -343,7 +367,7 @@
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="w-6 h-6 mr-2"
+                    class="mr-2 w-6 h-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -356,8 +380,7 @@
                       d="M5 13l4 4L19 7"
                     />
                   </svg>
-                  {{ !password ? editMode ? 'Passwort ändern' : 'Passwort setzen
-                  ': 'Passwort gesetzt'}}
+                  {{ !password ? editMode ? 'Passwort ändern' : 'Passwort setzen': 'Passwort gesetzt'}}
                 </button>
                 <label nz-checkbox [(ngModel)]="needsPasswortChange"
                   >Erzwinge eine Änderung des Passworts</label
@@ -368,7 +391,7 @@
         </div>
 
         <div class="tkd-card" *ngIf="!editMode">
-          <header class="flex flex-row items-center justify-between">
+          <header class="flex flex-row justify-between items-center">
             <div>
               <h1>Benutzer anlegen</h1>
               <span
@@ -385,7 +408,7 @@
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 mr-2"
+                  class="mr-2 w-6 h-6"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -409,7 +432,7 @@
         <label
           for="file-upload"
           [class.h-96]="!preview || previewError"
-          class="flex items-center justify-center p-4 text-xl border border-dashed rounded cursor-pointer border-primary border-opacity-light text-color-primary font-lato hover:bg-primary hover:bg-opacity-5"
+          class="flex justify-center items-center p-4 text-xl rounded border border-dashed cursor-pointer border-primary border-opacity-light text-color-primary font-lato hover:bg-primary hover:bg-opacity-5"
         >
           <img
             [attr.src]="preview"

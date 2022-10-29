@@ -6,8 +6,9 @@ import {
   OperatorFunction,
 } from 'rxjs';
 import { delay, filter, map, mergeMap, retryWhen, take } from 'rxjs/operators';
-import { IdentityAPI, Profile, ProfileWithAvatar } from './identity.api';
+import { IdentityAPI } from './identity.api';
 import { ConfigAPI } from './config.api';
+import { ProfileWithAvatar } from '@tkd/api';
 
 /**
  * UserService keeps a list of all users to be used

@@ -2,9 +2,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ProfileWithAvatar, TkdAccountService } from '@tkd/api';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { Subscription } from 'rxjs';
-import { IdentityAPI, ProfileWithAvatar } from 'src/app/api';
 import { extractErrorMessage } from 'src/app/utils';
 
 @Component({
@@ -36,7 +36,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       this.lastMessageID =
         this.messageService.loading('Anmeldung ...').messageId;
 
-      this.identityapi.login(this.username, this.password).subscribe(
+      this.account.login(this.username, this.password).subscribe(
         () => {
           this.messageService.remove(this.lastMessageID);
           const target =
@@ -59,7 +59,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   continue(): void {
     // try to refresh the access token
-    this.identityapi.refresh().subscribe(
+    this.account.refresh().subscribe(
       () => {
         const target =
           this.activatedRoute.snapshot.queryParamMap.get('rd') || '/';
@@ -85,7 +85,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    this.identityapi
+    this.account
       .logout()
       .subscribe(() => this.router.navigate(['/', 'login']));
   }
@@ -94,7 +94,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     private router: Router,
     private fb: FormBuilder,
     private messageService: NzMessageService,
-    private identityapi: IdentityAPI,
+    private account: TkdAccountService,
     private activatedRoute: ActivatedRoute,
     private cdr: ChangeDetectorRef
   ) {}
@@ -108,7 +108,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     this.subscriptions = new Subscription();
 
-    const sub = this.identityapi.profileChange.subscribe(
+    const sub = this.account.profileChange.subscribe(
       (profile) => {
         this.profile = profile;
         this.cdr.markForCheck();

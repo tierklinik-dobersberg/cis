@@ -400,7 +400,7 @@ func sortAndValidate(slice []OpeningHour) error {
 		}
 	}
 
-	// make sure we have at moste on onCall start per day/night
+	// make sure we have at most one onCall start per day/night
 	var (
 		foundDay   string
 		foundNight string

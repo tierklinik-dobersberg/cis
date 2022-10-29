@@ -1,14 +1,14 @@
 import { coerceBooleanProperty, coerceCssPixelValue } from '@angular/cdk/coercion';
-import { ConnectedPosition, Overlay, OverlayRef, PositionStrategy, ScrollStrategy } from '@angular/cdk/overlay';
+import { ConnectedPosition, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, QueryList, TemplateRef, TrackByFunction, ViewChild, ViewChildren, ViewContainerRef } from '@angular/core';
-import { Router } from '@angular/router';
+import { ProfileWithAvatar, TkdAccountService } from '@tkd/api';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, Subject } from 'rxjs';
-import { catchError, map, startWith, switchMap, take, takeUntil, tap } from 'rxjs/operators';
-import { Day, CalendarAPI, IdentityAPI, LocalEvent, OpeningHoursAPI, OpeningHoursResponse, ProfileWithAvatar, RosterAPI, UserService } from 'src/app/api';
+import { catchError, map, startWith, switchMap, take, takeUntil } from 'rxjs/operators';
+import { CalendarAPI, Day, LocalEvent, OpeningHoursAPI, OpeningHoursResponse, RosterAPI, UserService } from 'src/app/api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, getContrastFontColor } from 'src/app/utils';
 import { Duration } from 'src/utils/duration';
@@ -304,7 +304,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
         duration: Duration.minutes(data.duration),
         calendarID: data.calID,
         description: data.description,
-        username: this.identityapi.currentProfile.name,
+        username: this.account.currentProfile.name,
         startTime: new Date(data.start),
       }).subscribe({
         next: () => {
@@ -337,10 +337,10 @@ export class DayViewComponent implements OnInit, OnDestroy {
     toggleAll() {
         switch (this.calendarMode) {
             case 'all': // => mine
-                if (this.identityapi.currentProfile?.calendarID) {
+                if (this.account.currentProfile?.calendarID) {
                     this.calendarMode = 'mine';
                     // only display the calendar that belongs to the current user
-                    this.calendars.forEach(cal => cal.displayed = cal.id === this.identityapi.currentProfile?.calendarID)
+                    this.calendars.forEach(cal => cal.displayed = cal.id === this.account.currentProfile?.calendarID)
                     // if there's no calendar anymore to be displayed
                     // toggle once more so we display all of them
                     if (!this.calendars.some(cal => cal.displayed)) {
@@ -373,7 +373,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
             this.calendarMode = 'all';
         } else {
             const onlyMine = !this.calendars.some(cal => {
-                if (cal.id === this.identityapi.currentProfile?.calendarID) {
+                if (cal.id === this.account.currentProfile?.calendarID) {
                     return !cal.displayed;
                 }
                 return cal.displayed;
@@ -418,10 +418,9 @@ export class DayViewComponent implements OnInit, OnDestroy {
         private calendarapi: CalendarAPI,
         private userService: UserService,
         private headerService: HeaderTitleService,
-        private identityapi: IdentityAPI,
+        private account: TkdAccountService,
         private cdr: ChangeDetectorRef,
         private ngZone: NgZone,
-        private router: Router,
         private openingHoursAPI: OpeningHoursAPI,
         private rosterAPI: RosterAPI,
         private viewContainer: ViewContainerRef,
@@ -590,7 +589,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
                               cal.displayed = cal.events?.length > 0 || (!!cal.user && usersByRoster.has(cal.user.name));
                               break;
                           case 'mine':
-                              cal.displayed = cal.user?.name === this.identityapi.currentProfile?.name;
+                              cal.displayed = cal.user?.name === this.account.currentProfile?.name;
                               break;
                           case 'selected':
                               // for "selected", we keep the current setting and only update

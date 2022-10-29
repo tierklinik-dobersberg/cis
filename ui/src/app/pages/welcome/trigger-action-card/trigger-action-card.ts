@@ -6,6 +6,7 @@ import {
   OnInit,
   TrackByFunction,
 } from '@angular/core';
+import { PermissionRequest, PermissionTestResult, Permissions, TkdAccountService } from '@tkd/api';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import {
   BehaviorSubject,
@@ -28,9 +29,6 @@ import {
 import {
   ConfigAPI,
   IdentityAPI,
-  Permissions,
-  PermissionRequest,
-  PermissionTestResult,
   TriggerAction,
   TriggerAPI,
   TriggerInstance,
@@ -60,7 +58,7 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
   constructor(
     private triggerapi: TriggerAPI,
     private config: ConfigAPI,
-    private identityapi: IdentityAPI,
+    private account: TkdAccountService,
     private nzMessageService: NzMessageService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -87,8 +85,8 @@ export class TriggerActionCardComponent implements OnInit, OnDestroy {
             action: Permissions.TriggerExecute,
           };
         });
-        let findExecutables = this.identityapi
-          .testPerimissions(permRequest)
+        let findExecutables = this.account
+          .testPermissions(permRequest)
           .pipe(
             tap((result) => {
               checkedPermissions = newCheckedPermissions;

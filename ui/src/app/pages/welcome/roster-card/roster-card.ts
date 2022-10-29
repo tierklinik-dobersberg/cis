@@ -1,7 +1,8 @@
 import { EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, Output } from '@angular/core';
+import { ProfileWithAvatar } from '@tkd/api';
 import { BehaviorSubject, combineLatest, interval, of, Subscription } from 'rxjs';
 import { catchError, map, mergeMap, startWith } from 'rxjs/operators';
-import { CalendarAPI, Day, LocalEvent, ProfileWithAvatar, Roster, RosterAPI, UserService } from 'src/app/api';
+import { CalendarAPI, Day, LocalEvent, Roster, RosterAPI, UserService } from 'src/app/api';
 
 @Component({
   selector: 'app-roster-card',

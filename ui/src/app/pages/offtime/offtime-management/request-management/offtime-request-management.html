@@ -1,0 +1,124 @@
+<div class="flex flex-row gap-3 justify-end items-center mb-4 w-full">
+    <span>Von</span>
+    <nz-select [(ngModel)]="userFilter" (ngModelChange)="reload.next()" [nzMode]="'multiple'" nzPlaceHolder="Alle Benutzer" style="min-width: 16rem">
+        <nz-option *ngFor="let user of users" [nzLabel]="user.fullname || user.name" [nzValue]="user.name"></nz-option>
+    </nz-select>
+    <span>Filter</span>
+    <nz-radio-group [(ngModel)]="showAll" (ngModelChange)="reload.next()">
+        <label nz-radio-button [nzValue]="true"><span>Alle Anträge</span></label>
+        <label nz-radio-button [nzValue]="false"><span>Neue Anträge</span></label>
+    </nz-radio-group>
+</div>
+
+<nz-table [nzData]="entries" #table>
+    <thead>
+        <tr>
+            <th>Benutzer</th>
+            <th>Zeitraum</th>
+            <th>Antragsart</th>
+            <th>Bemerkung</th>
+            <th>Verbrauch / ZA</th>
+            <th>Aktionen</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let row of table.data; trackBy: trackEntry">
+            <td class="flex flex-row gap-4 items-center">
+                <nz-avatar [nzSrc]="row.profile.avatar"></nz-avatar>
+                {{ row.profile.fullname || row.profile.name }}
+            </td>
+            <td>
+                <ng-container *ngIf="row.costs.vacationDays < 0; else: creditInfo">
+                    {{ row.from | date:'mediumDate'}} - {{ row.to | date:'mediumDate'}}
+                    <span class="text-secondary">({{(-1*row.costs.duration) | jsDuration}})</span>
+                </ng-container>
+
+                <ng-template #creditInfo>
+                    Guthaben: {{ row.costs.duration > 0 ? '+' : '' }} {{ row.costs.duration | jsDuration }}
+                </ng-template>
+            </td>
+            <td>
+                {{ row | requestType }}
+            </td>
+            <td>{{ row.description }}</td>
+            <td>
+                <div class="flex flex-row gap-1 items-center" *ngIf="row.approval === null">
+                    {{ (currentUserCredits[row.staffID] || 0) | jsDuration }}
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-6 text-tertiary">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+                    </svg>
+                    {{row.creditsLeft | jsDuration }}
+                </div>
+                <div class="" *ngIf="row.approval?.actualCosts.duration < 0">
+                    {{ (-1*row.approval.actualCosts.duration) | jsDuration }}
+                </div>
+                <div class="text-secondary" *ngIf="row.approval?.approved === false && row.approval?.actualCosts.duration === 0">
+                    ZA
+                </div>
+            </td>
+            <td>
+                <div [ngSwitch]="row.approval">
+                    <span class="flex flex-row gap-2 items-center" *ngSwitchCase="null">
+                        <button class="tkd-btn tkd-outline tkd-primary" (click)="approve(row.id)" nz-dropdown [nzDropdownMenu]="menuApprove">
+                            Genehmigen
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <button class="tkd-btn tkd-outline tkd-danger" (click)="reject(row.id)" nz-dropdown [nzDropdownMenu]="menuReject">
+                            Ablehnen
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+
+                        <nz-dropdown-menu #menuApprove="nzDropdownMenu">
+                            <ul nz-menu nzSelectable>
+                                <li nz-menu-item (click)="decide(row.id, 'approve')">Mit Kommentar</li>
+                            </ul>
+                        </nz-dropdown-menu>
+
+                        <nz-dropdown-menu #menuReject="nzDropdownMenu">
+                            <ul nz-menu nzSelectable>
+                                <li nz-menu-item (click)="decide(row.id, 'reject')">Mit Kommentar</li>
+                            </ul>
+                        </nz-dropdown-menu>
+
+                    </span>
+
+                    <span class="flex flex-row items-center font-lato text-alert-green" *ngSwitchCase="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="mr-2 w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Genehmigt
+                    </span>
+
+                    <span class="flex flex-row items-center font-lato text-alert-red" *ngSwitchCase="false">
+                        <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" class="mr-2 w-6 h-6">
+                            <path
+                                d="m13 13 6 6m0-6-6 6m15-3c0 6.627-5.373 12-12 12S4 22.627 4 16 9.373 4 16 4s12 5.373 12 12Z"
+                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg>
+                        Abgelehnt
+                    </span>
+                </div>
+            </td>
+            <td class="text-right">
+                <a nz-dropdown [nzDropdownMenu]="menu">
+                    <span nz-icon nzType="ellipsis"></span>
+                </a>
+                <nz-dropdown-menu #menu="nzDropdownMenu">
+                    <ul nz-menu nzSelectable>
+                        <li nz-menu-item (click)="approve(row.id, true)" *ngIf="row.approval?.actualCosts.duration === 0">Als Urlaub verwenden</li>
+                        <li nz-menu-item (click)="approve(row.id, false)" *ngIf="row.approval?.actualCosts.duration < 0">Als ZA verwenden</li>
+                        <li nz-menu-item nzDanger (click)="deleteRequest(row.id)">Löschen</li>
+                    </ul>
+                </nz-dropdown-menu>
+            </td>
+        </tr>
+    </tbody>
+</nz-table>

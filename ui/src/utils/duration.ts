@@ -1,3 +1,4 @@
+import { NumberValueAccessor } from '@angular/forms';
 import { padLeft } from './strings';
 
 const nanosecond = 1;
@@ -6,8 +7,9 @@ const millisecond = 1000 * microsecond;
 const second = 1000 * millisecond;
 const minute = 60 * second;
 const hour = 60 * minute;
+const day = 24 * hour;
 
-export type DurationLayout = 'default' | 'hh:mm' | 'hh:mm:ss';
+export type DurationLayout = 'default-hours' | 'default' | 'hh:mm' | 'hh:mm:ss';
 
 export class Duration {
     constructor(ns: number) {
@@ -70,8 +72,8 @@ export class Duration {
     }
 
     format(layout: DurationLayout = 'default'): string {
-        if (layout === 'default') {
-            return this.toString();
+        if (layout === 'default' || layout === 'default-hours') {
+            return this.toString(layout === 'default-hours');
         }
 
         const sign = this._nanoseconds < 0 ? '-' : '';
@@ -90,13 +92,21 @@ export class Duration {
         return str;
     }
 
-    toString(): string {
+    toString(skipDays = false): string {
         const sign = this._nanoseconds < 0 ? '-' : '';
         let ns = Math.abs(this._nanoseconds);
         let str = '';
 
         if (this._nanoseconds === 0) {
             return '0';
+        }
+
+        if (!skipDays) {
+            const days = Math.floor(ns / day)
+            if (days > 0 ) {
+                str += days.toString() + 'd ';
+                ns -= days * day;
+            }
         }
 
         const hours = Math.floor(ns / hour);
@@ -137,6 +147,85 @@ export class Duration {
         return sign + str;
     }
 
+    static parseString(v: string): Duration {
+        let time = 0;
+
+        let numberValue = '';
+        let suffix = '';
+        let state = 'number'
+
+        const parse = () => {
+                let factor = 0;
+                switch (suffix) {
+                    case 'd':
+                        factor = day
+                        break;
+                    case 'h':
+                        factor = hour
+                        break;
+                    case 'm':
+                        factor = minute
+                        break;
+                    case 's':
+                        factor = second
+                        break;
+                    case 'ms':
+                        factor = millisecond
+                        break;
+                    case 'µs':
+                        factor = microsecond
+                        break;
+                    case 'ns':
+                        factor = nanosecond
+                        break;
+                    default:
+                        throw new Error(`invalid time factor`)
+                }
+
+                time += ((+numberValue) * factor)
+        }
+
+        for (let i = 0; i < v.length; i++) {
+            const c = v.charAt(i)
+
+            if (c === ' ') {
+                continue
+            }
+
+            if (state === 'number') {
+                if (!isNaN(+c)) {
+                    numberValue += c
+
+                    continue
+                }
+
+                state = 'suffix'
+                suffix += c
+
+                continue
+            }
+
+            if (state === 'suffix') {
+                if (isNaN(+c)) {
+                    suffix += c
+                    continue
+                }
+
+                parse()
+
+                numberValue = c
+                suffix = ''
+                state = 'number'
+            }
+        }
+
+        if (numberValue !== '') {
+            parse()
+        }
+
+        return new Duration(time)
+    }
+
     isLessThan(d: Duration) {
         return this.nanoseconds < d.nanoseconds;
     }
@@ -152,4 +241,22 @@ export class Duration {
     valueOf(): number {
         return this._nanoseconds;
     }
+}
+
+export function formatDate(d: Date|string|null): string {
+    if (d === null) {
+        return ''
+    }
+
+    d = new Date(d)
+    let month = '' + (d.getMonth() + 1)
+    let day = '' + d.getDate()
+    let year = d.getFullYear()
+
+    if (month.length < 2) 
+        month = '0' + month;
+    if (day.length < 2) 
+        day = '0' + day;
+
+    return [year, month, day].join('-');
 }

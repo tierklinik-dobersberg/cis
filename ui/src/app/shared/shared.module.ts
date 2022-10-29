@@ -13,7 +13,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageServiceModule } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzDatePickerModule, NzRangePickerComponent } from 'ng-zorro-antd/date-picker';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { MarkdownModule } from 'ngx-markdown';
@@ -32,6 +32,7 @@ import { TkdStringSliceInputComponent } from './simple-string-slice-input';
 import { TkdOptionListInputComponent } from './option-list-input';
 import { ListActionButtonGroupComponent } from './list-btn-group';
 import { UserAvatarComponent } from './user-avatar';
+import { TkdCreateOfftimeRequestComponent } from '../pages/offtime/create-offtime-request';
 
 @NgModule({
   imports: [

@@ -1,5 +1,5 @@
 import { IterableChanges, IterableDifferFactory } from "@angular/core";
-import { Permission } from "src/app/api";
+import { Permission } from "@tkd/api";
 
 export function getOperations(factory: IterableDifferFactory, oldSet: Permission[], newSet: Permission[]): IterableChanges<Permission> {
   const differ = factory.create<Permission>((_: number, perm: Permission) => perm.id);

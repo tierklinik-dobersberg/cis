@@ -1,8 +1,8 @@
 import { coerceBooleanProperty } from "@angular/cdk/coercion";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, Input, OnInit, TrackByFunction } from "@angular/core";
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
-import { Action, IdentityAPI, Permission } from "src/app/api";
-import { NamedOptionSpec } from "src/app/shared/option-spec-input";
+import { Permission } from "@tkd/api";
+import { Action, IdentityAPI } from "src/app/api";
 
 @Component({
   selector: 'app-permissions-view',

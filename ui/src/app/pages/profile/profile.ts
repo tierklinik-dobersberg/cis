@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ProfileWithAvatar, TkdAccountService } from '@tkd/api';
 import { Subscription } from 'rxjs';
-import { IdentityAPI, ProfileWithAvatar } from 'src/app/api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 
 @Component({
@@ -14,7 +14,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   constructor(
     private header: HeaderTitleService,
-    private identityapi: IdentityAPI
+    private account: TkdAccountService
   ) { }
 
   ngOnInit(): void {
@@ -22,7 +22,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     this.subscriptions = new Subscription();
 
-    const profileSub = this.identityapi.profileChange
+    const profileSub = this.account.profileChange
       .subscribe(p => {
         this.profile = p;
       });

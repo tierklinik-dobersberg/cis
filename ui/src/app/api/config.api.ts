@@ -5,6 +5,7 @@ import {
   HttpParams,
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { TkdAccountService } from '@tkd/api';
 import { NzMessageRef, NzMessageService } from 'ng-zorro-antd/message';
 import {
   BehaviorSubject,
@@ -166,11 +167,12 @@ export class ConfigAPI {
     private http: HttpClient,
     private nzMessageService: NzMessageService,
     private identity: IdentityAPI,
+    private account: TkdAccountService,
     private triggerapi: TriggerAPI
   ) {
     let loading: NzMessageRef | null = null;
     combineLatest([
-      this.identity.profileChange.pipe(filter((profile) => !!profile)),
+      this.account.profileChange.pipe(filter((profile) => !!profile)),
       this.reload$,
     ]).subscribe(() => {
       this.loaddUIConfig()

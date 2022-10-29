@@ -85,7 +85,7 @@ export function extractErrorMessage(err: any, prefix: string = ''): string {
     msg = err.error;
   } else if (
     'error' in err &&
-    typeof err.error === 'object' &&
+    typeof err.error === 'object' && err.error !== null &&
     'message' in err.error
   ) {
     msg = err.error.message;

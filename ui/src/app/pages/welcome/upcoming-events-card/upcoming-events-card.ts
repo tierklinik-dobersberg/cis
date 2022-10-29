@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
+import { ProfileWithAvatar } from '@tkd/api';
 import { BehaviorSubject, combineLatest, interval, of, Subscription } from 'rxjs';
 import { catchError, filter, mergeMap, startWith } from 'rxjs/operators';
-import { CalendarAPI, LocalEvent, ProfileWithAvatar, UserService } from 'src/app/api';
+import { CalendarAPI, LocalEvent, UserService } from 'src/app/api';
 
 interface DisplayEvent extends LocalEvent {
     user?: ProfileWithAvatar;

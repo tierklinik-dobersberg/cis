@@ -106,7 +106,7 @@ func ParseAndVerify(secret []byte, token string) (*Claims, error) {
 		return secret, nil
 	})
 	if err != nil {
-		return nil, err
+		return &c, err
 	}
 
 	return &c, nil

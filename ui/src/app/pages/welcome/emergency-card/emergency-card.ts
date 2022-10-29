@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
+import { ProfileWithAvatar, TkdAccountService, Permissions } from '@tkd/api';
 import { forkJoin, interval, of, Subscription, throwError } from 'rxjs';
 import { catchError, delay, mergeMap, retryWhen, startWith } from 'rxjs/operators';
 import {
@@ -8,8 +9,7 @@ import {
   DoctorOnDutyResponse,
   ExternalAPI,
   IdentityAPI,
-  Permissions,
-  ProfileWithAvatar, Roster,
+  Roster,
   RosterAPI,
   UserService
 } from 'src/app/api';
@@ -37,13 +37,14 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
   constructor(
     private externalapi: ExternalAPI,
     private identityapi: IdentityAPI,
+    private account: TkdAccountService,
     private userService: UserService,
     private rosterapi: RosterAPI,
     private changeDetector: ChangeDetectorRef,
   ) { }
 
   get canSetOverwrite(): boolean {
-    return this.identityapi.hasPermission(Permissions.RosterSetOverwrite);
+    return this.account.hasPermission(Permissions.RosterSetOverwrite);
   }
 
   ngOnInit(): void {

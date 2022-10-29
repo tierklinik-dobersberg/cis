@@ -9,6 +9,7 @@ import {
   Output,
   Renderer2,
 } from '@angular/core';
+import { ProfileWithAvatar } from '@tkd/api';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import {
   BehaviorSubject,
@@ -33,7 +34,6 @@ import {
   LocalEvent,
   OpeningHour,
   OpeningHoursAPI,
-  ProfileWithAvatar,
   RosterAPI,
   UIConfig,
   UserService,

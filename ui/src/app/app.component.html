@@ -137,8 +137,8 @@
   <!--
     On tablet and up we have a sidebar for navigation
   -->
-  <div *ngIf="!(isLogin | async) && !layout.isPhone && !(isWiki | async)" [@moveInOut] class="relative z-10 flex flex-col flex-shrink-0 w-64 h-full p-2 bg-white shadow-md print:hidden sm:px-4">
-    <div class="py-2 ml-1 h-14">
+  <div *ngIf="!(isLogin | async) && !layout.isPhone && !(isWiki | async)" [@moveInOut] class="flex relative z-10 flex-col flex-shrink-0 w-64 h-full bg-white shadow-md print:hidden">
+    <div class="px-4 py-4 ml-1 h-14">
       <a class="flex items-center space-x-2" routerLink="/welcome">
         <img src="assets/logo.png" class="w-10 h-10" alt="logo">
         <h1 class="flex flex-col text-base font-semibold leading-4 font-lato">
@@ -152,7 +152,7 @@
       <ng-container *ngTemplateOutlet="menuTemplate"></ng-container>
     </div>
 
-    <span class="flex flex-col items-center justify-around py-2 text-xs text-center text-secondary font-lato">
+    <span class="flex flex-col justify-around items-center py-2 text-xs text-center text-secondary font-lato">
       <span class="font-semibold text-highlight">V1.0</span>
       <span>
         <i nz-icon nzType="copyright" nzTheme="outline"></i>
@@ -162,20 +162,19 @@
   </div>
 
   <!-- Wiki Navigation if we're at a sub-route of /wiki -->
-  <div *ngIf="!(isLogin | async) && !layout.isPhone && (isWiki | async)" [@moveInOut] class="relative z-10 flex flex-col flex-shrink-0 w-64 h-full p-2 border-r print:hidden bg-subtle sm:px-4 border-tertiary print:boder-none">
+  <div *ngIf="!(isLogin | async) && !layout.isPhone && (isWiki | async)" [@moveInOut] class="flex relative z-10 flex-col flex-shrink-0 p-2 w-64 h-full border-r print:hidden bg-subtle sm:px-4 border-tertiary print:boder-none">
     <wiki-nav></wiki-nav>
   </div>
 
   <!--
     Next to the sidebar there's the main content container including the header
   -->
-  <div class="flex flex-col self-stretch flex-grow overflow-x-hidden print:overflow-visible">
-
+  <div class="flex overflow-x-hidden flex-col flex-grow self-stretch bg-white print:overflow-visible">
     <!-- App header is only visible if we're not on the login screen and not inside the wiki -->
-    <div *ngIf="!(isLogin | async) && !(isWiki|async)" class="relative flex flex-col p-0 px-2 sm:px-4 md:px-8 lg:px-12 print:hidden">
-      <div class="flex items-center justify-between py-4">
+    <div *ngIf="!(isLogin | async) && !(isWiki|async)" class="flex relative flex-col print:hidden">
+      <div class="flex justify-between items-center px-2 py-4 sm:px-4 md:px-8 lg:px-12">
         <!-- On mobile the logo is put into the header -->
-        <a class="block w-8 h-8 mr-2" *ngIf="layout.isPhone" routerLink="/welcome">
+        <a class="block mr-2 w-8 h-8" *ngIf="layout.isPhone" routerLink="/welcome">
           <img class="w-full h-full" src="assets/logo.png" alt="logo">
         </a>
 
@@ -210,7 +209,7 @@
             Notruf sind derzeit an {{ overwriteTarget }} umgeleitet.
           </ng-template>
 
-          <span *ngIf="!layout.isPhone" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click">
+          <span *ngIf="!layout.isPhone" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click" class="p-0.5 rounded-full border border-opacity-40 border-meadow">
             <nz-avatar class="shadow cursor-pointer" nzIcon="user" [nzSrc]="profile?.avatar">
             </nz-avatar>
           </span>
@@ -227,12 +226,28 @@
               Mein Dienstplan
             </li>
 
+            <li nz-menu-item (click)="createOffTimeRequest()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mr-1.5 -ml-0.5 w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
+              </svg>
+              
+              Urlaubsantrag erstellen
+            </li>
+
+            <li nz-menu-item routerLink="/offtime/my-requests">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mr-1.5 -ml-0.5 w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+              </svg>
+
+              Meine Urlaubsanträge
+            </li>
+
             <li nz-menu-item routerLink="/login">
               <i nz-icon nzType="user-switch" nzTheme="outline"></i>
               Benutzer wechseln
             </li>
             <li nz-menu-item routerLink="/admin">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1.5 -ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="mr-1.5 -ml-0.5 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -249,14 +264,14 @@
 
     </div>
 
-    <div class="flex items-stretch self-stretch flex-grow w-full overflow-auto justify-items-stretch router-content" cdkScrollable [ngClass]="{'bg-white': (isWiki|async)}">
+    <div class="flex overflow-auto flex-grow justify-items-stretch items-stretch self-stretch w-full bg-opacity-50 router-content bg-subtle" cdkScrollable [ngClass]="{'bg-white': (isWiki|async)}">
       <router-outlet></router-outlet>
     </div>
 
     <!--
       On mobile we have an additional navigation bar at the bottom
     -->
-    <div *ngIf="layout.isPhone" class="z-10 flex items-center flex-grow-0 flex-shrink-0 w-full h-12 py-1 mt-1 text-xs list-none border-t justify-evenly text-color-primary text-opacity-light border-tertiary">
+    <div *ngIf="layout.isPhone" class="flex z-10 flex-grow-0 flex-shrink-0 justify-evenly items-center py-1 mt-1 w-full h-12 text-xs list-none border-t text-color-primary text-opacity-light border-tertiary">
       <!-- Dashboard -->
       <li routerLink="/welcome" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5" viewBox="0 0 24 24" stroke="currentColor">

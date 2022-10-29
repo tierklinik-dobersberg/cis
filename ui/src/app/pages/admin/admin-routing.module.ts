@@ -18,6 +18,10 @@ const routes: Routes = [
   {
     path: 'trigger',
     loadChildren: () => import('./trigger').then((m) => m.TriggerModule),
+  },
+  {
+    path: 'roster',
+    loadChildren: () => import('./roster-settings').then((m) => m.TkdRosterSettingsModule),
   }
 ];
 

@@ -295,3 +295,8 @@ button,
 .ant-picker-calendar-full .ant-picker-panel .ant-picker-calendar-date-today {
   @apply print:border-none ;
 }
+
+
+.ant-dropdown-menu-item, .ant-dropdown-menu-submenu-title {
+  padding: 0.5rem 1rem;
+}

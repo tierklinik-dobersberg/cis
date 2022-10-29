@@ -8,6 +8,7 @@ import {
   Output,
   TrackByFunction,
 } from '@angular/core';
+import { ProfileWithAvatar } from '@tkd/api';
 import { sum } from 'ng-zorro-antd/core/util';
 import {
   BehaviorSubject,
@@ -22,7 +23,6 @@ import {
   CallLog,
   CallLogModel,
   ConfigAPI,
-  ProfileWithAvatar,
 } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { LayoutService } from 'src/app/services';

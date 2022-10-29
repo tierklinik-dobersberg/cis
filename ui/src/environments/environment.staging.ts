@@ -4,7 +4,8 @@
 
 export const environment = {
   production: false,
-  baseURL: "https://cis-staging.dobersberg.vet"
+  baseURL: "https://cis-staging.dobersberg.vet",
+  rosterdURL: '',
 };
 
 /*

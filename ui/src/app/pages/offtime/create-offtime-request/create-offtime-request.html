@@ -1,0 +1,25 @@
+<h1 class="mb-2 text-2xl font-light font-lato" *ngIf="!modalRef">Neuer Abwesenheitsantrag</h1>
+
+<span class="font-medium">Beschreibung: <span class="text-sm italic text-tertiary">(optional)</span></span>
+<input class="tkd-input" type="text" [(ngModel)]="description">
+
+<label nz-checkbox [ngModel]="isVacationRequest" [nzIndeterminate]="isVacationRequest === null" (ngModelChange)="updateVacationRequest()">
+    Antragsart:
+    <span [ngSwitch]="isVacationRequest" class="underline">
+        <ng-template [ngSwitchCase]="true">Urlaub</ng-template>
+        <ng-template [ngSwitchCase]="false">ZA (wenn möglich)</ng-template>
+        <ng-template [ngSwitchCase]="null">Urlaub oder ZA</ng-template>
+    </span>
+</label>
+
+<span class="mt-2 font-medium">Bitte wähle den Zeitraum:</span>
+<nz-range-picker nzInline [(ngModel)]="rangeDate" (ngModelChange)="onRangeChange($event)"></nz-range-picker>
+
+<span class="text-tertiary" *ngIf="dayKinds !== null">
+    {{ dayKinds.workingDays}} Arbeitstage, {{ dayKinds.weekendDays }} Wochend-Tage und {{ dayKinds.publicHolidays }} Feiertage
+</span>
+
+<div class="flex flex-row gap-2 justify-end items-center py-3 mt-3 border-t border-subtle">
+    <button class="tkd-btn tkd-outline tkd-primary" *ngIf="!!modalRef" (click)="modalRef.triggerCancel()">Abbrechen</button>
+    <button class="tkd-btn tkd-primary" (click)="create()">Erstellen</button>
+</div>

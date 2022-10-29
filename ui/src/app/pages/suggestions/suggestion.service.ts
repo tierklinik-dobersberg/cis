@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
+import { TkdAccountService } from '@tkd/api';
 import { BehaviorSubject, combineLatest, interval, Observable, of } from 'rxjs';
 import { delay, map, mergeMap, retryWhen, startWith, switchMap } from 'rxjs/operators';
-import { IdentityAPI, UserService } from 'src/app/api';
 import { CustomerAPI, CustomerRef, Suggestion } from 'src/app/api/customer.api';
 
 const pollDelay = 10 * 60 * 1000;
@@ -13,11 +13,10 @@ export class SuggestionService {
 
   constructor(
     private customerapi: CustomerAPI,
-    private users: UserService,
-    private identityapi: IdentityAPI,
+    private account: TkdAccountService,
   ) {
 
-    this.identityapi.profileChange
+    this.account.profileChange
       .pipe(
         switchMap(profile => {
           if (profile === null) {

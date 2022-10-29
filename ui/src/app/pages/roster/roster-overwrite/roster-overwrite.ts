@@ -8,8 +8,9 @@ import {
   OnInit,
   TemplateRef,
   TrackByFunction,
-  ViewChild,
+  ViewChild
 } from '@angular/core';
+import { ProfileWithAvatar, TkdAccountService } from '@tkd/api';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import {
@@ -21,31 +22,26 @@ import {
   of,
   OperatorFunction,
   Subject,
-  throwError,
+  throwError
 } from 'rxjs';
 import {
   catchError,
   debounceTime,
   filter,
-  map,
-  mergeMap,
-  startWith,
+  map, startWith,
   switchMap,
-  takeUntil,
+  takeUntil
 } from 'rxjs/operators';
 import {
   ConfigAPI,
   Day,
   DoctorOnDutyResponse,
-  ExternalAPI,
-  IdentityAPI,
-  Overwrite,
+  ExternalAPI, Overwrite,
   OverwriteBody,
-  ProfileWithAvatar,
   QuickRosterOverwrite,
   RosterAPI,
   RosterUIConfig,
-  UserService,
+  UserService
 } from 'src/app/api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage } from 'src/app/utils';
@@ -242,7 +238,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     private roster: RosterAPI,
     private externalapi: ExternalAPI,
     private userService: UserService,
-    private identityAPI: IdentityAPI,
+    private account: TkdAccountService,
     private config: ConfigAPI,
     private cdr: ChangeDetectorRef,
     private modal: NzModalService,
@@ -434,7 +430,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
       )
       .subscribe((c) => {
         let currentUserRoles = new Set<string>();
-        this.identityAPI.currentProfile?.roles.forEach(role => {
+        this.account.currentProfile?.roles.forEach(role => {
           currentUserRoles.add(role)
         })
 

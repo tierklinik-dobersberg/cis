@@ -54,7 +54,8 @@ span.ant-avatar {
   @apply border-0;
 
   li.ant-menu-item {
-    @apply rounded text-primary font-lato;
+    @apply text-primary font-lato border-r-4 border-transparent;
+    @apply outline-none;
 
     & > svg {
       @apply mr-2;
@@ -66,7 +67,7 @@ span.ant-avatar {
 
     &, &.ant-menu-submenu > .ant-menu-submenu-title {
       &:active, &:hover, &:focus {
-        @apply rounded outline-none;
+        @apply outline-none;
       }
 
       &:active {
@@ -87,7 +88,7 @@ span.ant-avatar {
     }
 
     &.ant-menu-item-selected{
-      @apply bg-primary text-white;
+      @apply border-primary text-primary bg-subtle;
 
       &::after {
         content: unset;

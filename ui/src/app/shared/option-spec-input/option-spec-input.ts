@@ -8,6 +8,7 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
+  TemplateRef,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import {
@@ -77,6 +78,12 @@ export class TkdOptionSpecInputComponent
   possibleValues: PossibleValue[] | null = null;
 
   @Input()
+  inputHeadSlot: TemplateRef<any> | undefined;
+
+  @Input()
+  inputTailSlot: TemplateRef<any> | undefined;
+
+  @Input()
   set disabled(v: any) {
     this.setDisabledState(coerceBooleanProperty(v));
   }
@@ -106,7 +113,7 @@ export class TkdOptionSpecInputComponent
       }
       this.allowCustomValues = this.configapi.customValueAllowed(changes.spec.currentValue);
 
-      this.isReadonly = this.configapi.hasAnnotation(changes.spec.currentValue, WellKnownAnnotations.Readonly )
+      this.isReadonly = this.configapi.hasAnnotation(changes.spec.currentValue, WellKnownAnnotations.Readonly ) || this._disabled
 
       this.configapi
         .resolvePossibleValues(changes.spec.currentValue)
@@ -135,6 +142,11 @@ export class TkdOptionSpecInputComponent
 
   setDisabledState(isDisabled: boolean): void {
     this._disabled = isDisabled;
+    if (this._disabled) {
+      this.isReadonly = true;
+    } else {
+      this.isReadonly = this.configapi.hasAnnotation(this.spec, WellKnownAnnotations.Readonly ) || this._disabled
+    }
     this.cdr.markForCheck();
   }
 }

@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
+import { ProfileWithAvatar, TkdAccountService, Permissions } from '@tkd/api';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { BehaviorSubject, combineLatest, interval, of, Subject } from 'rxjs';
@@ -32,14 +33,13 @@ import {
   ConfigAPI,
   IdentityAPI,
   Overwrite,
-  Permissions,
-  ProfileWithAvatar,
   RosterAPI,
   UIConfig,
   UserService,
   VoiceMailAPI,
 } from './api';
 import { InfoScreenAPI } from './api/infoscreen.api';
+import { TkdCreateOfftimeRequestComponent } from './pages/offtime/create-offtime-request';
 import { SuggestionCardComponent } from './pages/suggestions/suggestion-card';
 import { SuggestionService } from './pages/suggestions/suggestion.service';
 import { toggleRouteQueryParamFunc } from './utils';
@@ -120,28 +120,28 @@ export class AppComponent implements OnInit, OnDestroy {
 
   /** Returns true if the user has (at least read-only) access to the roster */
   get hasRoster(): boolean {
-    return this.identity.hasPermission(Permissions.RosterRead);
+    return this.account.hasPermission(Permissions.RosterRead);
   }
 
   /** Returns true if the user can see voicemail records */
   get hasVoiceMail(): boolean {
-    return this.identity.hasPermission(Permissions.VoicemailRead);
+    return this.account.hasPermission(Permissions.VoicemailRead);
   }
 
   /** Returns true if the user can see calllogs */
   get hasCallLog(): boolean {
-    return this.identity.hasPermission(Permissions.CalllogReadRecords);
+    return this.account.hasPermission(Permissions.CalllogReadRecords);
   }
 
   /** Returns true if the user can see customer records */
   get hasCustomers(): boolean {
-    return this.identity.hasPermission(Permissions.CustomerRead);
+    return this.account.hasPermission(Permissions.CustomerRead);
   }
 
   get hasInfoScreen(): boolean {
     return (
-      this.identity.hasPermission(Permissions.InfoScreenShowWrite) ||
-      this.identity.hasPermission(Permissions.InfoScreenShowsRead)
+      this.account.hasPermission(Permissions.InfoScreenShowWrite) ||
+      this.account.hasPermission(Permissions.InfoScreenShowsRead)
     );
   }
 
@@ -151,7 +151,7 @@ export class AppComponent implements OnInit, OnDestroy {
    */
   get canCreateEvent(): boolean {
     return (
-      this.identity.hasPermission(Permissions.CalendarWrite) &&
+      this.account.hasPermission(Permissions.CalendarWrite) &&
       this.hasCallLog &&
       this.hasCustomers &&
       this.hasRoster
@@ -161,7 +161,7 @@ export class AppComponent implements OnInit, OnDestroy {
   infoScreenEnabled = false;
 
   constructor(
-    private identity: IdentityAPI,
+    private account: TkdAccountService,
     private configapi: ConfigAPI,
     private router: Router,
     private activeRoute: ActivatedRoute,
@@ -179,7 +179,7 @@ export class AppComponent implements OnInit, OnDestroy {
   ) {}
 
   logout(): void {
-    this.identity
+    this.account
       .logout()
       .subscribe(() => this.router.navigate(['/', 'login']));
   }
@@ -285,7 +285,7 @@ export class AppComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((cfg) => this.applyConfig(cfg));
 
-    this.identity.profileChange.pipe(takeUntil(this.destroy$)).subscribe({
+    this.account.profileChange.pipe(takeUntil(this.destroy$)).subscribe({
       next: (result) => {
         this.profile = result;
         if (this.profile?.needsPasswordChange) {
@@ -341,6 +341,18 @@ export class AppComponent implements OnInit, OnDestroy {
         },
         error: (err) => console.error(err),
       });
+  }
+
+  createOffTimeRequest() {
+    if (this.layout.isTabletPortraitUp) {
+      this.modal.create({
+        nzContent: TkdCreateOfftimeRequestComponent,
+        nzFooter: null,
+        nzWidth: 'fit-content',
+      })
+    } else {
+
+    }
   }
 
   private applyConfig(cfg: UIConfig | null): void {

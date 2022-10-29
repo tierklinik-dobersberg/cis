@@ -102,11 +102,27 @@ services:
   #    environment:
   #      CONFIGURATION_DIRECTORY: /config
 
+  rosterd:
+    image: tkd/rosterd
+    build:
+      context: ../../rosterd
+      dockerfile: Dockerfile
+    depends_on:
+      mongo:
+        condition: service_started
+    ports:
+      - 8080:8080
+    environment:
+      IDENTITY_PROVIDER: http://cisd:3000/api
+      JWT_SECRET: insecure-secret
+      DATABASE_URL: mongodb://root:example@mongo
+      DATABASE_NAME: rosterd
+
   cisd:
     image: tkd/cisd
     build: 
       context: ../
-      dockerfile: ./Dockerfile
+      dockerfile: ./dockerfiles/Dockerfile-cisd
       #dockerfile: ./Dockerfile.debug
     depends_on:
       mongo:

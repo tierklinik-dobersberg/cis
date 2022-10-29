@@ -169,6 +169,153 @@
           }
         }
       }
+    },
+    "roster": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:application": {
+          "strict": true
+        }
+      },
+      "root": "projects/roster",
+      "sourceRoot": "projects/roster/src",
+      "prefix": "tkd",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/roster",
+            "index": "projects/roster/src/index.html",
+            "main": "projects/roster/src/main.ts",
+            "polyfills": "projects/roster/src/polyfills.ts",
+            "tsConfig": "projects/roster/tsconfig.app.json",
+            "assets": [
+              "projects/roster/src/favicon.ico",
+              "projects/roster/src/assets"
+            ],
+            "styles": [
+              "projects/roster/src/styles.css"
+            ],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kb",
+                  "maximumError": "1mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "4kb"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "projects/roster/src/environments/environment.ts",
+                  "with": "projects/roster/src/environments/environment.prod.ts"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "browserTarget": "roster:build:production"
+            },
+            "development": {
+              "browserTarget": "roster:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "roster:build"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/roster/src/test.ts",
+            "polyfills": "projects/roster/src/polyfills.ts",
+            "tsConfig": "projects/roster/tsconfig.spec.json",
+            "karmaConfig": "projects/roster/karma.conf.js",
+            "assets": [
+              "projects/roster/src/favicon.ico",
+              "projects/roster/src/assets"
+            ],
+            "styles": [
+              "projects/roster/src/styles.css"
+            ],
+            "scripts": []
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/roster/**/*.ts",
+              "projects/roster/**/*.html"
+            ]
+          }
+        }
+      }
+    },
+    "@tkd/api": {
+      "projectType": "library",
+      "root": "projects/tkd/api",
+      "sourceRoot": "projects/tkd/api/src",
+      "prefix": "tkd",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/tkd/api/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/tkd/api/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/tkd/api/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/tkd/api/src/test.ts",
+            "tsConfig": "projects/tkd/api/tsconfig.spec.json",
+            "karmaConfig": "projects/tkd/api/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/tkd/api/**/*.ts",
+              "projects/tkd/api/**/*.html"
+            ]
+          }
+        }
+      }
     }
   },
   "defaultProject": "console",

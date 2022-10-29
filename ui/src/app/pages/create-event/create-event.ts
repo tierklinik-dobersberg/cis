@@ -1,10 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { ProfileWithAvatar } from '@tkd/api';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { interval } from 'rxjs';
 import { animationFrameScheduler, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, debounceTime, map, observeOn, share, startWith, switchMap, takeUntil } from 'rxjs/operators';
-import { CalendarAPI, CalllogAPI, LocalPatient, PatientAPI, ProfileWithAvatar, Resource, ResourceAPI, UserService } from 'src/app/api';
+import { CalendarAPI, CalllogAPI, LocalPatient, PatientAPI, Resource, ResourceAPI, UserService } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage } from 'src/app/utils';

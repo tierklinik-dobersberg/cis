@@ -51,6 +51,22 @@ func (dt DayTime) Equals(other DayTime) bool {
 	return dt.AsDuration() == other.AsDuration()
 }
 
+func (dr DayTime) MarshalJSON() ([]byte, error) {
+	return []byte(dr.String()), nil
+}
+
+func (dt DayTime) UnmarshalJSON(blob []byte) error {
+	parsed, err := ParseDayTime(string(blob))
+	if err != nil {
+		return err
+	}
+
+	dt[0] = parsed[0]
+	dt[1] = parsed[1]
+
+	return nil
+}
+
 // ParseDayTime parses a HH:MM time specification.
 func ParseDayTime(str string) (DayTime, error) {
 	var dayTime DayTime

@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, IterableDifferFactory, IterableDiffers, OnDestroy, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
+import { Permission } from "@tkd/api";
 import { NzMessageService } from "ng-zorro-antd/message";
 import { forkJoin, Observable, of, Subject } from "rxjs";
 import { switchMap, takeUntil } from "rxjs/operators";
-import { IdentityAPI, Permission, Role } from "src/app/api";
+import { IdentityAPI, Role } from "src/app/api";
 import { Breadcrump, HeaderTitleService } from "src/app/shared/header-title";
 import { extractErrorMessage } from "src/app/utils";
 import { getOperations } from "../permissions-view";

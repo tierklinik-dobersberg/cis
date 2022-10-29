@@ -1,0 +1,74 @@
+<div class="flex flex-row justify-end items-center">
+    <button class="tkd-btn tkd-primary" (click)="createNewRequest()">
+        Antrag erstellen
+    </button>
+</div>
+
+<nz-table [nzData]="requests" #requestTable class="bg-white rounded shadow">
+    <thead>
+        <tr>
+            <th class="w-80">
+                <span class="inline-block w-6"></span>
+                Zeitraum
+            </th>
+            <th class="w-36">
+                Antragsart
+            </th>
+            <th>
+                Beschreibung
+            </th>
+            <th>
+                Kommentar
+            </th>
+            <th class="w-36 text-center!">
+                Aktionen
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let row of requestTable.data; trackBy: trackRequests">
+            <td>
+                <div class="flex flex-row gap-2 items-center">
+                    <span class="w-6" [nz-tooltip]="row.approval?.comment || null">
+                        <ng-container [ngSwitch]="row.approval">
+                            <svg *ngSwitchCase="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="w-5 h-5 text-alert-green">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <svg *ngSwitchCase="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" aria-hidden="true" class="w-5 h-5 text-alert-red">
+                                <path
+                                    d="m13 13 6 6m0-6-6 6m15-3c0 6.627-5.373 12-12 12S4 22.627 4 16 9.373 4 16 4s12 5.373 12 12Z"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                </path>
+                            </svg>
+                        </ng-container>
+                    </span>
+                    <div>
+                        {{ row.from | date:'shortDate' }}
+                        <ng-container *ngIf="row.costs.vacationDays < 0">
+                            - {{ row.to | date:'shortDate' }}
+                        </ng-container>
+                    </div>
+
+                    <span *ngIf="row.approval === null || row.approval.approved" class="text-secondary">({{ row.approval.actualCosts.duration| jsDuration }})</span>
+                    <span *ngIf="row.approval?.approved === true && row.approval?.actualCosts.duration === 0" class="text-secondary">(ZA)</span>
+                </div>
+            </td>
+            <td>
+                {{ row | requestType }}
+           </td>
+            <td>{{ row.description }}</td>
+            <td>
+                {{ row.approval?.comment }}
+            </td>
+            <td>
+                <div class="flex flex-row gap-2 justify-center items-center">
+                    <button class="tkd-btn tkd-danger tkd-outline" *ngIf="row.approval === null" (click)="deleteRequest(row.id)">
+                        Löschen
+                    </button>
+                </div>
+            </td>
+        </tr>
+    </tbody>
+</nz-table>

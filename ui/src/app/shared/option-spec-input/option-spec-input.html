@@ -14,6 +14,12 @@
   </div>
   <div>
     <div class="flex items-center mt-3 space-x-2">
+      <!-- slot for custom content -->
+      <ng-container *ngIf="!!inputHeadSlot">
+        <ng-container *ngTemplateOutlet="inputHeadSlot"></ng-container>
+      </ng-container>
+
+      <!-- Actual Input -->
       <ng-container
         *ngIf="possibleValues?.length > 0; else: typeSwitchTempalte"
       >
@@ -116,6 +122,12 @@
           </div>
         </ng-container>
       </ng-template>
+
+      <!-- slot for custom content -->
+      <ng-container *ngIf="!!inputTailSlot">
+        <ng-container *ngTemplateOutlet="inputTailSlot"></ng-container>
+      </ng-container>
+
     </div>
   </div>
 </div>

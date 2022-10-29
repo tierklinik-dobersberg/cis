@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CustomerRef } from './customer.api';
-import { ProfileWithAvatar } from './identity.api';
+import { ProfileWithAvatar } from '@tkd/api';
 import { UserService } from './user.service';
 
 export interface CalllogQuery {

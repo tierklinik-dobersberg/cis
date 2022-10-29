@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, TemplateRef, TrackByFunction, ViewChild } from "@angular/core";
+import { Component, OnDestroy, OnInit, TemplateRef, TrackByFunction, ViewChild } from "@angular/core";
 import { SafeResourceUrl } from "@angular/platform-browser";
 import { Router } from "@angular/router";
+import { Permissions, TkdAccountService } from "@tkd/api";
 import { NzModalRef, NzModalService } from "ng-zorro-antd/modal";
 import { Subject } from "rxjs";
 import { take } from "rxjs/operators";
-import { IdentityAPI, Permissions } from "src/app/api";
 import { InfoScreenAPI, ListShowEntry } from "src/app/api/infoscreen.api";
 import { LayoutService } from "src/app/services";
 import { HeaderTitleService } from "src/app/shared/header-title";
@@ -33,15 +33,15 @@ export class ShowListComponent implements OnInit, OnDestroy {
     private nzModal: NzModalService,
     private router: Router,
     public layout: LayoutService,
-    private identity: IdentityAPI,
+    private account: TkdAccountService,
   ) { }
 
   get canEditShows() {
-    return this.identity.hasPermission(Permissions.InfoScreenShowWrite)
+    return this.account.hasPermission(Permissions.InfoScreenShowWrite)
   }
 
   get canDeleteShows() {
-    return this.identity.hasPermission(Permissions.InfoScreenShowDelete);
+    return this.account.hasPermission(Permissions.InfoScreenShowDelete);
   }
 
   ngOnInit() {
