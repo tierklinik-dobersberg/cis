@@ -35,26 +35,12 @@ import { NgChartsModule } from 'ng2-charts';
 import { TimeagoModule } from 'ngx-timeago';
 import { BaseURLInjector } from './api/base-url';
 import { WikiModule } from './pages/wiki/wiki.module';
-import * as iconExports from 'ng-heroicon';
-import { HeroIconModule } from 'ng-heroicon';
 import { ROSTERD_API } from './api/roster2';
 import { TkdOfftimeModule } from './pages/offtime';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { TKD_CIS_ENDPOINT } from '@tkd/api';
 
 registerLocaleData(de);
-
-const icons: Record<string, {
-        solid: string;
-        outline: string;
-    }> = {};
-
-Object.keys(iconExports).forEach(key => {
-  const value = iconExports[key];
-  if (typeof value === 'object' && 'solid' in value && 'outline' in value) {
-    icons[key] = value;
-  }
-})
 
 
 @NgModule({
@@ -91,13 +77,6 @@ Object.keys(iconExports).forEach(key => {
     NgChartsModule,
     WikiModule, // TODO(ppacher): make this lazy loaded in the future. We need it here for the
                 // navigation component right now ...
-    HeroIconModule.forRoot(
-      icons,
-      {
-        defaultHostDisplay: 'inlineBlock',
-        attachDefaultDimensionsIfNoneFound: true,
-      }
-    ),
   ],
   providers: [
     { provide: NZ_I18N, useValue: de_DE },

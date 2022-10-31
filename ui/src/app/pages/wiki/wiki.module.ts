@@ -1,7 +1,6 @@
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { CKEditorModule } from "@ckeditor/ckeditor5-angular";
-import { HeroIconModule, cog } from "ng-heroicon";
 import { MarkdownModule, MarkedOptions } from "ngx-markdown";
 import { SharedModule } from "src/app/shared/shared.module";
 import { WikiBacklinkListComponent } from "./backlink-list";
@@ -33,12 +32,6 @@ import { WikiRoutingModule } from "./wiki-routing.module";
         }
       }
     }),
-    /*
-    HeroIconModule.withIcons({
-      cog,
-    }),
-    */
-   HeroIconModule
   ],
   declarations: [
     WikiNavigationComponent,

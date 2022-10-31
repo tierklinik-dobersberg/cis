@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ProfileWithAvatar, TkdAccountService } from '@tkd/api';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -34,7 +34,7 @@ const ScoreColors = [
   styleUrls: ['./change-password.scss'],
 })
 export class ChangePasswordComponent implements OnInit, OnDestroy {
-  validateForm!: FormGroup;
+  validateForm!: UntypedFormGroup;
 
   profile: ProfileWithAvatar | null = null;
   strength: TranslatedStrength | null = null;
@@ -76,7 +76,7 @@ export class ChangePasswordComponent implements OnInit, OnDestroy {
 
   constructor(
     private header: HeaderTitleService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private identityapi: IdentityAPI,
     private account: TkdAccountService,
     private router: Router,

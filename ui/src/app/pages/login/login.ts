@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProfileWithAvatar, TkdAccountService } from '@tkd/api';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -20,7 +20,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   password = '';
   profile: ProfileWithAvatar | null = null;
 
-  validateForm!: FormGroup;
+  validateForm!: UntypedFormGroup;
 
   submitForm(): void {
     for (const i of Object.keys(this.validateForm.controls)) {
@@ -92,7 +92,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private messageService: NzMessageService,
     private account: TkdAccountService,
     private activatedRoute: ActivatedRoute,

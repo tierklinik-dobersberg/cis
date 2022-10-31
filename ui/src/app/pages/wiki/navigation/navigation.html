@@ -31,10 +31,6 @@
   <h2>Bereiche</h2>
   <ul>
     <li [routerLink]="['wiki', 'collection', col.name]" routerLinkActive="active" *ngFor="let col of collections; trackBy: trackCollection" [nz-tooltip]="col.description || null">
-      <hero-icon *ngIf="!!col.heroIcon; else: defaultIconTemplate" [name]="col.heroIcon" class="w-4 h-4 text-golden-rod-dark"></hero-icon>
-      <ng-template #defaultIconTemplate>
-        <hero-icon name="book-open" class="w-4 h-4 text-golden-rod-dark"></hero-icon>
-      </ng-template>
       <span>{{ col.name }}</span>
     </li>
 
