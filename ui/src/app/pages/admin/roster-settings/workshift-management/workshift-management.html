@@ -1,0 +1,44 @@
+<div class="flex flex-row gap-3 items-center mb-3">
+    <div class="flex-grow"></div>
+    <button class="tkd-btn tkd-primary tkd-outline" (click)="createShift()">
+        Neue Schicht
+    </button>
+</div>
+
+<nz-table [nzData]="workshifts" #table="nzTable" class="bg-white rounded-md border shadow-md p-0-5 border-subtle">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Zeitraum</th>
+            <th>Arbeitszeit</th>
+            <th>Wochentage</th>
+            <th>Erlaubte Rollen</th>
+            <th>Benötigtes Personal</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let row of table.data; trackBy: trackWorkShift">
+            <td>{{ row.name }}</td>
+            <td>
+                {{ row.from }} - {{ row.from|workShiftEnd:row.duration }}
+            </td>
+            <td>
+                {{ (row.minutesWorth ? (row.minutesWorth * 1000 * 60 ) : row.duration) | duration:'default-hours':'ms' }}
+            </td>
+            <td>
+                <span *ngFor="let day of row.days; let last=last">
+                    {{ Weekdays[day] }}<ng-container *ngIf="!last">, </ng-container>
+                </span>
+            </td>
+            <td>
+                <span *ngFor="let role of row.eligibleRoles; let last=last">
+                    {{ role }}
+                    <ng-container *ngIf="!last">, </ng-container>
+                </span>
+            </td>
+            <td>
+                {{ row.requiredStaffCount }}
+            </td>
+        </tr>
+    </tbody>
+</nz-table>

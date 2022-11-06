@@ -1,5 +1,3 @@
-import { TkdOffTimeManagementComponent } from "src/app/pages/offtime/offtime-management";
-
 export enum Weekday {
     Sunday = 0,
     Monday = 1,
@@ -27,7 +25,7 @@ export enum Month {
 
 export interface WorkShift {
     from: string
-    duration: number;
+    duration: JSDuration;
     id: string;
     days: Weekday[];
     name: string;

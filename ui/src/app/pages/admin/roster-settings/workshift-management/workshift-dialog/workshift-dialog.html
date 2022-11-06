@@ -1,0 +1,58 @@
+<h1 class="text-lg font-lato">
+    {{ isEdit ? 'Schicht bearbeiten' : 'Schicht erstellen' }}
+</h1>
+
+<form>
+    <div class="flex flex-col gap-4">
+        <span class="p-2">
+            {{ isEdit ? 'Bearbeite' : 'Erstelle'}} eine Arbeitsschicht.
+        </span>
+
+        <div class="flex flex-col">
+            <span class="text-secondary">Name:</span>
+            <input name="name" [(ngModel)]="workshift.name" type="text" placeholder="Name der Schicht" class="tkd-input">
+        </div>
+
+        <div class="flex flex-col">
+            <span class="text-secondary">Von:</span>
+            <input name="from" [(ngModel)]="workshift.from" type="text" placeholder="08:30" class="tkd-input">
+        </div>
+
+        <div class="flex flex-col">
+            <span class="text-secondary">Dauer: <span class="text-tertiary">(bis {{ workshift.from|workShiftEnd:workshift.duration}})</span></span>
+            <input name="duration" [ngModel]="duration" (ngModelChange)="setDuration($event)" type="text" placeholder="1h 30m" class="tkd-input">
+        </div>
+
+        <div class="flex flex-col">
+            <span class="text-secondary">Wochentage</span>
+            <nz-select name="days" [nzMode]="'multiple'" [(ngModel)]="workshift.days">
+                <nz-option nzLabel="Montag" [nzValue]="Weekdays.Monday"></nz-option>
+                <nz-option nzLabel="Dienstag" [nzValue]="Weekdays.Tuesday"></nz-option>
+                <nz-option nzLabel="Mittwoch" [nzValue]="Weekdays.Wednesday"></nz-option>
+                <nz-option nzLabel="Donnerstag" [nzValue]="Weekdays.Thursday"></nz-option>
+                <nz-option nzLabel="Freitag" [nzValue]="Weekdays.Friday"></nz-option>
+                <nz-option nzLabel="Samstag" [nzValue]="Weekdays.Saturday"></nz-option>
+                <nz-option nzLabel="Sonntag" [nzValue]="Weekdays.Sunday"></nz-option>
+            </nz-select>
+        </div>
+
+        <div class="flex flex-col">
+            <span class="text-secondary">Erlaubte Benutzer:</span>
+            <nz-select name="eligibleRoles" [nzMode]="'tags'" [(ngModel)]="workshift.eligibleRoles">
+                <nz-option *ngFor="let role of roles" [nzLabel]="role.name" [nzValue]="role.name"></nz-option>
+            </nz-select>
+        </div>
+
+        <div class="flex flex-col">
+            <span class="text-secondary">Anzahl an benötigten Mitarbeitern:</span>
+            <input name="requiredStaffCount" [(ngModel)]="workshift.requiredStaffCount" type="number" placeholder="1" class="tkd-input">
+        </div>
+    </div>
+
+    <pre>{{workshift | json}}</pre>
+</form>
+
+<div class="flex flex-row gap-3 justify-end items-center">
+    <button (click)="abort()" class="tkd-btn tkd-secondary tkd-outline">Abbrechen</button>
+    <button (click)="save()" class="tkd-btn tkd-primary">Speichern</button>
+</div>
