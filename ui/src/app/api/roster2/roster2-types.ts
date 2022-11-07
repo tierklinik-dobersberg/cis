@@ -33,6 +33,7 @@ export interface WorkShift {
     eligibleRoles: string[];
     minutesWorth?: number;
     requiredStaffCount: number;
+    color: string;
 }
 
 export interface RosterShift {

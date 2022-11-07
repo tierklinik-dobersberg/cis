@@ -43,6 +43,23 @@ export class TkdWorkshiftManagementComponent implements OnInit {
             })
     }
 
+    edit(shift: WorkShift) {
+        const ref = this.modal.create({
+            nzContent: TkdWorkshiftDialogComponent,
+            nzComponentParams: {
+                workshift: shift,
+            }
+        })
+
+        ref.afterClose
+            .pipe(take(1))
+            .subscribe(result => {
+                if (result === 'save') {
+                    this.loadShifts();
+                }
+            })
+    }
+
     createShift() {
         const ref = this.modal.create({
             nzContent: TkdWorkshiftDialogComponent,

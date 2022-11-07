@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Optional } from "@angular/core";
 import { NzMessageService } from "ng-zorro-antd/message";
 import { NzModalRef } from "ng-zorro-antd/modal";
-import { IdentityAPI, Role, UserService } from "src/app/api";
+import { IdentityAPI, Role } from "src/app/api";
 import { Roster2Service, Weekday, WorkShift } from "src/app/api/roster2";
 import { extractErrorMessage } from "src/app/utils";
 import { Duration } from "src/utils/duration";
@@ -16,17 +16,35 @@ export class TkdWorkshiftDialogComponent implements OnInit {
     workshift?: WorkShift;
 
     isEdit = false;
+    isColorSelectorOpen = false;
+
+    showMinutesWorth = false;
 
     roles: Role[] = [];
 
     readonly Weekdays = Weekday;
 
     get duration() {
+        if (!this.workshift.duration) {
+            return null;
+        }
+
         return Duration.milliseconds(this.workshift!.duration).format('default-hours')
     }
 
     setDuration(value: string) {
         this.workshift!.duration = Duration.parseString(value).milliseconds
+    }
+
+    get minutesWorth() {
+        if (!this.workshift.minutesWorth) {
+            return null;
+        }
+        return Duration.minutes(this.workshift!.minutesWorth || 0).format('default-hours')
+    }
+
+    setMinutesWorth(value: string) {
+        this.workshift!.minutesWorth = Duration.parseString(value).minutes
     }
 
     constructor(
@@ -45,6 +63,9 @@ export class TkdWorkshiftDialogComponent implements OnInit {
     ngOnInit(): void {
         if (this.workshift) {
             this.isEdit = true;
+            if (this.workshift.minutesWorth === undefined) {
+                this.workshift.minutesWorth = 0;
+            }
         } else {
             this.workshift = {
                 days: [],
@@ -55,8 +76,12 @@ export class TkdWorkshiftDialogComponent implements OnInit {
                 name: '',
                 onHoliday: false,
                 requiredStaffCount: 0,
+                minutesWorth: 0,
+                color: '',
             }
         }
+
+        this.showMinutesWorth = this.workshift.minutesWorth > 0;
 
         this.identityAPI.getRoles()
             .subscribe({
@@ -71,6 +96,14 @@ export class TkdWorkshiftDialogComponent implements OnInit {
     }
 
     save() {
+        const result = {
+            ...this.workshift
+        }
+
+        if (result.minutesWorth === 0) {
+            delete(result.minutesWorth)
+        }
+
         this.roster2.workShifts
             .create(this.workshift)
             .subscribe({

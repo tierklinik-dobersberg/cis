@@ -3,28 +3,45 @@
 </h1>
 
 <form>
-    <div class="flex flex-col gap-4">
-        <span class="p-2">
-            {{ isEdit ? 'Bearbeite' : 'Erstelle'}} eine Arbeitsschicht.
-        </span>
-
+    <div class="flex flex-col gap-4 py-4">
         <div class="flex flex-col">
-            <span class="text-secondary">Name:</span>
-            <input name="name" [(ngModel)]="workshift.name" type="text" placeholder="Name der Schicht" class="tkd-input">
+            <span class="text-primary">Name & Farbe:</span>
+            <div class="flex flex-row gap-2">
+                <input name="name" [(ngModel)]="workshift.name" type="text" placeholder="Name der Schicht"
+                    class="tkd-input">
+            <span class="block w-7 h-7 rounded shadow" [ngStyle]="{backgroundColor: workshift.color}"
+                cdkOverlayOrigin #trigger="cdkOverlayOrigin" (click)="isColorSelectorOpen = true"></span>
+
+            <ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="trigger"
+                [cdkConnectedOverlayOpen]="isColorSelectorOpen">
+                    <color-twitter name="color" triangle="hide" [(ngModel)]="workshift.color"
+                        (ngModelChange)="isColorSelectorOpen = false"></color-twitter>
+            </ng-template>
+            </div>
         </div>
 
         <div class="flex flex-col">
-            <span class="text-secondary">Von:</span>
+            <span class="text-primary">Von:</span>
             <input name="from" [(ngModel)]="workshift.from" type="text" placeholder="08:30" class="tkd-input">
         </div>
 
         <div class="flex flex-col">
-            <span class="text-secondary">Dauer: <span class="text-tertiary">(bis {{ workshift.from|workShiftEnd:workshift.duration}})</span></span>
-            <input name="duration" [ngModel]="duration" (ngModelChange)="setDuration($event)" type="text" placeholder="1h 30m" class="tkd-input">
+            <span class="text-primary">Dauer: <span class="text-tertiary">(bis {{
+                    workshift.from|workShiftEnd:workshift.duration}})</span></span>
+            <input name="duration" [ngModel]="duration" (ngModelChange)="setDuration($event)" type="text"
+                placeholder="1h 30m" class="tkd-input">
+            <span class="text-sm cursor-pointer text-color-secondary hover:text-color-secondary-dark"
+                (click)="showMinutesWorth = true" *ngIf="!showMinutesWorth">Anderen Zeitwert festlegen</span>
+        </div>
+
+        <div class="flex flex-col" *ngIf="showMinutesWorth">
+            <span class="text-primary">Zeitwert:</span>
+            <input name="minutesWorth" [ngModel]="minutesWorth" (ngModelChange)="setMinutesWorth($event)" type="text"
+                placeholder="1h 30m" class="tkd-input">
         </div>
 
         <div class="flex flex-col">
-            <span class="text-secondary">Wochentage</span>
+            <span class="text-primary">Wochentage</span>
             <nz-select name="days" [nzMode]="'multiple'" [(ngModel)]="workshift.days">
                 <nz-option nzLabel="Montag" [nzValue]="Weekdays.Monday"></nz-option>
                 <nz-option nzLabel="Dienstag" [nzValue]="Weekdays.Tuesday"></nz-option>
@@ -34,22 +51,22 @@
                 <nz-option nzLabel="Samstag" [nzValue]="Weekdays.Saturday"></nz-option>
                 <nz-option nzLabel="Sonntag" [nzValue]="Weekdays.Sunday"></nz-option>
             </nz-select>
+            <label nz-checkbox [(ngModel)]="workshift.onHoliday" name="onHoliday">Wenn Feiertag</label>
         </div>
 
         <div class="flex flex-col">
-            <span class="text-secondary">Erlaubte Benutzer:</span>
+            <span class="text-primary">Erlaubte Benutzer:</span>
             <nz-select name="eligibleRoles" [nzMode]="'tags'" [(ngModel)]="workshift.eligibleRoles">
                 <nz-option *ngFor="let role of roles" [nzLabel]="role.name" [nzValue]="role.name"></nz-option>
             </nz-select>
         </div>
 
         <div class="flex flex-col">
-            <span class="text-secondary">Anzahl an benötigten Mitarbeitern:</span>
-            <input name="requiredStaffCount" [(ngModel)]="workshift.requiredStaffCount" type="number" placeholder="1" class="tkd-input">
+            <span class="text-primary">Anzahl an benötigten Mitarbeitern:</span>
+            <input name="requiredStaffCount" [(ngModel)]="workshift.requiredStaffCount" type="number" placeholder="1"
+                class="tkd-input">
         </div>
     </div>
-
-    <pre>{{workshift | json}}</pre>
 </form>
 
 <div class="flex flex-row gap-3 justify-end items-center">
