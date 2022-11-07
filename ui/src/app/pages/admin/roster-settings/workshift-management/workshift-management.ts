@@ -1,3 +1,4 @@
+import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, TrackByFunction } from "@angular/core";
 import { NzMessageService } from "ng-zorro-antd/message";
 import { NzModalService } from "ng-zorro-antd/modal";
@@ -9,6 +10,7 @@ import { TkdWorkshiftDialogComponent } from "./workshift-dialog/workshift-dialog
 @Component({
     selector: 'tkd-workshift-management',
     templateUrl: './workshift-management.html',
+    styleUrls: ['./workshift-management.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TkdWorkshiftManagementComponent implements OnInit {
@@ -29,12 +31,30 @@ export class TkdWorkshiftManagementComponent implements OnInit {
         this.loadShifts();
     }
 
+    drop(event: CdkDragDrop<string[]>) {
+      moveItemInArray(this.workshifts, event.previousIndex, event.currentIndex);
+      this.workshifts = [...this.workshifts];
+
+      this.workshifts.forEach((shift, index) => {
+        shift.order = index;
+
+        this.roster2.workShifts.update(shift)
+          .subscribe({
+            error: err => {
+              this.nzMessage.error(extractErrorMessage(err, `Änderung konnte nicht gespeichert werden`))
+            }
+          });
+      })
+    }
+
     private loadShifts() {
         this.roster2.workShifts
             .list()
             .subscribe({
                 next: workshifts => {
-                    this.workshifts = workshifts;
+                    this.workshifts = workshifts.sort((a, b) => {
+                      return a.order - b.order;
+                    });
                     this.cdr.markForCheck();
                 },
                 error: err => {

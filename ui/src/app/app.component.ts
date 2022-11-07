@@ -6,11 +6,11 @@ import {
   HostListener,
   isDevMode,
   OnDestroy,
-  OnInit,
+  OnInit
 } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
-import { ProfileWithAvatar, TkdAccountService, Permissions } from '@tkd/api';
+import { Permissions, ProfileWithAvatar, TkdAccountService } from '@tkd/api';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { BehaviorSubject, combineLatest, interval, of, Subject } from 'rxjs';
@@ -26,17 +26,15 @@ import {
   startWith,
   switchMap,
   take,
-  takeUntil,
+  takeUntil
 } from 'rxjs/operators';
 import { LayoutService } from 'src/app/services';
 import {
-  ConfigAPI,
-  IdentityAPI,
-  Overwrite,
+  ConfigAPI, Overwrite,
   RosterAPI,
   UIConfig,
   UserService,
-  VoiceMailAPI,
+  VoiceMailAPI
 } from './api';
 import { InfoScreenAPI } from './api/infoscreen.api';
 import { TkdCreateOfftimeRequestComponent } from './pages/offtime/create-offtime-request';
@@ -115,6 +113,12 @@ export class AppComponent implements OnInit, OnDestroy {
   isWiki = this.router.events.pipe(
     filter((e) => e instanceof NavigationEnd),
     map(() => this.router.url.startsWith('/wiki')),
+    share()
+  );
+
+  isRoster2 = this.router.events.pipe(
+    filter((e) => e instanceof NavigationEnd),
+    map(() => this.router.url.startsWith('/roster2')),
     share()
   );
 

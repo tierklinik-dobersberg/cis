@@ -78,6 +78,7 @@ export class TkdWorkshiftDialogComponent implements OnInit {
                 requiredStaffCount: 0,
                 minutesWorth: 0,
                 color: '',
+                order: 0,
             }
         }
 

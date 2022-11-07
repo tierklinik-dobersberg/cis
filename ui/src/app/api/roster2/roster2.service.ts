@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable, InjectionToken } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { formatDate } from 'src/utils/duration';
-import { OffTime, DayKinds, JSDuration, RosterShiftWithStaffList, WorkShift, WorkTime } from './roster2-types';
+import { DayKinds, JSDuration, OffTime, RosterShiftWithStaffList, WorkShift, WorkTime } from './roster2-types';
 
 export const ROSTERD_API = new InjectionToken<string>('ROSTERD_API')
 
@@ -70,7 +70,7 @@ export class Roster2Service {
             }
 
             return this.http.get<response>(`${this.apiURL}/v1/workshift`)
-                .pipe(map(result => result.workShifts)) 
+                .pipe(map(result => result.workShifts))
         }
 
         create(shift: WorkShift): Observable<void> {
@@ -85,10 +85,16 @@ export class Roster2Service {
             return this.http.delete<void>(`${this.apiURL}/v1/workshift/${id}` )
         }
 
-        findRequiredShifts(from: Date, to: Date): Observable<{[date: string]: RosterShiftWithStaffList[]}> {
+        findRequiredShifts(from: Date, to?: Date): Observable<{[date: string]: RosterShiftWithStaffList[]}> {
+            if (!to) {
+              to = new Date(from.getFullYear(), from.getMonth() + 1, 0)
+              from = new Date(from.getFullYear(), from.getMonth(), 1)
+            }
+
             const params = new HttpParams()
-                .append("from", from.toDateString())
-                .append("to", to.toDateString())
+                .append("from", from.toISOString().split('T')[0])
+                .append("to", to.toISOString().split('T')[0])
+                .append('stafflist', true)
 
             return this.http.get<{[date: string]: RosterShiftWithStaffList[]}>(`${this.apiURL}/v1/roster/shifts`, {
                 params,
@@ -112,7 +118,6 @@ export class Roster2Service {
                 description: description,
                 staff: staff,
                 days: days,
-                from: '',
             }
 
             if (!!from) {

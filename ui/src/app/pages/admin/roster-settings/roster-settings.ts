@@ -13,8 +13,8 @@ export class TkdRosterSettingsComponent implements OnInit {
 
     ngOnInit(): void {
         this.headerService.set(
-            'Diensplan / Urlaubsanträge', 
-            'Verwalte Dienstplan Einstellungen und Urlaubsanträge',
+            'Diensplan Einstellungen',
+            'Verwalte Dienstplan Einstellungen und Arbeitsschichten',
             null,
             [
                 {name: 'Administration', route: '/admin'},

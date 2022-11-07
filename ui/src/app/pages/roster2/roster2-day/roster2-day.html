@@ -1,0 +1,21 @@
+<span class="text-xs text-secondary">{{ date | date:'dd.MM' }}</span>
+
+<ul class="flex flex-col flex-grow gap-1 overflow-auto px-0.5 group">
+  <li *ngFor="let shift of requiredShifts" [ngStyle]="{backgroundColor: shiftDefinitions[shift.shiftID]?.color + '50'}" class="overflow-hidden px-1.5 py-1 text-xs rounded shadow-sm text-primary flex flex-col items-start justify-start gap-1">
+    <div class="flex flex-row justify-between w-full text-xs uppercase border-b text-secondary font-lato" [ngStyle]="{borderColor: shiftDefinitions[shift.shiftID]?.color + 'aa'}" style="font-size: 0.65rem;">
+      <span>
+        {{ shift.name }}
+      </span>
+      <span class="transition-all duration-200 ease-in-out -translate-y-full group-hover:translate-y-0 ">
+        {{ assigned[shift.shiftID]?.length || 0 }}/{{ shift.requiredStaffCount }}
+      </span>
+    </div>
+    <div class="flex flex-row gap-1">
+      <div *ngFor="let user of shift.eligibleStaff">
+        <span *ngIf="users[user] as profile" class="block px-0.5 border rounded border-subtle" [ngStyle]="{borderColor: profile.color}"  style="font-size: 0.65rem;">
+          <span>{{ (profile.fullname || profile.name).substr(0, 2) }}</span>
+        </span>
+      </div>
+    </div>
+  </li>
+</ul>

@@ -1,3 +1,4 @@
+
 export enum Weekday {
     Sunday = 0,
     Monday = 1,
@@ -34,6 +35,7 @@ export interface WorkShift {
     minutesWorth?: number;
     requiredStaffCount: number;
     color: string;
+    order: number;
 }
 
 export interface RosterShift {
@@ -107,7 +109,7 @@ export namespace OffTime {
 
     export interface CreateCreditsRequest {
         staff: string;
-        from: string;
+        from?: string;
         description: string;
         days: number;
     }

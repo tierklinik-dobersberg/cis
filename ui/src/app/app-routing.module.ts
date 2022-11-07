@@ -13,6 +13,7 @@ const routes: Routes = [
 
   { canActivate, path: 'welcome', loadChildren: () => import('./pages/welcome/welcome.module').then(m => m.WelcomeModule) },
   { canActivate, path: 'roster', loadChildren: () => import('./pages/roster/roster.module').then(m => m.RosterModule) },
+  { canActivate, path: 'roster2', loadChildren: () => import('./pages/roster2/roster2.module').then(m => m.TkdRoster2Module )},
   { canActivate, path: 'calllogs', loadChildren: () => import('./pages/calllogs/calllog.module').then(m => m.CallLogModule) },
   { canActivate, path: 'xray', loadChildren: () => import('./pages/xray/xray.module').then(m => m.XRayModule) },
   { canActivate, path: 'profile', loadChildren: () => import('./pages/profile/profile.module').then(m => m.ProfileModule) },

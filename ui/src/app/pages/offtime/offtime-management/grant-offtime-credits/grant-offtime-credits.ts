@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, Inject, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, Component, OnInit } from "@angular/core";
 import { NzMessageService } from "ng-zorro-antd/message";
 import { NzModalRef } from "ng-zorro-antd/modal";
-import { JSDuration, Roster2Service } from "src/app/api/roster2";
+import { Roster2Service } from "src/app/api/roster2";
 import { extractErrorMessage } from "src/app/utils";
 
 @Component({
@@ -9,7 +9,7 @@ import { extractErrorMessage } from "src/app/utils";
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TkdGrantOffTimeCredits implements OnInit {
-    duration: JSDuration = 0;
+    duration: number = 0;
 
     user: string = '';
     comment: string = '';
@@ -29,7 +29,7 @@ export class TkdGrantOffTimeCredits implements OnInit {
     }
 
     save() {
-        this.rosterService.offTime.credit(this.user, this.duration, this.comment)
+        this.rosterService.offTime.credit(this.user, this.duration, this.comment, new Date())
             .subscribe({
                 next: () => {
                     this.modalRef.close();
@@ -46,6 +46,6 @@ export class TkdGrantOffTimeCredits implements OnInit {
     }
 
     ngOnInit(): void {
-        
+
     }
 }

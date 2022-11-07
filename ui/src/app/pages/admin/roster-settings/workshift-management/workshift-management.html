@@ -1,64 +1,74 @@
-<div class="flex flex-row gap-3 items-center mb-3">
-    <div class="flex-grow"></div>
-    <button class="tkd-icon-btn tkd-primary" nz-tooltip="Erstelle einen neuen Arbeitsschicht" (click)="createShift()">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
-    </button>
+<div class="flex flex-row items-center gap-3 mb-3">
+  <div class="flex-grow"></div>
+  <button class="tkd-icon-btn tkd-primary" nz-tooltip="Erstelle einen neuen Arbeitsschicht" (click)="createShift()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+    </svg>
+  </button>
 </div>
 
-<nz-table [nzData]="workshifts" #table="nzTable" class="bg-white rounded-md border shadow-md p-0-5 border-subtle">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Zeitraum</th>
-            <th>Arbeitszeit</th>
-            <th>Wochentage</th>
-            <th>Erlaubte Rollen</th>
-            <th>Benötigtes Personal</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let row of table.data; trackBy: trackWorkShift">
-            <td>
-                <div class="flex flex-row gap-3 items-center">
-                    <span class="inline-block w-4 h-4 rounded shadow" [ngStyle]="{backgroundColor: row.color}"></span>
-                    <span>
-                        {{ row.name }}
-                    </span>
-                </div>
-            </td>
-            <td>
-                {{ row.from }} - {{ row.from|workShiftEnd:row.duration }}
-            </td>
-            <td>
-                {{ (row.minutesWorth ? (row.minutesWorth * 1000 * 60 ) : row.duration) | duration:'default-hours':'ms'
+<nz-table [nzData]="workshifts" #table="nzTable" class="bg-white border rounded-md shadow-md p-0-5 border-subtle">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Zeitraum</th>
+      <th>Arbeitszeit</th>
+      <th>Wochentage</th>
+      <th>Erlaubte Rollen</th>
+      <th>Benötigtes Personal</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody cdkDropList (cdkDropListDropped)="drop($event)">
+    <tr *ngFor="let row of table.data; trackBy: trackWorkShift" cdkDrag class="bg-whtie">
+      <td>
+        <div class="flex flex-row items-center gap-3">
+          <span class="inline-block w-4 h-4 rounded shadow" [ngStyle]="{backgroundColor: row.color}"></span>
+          <span>
+            {{ row.name }}
+          </span>
+        </div>
+      </td>
+      <td>
+        {{ row.from }} - <span [innerHTML]="row.from|workShiftEnd:row.duration:'text-secondary text-xs'"></span>
+      </td>
+      <td>
+        {{ (row.minutesWorth ? (row.minutesWorth * 1000 * 60 ) : row.duration) | duration:'default-hours':'ms'
                 }}
-            </td>
-            <td>
-                <span nz-tooltip="Gültig nur an den folgenden Wochentagen wenn diese ebenfalls Feiertage sind" class="px-1.5 py-1 text-xs text-white rounded bg-primary" *ngIf="row.onHoliday">Feiertage</span>
-                <span *ngFor="let day of row.days; let last=last">
-                    {{ Weekdays[day] }}<ng-container *ngIf="!last">, </ng-container>
-                </span>
-            </td>
-            <td>
-                <span *ngFor="let role of row.eligibleRoles; let last=last">
-                    {{ role }}
-                    <ng-container *ngIf="!last">, </ng-container>
-                </span>
-            </td>
-            <td>
-                {{ row.requiredStaffCount }}
-            </td>
-            <td>
-                <button class="tkd-icon-btn tkd-small tkd-outline tkd-primary no-shadow" (click)="edit(row)">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path
-                            d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
-                    </svg>
-                </button>
-            </td>
-        </tr>
-    </tbody>
+      </td>
+      <td>
+        <span nz-tooltip="Gültig nur an den folgenden Wochentagen wenn diese ebenfalls Feiertage sind"
+          class="px-1.5 py-1 text-xs text-white rounded bg-primary" *ngIf="row.onHoliday">Feiertage</span>
+        <span *ngFor="let day of row.days; let last=last">
+          {{ Weekdays[day] }}<ng-container *ngIf="!last">, </ng-container>
+        </span>
+      </td>
+      <td>
+        <span *ngFor="let role of row.eligibleRoles; let last=last">
+          {{ role }}
+          <ng-container *ngIf="!last">, </ng-container>
+        </span>
+      </td>
+      <td>
+        {{ row.requiredStaffCount }}
+      </td>
+      <td>
+        <div class="flex flex-row items-center gap-2">
+          <button class="tkd-icon-btn tkd-small tkd-outline tkd-primary no-shadow" (click)="edit(row)" nz-tooltip="Schicht bearbeiten">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
+            </svg>
+          </button>
+          <button class="tkd-icon-btn tkd-small tkd-outline tkd-primary no-shadow" cdkDragHandle nz-tooltip="Reihenfolge der Schicht ändern">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd"
+                d="M2.24 6.8a.75.75 0 001.06-.04l1.95-2.1v8.59a.75.75 0 001.5 0V4.66l1.95 2.1a.75.75 0 101.1-1.02l-3.25-3.5a.75.75 0 00-1.1 0L2.2 5.74a.75.75 0 00.04 1.06zm8 6.4a.75.75 0 00-.04 1.06l3.25 3.5a.75.75 0 001.1 0l3.25-3.5a.75.75 0 10-1.1-1.02l-1.95 2.1V6.75a.75.75 0 00-1.5 0v8.59l-1.95-2.1a.75.75 0 00-1.06-.04z"
+                clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  </tbody>
 </nz-table>

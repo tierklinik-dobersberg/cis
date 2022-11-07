@@ -1,3 +1,4 @@
+import { DragDropModule } from "@angular/cdk/drag-drop";
 import { OverlayModule } from "@angular/cdk/overlay";
 import { NgModule } from "@angular/core";
 import { NzTableModule } from "ng-zorro-antd/table";
@@ -16,6 +17,7 @@ import { TkdWorkshiftDialogComponent, TkdWorkShiftEndPipe, TkdWorkshiftManagemen
         NzTableModule,
         ColorTwitterModule,
         OverlayModule,
+        DragDropModule
     ],
     declarations: [
         TkdRosterSettingsComponent,

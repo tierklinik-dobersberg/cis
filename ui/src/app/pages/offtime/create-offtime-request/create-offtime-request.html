@@ -1,25 +1,30 @@
 <h1 class="mb-2 text-2xl font-light font-lato" *ngIf="!modalRef">Neuer Abwesenheitsantrag</h1>
 
-<span class="font-medium">Beschreibung: <span class="text-sm italic text-tertiary">(optional)</span></span>
-<input class="tkd-input" type="text" [(ngModel)]="description">
+<div class="flex flex-col">
+  <span class="font-medium">Antragsart: </span>
+  <nz-select [(ngModel)]="isVacationRequest">
+    <nz-option nzLabel="Urlaub" [nzValue]="true"></nz-option>
+    <nz-option nzLabel="ZA (wenn möglich)" [nzValue]="false"></nz-option>
+    <nz-option nzLabel="Urlaub oder ZA" [nzValue]="null"></nz-option>
+  </nz-select>
+</div>
 
-<label nz-checkbox [ngModel]="isVacationRequest" [nzIndeterminate]="isVacationRequest === null" (ngModelChange)="updateVacationRequest()">
-    Antragsart:
-    <span [ngSwitch]="isVacationRequest" class="underline">
-        <ng-template [ngSwitchCase]="true">Urlaub</ng-template>
-        <ng-template [ngSwitchCase]="false">ZA (wenn möglich)</ng-template>
-        <ng-template [ngSwitchCase]="null">Urlaub oder ZA</ng-template>
-    </span>
-</label>
+<div class="flex flex-col">
+  <span class="font-medium">Beschreibung: <span class="text-sm italic text-tertiary">(optional)</span></span>
+  <input class="tkd-input" type="text" [(ngModel)]="description">
+</div>
 
-<span class="mt-2 font-medium">Bitte wähle den Zeitraum:</span>
-<nz-range-picker nzInline [(ngModel)]="rangeDate" (ngModelChange)="onRangeChange($event)"></nz-range-picker>
+<div class="flex flex-col">
+  <span class="mt-2 font-medium">Bitte wähle den Zeitraum:</span>
+  <nz-range-picker nzInline [(ngModel)]="rangeDate" (ngModelChange)="onRangeChange($event)"></nz-range-picker>
+  <span class="text-tertiary" *ngIf="dayKinds !== null">
+    {{ dayKinds.workingDays}} Arbeitstage, {{ dayKinds.weekendDays }} Wochend-Tage und {{ dayKinds.publicHolidays }}
+    Feiertage
+  </span>
+</div>
 
-<span class="text-tertiary" *ngIf="dayKinds !== null">
-    {{ dayKinds.workingDays}} Arbeitstage, {{ dayKinds.weekendDays }} Wochend-Tage und {{ dayKinds.publicHolidays }} Feiertage
-</span>
-
-<div class="flex flex-row gap-2 justify-end items-center py-3 mt-3 border-t border-subtle">
-    <button class="tkd-btn tkd-outline tkd-primary" *ngIf="!!modalRef" (click)="modalRef.triggerCancel()">Abbrechen</button>
-    <button class="tkd-btn tkd-primary" (click)="create()">Erstellen</button>
+<div class="flex flex-row items-center justify-end gap-2 py-3 mt-3 border-t border-subtle">
+  <button class="tkd-btn tkd-outline tkd-primary" *ngIf="!!modalRef"
+    (click)="modalRef.triggerCancel()">Abbrechen</button>
+  <button class="tkd-btn tkd-primary" (click)="create()">Erstellen</button>
 </div>

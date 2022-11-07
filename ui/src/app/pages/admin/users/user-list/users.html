@@ -43,7 +43,7 @@
   <tbody>
     <ng-container *ngFor="let  data of userTable.data">
       <tr [class.disabled]="!!data.disabled">
-        <td class="flex gap-3 items-center username">
+        <td class="flex items-center gap-3 username">
           <tkd-user-avatar [avatar]="data.avatar" class="inline-block w-12 h-12 border border-opacity-25 border-primary"></tkd-user-avatar>
 
           {{data.fullname}}
@@ -61,7 +61,7 @@
             </li>
           </td>
           <td *ngIf="hasWorkTime">
-            {{ data.timePerWeek.format() }}
+            {{ data.timePerWeek.format('default-hours') }}
           </td>
           <td>
             <span

@@ -200,6 +200,7 @@ module.exports = {
     }
   },
   plugins: [
-    typography
+    typography,
+    require('./tkd-theme.js')
   ],
 };
