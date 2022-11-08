@@ -30,17 +30,20 @@ export interface WorkShift {
     id: string;
     days: Weekday[];
     name: string;
+    shortName: string;
     onHoliday: boolean;
     eligibleRoles: string[];
     minutesWorth?: number;
     requiredStaffCount: number;
     color: string;
     order: number;
+    description: string;
 }
 
 export interface RosterShift {
     staff: string[];
     shiftID: string;
+    shortName: string;
     name: string;
     isHoliday: boolean;
     isWeekend: boolean;
@@ -50,18 +53,42 @@ export interface RosterShift {
     requiredStaffCount: number;
 }
 
+export interface Constraint {
+	id?: string;
+	description?: string;
+	expression: string;
+	appliesToUser: string[];
+	appliesToRole: string[];
+	hard: boolean;
+	penalty: number;
+	deny: boolean;
+	rosterOnly: boolean;
+}
+
+export interface OffTimeConstraintViolation {
+    type: 'off-time'
+    hard: boolean;
+    id: string;
+    name: string;
+    penalty: number;
+}
+
+export type ConstraintViolation = OffTimeConstraintViolation;
+
 export interface RosterShiftWithStaffList extends RosterShift {
     eligibleStaff: string[];
-    // constraintViolations: {[key: string]: ConstraintViolation[]}
+    constraintViolations: {
+        [username: string]: ConstraintViolation[]
+    }
 }
 
 export interface Roster {
-    id: string;
+    id?: string;
     month: Month;
     year: number;
     shifts: RosterShift[];
-    approved: boolean | null;
-    approvedAt: string;
+    approved?: boolean | null;
+    approvedAt?: string;
 }
 
 export type JSDuration = number; // duration in ms
@@ -131,9 +158,9 @@ export interface WorkTime {
 }
 
 export interface WorkTimeStatus {
-    timePerWeek: number;
-    expectedWorkTime: number;
-    plannedWorkTime: number;
+    timePerWeek: JSDuration;
+    expectedWorkTime: JSDuration;
+    plannedWorkTime: JSDuration;
     penality: number;
     overtimePenaltyRatio: number;
     undertimePenaltyRatio: number;

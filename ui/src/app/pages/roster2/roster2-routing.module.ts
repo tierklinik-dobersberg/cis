@@ -4,7 +4,8 @@ import { TkdRoster2Component } from './roster2.component';
 
 
 const routes: Route[] = [
-  { path: '', component: TkdRoster2Component }
+  { path: '', component: TkdRoster2Component },
+  { path: ':year/:month', component: TkdRoster2Component }
 ]
 
 @NgModule({

@@ -1,4 +1,4 @@
-<div class="flex flex-row items-center gap-3 mb-3">
+<div class="flex flex-row gap-3 items-center mb-3">
   <div class="flex-grow"></div>
   <button class="tkd-icon-btn tkd-primary" nz-tooltip="Erstelle einen neuen Arbeitsschicht" (click)="createShift()">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -7,7 +7,7 @@
   </button>
 </div>
 
-<nz-table [nzData]="workshifts" #table="nzTable" class="bg-white border rounded-md shadow-md p-0-5 border-subtle">
+<nz-table [nzData]="workshifts" #table="nzTable" class="p-0.5 bg-white rounded-md border shadow-md border-subtle">
   <thead>
     <tr>
       <th>Name</th>
@@ -22,10 +22,10 @@
   <tbody cdkDropList (cdkDropListDropped)="drop($event)">
     <tr *ngFor="let row of table.data; trackBy: trackWorkShift" cdkDrag class="bg-whtie">
       <td>
-        <div class="flex flex-row items-center gap-3">
+        <div class="flex flex-row gap-3 items-center">
           <span class="inline-block w-4 h-4 rounded shadow" [ngStyle]="{backgroundColor: row.color}"></span>
           <span>
-            {{ row.name }}
+            {{ row.name }} <span class="text-secondary">({{ row.shortName }})</span>
           </span>
         </div>
       </td>
@@ -53,7 +53,7 @@
         {{ row.requiredStaffCount }}
       </td>
       <td>
-        <div class="flex flex-row items-center gap-2">
+        <div class="flex flex-row gap-2 items-center">
           <button class="tkd-icon-btn tkd-small tkd-outline tkd-primary no-shadow" (click)="edit(row)" nz-tooltip="Schicht bearbeiten">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
               <path

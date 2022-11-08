@@ -1,21 +1,64 @@
-<span class="text-xs text-secondary">{{ date | date:'dd.MM' }}</span>
+<span class="inline-block mb-1 w-full text-xs text-center rounded font-lato text-secondary"
+  [ngClass]="{'bg-primary text-white':!!holiday}">{{ holiday?.localName}} {{ date | date:'dd.MM' }}</span>
 
-<ul class="flex flex-col flex-grow gap-1 overflow-auto px-0.5 group">
-  <li *ngFor="let shift of requiredShifts" [ngStyle]="{backgroundColor: shiftDefinitions[shift.shiftID]?.color + '50'}" class="overflow-hidden px-1.5 py-1 text-xs rounded shadow-sm text-primary flex flex-col items-start justify-start gap-1">
-    <div class="flex flex-row justify-between w-full text-xs uppercase border-b text-secondary font-lato" [ngStyle]="{borderColor: shiftDefinitions[shift.shiftID]?.color + 'aa'}" style="font-size: 0.65rem;">
-      <span>
-        {{ shift.name }}
-      </span>
-      <span class="transition-all duration-200 ease-in-out -translate-y-full group-hover:translate-y-0 ">
-        {{ assigned[shift.shiftID]?.length || 0 }}/{{ shift.requiredStaffCount }}
-      </span>
-    </div>
-    <div class="flex flex-row gap-1">
-      <div *ngFor="let user of shift.eligibleStaff">
-        <span *ngIf="users[user] as profile" class="block px-0.5 border rounded border-subtle" [ngStyle]="{borderColor: profile.color}"  style="font-size: 0.65rem;">
-          <span>{{ (profile.fullname || profile.name).substr(0, 2) }}</span>
+<ul class="flex overflow-auto flex-col flex-grow gap-1 px-0.5 py-0.5 group" *ngIf="!isDisabledDate">
+  <li *ngFor="let shift of requiredShifts" cdkOverlayOrigin #trigger="cdkOverlayOrigin"
+    (contextmenu)="onContextMenu($event, trigger)" (click)="onShiftClick(trigger, shift)"
+    [ngStyle]="{backgroundColor: shiftDefinitions[shift.shiftID]?.color + '40'}"
+    class="flex overflow-hidden relative flex-row gap-1 justify-start items-center px-1.5 py-1 text-xs shadow-sm transition-all duration-200 ease-in-out cursor-pointer hover:ring-1 text-primary"
+    [ngClass]="{'cursor-not-allowed opacity-40': !!selectedUser && !(selectedUser|inList:shift.eligibleStaff) && !(selectedUser|inList:assigned[shift.shiftID]), 'opacity-50': highlightUserShifts !== null && !(highlightUserShifts | inList:assigned[shift.shiftID]), 'ring-1': highlightUserShifts | inList:assigned[shift.shiftID], 'rounded': !trigger.elementRef.nativeElement.open, 'rounded-t ring-1 shadow-inner': trigger.elementRef.nativeElement.open }">
+
+    <ng-container *ngIf="shiftDefinitions[shift.shiftID] as def">
+      <div
+        [nz-tooltip]="def.name + (def.description ? ': ' + def.description : '') + ' - Von ' + def.from + ' bis ' + (def.from|workShiftEnd:def.duration)"
+        class="flex overflow-hidden flex-col justify-between pr-1.5 text-xs uppercase whitespace-nowrap border-r select-none text-ellipsis text-secondary font-lato"
+        [ngStyle]="{borderColor: shiftDefinitions[shift.shiftID]?.color + 'aa'}" style="font-size: 0.65rem;">
+
+        <span class="transition-all duration-200 ease-in-out translate-y-2 group-hover:translate-y-0"
+          [class.font-semibold]="highlightUserShifts|inList:assigned[shift.shiftID]">
+          {{ shift.shortName }}
+        </span>
+
+        <span class="transition-all duration-200 ease-in-out -translate-x-full group-hover:translate-x-0">
+          {{ assigned[shift.shiftID]?.size || 0 }}/{{ shift.requiredStaffCount }}
         </span>
       </div>
-    </div>
+
+      <span *ngIf="!!selectedUser && !(selectedUser|inList:shift.eligibleStaff)"
+        class="flex absolute top-3 right-3 justify-center items-center w-4 h-4 text-white rounded-full bg-opacity-light bg-alert-red"
+        [nz-tooltip]="shift.constraintViolations[selectedUser] | constraintViolation">!</span>
+
+      <div class="flex flex-row flex-wrap flex-grow gap-1 items-center">
+        <div *ngFor="let user of assigned[shift.shiftID]">
+          <span *ngIf="users[user] as profile" class="block px-0.5 rounded border border-subtle"
+            [ngStyle]="{backgroundColor: profile.color + 'aa', color: profile.fontColor, borderColor: profile.color}">
+            <span>{{ (profile.fullname || profile.name).substr(0, 2) }}</span>
+          </span>
+        </div>
+      </div>
+      
+    </ng-container>
+
+    <ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="trigger"
+      [cdkConnectedOverlayOpen]="trigger.elementRef.nativeElement.open"
+      (overlayOutsideClick)="onOverlayOutsideClick($event, trigger)">
+      <ul class="p-2 w-80 bg-white rounded-b ring-1 shadow">
+        <li *ngFor="let user of shift.eligibleStaff">
+          <div class="flex flex-row gap-2 items-center p-2 rounded cursor-pointer hover:bg-subtle"
+            (click)="onShiftClick(trigger, shift, user)">
+            <nz-avatar nzIcon="user" [nzSrc]="users[user].avatar"></nz-avatar>
+            {{ users[user].fullname || user}}
+
+            <div class="flex-grow"></div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"
+              *ngIf="user|inList:assigned[shift.shiftID]">
+              <path fill-rule="evenodd"
+                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                clip-rule="evenodd" />
+            </svg>
+          </div>
+        </li>
+      </ul>
+    </ng-template>
   </li>
 </ul>

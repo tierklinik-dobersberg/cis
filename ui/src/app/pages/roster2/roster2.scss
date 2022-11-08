@@ -1,3 +1,11 @@
-::ng-deep tkd-roster2 .ant-picker-cell-selected .ant-picker-cell-inner{
-  background-color: #F5F6F8 !important;
+::ng-deep tkd-roster2 .ant-picker-cell-selected .ant-picker-cell-inner {
+  background-color: white !important;
+}
+
+::ng-deep tkd-roster2 .ant-picker-cell-inner:hover {
+  background-color: #fafafa !important;
+}
+
+::ng-deep tkd-roster2 nz-calendar-header {
+  display: none !important;
 }

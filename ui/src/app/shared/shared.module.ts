@@ -33,6 +33,7 @@ import { TkdOptionListInputComponent } from './option-list-input';
 import { ListActionButtonGroupComponent } from './list-btn-group';
 import { UserAvatarComponent } from './user-avatar';
 import { TkdCreateOfftimeRequestComponent } from '../pages/offtime/create-offtime-request';
+import { TkdDebounceEventDirective } from './debounce-event.directive';
 
 @NgModule({
   imports: [
@@ -64,6 +65,7 @@ import { TkdCreateOfftimeRequestComponent } from '../pages/offtime/create-offtim
     TkdOptionSpecInputComponent,
     TkdOptionListInputComponent,
     ListActionButtonGroupComponent,
+    TkdDebounceEventDirective,
     UserAvatarComponent,
   ],
   exports: [
@@ -99,6 +101,7 @@ import { TkdCreateOfftimeRequestComponent } from '../pages/offtime/create-offtim
     ListActionButtonGroupComponent,
     UserAvatarComponent,
     TimeagoModule,
+    TkdDebounceEventDirective,
   ],
 })
 export class SharedModule {}

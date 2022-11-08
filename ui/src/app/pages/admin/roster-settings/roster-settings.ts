@@ -14,7 +14,7 @@ export class TkdRosterSettingsComponent implements OnInit {
     ngOnInit(): void {
         this.headerService.set(
             'Diensplan Einstellungen',
-            'Verwalte Dienstplan Einstellungen und Arbeitsschichten',
+            'Verwalte Dienstplan Einstellungen, Arbeitsschichten und Regeln',
             null,
             [
                 {name: 'Administration', route: '/admin'},
@@ -22,4 +22,3 @@ export class TkdRosterSettingsComponent implements OnInit {
         )
     }
 }
-

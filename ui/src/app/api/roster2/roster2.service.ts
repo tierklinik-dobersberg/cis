@@ -2,7 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable, InjectionToken } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { formatDate } from 'src/utils/duration';
-import { DayKinds, JSDuration, OffTime, RosterShiftWithStaffList, WorkShift, WorkTime } from './roster2-types';
+import { RosterAPI } from '../roster.api';
+import { Constraint, DayKinds, JSDuration, OffTime, Roster, RosterAnalysis, RosterShiftWithStaffList, WorkShift, WorkTime } from './roster2-types';
 
 export const ROSTERD_API = new InjectionToken<string>('ROSTERD_API')
 
@@ -53,6 +54,45 @@ export class Roster2Service {
 
         dayKinds(from: Date, to: Date): Observable<DayKinds> {
             return this.http.get<DayKinds>(`${this.apiURL}/v1/roster/utils/daykinds/${formatDate(from)}/${formatDate(to)}`)
+        }
+
+        analyze(roster: Roster): Observable<RosterAnalysis> {
+            return this.http.post<RosterAnalysis>(`${this.apiURL}/v1/roster/analyze`, roster)
+        }
+    }(this.http, this.apiURL)
+
+    readonly constraints = new class {
+        constructor(
+            private http: HttpClient,
+            private apiURL: string
+        ){}
+
+        create(constraint: Constraint): Observable<void> {
+            return this.http.post<void>(`${this.apiURL}/v1/constraint/`, constraint);
+        }
+
+        update(constraint: Constraint): Observable<void> {
+            return this.http.post<void>(`${this.apiURL}/v1/constraint/${constraint.id}`, constraint);
+        }
+
+        delete(id: string): Observable<void> {
+            return this.http.delete<void>(`${this.apiURL}/v1/constraint/${id}`)
+        }
+
+        find(staff?: string[], role?: string[]): Observable<Constraint[]> {
+            let params = new HttpParams();
+
+            if (!!staff) {
+                staff.forEach(s => params = params.append("staff", s))
+            }
+            if (!!role) {
+                role.forEach(r => params = params.append("role", r))
+            }
+
+            return this.http.get<{constraints: Constraint[]}>(`${this.apiURL}/v1/constraint/`, {params})
+                .pipe(
+                    map(res => res.constraints)
+                );
         }
 
     }(this.http, this.apiURL)

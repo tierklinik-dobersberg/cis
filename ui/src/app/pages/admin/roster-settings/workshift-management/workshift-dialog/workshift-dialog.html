@@ -21,6 +21,16 @@
         </div>
 
         <div class="flex flex-col">
+            <span class="text-primary">Identifizierung:</span>
+            <input name="shortName" [(ngModel)]="workshift.shortName" type="text" class="tkd-input">
+        </div>
+
+        <div class="flex flex-col">
+            <span class="text-primary">Beschreibung:</span>
+            <input name="description" [(ngModel)]="workshift.description" type="text" placeholder="Optional" class="tkd-input">
+        </div>
+
+        <div class="flex flex-col">
             <span class="text-primary">Von:</span>
             <input name="from" [(ngModel)]="workshift.from" type="text" placeholder="08:30" class="tkd-input">
         </div>
@@ -70,6 +80,10 @@
 </form>
 
 <div class="flex flex-row gap-3 justify-end items-center">
+    <ng-container *ngIf="isEdit">
+        <button (click)="deleteShift()" class="tkd-btn tkd-danger tkd-outline">Löschen</button>
+        <div class="flex-grow"></div>
+    </ng-container>
     <button (click)="abort()" class="tkd-btn tkd-secondary tkd-outline">Abbrechen</button>
     <button (click)="save()" class="tkd-btn tkd-primary">Speichern</button>
 </div>

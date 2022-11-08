@@ -5,6 +5,8 @@ import { NzTableModule } from "ng-zorro-antd/table";
 import { NzTabsModule } from "ng-zorro-antd/tabs";
 import { ColorTwitterModule } from "ngx-color/twitter";
 import { SharedModule } from "src/app/shared/shared.module";
+import { TkdConstraintManagementComponent } from "./constraint-management";
+import { TkdConstraintDialogComponent } from "./constraint-management/constraint-dialog/constraint-dialog";
 import { TkdRosterSettingsComponent } from "./roster-settings";
 import { TkdRosterSettingsRoutingModule } from "./roster-settings.routing.module";
 import { TkdWorkshiftDialogComponent, TkdWorkShiftEndPipe, TkdWorkshiftManagementComponent } from "./workshift-management";
@@ -24,9 +26,12 @@ import { TkdWorkshiftDialogComponent, TkdWorkShiftEndPipe, TkdWorkshiftManagemen
         TkdWorkshiftManagementComponent,
         TkdWorkshiftDialogComponent,
         TkdWorkShiftEndPipe,
+        TkdConstraintManagementComponent,
+        TkdConstraintDialogComponent,
     ],
     exports: [
-        TkdRosterSettingsComponent
+        TkdRosterSettingsComponent,
+        TkdWorkShiftEndPipe,
     ]
 })
 export class TkdRosterSettingsModule {}

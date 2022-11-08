@@ -74,11 +74,13 @@ export class TkdWorkshiftDialogComponent implements OnInit {
                 from: '',
                 id: '',
                 name: '',
+                shortName: '',
                 onHoliday: false,
                 requiredStaffCount: 0,
                 minutesWorth: 0,
                 color: '',
                 order: 0,
+                description: '',
             }
         }
 
@@ -119,5 +121,18 @@ export class TkdWorkshiftDialogComponent implements OnInit {
 
     abort() {
         this.nzModalRef?.close('abort');
+    }
+
+    deleteShift() {
+        this.roster2.workShifts
+            .delete(this.workshift.id)
+            .subscribe({
+                next: () => {
+                    this.nzModalRef?.close('delete');
+                },
+                error: err => {
+                    this.nzMessage.error(extractErrorMessage(err, 'Schicht konnte nicht gelöscht werden'))
+                }
+            })
     }
 }

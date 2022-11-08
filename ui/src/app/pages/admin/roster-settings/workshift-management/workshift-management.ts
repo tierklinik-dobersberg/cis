@@ -52,7 +52,7 @@ export class TkdWorkshiftManagementComponent implements OnInit {
             .list()
             .subscribe({
                 next: workshifts => {
-                    this.workshifts = workshifts.sort((a, b) => {
+                    this.workshifts = (workshifts || []).sort((a, b) => {
                       return a.order - b.order;
                     });
                     this.cdr.markForCheck();
@@ -74,7 +74,7 @@ export class TkdWorkshiftManagementComponent implements OnInit {
         ref.afterClose
             .pipe(take(1))
             .subscribe(result => {
-                if (result === 'save') {
+                if (result !== 'abort') {
                     this.loadShifts();
                 }
             })
