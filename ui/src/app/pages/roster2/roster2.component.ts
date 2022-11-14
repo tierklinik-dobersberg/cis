@@ -1,13 +1,16 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NzCalendarMode } from "ng-zorro-antd/calendar";
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { Observable } from 'rxjs';
 import { Subject } from "rxjs/internal/Subject";
-import { pipe } from "rxjs/internal/util/pipe";
-import { debounceTime, map, mergeMap, startWith, switchMap, takeUntil } from "rxjs/operators";
+import { debounceTime, map, switchMap, takeUntil } from "rxjs/operators";
 import { Holiday, HolidayAPI, UserService } from "src/app/api";
 import { OffTime, RosterShift, RosterShiftWithStaffList, WorkShift, WorkTimeStatus } from "src/app/api/roster2";
 import { HeaderTitleService } from 'src/app/shared/header-title';
+import { extractErrorMessage, toDateString } from 'src/app/utils';
 import { ProfileWithAvatar } from './../../../../dist/tkd/api/lib/account/account.types.d';
+import { ConstraintViolationDiagnostics } from './../../api/roster2/roster2-types';
 import { Roster2Service } from './../../api/roster2/roster2.service';
 
 @Component({
@@ -52,6 +55,17 @@ export class TkdRoster2Component implements OnInit, OnDestroy {
     [id: string]: OffTime.Entry
   } = {}
 
+  perUserDiagnostics: {
+    [key: string]: ConstraintViolationDiagnostics[];
+  };
+  diagCount = 0;
+
+  showRosterDiagnostics = false;
+
+  hasChanges = false;
+
+  existingID = '';
+
   private ignoreRouteChange = false;
 
   dateDisabled = (d: Date) => {
@@ -66,6 +80,7 @@ export class TkdRoster2Component implements OnInit, OnDestroy {
     private router: Router,
     private currentRoute: ActivatedRoute,
     private cdr: ChangeDetectorRef,
+    private nzMessage: NzMessageService,
   ) {}
 
   setSelectedUser(username: string) {
@@ -78,10 +93,69 @@ export class TkdRoster2Component implements OnInit, OnDestroy {
   }
 
   setRosterShifts(date: Date, shifts: RosterShift[]) {
-    this.rosterShifts[date.toISOString().split('T')[0]] = shifts;
+    this.hasChanges = true;
+
+    this.rosterShifts[toDateString(date)] = shifts;
     this.cdr.markForCheck();
 
     this.analyze$.next();
+  }
+
+  saveRoster() {
+    let allShifts: RosterShift[] = [];
+    Object.keys(this.rosterShifts)
+      .map(key => this.rosterShifts[key])
+      .forEach(shifts => {
+        allShifts = [
+          ...allShifts,
+          ...shifts,
+        ]
+      })
+
+    const roster = {
+          shifts: allShifts,
+          month: this.selectedDate.getMonth() + 1,
+          year: this.selectedDate.getFullYear()
+        }
+
+    let sub: Observable<void>;
+    if (this.existingID) {
+      sub = this.roster2.roster
+        .update({
+          ...roster,
+          id: this.existingID
+        })
+    } else {
+      sub = this.roster2.roster
+        .create(roster)
+    }
+
+    sub.subscribe({
+      next: () => {
+        this.setSelectedDate(this.selectedDate);
+      },
+      error: err => {
+        this.nzMessage.error(extractErrorMessage(err, 'Dienstplan konnte nicht gespeichert werden'))
+      }
+    })
+  }
+
+  deleteRoster() {
+    if (!this.existingID) {
+      return
+    }
+
+    this.roster2
+      .roster
+      .delete(this.existingID)
+      .subscribe({
+        next: () => {
+          this.setSelectedDate(this.selectedDate);
+        },
+        error: err => {
+          this.nzMessage.error(extractErrorMessage(err, 'Dienstplan konnte nicht gelöscht werden'))
+        }
+      })
   }
 
   ngOnInit(): void {
@@ -133,7 +207,22 @@ export class TkdRoster2Component implements OnInit, OnDestroy {
         }))
       )
       .subscribe(result => {
+        this.perUserDiagnostics = {};
+
+        result.diagnostics
+          .forEach(dia => {
+            if (dia.type === 'constraint-violation') {
+              this.perUserDiagnostics[dia.details.user] = [
+                ...(this.perUserDiagnostics[dia.details.user] || []),
+                dia,
+              ]
+            }
+          })
+
+        this.diagCount = result.diagnostics?.length || 0;
+
         this.workTimeStatus = result.workTime;
+
         this.cdr.markForCheck();
       })
 
@@ -161,6 +250,8 @@ export class TkdRoster2Component implements OnInit, OnDestroy {
 
   private setSelectedDate(d: Date) {
     this.selectedDate = d;
+    this.hasChanges = false;
+    this.existingID = '';
 
     this.roster2.workShifts.findRequiredShifts(d)
       .subscribe(result => {
@@ -169,8 +260,8 @@ export class TkdRoster2Component implements OnInit, OnDestroy {
         let users = new Set<string>();
         Object.keys(result)
           .map(key => result[key])
-          .forEach(list => 
-            list.forEach(shift => 
+          .forEach(list =>
+            list.forEach(shift =>
               shift.eligibleStaff.forEach(staff => {
                 users.add(staff)
               })
@@ -208,6 +299,28 @@ export class TkdRoster2Component implements OnInit, OnDestroy {
         })
 
         this.cdr.markForCheck();
+      })
+
+    this.roster2.roster
+      .get(this.selectedDate.getFullYear(), this.selectedDate.getMonth()+1)
+      .subscribe({
+        next: result => {
+          result.shifts.forEach(shift => {
+            const key = toDateString(new Date(shift.from));
+            if (!this.rosterShifts[key]) {
+              this.rosterShifts[key] = [];
+            }
+
+            this.rosterShifts[key].push(shift)
+          });
+
+          this.existingID = result.id!;
+          this.cdr.markForCheck()
+        },
+        error: err => {
+          this.rosterShifts = {};
+          this.nzMessage.error(extractErrorMessage(err, 'Dienstplan konnte nicht geladen werden'))
+        }
       })
 
     this.ignoreRouteChange = true

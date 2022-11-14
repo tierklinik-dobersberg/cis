@@ -1,9 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable, InjectionToken } from '@angular/core';
 import { map, Observable } from 'rxjs';
+import { toDateString } from 'src/app/utils';
 import { formatDate } from 'src/utils/duration';
-import { RosterAPI } from '../roster.api';
-import { Constraint, DayKinds, JSDuration, OffTime, Roster, RosterAnalysis, RosterShiftWithStaffList, WorkShift, WorkTime } from './roster2-types';
+import { Constraint, DayKinds, JSDuration, OffTime, OnDutyResponse, Roster, RosterAnalysis, RosterShiftWithStaffList, WorkShift, WorkTime } from './roster2-types';
 
 export const ROSTERD_API = new InjectionToken<string>('ROSTERD_API')
 
@@ -52,6 +52,50 @@ export class Roster2Service {
             private apiURL: string
         ){}
 
+        create(roster: Roster): Observable<void> {
+          return this.http.post<void>(`${this.apiURL}/v1/roster/${roster.year}/${roster.month}`, roster)
+        }
+
+        update(roster: Roster): Observable<void> {
+          return this.http.put<void>(`${this.apiURL}/v1/roster/byid/${roster.id}`, roster)
+        }
+
+        get(year: number, month: number): Observable<Roster> {
+          return this.http.get<Roster>(`${this.apiURL}/v1/roster/${year}/${month}`)
+        }
+
+        delete(id: string): Observable<void>{
+          return this.http.delete<void>(`${this.apiURL}/v1/roster/byid/${id}`)
+        }
+
+        onDuty({tags, shortNames, time, date}: {tags?: string[], shortNames?: string[], time?: Date, date?: Date} = {}): Observable<OnDutyResponse> {
+          let params = new HttpParams();
+          if (!!tags) {
+            params = params.appendAll({tags})
+          }
+
+          if (!!shortNames) {
+            params = params.appendAll({shortNames})
+          }
+
+          if (!!time) {
+            params = params.set("time", time.toISOString())
+          }
+          if (!!date) {
+            params = params.set("date", toDateString(date))
+          }
+
+          return this.http.get<OnDutyResponse>(`${this.apiURL}/v1/roster/on-duty`, {params})
+        }
+
+        byId(id: string): Observable<Roster> {
+          return this.http.get<Roster>(`${this.apiURL}/v1/roster/byid/${id}`)
+        }
+
+        generate(year: number, month: number): Observable<Roster> {
+          return this.http.post<Roster>(`${this.apiURL}/v1/roster/${year}/${month}/generate`, null)
+        }
+
         dayKinds(from: Date, to: Date): Observable<DayKinds> {
             return this.http.get<DayKinds>(`${this.apiURL}/v1/roster/utils/daykinds/${formatDate(from)}/${formatDate(to)}`)
         }
@@ -72,7 +116,7 @@ export class Roster2Service {
         }
 
         update(constraint: Constraint): Observable<void> {
-            return this.http.post<void>(`${this.apiURL}/v1/constraint/${constraint.id}`, constraint);
+            return this.http.put<void>(`${this.apiURL}/v1/constraint/${constraint.id}`, constraint);
         }
 
         delete(id: string): Observable<void> {
@@ -132,8 +176,8 @@ export class Roster2Service {
             }
 
             const params = new HttpParams()
-                .append("from", from.toISOString().split('T')[0])
-                .append("to", to.toISOString().split('T')[0])
+                .append("from", toDateString(from))
+                .append("to", toDateString(to))
                 .append('stafflist', true)
 
             return this.http.get<{[date: string]: RosterShiftWithStaffList[]}>(`${this.apiURL}/v1/roster/shifts`, {

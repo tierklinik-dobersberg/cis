@@ -38,12 +38,14 @@ export interface WorkShift {
     color: string;
     order: number;
     description: string;
+    tags: string[];
 }
 
 export interface RosterShift {
     staff: string[];
     shiftID: string;
     shortName: string;
+    tags: string[];
     name: string;
     isHoliday: boolean;
     isWeekend: boolean;
@@ -51,6 +53,11 @@ export interface RosterShift {
     to: string;
     minutesWorth: number;
     requiredStaffCount: number;
+}
+
+export interface OnDutyResponse {
+  staff: string[];
+  shifts: RosterShift[];
 }
 
 export interface Constraint {
@@ -65,15 +72,13 @@ export interface Constraint {
 	rosterOnly: boolean;
 }
 
-export interface OffTimeConstraintViolation {
-    type: 'off-time'
+export interface ConstraintViolation {
+    type: 'off-time' | 'constraint';
     hard: boolean;
     id: string;
     name: string;
     penalty: number;
 }
-
-export type ConstraintViolation = OffTimeConstraintViolation;
 
 export interface RosterShiftWithStaffList extends RosterShift {
     eligibleStaff: string[];
@@ -167,15 +172,30 @@ export interface WorkTimeStatus {
 }
 
 export interface Diagnostic {
-    type: string;
-    date: string;
-    description: string;
-    details: any;
+    date?: string;
+    description?: string;
     penalty: number;
 }
 
+export interface ConstraintViolationDiagnostics extends Diagnostic {
+  type: 'constraint-violation'
+  details: {
+    user: string;
+    violations: ConstraintViolation[];
+  }
+}
+
+export interface MissingShiftDiagnostics extends Diagnostic {
+  type: 'missing-shift',
+  details: any
+}
+
+export type RosterDiagnostics = ConstraintViolationDiagnostics
+  | MissingShiftDiagnostics;
+
+
 export interface RosterAnalysis {
-    diagnostics: Diagnostic[];
+    diagnostics: RosterDiagnostics[];
     workTime: {
         [username: string]: WorkTimeStatus
     };

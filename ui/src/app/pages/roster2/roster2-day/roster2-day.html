@@ -1,4 +1,4 @@
-<span class="inline-block mb-1 w-full text-xs text-center rounded font-lato text-secondary"
+<span class="inline-block w-full mb-1 text-xs text-center rounded font-lato text-secondary"
   [ngClass]="{'bg-primary text-white':!!holiday}">{{ holiday?.localName}} {{ date | date:'dd.MM' }}</span>
 
 <ul class="flex overflow-auto flex-col flex-grow gap-1 px-0.5 py-0.5 group" *ngIf="!isDisabledDate">
@@ -10,7 +10,7 @@
 
     <ng-container *ngIf="shiftDefinitions[shift.shiftID] as def">
       <div
-        [nz-tooltip]="def.name + (def.description ? ': ' + def.description : '') + ' - Von ' + def.from + ' bis ' + (def.from|workShiftEnd:def.duration)"
+        [nz-tooltip]="def.name + (def.description ? ': ' + def.description : '') + ' - Von ' + (shift.from | date:'HH:mm') + ' bis ' + (def.from|workShiftEnd:def.duration)"
         class="flex overflow-hidden flex-col justify-between pr-1.5 text-xs uppercase whitespace-nowrap border-r select-none text-ellipsis text-secondary font-lato"
         [ngStyle]="{borderColor: shiftDefinitions[shift.shiftID]?.color + 'aa'}" style="font-size: 0.65rem;">
 
@@ -25,10 +25,18 @@
       </div>
 
       <span *ngIf="!!selectedUser && !(selectedUser|inList:shift.eligibleStaff)"
-        class="flex absolute top-3 right-3 justify-center items-center w-4 h-4 text-white rounded-full bg-opacity-light bg-alert-red"
-        [nz-tooltip]="shift.constraintViolations[selectedUser] | constraintViolation">!</span>
+        class="absolute flex items-center justify-center w-4 h-4 text-white rounded-full top-3 right-3 bg-opacity-light bg-alert-red"
+        [nz-tooltip]="violationTemplate">!</span>
 
-      <div class="flex flex-row flex-wrap flex-grow gap-1 items-center">
+      <ng-template #violationTemplate>
+        <ul>
+          <li *ngFor="let violation of shift.constraintViolations[selectedUser] | constraintViolation">
+            {{ violation }}
+          </li>
+        </ul>
+      </ng-template>
+
+      <div class="flex flex-row flex-wrap items-center flex-grow gap-1">
         <div *ngFor="let user of assigned[shift.shiftID]">
           <span *ngIf="users[user] as profile" class="block px-0.5 rounded border border-subtle"
             [ngStyle]="{backgroundColor: profile.color + 'aa', color: profile.fontColor, borderColor: profile.color}">
@@ -36,18 +44,25 @@
           </span>
         </div>
       </div>
-      
+
     </ng-container>
 
     <ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="trigger"
       [cdkConnectedOverlayOpen]="trigger.elementRef.nativeElement.open"
       (overlayOutsideClick)="onOverlayOutsideClick($event, trigger)">
-      <ul class="p-2 w-80 bg-white rounded-b ring-1 shadow">
+      <ul class="p-2 bg-white rounded-b shadow w-80 ring-1">
         <li *ngFor="let user of shift.eligibleStaff">
-          <div class="flex flex-row gap-2 items-center p-2 rounded cursor-pointer hover:bg-subtle"
+          <div class="flex flex-row items-center gap-2 p-2 rounded cursor-pointer hover:bg-subtle"
             (click)="onShiftClick(trigger, shift, user)">
+
             <nz-avatar nzIcon="user" [nzSrc]="users[user].avatar"></nz-avatar>
-            {{ users[user].fullname || user}}
+            <div class="flex flex-col justify-start gap-1">
+              <span>{{ users[user].fullname || user}}</span>
+              <span class="text-xs leading-3 text-secondary" *ngIf="workTimeStatus[user] as work">
+                <span [ngClass]="{'text-alert-red': work.expectedWorkTime < work.plannedWorkTime, 'text-alert-green-dark': work.expectedWorkTime > work.plannedWorkTime}">{{ work.plannedWorkTime | duration:'default-hours':'ms' }}</span>
+                <span>/{{ work.expectedWorkTime | duration:'default-hours':'ms' }}</span>
+              </span>
+            </div>
 
             <div class="flex-grow"></div>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"

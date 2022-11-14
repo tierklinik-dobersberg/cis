@@ -1,8 +1,10 @@
-import { EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { ProfileWithAvatar } from '@tkd/api';
 import { BehaviorSubject, combineLatest, interval, of, Subscription } from 'rxjs';
-import { catchError, map, mergeMap, startWith } from 'rxjs/operators';
-import { CalendarAPI, Day, LocalEvent, Roster, RosterAPI, UserService } from 'src/app/api';
+import { catchError, mergeMap, startWith } from 'rxjs/operators';
+import { CalendarAPI, UserService } from 'src/app/api';
+import { Roster2Service } from 'src/app/api/roster2';
+import { RosterShift } from './../../../api/roster2/roster2-types';
 
 @Component({
   selector: 'app-roster-card',
@@ -13,14 +15,10 @@ import { CalendarAPI, Day, LocalEvent, Roster, RosterAPI, UserService } from 'sr
 export class RosterCardComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
 
-  forenoon: ProfileWithAvatar[] = [];
-  afternoon: ProfileWithAvatar[] = [];
-  onCallDay: ProfileWithAvatar[] = [];
-  onCallNight: ProfileWithAvatar[] = [];
-
-  onCallIsSame = true;
-
-  eventsPerUser = new Map<string, LocalEvent[]>();
+  shifts: RosterShift[] = [];
+  users: {
+    [key: string]: ProfileWithAvatar
+  } = {}
 
   @Output()
   userHover = new EventEmitter<string>();
@@ -41,7 +39,7 @@ export class RosterCardComponent implements OnInit, OnDestroy {
   }
 
   constructor(
-    private rosterapi: RosterAPI,
+    private roster2: Roster2Service,
     private userService: UserService,
     private changeDetector: ChangeDetectorRef,
     private calendarapi: CalendarAPI,
@@ -59,61 +57,28 @@ export class RosterCardComponent implements OnInit, OnDestroy {
       .pipe(
         startWith(-1),
         mergeMap(() => {
-          const now = new Date();
-          return this.rosterapi.forMonth(now.getFullYear(), now.getMonth() + 1);
+          return this.roster2.roster.onDuty({date: new Date()})
         }),
         catchError(err => {
-          return of(null);
+          return of({shifts: []});
         }),
-        map((roster: Roster | null) => {
-          if (!roster) {
-            return null;
-          }
-          return roster.days[new Date().getDate()] || null;
-        })
       )
-      .subscribe((day: Day | null) => {
-        this.forenoon = (day?.forenoon || []).map(user => this.userService.byName(user));
-        this.afternoon = (day?.afternoon || []).map(user => this.userService.byName(user));
-        this.onCallDay = (day?.onCall.day || []).map(user => this.userService.byName(user));
-        this.onCallNight = (day?.onCall.night || []).map(user => this.userService.byName(user));
-
-        // FIXME(ppacher): make this a bit more obvious
-        if (this.onCallDay.length === 0) {
-          this.onCallDay = this.onCallNight;
-        }
-        this.onCallIsSame = JSON.stringify(this.onCallNight) == JSON.stringify(this.onCallDay);
-
+      .subscribe((response) => {
+        this.shifts = response.shifts;
         this.changeDetector.markForCheck();
-
-        const users = new Set([
-          ...this.forenoon,
-          ...this.afternoon,
-          ...this.onCallDay,
-          ...this.onCallNight,
-        ].filter(user => !!user.calendarID).map(u => u.name));
-        this.calendarapi.listEvents(null, Array.from(users))
-          .subscribe({
-            next: events => {
-              this.eventsPerUser.clear();
-              events.forEach(event => {
-                if (!!event.username) {
-                  const userEvents = this.eventsPerUser.get(event.username) || [];
-                  userEvents.push(event);
-                  this.eventsPerUser.set(event.username, userEvents);
-                }
-              });
-
-              this.changeDetector.markForCheck();
-            },
-            error: err => {
-              console.error(err);
-            }
-          });
 
       });
 
     this.subscriptions.add(rosterSubscription);
+
+    const userSub =this.userService.users
+      .subscribe(users => {
+        this.users = {};
+        users.forEach(u => this.users[u.name] = u);
+        this.changeDetector.markForCheck();
+      });
+
+    this.subscriptions.add(userSub);
   }
 
   ngOnDestroy(): void {

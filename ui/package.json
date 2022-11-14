@@ -64,6 +64,7 @@
     "@angular-eslint/template-parser": "^14.1.2",
     "@angular/cli": "^14.2.7",
     "@angular/compiler-cli": "^14.2.8",
+    "@ory/kratos-client": "^0.0.0-next.a36dda23f209",
     "@tailwindcss/typography": "^0.5.7",
     "@types/jasmine": "^4.3.0",
     "@types/node": "^18.11.8",

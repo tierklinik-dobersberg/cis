@@ -81,6 +81,7 @@ export class TkdWorkshiftDialogComponent implements OnInit {
                 color: '',
                 order: 0,
                 description: '',
+                tags: [],
             }
         }
 

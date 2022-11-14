@@ -1,9 +1,10 @@
 import {
   ActivatedRoute,
   ActivatedRouteSnapshot,
-  Router,
+  Router
 } from '@angular/router';
 import { SearchParserResult } from 'search-query-parser';
+import { padLeft } from 'src/utils/strings';
 
 /**
  * Toggle the presence of a query parameter in the current route.
@@ -148,6 +149,10 @@ export function toMongoDBFilter(res: SearchParserResult): object {
   });
 
   return filter;
+}
+
+export function toDateString(d: Date): string {
+  return `${d.getFullYear()}-${padLeft(''+(d.getMonth()+1), 2, '0')}-${padLeft(''+d.getDate(), 2, '0')}`
 }
 
 /**

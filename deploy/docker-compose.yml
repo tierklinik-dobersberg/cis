@@ -1,6 +1,42 @@
 version: "3.1"
 
 services:
+#  kratos-migrate:
+#    image: oryd/kratos:v0.10.1
+#    environment:
+#      - DSN=sqlite:///var/lib/sqlite/db.sqlite?_fk=true&mode=rwc
+#    volumes:
+#      - type: volume
+#        source: kratos-sqlite
+#        target: /var/lib/sqlite
+#        read_only: false
+#      - type: bind
+#        source: ./kratos
+#        target: /etc/config/kratos
+#    command: -c /etc/config/kratos/kratos.yml migrate sql -e --yes
+#    restart: on-failure
+#
+#  kratos:
+#    depends_on:
+#      - kratos-migrate
+#    image: oryd/kratos:v0.10.1
+#    ports:
+#      - '4433:4433' # public
+#      - '4434:4434' # admin
+#    restart: unless-stopped
+#    environment:
+#      - DSN=sqlite:///var/lib/sqlite/db.sqlite?_fk=true
+#      - LOG_LEVEL=trace
+#    command: serve -c /etc/config/kratos/kratos.yml --dev --watch-courier
+#    volumes:
+#      - type: volume
+#        source: kratos-sqlite
+#        target: /var/lib/sqlite
+#        read_only: false
+#      - type: bind
+#        source: ./kratos
+#        target: /etc/config/kratos
+
   jaeger:
     image: jaegertracing/all-in-one:1.30
     ports:
@@ -141,6 +177,7 @@ services:
       - /home/ppc/mnt/Infdat:/mnt
       - /tmp/cislog:/log
     environment:
+      ROSTERD_SERVER: "http://rosterd:8080"
       CIS_BOOTSTRAP_ADMIN: "password"
       CIS_IMPORT_VETINFIMPORTDISABLED: "yes"
       CONFIGURATION_DIRECTORY: /project/testdata/config
@@ -158,3 +195,6 @@ services:
       TZ: ""
     working_dir: /project
     command: bash -c "npm install && ./node_modules/.bin/ng serve --configuration=compose --host=0.0.0.0 --port=4200 --proxy-config ./proxy.deploy.json"
+
+# volumes:
+#   kratos-sqlite:

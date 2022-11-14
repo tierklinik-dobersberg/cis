@@ -6,26 +6,31 @@ import { ConstraintViolation } from "src/app/api/roster2";
     pure: true
 })
 export class TkdConstraintViolationPipe implements PipeTransform {
-    transform(value: ConstraintViolation[]): string {
+    transform(value: ConstraintViolation[]): string[] {
         if (value.length === 0) {
-            return '';
+            return [];
         }
 
-        const firstHard = value.find(p => p.hard === true);
-        if (firstHard) {
-            switch (firstHard.type) {
-                case 'off-time':
-                    return 'Urlaubsantrag: ' + firstHard.name
-                default:
-                    return 'unsupported'
-            }
-        }
+        return value.map(val => {
+          let prefix = '';
+          switch (val.type) {
+            case 'constraint':
+              prefix = 'Regel'
+              break;
 
-        switch (value[0].type) {
             case 'off-time':
-                return 'Urlaubsantrag: ' + value[0].name
+              prefix = 'Abwesenheit'
+              break;
+
             default:
-                return 'unsupported'
-        }
+              prefix = val.type
+          }
+
+          if (!val.name) {
+            return prefix;
+          }
+
+          return `${prefix}: ${val.name}`
+        })
     }
 }

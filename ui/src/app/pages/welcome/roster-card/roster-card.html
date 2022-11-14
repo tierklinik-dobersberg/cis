@@ -1,45 +1,19 @@
 <nz-card>
   <nz-card-meta nzTitle="Heute im Dienst"></nz-card-meta>
   <div class="grid">
-
-    <div>
-      <h3>Vormittag</h3>
-      <ng-container *ngTemplateOutlet="userGroupTemplate; context: {$implicit: forenoon}"></ng-container>
+    <div *ngFor="let shift of shifts">
+      <h3>{{ shift.name }}</h3>
+      <ng-container *ngTemplateOutlet="userGroupTemplate; context:{$implicit: shift.staff}"></ng-container>
     </div>
-    <div>
-      <h3>Nachmittag</h3>
-      <ng-container *ngTemplateOutlet="userGroupTemplate; context: {$implicit: afternoon}"></ng-container>
-    </div>
-
-    <ng-container *ngIf="!onCallIsSame; else oneOnCall">
-      <div>
-        <h3>Tag Bereitschaft</h3>
-        <ng-container *ngTemplateOutlet="userGroupTemplate; context: {$implicit: onCallDay}"></ng-container>
-      </div>
-      <div>
-        <h3>Nacht Bereitschaft</h3>
-        <ng-container *ngTemplateOutlet="userGroupTemplate; context: {$implicit: onCallNight}"></ng-container>
-      </div>
-    </ng-container>
-    <ng-template #oneOnCall>
-      <div>
-        <h3>Tag/Nacht Bereitschaft</h3>
-        <ng-container *ngTemplateOutlet="userGroupTemplate; context: {$implicit: onCallNight}"></ng-container>
-      </div>
-    </ng-template>
   </div>
 </nz-card>
 
 <ng-template #userGroupTemplate let-data>
   <nz-avatar-group>
     <ng-container *ngFor="let user of data">
-      <nz-avatar nzIcon="user" [nzSrc]="user.avatar" [nzSize]="48" nz-tooltip [nzTooltipTitle]="tooltipTemplate"
-        (mouseenter)="userHover.next(user.name)" (mouseleave)="userHover.next('')" (click)="userClicked(user.name)">
+      <nz-avatar nzIcon="user" [nzSrc]="users[user].avatar" [nzSize]="48"
+        (mouseenter)="userHover.next(user)" (mouseleave)="userHover.next('')" (click)="userClicked(user)">
       </nz-avatar>
-      <ng-template #tooltipTemplate>
-        {{ user.fullname }}<br />
-        <span><b>{{ eventsPerUser.get(user.name)?.length || 0 }}</b> Termine heute</span>
-      </ng-template>
     </ng-container>
   </nz-avatar-group>
 </ng-template>

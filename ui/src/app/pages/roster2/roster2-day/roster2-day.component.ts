@@ -1,13 +1,11 @@
-import { throwDialogContentAlreadyAttachedError } from "@angular/cdk/dialog";
 import { CdkOverlayOrigin } from "@angular/cdk/overlay";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
-import { DomSanitizer } from "@angular/platform-browser";
 import { NzModalService } from "ng-zorro-antd/modal";
 import { Holiday } from "src/app/api";
 import { WorkShift } from 'src/app/api/roster2';
 import { TkdConstraintViolationPipe } from "../constraint-violation-text.pipe";
 import { ProfileWithAvatar } from './../../../../../dist/tkd/api/lib/account/account.types.d';
-import { OffTime, RosterShift, RosterShiftWithStaffList } from './../../../api/roster2/roster2-types';
+import { OffTime, RosterShift, RosterShiftWithStaffList, WorkTimeStatus } from './../../../api/roster2/roster2-types';
 
 @Component({
   selector: 'tkd-roster2-day',
@@ -39,7 +37,7 @@ export class TkdRoster2DayComponent implements OnChanges {
 
   @Input()
   users: {[key: string]: ProfileWithAvatar} = {};
-  
+
   @Input()
   selectedUser: string | null = null;
 
@@ -52,12 +50,18 @@ export class TkdRoster2DayComponent implements OnChanges {
   @Input()
   offTimeRequest: {[id: string]: OffTime.Entry} = {}
 
+  @Input()
+  workTimeStatus: {[user: string]: WorkTimeStatus} = {}
+
   assigned: {
     [id: string]: Set<string>
   } = {};
 
   @Output()
   rosterShiftChange = new EventEmitter<RosterShift[]>();
+
+  @Input()
+  rosterShifts?: RosterShift[];
 
   get isDisabledDate() {
     return this.date.getMonth() !== this.rosterDate.getMonth();
@@ -106,7 +110,7 @@ export class TkdRoster2DayComponent implements OnChanges {
           confirmMessage = `Es sind bereits genügend Mitarbeiter dieser Schicht zugewiesen.`
         }
       }
-          
+
       if (!!confirmMessage) {
         this.nzModal.confirm({
           nzTitle: 'Bestätigung erforderlich',
@@ -160,8 +164,11 @@ export class TkdRoster2DayComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (!('requiredShifts' in changes)) {
-      return
+    if ('rosterShifts' in changes || 'requiredShifts' in changes) {
+      this.assigned = {};
+      this.rosterShifts?.forEach(shift => {
+        this.assigned[shift.shiftID] = new Set(shift.staff)
+      })
     }
   }
 }

@@ -1,14 +1,28 @@
-<div class="flex overflow-hidden flex-row h-full">
-  <div class="flex flex-col flex-shrink-0 gap-2 items-center w-24 bg-white border-r shadow-sm border-subtle">
-    <div class="flex flex-col flex-grow items-center w-full">
+<div class="relative flex flex-row h-full overflow-hidden">
+  <div class="flex flex-col items-center flex-shrink-0 w-24 gap-2 bg-white border-r shadow-sm border-subtle">
+    <div class="flex flex-col items-center flex-grow w-full">
       <ng-container *ngFor="let user of (users|keyvalue)">
-        <div *ngIf="user.key | inList:allEligibleUsers" tkdDebounceEvent="mouseenter" tkdDebounceStopEvent="mouseleave" tkdDebounceEventTime="1000" (tkdOnEvent)="highlightUserShifts = user.key" (mouseleave)="highlightUserShifts = null" (click)="setSelectedUser(user.key)" [nz-tooltip]="user.value.fullname || user.key" nzTooltipPlacement="right" [ngClass]="{'bg-secondary-dark shadow-inner bg-opacity-40': selectedUser === user.key}" class="flex flex-col gap-1 items-center p-2 w-full border-b transition-colors duration-200 ease-out cursor-pointer border-subtle group hover:bg-secondary hover:bg-opacity-25">
-          <nz-avatar [nzSize]="48" nzIcon="user" [nzSrc]="user.value.avatar" class="rounded-full transition-shadow duration-200 ease-in-out group-hover:ring-2" [ngClass]="{'ring-2 ring-alert-red': workTimeStatus[user.key]?.expectedWorkTime < workTimeStatus[user.key]?.plannedWorkTime, 'ring-2': selectedUser === user.key}"></nz-avatar>
+        <div *ngIf="user.key | inList:allEligibleUsers" (click)="setSelectedUser(user.key)" [nz-tooltip]="user.value.fullname || user.key" nzTooltipPlacement="right" [ngClass]="{'bg-secondary-dark shadow-inner bg-opacity-40': selectedUser === user.key}" class="relative flex flex-col items-center w-full gap-1 p-2 transition-colors duration-200 ease-out border-b cursor-pointer border-subtle group hover:bg-secondary hover:bg-opacity-25">
+          <nz-avatar [nzSize]="48" nzIcon="user" [nzSrc]="user.value.avatar" class="transition-shadow duration-200 ease-in-out rounded-full group-hover:ring-2" [ngClass]="{'ring-2 ring-alert-red': workTimeStatus[user.key]?.expectedWorkTime < workTimeStatus[user.key]?.plannedWorkTime, 'ring-2': selectedUser === user.key}"></nz-avatar>
           <span class="text-xs whitespace-nowrap font-lato text-secondary" *ngIf="workTimeStatus[user.key] as work">
             <span class="text-alert-red" [class.text-alert-green-dark]="work.expectedWorkTime > work.plannedWorkTime">{{ work.plannedWorkTime | duration:'default-hours':'ms' }}</span>/{{ work.expectedWorkTime | duration:'default-hours':'ms'}}
           </span>
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="absolute hidden w-4 h-4 text-color-primary text-opacity-light hover:text-color-primary group-hover:block top-1 right-1"  tkdDebounceEvent="mouseenter" tkdDebounceStopEvent="mouseleave" tkdDebounceEventTime="500" (tkdOnEvent)="highlightUserShifts = user.key" (mouseleave)="highlightUserShifts = null" >
+            <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+            <path fill-rule="evenodd" d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+          </svg>
+
         </div>
       </ng-container>
+
+        <nz-badge *ngIf="diagCount > 0" [nzCount]="diagCount" nzSize="small" class="mt-3">
+          <button class="tkd-icon-btn tkd-danger" (click)="showRosterDiagnostics = true" nz-tooltip="Probleme & Warnungen">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              </svg>
+          </button>
+        </nz-badge>
     </div>
     <div>
       <button class="tkd-icon-btn tkd-primary tkd-outline">
@@ -19,9 +33,76 @@
     </div>
   </div>
 
-  <nz-calendar [nzDisabledDate]="dateDisabled" [nzValue]="selectedDate" nzMode="month" [nzFullscreen]="true" (nzPanelChange)="onPanelChange($event)" (nzSelectChange)="onDateSelected($event)" class="overflow-auto flex-grow">
+  <nz-calendar [nzDisabledDate]="dateDisabled" [nzValue]="selectedDate" nzMode="month" [nzFullscreen]="true" (nzPanelChange)="onPanelChange($event)" (nzSelectChange)="onDateSelected($event)" class="flex-grow overflow-auto">
     <div *nzDateFullCell="let date">
-      <tkd-roster2-day (rosterShiftChange)="setRosterShifts(date, $event)" [offTimeRequest]="offTimeRequests" [rosterDate]="selectedDate" [date]="date" [holiday]="publicHolidays[date|date:'YYYY-MM-dd']" [users]="users" [shiftDefinitions]="shiftDefinitions" [requiredShifts]="requiredShifts[date|date:'YYYY-MM-dd']" [selectedUser]="selectedUser" [highlightUserShifts]="highlightUserShifts"></tkd-roster2-day>
+      <tkd-roster2-day [rosterShifts]="rosterShifts[date|date:'YYYY-MM-dd']" (rosterShiftChange)="setRosterShifts(date, $event)" [offTimeRequest]="offTimeRequests" [workTimeStatus]="workTimeStatus" [rosterDate]="selectedDate" [date]="date" [holiday]="publicHolidays[date|date:'YYYY-MM-dd']" [users]="users" [shiftDefinitions]="shiftDefinitions" [requiredShifts]="requiredShifts[date|date:'YYYY-MM-dd']" [selectedUser]="selectedUser" [highlightUserShifts]="highlightUserShifts"></tkd-roster2-day>
     </div>
   </nz-calendar>
+
+  <div *ngIf="hasChanges || !!existingID" class="absolute z-10 flex flex-row items-center h-10 gap-3 overflow-hidden transition-all duration-200 ease-in-out rounded-full shadow bg-subtle bottom-5 right-5 group w-9 hover:w-auto">
+    <button
+      class="text-white transition-all duration-200 ease-in-out translate-x-full opacity-0  group-hover:opacity-100 tkd-icon-btn bg-alert-red hover:bg-alert-red-dark group-hover:translate-x-0"
+      (click)="deleteRoster()"
+      *ngIf="!!existingID"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+        />
+      </svg>
+    </button>
+
+    <button class="text-white transition-all duration-200 ease-in-out translate-x-full opacity-0  group-hover:opacity-100 group-hover:translate-x-0 tkd-icon-btn bg-primary hover:bg-primary-dark" (click)="saveRoster()" *ngIf="hasChanges">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+        />
+      </svg>
+    </button>
+  </div>
 </div>
+
+<nz-modal [(nzVisible)]="showRosterDiagnostics" nzTitle="Probleme & Warnungen" (nzOnCancel)="showRosterDiagnostics = false">
+  <ul *nzModalContent class="space-y-3">
+    <li *ngFor="let dia of (perUserDiagnostics|keyvalue)">
+
+      <div class="pb-2">
+        <div class="flex flex-row items-start gap-4">
+            <nz-avatar [nzSize]="48" nzIcon="user" [nzSrc]="users[dia.key].avatar"></nz-avatar>
+            <div class="flex flex-col gap-1 mt-3">
+              <span class="font-semibold">{{ users[dia.key].fullname || dia.key }}</span>
+
+              <ng-container *ngFor="let userDiag of dia.value">
+                <span class="text-color-primary font-lato" *ngIf="userDiag.date">am {{ userDiag.date }}:</span>
+                <span class="text-color-primary font-lato" *ngIf="!userDiag.date">Allgemein:</span>
+                <ul class="text-sm">
+                    <li *ngFor="let vio of (userDiag.details.violations | constraintViolation)">{{ vio }}</li>
+                </ul>
+              </ng-container>
+            </div>
+        </div>
+      </div>
+
+    </li>
+  </ul>
+
+  <div *nzModalFooter class="flex flex-row justify-end mt-4">
+    <button class="tkd-btn tkd-primary" (click)="showRosterDiagnostics = false">Schließen</button>
+  </div>
+</nz-modal>

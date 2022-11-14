@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, Optional } from "@angular/core";
+import { ProfileWithAvatar } from "@tkd/api";
 import { NzMessageService } from "ng-zorro-antd/message";
 import { NzModalRef } from "ng-zorro-antd/modal";
-import { Constraint, Roster2Service } from "src/app/api/roster2";
-import { extractErrorMessage } from "src/app/utils";
 import { Observable } from "rxjs";
 import { IdentityAPI, Role, UserService } from "src/app/api";
-import { ProfileWithAvatar } from "@tkd/api";
+import { Constraint, Roster2Service } from "src/app/api/roster2";
+import { extractErrorMessage } from "src/app/utils";
 
 @Component({
     selector: 'tkd-constraint-dialog',
@@ -33,7 +33,7 @@ export class TkdConstraintDialogComponent implements OnInit {
             nzFooter: null,
         })
     }
-    
+
     ngOnInit(): void {
         if (!!this.constraint) {
             this.isEdit = true;

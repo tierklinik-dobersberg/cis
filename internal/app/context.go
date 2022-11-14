@@ -70,6 +70,8 @@ type App struct {
 	Tmpl2PDF        *tmpl2pdf.Creator
 	Wiki            *wiki.Database
 
+	RosterdServer string
+
 	maxUploadSize     int64
 	maxUploadSizeOnce sync.Once
 }
@@ -104,6 +106,7 @@ func NewApp(
 	healthchecks *healthchecks.Controller,
 	pdfCreator *tmpl2pdf.Creator,
 	wiki *wiki.Database,
+	RosterdServer string,
 ) *App {
 	return &App{
 		Config:          cfg,
@@ -130,6 +133,7 @@ func NewApp(
 		Healtchecks:     healthchecks,
 		Tmpl2PDF:        pdfCreator,
 		Wiki:            wiki,
+		RosterdServer:   RosterdServer,
 	}
 }
 

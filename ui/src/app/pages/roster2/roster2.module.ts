@@ -1,6 +1,7 @@
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { OverlayModule } from "@angular/cdk/overlay";
 import { NgModule } from "@angular/core";
+import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzCalendarModule } from 'ng-zorro-antd/calendar';
 import { TkdRosterSettingsModule } from "../admin/roster-settings";
 import { SharedModule } from './../../shared/shared.module';
@@ -15,6 +16,7 @@ import { TkdRoster2Component } from './roster2.component';
     SharedModule,
     TkdRoster2Routing,
     NzCalendarModule,
+    NzBadgeModule,
     DragDropModule,
     TkdRosterSettingsModule,
     OverlayModule

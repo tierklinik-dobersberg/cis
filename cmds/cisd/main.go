@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -479,6 +480,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		checks,
 		pdfCreator,
 		wiki,
+		os.Getenv("ROSTERD_SERVER"),
 	)
 
 	ctx = app.With(baseCtx, appCtx)

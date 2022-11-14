@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -15,7 +17,9 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
+	"github.com/tierklinik-dobersberg/cis/pkg/jwt"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/external/v1alpha"
+	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.opentelemetry.io/otel"
@@ -181,104 +185,91 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, dateTime time.Time, igno
 		}
 	}
 
-	// find out if we need to the doctor-on-duty from today or the day before
-	// depending on the ChangeOnDuty time for today.
-	changeDutyAt := app.Door.ChangeOnDuty(ctx, dateTime)
-	var (
-		nextChange time.Time
-		source     string
-		isDayShift bool
-	)
-
-	if changeDutyAt.IsApplicable(dateTime) {
-		if changeDutyAt.IsDayShift(dateTime) {
-			nextChange = changeDutyAt.NightStartAt(dateTime)
-			isDayShift = true
-			source = changeDutyAt.SourceNightStart
-		} else {
-			isDayShift = false
-			nextDay := dateTime.Add(24 * time.Hour)
-			nextDayChange := app.Door.ChangeOnDuty(ctx, nextDay)
-			nextChange = nextDayChange.DayStartAt(nextDay)
-			source = nextDayChange.SourceDayStart
-		}
-	} else {
-		// we're during the night-shift of the previous day
-		// so we need to load that to get the responsible staff.
-		nextChange = changeDutyAt.DayStartAt(dateTime)
-		source = changeDutyAt.SourceDayStart
-		newT := dateTime.Add(-24 * time.Hour)
-		log.V(7).Logf("switching lookup time from %s to %s the previous night shift is active", dateTime, newT)
-		dateTime = newT
+	if app.RosterdServer == "" {
+		log.Error("No rosterd server address defined, returning")
+		return nil, nil
 	}
 
-	rosterDate := dateTime.Format("2006-01-02")
-
-	log = log.WithFields(logger.Fields{
-		"nextChange": nextChange.Format(time.RFC3339),
+	auth, err := jwt.SignToken(app.Config.SigningMethod, []byte(app.Config.Secret), jwt.Claims{
+		Audience:  app.Config.Audience,
+		Issuer:    app.Config.Issuer,
+		IssuedAt:  time.Now().Unix(),
+		ExpiresAt: time.Now().Add(5 * time.Second).Unix(),
+		NotBefore: time.Now().Unix(),
+		AppMetadata: &jwt.AppMetadata{
+			TokenVersion: session.CurrentTokenVersion,
+			Authorization: &jwt.Authorization{
+				Roles: []string{"internal:m2m"},
+			},
+		},
+		Scopes:  []jwt.Scope{jwt.ScopeAccess},
+		Subject: "cis",
+		Name:    "cis",
 	})
-
-	day, err := app.DutyRosters.ForDay(ctx, dateTime)
 	if err != nil {
-		return nil, err
+		return nil, httperr.InternalError().SetInternal(err)
 	}
 
-	// Get the correct username slice. If there's no "day-shift"
-	// configured we fallback to the night shift.
-	// TODO(ppacher): make this configurable or at least make sure
-	// everyone knows that!
-	var (
-		activeShift  []string
-		isNightShift = !isDayShift
-	)
-	if isDayShift && len(day.OnCall.Day) > 0 {
-		activeShift = day.OnCall.Day
-		log.WithFields(logger.Fields{
-			"users": activeShift,
-		}).Infof("using day shift")
-	} else {
-		activeShift = day.OnCall.Night
-		isNightShift = true
-		if isDayShift {
-			log.WithFields(logger.Fields{
-				"users": activeShift,
-			}).Infof("no day shift defined, falling back to night shift.")
-		}
+	query := make(url.Values)
+	query.Set("time", dateTime.Format(time.RFC3339))
+	query.Set("tags", "OnCall")
+
+	u := fmt.Sprintf("%s/v1/roster/on-duty?%s", strings.TrimPrefix(app.RosterdServer, "/"), query.Encode())
+
+	req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
+	if err != nil {
+		return nil, httperr.InternalError().SetInternal(err)
+	}
+	req.Header.Set("Authorization", "Bearer "+auth)
+
+	log.Infof("sending on-duty query to rosterd at %s", app.RosterdServer)
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, httperr.InternalError().SetInternal(err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		log.Errorf("received unexpected status code %d from rosterd", res.StatusCode)
+		return nil, httperr.InternalError().SetInternal(fmt.Errorf("unexpected status code %d from rosterd", res.StatusCode))
 	}
 
-	if len(activeShift) == 0 {
-		return nil, httperr.NotFound("doctor-on-duty", "no onCall shifts defined")
+	var response struct {
+		Staff []string `json:"staff"`
 	}
 
-	// convert all the usernames from the Emergency slice to their
-	// v1alpha.DoctorOnDuty API model.
-	doctorsOnDuty := make([]v1alpha.DoctorOnDuty, len(activeShift))
-	for idx, u := range activeShift {
-		user, ok := userByName[u]
+	log.Infof("received rosterd response, decoding ...")
+	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
+		return nil, httperr.InternalError().SetInternal(err)
+	}
+
+	dod := &v1alpha.DoctorOnDutyResponse{
+		Doctors:     nil,
+		IsOverwrite: false,
+		RosterDate:  dateTime.Format("2006-01-02"),
+		// TODO(ppacher): we can set Until here based on the returned shifts
+	}
+
+	for _, user := range response.Staff {
+		u, ok := userByName[user]
 		if !ok {
-			log.Errorf("unknown user %s configured as doctor-on-duty", u)
+			log.Errorf("rosterd returned unknown user %q", user)
+			continue
 		}
 
 		var phone string
-		if len(user.PhoneNumber) > 0 {
-			phone = user.PhoneNumber[0]
+		if len(u.PhoneNumber) > 0 {
+			phone = u.PhoneNumber[0]
 		}
 
-		doctorsOnDuty[idx] = v1alpha.DoctorOnDuty{
-			Username:   user.Name,
-			FullName:   user.Fullname,
+		dod.Doctors = append(dod.Doctors, v1alpha.DoctorOnDuty{
+			Username:   u.Name,
+			FullName:   u.Fullname,
 			Phone:      phone,
-			Properties: user.Properties,
-		}
+			Properties: u.Properties,
+		})
 	}
 
-	return &v1alpha.DoctorOnDutyResponse{
-		Doctors:       doctorsOnDuty,
-		Until:         nextChange,
-		IsOverwrite:   false,
-		IsDayShift:    isDayShift,
-		IsNightShift:  isNightShift,
-		RosterDate:    rosterDate,
-		EndTimeSource: source,
-	}, nil
+	return dod, nil
 }

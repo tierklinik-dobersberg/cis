@@ -3,8 +3,8 @@ module github.com/tierklinik-dobersberg/cis
 go 1.14
 
 require (
-	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
-	github.com/PaesslerAG/gval v1.1.2 // indirect
+	github.com/Masterminds/sprig/v3 v3.2.2
+	github.com/PaesslerAG/gval v1.1.2
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/alecthomas/chroma v0.9.4 // indirect
 	github.com/antzucaro/matchr v0.0.0-20210222213004-b04723ef80f0
@@ -22,6 +22,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/google/uuid v1.3.0
 	github.com/hairyhenderson/gomplate/v3 v3.10.0
+	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/hashicorp/go-version v1.3.0
 	github.com/hashicorp/hcl/v2 v2.11.1
 	github.com/kevinburke/go-types v0.0.0-20210723172823-2deba1f80ba7 // indirect

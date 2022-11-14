@@ -7,7 +7,7 @@
     }
   },
   "/api/roster": {
-    "target": "https://localhost:8080/",
+    "target": "http://localhost:8080/",
     "changeOrigin": true,
     "secure": false,
     "pathRewrite": {
@@ -19,7 +19,7 @@
     "secure": false
   },
   "/api": {
-    "target": "https://localhost:3000/",
+    "target": "http://localhost:3000/",
     "changeOrigin": true,
     "secure": false
   }
