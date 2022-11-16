@@ -8,7 +8,8 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { BehaviorSubject, combineLatest, forkJoin, interval, Observable, of, Subject } from 'rxjs';
 import { catchError, map, startWith, switchMap, take, takeUntil } from 'rxjs/operators';
-import { CalendarAPI, Day, LocalEvent, OpeningHoursAPI, OpeningHoursResponse, RosterAPI, UserService } from 'src/app/api';
+import { CalendarAPI, LocalEvent, OpeningHoursAPI, OpeningHoursResponse, RosterAPI, UserService } from 'src/app/api';
+import { Roster2Service } from 'src/app/api/roster2';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, getContrastFontColor } from 'src/app/utils';
 import { Duration } from 'src/utils/duration';
@@ -69,6 +70,9 @@ export class DayViewComponent implements OnInit, OnDestroy {
     /** Reference to the event details overlay */
     private _eventDetailsOverlay: OverlayRef | null = null;
 
+    /** The currently working staff today according to the roster */
+    roster: string[] = [];
+
     /** Whether or not we're still in the initial load */
     loading = true;
 
@@ -100,9 +104,6 @@ export class DayViewComponent implements OnInit, OnDestroy {
         'all': 'Alle Kalender',
         'selected': 'Nur ausgewählte',
     };
-
-    /** The current roster of the day */
-    roster: Day | null = null;
 
     openingHours: {y: string, height: string}[] = [];
 
@@ -422,7 +423,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
         private cdr: ChangeDetectorRef,
         private ngZone: NgZone,
         private openingHoursAPI: OpeningHoursAPI,
-        private rosterAPI: RosterAPI,
+        private roster2: Roster2Service,
         private viewContainer: ViewContainerRef,
         private overlay: Overlay,
         private modal: NzModalService,
@@ -456,18 +457,18 @@ export class DayViewComponent implements OnInit, OnDestroy {
                             }),
                             map(result => result.openingHours),
                           ),
-                        roster: this.rosterAPI.forDay(date)
+                        roster: this.roster2
+                            .roster
+                            .onDuty({date: date})
                             .pipe(
+                              map(result => result.staff),
                               catchError(err => {
                                 if (err instanceof HttpErrorResponse && err.status === 404) {
-                                  return of(err.error) as Observable<Day<Date>>;
+                                  return of([]);
                                 }
 
                                 console.error("failed to load roster", err);
-                                return of({
-                                  forenoon: [],
-                                  afternoon: [],
-                                } as Day<Date>)
+                                return of([])
                               })
                             ),
                         events: this.calendarapi.listEvents(date)
@@ -547,13 +548,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
                     return 0;
                 });
 
-                const usersByRoster = new Set<string>();
-                this.roster.afternoon?.forEach(user => {
-                  usersByRoster.add(user);
-                })
-                this.roster.forenoon?.forEach(user => {
-                  usersByRoster.add(user);
-                })
+                const usersByRoster = new Set<string>(this.roster || []);
 
                 // determine if new calendars should start visible or not.
                 // also make sure we have a stable event order

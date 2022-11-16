@@ -1,54 +1,34 @@
 <div class="m-4 sm:m-0">
-  <div *ngIf="today && today.actual; else: noOverwrite">
+  <div *ngIf="today; else: noOverwrite">
+
     <div class="flex flex-row items-start">
       <div class="w-14">
-        <nz-avatar
-          nzIcon="user"
-          nzShape="circle"
-          [nzSize]="56"
-          class="tkd-avatar"
-          [nzSrc]="today.actualUser?.avatar || null"
-        ></nz-avatar>
+        <nz-avatar nzIcon="user" nzShape="circle" [nzSize]="56" class="tkd-avatar"
+          [nzSrc]="(today?.username | toUser)?.avatar || null"></nz-avatar>
       </div>
-      <div class="flex flex-col justify-start flex-grow ml-4">
-        <span class="font-semibold text-primary"
-          >{{ today.actualUser?.fullname || today.actual.displayName ||
-          today.actual.phoneNumber }}</span
-        >
+
+      <div class="flex flex-col flex-grow justify-start ml-4">
+        <span class="font-semibold text-primary">{{ (today.username | toUser)?.fullname || today.displayName ||
+          today.phoneNumber }}</span>
         <span class="text-secondary">
-          Telefon ist bis
-          <span class="text-highlight"
-            >{{ today.actual.to | date:'medium' }}</span
-          >
-          umgeleitet und folgt nicht dem aktuellen Dienstplan!
+          Telefon ist bis <span class="text-highlight">{{ today.to | date:'medium' }}</span> umgeleitet und folgt
+          nicht dem aktuellen Dienstplan!
         </span>
         <span class="text-secondary">
           Klicke rechts auf Löschen um die Umleitung zu entfernen.
-          <span *ngIf="!today?.onDuty?.users?.length" class="text-alert-red">
-            Achtung, es existiert
-            <a class="underline text-alert-red-dark" routerLink="/roster"
-              >kein Dienstplan für heute!</a
-            ></span
-          >
+          <!--
+            FIXME
+          <span  class="text-alert-red">
+            Achtung, es existiert <a class="underline text-alert-red-dark" routerLink="/roster">kein Dienstplan für
+              heute!</a></span>
+          -->
         </span>
       </div>
       <div class="self-center">
-        <button
-          (click)="deleteCurrentOverwrite()"
-          class="tkd-icon-btn tkd-danger"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-            />
+        <button (click)="deleteCurrentOverwrite()" class="tkd-icon-btn tkd-danger">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>
         </button>
       </div>
@@ -56,26 +36,16 @@
   </div>
 
   <ng-template #noOverwrite>
-    <div
-      class="flex flex-row items-start"
-      *ngIf="today?.onDuty?.users?.length; else: noRosterOrOverwrite"
-    >
-      <nz-avatar
-        nzIcon="user"
-        nzShape="circle"
-        [nzSize]="56"
-        class="rounded-full shadow"
-        [nzSrc]="today.onDuty.users[0].avatar"
-      ></nz-avatar>
-      <div class="flex flex-col justify-start flex-grow ml-4">
-        <span class="font-semibold text-primary"
-          >{{ today.onDuty.users[0].fullname || today.onDuty.users[0].name }}</span
-        >
+    <div class="flex flex-row items-start" *ngIf="today?.onDuty?.users?.length; else: noRosterOrOverwrite">
+
+      <nz-avatar nzIcon="user" nzShape="circle" [nzSize]="56" class="rounded-full shadow"
+        [nzSrc]="today.onDuty.users[0].avatar"></nz-avatar>
+
+      <div class="flex flex-col flex-grow justify-start ml-4">
+        <span class="font-semibold text-primary">{{ today.onDuty.users[0] | username }}</span>
         <span class="text-secondary">
           Anrufe werden
-          <a routerLink="/roster" class="underline text-highlight"
-            >laut Dienstplan</a
-          >
+          <a routerLink="/roster" class="underline text-highlight">laut Dienstplan</a>
           zugestellt.
         </span>
       </div>
@@ -83,19 +53,10 @@
 
     <ng-template #noRosterOrOverwrite>
       <div class="flex flex-row items-center">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="p-2 text-white rounded-full shadow w-14 h-14 bg-alert-red"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-          />
+        <svg xmlns="http://www.w3.org/2000/svg" class="p-2 w-14 h-14 text-white rounded-full shadow bg-alert-red"
+          fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
         <span class="ml-4 font-semibold text-alert-red">
           Es ist momentan
@@ -110,19 +71,12 @@
   </ng-template>
 </div>
 
-<div
-  class="mb-12 tkd-card"
-  [class.ready]="overwriteType !== '' && !!from && !!to"
->
+<div class="mb-12 tkd-card">
   <header>
     <h1>Telefon umleiten</h1>
-    <span
-      >Hier kannst du den bestehenden
-      <a class="text-highlight hover:underline" routerLink="/roster"
-        >Dienstplan</a
-      >
-      überschreiben bzw das Notruf-Telefon umleiten.</span
-    >
+    <span>Hier kannst du den bestehenden
+      <a class="text-highlight hover:underline" routerLink="/roster">Dienstplan</a>
+      überschreiben bzw das Notruf-Telefon umleiten.</span>
   </header>
 
   <div class="p-12 space-y-8">
@@ -131,144 +85,59 @@
         <h2 class="text-lg font-semibold text-primary font-lato">
           1. Wähle den Zeitraum
         </h2>
-        <span class="text-sm text-secondary"
-          >In welchem Zeitraum möchstest du den Dienstplan überschreiben und das
-          Notruf-Telefon umleiten?</span
-        >
+        <span class="text-sm text-secondary">In welchem Zeitraum möchstest du den Dienstplan überschreiben und das
+          Notruf-Telefon umleiten?</span>
       </div>
 
-      <div
-        class="flex flex-col justify-between space-y-2 sm:flex-row sm:space-y-0"
-      >
-        <div class="block w-full mr-1 sm:w-56">
-          <nz-select
-            [(ngModel)]="overwriteType"
-            (ngModelChange)="onDateChange()"
-            class="w-full"
-            nzPlaceHolder="Bitte auswählen"
-          >
-            <nz-option
-              nzValue="day-shift"
-              nzLabel="Tag-Bereitschaft"
-            ></nz-option>
-            <nz-option
-              nzValue="night-shift"
-              nzLabel="Nacht-Bereitschaft"
-            ></nz-option>
-            <nz-option
-              nzValue="both"
-              nzLabel="Tag und Nacht Bereitschaft"
-            ></nz-option>
+      <div class="flex flex-col justify-between space-y-2 sm:flex-row sm:space-y-0">
+        <div class="block mr-1 w-full sm:w-56">
+          <nz-select [(ngModel)]="overwriteTarget" (ngModelChange)="onDateChange()" class="w-full"
+            nzPlaceHolder="Bitte auswählen">
+            <nz-option nzValue="day-shift" nzLabel="Tag-Bereitschaft"></nz-option>
+            <nz-option nzValue="night-shift" nzLabel="Nacht-Bereitschaft"></nz-option>
+            <nz-option nzValue="both" nzLabel="Tag und Nacht Bereitschaft"></nz-option>
             <nz-option nzValue="custom" nzLabel="Beliebig"></nz-option>
           </nz-select>
         </div>
 
-        <div
-          class="items-center flex-grow space-y-2"
-          *ngIf="overwriteType !== ''"
-        >
+        <div class="flex-grow items-center space-y-2" *ngIf="overwriteTarget !== ''">
           <!-- Custom Overwrite Date/Time Range -->
-          <ng-container *ngIf="overwriteType === 'custom'; else: dateSelector">
+
+          <ng-container *ngIf="overwriteTarget === 'custom'; else: dateSelector">
             <div class="flex">
-              <div class="w-10 mt-1 text-center">Von</div>
+              <div class="mt-1 w-10 text-center">Von</div>
               <div class="flex flex-col flex-grow md:flex-row">
-                <nz-date-picker
-                  class="w-full md:w-auto"
-                  name="from"
-                  [(ngModel)]="from"
-                  (ngModelChange)="onDateChange()"
-                  [nzDisabledDate]="disabledStartDate"
-                  [nzAllowClear]="false"
-                ></nz-date-picker>
-                <nz-time-picker
-                  class="w-full md:w-auto"
-                  nzFormat="HH:mm"
-                  [(ngModel)]="from"
-                  nzS
-                  (ngModelChange)="onDateChange()"
-                  [nzAddOn]="quickTimeSelectFrom"
-                  [nzMinuteStep]="15"
-                  [nzAllowEmpty]="false"
-                ></nz-time-picker>
+                <nz-date-picker class="w-full md:w-auto" name="from" [(ngModel)]="from" (ngModelChange)="onDateChange()"
+                  [nzDisabledDate]="disabledStartDate" [nzAllowClear]="false"></nz-date-picker>
+                <nz-time-picker class="w-full md:w-auto" nzFormat="HH:mm" [(ngModel)]="from" nzS
+                  (ngModelChange)="onDateChange()" [nzMinuteStep]="15"
+                  [nzAllowEmpty]="false"></nz-time-picker>
               </div>
             </div>
 
             <div class="flex">
-              <div class="w-10 mt-1 text-center">Bis</div>
+              <div class="mt-1 w-10 text-center">Bis</div>
               <div class="flex flex-col flex-grow md:flex-row">
-                <nz-date-picker
-                  class="w-full md:w-auto"
-                  name="to"
-                  [(ngModel)]="to"
-                  (ngModelChange)="onDateChange()"
-                  [nzDisabledDate]="disabledEndDate"
-                  [nzAllowClear]="false"
-                ></nz-date-picker>
-                <nz-time-picker
-                  class="w-full md:w-auto"
-                  nzFormat="HH:mm"
-                  [(ngModel)]="to"
-                  (ngModelChange)="onDateChange()"
-                  [nzMinuteStep]="15"
-                  [nzAddOn]="quickTimeSelectTo"
-                  [nzAllowEmpty]="false"
-                ></nz-time-picker>
+                <nz-date-picker class="w-full md:w-auto" name="to" [(ngModel)]="to" (ngModelChange)="onDateChange()"
+                  [nzDisabledDate]="disabledEndDate" [nzAllowClear]="false"></nz-date-picker>
+                <nz-time-picker class="w-full md:w-auto" nzFormat="HH:mm" [(ngModel)]="to"
+                  (ngModelChange)="onDateChange()" [nzMinuteStep]="15"
+                  [nzAllowEmpty]="false"></nz-time-picker>
               </div>
             </div>
-
-            <ng-template #quickTimeSelectFrom>
-              <ng-container
-                *ngTemplateOutlet="quickTimeSelect; context: {$implicit: 'from'}"
-              ></ng-container>
-            </ng-template>
-            <ng-template #quickTimeSelectTo>
-              <ng-container
-                *ngTemplateOutlet="quickTimeSelect; context: {$implicit: 'to'}"
-              ></ng-container>
-            </ng-template>
-
-            <ng-template #quickTimeSelect let-what>
-              <div class="flex flex-col py-1 space-y-1 text-xs w-36">
-                <span class="text-secondary">oder Dienstbeginn: </span>
-                <button
-                  class="self-center w-32 tkd-btn tkd-small tkd-tertiary tkd-outline"
-                  (click)="selectTime(what)"
-                >
-                  Tagdienst
-                </button>
-                <button
-                  class="self-center w-32 tkd-btn tkd-small tkd-tertiary tkd-outline"
-                  (click)="selectTime(what)"
-                >
-                  Nachtdienst
-                </button>
-              </div>
-            </ng-template>
           </ng-container>
 
           <!-- Quick Select Day/Night shift -->
           <ng-template #dateSelector>
             <div class="flex">
-              <span class="w-10 mt-1 text-center">vom</span>
-              <nz-date-picker
-                class="flex-grow md:flex-grow-0"
-                [(ngModel)]="from"
-                (ngModelChange)="onDateChange()"
-                [nzDisabledDate]="isBeforeRosterDate"
-                [nzAllowClear]="false"
-              ></nz-date-picker>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="mt-1.5 ml-1.5 w-5 h-5 text-deEmphasized"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                [nz-tooltip]="tooltipTemplate"
-              >
-                <path
-                  fill-rule="evenodd"
+              <span class="mt-1 w-10 text-center">vom</span>
+              <nz-date-picker class="flex-grow md:flex-grow-0" [(ngModel)]="from" (ngModelChange)="onDateChange()"
+                [nzDisabledDate]="isBeforeRosterDate" [nzAllowClear]="false"></nz-date-picker>
+              <svg xmlns="http://www.w3.org/2000/svg" class="mt-1.5 ml-1.5 w-5 h-5 text-deEmphasized"
+                viewBox="0 0 20 20" fill="currentColor" [nz-tooltip]="tooltipTemplate">
+                <path fill-rule="evenodd"
                   d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
-                  clip-rule="evenodd"
-                />
+                  clip-rule="evenodd" />
               </svg>
             </div>
 
@@ -281,36 +150,22 @@
       </div>
 
       <!-- User avatars for day/night on-duty on the selected date -->
-      <div
-        *ngIf="!!statesForRange?.length"
-        class="flex flex-col space-y-2 sm:space-x-2 sm:space-y-0 sm:flex-row sm:items-center"
-      >
+      <div *ngIf="!!statesForRange?.length"
+        class="flex flex-col space-y-2 sm:space-x-2 sm:space-y-0 sm:flex-row sm:items-center">
         <span class="text-primary">Im Dienst laut Plan:</span>
-        <nz-avatar-group
-          class="current-state"
-          *ngFor="let state of statesForRange"
-        >
-        <ng-container *ngFor="let shift of state.shifts">
-            <ng-container
-              *ngFor="let user of shift.staff; trackBy: trackProfile"
-            >
-              <nz-avatar
-                [nz-tooltip]="user + ' - Tag Bereitschaft'"
-                nzIcon="user"
-                nzShape="circle"
-                [nzSrc]="(user|toUser)?.avatar"
-              ></nz-avatar>
+        <nz-avatar-group class="current-state" *ngFor="let state of statesForRange">
+          <ng-container *ngFor="let shift of state.shifts">
+            <ng-container *ngFor="let user of shift.staff; trackBy: trackProfile">
+              <nz-avatar [nz-tooltip]="user + ' - Tag Bereitschaft'" nzIcon="user" nzShape="circle"
+                [nzSrc]="(user|toUser)?.avatar"></nz-avatar>
             </ng-container>
-        </ng-container>
+          </ng-container>
         </nz-avatar-group>
       </div>
 
       <!-- List of overlapping overwrites -->
-      <div
-        *ngIf="overlapping?.length && !firstLoad"
-        class="p-4 text-white border rounded shadow bg-alert-red border-alert-red-dark"
-        [@scaleInOut]
-      >
+      <div *ngIf="overlapping?.length && !firstLoad"
+        class="p-4 text-white rounded border shadow bg-alert-red border-alert-red-dark" [@scaleInOut]>
         <div class="mb-2">
           <h2 class="text-base text-white underline">
             Überlappende Einträge gefunden
@@ -324,38 +179,23 @@
           </span>
         </div>
         <ul class="mx-4">
-          <li
-            *ngFor="let ov of overlapping"
-            class="flex flex-col-reverse items-start p-2 space-x-4 border-b border-white border-opacity-20 md:items-center md:flex-row"
-          >
-            <div class="flex-col items-center justify-around hidden md:flex">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fill-rule="evenodd"
+          <li *ngFor="let ov of overlapping"
+            class="flex flex-col-reverse items-start p-2 space-x-4 border-b border-white border-opacity-20 md:items-center md:flex-row">
+            <div class="hidden flex-col justify-around items-center md:flex">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd"
                   d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                  clip-rule="evenodd"
-                />
+                  clip-rule="evenodd" />
               </svg>
             </div>
-            <div class="flex flex-row text-xs justify-evenly md:flex-col">
+            <div class="flex flex-row justify-evenly text-xs md:flex-col">
               <span>{{ ov.from | date:"short" }}</span>
               <span class="inline-block mx-2 md:hidden">bis</span>
               <span>{{ ov.to | date:"short" }}</span>
             </div>
-            <div
-              class="relative flex flex-row items-center self-stretch flex-grow space-x-2 "
-            >
+            <div class="flex relative flex-row flex-grow items-center self-stretch space-x-2">
               <ng-container *ngIf="ov.user; else: noUserTemplate">
-                <nz-avatar
-                  nzIcon="user"
-                  nzShape="circle"
-                  [nzSrc]="ov.user.avatar"
-                ></nz-avatar>
+                <nz-avatar nzIcon="user" nzShape="circle" [nzSrc]="ov.user.avatar"></nz-avatar>
                 <div>{{ ov.user.fullname || ov.user.name }}</div>
               </ng-container>
               <ng-template #noUserTemplate>
@@ -363,41 +203,19 @@
                 <span>{{ ov.phoneNumber }}</span>
               </ng-template>
 
-              <button
-                class="absolute inline-block right-2 md:hidden tkd-icon-btn-inverse tkd-danger no-shadow"
-                (click)="deleteOverwrite(ov)"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
+              <button class="inline-block absolute right-2 md:hidden tkd-icon-btn-inverse tkd-danger no-shadow"
+                (click)="deleteOverwrite(ov)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
             </div>
-            <button
-              class="hidden mr-4 md:inline-block tkd-icon-btn-inverse tkd-danger no-shadow"
-              (click)="deleteOverwrite(ov)"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
+            <button class="hidden mr-4 md:inline-block tkd-icon-btn-inverse tkd-danger no-shadow"
+              (click)="deleteOverwrite(ov)">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </button>
           </li>
@@ -405,27 +223,18 @@
       </div>
     </section>
 
-    <section
-      [class.ready]="!!selectedUser || !!selectedQuickTargetNumber || !!customPhoneNumber"
-      class="space-y-4"
-    >
+    <section [class.ready]="!!selectedUser || !!selectedQuickTargetNumber || !!customPhoneNumber" class="space-y-4">
       <div>
         <h2 class="text-lg font-semibold text-primary font-lato">
           2. Wähle das neue Ziel
         </h2>
-        <span class="text-sm text-secondary"
-          >Wähle die Person beziehungsweise das Umleitungsziel für den
-          angegebenen Zeitraum.</span
-        >
+        <span class="text-sm text-secondary">Wähle die Person beziehungsweise das Umleitungsziel für den
+          angegebenen Zeitraum.</span>
       </div>
 
       <div class="user-list">
-        <div
-          *ngFor="let setting of quickSettings; trackBy: trackQuickSetting"
-          class="quick-setting"
-          [class.selected]="setting.TargetNumber === selectedQuickTargetNumber"
-          (click)="selectQuickSetting(setting)"
-        >
+        <div *ngFor="let setting of quickSettings; trackBy: trackQuickSetting" class="quick-setting"
+          [class.selected]="setting.TargetNumber === selectedQuickTargetNumber" (click)="selectQuickSetting(setting)">
           <nz-avatar nzIcon="number" nzShape="circle"></nz-avatar>
           <div>
             <span class="name">{{ setting.DisplayName }}</span>
@@ -434,61 +243,24 @@
         </div>
       </div>
       <div class="user-list">
-        <div
-          *ngFor="let user of preferredUsers; trackBy: trackProfile"
-          class="user"
-          (click)="selectUser(user.name)"
-          [class.selected]="user.name === selectedUser"
-        >
-          <nz-avatar
-            nzIcon="user"
-            nzShape="circle"
-            [nzSrc]="user.avatar"
-          ></nz-avatar>
+        <div *ngFor="let user of (showAllUsers ? allUsers : preferredUsers); trackBy: trackProfile" class="user"
+          (click)="selectUser(user.name)" [class.selected]="user.name === selectedUser">
+          <nz-avatar nzIcon="user" nzShape="circle" [nzSrc]="user.avatar"></nz-avatar>
           <span>{{ user.fullname || user.name }}</span>
         </div>
-
-        <ng-container *ngIf="showAllUsers">
-          <div
-            *ngFor="let user of otherAllowedUsers; trackBy: trackProfile"
-            class="user"
-            (click)="selectUser(user.name)"
-            [class.selected]="user.name === selectedUser"
-          >
-            <nz-avatar
-              nzIcon="user"
-              nzShape="circle"
-              [nzSrc]="user.avatar"
-            ></nz-avatar>
-            <span>{{ user.fullname || user.name }}</span>
-          </div>
-        </ng-container>
       </div>
-      <label
-        *ngIf="otherAllowedUsers.length"
-        nz-checkbox
-        [(ngModel)]="showAllUsers"
-        >Alle anzeigen</label
-      >
+      <label *ngIf="allUsers.length > preferredUsers.length" nz-checkbox [(ngModel)]="showAllUsers">Alle
+        anzeigen</label>
       <div class="user-list" *ngIf="allowPhone">
         <nz-input-group nzAddOnBefore="oder Telefonnummer">
-          <input
-            type="text"
-            nz-input
-            placeholder="+43 1234 1234"
-            [(ngModel)]="customPhoneNumber"
-            (ngModelChange)="onCustomPhoneNumberChange()"
-          />
+          <input type="text" nz-input placeholder="+43 1234 1234" [(ngModel)]="customPhoneNumber"
+            (ngModelChange)="onCustomPhoneNumberChange()" />
         </nz-input-group>
       </div>
     </section>
 
     <div class="actions">
-      <button
-        class="text-sm uppercase font-lato tkd-btn tkd-primary"
-        (click)="createOverwrite()"
-        [disabled]="!valid"
-      >
+      <button class="text-sm uppercase font-lato tkd-btn tkd-primary" (click)="createOverwrite()" [disabled]="!valid">
         Umleiten
       </button>
     </div>
@@ -502,15 +274,11 @@
   <br />
   <ng-container *ngIf="today.onDuty?.users?.length; else: noRosterTemplate">
     Anrufe werden dann laut Dienstplan an
-    <span class="underline text-highlight"
-      >{{ today.onDuty.users[0].fullname }}</span
-    >
+    <span class="underline text-highlight">{{ today.onDuty.users[0].fullname }}</span>
     weitergeleitet.
   </ng-container>
   <ng-template #noRosterTemplate>
-    <span class="text-alert-red"
-      >Es ist kein Dienstplan für heute konfiguriert, wenn die Umleitung
-      gelöscht wird <u>können Anrufe nicht zugestellt werden!</u></span
-    >
+    <span class="text-alert-red">Es ist kein Dienstplan für heute konfiguriert, wenn die Umleitung
+      gelöscht wird <u>können Anrufe nicht zugestellt werden!</u></span>
   </ng-template>
 </ng-template>

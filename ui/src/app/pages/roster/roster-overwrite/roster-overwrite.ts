@@ -63,10 +63,6 @@ interface RosterState {
   shifts: RosterShift[];
 }
 
-interface _Overwrite extends Overwrite {
-  user?: ProfileWithAvatar;
-}
-
 @Component({
   templateUrl: './roster-overwrite.html',
   styleUrls: ['./roster-overwrite.scss'],
@@ -96,13 +92,9 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
   confirmDeleteCurrentOverwriteTemplate: TemplateRef<any> | null = null;
 
   /** A list of overwrites that overlap with the current one */
-  overlapping: _Overwrite[] = [];
+  overlapping: Overwrite[] = [];
 
-  /** The currently active overwrite, if any */
-  today: RosterState | null = null;
-
-  /** Holds the roster states for the date date */
-  statesForRange: RosterState[] | null = null;
+  availableShifts: RosterShiftWithStaffList[] = [];
 
   /** A list of users that are preferable used as overwrites */
   preferredUsers: ProfileWithAvatar[] = [];
@@ -119,14 +111,16 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
   /** The selected quick roster overwrite */
   selectedQuickTargetNumber = '';
 
-  /** The time at which the overwrite should be effective */
-  from: Date | null = null;
+  /** The time at which the overwrite should be effective when overwriteTarget == 'custom' */
+  customFrom: Date | null = null;
 
-  /** The time until the overwrite should be effective */
-  to: Date | null = null;
+  /** The time until the overwrite should be effective when overwriteTarget === 'custom' */
+  customTo: Date | null = null;
+
+  today: Overwrite | null = null;
 
   /** The type of overwrite that is being created */
-  overwriteType: string | 'custom' = '';
+  overwriteTarget: string | 'custom' = '';
 
   /** A list of configured quick-settings  */
   quickSettings: QuickRosterOverwrite[];
@@ -137,27 +131,12 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
   /** The custom phone number entered by the user if allowPhone is true */
   customPhoneNumber = '';
 
-  /** The actual time boundary based on the overwriteType */
-  actualBoundary: { from: Date; to: Date } | null = null;
-
   /** Whether or not we're in "firstLoad" mode and should hide the overlapping warning */
   firstLoad = true;
 
   /** Evaluates to true if everything is ready to create a new roster overwrite */
   get valid(): boolean {
-    const valid =
-      this.overwriteType != '' &&
-      (!!this.selectedUser ||
-        !!this.selectedQuickTargetNumber ||
-        !!this.customPhoneNumber) &&
-      !!this.from &&
-      !!this.to;
-    if (!valid) {
-      return false;
-    }
-    if (this.overwriteType === 'custom') {
-      return this.to.getTime() > this.from.getTime();
-    }
+    // FIXME
     return true;
   }
 
@@ -168,53 +147,20 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     }
     const now = new Date();
     let rosterDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    if (!!this.today?.onDuty && !!this.today.onDuty.rosterDate) {
-      rosterDate = new Date(this.today.onDuty.rosterDate);
-      rosterDate = new Date(
-        rosterDate.getFullYear(),
-        rosterDate.getMonth(),
-        rosterDate.getDate()
-      );
-    }
 
     return d.getTime() < rosterDate.getTime();
   };
 
   /** @private template-only - decided whether or not startValue should be displayed as disabled. */
   disabledStartDate = (startValue: Date): boolean => {
-    if (!startValue) {
-      return false;
-    }
-
-    if (this.isBeforeRosterDate(startValue)) {
-      return true;
-    }
-
-    const { to } = this.actualBoundary;
-    if (!to) {
-      return false;
-    }
-    return startValue.getTime() > to.getTime();
+    // FIXME
+    return false
   };
 
   /** @private template-only - decided whether or not endValue should be displayed as disabled. */
   disabledEndDate = (endValue: Date): boolean => {
-    if (!endValue) {
-      return false;
-    }
-
-    const { from } = this.actualBoundary;
-    if (this.isBeforeRosterDate(endValue)) {
-      return true;
-    }
-
-    if (endValue.getTime() < new Date().getTime()) {
-      return true;
-    }
-    if (!from) {
-      return false;
-    }
-    return endValue.getTime() < from.getTime();
+    // FIXME
+    return false
   };
 
   /** TrackBy function for user profiles */
@@ -246,13 +192,26 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     if (humanInteraction) {
       this.firstLoad = false;
     }
-    if (!this.from) {
-      return;
+
+    let from: Date;
+    let to: Date;
+
+    if (this.overwriteTarget === 'custom') {
+      from = this.customFrom;
+      to = this.customTo;
+    } else {
+      const shift = this.availableShifts.find(s => s.shiftID === this.overwriteTarget);
+      if (!shift) {
+        debugger; 
+
+        return
+      }
+
+      from = new Date(shift.from)
+      to = new Date(shift.to)
     }
-    if (this.overwriteType !== 'custom') {
-      this.to = this.from;
-    }
-    this.checkOverlapping$.next({ from: this.from, to: this.to });
+
+    this.checkOverlapping$.next({ from, to });
   }
 
   /** @private template-only - select the user that should be used for the new overwrite */
@@ -281,7 +240,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const { from, to } = this.getTimeBoundary(this.statesForRange);
+    const { from, to } = this.getTimeBoundary();
     let body: OverwriteBody = {
       from: from.toISOString(),
       to: to.toISOString(),
@@ -315,9 +274,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
         this.nzMessage.success(`Telefon erfolgreich auf ${target} umgeleitet.`);
         this.reloadToday$.next();
         this.firstLoad = true;
-        this.overwriteType = '';
-        this.statesForRange = [];
-        this.actualBoundary = null;
+        this.overwriteTarget = '';
         this.checkOverlapping$.next({ from, to });
       },
       (err) => {
@@ -332,7 +289,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
 
   /** @private template-only - deletes the current overwrite */
   deleteCurrentOverwrite() {
-    if (!this.today?.actual || !this.confirmDeleteCurrentOverwriteTemplate) {
+    if (!this.today || !this.confirmDeleteCurrentOverwriteTemplate) {
       return;
     }
 
@@ -342,7 +299,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
       nzCancelText: 'Nein',
       nzOkText: 'Ja, löschen',
       nzOnOk: () => {
-        this.deleteOverwrite(this.today.actual);
+        this.deleteOverwrite(this.today);
       },
     });
   }
@@ -364,40 +321,6 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
           extractErrorMessage(err, 'Eintrag konnte nicht gelöscht werden')
         )
     );
-  }
-
-  selectTime(what: 'from' | 'to') {
-    let d: Date;
-    if (what === 'from') {
-      d = this.from;
-    } else {
-      d = this.to;
-    }
-
-    const start = new Date(d.getFullYear(), d.getMonth(), d.getDate())
-    const end = new Date(d.getFullYear(), d.getMonth(), d.getDate()+1)
-
-    this.roster2
-      .workShifts
-      .findRequiredShifts(start, end, ["OnCall"])
-      .subscribe({
-        next: (shifts) => {
-          let nd: RosterShiftWithStaffList = shifts[toDateString(d)]?.pop();
-
-          if (!!nd) {
-            if (what === 'from') {
-              this.from = new Date(nd.from);
-            } else {
-              this.to = new Date(nd.to);
-            }
-
-            this.preferredUsers = nd.eligibleStaff
-              .map(user => this.userService.byName(user));
-          }
-
-          this.cdr.markForCheck();
-        },
-      });
   }
 
   ngOnInit() {
@@ -433,24 +356,14 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     combineLatest([interval(5000).pipe(startWith(-1)), this.reloadToday$])
       .pipe(
         map(() => new Date()),
-        this.toRosterState(),
-        takeUntil(this.destroy$)
+        switchMap(d => this.roster.getActiveOverwrite(d)),
+        catchError(err => {
+          return of(null)
+        }),
+        takeUntil(this.destroy$),
       )
-      .subscribe((active: RosterState) => {
-        if (!!active.actual?.username) {
-          active.actualUser = this.userService.byName(active.actual.username);
-        }
-        this.today = active;
-
-        // if the overwriteType is not yet set and we don't have an active overwrite we try to
-        // figure out a reasonable default
-        if (this.overwriteType === '' && !this.today.actual) {
-          this.from = new Date();
-          this.overwriteType = 'both';
-
-          this.onDateChange(false);
-        }
-
+      .subscribe(active => {
+        this.today = active
         this.cdr.markForCheck();
       });
 
@@ -459,29 +372,11 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.destroy$),
         debounceTime(100),
-        filter(() => this.overwriteType != ''),
-        switchMap((value) => {
-          let iter: Date = this.from;
-          let states: Observable<RosterState>[] = [];
-
-          do {
-            states.push(
-              of(iter).pipe(this.toRosterState(), takeUntil(this.destroy$))
-            );
-            iter = new Date(
-              iter.getFullYear(),
-              iter.getMonth(),
-              iter.getDate() + 1
-            );
-          } while (iter.getTime() < this.to.getTime());
-          return forkJoin(states);
-        }),
-        switchMap((states) => {
-          const timeBoundary = this.getTimeBoundary(states);
+        filter(() => this.overwriteTarget != ''),
+        switchMap(({from, to}) => {
           return forkJoin({
-            states: of(states),
             overlapping: this.roster
-              .getOverwrites(timeBoundary.from, timeBoundary.to)
+              .getOverwrites(from, to)
               .pipe(
                 map((res) => {
                   return (res || []).map((ov) => ({
@@ -505,9 +400,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe((state) => {
-        this.statesForRange = state.states;
         this.overlapping = state.overlapping;
-        this.actualBoundary = this.getTimeBoundary(state.states);
         this.cdr.markForCheck();
       });
   }
@@ -541,101 +434,24 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     return result;
   }
 
-  private getTimeBoundary(states: RosterState[]): { from: Date; to: Date } {
-    if (this.overwriteType === 'custom') {
+  private getTimeBoundary(): { from: Date; to: Date } {
+    if (this.overwriteTarget === 'custom') {
       return {
-        from: this.from || null,
-        to: this.to || null,
-      };
-    }
-    if (states.length === 0) {
-      console.log(
-        `[DEBUG] no time boundary available for overwriteType != custom and empty states`
-      );
-      return null;
+        from: this.customFrom,
+        to: this.customTo
+      }
     }
 
-    // we should not receive more than one state if the overwrite type is set to anything other
-    // than "custom".
-    const shift = states[0].shifts.find(shift => shift.shiftID === this.overwriteType)
+    const shift = this.availableShifts.find(s => s.shiftID === this.overwriteTarget);
     if (!shift) {
-      return null;
+      debugger; 
+
+      return
     }
 
-    return { from: new Date(shift.from), to: new Date(shift.to) };
-  }
-
-  private toRosterState(): OperatorFunction<Date, RosterState> {
-    return (src: Observable<Date>) => {
-      return src.pipe(
-        switchMap((d) => {
-          if (d === null) {
-            return of(null);
-          }
-
-          return forkJoin({
-            actual: this.roster.getActiveOverwrite(d).pipe(
-              catchError((err) => {
-                if (!(err instanceof HttpErrorResponse) || err.status !== 404) {
-                  console.error(`Failed to get active overwrite`, err);
-                }
-                return of(null as Overwrite | null);
-              })
-            ),
-            onDuty: this.externalapi
-              .getDoctorsOnDuty({ at: d, ignoreOverwrite: true })
-              .pipe(
-                map((dod) => {
-                  if (dod.isOverwrite) {
-                    console.error(
-                      'Got an overwrite response although we told the API not to'
-                    );
-                  }
-                  return {
-                    ...dod,
-                    users: dod.doctors.map((d) =>
-                      this.userService.byName(d.username)
-                    ),
-                  } as _DoctorOnDuty;
-                }),
-                catchError((err) => {
-                  return of(null as _DoctorOnDuty);
-                })
-              ),
-            shifts: this.roster2
-                .roster
-                .onDuty({
-                  tags: ['OnCall'],
-                  date: d,
-                })
-                .pipe(
-                  map(r => r.shifts),
-                  catchError(err => {
-                    if (err instanceof HttpErrorResponse && err.status === 404) {
-                      return this.roster2
-                              .workShifts
-                              .findRequiredShifts(
-                               new Date(d.getFullYear(), d.getMonth(), d.getDate()),
-                               new Date(d.getFullYear(), d.getMonth(), d.getDate() +1),
-                              )
-                              .pipe(
-                                map(res => res[toDateString(d)])
-                              )
-                    }
-                  })
-                )
-          });
-        }),
-        map((result) => {
-          if (result === null) {
-            return null;
-          }
-          return {
-            ...result,
-            shifts: result.shifts,
-          };
-        })
-      );
-    };
+    return {
+      from: new Date(shift.from),
+      to: new Date(shift.to)
+    }
   }
 }

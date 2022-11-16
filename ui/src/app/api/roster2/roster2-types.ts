@@ -44,15 +44,13 @@ export interface WorkShift {
 export interface RosterShift {
     staff: string[];
     shiftID: string;
-    shortName: string;
-    tags: string[];
-    name: string;
     isHoliday: boolean;
     isWeekend: boolean;
     from: string;
     to: string;
     minutesWorth: number;
     requiredStaffCount: number;
+    definition: WorkShift;
 }
 
 export interface OnDutyResponse {

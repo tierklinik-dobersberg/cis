@@ -33,9 +33,6 @@ export class TkdRoster2DayComponent implements OnChanges {
   requiredShifts: RosterShiftWithStaffList[] = [];
 
   @Input()
-  shiftDefinitions: {[key: string]: WorkShift} = {}
-
-  @Input()
   users: {[key: string]: ProfileWithAvatar} = {};
 
   @Input()

@@ -173,7 +173,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, dateTime time.Time, igno
 	// build a small lookup map by username.
 	userByName := make(map[string]identity.User, len(allUsers))
 	for _, u := range allUsers {
-		userByName[strings.ToLower(u.Name)] = u
+		userByName[u.Name] = u
 	}
 
 	if !ignoreOverwrites {

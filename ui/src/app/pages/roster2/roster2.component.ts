@@ -33,8 +33,6 @@ export class TkdRoster2Component implements OnInit, OnDestroy {
 
   users: {[name: string]: ProfileWithAvatar } =  {}
 
-  shiftDefinitions: {[key: string]: WorkShift} = {}
-
   rosterShifts: {
     [date: string]: RosterShift[];
   } = {};
@@ -223,14 +221,6 @@ export class TkdRoster2Component implements OnInit, OnDestroy {
 
         this.workTimeStatus = result.workTime;
 
-        this.cdr.markForCheck();
-      })
-
-    this.roster2.workShifts
-      .list()
-      .subscribe(result => {
-        this.shiftDefinitions =  {};
-        (result || []).forEach(shift => this.shiftDefinitions[shift.id] = shift);
         this.cdr.markForCheck();
       })
 

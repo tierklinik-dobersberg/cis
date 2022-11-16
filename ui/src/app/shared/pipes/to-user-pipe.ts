@@ -1,7 +1,7 @@
 import { Pipe, PipeTransform } from "@angular/core";
 import { ProfileWithAvatar } from '@tkd/api';
 import { map, Observable } from 'rxjs';
-import { UserService } from './../../api/user.service';
+import { UserService } from '../../api/user.service';
 
 @Pipe({
   name: 'toUser',
@@ -12,8 +12,8 @@ export class ToUserPipe implements PipeTransform {
     private userService: UserService,
   ) {}
 
-  transform(value: string, async: true): Observable<ProfileWithAvatar>;
-  transform(value: string): ProfileWithAvatar;
+  transform(value: string, async: true): Observable<ProfileWithAvatar|undefined>;
+  transform(value: string): ProfileWithAvatar | undefined;
 
   transform(value: string, async?: true) {
     if (async) {

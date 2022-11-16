@@ -2,7 +2,7 @@
   <nz-card-meta nzTitle="Heute im Dienst"></nz-card-meta>
   <div class="grid">
     <div *ngFor="let shift of shifts">
-      <h3>{{ shift.name }}</h3>
+      <h3>{{ shift.definition.name }}</h3>
       <ng-container *ngTemplateOutlet="userGroupTemplate; context:{$implicit: shift.staff}"></ng-container>
     </div>
   </div>

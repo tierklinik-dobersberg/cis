@@ -1,2 +1,3 @@
 export * from './duration.pipe';
-export * from './get-user-pipe';
+export * from './to-user-pipe';
+export * from './username.pipe';
