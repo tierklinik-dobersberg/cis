@@ -1,17 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
-import { ProfileWithAvatar, TkdAccountService, Permissions } from '@tkd/api';
-import { forkJoin, interval, of, Subscription, throwError } from 'rxjs';
+import { Permissions, ProfileWithAvatar, TkdAccountService } from '@tkd/api';
+import { interval, of, Subscription, throwError } from 'rxjs';
 import { catchError, delay, mergeMap, retryWhen, startWith } from 'rxjs/operators';
 import {
-  Day,
   DoctorOnDuty,
   DoctorOnDutyResponse,
-  ExternalAPI,
-  IdentityAPI,
-  Roster,
-  RosterAPI,
-  UserService
+  ExternalAPI, UserService
 } from 'src/app/api';
 
 @Component({
@@ -29,17 +24,13 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
   firstLoad = true;
   primaryOnDuty: ProfileWithAvatar | null = null;
   shiftKind: string = 'Bereitschaftsdienst';
-  rosterDay: Day | null = null;
-
 
   trackBy: TrackByFunction<DoctorOnDuty> = (_: number, item: DoctorOnDuty) => item.username;
 
   constructor(
     private externalapi: ExternalAPI,
-    private identityapi: IdentityAPI,
     private account: TkdAccountService,
     private userService: UserService,
-    private rosterapi: RosterAPI,
     private changeDetector: ChangeDetectorRef,
   ) { }
 
@@ -52,8 +43,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
       interval(20000)
       .pipe(
         startWith(0),
-        mergeMap(() => forkJoin({
-          onDuty: this.externalapi.getDoctorsOnDuty()
+        mergeMap(() => this.externalapi.getDoctorsOnDuty()
             .pipe(
               catchError(err => {
                 // we might get a 404 if there's no roster defined for today.
@@ -68,42 +58,28 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
                 return throwError(err);
               }),
             ),
-          roster: this.rosterapi.forMonth()
-            .pipe(
-              catchError(err => {
-                if (err instanceof HttpErrorResponse && err.status === 404) {
-                  return of(null as Roster);
-                }
-                return throwError(err);
-              })
-            )
-        })),
+        ),
         retryWhen(errors => errors.pipe(delay(5000))),
       )
       .subscribe({
         next: result => {
           this.firstLoad = false;
-          this.onDuty = result.onDuty.doctors || [];
-          this.onDutyUntil = result.onDuty.until;
-          this.isOverwritten = result.onDuty.isOverwrite;
+          this.onDuty = result.doctors || [];
+          this.onDutyUntil = result.until;
+          this.isOverwritten = result.isOverwrite;
 
-          if (result.onDuty.isOverwrite) {
+          if (result.isOverwrite) {
             this.shiftKind = 'Bereitschaftsdienst (überschrieben)'
           } else
-            if (result.onDuty.isDayShift && result.onDuty.isNightShift) {
+            if (result.isDayShift && result.isNightShift) {
               this.shiftKind = 'Bereitschaft (ganzer Tag)';
-            } else if (result.onDuty.isDayShift) {
+            } else if (result.isDayShift) {
               this.shiftKind = 'Tag-Bereitschaft';
-            } else if (result.onDuty.isNightShift) {
+            } else if (result.isNightShift) {
               this.shiftKind = 'Nacht-Bereitschaft';
             } else {
               this.shiftKind = 'Bereitschaftsdienst (unbekannt)'
             }
-
-          this.rosterDay = null;
-          if (!!result.roster) {
-            this.rosterDay = result.roster.days[(new Date().getDate())];
-          }
 
           this.primaryOnDuty = this.userService.byName(this.onDuty[0]?.username);
           this.changeDetector.markForCheck();

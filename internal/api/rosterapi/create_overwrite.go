@@ -50,7 +50,7 @@ func CreateOverwriteEndpoint(router *app.Router) {
 				}
 			}
 
-			overwrite, err := app.DutyRosters.CreateOverwrite(ctx, body.From, body.To, body.Username, body.Phone, body.DisplayName)
+			overwrite, err := app.OnCallOverwrites.CreateOverwrite(ctx, body.From, body.To, body.Username, body.Phone, body.DisplayName)
 			if err != nil {
 				return err
 			}

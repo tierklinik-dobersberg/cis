@@ -2,9 +2,8 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, On
 import { ProfileWithAvatar } from '@tkd/api';
 import { BehaviorSubject, combineLatest, interval, of, Subscription } from 'rxjs';
 import { catchError, mergeMap, startWith } from 'rxjs/operators';
-import { CalendarAPI, UserService } from 'src/app/api';
-import { Roster2Service } from 'src/app/api/roster2';
-import { RosterShift } from './../../../api/roster2/roster2-types';
+import { UserService } from 'src/app/api';
+import { Roster2Service, RosterShift } from 'src/app/api/roster2';
 
 @Component({
   selector: 'app-roster-card',
@@ -42,7 +41,6 @@ export class RosterCardComponent implements OnInit, OnDestroy {
     private roster2: Roster2Service,
     private userService: UserService,
     private changeDetector: ChangeDetectorRef,
-    private calendarapi: CalendarAPI,
   ) { }
 
   ngOnInit(): void {

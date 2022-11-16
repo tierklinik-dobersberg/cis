@@ -25,9 +25,9 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/healthchecks"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
+	"github.com/tierklinik-dobersberg/cis/internal/oncalloverwrite"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/cis/internal/roster"
 	"github.com/tierklinik-dobersberg/cis/internal/tmpl2pdf"
 	"github.com/tierklinik-dobersberg/cis/internal/wiki"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
@@ -45,30 +45,30 @@ const appContextKey = contextKey("app:context")
 
 // App holds dependencies for cis API request handlers.
 type App struct {
-	Config          *Config
-	Matcher         *permission.Matcher
-	DutyRosters     roster.Database
-	Identities      identity.Provider
-	Customers       customerdb.Database
-	Patients        patientdb.Database
-	Comments        commentdb.Database
-	VoiceMails      voicemaildb.Database
-	Sessions        *session.Manager
-	MailSync        *mailsync.Manager
-	Door            *door.Controller
-	Holidays        openinghours.HolidayGetter
-	CallLogs        calllogdb.Database
-	Calendar        calendar.Backend
-	Resources       *resourcedb.Registry
-	CCTV            *cctv.Manager
-	LayoutStore     layouts.Store
-	InfoScreenShows infoscreendb.Database
-	Cache           cache.Cache
-	Autologin       *autologin.Manager
-	Trigger         *trigger.Registry
-	Healtchecks     *healthchecks.Controller
-	Tmpl2PDF        *tmpl2pdf.Creator
-	Wiki            *wiki.Database
+	Config           *Config
+	Matcher          *permission.Matcher
+	OnCallOverwrites oncalloverwrite.Database
+	Identities       identity.Provider
+	Customers        customerdb.Database
+	Patients         patientdb.Database
+	Comments         commentdb.Database
+	VoiceMails       voicemaildb.Database
+	Sessions         *session.Manager
+	MailSync         *mailsync.Manager
+	Door             *door.Controller
+	Holidays         openinghours.HolidayGetter
+	CallLogs         calllogdb.Database
+	Calendar         calendar.Backend
+	Resources        *resourcedb.Registry
+	CCTV             *cctv.Manager
+	LayoutStore      layouts.Store
+	InfoScreenShows  infoscreendb.Database
+	Cache            cache.Cache
+	Autologin        *autologin.Manager
+	Trigger          *trigger.Registry
+	Healtchecks      *healthchecks.Controller
+	Tmpl2PDF         *tmpl2pdf.Creator
+	Wiki             *wiki.Database
 
 	RosterdServer string
 
@@ -87,7 +87,7 @@ func NewApp(
 	identities identity.Provider,
 	customers customerdb.Database,
 	patients patientdb.Database,
-	dutyRosters roster.Database,
+	overwrites oncalloverwrite.Database,
 	comments commentdb.Database,
 	voicemail voicemaildb.Database,
 	mailsyncManager *mailsync.Manager,
@@ -109,31 +109,31 @@ func NewApp(
 	RosterdServer string,
 ) *App {
 	return &App{
-		Config:          cfg,
-		Matcher:         matcher,
-		Identities:      identities,
-		Customers:       customers,
-		Patients:        patients,
-		DutyRosters:     dutyRosters,
-		Comments:        comments,
-		VoiceMails:      voicemail,
-		MailSync:        mailsyncManager,
-		Door:            door,
-		Sessions:        sessionManager,
-		Holidays:        holidays,
-		CallLogs:        calllogs,
-		Calendar:        calendarEvents,
-		Resources:       resourceRegistry,
-		CCTV:            cctvmng,
-		LayoutStore:     layoutStore,
-		InfoScreenShows: infoScreens,
-		Cache:           cache,
-		Autologin:       autologinManager,
-		Trigger:         triggerRegistry,
-		Healtchecks:     healthchecks,
-		Tmpl2PDF:        pdfCreator,
-		Wiki:            wiki,
-		RosterdServer:   RosterdServer,
+		Config:           cfg,
+		Matcher:          matcher,
+		Identities:       identities,
+		Customers:        customers,
+		Patients:         patients,
+		OnCallOverwrites: overwrites,
+		Comments:         comments,
+		VoiceMails:       voicemail,
+		MailSync:         mailsyncManager,
+		Door:             door,
+		Sessions:         sessionManager,
+		Holidays:         holidays,
+		CallLogs:         calllogs,
+		Calendar:         calendarEvents,
+		Resources:        resourceRegistry,
+		CCTV:             cctvmng,
+		LayoutStore:      layoutStore,
+		InfoScreenShows:  infoScreens,
+		Cache:            cache,
+		Autologin:        autologinManager,
+		Trigger:          triggerRegistry,
+		Healtchecks:      healthchecks,
+		Tmpl2PDF:         pdfCreator,
+		Wiki:             wiki,
+		RosterdServer:    RosterdServer,
 	}
 }
 

@@ -21,8 +21,7 @@ import {
   Observable,
   of,
   OperatorFunction,
-  Subject,
-  throwError
+  Subject
 } from 'rxjs';
 import {
   catchError,
@@ -34,17 +33,16 @@ import {
 } from 'rxjs/operators';
 import {
   ConfigAPI,
-  Day,
   DoctorOnDutyResponse,
   ExternalAPI, Overwrite,
   OverwriteBody,
   QuickRosterOverwrite,
-  RosterAPI,
-  RosterUIConfig,
-  UserService
+  RosterAPI, UserService
 } from 'src/app/api';
+import { RosterShift, RosterShiftWithStaffList } from 'src/app/api/roster2';
 import { HeaderTitleService } from 'src/app/shared/header-title';
-import { extractErrorMessage } from 'src/app/utils';
+import { extractErrorMessage, toDateString } from 'src/app/utils';
+import { Roster2Service } from './../../../api/roster2/roster2.service';
 
 /**
  * FIXME:
@@ -62,10 +60,7 @@ interface RosterState {
   actual: Overwrite;
   actualUser?: ProfileWithAvatar;
   onDuty: _DoctorOnDuty;
-  planned: Day;
-  nextDay: Day;
-  plannedDay: ProfileWithAvatar[];
-  plannedNight: ProfileWithAvatar[];
+  shifts: RosterShift[];
 }
 
 interface _Overwrite extends Overwrite {
@@ -113,7 +108,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
   preferredUsers: ProfileWithAvatar[] = [];
 
   /** A list of other users that can be used as overwrites */
-  otherAllowedUsers: ProfileWithAvatar[] = [];
+  allUsers: ProfileWithAvatar[] = [];
 
   /** Whether or not all users should be shown */
   showAllUsers = false;
@@ -131,7 +126,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
   to: Date | null = null;
 
   /** The type of overwrite that is being created */
-  overwriteType: '' | 'day-shift' | 'night-shift' | 'both' | 'custom' = '';
+  overwriteType: string | 'custom' = '';
 
   /** A list of configured quick-settings  */
   quickSettings: QuickRosterOverwrite[];
@@ -236,6 +231,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
 
   constructor(
     private roster: RosterAPI,
+    private roster2: Roster2Service,
     private externalapi: ExternalAPI,
     private userService: UserService,
     private account: TkdAccountService,
@@ -370,7 +366,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     );
   }
 
-  selectTime(what: 'from' | 'to', shift: 'day' | 'night') {
+  selectTime(what: 'from' | 'to') {
     let d: Date;
     if (what === 'from') {
       d = this.from;
@@ -378,29 +374,25 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
       d = this.to;
     }
 
-    this.roster
-      .forDay(d)
-      .pipe(
-        catchError((err) => {
-          if (err instanceof HttpErrorResponse && err.status === 404) {
-            return of(err.error as Day);
-          }
-          return throwError(err);
-        })
-      )
-      .subscribe({
-        next: (day) => {
-          let nd: Date;
-          if (shift === 'day') {
-            nd = new Date(day.onCall.dayStart);
-          } else {
-            nd = new Date(day.onCall.nightStart);
-          }
+    const start = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+    const end = new Date(d.getFullYear(), d.getMonth(), d.getDate()+1)
 
-          if (what === 'from') {
-            this.from = nd;
-          } else {
-            this.to = nd;
+    this.roster2
+      .workShifts
+      .findRequiredShifts(start, end, ["OnCall"])
+      .subscribe({
+        next: (shifts) => {
+          let nd: RosterShiftWithStaffList = shifts[toDateString(d)]?.pop();
+
+          if (!!nd) {
+            if (what === 'from') {
+              this.from = new Date(nd.from);
+            } else {
+              this.to = new Date(nd.to);
+            }
+
+            this.preferredUsers = nd.eligibleStaff
+              .map(user => this.userService.byName(user));
           }
 
           this.cdr.markForCheck();
@@ -418,28 +410,22 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
 
     // load and watch preferred and other allowed users.
     const rosterConfig$ = this.config.change;
-    combineLatest([rosterConfig$, this.userService.updated])
+    combineLatest([rosterConfig$, this.userService.users])
       .pipe(
-        map(([cfg]) => {
-          return {
-            cfg: cfg,
-            users: this.getEligibleUsers(cfg.Roster),
-          };
-        }),
         takeUntil(this.destroy$)
       )
-      .subscribe((c) => {
+      .subscribe(([c, users]) => {
         let currentUserRoles = new Set<string>();
         this.account.currentProfile?.roles.forEach(role => {
           currentUserRoles.add(role)
         })
 
-        this.preferredUsers = c.users.preferred;
-        this.otherAllowedUsers = c.users.others;
-        this.quickSettings = (c.cfg.QuickRosterOverwrite || []).filter(setting => {
+        this.quickSettings = (c.QuickRosterOverwrite || []).filter(setting => {
           return !setting.RequiresRole || setting.RequiresRole.length === 0 || setting.RequiresRole.some(role => currentUserRoles.has(role));
         });
-        this.allowPhone = c.cfg.Roster?.AllowPhoneNumberOverwrite || false;
+
+        this.allUsers = users;
+        this.allowPhone = c.Roster?.AllowPhoneNumberOverwrite || false;
         this.cdr.markForCheck();
       });
 
@@ -460,53 +446,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
         // figure out a reasonable default
         if (this.overwriteType === '' && !this.today.actual) {
           this.from = new Date();
-
-          (() => {
-            if (!active.onDuty) {
-              console.log(
-                `[DEBUG] choosing both because we don't have a roster`
-              );
-              this.overwriteType = 'both';
-              return;
-            }
-
-            // if we are already in the night shift the user likely wants to overwrite
-            // that one only
-            if (!active.onDuty.isDayShift && active.onDuty.isNightShift) {
-              console.log(
-                `[DEBUG] choosing night-shift because we're already in it`
-              );
-              this.overwriteType = 'night-shift';
-              return;
-            }
-
-            if (active.planned) {
-              // either no special on-day duty is defined or day and night are set to the same values.
-              // in this case, the user likely want's to overwrite both
-              if (
-                active.planned.onCall.day.join('-') ===
-                  active.planned.onCall.night.join('-') ||
-                active.planned.onCall.day.length === 0
-              ) {
-                console.log(
-                  `[DEBUG] choosing both because day and night are set to the same values`
-                );
-                this.overwriteType = 'both';
-              } else {
-                console.log(
-                  `[DEBUG] choosing day-shift because day and night differ`
-                );
-                this.overwriteType = 'day-shift';
-              }
-            } else {
-              // there's no roster configured for today so we will likely need to
-              // overwrite the whole day.
-              console.log(
-                `[DEBUG] choosing both because we don't even have a roster configured`
-              );
-              this.overwriteType = 'both';
-            }
-          })();
+          this.overwriteType = 'both';
 
           this.onDateChange(false);
         }
@@ -597,7 +537,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     };
 
     this.preferredUsers.forEach(matchUser);
-    this.otherAllowedUsers.forEach(matchUser);
+    this.allUsers.forEach(matchUser);
     return result;
   }
 
@@ -610,51 +550,19 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     }
     if (states.length === 0) {
       console.log(
-        `[DEBUG] no time boundary available for overwriteType != customer and empty states`
+        `[DEBUG] no time boundary available for overwriteType != custom and empty states`
       );
       return null;
     }
 
     // we should not receive more than one state if the overwrite type is set to anything other
     // than "custom".
-    if (states.length !== 1) {
-      console.error(
-        'Received more than one state with overwriteType set to custom'
-      );
-    }
-    const state = states[0];
-
-    if (!this.from || !state || !state.planned) {
-      console.log(
-        `[DEBUG] no time boundary available from=${this.from} state=${state} planned=${state?.planned}`
-      );
+    const shift = states[0].shifts.find(shift => shift.shiftID === this.overwriteType)
+    if (!shift) {
       return null;
     }
-    let from: Date;
-    let to: Date;
 
-    switch (this.overwriteType) {
-      case 'both':
-        from = new Date(state.planned.onCall.dayStart!);
-        to = new Date(state.nextDay.onCall.dayStart!);
-        break;
-
-      case 'day-shift':
-        from = new Date(state.planned.onCall.dayStart!);
-        to = new Date(state.planned.onCall.nightStart!);
-        break;
-
-      case 'night-shift':
-        from = new Date(state.planned.onCall.nightStart!);
-        to = new Date(state.nextDay.onCall.dayStart!);
-        break;
-
-      default:
-        console.error(`Invalid overwriteType "${this.overwriteType}"`);
-        return null;
-    }
-
-    return { from, to };
+    return { from: new Date(shift.from), to: new Date(shift.to) };
   }
 
   private toRosterState(): OperatorFunction<Date, RosterState> {
@@ -694,29 +602,28 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
                   return of(null as _DoctorOnDuty);
                 })
               ),
-            planned: this.roster.forDay(d).pipe(
-              catchError((err) => {
-                if (!(err instanceof HttpErrorResponse) || err.status !== 404) {
-                  console.error(`Failed to get active roster`, err);
-                  return of(null);
-                }
-                return of(err.error);
-              })
-            ),
-            nextDay: this.roster
-              .forDay(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1))
-              .pipe(
-                catchError((err) => {
-                  if (
-                    !(err instanceof HttpErrorResponse) ||
-                    err.status !== 404
-                  ) {
-                    console.error(`Failed to get active roster`, err);
-                    return of(null as Day | null);
-                  }
-                  return of(err.error);
+            shifts: this.roster2
+                .roster
+                .onDuty({
+                  tags: ['OnCall'],
+                  date: d,
                 })
-              ),
+                .pipe(
+                  map(r => r.shifts),
+                  catchError(err => {
+                    if (err instanceof HttpErrorResponse && err.status === 404) {
+                      return this.roster2
+                              .workShifts
+                              .findRequiredShifts(
+                               new Date(d.getFullYear(), d.getMonth(), d.getDate()),
+                               new Date(d.getFullYear(), d.getMonth(), d.getDate() +1),
+                              )
+                              .pipe(
+                                map(res => res[toDateString(d)])
+                              )
+                    }
+                  })
+                )
           });
         }),
         map((result) => {
@@ -725,57 +632,10 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
           }
           return {
             ...result,
-            plannedDay: result?.planned?.onCall.day?.map((u) =>
-              this.userService.byName(u)
-            ),
-            plannedNight: result?.planned?.onCall.night?.map((u) =>
-              this.userService.byName(u)
-            ),
+            shifts: result.shifts,
           };
         })
       );
-    };
-  }
-
-  private getEligibleUsers(cfg: RosterUIConfig): {
-    preferred: ProfileWithAvatar[];
-    others: ProfileWithAvatar[];
-  } {
-    if (!cfg || !cfg.EligibleRolesForOverwrite?.length) {
-      return {
-        preferred: this.userService.snapshot,
-        others: [],
-      };
-    }
-
-    const preferred = new Set<ProfileWithAvatar>();
-    const otherUsers = new Set<ProfileWithAvatar>();
-
-    cfg.EligibleRolesForOverwrite.forEach((role) =>
-      this.userService.byRole(role).forEach((user) => {
-        if (user.disabled) {
-          return;
-        }
-        preferred.add(user);
-      })
-    );
-
-    // Depending on AllowAnyUserOverwrite we might need to other non-preferred users
-    // as well
-    if (cfg.AllowAnyUserAsOverwrite) {
-      this.userService.snapshot.forEach((user) => {
-        if (user.disabled) {
-          return;
-        }
-        if (!preferred.has(user)) {
-          otherUsers.add(user);
-        }
-      });
-    }
-
-    return {
-      preferred: Array.from(preferred.values()),
-      others: Array.from(otherUsers.values()),
     };
   }
 }

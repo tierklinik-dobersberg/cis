@@ -169,16 +169,20 @@ export class Roster2Service {
             return this.http.delete<void>(`${this.apiURL}/v1/workshift/${id}` )
         }
 
-        findRequiredShifts(from: Date, to?: Date): Observable<{[date: string]: RosterShiftWithStaffList[]}> {
+        findRequiredShifts(from: Date, to?: Date, tags?: string[]): Observable<{[date: string]: RosterShiftWithStaffList[]}> {
             if (!to) {
               to = new Date(from.getFullYear(), from.getMonth() + 1, 0)
               from = new Date(from.getFullYear(), from.getMonth(), 1)
             }
 
-            const params = new HttpParams()
+            let params = new HttpParams()
                 .append("from", toDateString(from))
                 .append("to", toDateString(to))
                 .append('stafflist', true)
+
+            if (!!tags?.length) {
+              params = params.appendAll({'tags': tags})
+            }
 
             return this.http.get<{[date: string]: RosterShiftWithStaffList[]}>(`${this.apiURL}/v1/roster/shifts`, {
                 params,

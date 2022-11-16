@@ -9,18 +9,6 @@ import (
 func Setup(a *app.App, grp *echo.Group) {
 	router := app.NewRouter(grp, a)
 
-	// GET /api/dutyroster/v1/roster/:year/:month
-	GetForMonthEndpoint(router)
-
-	// GET /api/dutyroster/v1/roster/:year/:month/:day
-	GetDayEndpoint(router)
-
-	// DELETE /api/dutyroster/v1/roster/:year/:month
-	DeleteRosterEndpoint(router)
-
-	// PUT /api/dutyroster/v1/roster/:year/:month
-	CreateOrUpdateEndpoint(router)
-
 	// POST /api/dutyroster/v1/overwrite
 	CreateOverwriteEndpoint(router)
 

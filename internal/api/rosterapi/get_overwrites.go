@@ -40,7 +40,7 @@ func GetOverwritesEndpoint(router *app.Router) {
 			}
 			includeDeleted := c.QueryParams().Has("with-deleted")
 
-			overwrites, err := app.DutyRosters.GetOverwrites(ctx, from, to, includeDeleted)
+			overwrites, err := app.OnCallOverwrites.GetOverwrites(ctx, from, to, includeDeleted)
 			if err != nil {
 				return err
 			}

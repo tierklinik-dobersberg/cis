@@ -1,4 +1,4 @@
-package roster
+package oncalloverwrite
 
 import "github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
 

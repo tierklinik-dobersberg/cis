@@ -27,7 +27,7 @@ func DeleteActiveOverwriteEndpoint(router *app.Router) {
 				}
 			}
 
-			if err := app.DutyRosters.DeleteActiveOverwrite(ctx, d); err != nil {
+			if err := app.OnCallOverwrites.DeleteActiveOverwrite(ctx, d); err != nil {
 				return err
 			}
 

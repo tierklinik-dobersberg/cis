@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-version"
-	"github.com/tierklinik-dobersberg/cis/internal/roster"
+	"github.com/tierklinik-dobersberg/cis/internal/oncalloverwrite"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/roster/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/runtime/schema"
 	"go.mongodb.org/mongo-driver/bson"
@@ -19,7 +19,7 @@ func init() {
 		Description:       "Migrate from a singe Date to From and To",
 		Key:               "rosterdb",
 		Version:           "v0.2.0",
-		BackupCollections: []string{roster.OverwriteJournal},
+		BackupCollections: []string{oncalloverwrite.OverwriteJournal},
 		MigrateFunc: func(ctx context.Context, from, to *version.Version, cli *mongo.Database) error {
 			type v0 struct {
 				ID          primitive.ObjectID `bson:"_id,omitempty"`
@@ -32,7 +32,7 @@ func init() {
 				CreatedAt   time.Time          `bson:"createdAt,omitempty"`
 			}
 
-			col := cli.Collection(roster.OverwriteJournal)
+			col := cli.Collection(oncalloverwrite.OverwriteJournal)
 
 			records, err := col.Find(ctx, bson.M{})
 			if err != nil {

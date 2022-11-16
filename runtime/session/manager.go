@@ -272,3 +272,29 @@ func (mng *Manager) CreateUserToken(user v1alpha.User, ttl time.Duration, scopes
 
 	return token, &claims, nil
 }
+
+func (mng *Manager) GenerateM2MToken(name string, ttl time.Duration, roles []string) (string, *jwt.Claims, error) {
+	claims := jwt.Claims{
+		Audience:  mng.identityConfg.Audience,
+		Issuer:    mng.identityConfg.Issuer,
+		IssuedAt:  time.Now().Unix(),
+		ExpiresAt: time.Now().Add(ttl).Unix(),
+		NotBefore: time.Now().Unix(),
+		AppMetadata: &jwt.AppMetadata{
+			TokenVersion: CurrentTokenVersion,
+			Authorization: &jwt.Authorization{
+				Roles: roles,
+			},
+		},
+		Scopes:  []jwt.Scope{jwt.ScopeAccess},
+		Subject: name,
+		Name:    name,
+	}
+
+	auth, err := jwt.SignToken(mng.identityConfg.SigningMethod, []byte(mng.secret), claims)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return auth, &claims, nil
+}

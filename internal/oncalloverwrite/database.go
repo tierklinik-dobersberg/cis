@@ -1,4 +1,4 @@
-package roster
+package oncalloverwrite
 
 import (
 	"context"
@@ -19,30 +19,11 @@ import (
 
 var log = pkglog.New("rosterdb")
 
-// DutyRosterCollection is the MongoDB collection name for the
-// duty roster.
-const DutyRosterCollection = "dutyRoster"
-
 // OverwriteJournal is used to keep track of emergency-duty-overwrites.
 const OverwriteJournal = "dutyRosterOverwrites"
 
 // Database is the database interface for the duty rosters.
 type Database interface {
-	// Create creates a new duty roster.
-	Create(ctx context.Context, month time.Month, year int, days map[int]v1alpha.Day) error
-
-	// Update updates an existing duty roster.
-	Update(ctx context.Context, roster *v1alpha.DutyRoster) error
-
-	// ForMonth returns the duty roster for the given month.
-	ForMonth(ctx context.Context, month time.Month, year int) (*v1alpha.DutyRoster, error)
-
-	// ForDay returns the roster for the day specified by t.
-	ForDay(ctx context.Context, t time.Time) (*v1alpha.Day, error)
-
-	// Delete deletes a roster.
-	Delete(ctx context.Context, month time.Month, year int) error
-
 	// CreateOverwrite configures an emergency doctor-on-duty overwrite for the
 	// given date.
 	CreateOverwrite(ctx context.Context, from, to time.Time, user, phone, displayName string) (v1alpha.Overwrite, error)
@@ -63,7 +44,6 @@ type Database interface {
 
 type database struct {
 	cli        *mongo.Client
-	rosters    *mongo.Collection
 	overwrites *mongo.Collection
 }
 
@@ -101,7 +81,6 @@ func NewWithClient(ctx context.Context, dbName string, client *mongo.Client) (Da
 
 	db := &database{
 		cli:        client,
-		rosters:    client.Database(dbName).Collection(DutyRosterCollection),
 		overwrites: client.Database(dbName).Collection(OverwriteJournal),
 	}
 
@@ -113,20 +92,8 @@ func NewWithClient(ctx context.Context, dbName string, client *mongo.Client) (Da
 }
 
 func (db *database) setup(ctx context.Context) error {
-	// we use a compound index on month and year that must be unique.
-	_, err := db.rosters.Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.D{
-			{Key: "month", Value: 1},
-			{Key: "year", Value: 1},
-		},
-		Options: options.Index().SetUnique(true).SetSparse(false),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to create index: %w", err)
-	}
-
 	// TODO(ppacher): find migration strategy
-	_, err = db.overwrites.Indexes().DropOne(ctx, "date_1")
+	_, err := db.overwrites.Indexes().DropOne(ctx, "date_1")
 	if err != nil {
 		log.From(ctx).Errorf("failed to drop index date_1: %s", err)
 	}
@@ -143,101 +110,6 @@ func (db *database) setup(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to create index: %w", err)
 	}
-
-	return nil
-}
-
-func (db *database) Create(ctx context.Context, month time.Month, year int, days map[int]v1alpha.Day) error {
-	roster := &v1alpha.DutyRoster{
-		Month: month,
-		Year:  year,
-		Days:  days,
-	}
-
-	// Don't care about overwrites here as our unique compound index will refuse it
-	// anyway.
-	result, err := db.rosters.InsertOne(ctx, roster)
-	if err != nil {
-		return err
-	}
-
-	// Just make sure the result is what we expect.
-	if id, ok := result.InsertedID.(primitive.ObjectID); ok {
-		roster.ID = id
-	} else {
-		log.From(ctx).Errorf("invalid type in result.InsertedID, expected primitive.ObjectID but got %T", result.InsertedID)
-	}
-
-	go db.fireChangeEvent(ctx, month, year)
-
-	return nil
-}
-
-func (db *database) Update(ctx context.Context, roster *v1alpha.DutyRoster) error {
-	if roster == nil {
-		return fmt.Errorf("invalid roster")
-	}
-
-	result, err := db.rosters.ReplaceOne(ctx, bson.M{"year": roster.Year, "month": roster.Month}, roster)
-	if err != nil {
-		return err
-	}
-
-	if result.MatchedCount != 1 || result.ModifiedCount != 1 {
-		return fmt.Errorf("failed to update roster. matched=%d modified=%d", result.MatchedCount, result.ModifiedCount)
-	}
-
-	go db.fireChangeEvent(ctx, roster.Month, roster.Year)
-
-	return nil
-}
-
-func (db *database) ForMonth(ctx context.Context, month time.Month, year int) (*v1alpha.DutyRoster, error) {
-	result := new(v1alpha.DutyRoster)
-
-	res := db.rosters.FindOne(ctx, bson.M{"month": month, "year": year})
-	if err := res.Err(); err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, httperr.NotFound("roster", fmt.Sprintf("%04d/%02d", year, month)).SetInternal(ErrNotFound)
-		}
-		return nil, err
-	}
-
-	if err := res.Decode(result); err != nil {
-		return nil, err
-	}
-
-	return result, nil
-}
-
-func (db *database) ForDay(ctx context.Context, t time.Time) (*v1alpha.Day, error) {
-	roster, err := db.ForMonth(ctx, t.Month(), t.Year())
-	if err != nil {
-		return nil, err
-	}
-
-	day, ok := roster.Days[t.Day()]
-	if !ok {
-		key := fmt.Sprintf("%04d/%02d", t.Year(), t.Month())
-		return nil, httperr.NotFound("roster-day", key)
-	}
-	return &day, nil
-}
-
-func (db *database) Delete(ctx context.Context, month time.Month, year int) error {
-	res, err := db.rosters.DeleteOne(ctx, bson.M{"month": month, "year": year})
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return httperr.NotFound("roster", fmt.Sprintf("%04d/%02d", year, month)).SetInternal(ErrNotFound)
-		}
-		return err
-	}
-
-	if res.DeletedCount < 1 {
-		return httperr.NotFound("roster", fmt.Sprintf("%04d/%02d", year, month)).SetInternal(ErrNotFound)
-	}
-
-	go db.fireDeleteEvent(ctx, month, year)
 
 	return nil
 }
@@ -315,9 +187,9 @@ func (db *database) GetOverwrites(ctx context.Context, filterFrom, filterTo time
 	}
 
 	opts := options.Find().SetSort(bson.D{
-		{"from", 1},
-		{"to", 1},
-		{"_id", 1},
+		{Key: "from", Value: 1},
+		{Key: "to", Value: 1},
+		{Key: "_id", Value: 1},
 	})
 
 	res, err := db.overwrites.Find(ctx, filter, opts)

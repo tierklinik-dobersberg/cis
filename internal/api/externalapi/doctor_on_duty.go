@@ -17,7 +17,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
-	"github.com/tierklinik-dobersberg/cis/pkg/jwt"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/external/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/logger"
@@ -88,7 +87,7 @@ func activeOverwrite(ctx context.Context, app *app.App, t time.Time, userByName 
 	// first check if we have an active overwrite for today
 
 	log.V(7).Logf("[doctor-on-duty] retrieving active overwrites for %s", t)
-	overwrite, err := app.DutyRosters.GetActiveOverwrite(ctx, t)
+	overwrite, err := app.OnCallOverwrites.GetActiveOverwrite(ctx, t)
 	if err != nil && errors.Is(err, mongo.ErrNoDocuments) {
 		return nil
 	}
@@ -190,22 +189,48 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, dateTime time.Time, igno
 		return nil, nil
 	}
 
-	auth, err := jwt.SignToken(app.Config.SigningMethod, []byte(app.Config.Secret), jwt.Claims{
-		Audience:  app.Config.Audience,
-		Issuer:    app.Config.Issuer,
-		IssuedAt:  time.Now().Unix(),
-		ExpiresAt: time.Now().Add(5 * time.Second).Unix(),
-		NotBefore: time.Now().Unix(),
-		AppMetadata: &jwt.AppMetadata{
-			TokenVersion: session.CurrentTokenVersion,
-			Authorization: &jwt.Authorization{
-				Roles: []string{"internal:m2m"},
-			},
-		},
-		Scopes:  []jwt.Scope{jwt.ScopeAccess},
-		Subject: "cis",
-		Name:    "cis",
-	})
+	dod := &v1alpha.DoctorOnDutyResponse{
+		Doctors:     nil,
+		IsOverwrite: false,
+		RosterDate:  dateTime.Format("2006-01-02"),
+		// TODO(ppacher): we can set Until here based on the returned shifts
+	}
+
+	staffList, err := queryRosterOnCall(ctx, dateTime, app.Sessions, app.RosterdServer)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range staffList {
+		u, ok := userByName[user]
+		if !ok {
+			log.Errorf("rosterd returned unknown user %q", user)
+			continue
+		}
+
+		var phone string
+		if len(u.PhoneNumber) > 0 {
+			phone = u.PhoneNumber[0]
+		}
+
+		dod.Doctors = append(dod.Doctors, v1alpha.DoctorOnDuty{
+			Username:   u.Name,
+			FullName:   u.Fullname,
+			Phone:      phone,
+			Properties: u.Properties,
+		})
+	}
+
+	return dod, nil
+}
+
+func queryRosterOnCall(ctx context.Context, dateTime time.Time, session *session.Manager, rosterdServer string) ([]string, error) {
+	ctx, sp := otel.Tracer("").Start(ctx, "queryRosterOnCall")
+	defer sp.End()
+
+	log := log.From(ctx)
+
+	auth, _, err := session.GenerateM2MToken("cis", time.Second*5, []string{"internal:m2m"})
 	if err != nil {
 		return nil, httperr.InternalError().SetInternal(err)
 	}
@@ -214,7 +239,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, dateTime time.Time, igno
 	query.Set("time", dateTime.Format(time.RFC3339))
 	query.Set("tags", "OnCall")
 
-	u := fmt.Sprintf("%s/v1/roster/on-duty?%s", strings.TrimPrefix(app.RosterdServer, "/"), query.Encode())
+	u := fmt.Sprintf("%s/v1/roster/on-duty?%s", strings.TrimPrefix(rosterdServer, "/"), query.Encode())
 
 	req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
 	if err != nil {
@@ -222,7 +247,7 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, dateTime time.Time, igno
 	}
 	req.Header.Set("Authorization", "Bearer "+auth)
 
-	log.Infof("sending on-duty query to rosterd at %s", app.RosterdServer)
+	log.Infof("sending on-duty query to rosterd at %s", rosterdServer)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -244,32 +269,5 @@ func getDoctorOnDuty(ctx context.Context, app *app.App, dateTime time.Time, igno
 		return nil, httperr.InternalError().SetInternal(err)
 	}
 
-	dod := &v1alpha.DoctorOnDutyResponse{
-		Doctors:     nil,
-		IsOverwrite: false,
-		RosterDate:  dateTime.Format("2006-01-02"),
-		// TODO(ppacher): we can set Until here based on the returned shifts
-	}
-
-	for _, user := range response.Staff {
-		u, ok := userByName[user]
-		if !ok {
-			log.Errorf("rosterd returned unknown user %q", user)
-			continue
-		}
-
-		var phone string
-		if len(u.PhoneNumber) > 0 {
-			phone = u.PhoneNumber[0]
-		}
-
-		dod.Doctors = append(dod.Doctors, v1alpha.DoctorOnDuty{
-			Username:   u.Name,
-			FullName:   u.Fullname,
-			Phone:      phone,
-			Properties: u.Properties,
-		})
-	}
-
-	return dod, nil
+	return response.Staff, nil
 }

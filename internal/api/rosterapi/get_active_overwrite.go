@@ -31,7 +31,7 @@ func GetActiveOverwriteEndpoint(router *app.Router) {
 				}
 			}
 
-			overwrite, err := app.DutyRosters.GetActiveOverwrite(ctx, d)
+			overwrite, err := app.OnCallOverwrites.GetActiveOverwrite(ctx, d)
 			if err != nil {
 				return err
 			}

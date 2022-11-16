@@ -232,13 +232,13 @@
                 <span class="text-secondary">oder Dienstbeginn: </span>
                 <button
                   class="self-center w-32 tkd-btn tkd-small tkd-tertiary tkd-outline"
-                  (click)="selectTime(what, 'day')"
+                  (click)="selectTime(what)"
                 >
                   Tagdienst
                 </button>
                 <button
                   class="self-center w-32 tkd-btn tkd-small tkd-tertiary tkd-outline"
-                  (click)="selectTime(what, 'night')"
+                  (click)="selectTime(what)"
                 >
                   Nachtdienst
                 </button>
@@ -290,34 +290,18 @@
           class="current-state"
           *ngFor="let state of statesForRange"
         >
-          <ng-container
-            *ngIf="(overwriteType === 'both' || overwriteType === 'day-shift') && state.plannedDay?.length"
-          >
+        <ng-container *ngFor="let shift of state.shifts">
             <ng-container
-              *ngFor="let user of state.plannedDay; trackBy: trackProfile"
+              *ngFor="let user of shift.staff; trackBy: trackProfile"
             >
               <nz-avatar
-                [nz-tooltip]="user.fullname + ' - Tag Bereitschaft'"
+                [nz-tooltip]="user + ' - Tag Bereitschaft'"
                 nzIcon="user"
                 nzShape="circle"
-                [nzSrc]="user.avatar"
+                [nzSrc]="(user|toUser)?.avatar"
               ></nz-avatar>
             </ng-container>
-          </ng-container>
-          <ng-container
-            *ngIf="overwriteType === 'both' || overwriteType === 'night-shift' || !state.plannedDay?.length"
-          >
-            <ng-container
-              *ngFor="let user of state.plannedNight; trackBy: trackProfile"
-            >
-              <nz-avatar
-                [nz-tooltip]="user.fullname + ' - ' + (state.plannedDay?.length ? 'Nacht' : 'Tag/Nacht') +  ' Bereitschaft'"
-                nzIcon="user"
-                nzShape="circle"
-                [nzSrc]="user.avatar"
-              ></nz-avatar>
-            </ng-container>
-          </ng-container>
+        </ng-container>
         </nz-avatar-group>
       </div>
 

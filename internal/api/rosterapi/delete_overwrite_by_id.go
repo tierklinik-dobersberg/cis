@@ -18,7 +18,7 @@ func DeleteOverwriteByIDEndpoint(router *app.Router) {
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			id := c.Param("id")
 
-			if err := app.DutyRosters.DeleteOverwrite(ctx, id); err != nil {
+			if err := app.OnCallOverwrites.DeleteOverwrite(ctx, id); err != nil {
 				return err
 			}
 

@@ -53,9 +53,9 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
+	"github.com/tierklinik-dobersberg/cis/internal/oncalloverwrite"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
-	"github.com/tierklinik-dobersberg/cis/internal/roster"
 	"github.com/tierklinik-dobersberg/cis/internal/tmpl2pdf"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
 	"github.com/tierklinik-dobersberg/cis/internal/wiki"
@@ -265,7 +265,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		logger.Fatalf(ctx, "file: %s", err)
 	}
 
-	rosters, err := roster.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
+	overwrites, err := oncalloverwrite.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
 		logger.Fatalf(ctx, "rosterdb: %s", err.Error())
 	}
@@ -461,7 +461,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		identities,
 		customers,
 		patients,
-		rosters,
+		overwrites,
 		comments,
 		voicemails,
 		mailsyncManager,
