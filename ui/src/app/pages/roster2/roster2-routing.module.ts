@@ -1,11 +1,13 @@
 import { NgModule } from '@angular/core';
 import { Route, RouterModule } from '@angular/router';
-import { TkdRoster2Component } from './roster2.component';
+import { TkdRosterOverviewComponent } from './overview';
+import { TkdRosterPlannerComponent } from './planner/roster-planner.component';
 
 
 const routes: Route[] = [
-  { path: '', component: TkdRoster2Component },
-  { path: ':year/:month', component: TkdRoster2Component }
+  { path: '', component: TkdRosterOverviewComponent },
+  { path: 'plan/:year/:month', component: TkdRosterPlannerComponent },
+  { path: 'view/:year/:month', component: TkdRosterPlannerComponent, data: { readonly: true } }
 ]
 
 @NgModule({

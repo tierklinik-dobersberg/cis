@@ -33,26 +33,15 @@ import {
   QuickRosterOverwrite,
   RosterAPI, UserService
 } from 'src/app/api';
-import { RosterShift, RosterShiftWithStaffList } from 'src/app/api/roster2';
+import { RosterShiftWithStaffList } from 'src/app/api/roster2';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, toDateString } from 'src/app/utils';
-import { DoctorOnDutyResponse } from './../../../api/external.api';
-import { Roster2Service } from './../../../api/roster2/roster2.service';
-
-interface _DoctorOnDuty extends DoctorOnDutyResponse<Date> {
-  users: ProfileWithAvatar[];
-}
-
-interface RosterState {
-  actual: Overwrite;
-  actualUser?: ProfileWithAvatar;
-  onDuty: _DoctorOnDuty;
-  shifts: RosterShift[];
-}
+import { DoctorOnDutyResponse } from '../../../api/external.api';
+import { Roster2Service } from '../../../api/roster2/roster2.service';
 
 @Component({
-  templateUrl: './roster-overwrite.html',
-  styleUrls: ['./roster-overwrite.scss'],
+  templateUrl: './overwrite.component.html',
+  styleUrls: ['./overwrite.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('scaleInOut', [
@@ -67,7 +56,7 @@ interface RosterState {
     ]),
   ],
 })
-export class RosterOverwritePageComponent implements OnInit, OnDestroy {
+export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private checkOverlapping$ = new Subject<{ to: Date; from: Date }>();
   private reloadToday$ = new BehaviorSubject<void>(undefined);

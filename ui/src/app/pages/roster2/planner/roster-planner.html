@@ -35,7 +35,7 @@
 
   <nz-calendar [nzDisabledDate]="dateDisabled" [nzValue]="selectedDate" nzMode="month" [nzFullscreen]="true" (nzPanelChange)="onPanelChange($event)" (nzSelectChange)="onDateSelected($event)" class="overflow-auto flex-grow">
     <div *nzDateFullCell="let date">
-      <tkd-roster2-day [rosterShifts]="rosterShifts[date|date:'YYYY-MM-dd']" (rosterShiftChange)="setRosterShifts(date, $event)" [offTimeRequest]="offTimeRequests" [workTimeStatus]="workTimeStatus" [rosterDate]="selectedDate" [date]="date" [holiday]="publicHolidays[date|date:'YYYY-MM-dd']" [users]="users" [requiredShifts]="requiredShifts[date|date:'YYYY-MM-dd']" [selectedUser]="selectedUser" [highlightUserShifts]="highlightUserShifts"></tkd-roster2-day>
+      <tkd-roster-planner-day [rosterShifts]="rosterShifts[date|date:'YYYY-MM-dd']" (rosterShiftChange)="setRosterShifts(date, $event)" [offTimeRequest]="offTimeRequests" [workTimeStatus]="workTimeStatus" [rosterDate]="selectedDate" [date]="date" [holiday]="publicHolidays[date|date:'YYYY-MM-dd']" [users]="users" [requiredShifts]="requiredShifts[date|date:'YYYY-MM-dd']" [selectedUser]="selectedUser" [highlightUserShifts]="highlightUserShifts"></tkd-roster-planner-day>
     </div>
   </nz-calendar>
 

@@ -6,7 +6,7 @@ import { Profile } from "@tkd/api";
     pure: true
 })
 export class UserNamePipe implements PipeTransform {
-    transform(value: Profile, ...args: any[]) {
-        return value.fullname || value.name;
+    transform(value?: Profile, ...args: any[]) {
+        return value?.fullname || value?.name || '';
     }
 }

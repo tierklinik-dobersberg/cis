@@ -20,8 +20,8 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { SharedModule } from 'src/app/shared/shared.module';
-import { RosterOverwritePageComponent } from './roster-overwrite';
-import { RosterRoutingModule } from './roster-routing.module';
+import { OnCallOverwritePageComponent } from './overwrite-component';
+import { OnCallOverwriteRoutingModule } from './on-call-overwrite-routing.module';
 
 @NgModule({
   imports: [
@@ -46,12 +46,12 @@ import { RosterRoutingModule } from './roster-routing.module';
     NzTagModule,
     NzDrawerModule,
     NzBadgeModule,
-    RosterRoutingModule,
+    OnCallOverwriteRoutingModule,
     StorageModule,
     SharedModule,
   ],
   declarations: [
-    RosterOverwritePageComponent,
+    OnCallOverwritePageComponent,
   ],
 })
-export class RosterModule { }
+export class OnCallOverwriteModule { }

@@ -2,14 +2,13 @@ import { CdkOverlayOrigin } from "@angular/cdk/overlay";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
 import { NzModalService } from "ng-zorro-antd/modal";
 import { Holiday } from "src/app/api";
-import { WorkShift } from 'src/app/api/roster2';
-import { TkdConstraintViolationPipe } from "../constraint-violation-text.pipe";
-import { ProfileWithAvatar } from './../../../../../dist/tkd/api/lib/account/account.types.d';
-import { OffTime, RosterShift, RosterShiftWithStaffList, WorkTimeStatus } from './../../../api/roster2/roster2-types';
+import { TkdConstraintViolationPipe } from "../../constraint-violation-text.pipe";
+import { ProfileWithAvatar } from '../../../../../../dist/tkd/api/lib/account/account.types';
+import { OffTime, RosterShift, RosterShiftWithStaffList, WorkTimeStatus } from '../../../../api/roster2/roster2-types';
 
 @Component({
-  selector: 'tkd-roster2-day',
-  templateUrl: './roster2-day.html',
+  selector: 'tkd-roster-planner-day',
+  templateUrl: './planner-day.html',
   changeDetection:ChangeDetectionStrategy.OnPush,
   styles: [
     `
@@ -22,7 +21,7 @@ import { OffTime, RosterShift, RosterShiftWithStaffList, WorkTimeStatus } from '
     `
   ],
 })
-export class TkdRoster2DayComponent implements OnChanges {
+export class TkdRosterPlannerDayComponent implements OnChanges {
   @Input()
   date!: Date;
 

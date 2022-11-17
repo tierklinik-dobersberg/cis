@@ -85,13 +85,20 @@ export interface RosterShiftWithStaffList extends RosterShift {
     }
 }
 
-export interface Roster {
+export interface RosterMeta {
     id?: string;
     month: Month;
     year: number;
-    shifts: RosterShift[];
     approved?: boolean | null;
     approvedAt?: string;
+    approvedBy?: string;
+    createdBy: string;
+    createdAt: string;
+    updatedAt: string
+}
+
+export interface Roster extends RosterMeta {
+    shifts: RosterShift[];
 }
 
 export type JSDuration = number; // duration in ms

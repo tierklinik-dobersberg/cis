@@ -95,7 +95,7 @@ export class DoorCardComponent implements OnInit, OnDestroy {
 
     this.doorActions = [this.lockAction, this.resetAction];
     if (this.doorState.state === 'locked') {
-      this.doorActions = [this.unlockAction, this.openAction, this.resetAction];
+      this.doorActions = [this.unlockAction, this.resetAction];
     }
 
     this.stateUntilDay = '';

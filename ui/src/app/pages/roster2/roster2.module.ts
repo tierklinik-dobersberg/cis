@@ -7,9 +7,9 @@ import { TkdRosterSettingsModule } from "../admin/roster-settings";
 import { SharedModule } from './../../shared/shared.module';
 import { TkdConstraintViolationPipe } from "./constraint-violation-text.pipe";
 import { TkdInListPipe } from "./in-list.pipe";
-import { TkdRoster2DayComponent } from "./roster2-day/roster2-day.component";
+import { TkdRosterOverviewComponent } from "./overview";
+import { TkdRosterPlannerComponent, TkdRosterPlannerDayComponent } from './planner';
 import { TkdRoster2Routing } from './roster2-routing.module';
-import { TkdRoster2Component } from './roster2.component';
 
 @NgModule({
   imports: [
@@ -22,8 +22,9 @@ import { TkdRoster2Component } from './roster2.component';
     OverlayModule
   ],
   declarations: [
-    TkdRoster2Component,
-    TkdRoster2DayComponent,
+    TkdRosterPlannerComponent,
+    TkdRosterPlannerDayComponent,
+    TkdRosterOverviewComponent,
     TkdInListPipe,
     TkdConstraintViolationPipe
   ]

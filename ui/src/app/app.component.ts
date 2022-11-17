@@ -118,7 +118,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   isRoster2 = this.router.events.pipe(
     filter((e) => e instanceof NavigationEnd),
-    map(() => this.router.url.startsWith('/roster2')),
+    map(() => this.router.url.startsWith('/roster/plan')),
     share()
   );
 

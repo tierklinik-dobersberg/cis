@@ -10,17 +10,17 @@ import { Holiday, HolidayAPI, UserService } from "src/app/api";
 import { OffTime, RosterShift, RosterShiftWithStaffList, WorkTimeStatus } from "src/app/api/roster2";
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, toDateString } from 'src/app/utils';
-import { ProfileWithAvatar } from './../../../../dist/tkd/api/lib/account/account.types.d';
-import { ConstraintViolationDiagnostics } from './../../api/roster2/roster2-types';
-import { Roster2Service } from './../../api/roster2/roster2.service';
+import { ProfileWithAvatar } from '../../../../../dist/tkd/api/lib/account/account.types';
+import { ConstraintViolationDiagnostics } from '../../../api/roster2/roster2-types';
+import { Roster2Service } from '../../../api/roster2/roster2.service';
 
 @Component({
-  selector: 'tkd-roster2',
-  templateUrl: './roster2.html',
-  styleUrls: ['./roster2.scss'],
+  selector: 'tkd-roster-planner',
+  templateUrl: './roster-planner.html',
+  styleUrls: ['./roster-planner.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TkdRoster2Component implements OnInit, OnDestroy {
+export class TkdRosterPlannerComponent implements OnInit, OnDestroy {
   private analyze$ = new Subject<void>();
   private destroy$ = new Subject<void>();
 
@@ -141,7 +141,7 @@ export class TkdRoster2Component implements OnInit, OnDestroy {
       sub = this.roster2.roster
         .update({
           ...roster,
-          id: this.existingID
+          id: this.existingID,
         })
     } else {
       sub = this.roster2.roster
@@ -181,7 +181,7 @@ export class TkdRoster2Component implements OnInit, OnDestroy {
       'Dienstplan',
       'Dienstplan bearbeiten',
       null,
-      [{name: 'Zurück', route: '/'}]
+      [{name: 'Zurück', route: '/roster'}]
     )
 
     this.currentRoute
