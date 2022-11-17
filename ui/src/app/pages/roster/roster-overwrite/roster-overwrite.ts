@@ -17,11 +17,7 @@ import {
   BehaviorSubject,
   combineLatest,
   forkJoin,
-  interval,
-  Observable,
-  of,
-  OperatorFunction,
-  Subject
+  interval, of, Subject
 } from 'rxjs';
 import {
   catchError,
@@ -32,9 +28,7 @@ import {
   takeUntil
 } from 'rxjs/operators';
 import {
-  ConfigAPI,
-  DoctorOnDutyResponse,
-  ExternalAPI, Overwrite,
+  ConfigAPI, ExternalAPI, Overwrite,
   OverwriteBody,
   QuickRosterOverwrite,
   RosterAPI, UserService
@@ -42,15 +36,8 @@ import {
 import { RosterShift, RosterShiftWithStaffList } from 'src/app/api/roster2';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, toDateString } from 'src/app/utils';
+import { DoctorOnDutyResponse } from './../../../api/external.api';
 import { Roster2Service } from './../../../api/roster2/roster2.service';
-
-/**
- * FIXME:
- *  - do not allow datepicker to select in the past
- *  - use correct date for "today" as it might depend on the current datetime (previous night shift).
- *  - strange behavior when no roster is defined
- *  - wrong overwrites returned ("to" should not be inclusive)
- */
 
 interface _DoctorOnDuty extends DoctorOnDutyResponse<Date> {
   users: ProfileWithAvatar[];
@@ -94,6 +81,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
   /** A list of overwrites that overlap with the current one */
   overlapping: Overwrite[] = [];
 
+  /** AvailableShifts holds the available shifts at the selected date */
   availableShifts: RosterShiftWithStaffList[] = [];
 
   /** A list of users that are preferable used as overwrites */
@@ -117,7 +105,11 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
   /** The time until the overwrite should be effective when overwriteTarget === 'custom' */
   customTo: Date | null = null;
 
-  today: Overwrite | null = null;
+  /** The currently active overwrite, if any */
+  currentOverwrite: Overwrite | null = null;
+
+  /** The current doctor on duty */
+  currentRoster: DoctorOnDutyResponse | null = null;
 
   /** The type of overwrite that is being created */
   overwriteTarget: string | 'custom' = '';
@@ -197,19 +189,61 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     let to: Date;
 
     if (this.overwriteTarget === 'custom') {
+      // FIXME(ppacher): we need to reload the available shifts now
       from = this.customFrom;
       to = this.customTo;
     } else {
-      const shift = this.availableShifts.find(s => s.shiftID === this.overwriteTarget);
-      if (!shift) {
-        debugger; 
-
-        return
-      }
-
-      from = new Date(shift.from)
-      to = new Date(shift.to)
+      from = new Date(this.customFrom)
+      to = new Date(from.getFullYear(), from.getMonth(), from.getDate() + 1)
     }
+
+    // customTo is not set so better bail out if one of them is
+    // currently invalid/unset
+    if (!from || !to) {
+      return;
+    }
+
+    this.roster2
+      .workShifts
+      .findRequiredShifts(from, to, ['OnCall'], true)
+      .subscribe(shifts => {
+        this.availableShifts = shifts[toDateString(from)] || [];
+
+          // get a list of all eligible users for the available shifts.
+          let set = new Map<string, ProfileWithAvatar>();
+          this.availableShifts.forEach(shift =>
+            shift.eligibleStaff.forEach(staff => {
+              set.set(staff, this.userService.byName(staff))
+            }))
+
+          // actually get the preferred users.
+          this.preferredUsers = Array.from(set.values())
+            .sort((a, b) => {
+              if (a.name > b.name) {
+                return 1;
+              }
+
+              if (a.name < b.name) {
+                return -1
+              }
+              return 0
+          })
+
+        // we just changed the date so the currently selected shift to overwrite
+        // might not be available anymore. Better update the overwriteTarget
+        // to either the first shift available or set it to "custom".
+        if (this.overwriteTarget !== 'custom') {
+
+
+          if (this.availableShifts.length > 0) {
+            this.overwriteTarget = this.availableShifts[0].shiftID;
+          } else {
+            this.overwriteTarget = 'custom';
+          }
+        }
+
+        this.cdr.markForCheck();
+      })
 
     this.checkOverlapping$.next({ from, to });
   }
@@ -289,7 +323,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
 
   /** @private template-only - deletes the current overwrite */
   deleteCurrentOverwrite() {
-    if (!this.today || !this.confirmDeleteCurrentOverwriteTemplate) {
+    if (!this.currentOverwrite || !this.confirmDeleteCurrentOverwriteTemplate) {
       return;
     }
 
@@ -299,9 +333,13 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
       nzCancelText: 'Nein',
       nzOkText: 'Ja, löschen',
       nzOnOk: () => {
-        this.deleteOverwrite(this.today);
+        this.deleteOverwrite(this.currentOverwrite);
       },
     });
+  }
+
+  get actualBoundary(): { to: Date, from: Date } {
+    return this.getTimeBoundary();
   }
 
   /** @private template-only - deletes a overwrite by ID */
@@ -356,14 +394,22 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
     combineLatest([interval(5000).pipe(startWith(-1)), this.reloadToday$])
       .pipe(
         map(() => new Date()),
-        switchMap(d => this.roster.getActiveOverwrite(d)),
-        catchError(err => {
-          return of(null)
-        }),
+        switchMap(d => forkJoin({
+          currentOverwrite: this.roster.getActiveOverwrite(d)
+            .pipe(
+              catchError(err => {
+                return of(null)
+              }),
+            ),
+          currentlyActiveRoster: this.externalapi
+              .getDoctorsOnDuty({at: d, ignoreOverwrite: true})
+        })),
         takeUntil(this.destroy$),
       )
-      .subscribe(active => {
-        this.today = active
+      .subscribe(result => {
+        this.currentOverwrite = result.currentOverwrite;
+        this.currentRoster = result.currentlyActiveRoster;
+
         this.cdr.markForCheck();
       });
 
@@ -403,6 +449,9 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
         this.overlapping = state.overlapping;
         this.cdr.markForCheck();
       });
+
+    this.customFrom = new Date();
+    this.onDateChange(false)
   }
 
   ngOnDestroy() {
@@ -444,7 +493,7 @@ export class RosterOverwritePageComponent implements OnInit, OnDestroy {
 
     const shift = this.availableShifts.find(s => s.shiftID === this.overwriteTarget);
     if (!shift) {
-      debugger; 
+      debugger;
 
       return
     }

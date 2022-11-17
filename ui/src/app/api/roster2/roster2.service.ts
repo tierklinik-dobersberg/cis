@@ -93,7 +93,8 @@ export class Roster2Service {
         }
 
         generate(year: number, month: number): Observable<Roster> {
-          return this.http.post<Roster>(`${this.apiURL}/v1/roster/${year}/${month}/generate`, null)
+          return this.http.post<{roster: Roster}>(`${this.apiURL}/v1/roster/${year}/${month}/generate`, null)
+            .pipe(map(result => result.roster))
         }
 
         dayKinds(from: Date, to: Date): Observable<DayKinds> {
@@ -169,7 +170,7 @@ export class Roster2Service {
             return this.http.delete<void>(`${this.apiURL}/v1/workshift/${id}` )
         }
 
-        findRequiredShifts(from: Date, to?: Date, tags?: string[]): Observable<{[date: string]: RosterShiftWithStaffList[]}> {
+        findRequiredShifts(from: Date, to?: Date, tags?: string[], includeRoster = false): Observable<{[date: string]: RosterShiftWithStaffList[]}> {
             if (!to) {
               to = new Date(from.getFullYear(), from.getMonth() + 1, 0)
               from = new Date(from.getFullYear(), from.getMonth(), 1)
@@ -182,6 +183,10 @@ export class Roster2Service {
 
             if (!!tags?.length) {
               params = params.appendAll({'tags': tags})
+            }
+
+            if (includeRoster) {
+              params = params.set("include-roster", true)
             }
 
             return this.http.get<{[date: string]: RosterShiftWithStaffList[]}>(`${this.apiURL}/v1/roster/shifts`, {

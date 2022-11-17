@@ -63,7 +63,14 @@ export class TkdWorkshiftManagementComponent implements OnInit {
             })
     }
 
-    edit(shift: WorkShift) {
+    edit(event: MouseEvent, shift: WorkShift) {
+        if (event.shiftKey) {
+          shift = {
+            ...shift
+          }
+
+          delete(shift.id)
+        }
         const ref = this.modal.create({
             nzContent: TkdWorkshiftDialogComponent,
             nzComponentParams: {

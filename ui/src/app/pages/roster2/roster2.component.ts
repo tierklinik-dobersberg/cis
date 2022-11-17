@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NzCalendarMode } from "ng-zorro-antd/calendar";
@@ -6,7 +7,7 @@ import { Observable } from 'rxjs';
 import { Subject } from "rxjs/internal/Subject";
 import { debounceTime, map, switchMap, takeUntil } from "rxjs/operators";
 import { Holiday, HolidayAPI, UserService } from "src/app/api";
-import { OffTime, RosterShift, RosterShiftWithStaffList, WorkShift, WorkTimeStatus } from "src/app/api/roster2";
+import { OffTime, RosterShift, RosterShiftWithStaffList, WorkTimeStatus } from "src/app/api/roster2";
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, toDateString } from 'src/app/utils';
 import { ProfileWithAvatar } from './../../../../dist/tkd/api/lib/account/account.types.d';
@@ -97,6 +98,25 @@ export class TkdRoster2Component implements OnInit, OnDestroy {
     this.cdr.markForCheck();
 
     this.analyze$.next();
+  }
+
+  generate() {
+    this.roster2
+      .roster
+      .generate(this.selectedDate.getFullYear(), this.selectedDate.getMonth()+1)
+      .subscribe(result => {
+          result.shifts.forEach(shift => {
+            const key = toDateString(new Date(shift.from));
+            if (!this.rosterShifts[key]) {
+              this.rosterShifts[key] = [];
+            }
+
+            this.rosterShifts[key].push(shift)
+          });
+
+          this.existingID = result.id!;
+          this.cdr.markForCheck()
+      })
   }
 
   saveRoster() {
@@ -309,7 +329,10 @@ export class TkdRoster2Component implements OnInit, OnDestroy {
         },
         error: err => {
           this.rosterShifts = {};
-          this.nzMessage.error(extractErrorMessage(err, 'Dienstplan konnte nicht geladen werden'))
+
+          if (!(err instanceof HttpErrorResponse) || (err.status !== 404)) {
+            this.nzMessage.error(extractErrorMessage(err, 'Dienstplan konnte nicht geladen werden'))
+          }
         }
       })
 

@@ -9,7 +9,7 @@
             <div class="flex flex-row gap-2">
                 <input name="name" [(ngModel)]="workshift.name" type="text" placeholder="Name der Schicht"
                     class="tkd-input">
-            <span class="block w-7 h-7 rounded shadow" [ngStyle]="{backgroundColor: workshift.color}"
+            <span class="block rounded shadow w-7 h-7" [ngStyle]="{backgroundColor: workshift.color}"
                 cdkOverlayOrigin #trigger="cdkOverlayOrigin" (click)="isColorSelectorOpen = true"></span>
 
             <ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="trigger"
@@ -72,19 +72,24 @@
         </div>
 
         <div class="flex flex-col">
+            <label nz-checkbox [(ngModel)]="onCall" name="onCall" (ngModelChange)="changeOnCall($event)">Rufbereitschaft</label>
+        </div>
+
+        <div class="flex flex-col">
             <span class="text-primary">Anzahl an benötigten Mitarbeitern:</span>
             <input name="requiredStaffCount" [(ngModel)]="workshift.requiredStaffCount" type="number" placeholder="1"
                 class="tkd-input">
         </div>
 
+
         <div class="flex flex-col">
           <span class="text-primary">Tags</span>
-          <nz-select name="tags" nzMode="tags" [(ngModel)]="workshift.tags"></nz-select>
+          <nz-select name="tags" nzMode="tags" [(ngModel)]="workshift.tags" (ngModelChange)="onCall = workshift.tags.includes('OnCall')"></nz-select>
         </div>
     </div>
 </form>
 
-<div class="flex flex-row gap-3 justify-end items-center">
+<div class="flex flex-row items-center justify-end gap-3">
     <ng-container *ngIf="isEdit">
         <button (click)="deleteShift()" class="tkd-btn tkd-danger tkd-outline">Löschen</button>
         <div class="flex-grow"></div>

@@ -7,7 +7,7 @@
         <div class="flex flex-col">
             <span class="text-primary">Regel-Typ:</span>
             <nz-select name="rosterOnly" [(ngModel)]="constraint.rosterOnly">
-                <nz-option nzLabel="Schicht" [nzValue]="false"></nz-option>
+                <nz-option nzLabel="Zuweisung zu Schicht" [nzValue]="false"></nz-option>
                 <nz-option nzLabel="Dienstplan" [nzValue]="true"></nz-option>
             </nz-select>
         </div>
@@ -42,7 +42,7 @@
     </div>
 </form>
 
-<div class="flex flex-row gap-3 justify-end items-center">
+<div class="flex flex-row items-center justify-end gap-3">
     <ng-container *ngIf="isEdit">
         <button (click)="deleteConstraint()" class="tkd-btn tkd-danger tkd-outline">Löschen</button>
         <div class="flex-grow"></div>

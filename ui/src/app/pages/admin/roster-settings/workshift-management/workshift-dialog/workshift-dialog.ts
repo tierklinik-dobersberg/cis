@@ -22,6 +22,8 @@ export class TkdWorkshiftDialogComponent implements OnInit {
 
     roles: Role[] = [];
 
+    onCall: boolean = false;
+
     readonly Weekdays = Weekday;
 
     get duration() {
@@ -60,12 +62,25 @@ export class TkdWorkshiftDialogComponent implements OnInit {
         })
     }
 
+    changeOnCall(onCall: boolean) {
+      this.workshift.tags = this.workshift.tags.filter(tag => tag !== 'OnCall')
+      if (onCall) {
+        this.workshift.tags = [
+          'OnCall',
+          ...this.workshift.tags,
+        ]
+      }
+    }
+
     ngOnInit(): void {
         if (this.workshift) {
+          if (this.workshift.id) {
             this.isEdit = true;
             if (this.workshift.minutesWorth === undefined) {
                 this.workshift.minutesWorth = 0;
             }
+            this.onCall = this.workshift?.tags.includes('OnCall')
+          }
         } else {
             this.workshift = {
                 days: [],
