@@ -50,7 +50,7 @@
     "npm-check-updates": "^16.3.16",
     "rxjs": "^7.5.7",
     "search-query-parser": "^1.6.0",
-    "tinymce": "^6.2.0",
+    "tinymce": "^6.3.1",
     "tslib": "^2.4.0",
     "webpack": "^5.74.0",
     "zone.js": "~0.11.8"
