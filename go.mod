@@ -6,16 +6,13 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/PaesslerAG/gval v1.1.2
 	github.com/antzucaro/matchr v0.0.0-20210222213004-b04723ef80f0
-	github.com/bufbuild/connect-go v1.8.0
+	github.com/bufbuild/connect-go v1.10.0
 	github.com/charmbracelet/glamour v0.6.0
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.3.5
 	github.com/emersion/go-vcard v0.0.0-20210521075357-3445b9171995
 	github.com/emersion/go-webdav v0.3.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-gonic/gin v1.7.7
-	github.com/gofrs/uuid v4.2.0+incompatible
-	github.com/google/renameio v1.0.1
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-version v1.3.0
@@ -24,7 +21,6 @@ require (
 	github.com/kevinburke/twilio-go v0.0.0-20210327194925-1623146bcf73
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/mxk/go-imap v0.0.0-20150429134902-531c36c3f12d
-	github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354
 	github.com/nyaruka/phonenumbers v1.0.73
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/ory/mail/v3 v3.0.0
@@ -36,7 +32,7 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
 	github.com/tevino/abool v1.2.0
-	github.com/tierklinik-dobersberg/apis v0.0.0-20230718071605-98402e0c98e1
+	github.com/tierklinik-dobersberg/apis v0.0.0-20231002090432-3c00d4568ef1
 	github.com/tierklinik-dobersberg/go-vetinf v0.1.5
 	github.com/tierklinik-dobersberg/logger v0.4.0
 	github.com/tierklinik-dobersberg/mailbox v0.0.4
@@ -49,16 +45,15 @@ require (
 	go.opentelemetry.io/otel/exporters/jaeger v1.16.0
 	go.opentelemetry.io/otel/sdk v1.16.0
 	go.opentelemetry.io/otel/trace v1.16.0
-	golang.org/x/crypto v0.6.0
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
-	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
-	golang.org/x/term v0.8.0
+	golang.org/x/sync v0.3.0
+	golang.org/x/term v0.12.0
 	google.golang.org/api v0.63.0
-	google.golang.org/protobuf v1.30.0
+	google.golang.org/protobuf v1.31.0
 )
 
 require (
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.30.0-20230530223247-ca37dc8895db.1 // indirect
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.31.0-20230914171853-63dfe56cc2c4.1 // indirect
 	cloud.google.com/go v0.99.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
@@ -76,6 +71,7 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.9.0 // indirect
+	github.com/gofrs/uuid v4.2.0+incompatible // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
@@ -113,6 +109,7 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/sloonz/go-qprintable v0.0.0-20210417175225-715103f9e6eb // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
@@ -128,14 +125,15 @@ require (
 	github.com/yuin/goldmark-emoji v1.0.1 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.opentelemetry.io/otel/metric v1.16.0 // indirect
-	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/crypto v0.13.0 // indirect
+	golang.org/x/net v0.15.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220531173845-685668d2de03 // indirect
 	google.golang.org/grpc v1.46.2 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/yaml.v2 v2.3.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
