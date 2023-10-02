@@ -9,8 +9,14 @@ RUN npm install
 
 RUN npx browserslist@latest --update-db
 
-COPY ./ui .
 RUN npm run build
+
+COPY ui/ckeditor/ ./ckeditor
+RUN npm run build-ckeditor
+
+COPY ./ui .
+RUN npm run build-limited:libs --prod
+RUN npm run build-limited --prod
 
 # Build cisd
 FROM golang:1.20 as build
