@@ -1,17 +1,17 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
+import { Profile } from '@tkd/apis';
 import { NzCalendarMode } from "ng-zorro-antd/calendar";
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { Observable } from 'rxjs';
+import { NzMessageRef, NzMessageService } from 'ng-zorro-antd/message';
+import { Observable, of } from 'rxjs';
 import { Subject } from "rxjs/internal/Subject";
-import { debounceTime, map, switchMap, takeUntil } from "rxjs/operators";
+import { catchError, debounceTime, map, switchMap, takeUntil } from "rxjs/operators";
 import { Holiday, HolidayAPI, UserService } from "src/app/api";
 import { OffTime, RosterShift, RosterShiftWithStaffList, WorkTimeStatus } from "src/app/api/roster2";
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, toDateString } from 'src/app/utils';
-import { ProfileWithAvatar } from '../../../../../dist/tkd/api/lib/account/account.types';
-import { ConstraintViolationDiagnostics } from '../../../api/roster2/roster2-types';
+import { ConstraintViolationDiagnostics, Roster } from '../../../api/roster2/roster2-types';
 import { Roster2Service } from '../../../api/roster2/roster2.service';
 
 @Component({
@@ -32,7 +32,7 @@ export class TkdRosterPlannerComponent implements OnInit, OnDestroy {
     [date: string]: RosterShiftWithStaffList[]
   } = {};
 
-  users: {[name: string]: ProfileWithAvatar } =  {}
+  profiles: {[name: string]: Profile} =  {}
 
   rosterShifts: {
     [date: string]: RosterShift[];
@@ -61,11 +61,18 @@ export class TkdRosterPlannerComponent implements OnInit, OnDestroy {
 
   showRosterDiagnostics = false;
 
-  hasChanges = false;
-
   existingID = '';
 
+  changesCounter = 0;
+  savedChangesCounter = 0;
+
+  hasChanges() {
+    return this.changesCounter > this.savedChangesCounter;
+  }
+
   private ignoreRouteChange = false;
+
+  private debouncedSave = new Subject<number>();
 
   dateDisabled = (d: Date) => {
     return d.getMonth() !== this.selectedDate.getMonth();
@@ -92,12 +99,13 @@ export class TkdRosterPlannerComponent implements OnInit, OnDestroy {
   }
 
   setRosterShifts(date: Date, shifts: RosterShift[]) {
-    this.hasChanges = true;
+    this.changesCounter++;
 
     this.rosterShifts[toDateString(date)] = shifts;
     this.cdr.markForCheck();
 
     this.analyze$.next();
+    this.debouncedSave.next(this.changesCounter);
   }
 
   generate() {
@@ -119,7 +127,7 @@ export class TkdRosterPlannerComponent implements OnInit, OnDestroy {
       })
   }
 
-  saveRoster() {
+  private getRoster(): Pick<Roster, 'shifts'|'month'|'year'> {
     let allShifts: RosterShift[] = [];
     Object.keys(this.rosterShifts)
       .map(key => this.rosterShifts[key])
@@ -130,11 +138,15 @@ export class TkdRosterPlannerComponent implements OnInit, OnDestroy {
         ]
       })
 
-    const roster = {
-          shifts: allShifts,
-          month: this.selectedDate.getMonth() + 1,
-          year: this.selectedDate.getFullYear()
-        }
+    return {
+      shifts: allShifts,
+      month: this.selectedDate.getMonth() + 1,
+      year: this.selectedDate.getFullYear()
+    }
+  }
+
+  saveRoster() {
+    const roster = this.getRoster();
 
     let sub: Observable<void>;
     if (this.existingID) {
@@ -148,32 +160,18 @@ export class TkdRosterPlannerComponent implements OnInit, OnDestroy {
         .create(roster)
     }
 
+    const counter = this.changesCounter;
     sub.subscribe({
       next: () => {
-        this.setSelectedDate(this.selectedDate);
+        if (this.savedChangesCounter < counter) {
+          this.savedChangesCounter = counter;
+          this.nzMessage.success('Dienstplan wurde gespeichert');
+        }
       },
       error: err => {
         this.nzMessage.error(extractErrorMessage(err, 'Dienstplan konnte nicht gespeichert werden'))
       }
     })
-  }
-
-  deleteRoster() {
-    if (!this.existingID) {
-      return
-    }
-
-    this.roster2
-      .roster
-      .delete(this.existingID)
-      .subscribe({
-        next: () => {
-          this.setSelectedDate(this.selectedDate);
-        },
-        error: err => {
-          this.nzMessage.error(extractErrorMessage(err, 'Dienstplan konnte nicht gelöscht werden'))
-        }
-      })
   }
 
   ngOnInit(): void {
@@ -247,9 +245,51 @@ export class TkdRosterPlannerComponent implements OnInit, OnDestroy {
     this.usersService.users
       .pipe(takeUntil(this.destroy$))
       .subscribe(users => {
-        this.users = {};
-        (users || []).forEach(u => this.users[u.name] = u);
+        this.profiles = {};
+        (users || []).forEach(u => this.profiles[u.user.id] = u);
         this.cdr.markForCheck();
+      })
+
+    let saveMessage: NzMessageRef | null = null;
+    this.debouncedSave
+      .pipe(
+        takeUntil(this.destroy$),
+        debounceTime(10000),
+        switchMap((counter) => {
+          if (!this.existingID || !this.hasChanges()) {
+            return of(null);
+          }
+
+          saveMessage = this.nzMessage.loading('Dienstplan wird gespeichert')
+
+          const roster = {
+            ...this.getRoster(),
+            id: this.existingID,
+          }
+
+          return this.roster2.roster.update(roster)
+            .pipe(
+              map(() => counter),
+              catchError(err => {
+                this.nzMessage.error(extractErrorMessage(err, 'Dienstplan konnte nicht gespeichert werden'))
+
+                return of(null)
+              })
+            )
+        })
+      )
+      .subscribe((res) => {
+        if (!!saveMessage) {
+          this.nzMessage.remove(saveMessage.messageId);
+          saveMessage = null;
+        }
+
+        if (res !== null) {
+          if (this.savedChangesCounter === this.changesCounter) {
+            this.nzMessage.success('Dienstplan wurde gespeichert')
+          }
+          this.savedChangesCounter = res;
+        }
       })
   }
 
@@ -260,7 +300,6 @@ export class TkdRosterPlannerComponent implements OnInit, OnDestroy {
 
   private setSelectedDate(d: Date) {
     this.selectedDate = d;
-    this.hasChanges = false;
     this.existingID = '';
 
     this.roster2.workShifts.findRequiredShifts(d)
@@ -337,7 +376,7 @@ export class TkdRosterPlannerComponent implements OnInit, OnDestroy {
       })
 
     this.ignoreRouteChange = true
-    this.router.navigate(['/roster2', this.selectedDate.getFullYear(), this.selectedDate.getMonth()+1])
+    this.router.navigate(['/roster/plan', this.selectedDate.getFullYear(), this.selectedDate.getMonth()+1])
   }
 
   /**

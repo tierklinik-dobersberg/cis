@@ -21,12 +21,23 @@
       <span>Kalender</span>
     </li>
 
-    <li *ngIf="hasRoster" routerLink="/roster" nzMatchRouter nz-menu-item>
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <span>Dienstplan</span>
+    <li *ngIf="hasRoster" nzMatchRouter nz-submenu class="font-lato" nzTitle="Dienstplan / Urlaube" nzIcon="field-time">
+      <ul>
+        <li nz-menu-item nzMatchRouter routerLink="/roster">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Dienstplan</span>
+        </li>
+        <li nz-menu-item nzMatchRouter routerLink="/offtime/manage">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7.875 14.25l1.214 1.942a2.25 2.25 0 001.908 1.058h2.006c.776 0 1.497-.4 1.908-1.058l1.214-1.942M2.41 9h4.636a2.25 2.25 0 011.872 1.002l.164.246a2.25 2.25 0 001.872 1.002h2.092a2.25 2.25 0 001.872-1.002l.164-.246A2.25 2.25 0 0116.954 9h4.636M2.41 9a2.25 2.25 0 00-.16.832V12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 12V9.832c0-.287-.055-.57-.16-.832M2.41 9a2.25 2.25 0 01.382-.632l3.285-3.832a2.25 2.25 0 011.708-.786h8.43c.657 0 1.281.287 1.709.786l3.284 3.832c.163.19.291.404.382.632M4.5 20.25h15A2.25 2.25 0 0021.75 18v-2.625c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125V18a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+          <span>Urlaubsanträge</span>
+        </li>
+      </ul>
     </li>
+
 
     <li *ngIf="hasCustomers" routerLink="/customer" nzMatchRouter nz-menu-item>
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -81,13 +92,6 @@
       </svg>
       <span>Status</span>
     </li>
-
-    <li routerLink="/wiki" nzMatchRouter nz-menu-item>
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-      </svg>
-      <span>Wiki</span>
-    </li>
     -->
 
     <li nz-submenu nzTitle="Links" nzIcon="link" class="font-lato" *ngIf="!!subMenus?.length">
@@ -111,19 +115,15 @@
     <ng-container *ngIf="layout.isPhone">
       <li nz-submenu nzTitle="Mein Konto" nzMatchRouter nzIcon="user">
         <ul>
-          <li nz-menu-item routerLink="/profile">
+          <li nz-menu-item (click)="profileService.openProfilePage()">
             <i nz-icon nzType="user" nzTheme="outline"></i>
             Mein Profil
           </li>
-          <li nz-menu-item routerLink="/roster" [queryParams]="{show: profile?.name}">
+          <li nz-menu-item routerLink="/roster" [queryParams]="{show: profile?.user?.username}">
             <i nz-icon nzType="clock-circle" nzTheme="outline"></i>
             Mein Dienstplan
           </li>
         </ul>
-      <li nz-menu-item (click)="logout()">
-        <i nz-icon nzType="logout" nzTheme="outline"></i>
-        Logout
-      </li>
     </ng-container>
   </ul>
 </ng-template>
@@ -144,7 +144,7 @@
   <!--
     On tablet and up we have a sidebar for navigation
   -->
-  <div *ngIf="!(isLogin | async) && !layout.isPhone && !(isWiki | async) && !(isRoster2 | async)" [@moveInOut] class="relative z-10 flex flex-col flex-shrink-0 w-64 h-full bg-white shadow-md print:hidden">
+  <div *ngIf="!layout.isPhone &&  (isRoster2 | async) === false" [@moveInOut] class="relative z-10 flex flex-col flex-shrink-0 w-64 h-full bg-white shadow-md print:hidden">
     <div class="px-4 py-4 ml-1 h-14">
       <a class="flex items-center space-x-2" routerLink="/welcome">
         <img src="assets/logo.png" class="w-10 h-10" alt="logo">
@@ -168,17 +168,11 @@
     </span>
   </div>
 
-  <!-- Wiki Navigation if we're at a sub-route of /wiki -->
-  <div *ngIf="!(isLogin | async) && !layout.isPhone && (isWiki | async)" [@moveInOut] class="relative z-10 flex flex-col flex-shrink-0 w-64 h-full p-2 border-r print:hidden bg-subtle sm:px-4 border-tertiary print:boder-none">
-    <wiki-nav></wiki-nav>
-  </div>
-
   <!--
     Next to the sidebar there's the main content container including the header
   -->
   <div class="flex flex-col self-stretch flex-grow overflow-x-hidden bg-white print:overflow-visible">
-    <!-- App header is only visible if we're not on the login screen and not inside the wiki -->
-    <div *ngIf="!(isLogin | async) && !(isWiki|async)" class="relative flex flex-col print:hidden">
+    <div class="relative flex flex-col print:hidden">
       <div class="flex items-center justify-between px-2 py-4 sm:px-4 md:px-8 lg:px-12">
         <!-- On mobile the logo is put into the header -->
         <a class="block w-8 h-8 mr-2" *ngIf="layout.isPhone" routerLink="/welcome">
@@ -188,14 +182,6 @@
         <app-header-title-outlet></app-header-title-outlet>
 
         <div class="flex items-center space-x-4">
-          <ng-container *ngIf="(suggestionCount | async) as count">
-            <button class="tkd-icon-btn tkd-small text-secondary no-shadow" (click)="openSuggestionDialog()">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-            </button>
-          </ng-container>
-
           <button class="block tkd-icon-btn tkd-small sm:hidden no-shadow text-secondary" (click)="toggleMenu()">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -217,18 +203,18 @@
           </ng-template>
 
           <span *ngIf="!layout.isPhone" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click" class="p-0.5 rounded-full border border-opacity-40 border-meadow">
-            <nz-avatar class="shadow cursor-pointer" nzIcon="user" [nzSrc]="profile?.avatar">
+            <nz-avatar class="shadow cursor-pointer" nzIcon="user" [nzSrc]="profile?.user?.avatar">
             </nz-avatar>
           </span>
         </div>
 
         <nz-dropdown-menu #userMenu="nzDropdownMenu">
           <ul nz-menu style="width: 200px">
-            <li nz-menu-item routerLink="/profile">
+            <li nz-menu-item (click)="profileService.openProfilePage()">
               <i nz-icon nzType="user" nzTheme="outline"></i>
               Mein Profil
             </li>
-            <li nz-menu-item routerLink="/roster" [queryParams]="{show: profile?.name}">
+            <li nz-menu-item routerLink="/roster" [queryParams]="{show: profile?.user?.username}">
               <i nz-icon nzType="clock-circle" nzTheme="outline"></i>
               Mein Dienstplan
             </li>
@@ -260,10 +246,6 @@
               </svg>
               Administration
             </li>
-            <li nz-menu-item (click)="logout()">
-              <i nz-icon nzType="logout" nzTheme="outline"></i>
-              Logout
-            </li>
           </ul>
         </nz-dropdown-menu>
       </div>
@@ -271,7 +253,7 @@
 
     </div>
 
-    <div class="flex items-stretch self-stretch flex-grow w-full overflow-auto bg-opacity-50 justify-items-stretch bg-subtle" cdkScrollable [ngClass]="{'bg-white': (isWiki|async), 'router-content': (isRoster2|async) === false}">
+    <div class="flex items-stretch self-stretch flex-grow w-full overflow-auto bg-opacity-50 justify-items-stretch bg-subtle" cdkScrollable [ngClass]="{'router-content': (isRoster2|async) === false}">
       <router-outlet></router-outlet>
     </div>
 

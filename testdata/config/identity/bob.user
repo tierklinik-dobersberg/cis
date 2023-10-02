@@ -1,9 +1,0 @@
-[User]
-Name=bob
-Fullname=Bob Mustermann
-PasswordAlgo=
-PasswordHash=
-Mail=bob@example.com
-Roles=default-role
-Color=#ddb0b0
-PhoneExtension=12

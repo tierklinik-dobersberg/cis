@@ -150,6 +150,11 @@ export namespace OffTime {
         description: string;
         days: number;
     }
+
+    export interface CreditsLeft {
+      days: number;
+      credits: JSDuration;
+    }
 }
 
 export interface DayKinds {

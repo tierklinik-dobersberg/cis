@@ -4,7 +4,8 @@
 ./cisd
 ./testdata
 ./spec
-./ui
 ./assets
 ./.trunk
 ./.github
+./go.work
+./go.work.sum

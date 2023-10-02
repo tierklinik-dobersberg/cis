@@ -25,7 +25,7 @@
         <div class="flex flex-col">
             <span class="text-primary">Benutzer:</span>
             <nz-select name="appliesToUser" [nzMode]="'tags'" [(ngModel)]="constraint.appliesToUser">
-                <nz-option *ngFor="let user of users" [nzLabel]="user.fullname || user.name" [nzValue]="user.name"></nz-option>
+                <nz-option *ngFor="let profile of profiles" [nzLabel]="profile | displayName" [nzValue]="profile.user.id"></nz-option>
             </nz-select>
         </div>
 

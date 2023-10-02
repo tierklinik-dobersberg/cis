@@ -23,7 +23,7 @@ func ReplyCommentEndpoint(router *app.Router) {
 				return httperr.MissingParameter("id")
 			}
 
-			sess := session.Get(c)
+			sess := session.UserFromCtx(ctx)
 			if sess == nil {
 				return httperr.InternalError("session missing")
 			}
@@ -33,7 +33,7 @@ func ReplyCommentEndpoint(router *app.Router) {
 				return err
 			}
 
-			_, err = app.Comments.Reply(ctx, id, sess.User.Name, msg)
+			_, err = app.Comments.Reply(ctx, id, sess.User.Id, msg)
 			if err != nil {
 				return err
 			}

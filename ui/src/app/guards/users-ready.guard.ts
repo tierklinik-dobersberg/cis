@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { ActivatedRouteSnapshot, CanActivate, Router } from "@angular/router";
+import { ActivatedRouteSnapshot, CanActivate } from "@angular/router";
 import { Observable, of } from "rxjs";
 import { catchError, map, timeout } from "rxjs/operators";
 import { UserService } from "../api";
@@ -8,7 +8,6 @@ import { UserService } from "../api";
 export class UsersReadyGuard implements CanActivate {
     constructor(
       private users: UserService,
-      private router: Router,
     ) { }
 
     canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {
@@ -17,9 +16,6 @@ export class UsersReadyGuard implements CanActivate {
           timeout(4000),
           map(() => true),
           catchError(() => {
-            console.error(`timed out navigating to ${route.toString()}`, route)
-            this.router.navigate(['/login']);
-
             return of(false);
           })
         )

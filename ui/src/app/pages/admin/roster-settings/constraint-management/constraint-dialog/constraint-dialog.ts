@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, Optional } from "@angular/core";
-import { ProfileWithAvatar } from "@tkd/api";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, Optional, inject } from "@angular/core";
+import { Profile, Role } from "@tkd/apis";
 import { NzMessageService } from "ng-zorro-antd/message";
 import { NzModalRef } from "ng-zorro-antd/modal";
 import { Observable } from "rxjs";
-import { IdentityAPI, Role, UserService } from "src/app/api";
+import { UserService } from "src/app/api";
+import { ROLE_SERVICE } from "src/app/api/connect_clients";
 import { Constraint, Roster2Service } from "src/app/api/roster2";
 import { extractErrorMessage } from "src/app/utils";
 
@@ -17,14 +18,15 @@ export class TkdConstraintDialogComponent implements OnInit {
 
     constraint!: Constraint;
 
-    users: ProfileWithAvatar[] = [];
+    profiles: Profile[] = [];
     roles: Role[] = []
+
+    roleSerivce = inject(ROLE_SERVICE);
 
     constructor(
         private roster2: Roster2Service,
         private cdr: ChangeDetectorRef,
         private nzMessage: NzMessageService,
-        private identityAPI: IdentityAPI,
         private usersService: UserService,
         @Optional() private nzModalRef?: NzModalRef,
     ) {
@@ -50,17 +52,17 @@ export class TkdConstraintDialogComponent implements OnInit {
             }
         }
 
-        this.identityAPI.getRoles()
+        this.roleSerivce.listRoles({})
             // FIXME(unsub)
-            .subscribe(roles => {
-                this.roles = roles;
+            .then(response => {
+                this.roles = response.roles;
                 this.cdr.markForCheck();
             })
 
         this.usersService.users
             // FIXME(unsub)
             .subscribe(users => {
-                this.users = users;
+                this.profiles = users;
                 this.cdr.markForCheck();
             })
     }

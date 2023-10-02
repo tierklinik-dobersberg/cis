@@ -1,9 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Profile } from '@tkd/apis';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CustomerRef } from './customer.api';
-import { ProfileWithAvatar } from '@tkd/api';
 import { UserService } from './user.service';
 
 export interface CalllogQuery {
@@ -37,8 +37,8 @@ export type ArrayItem<T> = T extends Array<infer Y> ? Y : never;
 export type CallLog = ArrayItem<ObservedValueOf<ReturnType<CalllogAPI['forDate']>>>
 */
 export interface CallLog extends CallLogModel {
-  agentProfile?: ProfileWithAvatar;
-  transferToProfile?: ProfileWithAvatar;
+  agentProfile?: Profile;
+  transferToProfile?: Profile;
 }
 
 @Injectable({

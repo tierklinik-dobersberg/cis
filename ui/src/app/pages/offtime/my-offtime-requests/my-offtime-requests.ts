@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, TrackByFunction } from "@angular/core";
-import { TkdAccountService } from "@tkd/api";
 import { NzMessageService } from "ng-zorro-antd/message";
 import { NzModalService } from "ng-zorro-antd/modal";
 import { OffTime, Roster2Service } from "src/app/api/roster2";
+import { ProfileService } from "src/app/services/profile.service";
 import { HeaderTitleService } from "src/app/shared/header-title";
 import { extractErrorMessage } from "src/app/utils";
 import { TkdCreateOfftimeRequestComponent } from "../create-offtime-request";
@@ -16,7 +16,7 @@ export class TkdMyOffTimeRequestsComponent implements OnInit {
     constructor(
         private roster2: Roster2Service,
         private headerService: HeaderTitleService,
-        private account: TkdAccountService,
+        private account: ProfileService,
         private nzModal: NzModalService,
         private nzMessage: NzMessageService,
         private cdr: ChangeDetectorRef,
@@ -65,7 +65,7 @@ export class TkdMyOffTimeRequestsComponent implements OnInit {
     }
 
     private loadRequests() {
-        this.roster2.offTime.findRequests(this.account.currentProfile.name)
+        this.roster2.offTime.findRequests(this.account.snapshot.user.id)
             .subscribe({
                 next: requests => {
                     this.requests = requests;

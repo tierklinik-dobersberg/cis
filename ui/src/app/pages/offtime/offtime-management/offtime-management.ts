@@ -1,16 +1,18 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { ProfileWithAvatar } from "@tkd/api";
+import { Profile } from "@tkd/apis";
 import { NzModalService } from "ng-zorro-antd/modal";
 import { NzTabSetComponent } from "ng-zorro-antd/tabs";
-import { combineLatest, Subject, take, takeUntil } from "rxjs";
+import { Subject, combineLatest, take, takeUntil } from "rxjs";
 import { UserService } from "src/app/api";
 import { Roster2Service } from "src/app/api/roster2";
 import { HeaderTitleService } from "src/app/shared/header-title";
 import { TkdGrantOffTimeCredits } from "./grant-offtime-credits";
 
-export interface ProfileWithCredits extends ProfileWithAvatar {
+export interface ProfileWithCredits {
+    profile: Profile,
     creditsLeft: number;
+    daysLeft: number;
 }
 
 @Component({
@@ -55,12 +57,13 @@ export class TkdOffTimeManagementComponent implements OnInit, OnDestroy, AfterVi
             this.userService.users,
             this.rosterService.offTime.credits()
         ])
-            .subscribe(([users, result]) => {
+            .subscribe(([profiles, result]) => {
                 this.currentUserCredits = [];
-                users.forEach(user => {
+                profiles.forEach(profile => {
                     this.currentUserCredits.push({
-                        ...user,
-                        creditsLeft: result[user.name] || 0,
+                        profile: profile,
+                        creditsLeft: result[profile.user.id]?.credits ?? 0,
+                        daysLeft: result[profile.user.id]?.days ?? 0,
                     })
                 });
             });

@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/tierklinik-dobersberg/apis/pkg/spa"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 )
 
@@ -64,6 +65,9 @@ func setupServer(ctx context.Context, app *app.App) (*echo.Echo, error) {
 
 		engine.IPExtractor = echo.ExtractIPFromXFFHeader(trusts...)
 	}
+
+	handler := spa.ServeSPA(http.FS(static), "index.html")
+	engine.Any("/", echo.WrapHandler(handler))
 
 	return engine, nil
 }

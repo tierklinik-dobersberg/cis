@@ -5,7 +5,7 @@ import { map } from 'rxjs/operators';
 import { UserService } from './user.service';
 
 export interface DoctorOnDuty {
-  username: string;
+  userId: string;
   fullname: string;
   phone: string;
   properties?: {
@@ -49,7 +49,7 @@ export class ExternalAPI {
           return {
             ...res,
             until: new Date(res.until),
-            doctors: this.userService.extendByName(res.doctors || [], 'username'),
+            doctors: this.userService.extendById(res.doctors || [], 'userId'),
           };
         }),
       );

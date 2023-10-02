@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
-import { Permissions, ProfileWithAvatar, TkdAccountService } from '@tkd/api';
-import { interval, of, Subscription, throwError } from 'rxjs';
+import { Profile } from '@tkd/apis';
+import { Subscription, interval, of, throwError } from 'rxjs';
 import { catchError, delay, mergeMap, retryWhen, startWith } from 'rxjs/operators';
 import {
   DoctorOnDuty,
@@ -22,19 +22,18 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
   isOverwritten = false;
   onDutyUntil: Date | null = null;
   firstLoad = true;
-  primaryOnDuty: ProfileWithAvatar | null = null;
+  primaryOnDuty: Profile| null = null;
 
-  trackBy: TrackByFunction<DoctorOnDuty> = (_: number, item: DoctorOnDuty) => item.username;
+  trackBy: TrackByFunction<DoctorOnDuty> = (_: number, item: DoctorOnDuty) => item.userId;
 
   constructor(
     private externalapi: ExternalAPI,
-    private account: TkdAccountService,
     private userService: UserService,
     private changeDetector: ChangeDetectorRef,
   ) { }
 
   get canSetOverwrite(): boolean {
-    return this.account.hasPermission(Permissions.RosterSetOverwrite);
+    return true;
   }
 
   ngOnInit(): void {
@@ -67,7 +66,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
           this.onDutyUntil = result.until;
           this.isOverwritten = result.isOverwrite;
 
-          this.primaryOnDuty = this.userService.byName(this.onDuty[0]?.username);
+          this.primaryOnDuty = this.userService.byId(this.onDuty[0]?.userId);
           this.changeDetector.markForCheck();
         },
       });

@@ -1,15 +1,15 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Profile } from '@tkd/apis';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { UserService } from './user.service';
-import { ProfileWithAvatar } from '@tkd/api';
 
 export interface CommentModel {
   _id: string;
   key: string;
   parentID?: string;
-  user: string;
+  userId: string;
   message: string;
   createdAt: string;
   updatedAt: string;
@@ -18,7 +18,7 @@ export interface CommentModel {
 export interface Comment extends CommentModel {
   date: Date;
   edited?: boolean;
-  profile?: ProfileWithAvatar;
+  profile?: Profile;
   children?: Comment[];
 }
 
@@ -40,7 +40,7 @@ export class CommentAPI {
     return this.http.get<CommentModel[] | null>(`/api/comments/v1/${key}`, { params })
       .pipe(
         map(result => result || []),
-        this.userService.withUserByName('user'),
+        this.userService.withUserById('userId'),
         map(result => result.map(elem => {
           return {
             ...elem,

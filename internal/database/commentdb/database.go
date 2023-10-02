@@ -23,9 +23,9 @@ const CommentCollection = "comments"
 
 type Database interface {
 	// Create creates a new comment.
-	Create(ctx context.Context, key string, user, message string) (string, error)
+	Create(ctx context.Context, key string, userId, message string) (string, error)
 	// Reply replies to a comment.
-	Reply(ctx context.Context, id string, user, message string) (string, error)
+	Reply(ctx context.Context, id string, userId, message string) (string, error)
 	// ByID returns a singel comment by ID.
 	ByID(ctx context.Context, id string) (*v1alpha.Comment, error)
 	// ByKey returns all comments that are associated with key.
@@ -109,12 +109,12 @@ func (db *database) setup(ctx context.Context) error {
 	return nil
 }
 
-func (db *database) Create(ctx context.Context, key string, user, message string) (string, error) {
+func (db *database) Create(ctx context.Context, key string, userId, message string) (string, error) {
 	c := v1alpha.Comment{
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		Key:       key,
-		User:      user,
+		UserId:    userId,
 		Message:   message,
 	}
 
@@ -131,7 +131,7 @@ func (db *database) Create(ctx context.Context, key string, user, message string
 	return id.String(), nil
 }
 
-func (db *database) Reply(ctx context.Context, id string, user, message string) (string, error) {
+func (db *database) Reply(ctx context.Context, id string, userId, message string) (string, error) {
 	parent, err := db.ByID(ctx, id)
 	if err != nil {
 		return "", err
@@ -142,7 +142,7 @@ func (db *database) Reply(ctx context.Context, id string, user, message string) 
 		UpdatedAt: time.Now(),
 		Key:       parent.Key,
 		ParentID:  parent.ID,
-		User:      user,
+		UserId:    userId,
 		Message:   message,
 	}
 

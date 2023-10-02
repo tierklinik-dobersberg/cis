@@ -26,7 +26,7 @@ const OverwriteJournal = "dutyRosterOverwrites"
 type Database interface {
 	// CreateOverwrite configures an emergency doctor-on-duty overwrite for the
 	// given date.
-	CreateOverwrite(ctx context.Context, from, to time.Time, user, phone, displayName string) (v1alpha.Overwrite, error)
+	CreateOverwrite(ctx context.Context, from, to time.Time, userID, phone, displayName string) (v1alpha.Overwrite, error)
 
 	// GetOverwrite returns the currently active overwrite for the given date/time.
 	GetActiveOverwrite(ctx context.Context, date time.Time) (*v1alpha.Overwrite, error)
@@ -122,11 +122,11 @@ func (db *database) CreateOverwrite(ctx context.Context, from, to time.Time, use
 	overwrite := v1alpha.Overwrite{
 		From:        from,
 		To:          to,
-		Username:    user,
+		UserId:      user,
 		PhoneNumber: phone,
 		DisplayName: displayName,
 		CreatedAt:   time.Now(),
-		CreatedBy:   session.UserFromCtx(ctx),
+		CreatedBy:   session.UserFromCtx(ctx).User.Id,
 		Deleted:     false,
 	}
 

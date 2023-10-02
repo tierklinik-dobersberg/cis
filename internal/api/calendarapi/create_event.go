@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bufbuild/connect-go"
 	"github.com/labstack/echo/v4"
+	idmv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/idm/v1"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
@@ -85,12 +87,20 @@ func validateEventModel(ctx context.Context, app *app.App, event *v1alpha.Create
 }
 
 func validateStructuredEvent(ctx context.Context, app *app.App, data *calendar.StructuredEvent) error {
+
+	// If CreatedBy is set make sure the user actually exists.
 	if data.CreatedBy != "" {
-		_, err := app.Identities.GetUser(ctx, data.CreatedBy)
+		_, err := app.IDM.UserServiceClient.GetUser(ctx, connect.NewRequest(&idmv1.GetUserRequest{
+			Search: &idmv1.GetUserRequest_Id{
+				Id: data.CreatedBy,
+			},
+		}))
+
 		if err != nil {
 			return err
 		}
 	}
+
 	if data.CustomerSource != "" {
 		_, err := app.Customers.CustomerByCID(ctx, data.CustomerSource, data.CustomerID)
 		if err != nil {

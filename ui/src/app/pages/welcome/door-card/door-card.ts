@@ -5,9 +5,8 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { TkdAccountService, Permissions } from '@tkd/api';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { BehaviorSubject, combineLatest, interval, Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription, combineLatest, interval } from 'rxjs';
 import {
   delay,
   mergeMap,
@@ -16,7 +15,8 @@ import {
   takeWhile,
   tap,
 } from 'rxjs/operators';
-import { DoorAPI, IdentityAPI, State } from 'src/app/api';
+import { DoorAPI, State } from 'src/app/api';
+import { ProfileService } from 'src/app/services/profile.service';
 import { extractErrorMessage } from 'src/app/utils';
 
 @Component({
@@ -26,11 +26,11 @@ import { extractErrorMessage } from 'src/app/utils';
 })
 export class DoorCardComponent implements OnInit, OnDestroy {
   get hasWriteAccess(): boolean {
-    return this.account.hasPermission(Permissions.DoorSet);
+    return true;
   }
 
   constructor(
-    private account: TkdAccountService,
+    private account: ProfileService,
     private doorapi: DoorAPI,
     private nzMessageService: NzMessageService
   ) {}

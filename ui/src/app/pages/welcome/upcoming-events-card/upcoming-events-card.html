@@ -12,9 +12,9 @@
         <nz-dropdown-menu #dropdown="nzDropdownMenu">
             <ul nz-menu>
                 <li nz-menu-item *ngFor="let cal of allCalendars.values()" (click)="cal.displayed = !cal.displayed"
-                    (dblclick)="selectOnly(cal.id)">
+                    (dblclick)="selectOnly(cal.calendar.id)">
                     <i [style.opacity]="cal.displayed ? 1 : 0" nz-icon nzType="check" nzTheme="outline"></i>
-                    {{ cal.name }}
+                    {{ cal.calendar.name }}
                 </li>
             </ul>
         </nz-dropdown-menu>
@@ -22,22 +22,22 @@
     <div class="event-container" *ngIf="events.length > 0">
         <ul>
             <ng-container *ngFor="let event of events; trackBy: trackEvent">
-                <li *ngIf="allCalendars.get(event.calendarID).displayed" class="event" [class.past]="event.past"
+                <li *ngIf="allCalendars.get(event.event.calendarId).displayed" class="event" [class.past]="event.past"
                     [class.highlight-active]="highlightUser !== ''"
-                    [class.highlight]="event.user?.name === highlightUser">
-                    <span class="time" [style.color]="event.user?.color || null">
-                        <span>{{ event.startTime | date:"HH:mm" }}</span>
+                    [class.highlight]="event.user?.user?.id === highlightUser">
+                    <span class="time" [style.color]="(event.user | color) || null">
+                        <span>{{ event.event.startTime.toDate() | date:"HH:mm" }}</span>
                         <span class="duration" *ngIf="event.duration">{{ event.duration | duration }}</span>
                     </span>
 
                     <span class="summary-container">
-                        <span class="summary">{{ event.summary }}</span>
+                        <span class="summary">{{ event.event.summary }}</span>
                         <span class="user name" *ngIf="!!event.user; else calendarName"
-                            [style.backgroundColor]="event.user.color" [style.color]="event.user.fontColor">{{
-                            event.user.fullname }}</span>
+                            [style.backgroundColor]="event.user|color" [style.color]="event.user | contrastColor">{{
+                            event.user | displayName }}</span>
 
                         <ng-template #calendarName>
-                            <span class="user">{{ event.calendarName }}</span>
+                            <span class="user">{{ allCalendars.get(event.event.calendarId)?.calendar.name }}</span>
                         </ng-template>
                     </span>
                 </li>

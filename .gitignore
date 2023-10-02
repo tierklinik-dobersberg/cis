@@ -4,3 +4,9 @@ node_modules
 /cardcli
 /testdata/state/radicale
 /testdata/**/private-*
+go.work
+go.work.sum
+testdata/dump/
+testdata/state/dumps/
+testdata/state/uploaded/
+cmds/cisd/ui

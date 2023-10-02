@@ -1,7 +1,29 @@
 <div class="flex flex-row items-center justify-end w-full gap-3 mb-4">
+  <div class="flex flex-row items-center justify-start flex-grow gap-3">
+    <button
+      class="tkd-btn tkd-primary tkd-outline"
+      nz-tooltip="Erstelle einen neuen Antrag"
+      (click)="createOffTimeRequest()"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+        />
+      </svg>
+      Antrag erstellen
+    </button>
+  </div>
     <span>Von</span>
     <nz-select [(ngModel)]="userFilter" (ngModelChange)="reload.next()" [nzMode]="'multiple'" nzPlaceHolder="Alle Benutzer" style="min-width: 16rem">
-        <nz-option *ngFor="let user of users" [nzLabel]="user.fullname || user.name" [nzValue]="user.name"></nz-option>
+        <nz-option *ngFor="let user of users" [nzLabel]="user | displayName" [nzValue]="user.user.id"></nz-option>
     </nz-select>
     <span>Filter</span>
     <nz-radio-group [(ngModel)]="showAll" (ngModelChange)="reload.next()">
@@ -25,8 +47,8 @@
     <tbody>
         <tr *ngFor="let row of table.data; trackBy: trackEntry">
             <td class="flex flex-row items-center gap-4">
-                <nz-avatar [nzSrc]="row.profile.avatar"></nz-avatar>
-                {{ row.profile.fullname || row.profile.name }}
+                <nz-avatar [nzSrc]="row.profile.user.avatar"></nz-avatar>
+                {{ row.profile | displayName }}
             </td>
             <td>
                 <ng-container *ngIf="row.costs.vacationDays < 0; else: creditInfo">
@@ -44,14 +66,13 @@
             <td>{{ row.description }}</td>
             <td>
                 <div class="flex flex-row items-center gap-1" *ngIf="row.approval === null">
-                    {{ (currentUserCredits[row.staffID] || 0) | jsDuration }}
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-6 text-tertiary">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                     </svg>
                     {{row.creditsLeft | jsDuration }}
                 </div>
                 <div class="" *ngIf="row.approval?.actualCosts.duration < 0">
-                    {{ (-1*row.approval.actualCosts.duration) | jsDuration }}
+                    {{ -1*row.approval.actualCosts.vacationDays }} Tage ({{ (-1*row.approval.actualCosts.duration) | jsDuration }})
                 </div>
                 <div class="text-secondary" *ngIf="row.approval?.approved === false && row.approval?.actualCosts.duration === 0">
                     ZA

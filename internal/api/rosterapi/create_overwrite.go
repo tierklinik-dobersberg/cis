@@ -6,14 +6,18 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bufbuild/connect-go"
 	"github.com/labstack/echo/v4"
+	idmv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/idm/v1"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
+	"github.com/tierklinik-dobersberg/cis/internal/identity/providers/idm"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 type setOverwriteRequest struct {
-	Username    string    `json:"username"`
+	UserId      string    `json:"userId"`
 	Phone       string    `json:"phoneNumber"`
 	DisplayName string    `json:"displayName"`
 	From        time.Time `json:"from"`
@@ -40,17 +44,25 @@ func CreateOverwriteEndpoint(router *app.Router) {
 				return httperr.InvalidField("to")
 			}
 
-			if body.Username != "" {
-				user, err := app.Identities.GetUser(ctx, body.Username)
+			if body.UserId != "" {
+				user, err := app.IDM.UserServiceClient.GetUser(ctx, connect.NewRequest(&idmv1.GetUserRequest{
+					Search: &idmv1.GetUserRequest_Id{
+						Id: body.UserId,
+					},
+					FieldMask: &fieldmaskpb.FieldMask{
+						Paths: []string{"profile.user.id", "profile.user.extra"},
+					},
+				}))
 				if err != nil {
 					return err
 				}
-				if user.Disabled != nil && *user.Disabled {
-					return httperr.BadRequest("user is disabled")
+
+				if idm.GetUserDisabled(user.Msg.Profile) {
+					return httperr.BadRequest("user disabled")
 				}
 			}
 
-			overwrite, err := app.OnCallOverwrites.CreateOverwrite(ctx, body.From, body.To, body.Username, body.Phone, body.DisplayName)
+			overwrite, err := app.OnCallOverwrites.CreateOverwrite(ctx, body.From, body.To, body.UserId, body.Phone, body.DisplayName)
 			if err != nil {
 				return err
 			}

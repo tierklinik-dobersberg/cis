@@ -59,8 +59,8 @@ type Overwrite struct {
 	// anymore.
 	To time.Time `bson:"to" json:"to"`
 
-	// Username is the name of the CIS user that is in duty instead.
-	Username string `bson:"username,omitempty" json:"username,omitempty"`
+	// UserId is the name of the CIS user that is in duty instead.
+	UserId string `bson:"userId,omitempty" json:"userId,omitempty"`
 
 	// PhoneNumber is the phone-number that is in duty instead.
 	PhoneNumber string `bson:"phoneNumber,omitempty" json:"phoneNumber,omitempty"`

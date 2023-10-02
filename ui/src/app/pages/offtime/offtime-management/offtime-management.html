@@ -4,13 +4,13 @@
             <div class="px-5 py-5 bg-white border rounded-md shadow-sm border-tertiary">
                 <h1 class="mb-5 text-lg font-light uppercase font-lato text-color-primary-dark">Resturlaub</h1>
                 <ul class="space-y-2">
-                    <li *ngFor="let state of currentUserCredits" class="flex flex-row items-center gap-3 outline-none cursor-pointer" [routerLink]="['.']" [queryParams]="{tab: 'requests', user: state.name, all: 'true'}" queryParamsHandling="merge">
-                        <nz-avatar [nzSrc]="state.avatar"></nz-avatar>
-                        {{ state.fullname || state.name }}
+                    <li *ngFor="let state of currentUserCredits" class="flex flex-row items-center gap-3 outline-none cursor-pointer" [routerLink]="['.']" [queryParams]="{tab: 'requests', user: state.profile.user.id, all: 'true'}" queryParamsHandling="merge">
+                        <nz-avatar [nzSrc]="state.profile.user.avatar"></nz-avatar>
+                        {{ state.profile | displayName }}
                         <span class="flex items-center justify-end flex-grow gap-2">
-                            {{ state.creditsLeft | jsDuration }}
+                            {{ state.daysLeft }} Tage ({{ state.creditsLeft | jsDuration }})
 
-                            <svg (click)="$event.stopPropagation(); grant(state.name)" nz-tooltip="Urlaubsguthaben anpassen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 cursor-hover hover:text-white hover:bg-alert-green hover:rounded-full hover:bg-opacity-85 text-alert-green">
+                            <svg (click)="$event.stopPropagation(); grant(state.profile.user.id)" nz-tooltip="Urlaubsguthaben anpassen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 cursor-hover hover:text-white hover:bg-alert-green hover:rounded-full hover:bg-opacity-85 text-alert-green">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
 

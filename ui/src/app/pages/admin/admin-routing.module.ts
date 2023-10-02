@@ -7,11 +7,6 @@ const routes: Routes = [
   { path: '', component: AdminOverviewComponent },
   { path: 'import', component: ImportPageComponent },
   {
-    path: 'identity',
-    loadChildren: () =>
-      import('./users/users.module').then((m) => m.UsersModule),
-  },
-  {
     path: 'settings',
     loadChildren: () => import('./settings').then((m) => m.SettingsModule),
   },

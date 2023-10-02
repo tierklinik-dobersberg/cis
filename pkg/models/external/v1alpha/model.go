@@ -3,7 +3,7 @@ package v1alpha
 import "time"
 
 type DoctorOnDuty struct {
-	Username   string                 `json:"username"`
+	UserId     string                 `json:"userId"`
 	FullName   string                 `json:"fullname"`
 	Phone      string                 `json:"phone"`
 	Properties map[string]interface{} `json:"properties"`

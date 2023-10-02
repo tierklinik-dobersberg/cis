@@ -1,10 +1,11 @@
 import { CdkOverlayOrigin } from "@angular/cdk/overlay";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
+import { Profile } from "@tkd/apis";
 import { NzModalService } from "ng-zorro-antd/modal";
 import { Holiday } from "src/app/api";
-import { TkdConstraintViolationPipe } from "../../constraint-violation-text.pipe";
-import { ProfileWithAvatar } from '../../../../../../dist/tkd/api/lib/account/account.types';
+import { UserNamePipe } from "src/app/shared/pipes";
 import { OffTime, RosterShift, RosterShiftWithStaffList, WorkTimeStatus } from '../../../../api/roster2/roster2-types';
+import { TkdConstraintViolationPipe } from "../../constraint-violation-text.pipe";
 
 @Component({
   selector: 'tkd-roster-planner-day',
@@ -32,7 +33,7 @@ export class TkdRosterPlannerDayComponent implements OnChanges {
   requiredShifts: RosterShiftWithStaffList[] = [];
 
   @Input()
-  users: {[key: string]: ProfileWithAvatar} = {};
+  profiles: {[id: string]: Profile} = {};
 
   @Input()
   selectedUser: string | null = null;
@@ -95,11 +96,13 @@ export class TkdRosterPlannerDayComponent implements OnChanges {
       let confirmMessage: any = '';
       if (!set.has(user)) {
         if (!shift.eligibleStaff.includes(user)) {
-          confirmMessage =  `Benutzer ${this.users[user]?.fullname || user} ist für die ausgewählte Schicht nicht berechtigt.`;
+          const displayName = (new UserNamePipe()).transform(this.profiles[user]);
+
+          confirmMessage =  `Benutzer ${displayName} ist für die ausgewählte Schicht nicht berechtigt.`;
 
           if (!!shift.constraintViolations[user]?.length) {
             const reason = new TkdConstraintViolationPipe().transform(shift.constraintViolations[user])
-            confirmMessage = `Benutzer ${this.users[user]?.fullname || user} ist aus folgenden Gründen für diese Schicht gesperrt:` + reason;
+            confirmMessage = `Benutzer ${displayName} ist aus folgenden Gründen für diese Schicht gesperrt:` + reason;
           }
 
         } else if (this.assigned[shift.shiftID]?.size >= shift.requiredStaffCount) {

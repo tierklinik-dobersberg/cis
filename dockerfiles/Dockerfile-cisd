@@ -1,4 +1,19 @@
-FROM golang:1.17 as build
+
+# Build the frontend
+FROM node:16 as builder
+
+WORKDIR /app/ui
+
+COPY ui/package.json ui/package-lock.json ./
+RUN npm install
+
+RUN npx browserslist@latest --update-db
+
+COPY ./ui .
+RUN npm run build
+
+# Build cisd
+FROM golang:1.20 as build
 
 RUN update-ca-certificates
 
@@ -12,10 +27,12 @@ RUN go mod verify
 
 COPY . .
 
+COPY --from=builder /app/cmds/cisd/ui /go/src/app/cmds/cisd/ui
+
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /go/bin/cisd ./cmds/cisd
 
 FROM gcr.io/distroless/static
 
 COPY --from=build /go/bin/cisd /go/bin/cisd
-
+EXPOSE 3000
 ENTRYPOINT ["/go/bin/cisd"]

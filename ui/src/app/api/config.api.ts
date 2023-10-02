@@ -1,22 +1,21 @@
-import { keyframes } from '@angular/animations';
 import {
   HttpClient,
   HttpErrorResponse,
   HttpParams,
 } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { TkdAccountService } from '@tkd/api';
+import { Injectable, inject } from '@angular/core';
 import { NzMessageRef, NzMessageService } from 'ng-zorro-antd/message';
 import {
   BehaviorSubject,
-  combineLatest,
   Observable,
+  combineLatest,
   throwError,
   timer,
 } from 'rxjs';
-import { delayWhen, filter, map, retryWhen } from 'rxjs/operators';
+import { delayWhen, map, retryWhen } from 'rxjs/operators';
 import { TriggerAPI } from '.';
-import { IdentityAPI } from './identity.api';
+import { ProfileService } from '../services/profile.service';
+import { ROLE_SERVICE, USER_SERVICE } from './connect_clients';
 
 export interface ExternalLink {
   ParentMenu: string;
@@ -92,18 +91,6 @@ export interface Annotated {
   };
 }
 
-export interface UserProperty {
-  Visibility: string;
-  DisplayName?: string;
-  Name: string;
-  Description: string;
-  Type: string;
-  Required: boolean;
-  Default: string;
-  Annotations?: {
-    [key: string]: any;
-  };
-}
 
 export interface QuickRosterOverwrite {
   DisplayName: string;
@@ -137,7 +124,6 @@ export interface UIConfig {
     CreateEventAlwaysAllowCalendar?: string[];
   };
   ExternalLink?: ExternalLink[];
-  UserProperty: UserProperty[];
   QuickRosterOverwrite?: QuickRosterOverwrite[];
   KnownPhoneExtension?: KnownPhoneExtension[];
   TriggerAction?: TriggerAction[];
@@ -163,16 +149,18 @@ export class ConfigAPI {
     this.reload$.next();
   }
 
+  private roleService = inject(ROLE_SERVICE);
+  private userService = inject(USER_SERVICE);
+
   constructor(
     private http: HttpClient,
     private nzMessageService: NzMessageService,
-    private identity: IdentityAPI,
-    private account: TkdAccountService,
-    private triggerapi: TriggerAPI
+    private triggerapi: TriggerAPI,
+    private profileService: ProfileService,
   ) {
     let loading: NzMessageRef | null = null;
     combineLatest([
-      this.account.profileChange.pipe(filter((profile) => !!profile)),
+      this.profileService.profile$,
       this.reload$,
     ]).subscribe(() => {
       this.loaddUIConfig()
@@ -202,10 +190,6 @@ export class ConfigAPI {
               this.nzMessageService.remove(loading.messageId);
               loading = null;
             }
-            // we need to update the IdentityAPI ourself
-            // as importing ConfigAPI there would cause a circular
-            // dependency.
-            this.identity.applyUIConfig(cfg);
 
             // finally, notify all other subscribes of UI config
             // changes.
@@ -226,7 +210,6 @@ export class ConfigAPI {
         .append('keys', 'TriggerAction')
         .append('keys', 'KnownPhoneExtension')
         .append('keys', 'Roster')
-        .append('keys', 'UserProperty'),
     });
   }
 
@@ -279,10 +262,10 @@ export class ConfigAPI {
 
     switch (oneOf.schemaType) {
       case 'identity:roles':
-        values = await this.identity.getRoles().toPromise();
+        values = (await this.roleService.listRoles({})).roles;
         break;
       case 'identity:users':
-        values = await this.identity.listUsers().toPromise();
+        values = (await this.userService.listUsers({})).users;
         break;
       case 'trigger':
         const triggers = await this.triggerapi.listInstances().toPromise()

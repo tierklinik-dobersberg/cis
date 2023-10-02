@@ -22,19 +22,15 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/door"
-	"github.com/tierklinik-dobersberg/cis/internal/healthchecks"
-	"github.com/tierklinik-dobersberg/cis/internal/identity"
+	"github.com/tierklinik-dobersberg/cis/internal/identity/providers/idm"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/oncalloverwrite"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/tmpl2pdf"
-	"github.com/tierklinik-dobersberg/cis/internal/wiki"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
-	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
-	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -48,12 +44,11 @@ type App struct {
 	Config           *Config
 	Matcher          *permission.Matcher
 	OnCallOverwrites oncalloverwrite.Database
-	Identities       identity.Provider
+	IDM              *idm.Provider
 	Customers        customerdb.Database
 	Patients         patientdb.Database
 	Comments         commentdb.Database
 	VoiceMails       voicemaildb.Database
-	Sessions         *session.Manager
 	MailSync         *mailsync.Manager
 	Door             *door.Controller
 	Holidays         openinghours.HolidayGetter
@@ -64,11 +59,8 @@ type App struct {
 	LayoutStore      layouts.Store
 	InfoScreenShows  infoscreendb.Database
 	Cache            cache.Cache
-	Autologin        *autologin.Manager
 	Trigger          *trigger.Registry
-	Healtchecks      *healthchecks.Controller
 	Tmpl2PDF         *tmpl2pdf.Creator
-	Wiki             *wiki.Database
 
 	RosterdServer string
 
@@ -84,7 +76,6 @@ func (app *App) String() string {
 func NewApp(
 	cfg *Config,
 	matcher *permission.Matcher,
-	identities identity.Provider,
 	customers customerdb.Database,
 	patients patientdb.Database,
 	overwrites oncalloverwrite.Database,
@@ -92,7 +83,6 @@ func NewApp(
 	voicemail voicemaildb.Database,
 	mailsyncManager *mailsync.Manager,
 	door *door.Controller,
-	sessionManager *session.Manager,
 	holidays openinghours.HolidayGetter,
 	calllogs calllogdb.Database,
 	calendarEvents calendar.Backend,
@@ -101,17 +91,14 @@ func NewApp(
 	layoutStore layouts.Store,
 	infoScreens infoscreendb.Database,
 	cache cache.Cache,
-	autologinManager *autologin.Manager,
 	triggerRegistry *trigger.Registry,
-	healthchecks *healthchecks.Controller,
 	pdfCreator *tmpl2pdf.Creator,
-	wiki *wiki.Database,
 	RosterdServer string,
+	idmProvider *idm.Provider,
 ) *App {
 	return &App{
 		Config:           cfg,
 		Matcher:          matcher,
-		Identities:       identities,
 		Customers:        customers,
 		Patients:         patients,
 		OnCallOverwrites: overwrites,
@@ -119,7 +106,6 @@ func NewApp(
 		VoiceMails:       voicemail,
 		MailSync:         mailsyncManager,
 		Door:             door,
-		Sessions:         sessionManager,
 		Holidays:         holidays,
 		CallLogs:         calllogs,
 		Calendar:         calendarEvents,
@@ -128,12 +114,10 @@ func NewApp(
 		LayoutStore:      layoutStore,
 		InfoScreenShows:  infoScreens,
 		Cache:            cache,
-		Autologin:        autologinManager,
 		Trigger:          triggerRegistry,
-		Healtchecks:      healthchecks,
 		Tmpl2PDF:         pdfCreator,
-		Wiki:             wiki,
 		RosterdServer:    RosterdServer,
+		IDM:              idmProvider,
 	}
 }
 

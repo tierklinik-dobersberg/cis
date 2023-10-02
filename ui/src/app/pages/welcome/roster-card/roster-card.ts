@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
-import { ProfileWithAvatar } from '@tkd/api';
-import { BehaviorSubject, combineLatest, interval, of, Subscription } from 'rxjs';
+import { Profile } from '@tkd/apis';
+import { BehaviorSubject, Subscription, combineLatest, interval, of } from 'rxjs';
 import { catchError, mergeMap, startWith } from 'rxjs/operators';
 import { UserService } from 'src/app/api';
 import { Roster2Service, RosterShift } from 'src/app/api/roster2';
@@ -15,8 +15,8 @@ export class RosterCardComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
 
   shifts: RosterShift[] = [];
-  users: {
-    [key: string]: ProfileWithAvatar
+  profiles: {
+    [key: string]: Profile
   } = {}
 
   @Output()
@@ -71,8 +71,8 @@ export class RosterCardComponent implements OnInit, OnDestroy {
 
     const userSub =this.userService.users
       .subscribe(users => {
-        this.users = {};
-        users.forEach(u => this.users[u.name] = u);
+        this.profiles = {};
+        users.forEach(u => this.profiles[u.user.id] = u);
         this.changeDetector.markForCheck();
       });
 

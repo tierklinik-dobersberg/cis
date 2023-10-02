@@ -1,4 +1,4 @@
-<span class="inline-block mb-1 w-full text-xs text-center rounded font-lato text-secondary"
+<span class="inline-block w-full mb-1 text-xs text-center rounded font-lato text-secondary"
   [ngClass]="{'bg-primary text-white':!!holiday}">{{ holiday?.localName}} {{ date | date:'dd.MM' }}</span>
 
 <ul class="flex overflow-auto flex-col flex-grow gap-1 px-0.5 py-0.5 group" *ngIf="!isDisabledDate">
@@ -9,7 +9,7 @@
     [ngClass]="{'cursor-not-allowed opacity-40': !!selectedUser && !(selectedUser|inList:shift.eligibleStaff) && !(selectedUser|inList:assigned[shift.shiftID]), 'opacity-50': highlightUserShifts !== null && !(highlightUserShifts | inList:assigned[shift.shiftID]), 'ring-1': highlightUserShifts | inList:assigned[shift.shiftID], 'rounded': !trigger.elementRef.nativeElement.open, 'rounded-t ring-1 shadow-inner': trigger.elementRef.nativeElement.open }">
 
       <div
-        [nz-tooltip]="shift.definition.name + (shift.definition) + ' - Von ' + (shift.from | date:'HH:mm') + ' bis ' + (shift.definition.from|workShiftEnd:shift.definition.duration)"
+        [nz-tooltip]="shift.definition.name + ' (' + shift.definition.shortName + ') - Von ' + (shift.from | date:'HH:mm') + ' bis ' + (shift.definition.from|workShiftEnd:shift.definition.duration)"
         class="flex overflow-hidden flex-col justify-between pr-1.5 text-xs uppercase whitespace-nowrap border-r select-none text-ellipsis text-secondary font-lato"
         [ngStyle]="{borderColor: shift.definition.color + 'aa'}" style="font-size: 0.65rem;">
 
@@ -24,7 +24,7 @@
       </div>
 
       <span *ngIf="!!selectedUser && !(selectedUser|inList:shift.eligibleStaff)"
-        class="flex absolute top-3 right-3 justify-center items-center w-4 h-4 text-white rounded-full bg-opacity-light bg-alert-red"
+        class="absolute flex items-center justify-center w-4 h-4 text-white rounded-full top-3 right-3 bg-opacity-light bg-alert-red"
         [nz-tooltip]="violationTemplate">!</span>
 
       <ng-template #violationTemplate>
@@ -35,11 +35,11 @@
         </ul>
       </ng-template>
 
-      <div class="flex flex-row flex-wrap flex-grow gap-1 items-center">
+      <div class="flex flex-row flex-wrap items-center flex-grow gap-1">
         <div *ngFor="let user of assigned[shift.shiftID]">
           <span *ngIf="(user|toUser) as profile" class="block px-0.5 rounded border border-subtle"
-            [ngStyle]="{backgroundColor: profile.color + 'aa', color: profile.fontColor, borderColor: profile.color}">
-            <span>{{ (profile | username).substr(0, 2) }}</span>
+            [ngStyle]="{backgroundColor: (profile | color) + 'aa', color: (profile | contrastColor), borderColor: (profile|color)}">
+            <span>{{ (profile | displayName).substr(0, 2) }}</span>
           </span>
         </div>
       </div>
@@ -47,14 +47,14 @@
     <ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="trigger"
       [cdkConnectedOverlayOpen]="trigger.elementRef.nativeElement.open"
       (overlayOutsideClick)="onOverlayOutsideClick($event, trigger)">
-      <ul class="p-2 w-80 bg-white rounded-b ring-1 shadow">
+      <ul class="p-2 bg-white rounded-b shadow w-80 ring-1">
         <li *ngFor="let user of shift.eligibleStaff">
-          <div class="flex flex-row gap-2 items-center p-2 rounded cursor-pointer hover:bg-subtle"
+          <div class="flex flex-row items-center gap-2 p-2 rounded cursor-pointer hover:bg-subtle"
             (click)="onShiftClick(trigger, shift, user)">
 
-            <nz-avatar nzIcon="user" [nzSrc]="(user | toUser)?.avatar"></nz-avatar>
-            <div class="flex flex-col gap-1 justify-start">
-              <span>{{ user | toUser | username }}</span>
+            <nz-avatar nzIcon="user" [nzSrc]="(user | toUser)?.user?.avatar"></nz-avatar>
+            <div class="flex flex-col justify-start gap-1">
+              <span>{{ user | toUser | displayName }}</span>
               <span class="text-xs leading-3 text-secondary" *ngIf="workTimeStatus[user] as work">
                 <span [ngClass]="{'text-alert-red': work.expectedWorkTime < work.plannedWorkTime, 'text-alert-green-dark': work.expectedWorkTime > work.plannedWorkTime}">{{ work.plannedWorkTime | duration:'default-hours':'ms' }}</span>
                 <span>/{{ work.expectedWorkTime | duration:'default-hours':'ms' }}</span>

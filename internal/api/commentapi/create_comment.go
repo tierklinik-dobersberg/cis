@@ -23,7 +23,7 @@ func CreateCommentEndpoint(router *app.Router) {
 				return httperr.MissingParameter("key")
 			}
 
-			sess := session.Get(c)
+			sess := session.UserFromCtx(ctx)
 			if sess == nil {
 				return httperr.InternalError("session missing")
 			}
@@ -33,7 +33,7 @@ func CreateCommentEndpoint(router *app.Router) {
 				return err
 			}
 
-			_, err = app.Comments.Create(ctx, key, sess.User.Name, msg)
+			_, err = app.Comments.Create(ctx, key, sess.User.Id, msg)
 			if err != nil {
 				return err
 			}

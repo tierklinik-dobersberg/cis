@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	idmv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/idm/v1"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -20,13 +21,13 @@ func ExecuteTriggerGroupEndpoint(router *app.Router) {
 		"v1/group/:groupName",
 		permission.Anyone, // we'l verify that ourself
 		func(ctx context.Context, app *app.App, c echo.Context) error {
-			sess := session.Get(c)
+			sess := session.UserFromCtx(ctx)
 			groupName := c.Param(("groupName"))
 
 			instances, err := findAllowedGroupMembers(
 				ctx,
-				sess.User.Name,
-				sess.ExtraRoles(),
+				sess.User.Id,
+				sess.Roles,
 				app,
 				app.Trigger.Instances(),
 				groupName,
@@ -77,7 +78,7 @@ func isInSlice(needle string, haystack []string) bool {
 	return false
 }
 
-func findAllowedGroupMembers(ctx context.Context, username string, extraRoles []string, app *app.App, triggers []*trigger.Instance, groupName string) ([]*trigger.Instance, error) {
+func findAllowedGroupMembers(ctx context.Context, username string, extraRoles []*idmv1.Role, app *app.App, triggers []*trigger.Instance, groupName string) ([]*trigger.Instance, error) {
 	var (
 		result     []*trigger.Instance
 		foundGroup bool

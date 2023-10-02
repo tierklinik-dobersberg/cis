@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
-	"path/filepath"
-	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/labstack/echo/v4"
@@ -34,7 +32,7 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 			ActionShowsWrite,
 		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
-			sess := session.Get(c)
+			sess := session.UserFromCtx(ctx)
 			if sess == nil {
 				return httperr.InternalError("missing session")
 			}
@@ -83,12 +81,15 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 			if err := playTemplate.Execute(buf, playCtx); err != nil {
 				return err
 			}
-			entry := &slidePreview{
-				Content: buf.String(),
-			}
-			if err := sess.SetEphemeral(ctx, key, entry, time.Minute); err != nil {
-				return err
-			}
+			/*
+				entry := &slidePreview{
+					Content: buf.String(),
+				}
+						FIXME
+					if err := sess.SetEphemeral(ctx, key, entry, time.Minute); err != nil {
+						return err
+					}
+			*/
 
 			return c.JSON(http.StatusOK, gin.H{
 				"key": key,
@@ -103,34 +104,41 @@ func RenderLayoutPreviewEndpoint(router *app.Router) {
 			ActionShowsRead,
 		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
-			resource := strings.TrimPrefix(c.Param("resource"), "/")
+			/*
 
-			key := c.Param("key")
-			sess := session.Get(c)
-			if sess == nil {
-				return httperr.InternalError("missing session")
-			}
+					FIXME
 
-			var slide slidePreview
-			ttl, err := sess.GetEphemeral(ctx, key, &slide)
-			if err != nil {
+				resource := strings.TrimPrefix(c.Param("resource"), "/")
+
+				key := c.Param("key")
+				sess := session.UserFromCtx(ctx)
+				if sess == nil {
+					return httperr.InternalError("missing session")
+				}
+
+				var slide slidePreview
+					 FIXME
+					ttl, err := sess.GetEphemeral(ctx, key, &slide)
+					if err != nil {
+						return err
+					}
+					if ttl.IsZero() {
+						return httperr.NotFound("slide-preview", key)
+					}
+
+				if strings.HasPrefix(resource, "uploaded/") {
+					return c.File(filepath.Join(
+						app.Config.InfoScreenConfig.UploadDataDirectory,
+						strings.TrimPrefix(resource, "uploaded/"),
+					))
+				}
+
+				c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
+				_, err = c.Response().Write([]byte(slide.Content))
+
 				return err
-			}
-			if ttl.IsZero() {
-				return httperr.NotFound("slide-preview", key)
-			}
-
-			if strings.HasPrefix(resource, "uploaded/") {
-				return c.File(filepath.Join(
-					app.Config.InfoScreenConfig.UploadDataDirectory,
-					strings.TrimPrefix(resource, "uploaded/"),
-				))
-			}
-
-			c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
-			_, err = c.Response().Write([]byte(slide.Content))
-
-			return err
+			*/
+			return fmt.Errorf("fixme")
 		},
 	)
 }

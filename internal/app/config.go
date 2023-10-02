@@ -7,7 +7,6 @@ import (
 
 	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
@@ -28,7 +27,6 @@ type CORS struct {
 
 // Config holds the complete cisd configuration.
 type Config struct {
-	session.IdentityConfig   `section:"Global"`
 	cfgspec.Config           `section:"Global"`
 	cfgspec.DatabaseConfig   `section:"Global"`
 	cfgspec.InfoScreenConfig `section:"InfoScreen"`

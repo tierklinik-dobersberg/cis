@@ -1,17 +1,20 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output, TrackByFunction } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { ProfileWithAvatar } from "@tkd/api";
+import { Profile } from "@tkd/apis";
 import { NzMessageService } from "ng-zorro-antd/message";
 import { NzModalService } from "ng-zorro-antd/modal";
-import { BehaviorSubject, combineLatest, forkJoin, Subject, switchMap, take, takeUntil } from "rxjs";
+import { BehaviorSubject, Subject, combineLatest, forkJoin, switchMap, take, takeUntil } from "rxjs";
 import { UserService } from "src/app/api";
 import { JSDuration, OffTime, Roster2Service } from "src/app/api/roster2";
+import { ProfileService } from "src/app/services/profile.service";
 import { extractErrorMessage } from "src/app/utils";
+import { TkdCreateOfftimeRequestComponent } from "../../create-offtime-request";
 import { TkdApproveRejectOffTimeRequestComponent } from "../approve-reject-request";
 
 interface LocalOffTimeRequest extends OffTime.Entry {
-    profile?: ProfileWithAvatar
+    profile?: Profile;
     creditsLeft: number;
+    daysLeft: number;
 }
 
 @Component({
@@ -25,7 +28,7 @@ export class TkdOffTimeRequestManagementComponent implements OnInit, OnDestroy {
     reload = new BehaviorSubject<void>(undefined)
 
     /** A list of all users */
-    users: ProfileWithAvatar[] = [];
+    users: Profile[] = [];
 
     /** A list of all off-time requests extended with the user profile */
     entries: LocalOffTimeRequest[] = [];
@@ -46,7 +49,7 @@ export class TkdOffTimeRequestManagementComponent implements OnInit, OnDestroy {
     skipRouteChange = false;
 
     currentUserCredits: {
-        [user: string]: JSDuration
+        [user: string]: OffTime.CreditsLeft
     } = {};
 
     constructor(
@@ -56,8 +59,22 @@ export class TkdOffTimeRequestManagementComponent implements OnInit, OnDestroy {
         private route: ActivatedRoute,
         private modal: NzModalService,
         private router: Router,
+        private account: ProfileService,
         private cdr: ChangeDetectorRef
     ) {}
+
+    createOffTimeRequest() {
+      this.modal.create({
+        nzContent: TkdCreateOfftimeRequestComponent,
+        nzFooter: null,
+        nzWidth: 'fit-content',
+        nzComponentParams: {
+          isAdmin: true, // FIXME: this.account.currentProfile.roles.includes("OffTime-Admin"),
+        }
+      }).afterClose
+        .pipe(take(1))
+        .subscribe(() => this.load())
+    }
 
     load() {
         combineLatest([
@@ -76,12 +93,12 @@ export class TkdOffTimeRequestManagementComponent implements OnInit, OnDestroy {
 
                 const userSet = new Set(this.userFilter);
                 this.currentUserCredits = result.credits;
-
                 this.entries = (result.entries || [])
                     .map(e => {
                         return {
                             profile: this.userService.byName(e.staffID),
-                            creditsLeft: (this.currentUserCredits[e.staffID] || 0) + e.costs.duration, // + because duration is negative
+                            creditsLeft: (this.currentUserCredits[e.staffID]?.credits ?? 0) + e.costs.duration, // + because duration is negative
+                            daysLeft: (this.currentUserCredits[e.staffID]?.days ?? 0) + e.costs.vacationDays, // + because duration is negative
                             ...e,
                         }
                     })
@@ -110,7 +127,7 @@ export class TkdOffTimeRequestManagementComponent implements OnInit, OnDestroy {
                 this.cdr.markForCheck();
             })
     }
-    
+
     deleteRequest(id: string) {
         this.modal.confirm({
             nzTitle: 'Antrag löschen?',
@@ -156,13 +173,15 @@ export class TkdOffTimeRequestManagementComponent implements OnInit, OnDestroy {
     }
 
     approve(id: string, usedAsVacation?: boolean) {
-        if (usedAsVacation === undefined) {
-            usedAsVacation = this.entries.find(e => e.id === id).requestType === OffTime.RequestType.Vacation
+        let costs: JSDuration | null = null;
+
+        if (usedAsVacation === false) {
+          costs = 0;
         }
 
         this.rosterService
             .offTime
-            .approve(id, usedAsVacation)
+            .approve(id, costs)
             .subscribe({
                 next: () => {
                     this.load()

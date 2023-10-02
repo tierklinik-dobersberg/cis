@@ -1,10 +1,11 @@
 import { Component, isDevMode, OnDestroy, OnInit } from '@angular/core';
-import { TkdAccountService, Permissions } from '@tkd/api';
 import { Subscription } from 'rxjs';
 import { delay, retryWhen } from 'rxjs/operators';
 import { VoiceMailAPI } from 'src/app/api';
 import { LayoutService } from 'src/app/services';
+import { ProfileService } from 'src/app/services/profile.service';
 import { HeaderTitleService } from 'src/app/shared/header-title';
+import { UserNamePipe } from 'src/app/shared/pipes';
 
 @Component({
   selector: 'app-welcome',
@@ -15,28 +16,20 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   mailboxes: string[] = [];
 
   get hasDoorAccess(): boolean {
-    return this.account.hasPermission(Permissions.DoorGet);
+    return true;
   }
 
   get hasDoctorOnDutyAccess(): boolean {
-    return this.account.hasPermission(Permissions.ExternalReadOnDuty);
+    return true;
   }
 
   get hasRosterAccess(): boolean {
-    return this.account.hasPermission(Permissions.RosterRead);
-  }
-
-  get hasTriggerAccess(): boolean {
-    return this.account.hasPermission(Permissions.TriggerRead)
-  }
-
-  get hasSuggestionAccess(): boolean {
-    return this.account.hasPermission(Permissions.SuggestionRead);
+    return true;
   }
 
   constructor(
     private header: HeaderTitleService,
-    private account: TkdAccountService,
+    private account: ProfileService,
     private voicemailapi: VoiceMailAPI,
     public layout: LayoutService,
   ) { }
@@ -46,7 +39,7 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   private allSub = new Subscription();
 
   ngOnInit(): void {
-    const name = this.account.currentProfile?.fullname || this.account.currentProfile?.name;
+    const name = UserNamePipe.transform(this.account.snapshot);
 
     this.header.set(`Hallo ${name},`, 'Hier findest du eine Übersicht der wichtigsten Informationen.');
 
@@ -60,5 +53,4 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.allSub.unsubscribe();
   }
-
 }

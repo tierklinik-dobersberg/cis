@@ -13,11 +13,11 @@
   </span>
 
   <div class="on-duty-container">
-    <nz-avatar [nzSize]="64" nzShape="square" nzIcon="user" [nzSrc]="primaryOnDuty?.avatar"></nz-avatar>
+    <nz-avatar [nzSize]="64" nzShape="square" nzIcon="user" [nzSrc]="primaryOnDuty?.user?.avatar"></nz-avatar>
     <div class="primary-on-duty">
       <span *ngIf="!!primaryOnDuty" [nzTooltipTitle]="'bis ' + (onDutyUntil?.toLocaleString() || 'N/A')"
         nz-tooltip><u>{{
-          primaryOnDuty.fullname || primaryOnDuty.name }}</u></span>
+          primaryOnDuty | displayName }}</u></span>
       <span class="phone" *ngIf="!!primaryOnDuty && onDuty[0].phone">
         <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
         {{ onDuty[0].phone }}</span>
@@ -39,7 +39,7 @@
     <span *ngIf="onDuty.length > 1">
       <span>Backup: </span>
       <span *ngFor="let backup of onDuty.slice(1); trackBy: trackBy" class="backup" [nzTooltipTitle]="backup.phone"
-        nz-tooltip>{{ backup.fullname || backup.username || 'N/A' }}</span>
+        nz-tooltip>{{ backup.fullname || (backup.userId | toUser)?.user.displayName || 'N/A' }}</span>
     </span>
   </span>
 </ng-template>

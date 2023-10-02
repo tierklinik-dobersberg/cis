@@ -27,7 +27,7 @@
                 <li nz-menu-item *ngFor="let cal of calendars; trackBy: trackCalendar" (click)="updateFilter(cal)"
                     (dblclick)="onFilterDblClick(cal)">
                     <i [style.opacity]="cal.displayed ? 1 : 0" nz-icon nzType="check" nzTheme="outline"></i>
-                    {{ cal.name }}
+                    {{ cal.calendar.name }}
                 </li>
             </ul>
         </nz-dropdown-menu>
@@ -47,7 +47,7 @@
             <div class="flex flex-col justify-start w-full" *ngIf="cal.displayed">
                 <div class="flex-1 flex-grow flex-shrink">
                     <div class="w-full overflow-hidden header text-ellipsis" (dblclick)="onFilterDblClick(cal)">
-                        {{ cal.user?.fullname || cal.user?.name || cal.name }}
+                        {{ (cal.user | displayName) || cal.calendar.name }}
                     </div>
                 </div>
             </div>
@@ -85,21 +85,21 @@
 
                             <span class="select-none event hover:w-auto" *ngFor="let event of cal.events; trackBy: trackEvent"
                                 [class.inactive]="activeEventID !== ''" #origin (click)="onEventActivate(event, origin)"
-                                [class.active]="activeEventID === event._id"
+                                [class.active]="activeEventID === event.event.id"
                                 [ngStyle]="{top: (event.top +  event.offsettop) + 'px', 'min-height': event.height + 'px', height: event.height + 'px', left: event.left + 'px', right: '0px', backgroundColor: event.color, color: event.fontColor}">
                                 <span class="text-xs leading-3 opacity-80 font-lato">
-                                  {{ event.startTime | date:'HH:mm'}}
+                                  {{ event.event.startTime.toDate() | date:'HH:mm'}}
                                 </span>
                                 <span class="text-xs font-inter">
-                                  {{ event.summary }}
+                                  {{ event.event.summary }}
                                 </span>
-                                <ng-container *ngIf="activeEventID === event._id && !!event.description">
+                                <ng-container *ngIf="activeEventID === event.event.id && !!event.event.description">
                                     <hr />
-                                    {{ event.description }}
+                                    {{ event.event.description }}
                                 </ng-container>
                             </span>
 
-                            <div #createEventMarker [attr.calid]="cal.id" class="absolute hidden w-full transition-all duration-200 ease-in-out border-2 border-opacity-50 border-dashed rounded opacity-75 bg-opacity-5 border-primary bg-primary"></div>
+                            <div #createEventMarker [attr.calid]="cal.calendar.id" class="absolute hidden w-full transition-all duration-200 ease-in-out border-2 border-opacity-50 border-dashed rounded opacity-75 bg-opacity-5 border-primary bg-primary"></div>
                         </div>
                     </div>
                 </div>
@@ -122,13 +122,13 @@
 <ng-template #eventDetailsTemplate let-event let-overlay="overlay">
   <div class="relative p-4 space-y-2 bg-white border rounded-sm shadow-lg w-72 border-text-deEmphasized">
     <h1 class="mr-4 text-base text-color-primary font-lato">
-      {{ event.summary }}
+      {{ event.event.summary }}
     </h1>
-    <span class="text-secondary font-lato" *ngIf="!!event.startTime && !!event.endTime"> {{ event.startTime | date:"HH:mm" }} - {{ event.endTime | date:'HH:mm' }}</span>
-    <span class="text-secondary font-lato" *ngIf="event.fullDayEvent">Ganztags</span>
+    <span class="text-secondary font-lato" *ngIf="!!event.event.startTime && !!event.event.endTime && !event.event.fullDay"> {{ event.event.startTime.toDate() | date:"HH:mm" }} - {{ event.event.endTime.toDate() | date:'HH:mm' }}</span>
+    <span class="text-secondary font-lato" *ngIf="event.event.fullDay">Ganztags</span>
 
     <span class="text-primary font-inter">
-      {{ event.description }}
+      {{ event.event.description }}
     </span>
 
     <div class="mt-4">

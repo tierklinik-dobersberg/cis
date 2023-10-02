@@ -37,7 +37,6 @@ import { EmergencyCardComponent } from './emergency-card';
 import { VoiceMailCardComponent } from './mail-card';
 import { MobileWelcomeCardComponent } from './mobile-welcome-card';
 import { RosterCardComponent } from './roster-card';
-import { TriggerActionCardComponent } from './trigger-action-card';
 import { UpcomingEventsCardComponent } from './upcoming-events-card';
 import { WelcomeRoutingModule } from './welcome-routing.module';
 import { WelcomeComponent } from './welcome.component';
@@ -84,7 +83,6 @@ import { WelcomeComponent } from './welcome.component';
     RosterCardComponent,
     VoiceMailCardComponent,
     UpcomingEventsCardComponent,
-    TriggerActionCardComponent,
     MobileWelcomeCardComponent,
   ],
   exports: [WelcomeComponent]

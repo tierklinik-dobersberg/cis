@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, combineLatest, interval, Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription, combineLatest, interval } from 'rxjs';
 import { mergeMap, startWith } from 'rxjs/operators';
 import { CallLogModel, CalllogAPI, UserService } from 'src/app/api';
 import { LayoutService } from 'src/app/services';
@@ -73,8 +73,6 @@ export class CallLogComponent implements OnInit, OnDestroy {
               this.missedCalls++;
             }
           });
-
-
 
           setTimeout(() => {
             this.loading = false;

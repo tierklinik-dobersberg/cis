@@ -8,21 +8,21 @@ import {
   Output,
   TrackByFunction,
 } from '@angular/core';
-import { ProfileWithAvatar } from '@tkd/api';
+import { Profile } from '@tkd/apis';
 import { sum } from 'ng-zorro-antd/core/util';
 import {
   BehaviorSubject,
+  Observable,
+  Subscription,
   combineLatest,
   forkJoin,
-  Observable,
   of,
-  Subscription,
 } from 'rxjs';
 import { catchError, debounceTime, switchMap } from 'rxjs/operators';
 import {
   CallLog,
-  CallLogModel,
   ConfigAPI,
+  UserService
 } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { LayoutService } from 'src/app/services';
@@ -35,6 +35,8 @@ interface LocalCallLog extends CallLog {
   outbound: boolean;
   isLostOrUnanswared: boolean;
   isSelf: boolean;
+
+  agentDisplayName?: string;
 }
 
 @Component({
@@ -58,7 +60,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
 
   logs: LocalCallLog[] = [];
 
-  private knownExtensions: Map<string, ProfileWithAvatar> = new Map();
+  private knownExtensions: Map<string, Profile | {displayName: string}> = new Map();
 
   trackLog: TrackByFunction<LocalCallLog> = (i: number, l: LocalCallLog) => {
     if (!!l && l._id !== undefined) {
@@ -71,6 +73,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
   constructor(
     private customerapi: CustomerAPI,
     private configapi: ConfigAPI,
+    private userService: UserService,
     private changeDetector: ChangeDetectorRef,
     public layout: LayoutService
   ) {}
@@ -81,9 +84,15 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
     const configSub = this.configapi.change.subscribe((config) => {
       this.knownExtensions = new Map();
       (config.KnownPhoneExtension || []).forEach((known) => {
-        this.knownExtensions.set(known.ExtensionNumber, {
-          fullname: known.DisplayName,
-        } as ProfileWithAvatar);
+        const profile = this.userService.byExtension(known.ExtensionNumber)
+
+        if (!!profile) {
+          this.knownExtensions.set(known.ExtensionNumber, profile);
+        } else {
+          this.knownExtensions.set(known.ExtensionNumber, {
+            displayName: known.DisplayName,
+          });
+        }
       });
 
       this.subscribeToCalllogs();
@@ -205,7 +214,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
           if (
             !!l.agentProfile &&
             !!cust &&
-            l.agentProfile.name === cust._id &&
+            l.agentProfile.user.id === cust._id &&
             cust.source === '__identities'
           ) {
             isSelf = true;
@@ -219,9 +228,9 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
             localTime: d.toLocaleTimeString(),
             isToday: d.toLocaleDateString() == new Date().toLocaleDateString(),
             customer: cust,
-            agentProfile: l.agentProfile || this.knownExtensions.get(l.agent),
+            agentProfile: l.agentProfile,
             transferToProfile:
-              l.transferToProfile || this.knownExtensions.get(l.transferTarget),
+              l.transferToProfile,
             isLostOrUnanswared: callType === 'notanswered' || callType === '',
             isSelf: isSelf,
           };

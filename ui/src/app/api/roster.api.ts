@@ -11,7 +11,7 @@ export interface OverwriteMeta {
 export interface OverwriteBody {
   from: string;
   to: string;
-  username?: string;
+  userId?: string;
   phoneNumber?: string;
   displayName?: string;
   deleted?: boolean;

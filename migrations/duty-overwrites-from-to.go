@@ -48,7 +48,7 @@ func init() {
 
 				nr := v1alpha.Overwrite{
 					ID:          r.ID,
-					Username:    r.Username,
+					UserId:      r.Username,
 					PhoneNumber: r.PhoneNumber,
 					DisplayName: r.DisplayName,
 					Deleted:     r.Deleted,

@@ -8,10 +8,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bufbuild/connect-go"
 	"github.com/labstack/echo/v4"
+	idmv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/idm/v1"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
-	"github.com/tierklinik-dobersberg/cis/internal/identity"
+	"github.com/tierklinik-dobersberg/cis/internal/identity/providers/idm"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/calendar/v1alpha"
@@ -41,33 +43,38 @@ func ListEventsEndpoint(router *app.Router) {
 			}
 
 			// get all users and build a lookup map
-			users, err := app.Identities.ListAllUsers(ctx)
+			response, err := app.IDM.UserServiceClient.ListUsers(ctx, connect.NewRequest(&idmv1.ListUsersRequest{}))
 			if err != nil {
 				return err
 			}
-			userNameToUser := make(map[string]identity.User)
-			calIDtoUser := make(map[string]identity.User)
-			for _, user := range users {
-				userNameToUser[user.Name] = user
-				if user.CalendarID != "" {
-					calIDtoUser[user.CalendarID] = user
+
+			userIdToProfile := make(map[string]*idmv1.Profile)
+
+			calIDtoUser := make(map[string]*idmv1.Profile)
+			for _, profile := range response.Msg.Users {
+				userIdToProfile[profile.User.Id] = profile
+
+				if calId := idm.GetUserCalendarId(profile); calId != "" {
+					calIDtoUser[calId] = profile
 				}
 			}
 
 			var requestedCalendarIDs []string
 			if forUser := c.QueryParams()["for-user"]; len(forUser) > 0 {
-				for _, username := range forUser {
-					user, ok := userNameToUser[username]
+				for _, userId := range forUser {
+					profile, ok := userIdToProfile[userId]
 					if !ok {
-						return httperr.NotFound("user", username)
+						return httperr.NotFound("user", userId)
 					}
-					if user.CalendarID == "" {
+
+					calId := idm.GetUserCalendarId(profile)
+					if calId == "" {
 						return echo.NewHTTPError(
 							http.StatusExpectationFailed,
-							fmt.Errorf("user %s does not have a calendar", user.Name),
+							fmt.Errorf("user %s does not have a calendar", profile.User.Id),
 						)
 					}
-					requestedCalendarIDs = append(requestedCalendarIDs, user.CalendarID)
+					requestedCalendarIDs = append(requestedCalendarIDs, calId)
 				}
 			}
 
@@ -112,7 +119,7 @@ func ListEventsEndpoint(router *app.Router) {
 				u := calIDtoUser[evt.CalendarID]
 				modelEvents[idx] = v1alpha.Event{
 					Event:        evt,
-					Username:     u.Name,
+					UserId:       u.User.Id,
 					CalendarName: calIDtoCal[evt.CalendarID].Name,
 				}
 			}

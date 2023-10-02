@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"fmt"
 	"log"
@@ -12,9 +13,11 @@ import (
 
 	goruntime "runtime"
 
+	"github.com/bufbuild/connect-go"
 	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/spf13/cobra"
+	idmv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/idm/v1"
 	"github.com/tierklinik-dobersberg/cis/internal/api/calendarapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/calllogapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/cctvapi"
@@ -23,9 +26,7 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/customerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/doorapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/externalapi"
-	"github.com/tierklinik-dobersberg/cis/internal/api/healthcheckapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/holidayapi"
-	"github.com/tierklinik-dobersberg/cis/internal/api/identityapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/importapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/infoscreenapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/openinghoursapi"
@@ -33,10 +34,8 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/resourceapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/statsapi"
-	"github.com/tierklinik-dobersberg/cis/internal/api/suggestionapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/triggerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/voicemailapi"
-	"github.com/tierklinik-dobersberg/cis/internal/api/wikiapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
 	"github.com/tierklinik-dobersberg/cis/internal/cctv"
@@ -49,7 +48,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/door"
-	"github.com/tierklinik-dobersberg/cis/internal/healthchecks"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
@@ -58,19 +56,15 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/tmpl2pdf"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
-	"github.com/tierklinik-dobersberg/cis/internal/wiki"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
-	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
 	tracemw "github.com/tierklinik-dobersberg/cis/pkg/trace"
 	"github.com/tierklinik-dobersberg/cis/runtime"
-	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
 	"github.com/tierklinik-dobersberg/cis/runtime/configprovider/fileprovider"
 	"github.com/tierklinik-dobersberg/cis/runtime/configprovider/mongoprovider"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/cis/runtime/execer"
-	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailer"
 	"github.com/tierklinik-dobersberg/cis/runtime/mailsync"
 	runtimeMQTT "github.com/tierklinik-dobersberg/cis/runtime/mqtt"
@@ -94,6 +88,7 @@ import (
 
 	// All available/build-in identity providers.
 	_ "github.com/tierklinik-dobersberg/cis/internal/identity/providers"
+	"github.com/tierklinik-dobersberg/cis/internal/identity/providers/idm"
 
 	// Neumayr importer.
 	"github.com/tierklinik-dobersberg/cis/internal/importer/carddav"
@@ -104,6 +99,9 @@ import (
 	// Schema migrations.
 	_ "github.com/tierklinik-dobersberg/cis/migrations"
 )
+
+// go:embed ui
+var static embed.FS
 
 func main() {
 	cmd := getRootCommand()
@@ -133,10 +131,6 @@ func getRootCommand() *cobra.Command {
 
 // trunk-ignore(golangci-lint/gocognit)
 func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, context.Context) {
-	var (
-		sessionManager = new(session.Manager)
-	)
-
 	log.Printf("CIS - running on %s (%s)", goruntime.GOOS, goruntime.GOARCH)
 
 	// setup logging
@@ -296,11 +290,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		logger.Fatalf(ctx, "calendar: %s", err)
 	}
 
-	wiki, err := wiki.NewDatabase(ctx, mongoClient.Database(cfg.DatabaseName))
-	if err != nil {
-		logger.Fatalf(ctx, "failed to setup wiki database: %s", err)
-	}
-
 	infoScreens, err := infoscreendb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
 		logger.Fatalf(ctx, "infoscreendb: %s", err)
@@ -340,52 +329,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	doorController, err := door.NewDoorController(ctx, openingHoursCtrl, runtime.GlobalSchema, runtimeMQTT.DefaultConnectionManager)
 	if err != nil {
 		logger.Fatalf(ctx, "door-controler: %s", err.Error())
-	}
-
-	//
-	// Configure the session manager
-	//
-	userProvider := session.UserProviderFunc(func(ctx context.Context, name string) (*v1alpha.User, error) {
-		ctx = identity.WithScope(ctx, identity.Internal)
-		u, err := identities.GetUser(ctx, name)
-		if err != nil {
-			return nil, err
-		}
-
-		return &u.User, nil
-	})
-
-	sameSite := map[string]http.SameSite{
-		"":        http.SameSiteDefaultMode,
-		"default": http.SameSiteDefaultMode,
-		"lax":     http.SameSiteLaxMode,
-		"none":    http.SameSiteNoneMode,
-		"strict":  http.SameSiteStrictMode,
-	}[cfg.SameSite]
-
-	if err := sessionManager.Configure(
-		userProvider,
-		&cfg.IdentityConfig,
-		cfg.Secret,
-		cfg.BaseURL,
-		cache,
-		"ephemeral/",
-		sameSite,
-	); err != nil {
-		logger.Fatalf(ctx, "session-manager: %s", err.Error())
-	}
-
-	//
-	// Create the autologin manager
-	//
-	autoLoginManager, err := autologin.NewManager(
-		ctx,
-		sessionManager,
-		httpcond.DefaultRegistry,
-		cfgFile.GetAll("Autologin"),
-	)
-	if err != nil {
-		logger.Fatalf(ctx, "autologin-manager: %s", err.Error())
 	}
 
 	//
@@ -436,14 +379,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	}
 
 	//
-	// Setup all configured healthchecks
-	//
-	checks, err := healthchecks.NewController(baseCtx, cfg.DatabaseName, mongoClient, runtime.GlobalSchema)
-	if err != nil {
-		logger.Fatalf(ctx, "failed to setup healthchecks: %s", err)
-	}
-
-	//
 	// Setup PDf generation support
 	//
 	pdfCreator, err := tmpl2pdf.NewCreator(ctx, cfg.BaseURL, runtime.GlobalSchema)
@@ -458,7 +393,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	appCtx := app.NewApp(
 		cfg,
 		matcher,
-		identities,
 		customers,
 		patients,
 		overwrites,
@@ -466,7 +400,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		voicemails,
 		mailsyncManager,
 		doorController,
-		sessionManager,
 		holidayCache,
 		calllogs,
 		calendarService,
@@ -475,12 +408,10 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		layoutStore,
 		infoScreens,
 		cache,
-		autoLoginManager,
 		triggerReg,
-		checks,
 		pdfCreator,
-		wiki,
 		os.Getenv("ROSTERD_SERVER"),
+		identities.(*idm.Provider),
 	)
 
 	ctx = app.With(baseCtx, appCtx)
@@ -499,18 +430,25 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 }
 
 func setupAPI(app *app.App, grp *echo.Echo) {
+	//
+	// Configure the session manager
+	//
+	userProvider := session.UserProviderFunc(func(ctx context.Context, userId string) (*idmv1.Profile, error) {
+		resp, err := app.IDM.UserServiceClient.GetUser(ctx, connect.NewRequest(&idmv1.GetUserRequest{
+			Search: &idmv1.GetUserRequest_Id{
+				Id: userId,
+			},
+		}))
+		if err != nil {
+			return nil, err
+		}
+
+		return resp.Msg.Profile, nil
+	})
+
 	apis := grp.Group(
 		"/api/",
-		app.Sessions.Middleware,
-		func(next echo.HandlerFunc) echo.HandlerFunc {
-			return func(c echo.Context) error {
-				if app.Autologin != nil {
-					app.Autologin.PerformAutologin(c)
-				}
-
-				return next(c)
-			}
-		},
+		session.Middleware(userProvider),
 	)
 
 	// alive check
@@ -527,8 +465,6 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 	}
 	// API endpoints
 	{
-		// identityapi provides user and session endpoints
-		identityapi.Setup(app, apis.Group("identity/"))
 		// customerapi provides customer database endpoints
 		customerapi.Setup(app, apis.Group("customer/", session.Require()))
 		// rosterapi provides access to the electronic duty roster
@@ -567,14 +503,8 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 		infoscreenapi.Setup(app, apis.Group("infoscreen/", session.Require()))
 		// access to the infoscreen show player
 		infoscreenapi.SetupPlayer(app, apis.Group("infoscreen/"))
-		// access to the suggestion API
-		suggestionapi.Setup(app, apis.Group("suggestion/", session.Require()))
-		// access to the healthchecks API
-		healthcheckapi.Setup(app, apis.Group("hc/"))
 		// access to the statistics API
 		statsapi.Setup(app, apis.Group("stats/"))
-		// access to the wiki API
-		wikiapi.Setup(app, apis.Group("wiki/"))
 	}
 }
 
@@ -641,11 +571,6 @@ func runMain() {
 	if err := app.Door.Start(); err != nil {
 		logger.Fatalf(ctx, "failed to start door scheduler: %s", err)
 	}
-
-	//
-	// Start healthchecks monitor
-	//
-	app.Healtchecks.Start(ctx)
 
 	// we log on error so this one get's forwarded to error reporters.
 	logger.Errorf(ctx, "startup complete, serving API ....")

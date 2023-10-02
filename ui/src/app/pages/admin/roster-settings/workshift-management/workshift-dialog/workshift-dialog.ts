@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Optional } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Optional, inject } from "@angular/core";
+import { Role } from "@tkd/apis";
 import { NzMessageService } from "ng-zorro-antd/message";
 import { NzModalRef } from "ng-zorro-antd/modal";
-import { IdentityAPI, Role } from "src/app/api";
+import { ROLE_SERVICE } from "src/app/api/connect_clients";
 import { Roster2Service, Weekday, WorkShift } from "src/app/api/roster2";
 import { extractErrorMessage } from "src/app/utils";
 import { Duration } from "src/utils/duration";
@@ -14,6 +15,8 @@ import { Duration } from "src/utils/duration";
 export class TkdWorkshiftDialogComponent implements OnInit {
     @Input()
     workshift?: WorkShift;
+
+    roleService = inject(ROLE_SERVICE);
 
     isEdit = false;
     isColorSelectorOpen = false;
@@ -50,7 +53,6 @@ export class TkdWorkshiftDialogComponent implements OnInit {
     }
 
     constructor(
-        private identityAPI: IdentityAPI,
         private roster2: Roster2Service,
         private cdr: ChangeDetectorRef,
         private nzMessage: NzMessageService,
@@ -102,15 +104,13 @@ export class TkdWorkshiftDialogComponent implements OnInit {
 
         this.showMinutesWorth = this.workshift.minutesWorth > 0;
 
-        this.identityAPI.getRoles()
-            .subscribe({
-                next: roles => {
-                    this.roles = roles;
+        this.roleService.listRoles({})
+            .then(response => {
+                    this.roles = response.roles;
                     this.cdr.markForCheck();
-                },
-                error: err => {
+                })
+            .catch(err => {
                     this.nzMessage.error(extractErrorMessage(err, 'Benutzer-Rollen konnten nicht geladen werden'))
-                }
             })
     }
 

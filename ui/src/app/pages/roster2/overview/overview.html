@@ -1,3 +1,26 @@
+  <div class="flex flex-row items-center justify-end gap-3">
+    <button
+      class="tkd-btn tkd-primary tkd-outline"
+      nz-tooltip="Erstelle einen neuen Antrag"
+      [routerLink]="['/roster/plan', nextYear, nextMonth]"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+        />
+      </svg>
+      Neuer Dienstplan
+    </button>
+  </div>
+
 <nz-table [nzData]="rosters" #table class="p-0.5 bg-white rounded-md border shadow-md ant-table-wrapper border-subtle">
     <thead>
         <tr>
@@ -11,16 +34,16 @@
         <tr *ngFor="let row of table.data; trackBy: trackRoster">
             <td>{{ row.month }}/{{ row.year }}</td>
             <td>
-                <span *ngIf="!!row.approved" class="text-alert-green" [nz-tooltip]="'Freigegeben durch ' + (row.approvedBy|toUser|username) + ' am ' + (row.approvedAt|date:'shortDate')">
+                <span *ngIf="!!row.approved" class="text-alert-green" [nz-tooltip]="'Freigegeben durch ' + (row.approvedBy|toUser|displayName) + ' am ' + (row.approvedAt|date:'shortDate')">
                     Freigegeben
                 </span>
                 <span *ngIf="!row.approved" class="text-alert-orange-dark">
                     Ausständig
                 </span>
             </td>
-            <td [nz-tooltip]="'Erstellt von ' + (row.createdBy | toUser | username)">{{ row.createdAt }}</td>
+            <td [nz-tooltip]="'Erstellt von ' + (row.createdBy | toUser | displayName)">{{ row.createdAt }}</td>
             <td>
-              <div class="flex flex-row gap-2 justify-end items-center">
+              <div class="flex flex-row items-center justify-end gap-2">
                 <button class="tkd-icon-btn tkd-small tkd-outline tkd-primary no-shadow" [routerLink]="['/roster/plan/', row.year, row.month]" nz-tooltip="Dienstplan bearbeiten">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path

@@ -1,15 +1,8 @@
-<h1 class="font-lato">Hi <span class="font-semibold text-color-primary">{{ (user$ | async)?.fullname }}</span>,</h1>
+<h1 class="font-lato">Hi <span class="font-semibold text-color-primary">{{ (user$ | async) | displayName }}</span>,</h1>
 <p class="py-3 text-opacity-70 text-primary">
   Schön das du hier bist! Die folgenden Punkte könnten dir helfen schneller an dein Ziel zu gelangen:
 </p>
-<ul class="p-0 w-full">
-  <li tabindex="0" *ngIf="(user$ | async)?.needsPasswordChange" routerLink="/profile/change-password">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-    </svg>
-    <span>Ändere dein Passwort!</span>
-  </li>
-
+<ul class="w-full p-0">
   <li tabindex="0" *ngFor="let item of unreadMailboxes" [routerLink]="['/voicemail', item.name]">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
       <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd" />
@@ -39,4 +32,4 @@
   </li>
 </ul>
 
-<div class="mt-4 mb-2 w-full border-b border-tertiary"></div>
+<div class="w-full mt-4 mb-2 border-b border-tertiary"></div>

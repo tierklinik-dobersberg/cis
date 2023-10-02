@@ -1,4 +1,3 @@
-import { NumberValueAccessor } from '@angular/forms';
 import { padLeft } from './strings';
 
 const nanosecond = 1;
@@ -144,6 +143,10 @@ export class Duration {
             ns -= ns * nanosecond;
         }
 
+        if (str.endsWith("")) {
+          str = str.substring(0, str.length -1)
+        }
+
         return sign + str;
     }
 
@@ -243,7 +246,7 @@ export class Duration {
     }
 }
 
-export function formatDate(d: Date|string|null): string {
+export function formatDate(d: Date|string|null, sep = '-'): string {
     if (d === null) {
         return ''
     }
@@ -253,10 +256,10 @@ export function formatDate(d: Date|string|null): string {
     let day = '' + d.getDate()
     let year = d.getFullYear()
 
-    if (month.length < 2) 
+    if (month.length < 2)
         month = '0' + month;
-    if (day.length < 2) 
+    if (day.length < 2)
         day = '0' + day;
 
-    return [year, month, day].join('-');
+    return [year, month, day].join(sep);
 }

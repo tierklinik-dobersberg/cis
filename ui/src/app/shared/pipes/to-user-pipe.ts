@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform } from "@angular/core";
-import { ProfileWithAvatar } from '@tkd/api';
-import { map, Observable } from 'rxjs';
+import { Profile } from "@tkd/apis";
+import { Observable, map } from 'rxjs';
 import { UserService } from '../../api/user.service';
 
 @Pipe({
@@ -12,18 +12,18 @@ export class ToUserPipe implements PipeTransform {
     private userService: UserService,
   ) {}
 
-  transform(value: string, async: true): Observable<ProfileWithAvatar|undefined>;
-  transform(value: string): ProfileWithAvatar | undefined;
+  transform(value: string, async: true): Observable<Profile|undefined>;
+  transform(value: string): Profile| undefined;
 
   transform(value: string, async?: true) {
     if (async) {
       return this.userService
         .updated
         .pipe(
-          map(() => this.userService.byName(value))
+          map(() => this.userService.byName(value) || this.userService.byId(value))
         )
     }
 
-    return this.userService.byName(value);
+    return this.userService.byName(value) || this.userService.byId(value);
   }
 }

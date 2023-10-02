@@ -1,5 +1,7 @@
 export const environment = {
   production: true,
   baseURL: '',
-  rosterdURL: '',
+  rosterdURL: '/api/roster',
+  accountService: '',
+  calendarService: 'https://calendar.dobersberg.vet',
 };

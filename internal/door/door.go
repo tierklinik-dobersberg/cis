@@ -194,7 +194,7 @@ func (dc *Controller) Overwrite(ctx context.Context, state State, untilTime time
 	{
 		dc.manualOverwrite = &stateOverwrite{
 			state:       state,
-			sessionUser: session.UserFromCtx(ctx),
+			sessionUser: session.UserFromCtx(ctx).User.Id,
 			until:       untilTime,
 		}
 	}

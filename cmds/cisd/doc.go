@@ -7,9 +7,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
-	"github.com/tierklinik-dobersberg/cis/runtime/autologin"
-	"github.com/tierklinik-dobersberg/cis/runtime/httpcond"
-	"github.com/tierklinik-dobersberg/cis/runtime/session"
 )
 
 var globalConfigFile = autodoc.MustRegister(autodoc.File{
@@ -22,12 +19,10 @@ var globalConfigFile = autodoc.MustRegister(autodoc.File{
 		"Global": confutil.MultiOptionRegistry{
 			cfgspec.ConfigSpec,
 			cfgspec.DatabaseSpec,
-			session.IdentityConfigSpec,
 		},
 		"InfoScreen":     cfgspec.InfoScreenConfigSpec,
 		"GoogleCalendar": google.GoogleConfigSpec,
 		"CORS":           CORSSpec,
-		"Autologin":      autologin.Spec(httpcond.DefaultRegistry),
 	},
 })
 

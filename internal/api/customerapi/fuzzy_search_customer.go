@@ -5,16 +5,17 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/bufbuild/connect-go"
 	"github.com/labstack/echo/v4"
 	"github.com/nyaruka/phonenumbers"
+	idmv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/idm/v1"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	v1 "github.com/tierklinik-dobersberg/cis/pkg/models/customer/v1alpha"
-	"github.com/tierklinik-dobersberg/cis/pkg/models/identity/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.mongodb.org/mongo-driver/bson"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 // FuzzySearchEndpoint allows searching for customers using
@@ -37,21 +38,28 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				return httperr.BadRequest("cannot mix query parameters single and includeUsers")
 			}
 
-			var allUsers []identity.User
+			var allProfiles []*idmv1.Profile
+
 			if includeUsers {
-				var err error
-				allUsers, err = app.Identities.ListAllUsers(ctx)
+				response, err := app.IDM.UserServiceClient.ListUsers(ctx, connect.NewRequest(&idmv1.ListUsersRequest{
+					FieldMask: &fieldmaskpb.FieldMask{
+						Paths: []string{"users.avatar"},
+					},
+					ExcludeFields: true,
+				}))
+
 				if err != nil {
 					logger.From(ctx).Errorf("failed to load all users: %s", err)
 					// we only log the error here because we still want to
 					// search the customer database ...
 				} else {
-					logger.From(ctx).V(6).Logf("'includeUsers' enabled, loaded %d identities", len(allUsers))
+					allProfiles = response.Msg.Users
+					logger.From(ctx).V(6).Logf("'includeUsers' enabled, loaded %d identities", len(allProfiles))
 				}
 			}
 
 			textScore := false
-			matchedUsers := make(map[string]v1alpha.User)
+			matchedProfiles := make(map[string]*idmv1.Profile)
 			if name := c.QueryParam("name"); name != "" {
 				textScore = true
 				// m1, m2 := matchr.DoubleMetaphone(name)
@@ -60,10 +68,10 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				}
 
 				if includeUsers {
-					for _, u := range allUsers {
+					for _, profile := range allProfiles {
 						// TODO(ppacher): maybe search by doublemetaphone as well?
-						if u.Name == name || u.Fullname == name {
-							matchedUsers[u.Name] = u.User
+						if profile.User.Username == name || profile.User.DisplayName == name || profile.User.Id == name {
+							matchedProfiles[profile.User.Id] = profile
 						}
 					}
 				}
@@ -90,25 +98,25 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				// phone numbers.
 				if includeUsers {
 					// build a lookup map for phone -> user
-					phoneToUser := make(map[string]identity.User)
-					for _, u := range allUsers {
-						for _, p := range u.PhoneNumber {
-							number, err := phonenumbers.Parse(p, app.Config.Country)
+					phoneToProfile := make(map[string]*idmv1.Profile)
+					for _, profile := range allProfiles {
+						for _, p := range profile.PhoneNumbers {
+							number, err := phonenumbers.Parse(p.Number, app.Config.Country)
 							if err != nil {
-								logger.From(ctx).Errorf("failed to parse phone number from user %s: %s", u.Name, err)
+								logger.From(ctx).Errorf("failed to parse phone number from user %s: %s", profile.User.Id, err)
 
 								continue
 							}
 							international := phonenumbers.Format(number, phonenumbers.INTERNATIONAL)
-							phoneToUser[international] = u
-							logger.From(ctx).V(7).Logf("adding %s with phone number %s", u.Name, international)
+							phoneToProfile[international] = profile
+							logger.From(ctx).V(7).Logf("adding %s with phone number %s", profile.User.Id, international)
 						}
 					}
 
-					logger.From(ctx).V(7).Logf("built lookup map for user phone numbers (size=%d)", len(phoneToUser))
+					logger.From(ctx).V(7).Logf("built lookup map for user phone numbers (size=%d)", len(phoneToProfile))
 					for _, p := range phoneNumbers {
-						if u, ok := phoneToUser[p]; ok {
-							matchedUsers[u.Name] = u.User
+						if profile, ok := phoneToProfile[p]; ok {
+							matchedProfiles[profile.User.Id] = profile
 						}
 					}
 				}
@@ -137,10 +145,10 @@ func FuzzySearchEndpoint(grp *app.Router) {
 				// search users by mail address
 				if includeUsers {
 				L:
-					for _, u := range allUsers {
-						for _, m := range u.Mail {
-							if m == mail {
-								matchedUsers[u.Name] = u.User
+					for _, profile := range allProfiles {
+						for _, m := range profile.EmailAddresses {
+							if m.Address == mail {
+								matchedProfiles[profile.User.Id] = profile
 
 								continue L
 							}
@@ -164,15 +172,30 @@ func FuzzySearchEndpoint(grp *app.Router) {
 
 			models := make([]*v1.Customer, 0, len(customers))
 			if includeUsers {
-				logger.From(ctx).Infof("includeUsers: found %d matching users", len(matchedUsers))
-				for _, u := range matchedUsers {
+				logger.From(ctx).Infof("includeUsers: found %d matching users", len(matchedProfiles))
+				for _, profile := range matchedProfiles {
+					phoneNumbers := make([]string, len(profile.PhoneNumbers))
+					for idx, p := range profile.PhoneNumbers {
+						phoneNumbers[idx] = p.Number
+					}
+
+					mails := make([]string, len(profile.EmailAddresses))
+					for idx, m := range profile.EmailAddresses {
+						mails[idx] = m.Address
+					}
+
+					displayName := profile.User.DisplayName
+					if displayName == "" {
+						displayName = profile.User.Username
+					}
+
 					models = append(models, &v1.Customer{
-						ID:            u.Name,
+						ID:            profile.User.Id,
 						Source:        "__identities",
 						Group:         "Users",
-						Name:          u.Fullname,
-						PhoneNumbers:  u.PhoneNumber,
-						MailAddresses: u.Mail,
+						Name:          displayName,
+						PhoneNumbers:  phoneNumbers,
+						MailAddresses: mails,
 						CustomerID:    "-1",
 					})
 				}

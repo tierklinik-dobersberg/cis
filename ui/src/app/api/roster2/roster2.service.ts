@@ -206,8 +206,8 @@ export class Roster2Service {
             private apiURL: string
         ){}
 
-        create(req: OffTime.CreateRequest): Observable<void> {
-            return this.http.post<void>(`${this.apiURL}/v1/offtime/request/`, req)
+        create(req: OffTime.CreateRequest): Observable<OffTime.Entry> {
+            return this.http.post<OffTime.Entry>(`${this.apiURL}/v1/offtime/request/`, req)
         }
 
         credit(staff: string, days: number, description = '', from?: Date): Observable<void> {
@@ -228,16 +228,16 @@ export class Roster2Service {
             return this.http.delete<void>(`${this.apiURL}/v1/offtime/request/${id}`)
         }
 
-        approve(id: string, usedAsVacation: boolean = false, comment: string = ''): Observable<void> {
-            return this.http.post<void>(`${this.apiURL}/v1/offtime/request/${id}/approve`, {comment, usedAsVacation})
+        approve(id: string, costs?: JSDuration, comment: string = ''): Observable<void> {
+            return this.http.post<void>(`${this.apiURL}/v1/offtime/request/${id}/approve`, {comment, costs})
         }
 
         reject(id: string, comment: string = ''): Observable<void> {
             return this.http.post<void>(`${this.apiURL}/v1/offtime/request/${id}/reject`, {comment})
         }
 
-        credits(): Observable<{[user: JSDuration]: number}> {
-            return this.http.get<{[user: JSDuration]: number}>(`${this.apiURL}/v1/offtime/credit`)
+        credits(): Observable<{[user: string]: OffTime.CreditsLeft}> {
+            return this.http.get<{[user: string]: OffTime.CreditsLeft}>(`${this.apiURL}/v1/offtime/credit`)
         }
 
         findRequests(staff?: string, from?: Date, to?: Date, approved?: boolean): Observable<OffTime.Entry[]> {

@@ -2,7 +2,7 @@ import { Pipe, PipeTransform } from "@angular/core";
 import { OffTime } from "src/app/api/roster2";
 
 @Pipe({
-    name: 'requestType', 
+    name: 'requestType',
     pure: true,
 })
 export class TkdRequestTypePipe implements PipeTransform {
@@ -15,8 +15,8 @@ export class TkdRequestTypePipe implements PipeTransform {
             if (!value.approval.approved) {
                 return '';
             }
-            
-            if (value.approval.actualCosts.duration > 0) {
+
+            if (value.approval.actualCosts.duration < 0) {
                 return 'Urlaub';
             }
 

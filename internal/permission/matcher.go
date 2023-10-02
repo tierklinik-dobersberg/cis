@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	idmv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/idm/v1"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 )
@@ -25,7 +26,7 @@ func NewMatcher(resolver *Resolver) *Matcher {
 // request is permitted or not. In case of an error, false and the error is
 // returned. The caller may pass a slice of additional roles that are not directly
 // assigned to the user but should be evaluted as well.
-func (match *Matcher) Decide(ctx context.Context, req *Request, extraRoles []string) (bool, error) {
+func (match *Matcher) Decide(ctx context.Context, req *Request, extraRoles []*idmv1.Role) (bool, error) {
 	log := log.From(ctx).WithFields(req.AsFields())
 
 	permissions, err := match.resolver.ResolveUserPermissions(ctx, req.User, extraRoles)

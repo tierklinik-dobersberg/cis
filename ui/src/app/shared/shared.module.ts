@@ -28,7 +28,7 @@ import { HeaderTitleOutletComponent } from './header-title';
 import { ListActionButtonGroupComponent } from './list-btn-group';
 import { TkdOptionListInputComponent } from './option-list-input';
 import { TkdOptionSpecInputComponent } from './option-spec-input';
-import { DurationPipe, ToUserPipe, UserNamePipe } from './pipes';
+import { DurationPipe, ToUserPipe, UserColorPipe, UserContrastColorPipe, UserNamePipe } from './pipes';
 import { CanDeleteCustomerPipe } from './pipes/can-delete-customer';
 import { TkdStringSliceInputComponent } from './simple-string-slice-input';
 import { TextInputComponent } from './text-input';
@@ -67,7 +67,9 @@ import { UserAvatarComponent } from './user-avatar';
     TkdDebounceEventDirective,
     UserAvatarComponent,
     ToUserPipe,
-    UserNamePipe
+    UserNamePipe,
+    UserColorPipe,
+    UserContrastColorPipe,
   ],
   exports: [
     CommonModule,
@@ -104,7 +106,9 @@ import { UserAvatarComponent } from './user-avatar';
     TimeagoModule,
     ToUserPipe,
     TkdDebounceEventDirective,
-    UserNamePipe
+    UserNamePipe,
+    UserColorPipe,
+    UserContrastColorPipe,
   ],
 })
 export class SharedModule {}

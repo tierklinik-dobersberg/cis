@@ -1,9 +1,9 @@
 <div class="commenter-container">
-  <nz-avatar nzIcon="user" nzSize="small" nzShape="square" [nzSrc]="comment.profile?.avatar">
+  <nz-avatar nzIcon="user" nzSize="small" nzShape="square" [nzSrc]="comment.profile?.user?.avatar">
   </nz-avatar>
 
   <div class="commenter">
-    <span class="username">{{ comment.profile?.fullname || comment.profile?.name || 'Unbekannt' }}</span>
+    <span class="username">{{ (comment.profile | displayName) || 'Unbekannt' }}</span>
     <span>{{ comment.edited ? 'bearbeitet am ' : 'erstellt am '}} {{ comment.date.toLocaleDateString() }}, {{
       comment.date.toLocaleTimeString() }}</span>
   </div>

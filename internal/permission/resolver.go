@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	idmv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/idm/v1"
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/logger"
 	"go.opentelemetry.io/otel/trace"
@@ -25,7 +26,7 @@ func NewResolver(db identity.Provider) *Resolver {
 // Permissions are returned in slices ordered as they should be evaluated.
 // Permissions in the same slice have the same priority. If additional roles
 // are passed they will be appended to the end of the returned permission sets.
-func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string, additionalRoles []string) ([][]identity.Permission, error) {
+func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string, additionalRoles []*idmv1.Role) ([][]identity.Permission, error) {
 	var permissions [][]identity.Permission
 
 	// start with user permissions
@@ -61,10 +62,10 @@ func (res *Resolver) ResolveUserPermissions(ctx context.Context, user string, ad
 	// append any additional roles that are specified at the command
 	// call.
 	var extraRolePermissions []identity.Permission
-	for _, roleName := range additionalRoles {
-		rolePerms, err := res.db.GetRolePermissions(ctx, roleName)
+	for _, role := range additionalRoles {
+		rolePerms, err := res.db.GetRolePermissions(ctx, role.Id)
 		if err != nil {
-			err = fmt.Errorf("failed to load permissions for extra session role %s: %w", roleName, err)
+			err = fmt.Errorf("failed to load permissions for extra session role %s: %w", role.Id, err)
 			trace.SpanFromContext(ctx).RecordError(err)
 			logger.From(ctx).Errorf(err.Error())
 

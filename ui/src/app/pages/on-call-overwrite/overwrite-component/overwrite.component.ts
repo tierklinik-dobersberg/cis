@@ -10,14 +10,15 @@ import {
   TrackByFunction,
   ViewChild
 } from '@angular/core';
-import { ProfileWithAvatar, TkdAccountService } from '@tkd/api';
+import { Profile } from '@tkd/apis';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import {
   BehaviorSubject,
+  Subject,
   combineLatest,
   forkJoin,
-  interval, of, Subject
+  interval, of
 } from 'rxjs';
 import {
   catchError,
@@ -34,6 +35,7 @@ import {
   RosterAPI, UserService
 } from 'src/app/api';
 import { RosterShiftWithStaffList } from 'src/app/api/roster2';
+import { ProfileService } from 'src/app/services/profile.service';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, toDateString } from 'src/app/utils';
 import { DoctorOnDutyResponse } from '../../../api/external.api';
@@ -74,15 +76,15 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
   availableShifts: RosterShiftWithStaffList[] = [];
 
   /** A list of users that are preferable used as overwrites */
-  preferredUsers: ProfileWithAvatar[] = [];
+  preferredUsers: Profile[] = [];
 
   /** A list of other users that can be used as overwrites */
-  allUsers: ProfileWithAvatar[] = [];
+  allUsers: Profile[] = [];
 
   /** Whether or not all users should be shown */
   showAllUsers = false;
 
-  /** The name of the user that has been selected */
+  /** The id of the user that has been selected */
   selectedUser = '';
 
   /** The selected quick roster overwrite */
@@ -145,10 +147,10 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
   };
 
   /** TrackBy function for user profiles */
-  readonly trackProfile: TrackByFunction<ProfileWithAvatar> = (
+  readonly trackProfile: TrackByFunction<Profile> = (
     _: number,
-    p: ProfileWithAvatar
-  ) => p.name;
+    p: Profile
+  ) => p.user.id;
 
   /** TrackBy function for quick settings */
   readonly trackQuickSetting: TrackByFunction<QuickRosterOverwrite> = (
@@ -161,7 +163,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
     private roster2: Roster2Service,
     private externalapi: ExternalAPI,
     private userService: UserService,
-    private account: TkdAccountService,
+    private account: ProfileService,
     private config: ConfigAPI,
     private cdr: ChangeDetectorRef,
     private modal: NzModalService,
@@ -199,20 +201,20 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
         this.availableShifts = shifts[toDateString(from)] || [];
 
           // get a list of all eligible users for the available shifts.
-          let set = new Map<string, ProfileWithAvatar>();
+          let set = new Map<string, Profile>();
           this.availableShifts.forEach(shift =>
             shift.eligibleStaff.forEach(staff => {
-              set.set(staff, this.userService.byName(staff))
+              set.set(staff, this.userService.byId(staff))
             }))
 
           // actually get the preferred users.
           this.preferredUsers = Array.from(set.values())
             .sort((a, b) => {
-              if (a.name > b.name) {
+              if (a.user.username > b.user.username) {
                 return 1;
               }
 
-              if (a.name < b.name) {
+              if (a.user.username < b.user.username) {
                 return -1
               }
               return 0
@@ -288,8 +290,9 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
 
     let target = body.displayName || '';
     if (!!this.selectedUser) {
-      body.username = this.selectedUser;
-      target = this.userService.byName(this.selectedUser)?.fullname;
+      body.userId = this.selectedUser;
+      const profile = this.userService.byId(this.selectedUser);
+      target = profile.user.displayName || profile.user.username;
     }
 
     this.roster.setOverwrite(body).subscribe(
@@ -366,8 +369,8 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
       )
       .subscribe(([c, users]) => {
         let currentUserRoles = new Set<string>();
-        this.account.currentProfile?.roles.forEach(role => {
-          currentUserRoles.add(role)
+        this.account.snapshot?.roles.forEach(role => {
+          currentUserRoles.add(role.id)
         })
 
         this.quickSettings = (c.QuickRosterOverwrite || []).filter(setting => {
@@ -416,8 +419,8 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
                 map((res) => {
                   return (res || []).map((ov) => ({
                     ...ov,
-                    user: !!ov.username
-                      ? this.userService.byName(ov.username)
+                    user: !!ov.userId
+                      ? this.userService.byId(ov.userId)
                       : null,
                   }));
                 }),
@@ -455,14 +458,14 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
    *
    * @param term The search term to filter users
    */
-  filterUsers(term: string): ProfileWithAvatar[] {
+  filterUsers(term: string): Profile[] {
     if (term === '') {
       return this.preferredUsers;
     }
 
-    const result: ProfileWithAvatar[] = [];
-    const matchUser = (u: ProfileWithAvatar) => {
-      if (u.name.includes(term) || u.fullname.includes(term)) {
+    const result: Profile[] = [];
+    const matchUser = (u: Profile) => {
+      if (u.user.username.includes(term) || u.user.displayName.includes(term)) {
         result.push(u);
       }
     };

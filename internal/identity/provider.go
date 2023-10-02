@@ -31,7 +31,7 @@ type Provider interface {
 
 	// GetRolePermissions returns a slice of permissions directly attached to
 	// the role identified by name.
-	GetRolePermissions(ctx context.Context, name string) ([]Permission, error)
+	GetRolePermissions(ctx context.Context, id string) ([]Permission, error)
 }
 
 type PasswortChangeSupport interface {
