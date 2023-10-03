@@ -9,8 +9,6 @@ RUN npm install
 
 RUN npx browserslist@latest --update-db
 
-RUN npm run build
-
 COPY ui/ckeditor/ ./ckeditor
 RUN npm run build-ckeditor
 
