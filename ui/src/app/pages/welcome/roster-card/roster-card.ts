@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
-import { Profile } from '@tkd/apis';
-import { BehaviorSubject, Subscription, combineLatest, interval, of } from 'rxjs';
+import { Timestamp } from '@bufbuild/protobuf';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output, inject } from '@angular/core';
+import { GetWorkingStaffResponse, ListWorkShiftsResponse, PlannedShift, Profile, WorkShift } from '@tkd/apis';
+import { BehaviorSubject, Subscription, combineLatest, forkJoin, interval, of } from 'rxjs';
 import { catchError, mergeMap, startWith } from 'rxjs/operators';
 import { UserService } from 'src/app/api';
-import { Roster2Service, RosterShift } from 'src/app/api/roster2';
+import { CALL_SERVICE, ROSTER_SERVICE, WORK_SHIFT_SERVICE } from 'src/app/api/connect_clients';
 
 @Component({
   selector: 'app-roster-card',
@@ -14,7 +15,7 @@ import { Roster2Service, RosterShift } from 'src/app/api/roster2';
 export class RosterCardComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
 
-  shifts: RosterShift[] = [];
+  shifts: (PlannedShift & {definition: WorkShift})[] = [];
   profiles: {
     [key: string]: Profile
   } = {}
@@ -37,8 +38,10 @@ export class RosterCardComponent implements OnInit, OnDestroy {
     this._lastUserClick = user;
   }
 
+  private rosterService = inject(ROSTER_SERVICE)
+  private workShiftService = inject(WORK_SHIFT_SERVICE);
+
   constructor(
-    private roster2: Roster2Service,
     private userService: UserService,
     private changeDetector: ChangeDetectorRef,
   ) { }
@@ -54,17 +57,29 @@ export class RosterCardComponent implements OnInit, OnDestroy {
     ])
       .pipe(
         startWith(-1),
-        mergeMap(() => {
-          return this.roster2.roster.onDuty({date: new Date()})
-        }),
-        catchError(err => {
-          return of({shifts: []});
-        }),
+
+        mergeMap(() => forkJoin({
+          staff: this.rosterService.getWorkingStaff({
+            onCall: true,
+            time: Timestamp.fromDate(new Date()),
+          }).catch(err => new GetWorkingStaffResponse()),
+          shifts: this.workShiftService.listWorkShifts({})
+            .catch(() => new ListWorkShiftsResponse())
+        })),
       )
       .subscribe((response) => {
-        this.shifts = response.shifts;
-        this.changeDetector.markForCheck();
+        this.shifts = response.staff.currentShifts.map(shift => {
+          const definition = response.shifts.workShifts.find(ws => ws.id === shift.workShiftId)
+          if (!!definition) {
+            Object.defineProperty(shift, 'definition', {
+              get: () => definition
+            })
+          }
 
+          return shift as any
+        });
+
+        this.changeDetector.markForCheck();
       });
 
     this.subscriptions.add(rosterSubscription);

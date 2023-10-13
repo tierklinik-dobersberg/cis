@@ -1,3 +1,6 @@
+import { Code } from '@bufbuild/connect';
+import { ConnectError } from '@bufbuild/connect';
+import { Timestamp } from '@bufbuild/protobuf';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import {
@@ -31,16 +34,16 @@ import {
 } from 'rxjs/operators';
 import { LayoutService } from 'src/app/services';
 import {
-  ConfigAPI, Overwrite,
-  RosterAPI,
+  ConfigAPI,
   UIConfig,
   UserService,
   VoiceMailAPI
 } from './api';
 import { InfoScreenAPI } from './api/infoscreen.api';
-import { TkdCreateOfftimeRequestComponent } from './pages/offtime/create-offtime-request';
 import { ProfileService } from './services/profile.service';
 import { toggleRouteQueryParamFunc } from './utils';
+import { CALL_SERVICE, ROSTER_SERVICE } from './api/connect_clients';
+import { GetOverwriteResponse } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 
 interface MenuEntry {
   Icon: string;
@@ -146,6 +149,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   infoScreenEnabled = false;
 
+  private rosterService = inject(ROSTER_SERVICE);
+  private callService = inject(CALL_SERVICE);
+
   constructor(
     private configapi: ConfigAPI,
     private router: Router,
@@ -154,12 +160,10 @@ export class AppComponent implements OnInit, OnDestroy {
     private modal: NzModalService,
     private appRef: ApplicationRef,
     private updates: SwUpdate,
-    private roster: RosterAPI,
     public layout: LayoutService,
     private voice: VoiceMailAPI,
     private http: HttpClient,
     private userService: UserService,
-    private showAPI: InfoScreenAPI,
   ) {}
 
   readonly toggleMenu = toggleRouteQueryParamFunc(
@@ -190,27 +194,40 @@ export class AppComponent implements OnInit, OnDestroy {
         startWith(-1),
         takeUntil(this.destroy$),
         switchMap(() =>
-          this.roster.getActiveOverwrite().pipe(
-            catchError((err) => {
-              if (!(err instanceof HttpErrorResponse) || err.status !== 404) {
-                console.error(err);
+          this.callService.getOverwrite({
+            selector: {
+              case: 'activeAt',
+              value: Timestamp.fromDate(new Date()),
+            }
+          }).catch(err => {
+              const cerr = ConnectError.from(err);
+              if (cerr.code !== Code.NotFound) {
+                console.log(cerr)
               }
-              return of(null as Overwrite);
+
+              return new GetOverwriteResponse()
             })
           )
         )
-      )
       .subscribe((overwrite) => {
         this.overwriteTarget = '';
-        if (!!overwrite) {
-          if (!!overwrite.userId) {
-            this.overwriteTarget = this.userService.byId(
-              overwrite.userId
-            ).user.username
-          } else {
+        if (!overwrite.overwrites?.length) {
+          return;
+        }
+
+        const first = overwrite.overwrites[0];
+
+        switch (first.target.case) {
+          case 'custom':
             this.overwriteTarget =
-              overwrite.displayName || overwrite.phoneNumber;
-          }
+              first.target.value.displayName || first.target.value.transferTarget;
+            break
+          case 'userId':
+            this.overwriteTarget = this.userService.byId(
+              first.target.value,
+            ).user.username
+
+            break;
         }
       });
 
@@ -277,11 +294,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   createOffTimeRequest() {
-      this.modal.create({
-        nzContent: TkdCreateOfftimeRequestComponent,
-        nzFooter: null,
-        nzWidth: 'fit-content',
-      })
+
   }
 
   private applyConfig(cfg: UIConfig | null): void {

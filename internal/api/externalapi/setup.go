@@ -12,12 +12,6 @@ var log = pkglog.New("externalapi")
 func Setup(a *app.App, grp *echo.Group) {
 	router := app.NewRouter(grp, a)
 
-	// GET /api/external/v1/doctor-on-duty
-	CurrentDoctorOnDutyEndpoint(router)
-
-	// POST /api/external/v1/calllog?ani=<ani>&did=<did>
-	RecordCallEndpoint(router)
-
 	// GET /api/external/v1/contact?phone=<phone>
 	GetContactEndpoint(router)
 }

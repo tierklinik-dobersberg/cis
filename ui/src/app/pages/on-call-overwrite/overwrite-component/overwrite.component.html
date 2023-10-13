@@ -3,17 +3,21 @@
 
     <div class="flex flex-row items-start">
       <div class="w-14">
-        <nz-avatar nzIcon="user" nzShape="circle" [nzSize]="56" class="tkd-avatar"
-          [nzSrc]="(currentOverwrite?.userId | toUser)?.user.avatar || null"></nz-avatar>
+        <nz-avatar nzIcon="user" nzShape="circle" [nzSize]="56" class="tkd-avatar" *ngIf="(currentOverwrite.target.case === 'userId')"
+          [nzSrc]="(currentOverwrite.target.value | toUser)?.user.avatar || null"></nz-avatar>
       </div>
 
       <div class="flex flex-col justify-start flex-grow ml-4">
         <span class="font-semibold text-primary">
-          {{ currentOverwrite.userId ? (currentOverwrite.userId | toUser | displayName) : (currentOverwrite.displayName || currentOverwrite.phoneNumber)}}
+          {{
+            currentOverwrite.target.case === 'userId'
+              ? (currentOverwrite.target.value | toUser | displayName)
+              : (currentOverwrite.target.value.displayName)
+          }}
         </span>
 
         <span class="text-secondary">
-          Telefon ist bis <span class="text-highlight">{{ currentOverwrite.to | date:'medium' }}</span> umgeleitet und folgt
+          Telefon ist bis <span class="text-highlight">{{ currentOverwrite.to.toDate() | date:'medium' }}</span> umgeleitet und folgt
           nicht dem aktuellen Dienstplan!
         </span>
 
@@ -39,13 +43,13 @@
   </div>
 
   <ng-template #noOverwrite>
-    <div class="flex flex-row items-start" *ngIf="currentRoster?.doctors?.length; else: noRosterOrOverwrite">
+    <div class="flex flex-row items-start" *ngIf="currentRoster?.userIds; else: noRosterOrOverwrite">
 
       <nz-avatar nzIcon="user" nzShape="circle" [nzSize]="56" class="rounded-full shadow"
-        [nzSrc]="(currentRoster.doctors[0].userId | toUser)?.user.avatar"></nz-avatar>
+        [nzSrc]="(currentRoster.userIds[0] | toUser)?.user.avatar"></nz-avatar>
 
       <div class="flex flex-col justify-start flex-grow ml-4">
-        <span class="font-semibold text-primary">{{ currentRoster.doctors[0].userId | toUser | displayName }}</span>
+        <span class="font-semibold text-primary">{{ currentRoster.userIds[0] | toUser | displayName }}</span>
         <span class="text-secondary">
           Anrufe werden
           <a routerLink="/roster" class="underline text-highlight">laut Dienstplan</a>
@@ -155,8 +159,8 @@
         class="flex flex-col space-y-2 sm:space-x-2 sm:space-y-0 sm:flex-row sm:items-center">
         <span class="text-primary">Im Dienst laut Plan:</span>
         <nz-avatar-group class="current-state" *ngFor="let shift of availableShifts">
-          <ng-container *ngFor="let user of shift.staff; trackBy: trackProfile">
-            <nz-avatar [nz-tooltip]="user + ' - ' + shift.definition.name" nzIcon="user" nzShape="circle"
+          <ng-container *ngFor="let user of shift.assignedUserIds">
+            <nz-avatar [nz-tooltip]="(user | toUser | displayName) + ' - ' + shift.definition.name" nzIcon="user" nzShape="circle"
               [nzSrc]="(user|toUser)?.user.avatar"></nz-avatar>
           </ng-container>
         </nz-avatar-group>
@@ -188,18 +192,20 @@
               </svg>
             </div>
             <div class="flex flex-row text-xs justify-evenly md:flex-col">
-              <span>{{ ov.from | date:"short" }}</span>
+              <span>{{ ov.from.toDate() | date:"short" }}</span>
               <span class="inline-block mx-2 md:hidden">bis</span>
-              <span>{{ ov.to | date:"short" }}</span>
+              <span>{{ ov.to.toDate() | date:"short" }}</span>
             </div>
             <div class="relative flex flex-row items-center self-stretch flex-grow space-x-2">
-              <ng-container *ngIf="(ov.userId | toUser) as user; else: noUserTemplate">
-                <nz-avatar nzIcon="user" nzShape="circle" [nzSrc]="user.user.avatar"></nz-avatar>
-                <div>{{ user | displayName }}</div>
+              <ng-container *ngIf="ov.target.case === 'userId'; else: noUserTemplate">
+                <nz-avatar nzIcon="user" nzShape="circle" [nzSrc]="(ov.target.value | toUser)?.user.avatar"></nz-avatar>
+                <div>{{ ov.target.value | toUser | displayName }}</div>
               </ng-container>
               <ng-template #noUserTemplate>
-                <span>{{ ov.displayName || ov.phoneNumber }}</span>
-                <span>{{ ov.phoneNumber }}</span>
+                <ng-container *ngIf="ov.target.case === 'custom'">
+                  <span>{{ ov.target.value.displayName || ov.target.value.transferTarget }}</span>
+                  <span>{{ ov.target.value.transferTarget }}</span>
+                </ng-container>
               </ng-template>
 
               <button class="absolute inline-block right-2 md:hidden tkd-icon-btn-inverse tkd-danger no-shadow"
@@ -268,11 +274,11 @@
 
 <!-- Dialogs and modals -->
 <ng-template #confirmDeleteCurrentOverwrite>
-  Möchtest du die Umleitung für {{ currentOverwrite.userId ? (currentOverwrite.userId | toUser | displayName) : (currentOverwrite.displayName || currentOverwrite.phoneNumber)}} wirklich löschen?
+  Möchtest du die Umleitung für {{ currentOverwrite.target.case === 'userId' ? (currentOverwrite.target.value | toUser | displayName) : (currentOverwrite.target.value.displayName || currentOverwrite.target.value.transferTarget) }} wirklich löschen?
   <br />
-  <ng-container *ngIf="currentRoster?.doctors?.length; else: noRosterTemplate">
+  <ng-container *ngIf="currentRoster?.userIds?.length; else: noRosterTemplate">
     Anrufe werden dann laut Dienstplan an
-    <span class="underline text-highlight">{{ currentRoster.doctors[0].userId | toUser | displayName }}</span>
+    <span class="underline text-highlight">{{ currentRoster.userIds[0] | toUser | displayName }}</span>
     weitergeleitet.
   </ng-container>
   <ng-template #noRosterTemplate>

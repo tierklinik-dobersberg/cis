@@ -5,6 +5,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -15,11 +16,10 @@ import (
 
 	"github.com/bufbuild/connect-go"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/spf13/cobra"
 	idmv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/idm/v1"
-	"github.com/tierklinik-dobersberg/cis/internal/api/calendarapi"
-	"github.com/tierklinik-dobersberg/cis/internal/api/calllogapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/cctvapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/commentapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/configapi"
@@ -32,7 +32,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/api/openinghoursapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/patientapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/resourceapi"
-	"github.com/tierklinik-dobersberg/cis/internal/api/rosterapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/statsapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/triggerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/voicemailapi"
@@ -40,7 +39,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
 	"github.com/tierklinik-dobersberg/cis/internal/cctv"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/infoscreendb"
@@ -51,7 +49,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
-	"github.com/tierklinik-dobersberg/cis/internal/oncalloverwrite"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/tmpl2pdf"
@@ -100,7 +97,7 @@ import (
 	_ "github.com/tierklinik-dobersberg/cis/migrations"
 )
 
-// go:embed ui
+//go:embed ui
 var static embed.FS
 
 func main() {
@@ -259,16 +256,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		logger.Fatalf(ctx, "file: %s", err)
 	}
 
-	overwrites, err := oncalloverwrite.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
-	if err != nil {
-		logger.Fatalf(ctx, "rosterdb: %s", err.Error())
-	}
-
-	calllogs, err := calllogdb.NewWithClient(ctx, cfg.DatabaseName, cfg.Country, mongoClient)
-	if err != nil {
-		logger.Fatalf(ctx, "callogdb: %s", err.Error())
-	}
-
 	comments, err := commentdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
 		logger.Fatalf(ctx, "commentdb: %s", err.Error())
@@ -395,13 +382,11 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		matcher,
 		customers,
 		patients,
-		overwrites,
 		comments,
 		voicemails,
 		mailsyncManager,
 		doorController,
 		holidayCache,
-		calllogs,
 		calendarService,
 		resources,
 		cctvManager,
@@ -446,6 +431,29 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 		return resp.Msg.Profile, nil
 	})
 
+	// Static files
+	fmt.Println("dumping content os static dir")
+	entries, err := static.ReadDir("ui")
+	if err == nil {
+		for _, e := range entries {
+			fmt.Printf("- %s\n", e.Name())
+		}
+	} else {
+		fmt.Printf("failed to dump content: %s\n", err.Error())
+	}
+
+	webapp, err := fs.Sub(static, "ui")
+	if err != nil {
+		logger.Fatalf(context.Background(), err.Error())
+	}
+
+	grp.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		Root:       "/",
+		Index:      "index.html",
+		HTML5:      true,
+		Filesystem: http.FS(webapp),
+	}))
+
 	apis := grp.Group(
 		"/api/",
 		session.Middleware(userProvider),
@@ -467,8 +475,6 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 	{
 		// customerapi provides customer database endpoints
 		customerapi.Setup(app, apis.Group("customer/", session.Require()))
-		// rosterapi provides access to the electronic duty roster
-		rosterapi.Setup(app, apis.Group("dutyroster/", session.Require()))
 		// doorapi provides access to the entry door controller.
 		doorapi.Setup(app, apis.Group("door/", session.Require()))
 		// externalapi provides specialized APIs for integration
@@ -477,8 +483,6 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 		// holidayapi provides access to all holidays in the
 		// configured countries.
 		holidayapi.Setup(app, apis.Group("holidays/", session.Require()))
-		// calllog allows to retrieve and query call log records
-		calllogapi.Setup(app, apis.Group("calllogs/", session.Require()))
 		// configapi provides configuration specific endpoints.
 		configapi.Setup(app, apis.Group("config/", session.Require()))
 		// importapi provides import support for customer data
@@ -489,8 +493,6 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 		voicemailapi.Setup(app, apis.Group("voicemail/", session.Require()))
 		// patientapi allows access to patient data
 		patientapi.Setup(app, apis.Group("patient/", session.Require()))
-		// calendarapi provides access to calendar data
-		calendarapi.Setup(app, apis.Group("calendar/", session.Require()))
 		// openinghoursapi provides access to the configured openinghours
 		openinghoursapi.Setup(app, apis.Group("openinghours/", session.Require()))
 		// resourceapi provides access to limited resource definitions
@@ -505,6 +507,25 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 		infoscreenapi.SetupPlayer(app, apis.Group("infoscreen/"))
 		// access to the statistics API
 		statsapi.Setup(app, apis.Group("stats/"))
+
+		// grp.StaticFS("", webapp)
+		// grp.FileFS("/*", "index.html", webapp)
+
+		/*
+			handler := spa.ServeSPA(http.FS(webapp), "index.html")
+			grp.Any("", echo.WrapHandler(handler), func(next echo.HandlerFunc) echo.HandlerFunc {
+				return func(c echo.Context) error {
+					fmt.Printf("received request for %s\n", c.Request().URL.String())
+
+					err := next(c)
+					if err != nil {
+						fmt.Printf("got error: %s\n", err)
+					}
+
+					return err
+				}
+			})
+		*/
 	}
 }
 

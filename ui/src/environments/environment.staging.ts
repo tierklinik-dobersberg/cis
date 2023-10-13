@@ -4,9 +4,11 @@
 
 export const environment = {
   production: false,
-  baseURL: "https://cis-staging.dobersberg.vet",
-  rosterdURL: '',
-  accountService: '',
+  baseURL: "https://cis.dobersberg.dev",
+  rosterService: "https://roster.dobersberg.dev",
+  accountService: 'https://account.dobersberg.dev',
+  calendarService: 'https://calendar.dobersberg.dev',
+  callService: 'https://3cx.dobersberg.dev'
 };
 
 /*

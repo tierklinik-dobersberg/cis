@@ -1,9 +1,13 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Timestamp } from '@bufbuild/protobuf';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { CallEntry } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { BehaviorSubject, Subscription, combineLatest, interval } from 'rxjs';
 import { mergeMap, startWith } from 'rxjs/operators';
-import { CallLogModel, CalllogAPI, UserService } from 'src/app/api';
+import { UserService } from 'src/app/api';
+import { CALL_SERVICE } from 'src/app/api/connect_clients';
 import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
+import { toDateString } from 'src/app/utils';
 
 @Component({
   templateUrl: './calllog.html',
@@ -18,12 +22,13 @@ export class CallLogComponent implements OnInit, OnDestroy {
   distinctCallers: Set<string> = new Set();
   missedCalls = 0;
   totalCallTime = 0;
-  logs: CallLogModel[] = [];
+  logs: CallEntry[] = [];
   loading = false;
+
+  private callService = inject(CALL_SERVICE);
 
   constructor(
     private header: HeaderTitleService,
-    private calllogapi: CalllogAPI,
     private userService: UserService,
     public layout: LayoutService,
   ) { }
@@ -55,17 +60,19 @@ export class CallLogComponent implements OnInit, OnDestroy {
             this.loading = true;
 
             if (!!d[0] && !!d[1]) {
-              return this.calllogapi.search({
-                from: d[0],
-                to: d[1],
+              return this.callService.searchCallLogs({
+                timeRange: {
+                  from: Timestamp.fromDate(d[0]),
+                  to: Timestamp.fromDate(d[1]),
+                }
               })
             }
-            return this.calllogapi.search({at: d[0]});
+            return this.callService.searchCallLogs({date: toDateString(d[0])});
           }),
         )
         .subscribe(logs => {
           this.missedCalls = 0;
-          this.logs = logs.items || [];
+          this.logs = logs.results || [];
           this.distinctCallers = new Set();
           this.logs.forEach(log => {
             this.distinctCallers.add(log.caller);

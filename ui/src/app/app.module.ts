@@ -1,6 +1,6 @@
 import { LayoutModule } from '@angular/cdk/layout';
 import { OverlayModule } from '@angular/cdk/overlay';
-import { registerLocaleData } from '@angular/common';
+import { APP_BASE_HREF, registerLocaleData } from '@angular/common';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import de from '@angular/common/locales/de';
 import { LOCALE_ID, NgModule } from '@angular/core';
@@ -31,11 +31,9 @@ import { environment } from '../environments/environment';
 import { AuthorizationInterceptor } from './api';
 import { BaseURLInjector } from './api/base-url';
 import { connectProviders } from './api/connect_clients';
-import { ROSTERD_API } from './api/roster2';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { IconsProviderModule } from './icons-provider.module';
-import { TkdOfftimeModule } from './pages/offtime';
 import { SharedModule } from './shared/shared.module';
 
 registerLocaleData(de);
@@ -63,7 +61,6 @@ registerLocaleData(de);
     NzBadgeModule,
     BrowserAnimationsModule,
     NzModalModule,
-    TkdOfftimeModule,
     FontAwesomeModule,
     MarkdownModule.forRoot(),
     RouterModule,
@@ -78,7 +75,6 @@ registerLocaleData(de);
     { provide: HTTP_INTERCEPTORS, useExisting: BaseURLInjector, multi: true },
     { provide: NZ_DATE_CONFIG, useValue: { firstDayOfWeek: 1 } },
     { provide: LOCALE_ID, useValue: 'de'},
-    { provide: ROSTERD_API, useValue: environment.rosterdURL },
     { provide: TKD_CIS_ENDPOINT, useValue: environment.baseURL },
     ...connectProviders
   ],

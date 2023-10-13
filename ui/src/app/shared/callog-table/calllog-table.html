@@ -13,7 +13,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let data of basicTable.data; trackBy: trackLog" [class.error]="!!data.error"
+    <tr *ngFor="let data of basicTable.data; trackBy: trackLog" [class.error]="!!data.entry.error"
       [class.outbound]="data.outbound" [class.self-call]="data.isSelf" [class.inbound]="!data.outbound"
       [class.lost]="data.isLostOrUnanswared">
       <td class="direction">
@@ -44,36 +44,28 @@
       <td>
         <a class="customer-link" *ngIf="!!data.customer; else: caller"
           [routerLink]="['/customer/view', data.customer.source, data.customer.cid]" nz-tooltip
-          [nzTooltipTitle]="data.caller">
+          [nzTooltipTitle]="data.entry.caller">
           {{data.customer.name}}&nbsp;{{data.customer.firstname}}
         </a>
         <ng-template #caller>
-          <a href="tel:{{data.caller}}">{{ data.caller }}</a>
+          <a href="tel:{{data.entry.caller}}">{{ data.entry.caller }}</a>
         </ng-template>
       </td>
 
       <ng-container *ngIf="layout.isTabletLandscapeUp">
-        <td>{{ (data.durationSeconds || 0) | duration }}</td>
+        <td>{{ data.entry.duration | duration }}</td>
         <td>
-          <span *ngIf="!!data.agentProfile; else: agent" nz-tooltip [nzTooltipTitle]="data.agent">
-            {{ data.agentProfile | displayName }}
+          <span *ngIf="!!data.entry.agentUserId" nz-tooltip [nzTooltipTitle]="data.entry.transferTarget">
+            {{ data.entry.agentUserId | toUser | displayName }}
           </span>
-          <ng-template #agent>
-            {{ data.agent }}
-          </ng-template>
-          <span *ngIf="data.transferTarget && data.transferTarget !== data.agent" class="transfer-target">
+          <span *ngIf="data.entry.transferTarget" class="transfer-target">
             (via
-            <span *ngIf="!!data.transferToProfile; else: transferTo" nz-tooltip [nzTooltipTitle]="data.transferTarget">
-              {{ data.transferToProfile | displayName }}
-            </span>
-            <ng-template #transferTo>
-              {{ data.transferTarget }}
-            </ng-template>
+              {{ data.entry.transferTarget }}
             )
           </span>
         </td>
-        <td>{{ data.callType || 'Lost' }}</td>
-        <td>{{data.inboundNumber}}</td>
+        <td>{{ data.entry.callType || 'Lost' }}</td>
+        <td>{{data.entry.inboundNumber}}</td>
       </ng-container>
     </tr>
   </tbody>

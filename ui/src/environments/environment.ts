@@ -8,6 +8,8 @@ export const environment = {
   rosterdURL: '',
   accountService: '',
   calendarService: '',
+  rosterService: '',
+  callService: '',
 };
 
 /*

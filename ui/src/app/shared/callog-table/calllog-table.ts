@@ -9,6 +9,7 @@ import {
   TrackByFunction,
 } from '@angular/core';
 import { Profile } from '@tkd/apis';
+import { CallEntry } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { sum } from 'ng-zorro-antd/core/util';
 import {
   BehaviorSubject,
@@ -20,14 +21,15 @@ import {
 } from 'rxjs';
 import { catchError, debounceTime, switchMap } from 'rxjs/operators';
 import {
-  CallLog,
   ConfigAPI,
   UserService
 } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { LayoutService } from 'src/app/services';
 
-interface LocalCallLog extends CallLog {
+interface LocalCallLog {
+  entry: CallEntry;
+
   localDate: string;
   localTime: string;
   customer?: Customer;
@@ -35,8 +37,6 @@ interface LocalCallLog extends CallLog {
   outbound: boolean;
   isLostOrUnanswared: boolean;
   isSelf: boolean;
-
-  agentDisplayName?: string;
 }
 
 @Component({
@@ -46,7 +46,7 @@ interface LocalCallLog extends CallLog {
 })
 export class CallLogTableComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
-  private callLogs = new BehaviorSubject<CallLog[]>([]);
+  private callLogs = new BehaviorSubject<CallEntry[]>([]);
 
   date: Date;
 
@@ -54,7 +54,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
   totalCallTime = new EventEmitter<number>();
 
   @Input()
-  set records(v: CallLog[]) {
+  set records(v: CallEntry[]) {
     this.callLogs.next(v);
   }
 
@@ -63,8 +63,8 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
   private knownExtensions: Map<string, Profile | {displayName: string}> = new Map();
 
   trackLog: TrackByFunction<LocalCallLog> = (i: number, l: LocalCallLog) => {
-    if (!!l && l._id !== undefined) {
-      return l._id;
+    if (!!l && l.entry.id !== undefined) {
+      return l.entry.id;
     }
 
     return i;
@@ -116,10 +116,10 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
 
           // get a list of distinct phone number and customer source/ID pairs.
           logs.forEach((l) => {
-            if (!!l.customerID && !!l.customerSource) {
-              customerSet.set(`${l.customerSource}/${l.customerID}`, [
+            if (!!l.customerId && !!l.customerSource) {
+              customerSet.set(`${l.customerSource}/${l.customerId}`, [
                 l.customerSource,
-                l.customerID,
+                l.customerId,
               ]);
             }
 
@@ -187,7 +187,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
         );
 
         this.totalCallTime.next(
-          sum(logs.logs.map((l) => l.durationSeconds || 0))
+          sum(logs.logs.map((l) => Number(l.duration.seconds) || 0))
         );
 
         this.logs = logs.logs.map((l) => {
@@ -195,7 +195,7 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
           if (!!l.customerSource) {
             cust = logs.customers.find(
               (c) =>
-                !!c && c.source === l.customerSource && c.cid === l.customerID
+                !!c && c.source === l.customerSource && c.cid === l.customerId
             );
           }
 
@@ -212,25 +212,22 @@ export class CallLogTableComponent implements OnInit, OnDestroy {
 
           let isSelf = false;
           if (
-            !!l.agentProfile &&
+            !!l.agentUserId &&
             !!cust &&
-            l.agentProfile.user.id === cust._id &&
+            l.agentUserId === cust._id &&
             cust.source === '__identities'
           ) {
             isSelf = true;
           }
 
-          const d = new Date(l.date);
+          const d = l.receivedAt.toDate()
           return {
-            ...l,
+            entry: l,
             outbound: isOutbound,
             localDate: d.toLocaleDateString(),
             localTime: d.toLocaleTimeString(),
             isToday: d.toLocaleDateString() == new Date().toLocaleDateString(),
             customer: cust,
-            agentProfile: l.agentProfile,
-            transferToProfile:
-              l.transferToProfile,
             isLostOrUnanswared: callType === 'notanswered' || callType === '',
             isSelf: isSelf,
           };

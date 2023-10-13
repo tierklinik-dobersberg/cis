@@ -1,3 +1,4 @@
+import { Duration as ProtoDuration } from '@bufbuild/protobuf';
 import { padLeft } from './strings';
 
 const nanosecond = 1;
@@ -243,6 +244,10 @@ export class Duration {
 
     valueOf(): number {
         return this._nanoseconds;
+    }
+
+    static fromProto(d: ProtoDuration): Duration {
+      return Duration.seconds(Number(d.seconds))
     }
 }
 

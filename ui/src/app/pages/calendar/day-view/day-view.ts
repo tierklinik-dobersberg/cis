@@ -10,8 +10,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { BehaviorSubject, Subject, combineLatest, forkJoin, from, interval, of } from 'rxjs';
 import { catchError, map, startWith, switchMap, take, takeUntil } from 'rxjs/operators';
 import { OpeningHoursAPI, OpeningHoursResponse, UserService } from 'src/app/api';
-import { CALENDAR_SERVICE } from 'src/app/api/connect_clients';
-import { Roster2Service } from 'src/app/api/roster2';
+import { CALENDAR_SERVICE, ROSTER_SERVICE } from 'src/app/api/connect_clients';
 import { ProfileService, getCalendarId, getUserColor } from 'src/app/services/profile.service';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, getContrastFontColor } from 'src/app/utils';
@@ -59,6 +58,8 @@ type CalendarMode = 'auto' | 'mine' | 'all' | 'selected';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DayViewComponent implements OnInit, OnDestroy {
+  private rosterService = inject(ROSTER_SERVICE);
+
   /** emits and completes when the component is destroyed */
   private _destroy$ = new Subject<void>();
 
@@ -445,7 +446,6 @@ export class DayViewComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private ngZone: NgZone,
     private openingHoursAPI: OpeningHoursAPI,
-    private roster2: Roster2Service,
     private viewContainer: ViewContainerRef,
     private overlay: Overlay,
     private modal: NzModalService,
@@ -477,20 +477,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
                 }),
                 map(result => result.openingHours),
               ),
-            roster: this.roster2
-              .roster
-              .onDuty({ date: date })
-              .pipe(
-                map(result => result.staff),
-                catchError(err => {
-                  if (err instanceof HttpErrorResponse && err.status === 404) {
-                    return of([]);
-                  }
-
-                  console.error("failed to load roster", err);
-                  return of([])
-                })
-              ),
+            roster: this.rosterService.getWorkingStaff({time: Timestamp.fromDate(date)}),
             events: from(this.calendarapi.listEvents({
               searchTime: {
                 case: 'date',
@@ -521,7 +508,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
             })
           })
 
-          this.roster = result.roster;
+          this.roster = result.roster.userIds;
 
           const events = result.events;
           let lm = new Map<string, LocalCalendar>();

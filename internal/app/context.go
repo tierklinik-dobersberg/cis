@@ -14,7 +14,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/calendar"
 	"github.com/tierklinik-dobersberg/cis/internal/cctv"
-	"github.com/tierklinik-dobersberg/cis/internal/database/calllogdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/infoscreendb"
@@ -24,7 +23,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/door"
 	"github.com/tierklinik-dobersberg/cis/internal/identity/providers/idm"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
-	"github.com/tierklinik-dobersberg/cis/internal/oncalloverwrite"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/tmpl2pdf"
@@ -41,26 +39,24 @@ const appContextKey = contextKey("app:context")
 
 // App holds dependencies for cis API request handlers.
 type App struct {
-	Config           *Config
-	Matcher          *permission.Matcher
-	OnCallOverwrites oncalloverwrite.Database
-	IDM              *idm.Provider
-	Customers        customerdb.Database
-	Patients         patientdb.Database
-	Comments         commentdb.Database
-	VoiceMails       voicemaildb.Database
-	MailSync         *mailsync.Manager
-	Door             *door.Controller
-	Holidays         openinghours.HolidayGetter
-	CallLogs         calllogdb.Database
-	Calendar         calendar.Backend
-	Resources        *resourcedb.Registry
-	CCTV             *cctv.Manager
-	LayoutStore      layouts.Store
-	InfoScreenShows  infoscreendb.Database
-	Cache            cache.Cache
-	Trigger          *trigger.Registry
-	Tmpl2PDF         *tmpl2pdf.Creator
+	Config          *Config
+	Matcher         *permission.Matcher
+	IDM             *idm.Provider
+	Customers       customerdb.Database
+	Patients        patientdb.Database
+	Comments        commentdb.Database
+	VoiceMails      voicemaildb.Database
+	MailSync        *mailsync.Manager
+	Door            *door.Controller
+	Holidays        openinghours.HolidayGetter
+	Calendar        calendar.Backend
+	Resources       *resourcedb.Registry
+	CCTV            *cctv.Manager
+	LayoutStore     layouts.Store
+	InfoScreenShows infoscreendb.Database
+	Cache           cache.Cache
+	Trigger         *trigger.Registry
+	Tmpl2PDF        *tmpl2pdf.Creator
 
 	RosterdServer string
 
@@ -78,13 +74,11 @@ func NewApp(
 	matcher *permission.Matcher,
 	customers customerdb.Database,
 	patients patientdb.Database,
-	overwrites oncalloverwrite.Database,
 	comments commentdb.Database,
 	voicemail voicemaildb.Database,
 	mailsyncManager *mailsync.Manager,
 	door *door.Controller,
 	holidays openinghours.HolidayGetter,
-	calllogs calllogdb.Database,
 	calendarEvents calendar.Backend,
 	resourceRegistry *resourcedb.Registry,
 	cctvmng *cctv.Manager,
@@ -97,27 +91,25 @@ func NewApp(
 	idmProvider *idm.Provider,
 ) *App {
 	return &App{
-		Config:           cfg,
-		Matcher:          matcher,
-		Customers:        customers,
-		Patients:         patients,
-		OnCallOverwrites: overwrites,
-		Comments:         comments,
-		VoiceMails:       voicemail,
-		MailSync:         mailsyncManager,
-		Door:             door,
-		Holidays:         holidays,
-		CallLogs:         calllogs,
-		Calendar:         calendarEvents,
-		Resources:        resourceRegistry,
-		CCTV:             cctvmng,
-		LayoutStore:      layoutStore,
-		InfoScreenShows:  infoScreens,
-		Cache:            cache,
-		Trigger:          triggerRegistry,
-		Tmpl2PDF:         pdfCreator,
-		RosterdServer:    RosterdServer,
-		IDM:              idmProvider,
+		Config:          cfg,
+		Matcher:         matcher,
+		Customers:       customers,
+		Patients:        patients,
+		Comments:        comments,
+		VoiceMails:      voicemail,
+		MailSync:        mailsyncManager,
+		Door:            door,
+		Holidays:        holidays,
+		Calendar:        calendarEvents,
+		Resources:       resourceRegistry,
+		CCTV:            cctvmng,
+		LayoutStore:     layoutStore,
+		InfoScreenShows: infoScreens,
+		Cache:           cache,
+		Trigger:         triggerRegistry,
+		Tmpl2PDF:        pdfCreator,
+		RosterdServer:   RosterdServer,
+		IDM:             idmProvider,
 	}
 }
 

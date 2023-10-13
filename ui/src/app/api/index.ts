@@ -1,5 +1,4 @@
 export * from './authorization';
-export * from './calllogs.api';
 export * from './cctv.api';
 export * from './comment.api';
 export * from './config.api';
@@ -12,9 +11,7 @@ export * from './import.api';
 export * from './openinghours.api';
 export * from './patient.api';
 export * from './resources.api';
-export * from './roster.api';
 export * from './stats.api';
 export * from './trigger.api';
 export * from './user.service';
 export * from './voicemail.api';
-

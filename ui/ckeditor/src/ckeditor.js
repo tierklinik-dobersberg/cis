@@ -27,7 +27,6 @@ import PasteFromOffice from '@ckeditor/ckeditor5-paste-from-office/src/pastefrom
 import Table from '@ckeditor/ckeditor5-table/src/table';
 import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar';
 import TextTransformation from '@ckeditor/ckeditor5-typing/src/texttransformation';
-import CloudServices from '@ckeditor/ckeditor5-cloud-services/src/cloudservices';
 import { FontColor, FontSize, FontBackgroundColor } from '@ckeditor/ckeditor5-font';
 import SourceEditing from '@ckeditor/ckeditor5-source-editing/src/sourceediting';
 import Markdown from '@ckeditor/ckeditor5-markdown-gfm/src/markdown';
@@ -57,7 +56,6 @@ ClassicEditor.builtinPlugins = [
   Paragraph,
   PasteFromOffice,
   Table,
-  CloudServices,
   TableToolbar,
   TextTransformation,
   FontColor,

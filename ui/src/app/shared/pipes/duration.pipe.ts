@@ -1,3 +1,4 @@
+import { Duration as ProtoDuration } from '@bufbuild/protobuf';
 import { isDevMode, Pipe, PipeTransform } from '@angular/core';
 import { Duration, DurationLayout } from 'src/utils/duration';
 
@@ -8,8 +9,11 @@ export type InputUnit = 'ns' | 'µs' | 'ms' | 's' | 'm' | 'h';
   pure: true
 })
 export class DurationPipe implements PipeTransform {
-  transform(value: string | number, layout: DurationLayout = 'default', input: InputUnit = 's'): string {
+  transform(value: string | number | ProtoDuration, layout: DurationLayout = 'default', input: InputUnit = 's'): string {
     let d: Duration;
+    if (value instanceof ProtoDuration) {
+      d = Duration.fromProto(value)
+    } else {
     switch (input) {
       case 'h':
         d = Duration.hours(+value);
@@ -35,6 +39,8 @@ export class DurationPipe implements PipeTransform {
         }
         return '';
     }
+    }
+
     return d.format(layout);
   }
 }

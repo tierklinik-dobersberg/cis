@@ -1,5 +1,4 @@
 import { animate, style, transition, trigger } from '@angular/animations';
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -8,9 +7,12 @@ import {
   OnInit,
   TemplateRef,
   TrackByFunction,
-  ViewChild
+  ViewChild,
+  inject
 } from '@angular/core';
-import { Profile } from '@tkd/apis';
+import { PartialMessage, Timestamp } from '@bufbuild/protobuf';
+import { GetWorkingStaffResponse, PlannedShift, Profile, WorkShift } from '@tkd/apis';
+import { CreateOverwriteRequest, Overwrite } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import {
@@ -18,10 +20,9 @@ import {
   Subject,
   combineLatest,
   forkJoin,
-  interval, of
+  interval
 } from 'rxjs';
 import {
-  catchError,
   debounceTime,
   filter,
   map, startWith,
@@ -29,17 +30,14 @@ import {
   takeUntil
 } from 'rxjs/operators';
 import {
-  ConfigAPI, ExternalAPI, Overwrite,
-  OverwriteBody,
+  ConfigAPI,
   QuickRosterOverwrite,
-  RosterAPI, UserService
+  UserService
 } from 'src/app/api';
-import { RosterShiftWithStaffList } from 'src/app/api/roster2';
+import { CALL_SERVICE, ROSTER_SERVICE, WORK_SHIFT_SERVICE } from 'src/app/api/connect_clients';
 import { ProfileService } from 'src/app/services/profile.service';
 import { HeaderTitleService } from 'src/app/shared/header-title';
-import { extractErrorMessage, toDateString } from 'src/app/utils';
-import { DoctorOnDutyResponse } from '../../../api/external.api';
-import { Roster2Service } from '../../../api/roster2/roster2.service';
+import { extractErrorMessage } from 'src/app/utils';
 
 @Component({
   templateUrl: './overwrite.component.html',
@@ -73,7 +71,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
   overlapping: Overwrite[] = [];
 
   /** AvailableShifts holds the available shifts at the selected date */
-  availableShifts: RosterShiftWithStaffList[] = [];
+  availableShifts: (PlannedShift & {definition: WorkShift})[] = [];
 
   /** A list of users that are preferable used as overwrites */
   preferredUsers: Profile[] = [];
@@ -100,7 +98,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
   currentOverwrite: Overwrite | null = null;
 
   /** The current doctor on duty */
-  currentRoster: DoctorOnDutyResponse | null = null;
+  currentRoster: GetWorkingStaffResponse | null = null;
 
   /** The type of overwrite that is being created */
   overwriteTarget: string | 'custom' = '';
@@ -158,10 +156,11 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
     s: QuickRosterOverwrite
   ) => s.TargetNumber;
 
+  private rosterService = inject(ROSTER_SERVICE);
+  private workShiftService = inject(WORK_SHIFT_SERVICE)
+  private callService = inject(CALL_SERVICE);
+
   constructor(
-    private roster: RosterAPI,
-    private roster2: Roster2Service,
-    private externalapi: ExternalAPI,
     private userService: UserService,
     private account: ProfileService,
     private config: ConfigAPI,
@@ -194,16 +193,28 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.roster2
-      .workShifts
-      .findRequiredShifts(from, to, ['OnCall'], true)
-      .subscribe(shifts => {
-        this.availableShifts = shifts[toDateString(from)] || [];
+    Promise.all([
+      this.rosterService
+        .getWorkingStaff({
+          onCall: true,
+          time: Timestamp.fromDate(from),
+        }),
+      this.workShiftService.listWorkShifts({})
+    ])
+      .then(([response, shifts]) => {
+        this.availableShifts = response.currentShifts.map(shift => {
+          Object.defineProperty(shift, 'definition', {
+            get: () => {
+              return shifts.workShifts.find(ws => ws.id === shift.workShiftId)
+            }
+          })
 
-          // get a list of all eligible users for the available shifts.
+          return shift as any
+        });
+
           let set = new Map<string, Profile>();
           this.availableShifts.forEach(shift =>
-            shift.eligibleStaff.forEach(staff => {
+            shift.assignedUserIds.forEach(staff => {
               set.set(staff, this.userService.byId(staff))
             }))
 
@@ -224,10 +235,8 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
         // might not be available anymore. Better update the overwriteTarget
         // to either the first shift available or set it to "custom".
         if (this.overwriteTarget !== 'custom') {
-
-
           if (this.availableShifts.length > 0) {
-            this.overwriteTarget = this.availableShifts[0].shiftID;
+            this.overwriteTarget = this.availableShifts[0].workShiftId;
           } else {
             this.overwriteTarget = 'custom';
           }
@@ -266,10 +275,13 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
     }
 
     const { from, to } = this.getTimeBoundary();
-    let body: OverwriteBody = {
-      from: from.toISOString(),
-      to: to.toISOString(),
-    };
+
+    const req: PartialMessage<CreateOverwriteRequest> = {
+      from: Timestamp.fromDate(from),
+      to: Timestamp.fromDate(to)
+    }
+
+    let target: string = '';
 
     if (!!this.selectedQuickTargetNumber) {
       const s = this.quickSettings.find(
@@ -280,37 +292,52 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
         // TODO(ppacher): display error message
         return;
       }
-      body.displayName = s.DisplayName;
-      body.phoneNumber = s.TargetNumber;
-    }
-    if (!!this.customPhoneNumber) {
-      body.phoneNumber = this.customPhoneNumber;
-      body.displayName = this.customPhoneNumber;
-    }
+      req.transferTarget = {
+        case: 'custom',
+        value: {
+          displayName: s.DisplayName || s.TargetNumber,
+          transferTarget: s.TargetNumber
+        }
+      }
 
-    let target = body.displayName || '';
+      target = s.DisplayName
+    } else
+    if (!!this.customPhoneNumber) {
+      req.transferTarget = {
+        case: 'custom',
+        value: {
+          displayName: this.customPhoneNumber,
+          transferTarget: this.customPhoneNumber,
+        }
+      }
+
+      target = this.customPhoneNumber
+    } else
     if (!!this.selectedUser) {
-      body.userId = this.selectedUser;
+      req.transferTarget = {
+        case: 'userId',
+        value: this.selectedUser
+      }
       const profile = this.userService.byId(this.selectedUser);
       target = profile.user.displayName || profile.user.username;
     }
 
-    this.roster.setOverwrite(body).subscribe(
-      () => {
+
+    this.callService.createOverwrite(req)
+      .then(() => {
         this.nzMessage.success(`Telefon erfolgreich auf ${target} umgeleitet.`);
         this.reloadToday$.next();
         this.firstLoad = true;
         this.overwriteTarget = '';
         this.checkOverlapping$.next({ from, to });
-      },
-      (err) => {
+      })
+      .catch((err) => {
         this.firstLoad = false;
         this.nzMessage.error(
           extractErrorMessage(err, 'Telefon konnte nicht umgeleitet werden')
         );
         this.cdr.markForCheck();
-      }
-    );
+      })
   }
 
   /** @private template-only - deletes the current overwrite */
@@ -336,21 +363,24 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
 
   /** @private template-only - deletes a overwrite by ID */
   deleteOverwrite(ov: Overwrite) {
-    if (!ov || !ov._id) {
+    if (!ov || !ov.id) {
       return;
     }
 
-    this.roster.deleteOverwriteById(ov).subscribe(
-      () => {
+    this.callService.deleteOverwrite({selector: {
+      case: 'overwriteId',
+      value: ov.id,
+    }})
+    .then(() => {
         this.nzMessage.success('Eintrag wurde erfolgreich gelöscht');
         this.onDateChange();
         this.reloadToday$.next();
-      },
-      (err) =>
+    })
+    .catch(err => {
         this.nzMessage.error(
           extractErrorMessage(err, 'Eintrag konnte nicht gelöscht werden')
         )
-    );
+    })
   }
 
   ngOnInit() {
@@ -387,19 +417,24 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
       .pipe(
         map(() => new Date()),
         switchMap(d => forkJoin({
-          currentOverwrite: this.roster.getActiveOverwrite(d)
-            .pipe(
-              catchError(err => {
-                return of(null)
-              }),
-            ),
-          currentlyActiveRoster: this.externalapi
-              .getDoctorsOnDuty({at: d, ignoreOverwrite: true})
+          currentOverwrite: this.callService.getOverwrite({selector: {
+            case: 'activeAt',
+            value: Timestamp.fromDate(d),
+          }}),
+          currentlyActiveRoster: this.rosterService
+              .getWorkingStaff({
+                onCall: true,
+                time: Timestamp.fromDate(d),
+              })
         })),
         takeUntil(this.destroy$),
       )
       .subscribe(result => {
-        this.currentOverwrite = result.currentOverwrite;
+        this.currentOverwrite = null;
+
+        if (result.currentOverwrite.overwrites.length) {
+          this.currentOverwrite = result.currentOverwrite.overwrites[0];
+        }
         this.currentRoster = result.currentlyActiveRoster;
 
         this.cdr.markForCheck();
@@ -413,32 +448,21 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
         filter(() => this.overwriteTarget != ''),
         switchMap(({from, to}) => {
           return forkJoin({
-            overlapping: this.roster
-              .getOverwrites(from, to)
-              .pipe(
-                map((res) => {
-                  return (res || []).map((ov) => ({
-                    ...ov,
-                    user: !!ov.userId
-                      ? this.userService.byId(ov.userId)
-                      : null,
-                  }));
-                }),
-                catchError((err) => {
-                  if (
-                    !(err instanceof HttpErrorResponse) ||
-                    err.status !== 404
-                  ) {
-                    console.error(err);
+            overlapping: this.callService
+              .getOverwrite({
+                selector: {
+                  case: 'timeRange',
+                  value: {
+                    from: Timestamp.fromDate(from),
+                    to: Timestamp.fromDate(to),
                   }
-                  return of([]);
-                })
-              ),
+                }
+              })
           });
         })
       )
       .subscribe((state) => {
-        this.overlapping = state.overlapping;
+        this.overlapping = state.overlapping.overwrites
         this.cdr.markForCheck();
       });
 
@@ -483,7 +507,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
       }
     }
 
-    const shift = this.availableShifts.find(s => s.shiftID === this.overwriteTarget);
+    const shift = this.availableShifts.find(s => s.workShiftId === this.overwriteTarget);
     if (!shift) {
       debugger;
 
@@ -491,8 +515,8 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
     }
 
     return {
-      from: new Date(shift.from),
-      to: new Date(shift.to)
+      from: shift.from.toDate(),
+      to: shift.to.toDate()
     }
   }
 }

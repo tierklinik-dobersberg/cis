@@ -22,7 +22,6 @@ func Setup(a *app.App, grp *echo.Group) {
 func getStatsBuilder(collection string, app *app.App) (*dbutils.Stats, error) {
 	lm := map[string]interface{ Stats() *dbutils.Stats }{
 		"customer": app.Customers,
-		"calllogs": app.CallLogs,
 		"patients": app.Patients,
 	}
 

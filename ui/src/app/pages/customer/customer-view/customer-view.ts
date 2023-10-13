@@ -1,5 +1,6 @@
+import { ConnectError } from '@bufbuild/connect';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import { MatBottomSheet, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ScaleType } from '@swimlane/ngx-charts';
@@ -7,12 +8,14 @@ import { Color } from '@swimlane/ngx-charts/lib/utils/color-sets';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, combineLatest, forkJoin, of, Subscription } from 'rxjs';
 import { catchError, mergeMap } from 'rxjs/operators';
-import { CallLog, CalllogAPI, CallLogModel, Comment, CommentAPI, LocalPatient, PatientAPI, UserService } from 'src/app/api';
+import { Comment, CommentAPI, LocalPatient, PatientAPI, UserService } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
-import { extractErrorMessage, toggleRouteQueryParamFunc } from 'src/app/utils';
+import { extractErrorMessage, toDateString, toggleRouteQueryParamFunc } from 'src/app/utils';
 import { customerTagColor, ExtendedCustomer, getMapsRouteUrl } from '../utils';
+import { CALL_SERVICE } from 'src/app/api/connect_clients';
+import { CallEntry, GetLogsForCustomerResponse } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 
 @Component({
   templateUrl: './customer-view.html',
@@ -22,12 +25,13 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
   @ViewChild('customerSelectPhone', {static: true, read: TemplateRef})
   customerSelectPhone: TemplateRef<any> | null = null;
 
+  private callService = inject(CALL_SERVICE)
+
   constructor(
     public layout: LayoutService,
     private header: HeaderTitleService,
     private customerapi: CustomerAPI,
     private patientapi: PatientAPI,
-    private calllogapi: CalllogAPI,
     private userService: UserService,
     private activatedRoute: ActivatedRoute,
     private commentapi: CommentAPI,
@@ -43,7 +47,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
 
   allComments: Comment[] = [];
   totalCallTime = 0;
-  callrecords: CallLog[] = [];
+  callrecords: CallEntry[] = [];
   customerComment: Comment | null = null;
   customer: ExtendedCustomer | null = null;
   reload = new BehaviorSubject<void>(undefined);
@@ -108,7 +112,7 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
 
     interface ForkJoinResult {
       customer: Customer;
-      calllogs: CallLog[] | HttpErrorResponse;
+      calllogs: GetLogsForCustomerResponse | ConnectError;
       patients: LocalPatient[] | HttpErrorResponse;
       notes: Comment[] | HttpErrorResponse;
     }
@@ -125,8 +129,10 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
           const id = params.get('cid');
           return forkJoin({
             customer: this.customerapi.byId(source, id),
-            calllogs: this.calllogapi.forCustomer(source, id)
-              .pipe(catchError(err => of(err))),
+            calllogs: this.callService.getLogsForCustomer({
+              id: id,
+              source: source,
+            }).catch(err => ConnectError.from(err)),
             patients: this.patientapi.getPatientsForCustomer(source, id)
               .pipe(catchError(err => of(err))),
             notes: this.commentapi.list(`customer:primaryNote:${source}:${id}`, false, true)
@@ -151,8 +157,9 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
         }
 
         this.callrecords = [];
-        if (Array.isArray(result.calllogs)) {
-          this.callrecords = result.calllogs;
+        if (result.calllogs instanceof GetLogsForCustomerResponse) {
+          this.callrecords = result.calllogs.results;
+
           this.updateCallLogGraphs();
         } else {
           this.nzMessageService.error(
@@ -211,8 +218,8 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
   }
 
 
-  trackLog(_: number, log: CallLogModel): string | null {
-    return log._id || null;
+  trackLog(_: number, log: CallEntry): string | null {
+    return log.id || null;
   }
 
   ngOnDestroy(): void {
@@ -247,15 +254,17 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     const heatMapBuckets = new Map<number, Map<number, number>>();
 
     this.callrecords.forEach(record => {
-      let count = counts.get(record.datestr) || 0;
+      const dateStr = toDateString(record.receivedAt.toDate())
+
+      let count = counts.get(dateStr) || 0;
       count++;
-      counts.set(record.datestr, count);
+      counts.set(dateStr, count);
 
-      let sumDuration = sums.get(record.datestr) || 0;
-      sumDuration += record.durationSeconds || 0;
-      sums.set(record.datestr, sumDuration);
+      let sumDuration = sums.get(dateStr) || 0;
+      sumDuration += Number(record.duration.seconds)
+      sums.set(dateStr, sumDuration);
 
-      const d = new Date(record.date);
+      const d = record.receivedAt.toDate()
       const hourBucket = heatMapBuckets.get(d.getDay()) || new Map<number, number>();
       heatMapBuckets.set(d.getDay(), hourBucket);
 
