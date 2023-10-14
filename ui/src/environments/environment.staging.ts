@@ -8,7 +8,7 @@ export const environment = {
   rosterService: "https://roster.dobersberg.dev",
   accountService: 'https://account.dobersberg.dev',
   calendarService: 'https://calendar.dobersberg.dev',
-  callService: 'https://3cx.dobersberg.dev'
+  callService: 'https://3cx-support.dobersberg.dev'
 };
 
 /*

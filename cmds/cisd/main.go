@@ -8,8 +8,11 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	goruntime "runtime"
@@ -18,6 +21,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/ppacher/system-conf/conf"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	idmv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/idm/v1"
 	"github.com/tierklinik-dobersberg/cis/internal/api/cctvapi"
@@ -442,17 +446,36 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 		fmt.Printf("failed to dump content: %s\n", err.Error())
 	}
 
-	webapp, err := fs.Sub(static, "ui")
-	if err != nil {
-		logger.Fatalf(context.Background(), err.Error())
-	}
+	staticPath := os.Getenv("STATIC_FILES")
+	switch {
+	case strings.HasPrefix(staticPath, "http"):
+		u, err := url.Parse(staticPath)
+		if err != nil {
+			logrus.Fatal("invalid URL In STATIC_FILES")
+		}
 
-	grp.Use(middleware.StaticWithConfig(middleware.StaticConfig{
-		Root:       "/",
-		Index:      "index.html",
-		HTML5:      true,
-		Filesystem: http.FS(webapp),
-	}))
+		grp.Any("/*", echo.WrapHandler(httputil.NewSingleHostReverseProxy(u)))
+
+	case staticPath == "":
+		webapp, err := fs.Sub(static, "ui")
+		if err != nil {
+			logger.Fatalf(context.Background(), err.Error())
+		}
+
+		grp.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+			Root:       "/",
+			Index:      "index.html",
+			HTML5:      true,
+			Filesystem: http.FS(webapp),
+		}))
+
+	default:
+		grp.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+			Root:  staticPath,
+			Index: "index.html",
+			HTML5: true,
+		}))
+	}
 
 	apis := grp.Group(
 		"/api/",

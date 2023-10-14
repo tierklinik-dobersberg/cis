@@ -35,6 +35,11 @@ var UISpec = conf.SectionSpec{
 		Description: "A list of calendar IDs that should always be displayed/allowed when creating new events.",
 		Type:        conf.StringSliceType,
 	},
+	{
+		Name:    "OnCallRosterType",
+		Type:    conf.StringType,
+		Default: "Tierarzt",
+	},
 }
 
 var RosterUISpec = conf.SectionSpec{

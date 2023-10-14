@@ -7,21 +7,26 @@
 
 <ng-template #titleTemplate>
   <span class="header">
-    Bereitschaftsdienst
+    Bereitschaftsdienst {{ onDuty?.isOverwrite ? '(ÜBERSCHRIEBEN)' : ''}}
     <i nz-dropdown *ngIf="canSetOverwrite" nzTrigger="click" nz-icon nzType="edit" nzTheme="outline"
       style="cursor: pointer" nz-tooltip nzTooltipTitle="Nachdienst ändern" routerLink="/on-call/overwrite"></i>
   </span>
 
   <div class="on-duty-container">
-    <nz-avatar [nzSize]="64" nzShape="square" nzIcon="user" [nzSrc]="primaryOnDuty?.user?.avatar"></nz-avatar>
-    <div class="primary-on-duty">
-      <span *ngIf="!!primaryOnDuty" [nzTooltipTitle]="'bis ' + (onDutyUntil?.toLocaleString() || 'N/A')"
-        nz-tooltip><u>{{
-          primaryOnDuty | displayName }}</u></span>
-      <span class="phone" *ngIf="!!primaryOnDuty && onDuty[0].phone">
-        <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
-        {{ onDuty[0].phone }}</span>
-    </div>
+
+    <ng-container *ngFor="let onCall of onDuty?.onCall">
+      <nz-avatar [nzSize]="64" nzShape="square" nzIcon="user" [nzSrc]="(onCall.profile?.user?.id | toUser)?.user.avatar"></nz-avatar>
+      <div class="primary-on-duty">
+        <span [nzTooltipTitle]="'bis ' + (onCall.until?.toDate() | date:'short')"
+          nz-tooltip><u>{{
+            onCall.profile?.user?.id | toUser | displayName }}</u></span>
+        <span class="phone">
+          <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
+          {{ onCall.transferTarget }}
+        </span>
+      </div>
+    </ng-container>
+
   </div>
 </ng-template>
 
@@ -31,15 +36,9 @@
     <span> Laden ...</span>
   </ng-container>
   <span *ngIf="!firstLoad" class="description">
-    <span style="color: red" *ngIf="onDuty.length === 0">
+    <span style="color: red" *ngIf="onDuty?.onCall?.length === 0">
       <i nz-icon nzType="warning" nzTheme="outline" style="margin-right: 4px;"></i>
       Nicht eingetragen!
-    </span>
-
-    <span *ngIf="onDuty.length > 1">
-      <span>Backup: </span>
-      <span *ngFor="let backup of onDuty.slice(1); trackBy: trackBy" class="backup" [nzTooltipTitle]="backup.phone"
-        nz-tooltip>{{ backup.fullname || (backup.userId | toUser)?.user.displayName || 'N/A' }}</span>
     </span>
   </span>
 </ng-template>

@@ -1,10 +1,10 @@
-import { Timestamp } from '@bufbuild/protobuf';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output, inject } from '@angular/core';
+import { Timestamp } from '@bufbuild/protobuf';
 import { GetWorkingStaffResponse, ListWorkShiftsResponse, PlannedShift, Profile, WorkShift } from '@tkd/apis';
-import { BehaviorSubject, Subscription, combineLatest, forkJoin, interval, of } from 'rxjs';
-import { catchError, mergeMap, startWith } from 'rxjs/operators';
-import { UserService } from 'src/app/api';
-import { CALL_SERVICE, ROSTER_SERVICE, WORK_SHIFT_SERVICE } from 'src/app/api/connect_clients';
+import { BehaviorSubject, Subscription, combineLatest, forkJoin, interval } from 'rxjs';
+import { mergeMap, startWith } from 'rxjs/operators';
+import { ConfigAPI, UserService } from 'src/app/api';
+import { ROSTER_SERVICE, WORK_SHIFT_SERVICE } from 'src/app/api/connect_clients';
 
 @Component({
   selector: 'app-roster-card',
@@ -40,6 +40,7 @@ export class RosterCardComponent implements OnInit, OnDestroy {
 
   private rosterService = inject(ROSTER_SERVICE)
   private workShiftService = inject(WORK_SHIFT_SERVICE);
+  private config = inject(ConfigAPI);
 
   constructor(
     private userService: UserService,
@@ -62,6 +63,7 @@ export class RosterCardComponent implements OnInit, OnDestroy {
           staff: this.rosterService.getWorkingStaff({
             onCall: true,
             time: Timestamp.fromDate(new Date()),
+            rosterTypeName: this.config.current.OnCallRosterType || 'Tierarzt'
           }).catch(err => new GetWorkingStaffResponse()),
           shifts: this.workShiftService.listWorkShifts({})
             .catch(() => new ListWorkShiftsResponse())

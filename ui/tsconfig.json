@@ -12,10 +12,6 @@
     "target": "es2020",
     "module": "es2020",
     "paths": {
-      "@tkd/api": [
-        "dist/tkd/api/tkd-api",
-        "dist/tkd/api"
-      ],
       "stream": [
         "./node_modules/readable-stream/readable.js"
       ]

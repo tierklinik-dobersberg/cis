@@ -1,13 +1,12 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
-import { Profile } from '@tkd/apis';
-import { Subscription, interval, of, throwError } from 'rxjs';
-import { catchError, delay, mergeMap, retryWhen, startWith } from 'rxjs/operators';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction, inject } from '@angular/core';
+import { Code, ConnectError } from '@bufbuild/connect';
+import { GetOnCallResponse, OnCall } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
+import { Subscription, interval } from 'rxjs';
+import { delay, mergeMap, retryWhen, startWith } from 'rxjs/operators';
 import {
-  DoctorOnDuty,
-  DoctorOnDutyResponse,
-  ExternalAPI, UserService
+  UserService
 } from 'src/app/api';
+import { CALL_SERVICE } from 'src/app/api/connect_clients';
 
 @Component({
   selector: 'app-emergency-card',
@@ -17,17 +16,15 @@ import {
 })
 export class EmergencyCardComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
+  private callService = inject(CALL_SERVICE);
 
-  onDuty: DoctorOnDuty[] = [];
-  isOverwritten = false;
-  onDutyUntil: Date | null = null;
+  onDuty: GetOnCallResponse | null = null;
+
   firstLoad = true;
-  primaryOnDuty: Profile| null = null;
 
-  trackBy: TrackByFunction<DoctorOnDuty> = (_: number, item: DoctorOnDuty) => item.userId;
+  trackBy: TrackByFunction<OnCall> = (_: number, item: OnCall) => item.transferTarget;
 
   constructor(
-    private externalapi: ExternalAPI,
     private userService: UserService,
     private changeDetector: ChangeDetectorRef,
   ) { }
@@ -41,32 +38,24 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
       interval(20000)
       .pipe(
         startWith(0),
-        mergeMap(() => this.externalapi.getDoctorsOnDuty()
-            .pipe(
-              catchError(err => {
-                // we might get a 404 if there's no roster defined for today.
-                if (err instanceof HttpErrorResponse && err.status === 404) {
-                  return of({
-                    doctors: [],
-                    until: null,
-                    isOverwrite: false,
-                  } as DoctorOnDutyResponse<any>);
-                }
+        mergeMap(() =>
+          this.callService.getOnCall({})
+            .catch(err => {
+              if (ConnectError.from(err).code === Code.NotFound) {
+                return new GetOnCallResponse()
+              }
 
-                return throwError(err);
-              }),
-            ),
+              throw err
+            })
         ),
         retryWhen(errors => errors.pipe(delay(5000))),
       )
       .subscribe({
         next: result => {
           this.firstLoad = false;
-          this.onDuty = result.doctors || [];
-          this.onDutyUntil = result.until;
-          this.isOverwritten = result.isOverwrite;
+          this.onDuty = result;
+          console.log("onCall", result)
 
-          this.primaryOnDuty = this.userService.byId(this.onDuty[0]?.userId);
           this.changeDetector.markForCheck();
         },
       });

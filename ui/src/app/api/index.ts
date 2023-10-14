@@ -4,7 +4,6 @@ export * from './comment.api';
 export * from './config.api';
 export * from './door.api';
 export * from './dxr.service';
-export * from './external.api';
 export * from './healthchecks.api';
 export * from './holiday.api';
 export * from './import.api';

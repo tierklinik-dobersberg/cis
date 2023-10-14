@@ -225,7 +225,7 @@ export class AppComponent implements OnInit, OnDestroy {
           case 'userId':
             this.overwriteTarget = this.userService.byId(
               first.target.value,
-            ).user.username
+            )?.user.username
 
             break;
         }

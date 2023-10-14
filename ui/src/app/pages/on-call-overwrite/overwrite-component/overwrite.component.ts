@@ -11,7 +11,7 @@ import {
   inject
 } from '@angular/core';
 import { PartialMessage, Timestamp } from '@bufbuild/protobuf';
-import { GetWorkingStaffResponse, PlannedShift, Profile, WorkShift } from '@tkd/apis';
+import { GetWorkingStaffResponse, PlannedShift, Profile, RequiredShift, WorkShift } from '@tkd/apis';
 import { CreateOverwriteRequest, Overwrite } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
@@ -37,7 +37,7 @@ import {
 import { CALL_SERVICE, ROSTER_SERVICE, WORK_SHIFT_SERVICE } from 'src/app/api/connect_clients';
 import { ProfileService } from 'src/app/services/profile.service';
 import { HeaderTitleService } from 'src/app/shared/header-title';
-import { extractErrorMessage } from 'src/app/utils';
+import { extractErrorMessage, toDateString } from 'src/app/utils';
 
 @Component({
   templateUrl: './overwrite.component.html',
@@ -58,7 +58,7 @@ import { extractErrorMessage } from 'src/app/utils';
 })
 export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  private checkOverlapping$ = new Subject<{ to: Date; from: Date }>();
+  private checkOverlapping$ = new BehaviorSubject<{ to: Date; from: Date }>(null);
   private reloadToday$ = new BehaviorSubject<void>(undefined);
 
   @ViewChild('confirmDeleteCurrentOverwrite', {
@@ -170,6 +170,18 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
     private header: HeaderTitleService
   ) {}
 
+  trackPlannedShift: TrackByFunction<PlannedShift&{definition: WorkShift}> = (_, s) => `${s.workShiftId}-${s.from.seconds}-${s.to.seconds}`
+
+  onTargetChange() {
+    this.firstLoad = false
+    const lastValue = this.checkOverlapping$.getValue()
+    if (lastValue === null) {
+      return
+    }
+
+    this.checkOverlapping$.next(lastValue)
+  }
+
   onDateChange(humanInteraction = true) {
     if (humanInteraction) {
       this.firstLoad = false;
@@ -183,8 +195,9 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
       from = this.customFrom;
       to = this.customTo;
     } else {
+      // just check for the same day
       from = new Date(this.customFrom)
-      to = new Date(from.getFullYear(), from.getMonth(), from.getDate() + 1)
+      to = from
     }
 
     // customTo is not set so better bail out if one of them is
@@ -198,19 +211,34 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
         .getWorkingStaff({
           onCall: true,
           time: Timestamp.fromDate(from),
+          rosterTypeName: this.config.current.OnCallRosterType || 'Tierarzt',
         }),
-      this.workShiftService.listWorkShifts({})
+      this.rosterService.getRequiredShifts({
+        from: toDateString(from),
+        to: toDateString(to),
+        rosterTypeName: this.config.current.OnCallRosterType || 'Tierarzt',
+      })
     ])
       .then(([response, shifts]) => {
-        this.availableShifts = response.currentShifts.map(shift => {
-          Object.defineProperty(shift, 'definition', {
-            get: () => {
-              return shifts.workShifts.find(ws => ws.id === shift.workShiftId)
+          this.availableShifts = shifts.requiredShifts.map(rs => {
+            let planned = response.currentShifts.find(cs => cs.workShiftId === rs.workShiftId && cs.from.seconds === rs.from.seconds && cs.to.seconds === rs.to.seconds)
+            if (!planned) {
+              planned = new PlannedShift({
+                workShiftId: rs.workShiftId,
+                from: rs.from,
+                to: rs.to,
+                assignedUserIds: [],
+              })
             }
-          })
 
-          return shift as any
-        });
+            Object.defineProperty(planned, 'definition', {
+              get: () => {
+                return shifts.workShiftDefinitions.find(wsd => wsd.id === planned.workShiftId)
+              }
+            })
+
+            return planned as (PlannedShift & {definition: WorkShift});
+          })
 
           let set = new Map<string, Profile>();
           this.availableShifts.forEach(shift =>
@@ -425,6 +453,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
               .getWorkingStaff({
                 onCall: true,
                 time: Timestamp.fromDate(d),
+                rosterTypeName: this.config.current.OnCallRosterType || 'Tierarzt'
               })
         })),
         takeUntil(this.destroy$),
@@ -462,6 +491,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe((state) => {
+        console.log("overlapping", state.overlapping)
         this.overlapping = state.overlapping.overwrites
         this.cdr.markForCheck();
       });

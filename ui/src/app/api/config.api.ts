@@ -128,6 +128,7 @@ export interface UIConfig {
   KnownPhoneExtension?: KnownPhoneExtension[];
   TriggerAction?: TriggerAction[];
   Roster?: RosterUIConfig;
+  OnCallRosterType: string;
 }
 
 @Injectable({

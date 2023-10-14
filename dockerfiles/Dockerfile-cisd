@@ -1,7 +1,7 @@
-ARG CONFIGURATION="production"
 
 # Build the frontend
 FROM node:16 as builder
+ARG CONFIGURATION
 
 WORKDIR /app/ui
 
@@ -14,7 +14,8 @@ COPY ui/ckeditor/ ./ckeditor
 RUN npm run build-ckeditor
 
 COPY ./ui .
-RUN npm run build-limited --configuration $CONFIGURATION
+RUN echo "Building frontend in configuration $CONFIGURATION"
+RUN npm run build-limited -- --configuration $CONFIGURATION
 
 # Build cisd
 FROM golang:1.20 as build

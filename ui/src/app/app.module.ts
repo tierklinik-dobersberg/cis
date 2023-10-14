@@ -12,7 +12,6 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { far } from '@fortawesome/free-regular-svg-icons';
 import { fas } from '@fortawesome/free-solid-svg-icons';
-import { TKD_CIS_ENDPOINT } from '@tkd/api';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
@@ -37,7 +36,6 @@ import { IconsProviderModule } from './icons-provider.module';
 import { SharedModule } from './shared/shared.module';
 
 registerLocaleData(de);
-
 
 @NgModule({
   declarations: [
@@ -75,7 +73,6 @@ registerLocaleData(de);
     { provide: HTTP_INTERCEPTORS, useExisting: BaseURLInjector, multi: true },
     { provide: NZ_DATE_CONFIG, useValue: { firstDayOfWeek: 1 } },
     { provide: LOCALE_ID, useValue: 'de'},
-    { provide: TKD_CIS_ENDPOINT, useValue: environment.baseURL },
     ...connectProviders
   ],
   bootstrap: [AppComponent]
@@ -83,5 +80,7 @@ registerLocaleData(de);
 export class AppModule {
   constructor(library: FaIconLibrary, iconService: NzIconService) {
     library.addIconPacks(fas, far);
+
+    console.log("Environment", environment)
   }
 }
