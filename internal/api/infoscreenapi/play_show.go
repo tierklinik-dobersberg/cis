@@ -12,7 +12,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/logger"
@@ -118,7 +117,6 @@ func renderPlayer(playCtx *PlayContext, w http.ResponseWriter) error {
 func PlayShowEndpoint(router *app.Router) {
 	router.GET(
 		"v1/shows/:show/play/*resource",
-		permission.Anyone, // we handle authorization for this endpoint on our own
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			// TODO(ppacher): add authorization
 			log := logger.From(ctx)

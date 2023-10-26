@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/logger"
@@ -16,7 +15,6 @@ import (
 func GetFlatConfigEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/flat",
-		permission.Anyone,
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			// NORELEASE(ppacher): check for permissions when reading configuration data!
 			keys := c.QueryParams()["keys"]

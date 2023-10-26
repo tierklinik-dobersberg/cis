@@ -10,7 +10,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/door"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -20,9 +19,6 @@ import (
 func OverwriteEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/overwrite",
-		permission.OneOf{
-			SetStateAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			// parse the request body
 			var body struct {

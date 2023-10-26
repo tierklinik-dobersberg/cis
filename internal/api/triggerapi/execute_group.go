@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	idmv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/idm/v1"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
@@ -16,10 +15,11 @@ import (
 	"github.com/tierklinik-dobersberg/logger"
 )
 
+const externalTriggerID = "__external"
+
 func ExecuteTriggerGroupEndpoint(router *app.Router) {
 	router.POST(
 		"v1/group/:groupName",
-		permission.Anyone, // we'l verify that ourself
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			sess := session.UserFromCtx(ctx)
 			groupName := c.Param(("groupName"))
@@ -88,18 +88,8 @@ func findAllowedGroupMembers(ctx context.Context, username string, extraRoles []
 			continue
 		}
 		foundGroup = true
-		req := &permission.Request{
-			User:     username,
-			Action:   ExecuteTriggerAction.Name,
-			Resource: instance.ID(),
-		}
-		permitted, err := app.Matcher.Decide(ctx, req, extraRoles)
-		if err != nil {
-			return nil, err
-		}
-		if permitted {
-			result = append(result, instance)
-		}
+
+		result = append(result, instance)
 	}
 	if !foundGroup {
 		return nil, httperr.NotFound("trigger group", groupName)

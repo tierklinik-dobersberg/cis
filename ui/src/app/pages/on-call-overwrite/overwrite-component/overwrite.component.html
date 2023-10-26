@@ -98,7 +98,7 @@
 
       <div class="flex flex-col justify-between space-y-2 sm:flex-row sm:space-y-0">
         <div class="block w-full mr-1 sm:w-56">
-          <nz-select [(ngModel)]="overwriteTarget" (ngModelChange)="onTargetChange()"  class="w-full"
+          <nz-select [(ngModel)]="overwriteTarget" (ngModelChange)="onTargetChange($event)"  class="w-full"
             nzPlaceHolder="Bitte auswählen">
             <nz-option *ngFor="let shift of availableShifts; trackBy: trackPlannedShift" [nzValue]="shift.definition.id" [nzLabel]="shift.definition.name + ' (' + (shift.from.toDate()|date:'shortTime') + ' - ' + (shift.to.toDate()|date:'shortTime') + ')'"></nz-option>
             <nz-option nzValue="custom" nzLabel="Beliebig"></nz-option>

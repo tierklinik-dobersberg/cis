@@ -1,0 +1,90 @@
+<div class="flex flex-row items-center space-x-4">
+  <div class="block p-2.5 w-12 h-12 bg-white rounded-full shadow text-color-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+  </div>
+  <div class="flex flex-col">
+    <span class="text-base font-semibold font-lato text-primary"> Dienstplan </span><span
+      class="text-secondary ng-star-inserted">
+      Deine Arbeitszeiten von {{ from | date:'shortDate'}} bis {{ to | date:'shortDate' }}
+    </span>
+  </div>
+</div>
+
+<div class="bg-white rounded shadow">
+  <div class="flex flex-row justify-between items-center p-4 border-b sm:p-6 md:p-8 border-tertiary">
+    <div>
+      <h1 class="text-lg text-lato text-color-primary">Arbeitszeiten</h1>
+      <span class="text-secondary">
+        In diesem Zeitraum arbeitest du <span class="text-alert-green-dark">{{ workTime?.plannedTime | duration:'default-hours'}}</span> (Soll-Zeit: {{ workTime?.expectedTime | duration:'default-hours' }}).
+      </span>
+    </div>
+
+    <div *ngIf="vacation" class="flex flex-row items-center gap-4 sm:gap-6 md:gap-8">
+      <div class="p-4 border items-center bg-tertiary bg-opacity-50 border-tertiary rounded-md flex flex-col justify-center">
+        <label class="font-lato uppercase leading-3 text-xs text-color-primary">ZA Guthaben</label>
+        <h1 class="font-lato text-lg m-0" [ngClass]="{
+          'text-alert-green-dark': vacation.timeOffCredits.seconds > 0,
+          'text-alert-red-dark': vacation.timeOffCredits.seconds < 0
+        }">{{ vacation.timeOffCredits | duration:'default-hours'}}</h1>
+      </div>
+
+      <div class="p-4 border items-center bg-tertiary bg-opacity-50 border-tertiary rounded-md flex flex-col justify-center">
+        <label class="font-lato uppercase leading-3 text-xs text-color-primary">Resturlaub</label>
+        <h1 class="text-lg m-0 font-lato" [ngClass]="{
+          'text-alert-green-dark': vacation.vacationCreditsLeft.seconds > 0,
+          'text-alert-red-dark': vacation.vacationCreditsLeft.seconds < 0
+        }">{{ vacation.vacationCreditsLeft | duration:'default-hours'}}</h1>
+      </div>
+    </div>
+  </div>
+
+  <ng-container *ngIf="userShifts; else: noRosterTmpl">
+    <nz-table class="p-0" [nzData]="userShifts" #table>
+      <thead>
+        <tr>
+          <th class="text-left" width="30%">Datum</th>
+          <th class="text-left">Schicht</th>
+          <th class="text-left" width="30%">Von / Bis</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let entry of table.nzData; let index=index" class="bg-opacity-25" [ngClass]="{
+          'bg-secondary': entry.today,
+          'opacity-50': !!entry.offtime
+        }">
+          <td>
+            <div *ngIf="index === 0 || table.nzData[index-1].dateStr !== entry.dateStr" class="flex flex-row gap-2 items-center">
+              {{ entry.from | date:'fullDate' }}
+              <span *ngIf="entry.holiday" class="text-secondary italic">
+                - {{ entry.holiday.localName }}
+              </span>
+
+              <div *ngIf="entry.today" class="block px-1 py-0.5 text-xs scale-[0.85] border border-primary font-lato border-opacity-60 transform bg-secondary rounded-sm text-white bg-opacity-80 uppercase">Heute</div>
+            </div>
+          </td>
+
+          <td>
+            <div class="flex flex-row gap-2 items-center">
+              <span class="rounded block h-5 w-5" [style.backgroundColor]="entry.definition?.color || 'transparent'"></span>
+              <span *ngIf="entry.definition">
+                {{ entry.definition.displayName }}
+                ({{ entry.definition.name }})
+              </span>
+              <span *ngIf="entry.offtime">
+                Urlaub ({{ entry.offtime.description }})
+              </span>
+            </div>
+          </td>
+
+          <td>{{ entry.from | date:'shortTime' }} <span class="text-secondary">-</span> {{ entry.to | date: (entry.spansNextDay ? 'medium' : 'shortTime')}}</td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </ng-container>
+
+  <ng-template #noRosterTmpl>
+    <span>Es wurden keine Dienstplaneinträge für dich gefunden.</span>
+  </ng-template>
+</div>

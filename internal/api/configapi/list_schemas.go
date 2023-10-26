@@ -7,7 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 )
 
@@ -23,7 +22,6 @@ type ListSchemasResponse struct {
 func ListSchemasEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/schema",
-		permission.OneOf{ConfigManagementAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			schemas := runtime.GlobalSchema.Schemas()
 			var res ListSchemasResponse

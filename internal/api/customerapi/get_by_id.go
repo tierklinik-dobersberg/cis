@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 // GetByIDEndpoint returns a JSON version of the customer
@@ -16,9 +15,6 @@ import (
 func GetByIDEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/:source/:id",
-		permission.OneOf{
-			ReadCustomerAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			source := c.Param("source")
 

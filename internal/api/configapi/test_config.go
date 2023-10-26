@@ -7,7 +7,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime"
@@ -21,7 +20,6 @@ type TestConfigRequest struct {
 func TestConfigEndpoint(r *app.Router) {
 	r.POST(
 		"v1/test/:key/:testID",
-		permission.Anyone,
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			schemaType := c.Param("key")
 			testID := c.Param("testID")

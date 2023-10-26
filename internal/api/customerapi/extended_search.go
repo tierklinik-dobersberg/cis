@@ -7,7 +7,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	v1 "github.com/tierklinik-dobersberg/cis/pkg/models/customer/v1alpha"
 )
@@ -22,9 +21,6 @@ import (
 func ExtendedSearchEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/search",
-		permission.OneOf{
-			ReadCustomerAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			var result map[string]interface{}
 

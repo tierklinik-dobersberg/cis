@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 )
@@ -20,7 +19,6 @@ type GetConfigByIDResponse struct {
 func GetConfigByIDEndpoint(r *app.Router) {
 	r.GET(
 		"v1/schema/:key/:id",
-		permission.OneOf{ConfigManagementAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			key := c.Param("key")
 			id := c.Param("id")

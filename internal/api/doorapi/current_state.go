@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 // CurrentStateEndpoint returns the current state of the door
@@ -16,9 +15,6 @@ import (
 func CurrentStateEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/state",
-		permission.OneOf{
-			GetStateAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			currentState, until, resetInProgress := app.Door.Current(ctx)
 

@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
@@ -19,9 +18,6 @@ import (
 func SearchEndpoint(router *app.Router) {
 	router.GET(
 		"v1/search",
-		permission.OneOf{
-			ReadVoicemailsAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			opts := new(voicemaildb.SearchOptions)
 

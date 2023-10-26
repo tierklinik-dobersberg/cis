@@ -10,7 +10,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
@@ -19,8 +18,6 @@ import (
 func WaitForEventEndpoint(router *app.Router) {
 	router.GET(
 		"v1/wait",
-		// FIXME(ppacher): proper permission to get event body?
-		permission.Anyone,
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			eventNames := c.QueryParams()["event"]
 			clientID := fmt.Sprintf("%s-event-sub-%s", session.UserFromCtx(ctx), uuid.New().String())

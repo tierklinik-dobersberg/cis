@@ -109,12 +109,6 @@ export class AppComponent implements OnInit, OnDestroy {
   /** Used to trigger a reload of the current overwrite target */
   private reloadOverwrite$ = new BehaviorSubject<void>(undefined);
 
-  isRoster2 = this.router.events.pipe(
-    filter((e) => e instanceof NavigationEnd),
-    map(() => this.router.url.startsWith('/roster/plan')),
-    share()
-  );
-
   /** Returns true if the user has (at least read-only) access to the roster */
   get hasRoster(): boolean {
     return true

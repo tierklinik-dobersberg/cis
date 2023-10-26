@@ -10,7 +10,6 @@ import (
 	"github.com/nyaruka/phonenumbers"
 	"github.com/tierklinik-dobersberg/cis/internal/api/customerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/customer/v1alpha"
 	"go.mongodb.org/mongo-driver/bson"
@@ -25,9 +24,6 @@ type ContactResponse struct {
 func GetContactEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/contact",
-		permission.OneOf{
-			GetContactAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			phone := c.QueryParam("phone")
 			if phone == "" {

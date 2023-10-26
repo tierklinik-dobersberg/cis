@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 )
 
@@ -18,7 +17,6 @@ type DeleteConfigResponse struct {
 func DeleteConfigEndpoint(r *app.Router) {
 	r.DELETE(
 		"v1/schema/:key/:id",
-		permission.OneOf{ConfigManagementAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			id := c.Param("id")
 

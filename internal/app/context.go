@@ -12,19 +12,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/labstack/echo/v4"
-	"github.com/tierklinik-dobersberg/cis/internal/calendar"
-	"github.com/tierklinik-dobersberg/cis/internal/cctv"
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/infoscreendb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
-	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/door"
-	"github.com/tierklinik-dobersberg/cis/internal/identity/providers/idm"
+	"github.com/tierklinik-dobersberg/cis/internal/idm"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/tmpl2pdf"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -40,7 +36,6 @@ const appContextKey = contextKey("app:context")
 // App holds dependencies for cis API request handlers.
 type App struct {
 	Config          *Config
-	Matcher         *permission.Matcher
 	IDM             *idm.Provider
 	Customers       customerdb.Database
 	Patients        patientdb.Database
@@ -49,9 +44,6 @@ type App struct {
 	MailSync        *mailsync.Manager
 	Door            *door.Controller
 	Holidays        openinghours.HolidayGetter
-	Calendar        calendar.Backend
-	Resources       *resourcedb.Registry
-	CCTV            *cctv.Manager
 	LayoutStore     layouts.Store
 	InfoScreenShows infoscreendb.Database
 	Cache           cache.Cache
@@ -71,7 +63,6 @@ func (app *App) String() string {
 // NewApp context creates a new application context.
 func NewApp(
 	cfg *Config,
-	matcher *permission.Matcher,
 	customers customerdb.Database,
 	patients patientdb.Database,
 	comments commentdb.Database,
@@ -79,9 +70,6 @@ func NewApp(
 	mailsyncManager *mailsync.Manager,
 	door *door.Controller,
 	holidays openinghours.HolidayGetter,
-	calendarEvents calendar.Backend,
-	resourceRegistry *resourcedb.Registry,
-	cctvmng *cctv.Manager,
 	layoutStore layouts.Store,
 	infoScreens infoscreendb.Database,
 	cache cache.Cache,
@@ -92,7 +80,6 @@ func NewApp(
 ) *App {
 	return &App{
 		Config:          cfg,
-		Matcher:         matcher,
 		Customers:       customers,
 		Patients:        patients,
 		Comments:        comments,
@@ -100,9 +87,6 @@ func NewApp(
 		MailSync:        mailsyncManager,
 		Door:            door,
 		Holidays:        holidays,
-		Calendar:        calendarEvents,
-		Resources:       resourceRegistry,
-		CCTV:            cctvmng,
 		LayoutStore:     layoutStore,
 		InfoScreenShows: infoScreens,
 		Cache:           cache,

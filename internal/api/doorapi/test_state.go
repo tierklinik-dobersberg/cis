@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
@@ -18,9 +17,6 @@ import (
 func TestStateEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1/test/:year/:month/:day/:hour/:minute",
-		permission.OneOf{
-			GetStateAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			year, err := getIntParam("year", c)
 			if err != nil {

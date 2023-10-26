@@ -24,37 +24,29 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	idmv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/idm/v1"
-	"github.com/tierklinik-dobersberg/cis/internal/api/cctvapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/commentapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/configapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/customerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/doorapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/externalapi"
-	"github.com/tierklinik-dobersberg/cis/internal/api/holidayapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/importapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/infoscreenapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/openinghoursapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/patientapi"
-	"github.com/tierklinik-dobersberg/cis/internal/api/resourceapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/statsapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/triggerapi"
 	"github.com/tierklinik-dobersberg/cis/internal/api/voicemailapi"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
-	"github.com/tierklinik-dobersberg/cis/internal/cctv"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/internal/database/commentdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/infoscreendb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/patientdb"
-	"github.com/tierklinik-dobersberg/cis/internal/database/resourcedb"
 	"github.com/tierklinik-dobersberg/cis/internal/database/voicemaildb"
 	"github.com/tierklinik-dobersberg/cis/internal/door"
-	"github.com/tierklinik-dobersberg/cis/internal/identity"
 	"github.com/tierklinik-dobersberg/cis/internal/importer"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/tmpl2pdf"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
 	"github.com/tierklinik-dobersberg/cis/pkg/cache"
@@ -88,8 +80,7 @@ import (
 	//
 
 	// All available/build-in identity providers.
-	_ "github.com/tierklinik-dobersberg/cis/internal/identity/providers"
-	"github.com/tierklinik-dobersberg/cis/internal/identity/providers/idm"
+	"github.com/tierklinik-dobersberg/cis/internal/idm"
 
 	// Neumayr importer.
 	"github.com/tierklinik-dobersberg/cis/internal/importer/carddav"
@@ -122,9 +113,6 @@ func getRootCommand() *cobra.Command {
 
 	cmd.AddCommand(
 		getDoorCommand(),
-		getManCommand(),
-		getValidateCommand(),
-		getCalendarCommand(),
 	)
 
 	return cmd
@@ -214,14 +202,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	}
 
 	//
-	// Load any resource file definitions
-	//
-	resources := resourcedb.NewRegistry()
-	if err := resourcedb.LoadFiles(resources, svcenv.Env().ConfigurationDirectory); err != nil {
-		logger.Fatalf(ctx, "failed to load resource files: %s", err.Error())
-	}
-
-	//
 	// prepare databases and everything that requires MongoDB
 	//
 	cache, err := cache.NewCache(
@@ -249,17 +229,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		logger.Fatalf(ctx, "patientdb: %s", err.Error())
 	}
 
-	identities, err := identity.DefaultRegistry.Create(ctx, cfg.IdentityBackend, cfgFile, identity.Environment{
-		ConfigurationDirectory: svcenv.Env().ConfigurationDirectory,
-		MongoClient:            mongoClient,
-		MongoDatabaseName:      cfg.DatabaseName,
-		Global:                 &cfg.Config,
-		ConfigSchema:           runtime.GlobalSchema,
-	})
-	if err != nil {
-		logger.Fatalf(ctx, "file: %s", err)
-	}
-
 	comments, err := commentdb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
 		logger.Fatalf(ctx, "commentdb: %s", err.Error())
@@ -276,17 +245,10 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		logger.Fatalf(ctx, "voicemaildb: %s", err)
 	}
 
-	calendarService, err := google.New(ctx, cfg.GoogleCalendar)
-	if err != nil {
-		logger.Fatalf(ctx, "calendar: %s", err)
-	}
-
 	infoScreens, err := infoscreendb.NewWithClient(ctx, cfg.DatabaseName, mongoClient)
 	if err != nil {
 		logger.Fatalf(ctx, "infoscreendb: %s", err)
 	}
-
-	matcher := permission.NewMatcher(permission.NewResolver(identities))
 
 	//
 	// setup voicemails. We don't need a reference to the voicemail manager
@@ -325,10 +287,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	//
 	// prepare
 	//
-	cctvManager := &cctv.Manager{}
-	if err := cctvManager.LoadDefinitions(svcenv.Env().ConfigurationDirectory); err != nil {
-		logger.Fatalf(ctx, "cctv-manager: %s", err.Error())
-	}
 
 	//
 	// Prepare infoscreen module
@@ -383,7 +341,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	//
 	appCtx := app.NewApp(
 		cfg,
-		matcher,
 		customers,
 		patients,
 		comments,
@@ -391,16 +348,13 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 		mailsyncManager,
 		doorController,
 		holidayCache,
-		calendarService,
-		resources,
-		cctvManager,
 		layoutStore,
 		infoScreens,
 		cache,
 		triggerReg,
 		pdfCreator,
 		os.Getenv("ROSTERD_SERVER"),
-		identities.(*idm.Provider),
+		idm.New(os.Getenv("IDM_URL"), http.DefaultClient),
 	)
 
 	ctx = app.With(baseCtx, appCtx)
@@ -436,16 +390,6 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 	})
 
 	// Static files
-	fmt.Println("dumping content os static dir")
-	entries, err := static.ReadDir("ui")
-	if err == nil {
-		for _, e := range entries {
-			fmt.Printf("- %s\n", e.Name())
-		}
-	} else {
-		fmt.Printf("failed to dump content: %s\n", err.Error())
-	}
-
 	staticPath := os.Getenv("STATIC_FILES")
 	switch {
 	case strings.HasPrefix(staticPath, "http"):
@@ -503,9 +447,6 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 		// externalapi provides specialized APIs for integration
 		// with external services (like the phone-system).
 		externalapi.Setup(app, apis.Group("external/", session.Require()))
-		// holidayapi provides access to all holidays in the
-		// configured countries.
-		holidayapi.Setup(app, apis.Group("holidays/", session.Require()))
 		// configapi provides configuration specific endpoints.
 		configapi.Setup(app, apis.Group("config/", session.Require()))
 		// importapi provides import support for customer data
@@ -518,10 +459,6 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 		patientapi.Setup(app, apis.Group("patient/", session.Require()))
 		// openinghoursapi provides access to the configured openinghours
 		openinghoursapi.Setup(app, apis.Group("openinghours/", session.Require()))
-		// resourceapi provides access to limited resource definitions
-		resourceapi.Setup(app, apis.Group("resources/", session.Require()))
-		// cctv allows streaming access to security cameras
-		cctvapi.Setup(app, apis.Group("cctv/", session.Require()))
 		// direct access to trigger instances
 		triggerapi.Setup(app, apis.Group("triggers/", session.Require()))
 		// access to the infoscreen management api

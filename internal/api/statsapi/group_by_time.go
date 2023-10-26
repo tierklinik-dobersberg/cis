@@ -7,19 +7,16 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
 func GroupByOverTimeEndpoint(router *app.Router) {
 	router.GET(
 		"v1/:collection/group-by-time/:timeKey",
-		permission.Anyone,
 		simpleGroupByHandler,
 	)
 	router.GET(
 		"v1/:collection/group-by-time/:timeKey/:groupKey",
-		permission.Anyone,
 		simpleGroupByHandler,
 	)
 }

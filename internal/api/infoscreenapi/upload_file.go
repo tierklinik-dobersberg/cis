@@ -17,7 +17,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/infoscreen/layouts"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -26,9 +25,6 @@ import (
 func UploadFileEndpoint(router *app.Router) {
 	router.POST(
 		"v1/upload/:layout/:varName",
-		permission.OneOf{
-			ActionUploadFiles,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			// We only expect and hanlde multipart/form-data here
 			contentType := c.Request().Header.Get("content-type")

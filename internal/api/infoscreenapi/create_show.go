@@ -8,16 +8,12 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/infoscreen/v1alpha"
 )
 
 func CreateShowEndpoint(router *app.Router) {
 	router.POST(
 		"v1/show/:show",
-		permission.OneOf{
-			ActionShowsWrite,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			showName := c.Param("show")
 

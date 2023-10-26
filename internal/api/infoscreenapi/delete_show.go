@@ -6,15 +6,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 func DeleteShowEndpoint(router *app.Router) {
 	router.DELETE(
 		"v1/shows/:show",
-		permission.OneOf{
-			ActionShowsDelete,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			showName := c.Param("show")
 

@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 // ResetDoorEndpoint resets the door controller and the door itself
@@ -15,9 +14,6 @@ import (
 func ResetDoorEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/reset",
-		permission.OneOf{
-			SetStateAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			err := app.Door.Reset(ctx)
 			if err != nil {

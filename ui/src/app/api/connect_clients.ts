@@ -2,7 +2,7 @@ import { InjectionToken, Provider } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Code, ConnectError, Interceptor, PromiseClient, Transport, createPromiseClient } from "@bufbuild/connect";
 import { createConnectTransport } from "@bufbuild/connect-web";
-import { AuthService, CalendarService, RoleService, SelfServiceService, UserService, RosterService, WorkShiftService } from "@tkd/apis";
+import { AuthService, CalendarService, RoleService, SelfServiceService, UserService, RosterService, WorkShiftService, HolidayService, OffTimeService, WorkTimeService } from "@tkd/apis";
 import { CallService } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_connect';
 import { environment } from "src/environments/environment";
 
@@ -11,9 +11,12 @@ export const SELF_SERVICE = new InjectionToken<SelfServiceClient>('SELF_SERVICE'
 export const USER_SERVICE = new InjectionToken<UserServiceClient>('USER_SERVICE');
 export const ROLE_SERVICE = new InjectionToken<RoleServiceClient>('ROLE_SERVICE');
 export const CALENDAR_SERVICE = new InjectionToken<CalendarServiceClient>('CALENDAR_SERVICE');
+export const HOLIDAY_SERVICE = new InjectionToken<HolidayServiceClient>('HOLIDAY_SERVICE');
 export const ROSTER_SERVICE = new InjectionToken<RosterServiceClient>('ROSTER_SERVICE');
 export const WORK_SHIFT_SERVICE = new InjectionToken<WorkShiftServiceClient>('WORK_SHIFT_SERVICE');
 export const CALL_SERVICE = new InjectionToken<CallServiceClient>('OVERWRITE_SERVICE');
+export const OFFTIME_SERVICE = new InjectionToken<OffTimeServiceClient>('OFFTIME_SERVICE');
+export const WORKTIME_SERVICE = new InjectionToken<WorkTimeServiceClient>('WORKTIME_SERVICE');
 
 export type AuthServiceClient = PromiseClient<typeof AuthService>;
 export type SelfServiceClient = PromiseClient<typeof SelfServiceService>;
@@ -23,6 +26,9 @@ export type CalendarServiceClient = PromiseClient<typeof CalendarService>;
 export type RosterServiceClient = PromiseClient<typeof RosterService>;
 export type CallServiceClient = PromiseClient<typeof CallService>;
 export type WorkShiftServiceClient = PromiseClient<typeof WorkShiftService>;
+export type HolidayServiceClient = PromiseClient<typeof HolidayService>;
+export type OffTimeServiceClient = PromiseClient<typeof OffTimeService>;
+export type WorkTimeServiceClient = PromiseClient<typeof WorkTimeService>;
 
 function serviceClientFactory(type: any, ep: string): (route: ActivatedRoute, router: Router) => any {
   return ((route: ActivatedRoute, router: Router) => {
@@ -48,9 +54,12 @@ export const connectProviders: Provider[] = [
   makeProvider(USER_SERVICE, UserService, environment.accountService),
   makeProvider(ROLE_SERVICE, RoleService, environment.accountService),
   makeProvider(CALENDAR_SERVICE, CalendarService, environment.calendarService),
+  makeProvider(HOLIDAY_SERVICE, HolidayService, environment.calendarService),
   makeProvider(ROSTER_SERVICE, RosterService, environment.rosterService),
   makeProvider(WORK_SHIFT_SERVICE, WorkShiftService, environment.rosterService),
-  makeProvider(CALL_SERVICE, CallService, environment.callService)
+  makeProvider(CALL_SERVICE, CallService, environment.callService),
+  makeProvider(OFFTIME_SERVICE, OffTimeService, environment.rosterService),
+  makeProvider(WORKTIME_SERVICE, WorkTimeService, environment.rosterService),
 ]
 
 const retryRefreshToken: (transport: Transport, activatedRoute: ActivatedRoute, router: Router) => Interceptor = (transport, activatedRoute, router) => {

@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 )
@@ -14,9 +13,6 @@ import (
 func CreateCommentEndpoint(router *app.Router) {
 	router.POST(
 		"v1/:key",
-		permission.OneOf{
-			CreateCommentAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			key := c.Param("key")
 			if key == "" {

@@ -6,15 +6,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 func PatientByIDEndpoint(router *app.Router) {
 	router.GET(
 		"v1/:source/:cid/:aid",
-		permission.OneOf{
-			ReadPatientAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			source := c.Param("source")
 			cid := c.Param("cid")

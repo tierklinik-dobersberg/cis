@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime"
@@ -26,7 +25,6 @@ type PatchConfigRequest struct {
 func PatchConfigEndpoint(r *app.Router) {
 	r.PATCH(
 		"v1/schema/:key/:id",
-		permission.OneOf{ConfigManagementAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			key := c.Param("key")
 			instanceID := c.Param("id")

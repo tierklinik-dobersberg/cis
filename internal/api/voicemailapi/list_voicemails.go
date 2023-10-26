@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/internal/voicemail"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 )
@@ -16,7 +15,6 @@ import (
 func ListMailboxesEndpoint(router *app.Router) {
 	router.GET(
 		"v1/list",
-		permission.OneOf{ReadVoicemailsAction},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			var voicemails []voicemail.Definition
 

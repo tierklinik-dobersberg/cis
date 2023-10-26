@@ -10,7 +10,6 @@ import (
 	"github.com/nyaruka/phonenumbers"
 	idmv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/idm/v1"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	v1 "github.com/tierklinik-dobersberg/cis/pkg/models/customer/v1alpha"
 	"github.com/tierklinik-dobersberg/logger"
@@ -24,9 +23,6 @@ import (
 func FuzzySearchEndpoint(grp *app.Router) {
 	grp.GET(
 		"v1",
-		permission.OneOf{
-			ReadCustomerAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			filter := bson.M{}
 			singleResponse := c.QueryParam("single") != ""

@@ -7,7 +7,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/runtime/event"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
@@ -17,9 +16,6 @@ import (
 func ExecuteTriggerEndpoint(router *app.Router) {
 	router.POST(
 		"v1/instance/:id",
-		permission.OneOf{
-			ExecuteTriggerAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			triggerName := c.Param("id")
 

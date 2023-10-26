@@ -7,7 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 	"github.com/tierklinik-dobersberg/cis/runtime/trigger"
@@ -75,23 +74,14 @@ func CreateUpdateDeleteTriggerEndpoints(router *app.Router) {
 
 	router.POST(
 		"v1/instance",
-		permission.OneOf{
-			ManageTriggerAction,
-		},
 		handler,
 	)
 	router.PUT(
 		"v1/instance/:id",
-		permission.OneOf{
-			ManageTriggerAction,
-		},
 		handler,
 	)
 	router.GET(
 		"v1/instance/:id",
-		permission.OneOf{
-			ManageTriggerAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			id := c.Param("id")
 
@@ -105,9 +95,6 @@ func CreateUpdateDeleteTriggerEndpoints(router *app.Router) {
 	)
 	router.DELETE(
 		"v1/instance/:id",
-		permission.OneOf{
-			ManageTriggerAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			triggerID := c.Param("id")
 

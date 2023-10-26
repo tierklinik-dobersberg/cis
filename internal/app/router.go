@@ -2,7 +2,6 @@ package app
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 // Router wraps a gin router interface to use HandlerFunc
@@ -20,47 +19,37 @@ func NewRouter(r *echo.Group, app *App) *Router {
 	}
 }
 
-func (r *Router) checkPermission(set permission.Set) echo.MiddlewareFunc {
-	return permission.Require(r.app.Matcher, set)
-}
-
 func (r *Router) wrap(handler HandlerFunc) echo.HandlerFunc {
 	return WrapHandler(r.app, handler)
 }
 
 // GET is like echo.Group.GET.
-func (r *Router) GET(path string, set permission.Set, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
-	middlewares = append([]echo.MiddlewareFunc{r.checkPermission(set)}, middlewares...)
+func (r *Router) GET(path string, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
 	r.r.GET(path, r.wrap(handler), middlewares...)
 }
 
 // POST is like echo.Group.POST.
-func (r *Router) POST(path string, set permission.Set, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
-	middlewares = append([]echo.MiddlewareFunc{r.checkPermission(set)}, middlewares...)
+func (r *Router) POST(path string, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
 	r.r.POST(path, r.wrap(handler), middlewares...)
 }
 
 // PUT is like echo.Group.PUT.
-func (r *Router) PUT(path string, set permission.Set, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
-	middlewares = append([]echo.MiddlewareFunc{r.checkPermission(set)}, middlewares...)
+func (r *Router) PUT(path string, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
 	r.r.PUT(path, r.wrap(handler), middlewares...)
 }
 
 // PATCH is like echo.Group.PATCH.
-func (r *Router) PATCH(path string, set permission.Set, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
-	middlewares = append([]echo.MiddlewareFunc{r.checkPermission(set)}, middlewares...)
+func (r *Router) PATCH(path string, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
 	r.r.PATCH(path, r.wrap(handler), middlewares...)
 }
 
 // DELETE is like echo.Group.PATCH.
-func (r *Router) DELETE(path string, set permission.Set, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
-	middlewares = append([]echo.MiddlewareFunc{r.checkPermission(set)}, middlewares...)
+func (r *Router) DELETE(path string, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
 	r.r.DELETE(path, r.wrap(handler), middlewares...)
 }
 
 // OPTIONS is like echo.Group.OPTIONS.
-func (r *Router) OPTIONS(path string, set permission.Set, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
-	middlewares = append([]echo.MiddlewareFunc{r.checkPermission(set)}, middlewares...)
+func (r *Router) OPTIONS(path string, handler HandlerFunc, middlewares ...echo.MiddlewareFunc) {
 	r.r.OPTIONS(path, r.wrap(handler), middlewares...)
 }
 

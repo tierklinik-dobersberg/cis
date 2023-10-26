@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -31,8 +30,6 @@ type Config struct {
 	cfgspec.DatabaseConfig   `section:"Global"`
 	cfgspec.InfoScreenConfig `section:"InfoScreen"`
 	CORS                     `section:"CORS"`
-
-	GoogleCalendar google.CalendarConfig `section:"GoogleCalendar"`
 
 	// FIXME(ppacher): unexported members should actually be ingored
 	loadLocationOnce sync.Once      `section:"-"`

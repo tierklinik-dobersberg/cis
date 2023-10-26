@@ -7,15 +7,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 func ListSourcesEndpoint(r *app.Router) {
 	r.GET(
 		"sources/v1",
-		permission.OneOf{
-			ReadCustomerAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			// TODO(ppacher): should we make the DefaultSourceManager available
 			// via app?

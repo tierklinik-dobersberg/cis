@@ -55,7 +55,7 @@ export class ProfileService {
   authService = inject(AUTH_SERVICE);
 
   openProfilePage() {
-    window.open(environment.accountService)
+    window.open(environment.accountService, '_blank')
   }
 
   profile$ = defer(() => from(this.authService.introspect({})))

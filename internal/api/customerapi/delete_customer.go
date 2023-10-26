@@ -7,16 +7,12 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/database/customerdb"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/logger"
 )
 
 func DeleteCustomerEndpoint(r *app.Router) {
 	r.DELETE(
 		"v1/:source/:id",
-		permission.OneOf{
-			DeleteCustomerAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			source := c.Param("source")
 			cid := c.Param("id")

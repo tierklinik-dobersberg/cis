@@ -7,7 +7,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/cis/pkg/models/comment/v1alpha"
 )
@@ -15,9 +14,6 @@ import (
 func LoadCommentsForKeyEndpoint(router *app.Router) {
 	router.GET(
 		"v1/:key",
-		permission.OneOf{
-			ReadCommentsAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			prefix := false
 			key := c.Param("key")

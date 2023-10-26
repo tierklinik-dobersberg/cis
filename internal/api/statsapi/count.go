@@ -6,13 +6,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 )
 
 func CountEndpoint(router *app.Router) {
 	router.GET(
 		"v1/:collection/count/:key",
-		permission.Anyone,
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			stats, err := getStatsBuilder(c.Param("collection"), app)
 			if err != nil {

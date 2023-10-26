@@ -7,7 +7,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/logger"
@@ -32,7 +31,6 @@ type GetOpeningHoursResponse struct {
 func GetOpeningHoursEndpoint(router *app.Router) {
 	router.GET(
 		"v1/opening-hours",
-		permission.Anyone,
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			from := c.QueryParam("from")
 			to := c.QueryParam("to")

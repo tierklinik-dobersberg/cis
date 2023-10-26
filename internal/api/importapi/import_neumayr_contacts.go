@@ -12,16 +12,12 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/internal/importer/neumayr"
-	"github.com/tierklinik-dobersberg/cis/internal/permission"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 )
 
 func ImportNeumayrContactsEndpoint(grp *app.Router) {
 	grp.POST(
 		"v1/neumayr/contacts",
-		permission.OneOf{
-			NeumayrContactsAction,
-		},
 		func(ctx context.Context, app *app.App, c echo.Context) error {
 			file, err := c.FormFile("file")
 			if err != nil {

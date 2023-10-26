@@ -98,7 +98,7 @@ export class Duration {
         let str = '';
 
         if (this._nanoseconds === 0) {
-            return '0';
+            return '0h';
         }
 
         if (!skipDays) {

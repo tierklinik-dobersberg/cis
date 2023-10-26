@@ -2,29 +2,18 @@ package main
 
 import (
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/internal/calendar/google"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
-	"github.com/tierklinik-dobersberg/cis/pkg/autodoc"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
-	"github.com/tierklinik-dobersberg/cis/pkg/svcenv"
 )
 
-var globalConfigFile = autodoc.MustRegister(autodoc.File{
-	Name:        "cis.conf",
-	Description: "The main configuration file for CIS.",
-	LookupPaths: []string{
-		svcenv.Env().ConfigurationDirectory,
+var globalConfigFile = conf.FileSpec{
+	"Global": confutil.MultiOptionRegistry{
+		cfgspec.ConfigSpec,
+		cfgspec.DatabaseSpec,
 	},
-	Sections: conf.FileSpec{
-		"Global": confutil.MultiOptionRegistry{
-			cfgspec.ConfigSpec,
-			cfgspec.DatabaseSpec,
-		},
-		"InfoScreen":     cfgspec.InfoScreenConfigSpec,
-		"GoogleCalendar": google.GoogleConfigSpec,
-		"CORS":           CORSSpec,
-	},
-})
+	"InfoScreen": cfgspec.InfoScreenConfigSpec,
+	"CORS":       CORSSpec,
+}
 
 // CORSSpec defines the specification for parsing into CORS.
 var CORSSpec = conf.SectionSpec{
