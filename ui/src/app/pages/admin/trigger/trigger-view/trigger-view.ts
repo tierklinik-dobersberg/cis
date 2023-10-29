@@ -159,7 +159,7 @@ export class TriggerViewComponent implements OnInit, OnDestroy {
       nzWidth: null,
       nzClassName: 'w-1/2',
       nzOkText: 'Hinzufügen',
-      nzComponentParams: {
+      nzData: {
         availableTypes: this.availableActions,
         selectedActionType: this.availableActions.find(
           (type) => type.name.toLowerCase() === action?.type?.toLowerCase()

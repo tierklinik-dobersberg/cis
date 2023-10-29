@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from "@angular/core";
-import { NzModalRef } from "ng-zorro-antd/modal";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from "@angular/core";
+import { NZ_MODAL_DATA, NzModalRef } from "ng-zorro-antd/modal";
 import { ActionType, TriggerAPI } from "src/app/api";
 
 @Component({
@@ -20,7 +20,11 @@ export class EditActionComponent {
     private nzModalRef: NzModalRef,
     private cdr: ChangeDetectorRef,
     private triggerAPI: TriggerAPI,
-  ) {}
+  ) {
+    const data = inject(NZ_MODAL_DATA);
+
+    Object.assign(this, data);
+  }
 
   onActionTypeChanged() {
     this.config = {};

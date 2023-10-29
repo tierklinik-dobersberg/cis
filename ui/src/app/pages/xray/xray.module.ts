@@ -10,7 +10,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzListModule } from 'ng-zorro-antd/list';
-import { NzMessageServiceModule } from 'ng-zorro-antd/message';
+import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzPopoverModule } from 'ng-zorro-antd/popover';
@@ -35,7 +35,7 @@ import { PreviewUrlPipe } from './preview-url.pipe';
         NzGridModule,
         NzButtonModule,
         NzAvatarModule,
-        NzMessageServiceModule,
+        NzMessageModule,
         NzModalModule,
         NzToolTipModule,
         NzRadioModule,

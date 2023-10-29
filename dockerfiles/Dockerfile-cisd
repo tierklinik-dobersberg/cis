@@ -15,7 +15,7 @@ RUN npm run build-ckeditor
 
 COPY ./ui .
 RUN echo "Building frontend in configuration $CONFIGURATION"
-RUN npm run build-limited -- --configuration $CONFIGURATION
+RUN npm run build-limited -- --configuration $CONFIGURATION && rm -r .angular/cache node_modules
 
 # Build cisd
 FROM golang:1.20 as build

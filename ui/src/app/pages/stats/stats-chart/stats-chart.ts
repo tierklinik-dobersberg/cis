@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
-import { _getOptionScrollPosition } from "@angular/material/core";
+import { _getLegacyOptionScrollPosition as _getOptionScrollPosition } from "@angular/material/legacy-core";
 import { ChartConfiguration, ChartData } from "chart.js";
 import { Observable, of, Subject } from "rxjs";
 import { debounceTime, switchMap, takeUntil } from "rxjs/operators";

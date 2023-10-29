@@ -153,7 +153,7 @@ export class SettingViewComponent implements OnInit, OnDestroy {
 
     this.modal.create({
       nzContent: SettingTestComponent,
-      nzComponentParams: {
+      nzData: {
         schema: this.schema,
         config: this.configs,
       },

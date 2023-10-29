@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCalendarModule } from 'ng-zorro-antd/calendar';
@@ -14,7 +13,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzListModule } from 'ng-zorro-antd/list';
-import { NzMessageServiceModule } from 'ng-zorro-antd/message';
+import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzResultModule } from 'ng-zorro-antd/result';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
@@ -31,7 +30,6 @@ import { VoiceMailsRoutingModule } from './voicemails-routing.module';
         FormsModule,
         NzGridModule,
         NzCardModule,
-        FontAwesomeModule,
         NzIconModule,
         NzAvatarModule,
         NzCalendarModule,
@@ -42,7 +40,7 @@ import { VoiceMailsRoutingModule } from './voicemails-routing.module';
         NzInputModule,
         NzDropDownModule,
         NzCheckboxModule,
-        NzMessageServiceModule,
+        NzMessageModule,
         NzTimePickerModule,
         NzButtonModule,
         NzResultModule,

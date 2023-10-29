@@ -2,9 +2,6 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { far } from '@fortawesome/free-regular-svg-icons';
-import { fas } from '@fortawesome/free-solid-svg-icons';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -16,10 +13,10 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
-import { NzIconModule, NzIconService } from 'ng-zorro-antd/icon';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzListModule } from 'ng-zorro-antd/list';
-import { NzMessageServiceModule } from 'ng-zorro-antd/message';
+import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzPopoverModule } from 'ng-zorro-antd/popover';
 import { NzResultModule } from 'ng-zorro-antd/result';
@@ -49,7 +46,6 @@ import { WelcomeComponent } from './welcome.component';
     DragDropModule,
     NzGridModule,
     NzCardModule,
-    FontAwesomeModule,
     NzIconModule,
     NzAvatarModule,
     NzSelectModule,
@@ -57,7 +53,7 @@ import { WelcomeComponent } from './welcome.component';
     NzFormModule,
     NzListModule,
     NzInputModule,
-    NzMessageServiceModule,
+    NzMessageModule,
     NzDrawerModule,
     NzTimePickerModule,
     NzButtonModule,
@@ -87,8 +83,4 @@ import { WelcomeComponent } from './welcome.component';
   ],
   exports: [WelcomeComponent]
 })
-export class WelcomeModule {
-  constructor(library: FaIconLibrary, iconService: NzIconService) {
-    library.addIconPacks(fas, far);
-  }
-}
+export class WelcomeModule {}

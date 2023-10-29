@@ -50,6 +50,17 @@ span.ant-avatar {
   }
 }
 
+::ng-deep .ant-menu-title-content {
+      @apply flex flex-row gap-2 items-center justify-start;
+      & > svg {
+        @apply mr-2;
+      }
+
+      svg {
+        @apply h-4 w-4;
+      }
+}
+
 .tkd-menu ::ng-deep {
   @apply border-0;
 
@@ -57,12 +68,15 @@ span.ant-avatar {
     @apply text-primary font-lato border-r-4 border-transparent;
     @apply outline-none;
 
-    & > svg {
-      @apply mr-2;
-    }
+    & > span {
+      @apply flex flex-row gap-2 items-center justify-start;
+      & > svg {
+        @apply mr-2;
+      }
 
-    svg {
-      @apply h-4 w-4;
+      svg {
+        @apply h-4 w-4;
+      }
     }
 
     &, &.ant-menu-submenu > .ant-menu-submenu-title {

@@ -12,7 +12,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzMessageServiceModule } from 'ng-zorro-antd/message';
+import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
@@ -40,7 +40,7 @@ import { UserAvatarComponent } from './user-avatar';
     NzToolTipModule,
     NzIconModule,
     NzAvatarModule,
-    NzMessageServiceModule,
+    NzMessageModule,
     NzButtonModule,
     NzInputModule,
     NzCheckboxModule,
@@ -80,13 +80,12 @@ import { UserAvatarComponent } from './user-avatar';
     NzToolTipModule,
     NzIconModule,
     NzAvatarModule,
-    NzMessageServiceModule,
+    NzMessageModule,
     NzButtonModule,
     NzInputModule,
     NzCheckboxModule,
     NzDatePickerModule,
     NzTimePickerModule,
-    NzMessageServiceModule,
     NzEmptyModule,
     NzSelectModule,
     ScrollingModule,
@@ -113,4 +112,4 @@ import { UserAvatarComponent } from './user-avatar';
     ToDatePipe,
   ],
 })
-export class SharedModule {}
+export class SharedModule { }

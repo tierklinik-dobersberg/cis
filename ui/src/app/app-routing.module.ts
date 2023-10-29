@@ -1,8 +1,10 @@
 import { NgModule, Type } from '@angular/core';
-import { CanActivate, RouterModule, Routes } from '@angular/router';
+import { RouterModule, Routes, CanActivateFn } from '@angular/router';
 import { UsersReadyGuard } from './guards';
 
-const canActivate: Type<CanActivate>[] = [
+const canActivate: Type<{
+    canActivate: CanActivateFn;
+}>[] = [
   UsersReadyGuard
 ]
 

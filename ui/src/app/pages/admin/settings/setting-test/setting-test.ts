@@ -6,16 +6,13 @@ import {
   InjectionToken,
   OnInit,
   Optional,
+  inject,
 } from '@angular/core';
-import { NzModalRef } from 'ng-zorro-antd/modal';
+import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { Subject } from 'rxjs';
 import { ConfigAPI, ConfigTest, Schema, SchemaInstance } from 'src/app/api';
 import { extractErrorMessage } from 'src/app/utils';
 
-export const APP_TEST_CONFIG = new InjectionToken<Schema[]>('APP_TEST_CONFIG');
-export const APP_TEST_SETTINGS = new InjectionToken<SchemaInstance>(
-  'APP_TEST_SETTINGS'
-);
 
 @Component({
   templateUrl: './setting-test.html',
@@ -30,12 +27,20 @@ export class SettingTestComponent implements OnInit {
 
   testState: 'running' | 'success' | string = '';
 
+  private data = inject(NZ_MODAL_DATA);
+
+  get schema(): Schema|null {
+    return this.data.schema;
+  }
+
+  get config(): SchemaInstance {
+    return this.data.config
+  }
+
   constructor(
     private configapi: ConfigAPI,
     private modalRef: NzModalRef,
     private cdr: ChangeDetectorRef,
-    @Inject(APP_TEST_CONFIG) @Optional() public schema: Schema | null = null,
-    @Inject(APP_TEST_SETTINGS) @Optional() public config: SchemaInstance = {}
   ) {}
 
   ngOnInit(): void {

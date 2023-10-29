@@ -3,7 +3,7 @@ import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCalendarModule } from 'ng-zorro-antd/calendar';
-import { NzMessageServiceModule } from 'ng-zorro-antd/message';
+import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 
 import { CommonModule } from '@angular/common';
@@ -35,14 +35,14 @@ import { OnCallOverwriteRoutingModule } from './on-call-overwrite-routing.module
     NzPopconfirmModule,
     NzDropDownModule,
     NzCheckboxModule,
-    NzMessageServiceModule,
+    NzMessageModule,
     NzGridModule,
     NzInputModule,
     NzAlertModule,
     NzSelectModule,
     NzAvatarModule,
     NzToolTipModule,
-    NzMessageServiceModule,
+    NzMessageModule,
     NzTagModule,
     NzDrawerModule,
     NzBadgeModule,
