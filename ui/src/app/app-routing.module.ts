@@ -21,6 +21,7 @@ const routes: Routes = [
   { canActivate, path: 'infoscreen', loadChildren: () => import('./pages/infoscreen/infoscreen.module').then(m => m.InfoScreenModule) },
   { canActivate, path: 'statistics', loadChildren: () => import('./pages/stats/stats.module').then(m => m.StatsModule) },
   { canActivate, path: 'roster', loadChildren: () => import('./pages/roster/roster.module').then(m => m.RosterModule) },
+  { canActivate, path: 'offtime', loadChildren: () => import('./pages/offtime/offtime.module').then(m => m.OfftimeModule) },
 ];
 
 @NgModule({

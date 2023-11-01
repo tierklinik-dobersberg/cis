@@ -1,5 +1,6 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { Injectable } from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import { ChangeDetectorRef, Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 @Injectable({
@@ -25,13 +26,28 @@ export class LayoutService {
       }));
   }
 
+  /** Automatically adds an update listener to trigger a change detection cycle.
+   *  Must be executed from an injection context.
+   */
+  withAutoUpdate(cdr?: ChangeDetectorRef): this {
+    cdr = cdr || inject(ChangeDetectorRef);
+
+    this.change
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => cdr.markForCheck())
+
+    return this
+  }
+
   isPhone = false;
   isTabletPortraitUp = false;
   isTabletLandscapeUp = false;
   isDesktopUp = false;
   isBigDesktopUp = false;
 
-  constructor(private breakpointObserver: BreakpointObserver) {
+  constructor(
+    private breakpointObserver: BreakpointObserver
+  ) {
     this.breakpoints = this.breakpointObserver.observe([
       '(max-width: 599px)',
       '(min-width: 600px)',

@@ -1,7 +1,6 @@
 import { coerceBooleanProperty, coerceCssPixelValue } from '@angular/cdk/coercion';
 import { ConnectedPosition, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
-import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, QueryList, TemplateRef, TrackByFunction, ViewChild, ViewChildren, ViewContainerRef, inject } from '@angular/core';
 import { Timestamp } from '@bufbuild/protobuf';
 import { Calendar, CalendarEvent, CalendarEventList, Profile } from '@tkd/apis';
@@ -101,6 +100,9 @@ export class DayViewComponent implements OnInit, OnDestroy {
   /** The curent calendar mode */
   calendarMode: CalendarMode = 'auto';
 
+  /** The number of displayed calendars */
+  displayedCalendarCount = 0;
+
   /** Display text for the current calendar mode */
   calendarModeText = {
     'auto': 'Automatisch',
@@ -193,6 +195,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
     all.forEach(val => {
       val.displayed = val.calendar.id === id;
     });
+
     this.updateCalendarMode();
     this.cdr.markForCheck();
   }
@@ -200,6 +203,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
   /** Toggle visibility of cal */
   updateFilter(cal: LocalCalendar) {
     cal.displayed = !cal.displayed;
+
     this.updateCalendarMode();
   }
 
@@ -337,7 +341,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
 
     this.modal.confirm({
       nzTitle: "Termin löschen",
-      nzContent: `Möchtest du "${event.event.summary}" von "${profile?.user?.displayName || profile?.user?.username || calendar.calendar.name}" um ${new Date(Number(event.event.startTime?.seconds||0) * 1000).toLocaleTimeString()} wirklich löschen?`,
+      nzContent: `Möchtest du "${event.event.summary}" von "${profile?.user?.displayName || profile?.user?.username || calendar.calendar.name}" um ${new Date(Number(event.event.startTime?.seconds || 0) * 1000).toLocaleTimeString()} wirklich löschen?`,
       nzOnOk: async () => {
         try {
 
@@ -346,10 +350,10 @@ export class DayViewComponent implements OnInit, OnDestroy {
             eventId: event.event.id,
           })
 
-              this._currentDate$.next(this._currentDate$.getValue())
-              overlay.dispose();
-        } catch(err) {
-            this.nzMessageService.error(extractErrorMessage(err, 'Termin konnte nicht gelöscht werden'))
+          this._currentDate$.next(this._currentDate$.getValue())
+          overlay.dispose();
+        } catch (err) {
+          this.nzMessageService.error(extractErrorMessage(err, 'Termin konnte nicht gelöscht werden'))
         }
       }
     })
@@ -381,6 +385,8 @@ export class DayViewComponent implements OnInit, OnDestroy {
           return;
         }
         // do not call updateCalendarMode in "auto".
+        this.updateDisplayCount()
+
         return;
       default:
         this.calendars.forEach(cal => cal.displayed = true);
@@ -389,8 +395,13 @@ export class DayViewComponent implements OnInit, OnDestroy {
     this.updateCalendarMode();
   }
 
+  private updateDisplayCount() {
+    this.displayedCalendarCount = this.calendars
+      .filter(cal => cal.displayed)
+      .length
+  }
+
   private updateCalendarMode() {
-    this._layouting$.next();
     const all = !this.calendars.some(cal => !cal.displayed);
     if (all) {
       this.calendarMode = 'all';
@@ -407,6 +418,10 @@ export class DayViewComponent implements OnInit, OnDestroy {
         this.calendarMode = 'selected';
       }
     }
+
+    this.updateDisplayCount()
+
+    this._layouting$.next();
   }
 
   @Input()
@@ -477,7 +492,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
                 }),
                 map(result => result.openingHours),
               ),
-            roster: this.rosterService.getWorkingStaff({time: Timestamp.fromDate(date)}),
+            roster: this.rosterService.getWorkingStaff({ time: Timestamp.fromDate(date) }),
             events: from(this.calendarapi.listEvents({
               searchTime: {
                 case: 'date',
@@ -523,11 +538,8 @@ export class DayViewComponent implements OnInit, OnDestroy {
               changed = true;
             }
 
-            const userColor = user ? getUserColor(user) : '#ffffff';
-            let fontColor = "#000000";
-            if (!!userColor) {
-              fontColor = getContrastFontColor(userColor)
-            }
+            const userColor = (user ? getUserColor(user) : eventList.calendar.color) || '#ffffff'
+            const fontColor = getContrastFontColor(userColor)
 
             const localCalendar: LocalCalendar = {
               calendar: eventList.calendar,
@@ -559,8 +571,6 @@ export class DayViewComponent implements OnInit, OnDestroy {
             })
 
           });
-
-          console.log(this.calendars);
 
           // ensure we have a stable calendar order
           this.calendars = Array.from(lm.values()).sort((a, b) => {
@@ -620,6 +630,8 @@ export class DayViewComponent implements OnInit, OnDestroy {
                   break;
               }
             }
+
+            this.updateDisplayCount()
           })
           this._layouting$.next();
 

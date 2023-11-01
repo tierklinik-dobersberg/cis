@@ -2,7 +2,7 @@ import { coerceBooleanProperty } from "@angular/cdk/coercion";
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { ControlValueAccessor, DefaultValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
 import { CKEditorComponent } from "@ckeditor/ckeditor5-angular";
-import * as ClassicEditor from 'ckeditor/build/ckeditor';
+import  ClassicEditor  from 'ckeditor';
 import { Subject } from "rxjs";
 
 
@@ -99,6 +99,10 @@ export class TextInputComponent implements OnDestroy, OnInit, ControlValueAccess
     this.defaultAccessor?.writeValue(value);
     this.ckEditor?.writeValue(value);
     this.cdr.markForCheck();
+  }
+
+  onReady() {
+    debugger;
   }
 
   ngOnInit() {

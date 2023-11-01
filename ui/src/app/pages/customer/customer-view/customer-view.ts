@@ -1,3 +1,4 @@
+import { Layout } from 'src/app/api/infoscreen.api';
 import { ConnectError } from '@bufbuild/connect';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
@@ -27,8 +28,9 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
 
   private callService = inject(CALL_SERVICE)
 
+  public readonly layout = inject(LayoutService).withAutoUpdate()
+
   constructor(
-    public layout: LayoutService,
     private header: HeaderTitleService,
     private customerapi: CustomerAPI,
     private patientapi: PatientAPI,

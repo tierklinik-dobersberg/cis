@@ -1,8 +1,9 @@
 <div class="flex flex-row items-center space-x-4">
   <div class="block p-2.5 w-12 h-12 bg-white rounded-full shadow text-color-primary">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
   </div>
   <div class="flex flex-col">
     <span class="text-base font-semibold font-lato text-primary"> Dienstplan </span><span
@@ -12,36 +13,86 @@
   </div>
 </div>
 
+<div *ngIf="!layout.isTabletPortraitUp" class="flex flex-row sm:gap-2 gap-4 justify-evenly py-2 bg-white rounded border border-tertiary">
+  <ng-container *ngTemplateOutlet="vacationStats"></ng-container>
+</div>
+
 <div class="bg-white rounded shadow">
-  <div class="flex flex-row justify-between items-center p-4 border-b sm:p-6 md:p-8 border-tertiary">
+  <div class="flex flex-row justify-between items-center p-4 border-b sm:p-6 md:p-8 border-tertiary"
+    *ngIf="layout.isTabletPortraitUp">
     <div>
       <h1 class="text-lg text-lato text-color-primary">Arbeitszeiten</h1>
       <span class="text-secondary">
-        In diesem Zeitraum arbeitest du <span class="text-alert-green-dark">{{ workTime?.plannedTime | duration:'default-hours'}}</span> (Soll-Zeit: {{ workTime?.expectedTime | duration:'default-hours' }}).
+        In diesem Zeitraum arbeitest du <span class="text-alert-green-dark">{{ workTime?.plannedTime |
+          duration:'default-hours'}}</span> (Soll-Zeit: {{ workTime?.expectedTime | duration:'default-hours' }}).
       </span>
     </div>
 
-    <div *ngIf="vacation" class="flex flex-row items-center gap-4 sm:gap-6 md:gap-8">
-      <div class="p-4 border items-center bg-tertiary bg-opacity-50 border-tertiary rounded-md flex flex-col justify-center">
-        <label class="font-lato uppercase leading-3 text-xs text-color-primary">ZA Guthaben</label>
-        <h1 class="font-lato text-lg m-0" [ngClass]="{
-          'text-alert-green-dark': vacation.timeOffCredits.seconds > 0,
-          'text-alert-red-dark': vacation.timeOffCredits.seconds < 0
-        }">{{ vacation.timeOffCredits | duration:'default-hours'}}</h1>
-      </div>
-
-      <div class="p-4 border items-center bg-tertiary bg-opacity-50 border-tertiary rounded-md flex flex-col justify-center">
-        <label class="font-lato uppercase leading-3 text-xs text-color-primary">Resturlaub</label>
-        <h1 class="text-lg m-0 font-lato" [ngClass]="{
-          'text-alert-green-dark': vacation.vacationCreditsLeft.seconds > 0,
-          'text-alert-red-dark': vacation.vacationCreditsLeft.seconds < 0
-        }">{{ vacation.vacationCreditsLeft | duration:'default-hours'}}</h1>
-      </div>
-    </div>
+    <ng-container *ngTemplateOutlet="vacationStats"></ng-container>
   </div>
 
-  <ng-container *ngIf="userShifts; else: noRosterTmpl">
-    <nz-table class="p-0" [nzData]="userShifts" #table>
+    <!-- Mobile View -->
+    <nz-table class="p-0" [nzData]="userShifts" #mobileTable *ngIf="!layout.isDesktopUp" [nzFrontPagination]="false"
+      [nzPageSize]="200">
+      <tbody>
+        <ng-container *ngFor="let entry of mobileTable.nzData; let index=index">
+          <ng-container *ngIf="index === 0 || mobileTable.nzData[index-1].dateStr !== entry.dateStr">
+            <tr class="bg-opacity-25" [ngClass]="{
+                'bg-secondary': entry.today,
+                'opacity-50': !!entry.offtime
+              }">
+              <td class="font-medium" colspan="3">
+                <ng-container *ngTemplateOutlet="nameColumn; context: {
+                  $implicit: entry,
+                  index: index,
+                  data: mobileTable.nzData,
+                  }">
+                </ng-container>
+              </td>
+            </tr>
+
+            <tr class="bg-opacity-25" [ngClass]="{
+                'bg-secondary': entry.today,
+                'opacity-50': !!entry.offtime
+              }">
+              <td>
+                <div class="flex flex-row gap-2 items-center">
+                  <span class="rounded block h-5 w-5"
+                    [style.backgroundColor]="entry.definition?.color || 'transparent'"></span>
+
+                  <span *ngIf="entry.definition" class="flex flex-row justify-between items-center flex-grow">
+                    {{ entry.definition.displayName }}
+                  </span>
+                  <span *ngIf="entry.offtime">
+                    Urlaub ({{ entry.offtime.description }})
+                  </span>
+                </div>
+              </td>
+
+              <td class="whitespace-nowrap">
+                {{ entry.from | date:'shortTime' }} <span class="text-secondary">-</span> {{ entry.to |
+                date:'shortTime' }}
+              </td>
+
+              <td>
+                <div class="text-secondary flex flex-row gap-1 items-center text-xs"
+                  nz-tooltip="{{ entry.events?.length || 0}} Termine">
+                  <span>{{ entry.events?.length || '0' }}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                  </svg>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+        </ng-container>
+      </tbody>
+    </nz-table>
+
+    <!-- Desktop View -->
+    <nz-table class="p-0" [nzData]="userShifts" #desktopTable *ngIf="layout.isDesktopUp">
       <thead>
         <tr>
           <th class="text-left" width="30%">Datum</th>
@@ -50,27 +101,39 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let entry of table.nzData; let index=index" class="bg-opacity-25" [ngClass]="{
-          'bg-secondary': entry.today,
-          'opacity-50': !!entry.offtime
-        }">
+        <tr *ngFor="let entry of desktopTable.nzData; let index=index" class="bg-opacity-25" [ngClass]="{
+            'bg-secondary': entry.today,
+            'opacity-50': !!entry.offtime
+          }">
           <td>
-            <div *ngIf="index === 0 || table.nzData[index-1].dateStr !== entry.dateStr" class="flex flex-row gap-2 items-center">
-              {{ entry.from | date:'fullDate' }}
-              <span *ngIf="entry.holiday" class="text-secondary italic">
-                - {{ entry.holiday.localName }}
-              </span>
-
-              <div *ngIf="entry.today" class="block px-1 py-0.5 text-xs scale-[0.85] border border-primary font-lato border-opacity-60 transform bg-secondary rounded-sm text-white bg-opacity-80 uppercase">Heute</div>
-            </div>
+            <ng-container *ngIf="index === 0 || desktopTable.nzData[index-1].dateStr !== entry.dateStr">
+              <ng-container *ngTemplateOutlet="nameColumn; context: {
+                  $implicit: entry,
+                  index: index,
+                  data: desktopTable.nzData,
+                }">
+              </ng-container>
+            </ng-container>
           </td>
 
           <td>
             <div class="flex flex-row gap-2 items-center">
-              <span class="rounded block h-5 w-5" [style.backgroundColor]="entry.definition?.color || 'transparent'"></span>
-              <span *ngIf="entry.definition">
-                {{ entry.definition.displayName }}
-                ({{ entry.definition.name }})
+              <span class="rounded block h-5 w-5"
+                [style.backgroundColor]="entry.definition?.color || 'transparent'"></span>
+              <span *ngIf="entry.definition" class="flex flex-row justify-between items-center flex-grow">
+                <span>
+                  {{ entry.definition.displayName }} ({{ entry.definition.name }})
+                </span>
+
+                <div class="text-secondary flex flex-row gap-1 items-center text-xs"
+                  nz-tooltip="{{ entry.events?.length || 0}} Termine">
+                  <span>{{ entry.events?.length || '0' }}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                  </svg>
+                </div>
               </span>
               <span *ngIf="entry.offtime">
                 Urlaub ({{ entry.offtime.description }})
@@ -78,13 +141,49 @@
             </div>
           </td>
 
-          <td>{{ entry.from | date:'shortTime' }} <span class="text-secondary">-</span> {{ entry.to | date: (entry.spansNextDay ? 'medium' : 'shortTime')}}</td>
+          <td>{{ entry.from | date:'shortTime' }} <span class="text-secondary">-</span> {{ entry.to | date:
+            (entry.spansNextDay ? 'medium' : 'shortTime')}}</td>
         </tr>
       </tbody>
     </nz-table>
-  </ng-container>
-
-  <ng-template #noRosterTmpl>
-    <span>Es wurden keine Dienstplaneinträge für dich gefunden.</span>
-  </ng-template>
 </div>
+
+
+
+<ng-template #nameColumn let-entry let-index="index" let-data="data">
+  <div class="flex flex-row gap-2 justify-between items-center">
+    <div class="flex flex-row gap-2 items-center">
+      {{ entry.from | date:'fullDate' }}
+      <span *ngIf="entry.holiday" class="text-secondary italic">
+        - {{ entry.holiday.localName }}
+      </span>
+
+      <div *ngIf="entry.today"
+        class="block px-1 py-0.5 text-xs scale-[0.85] border border-primary font-lato border-opacity-60 transform bg-secondary rounded-sm text-white bg-opacity-80 uppercase">
+        Heute</div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #vacationStats>
+
+  <div *ngIf="vacation" class="flex flex-row items-center gap-4 sm:gap-6 md:gap-8">
+    <div
+      class="p-4 border items-center bg-tertiary bg-opacity-50 border-tertiary rounded-md flex flex-col justify-center">
+      <label class="font-lato uppercase leading-3 text-xs text-color-primary">ZA Guthaben</label>
+      <h1 class="font-lato text-lg m-0" [ngClass]="{
+          'text-alert-green-dark': vacation.timeOffCredits.seconds > 0,
+          'text-alert-red-dark': vacation.timeOffCredits.seconds < 0
+        }">{{ vacation.timeOffCredits | duration:'default-hours'}}</h1>
+    </div>
+
+    <div
+      class="p-4 border items-center bg-tertiary bg-opacity-50 border-tertiary rounded-md flex flex-col justify-center">
+      <label class="font-lato uppercase leading-3 text-xs text-color-primary">Resturlaub</label>
+      <h1 class="text-lg m-0 font-lato" [ngClass]="{
+          'text-alert-green-dark': vacation.vacationCreditsLeft.seconds > 0,
+          'text-alert-red-dark': vacation.vacationCreditsLeft.seconds < 0
+        }">{{ vacation.vacationCreditsLeft | duration:'default-hours':undefined:true}}</h1>
+    </div>
+  </div>
+</ng-template>

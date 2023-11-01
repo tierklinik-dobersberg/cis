@@ -2,7 +2,6 @@ import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
 import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from "@angular/core";
 import { SafeResourceUrl } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
-import * as ClassicEditor from 'ckeditor/build/ckeditor';
 import { NzMessageService } from "ng-zorro-antd/message";
 import { NzModalRef, NzModalService } from "ng-zorro-antd/modal";
 import { BehaviorSubject, combineLatest, forkJoin, Subject } from "rxjs";
@@ -11,6 +10,7 @@ import { InfoScreenAPI, Layout, Show, Slide, Variable } from "src/app/api/infosc
 import { HeaderTitleService } from "src/app/shared/header-title";
 import { extractErrorMessage } from "src/app/utils";
 import { Duration } from "src/utils/duration";
+import ClassicEditor from 'ckeditor'
 
 
 interface SlideModel extends Slide {

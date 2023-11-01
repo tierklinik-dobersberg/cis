@@ -1,0 +1,53 @@
+<div class="bg-white rounded shadow">
+  <div class="flex flex-row justify-between items-center p-4 border-b sm:p-6 md:p-8 border-tertiary"
+    *ngIf="layout.isTabletPortraitUp">
+    <div>
+      <h1 class="text-lg text-lato text-color-primary">Antrag auf Urlaub/Zeitausgleich</h1>
+      <span class="text-secondary" *ngIf="vacation">
+        Bis zum Ende des Jahres hast du noch
+        <span [ngClass]="{
+          'text-alert-green-dark': vacation.vacationCreditsLeft.seconds > 0,
+          'text-alert-red': vacation.vacationCreditsLeft.seconds <= 0
+        }" class="font-medium underline">
+          {{ vacation.vacationCreditsLeft | duration:'default-hours':undefined:true }}</span>
+
+        Urlaubsanspruch.
+
+        Dein Zeitausgleich-Guthaben beträgt derzeit
+        <span [ngClass]="{
+          'text-alert-green-dark': vacation.timeOffCredits.seconds > 0,
+          'text-alert-red': vacation.timeOffCredits.seconds <= 0
+        }" class="font-medium underline">
+          {{ vacation.timeOffCredits | duration:'default-hours':undefined:true }}</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-4">
+
+    <div class="border-b border-tertiary p-4 flex flex-col gap-2 justify-start items-start">
+      <label class="text-secondary text-sm">Zeitraum:</label>
+      <label nz-checkbox [ngModel]="!showTime" (ngModelChange)="showTime = !$event">Ganze Tage</label>
+      <nz-range-picker [(ngModel)]="dateRange" [nzShowTime]="showTime"></nz-range-picker>
+    </div>
+
+    <div class="border-b border-tertiary p-4 flex flex-col gap-2 justify-start items-start">
+      <label class="text-secondary text-sm">Beschreibung</label>
+      <ckeditor [editor]="Editor" [(ngModel)]="description"></ckeditor>
+    </div>
+
+    <div class="border-b border-tertiary p-4 flex flex-col gap-2 justify-start items-start">
+      <label class="text-secondary text-sm">Antragsart</label>
+      <nz-select [(ngModel)]="offTimeType">
+        <nz-option nzLabel="Beliebig" nzValue="auto"></nz-option>
+        <nz-option nzLabel="Urlaub" nzValue="vacation"></nz-option>
+        <nz-option nzLabel="Zeitausgleich" nzValue="timeoff"></nz-option>
+      </nz-select>
+    </div>
+
+    <div class="border-b border-tertiary p-4 flex flex-col gap-2 justify-start items-start">
+      <button class="tkd-btn tkd-primary" (click)="createRequest()">Antrag erstellen</button>
+    </div>
+
+  </div>
+</div>

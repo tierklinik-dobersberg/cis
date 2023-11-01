@@ -110,6 +110,7 @@ import { UserAvatarComponent } from './user-avatar';
     UserColorPipe,
     UserContrastColorPipe,
     ToDatePipe,
+    CKEditorModule,
   ],
 })
 export class SharedModule { }

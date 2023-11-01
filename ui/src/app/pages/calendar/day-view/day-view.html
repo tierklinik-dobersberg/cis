@@ -44,7 +44,7 @@
     [ngClass]="{'bg-white rounded shadow p-2 md:p-4': !inlineView, 'mt-2': inlineView}">
     <div class="flex">
         <ng-container *ngFor="let cal of calendars; trackBy: trackCalendar; let last=last">
-            <div class="flex flex-col justify-start w-full" *ngIf="cal.displayed">
+            <div class="flex flex-col justify-start" *ngIf="cal.displayed" [style.width.%]="100 / displayedCalendarCount">
                 <div class="flex-1 flex-grow flex-shrink">
                     <div class="w-full overflow-hidden header text-ellipsis" (dblclick)="onFilterDblClick(cal)">
                         {{ (cal.user | displayName) || cal.calendar.name }}
@@ -71,7 +71,7 @@
 
         <ng-container *ngIf="!loading">
             <ng-container *ngFor="let cal of calendars; trackBy: trackCalendar; let last=last">
-                <div class="flex flex-col items-stretch justify-start w-full" *ngIf="cal.displayed">
+                <div class="flex flex-col items-stretch justify-start" *ngIf="cal.displayed" [style.width.%]="100 / displayedCalendarCount">
                     <div class="calendar">
                         <div class="bg-opacity-10 times bg-text-deEmphasized" (dblclick)="showCreateEventModal($event, cal)">
                             <div class="absolute w-full bg-white opening-hour" *ngFor="let oh of openingHours;"
@@ -86,7 +86,7 @@
                             <span class="select-none event hover:w-auto" *ngFor="let event of cal.events; trackBy: trackEvent"
                                 [class.inactive]="activeEventID !== ''" #origin (click)="onEventActivate(event, origin)"
                                 [class.active]="activeEventID === event.event.id"
-                                [ngStyle]="{top: (event.top +  event.offsettop) + 'px', 'min-height': event.height + 'px', height: event.height + 'px', left: event.left + 'px', right: '0px', backgroundColor: event.color, color: event.fontColor}">
+                                [ngStyle]="{top: (event.top +  event.offsettop) + 'px', 'min-height': event.height + 'px', height: event.height + 'px', left: event.left + 'px', right: '0px', backgroundColor: event.color || cal.color, color: event.fontColor}">
                                 <span class="text-xs leading-3 opacity-80 font-lato">
                                   {{ event.event.startTime.toDate() | date:'HH:mm'}}
                                 </span>
@@ -120,15 +120,19 @@
   Details Template
 -->
 <ng-template #eventDetailsTemplate let-event let-overlay="overlay">
-  <div class="relative p-4 space-y-2 bg-white border rounded-sm shadow-lg w-72 border-text-deEmphasized">
+  <div class="relative p-4 flex flex-col gap-2 bg-white border rounded-sm shadow-lg w-72 border-text-deEmphasized">
     <h1 class="mr-4 text-base text-color-primary font-lato">
       {{ event.event.summary }}
     </h1>
     <span class="text-secondary font-lato" *ngIf="!!event.event.startTime && !!event.event.endTime && !event.event.fullDay"> {{ event.event.startTime.toDate() | date:"HH:mm" }} - {{ event.event.endTime.toDate() | date:'HH:mm' }}</span>
     <span class="text-secondary font-lato" *ngIf="event.event.fullDay">Ganztags</span>
 
-    <span class="text-primary font-inter">
+    <span class="text-primary font-inter" *ngIf="event.event.description">
       {{ event.event.description }}
+    </span>
+
+    <span class="text-tertiary font-inter" *ngIf="!event.event.description">
+      Keine Beschreibung
     </span>
 
     <div class="mt-4">
@@ -140,7 +144,7 @@
       </button>
     </div>
 
-    <div (click)="onDeactivate(overlay)" class="absolute w-4 h-4 cursor-pointer right-4 top-3 text-secondary hover:text-primary">
+    <div (click)="onDeactivate(overlay)" class="absolute w-4 h-4 cursor-pointer right-4 top-5 text-secondary hover:text-primary">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
       </svg>

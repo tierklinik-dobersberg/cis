@@ -30,6 +30,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { IconsProviderModule } from './icons-provider.module';
 import { SharedModule } from './shared/shared.module';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 
 registerLocaleData(de);
 
@@ -61,6 +62,7 @@ registerLocaleData(de);
     TimeagoModule.forRoot(),
     ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
     NgChartsModule,
+    CKEditorModule,
   ],
   providers: [
     { provide: NZ_I18N, useValue: de_DE },

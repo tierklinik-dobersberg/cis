@@ -2,11 +2,13 @@ import { of } from 'rxjs';
 import { ConnectError, Code } from '@bufbuild/connect';
 import { Timestamp } from '@bufbuild/protobuf';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from "@angular/core";
-import { HOLIDAY_SERVICE, OFFTIME_SERVICE, ROSTER_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
-import { AnalyzeWorkTimeResponse, FindOffTimeRequestsResponse, GetHolidayResponse, GetOffTimeCostsResponse, GetUserShiftsResponse, GetVacationCreditsLeftResponse, GetWorkTimeResponse, OffTimeCostSummary, OffTimeEntry, PlannedShift, PublicHoliday, UserVacationSum, WorkShift, WorkTime, WorkTimeAnalysis } from '@tkd/apis';
+import { CALENDAR_SERVICE, HOLIDAY_SERVICE, OFFTIME_SERVICE, ROSTER_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
+import { AnalyzeWorkTimeResponse, Calendar, CalendarEvent, FindOffTimeRequestsResponse, GetHolidayResponse, GetOffTimeCostsResponse, GetUserShiftsResponse, GetVacationCreditsLeftResponse, GetWorkTimeResponse, ListEventsResponse, OffTimeCostSummary, OffTimeEntry, PlannedShift, PublicHoliday, UserVacationSum, WorkShift, WorkTime, WorkTimeAnalysis } from '@tkd/apis';
 import { toDateString } from 'src/app/utils';
 import { ProfileService } from 'src/app/services/profile.service';
 import { HeaderTitleService } from 'src/app/shared/header-title';
+import { LayoutService } from 'src/app/services';
+import { ca_ES } from 'ng-zorro-antd/i18n';
 
 interface LocalUserShift {
   from: Date;
@@ -16,6 +18,7 @@ interface LocalUserShift {
   definition?: WorkShift;
   spansNextDay?: boolean;
 
+  events?: CalendarEvent[];
   offtime?: OffTimeEntry;
   holiday?: PublicHoliday;
   shift?: PlannedShift;
@@ -27,14 +30,17 @@ interface LocalUserShift {
 })
 export class RosterComponent implements OnInit {
   private readonly rosterService = inject(ROSTER_SERVICE);
-  private readonly crd = inject(ChangeDetectorRef)
+  private readonly cdr = inject(ChangeDetectorRef)
   private readonly profileService = inject(ProfileService);
   private readonly headerTitle = inject(HeaderTitleService);
   private readonly holidayService = inject(HOLIDAY_SERVICE)
   private readonly offTimeService = inject(OFFTIME_SERVICE);
   private readonly workTimeService = inject(WORKTIME_SERVICE)
+  private readonly calendarService = inject(CALENDAR_SERVICE);
 
-  userShifts: LocalUserShift[] | null = null;
+  readonly layout = inject(LayoutService).withAutoUpdate();
+
+  userShifts: LocalUserShift[] = [];
   workTime: WorkTimeAnalysis | null = null;
   offTimeCosts: OffTimeCostSummary | null = null;
   vacation: UserVacationSum | null = null;
@@ -55,7 +61,25 @@ export class RosterComponent implements OnInit {
       undefined,
     )
 
+
     Promise.all([
+      this.calendarService
+        .listEvents({
+          source: {
+            case: 'sources',
+            value: {
+              userIds: [this.profileService.snapshot.user.id],
+            }
+          }
+        })
+        .catch(err => {
+          if (ConnectError.from(err).code !== Code.NotFound) {
+            console.error(err)
+          }
+
+          return new ListEventsResponse()
+        }),
+
       this.rosterService
         .getUserShifts({
           timerange: {
@@ -141,7 +165,20 @@ export class RosterComponent implements OnInit {
           return new FindOffTimeRequestsResponse()
         })
     ])
-      .then(([shifts, holidays, costs, vacation, worktime, offtime]) => {
+      .then(([calendar, shifts, holidays, costs, vacation, worktime, offtime]) => {
+        // create a lookup map for all calendar events
+        const eventLookupMap = new Map<string, CalendarEvent[]>();
+        calendar.results.forEach(calendar => {
+          calendar.events.forEach(event => {
+            const start = toDateString(event.startTime.toDate());
+
+            const arr = eventLookupMap.get(start) || [];
+            arr.push(event);
+
+            eventLookupMap.set(start, arr);
+          })
+        })
+
         this.offTimeCosts = costs.results.find(entry => entry.userId === this.profileService.snapshot.user.id)?.summary || null;
         this.vacation = vacation.results.find(entry => entry.userId === this.profileService.snapshot.user.id) || null;
         this.currentWorkTime = worktime.results.find(entry => entry.userId === this.profileService.snapshot.user.id)?.current || null;
@@ -161,8 +198,8 @@ export class RosterComponent implements OnInit {
               holiday,
               shift: plannedShift,
               definition: shifts.definitions.find(ws => ws.id === plannedShift.workShiftId)!,
-              spansNextDay: toDateString(from) !== toDateString(to),
-              offtime: undefined
+              spansNextDay: fromDateString !== toDateString(to),
+              offtime: undefined,
             }
           });
 
@@ -184,6 +221,21 @@ export class RosterComponent implements OnInit {
             })
           })
 
+        for(let key of eventLookupMap.keys()) {
+          const events = eventLookupMap.get(key);
+          const shifts = localShifts.filter(shift => toDateString(shift.from) === toDateString(events[0].startTime.toDate()))
+
+          shifts.forEach(shift => {
+            const eventsInShift = events.filter(event => {
+              const eventStartTime = event.startTime.toDate().getTime();
+
+              return eventStartTime >= shift.from.getTime() && eventStartTime <= shift.to.getTime()
+            })
+
+            shift.events = eventsInShift;
+          })
+        }
+
         return localShifts
           .sort((a, b) => {
             let diff = a.from.valueOf() - b.from.valueOf();
@@ -197,7 +249,7 @@ export class RosterComponent implements OnInit {
       })
       .then(shifts => {
         this.userShifts = shifts;
-        this.crd.markForCheck();
+        this.cdr.markForCheck();
       })
       .catch(err => console.error(err))
 
@@ -217,7 +269,7 @@ export class RosterComponent implements OnInit {
       })
       .then(response => {
         this.workTime = response.results.find(result => result.userId === this.profileService.snapshot.user.id) || null;
-        this.crd.markForCheck();
+        this.cdr.markForCheck();
       })
   }
 }

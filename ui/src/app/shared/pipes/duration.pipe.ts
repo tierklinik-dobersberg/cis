@@ -9,7 +9,7 @@ export type InputUnit = 'ns' | 'µs' | 'ms' | 's' | 'm' | 'h';
   pure: true
 })
 export class DurationPipe implements PipeTransform {
-  transform(value: string | number | ProtoDuration, layout: DurationLayout = 'default', input: InputUnit = 's'): string {
+  transform(value: string | number | ProtoDuration, layout: DurationLayout = 'default', input: InputUnit = 's', skipSeconds = false): string {
     let d: Duration;
     if (value instanceof ProtoDuration) {
       d = Duration.fromProto(value)
@@ -41,6 +41,6 @@ export class DurationPipe implements PipeTransform {
     }
     }
 
-    return d.format(layout);
+    return d.format(layout, skipSeconds);
   }
 }

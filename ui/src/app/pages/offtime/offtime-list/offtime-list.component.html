@@ -1,0 +1,90 @@
+<div class="bg-white rounded shadow">
+  <div class="flex flex-row justify-between items-center p-4 border-b sm:p-6 md:p-8 border-tertiary"
+    *ngIf="layout.isTabletPortraitUp">
+    <div>
+      <h1 class="text-lg text-lato text-color-primary">Urlaubsanträge & Zeitausgleich</h1>
+      <span class="text-secondary" *ngIf="vacation">
+        Bis zum Ende des Jahres hast du noch
+        <span [ngClass]="{
+          'text-alert-green-dark': vacation.vacationCreditsLeft.seconds > 0,
+          'text-alert-red': vacation.vacationCreditsLeft.seconds <= 0
+        }" class="font-medium underline">
+          {{ vacation.vacationCreditsLeft | duration:'default-hours':undefined:true }}</span>
+
+        Urlaubsanspruch.
+
+        Dein Zeitausgleich-Guthaben beträgt derzeit
+        <span [ngClass]="{
+          'text-alert-green-dark': vacation.timeOffCredits.seconds > 0,
+          'text-alert-red': vacation.timeOffCredits.seconds <= 0
+        }" class="font-medium underline">
+          {{ vacation.timeOffCredits | duration:'default-hours':undefined:true }}</span>
+      </span>
+    </div>
+
+    <div class="flex flex-row gap-4 items-center">
+      <div>
+        <span class="text-secondary">Filtern: </span>
+        <nz-select [(ngModel)]="filterState" (ngModelChange)="load()">
+          <nz-option *ngFor="let state of (possibleFilters|keyvalue)" [nzValue]="state.key" [nzLabel]="state.value"></nz-option>
+        </nz-select>
+      </div>
+
+      <span class="block h-8 w-[1px] bg-tertiary"></span>
+
+      <button class="tkd-btn tkd-primary" routerLink="create">Neuer Antrag</button>
+
+    </div>
+  </div>
+
+  <nz-table [nzData]="entries" #offTimeEntries>
+    <thead>
+      <tr>
+        <th>Zeitraum</th>
+        <th>Antragsart</th>
+        <th>Beschreibung</th>
+        <th>Erstellt am</th>
+        <th>Bestätigt</th>
+        <th></th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let entry of offTimeEntries.nzData; trackBy: trackEntry">
+        <td>
+          <span>{{ entry.from | toDate | date:'mediumDate' }}</span>
+          <span class="text-secondary"> bis </span>
+          <span>{{ entry.to | toDate | date:'mediumDate' }}</span>
+        </td>
+        <td>
+          {{ types[entry.type] }}
+        </td>
+        <td>
+          {{ entry.description }}
+        </td>
+        <td>
+          {{ entry.createdAt | toDate | date:'mediumDate'}}
+          <span *ngIf="entry.creatorId !== entry.requestorId" class="text-secondary">
+            (von {{ entry.creatorId | toUser | displayName }})
+          </span>
+        </td>
+        <td>
+          <span *ngIf="entry.approval; else: naTmpl" [ngClass]="{
+            'text-alert-green': entry.approval.approved,
+            'text-alert-red': !entry.approval.approved
+          }" [nz-tooltip]="'Von ' + (entry.approval.approverId | toUser | displayName) + ' am ' + (entry.approval.approvedAt | toDate | date:'short')">
+            {{ entry.approval.approved ? 'Bestätigt' : 'Abgelehnt'}}
+          </span>
+        </td>
+        <td>
+          <button *ngIf="!entry.approval" class="tkd-btn tkd-primary tkd-outline" (click)="deleteRequest(entry)">Löschen</button>
+        </td>
+      </tr>
+    </tbody>
+
+  </nz-table>
+</div>
+
+<ng-template #naTmpl>
+  <span class="text-secondary">N/A</span>
+</ng-template>

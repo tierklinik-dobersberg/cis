@@ -28,7 +28,7 @@
       <span>Dienstplan</span>
     </li>
 
-    <li nzMatchRouter nz-menu-item class="font-lato">
+    <li nzMatchRouter nz-menu-item class="font-lato" routerLink="/offtime">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M7.875 14.25l1.214 1.942a2.25 2.25 0 001.908 1.058h2.006c.776 0 1.497-.4 1.908-1.058l1.214-1.942M2.41 9h4.636a2.25 2.25 0 011.872 1.002l.164.246a2.25 2.25 0 001.872 1.002h2.092a2.25 2.25 0 001.872-1.002l.164-.246A2.25 2.25 0 0116.954 9h4.636M2.41 9a2.25 2.25 0 00-.16.832V12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 12V9.832c0-.287-.055-.57-.16-.832M2.41 9a2.25 2.25 0 01.382-.632l3.285-3.832a2.25 2.25 0 011.708-.786h8.43c.657 0 1.281.287 1.709.786l3.284 3.832c.163.19.291.404.382.632M4.5 20.25h15A2.25 2.25 0 0021.75 18v-2.625c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125V18a2.25 2.25 0 002.25 2.25z" />
       </svg>
@@ -157,10 +157,14 @@
     </div>
 
     <span class="flex flex-col items-center justify-around py-2 text-xs text-center text-secondary font-lato">
-      <span class="font-semibold text-highlight">V1.0</span>
+      <span class="font-semibold text-highlight">V1.19</span>
       <span>
         <i nz-icon nzType="copyright" nzTheme="outline"></i>
-        Patrick Pacher 2020-2022
+        2019 - 2023
+        <br />
+        <a href="https://github.com/tierklinik-dobersberg" target="_blank">Tierklinik Dobersberg</a>
+        /
+        <a href="https://github.com/ppacher" target="_blank">Patrick Pacher</a>
       </span>
     </span>
   </div>
@@ -206,17 +210,17 @@
         </div>
 
         <nz-dropdown-menu #userMenu="nzDropdownMenu">
-          <ul nz-menu style="width: 200px">
+          <ul nz-menu>
             <li nz-menu-item (click)="profileService.openProfilePage()">
               <i nz-icon nzType="user" nzTheme="outline"></i>
               Mein Profil
             </li>
-            <li nz-menu-item routerLink="/roster">
+            <li nz-menu-item routerLink="/roster" class="whitespace-nowrap">
               <i nz-icon nzType="clock-circle" nzTheme="outline"></i>
               Mein Dienstplan
             </li>
 
-            <li nz-menu-item (click)="createOffTimeRequest()">
+            <li nz-menu-item routerLink="/offtime/create" class="whitespace-nowrap">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mr-1.5 -ml-0.5 w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
               </svg>
@@ -224,7 +228,7 @@
               Urlaubsantrag erstellen
             </li>
 
-            <li nz-menu-item routerLink="/offtime/my-requests">
+            <li nz-menu-item routerLink="/offtime" class="whitespace-nowrap">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mr-1.5 -ml-0.5 w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
               </svg>

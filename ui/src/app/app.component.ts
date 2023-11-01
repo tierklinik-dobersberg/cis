@@ -287,10 +287,6 @@ export class AppComponent implements OnInit, OnDestroy {
       });
   }
 
-  createOffTimeRequest() {
-
-  }
-
   private applyConfig(cfg: UIConfig | null): void {
     const menus = new Map<string, SubMenu>();
     this.rootLinks = [];

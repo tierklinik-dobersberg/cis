@@ -19,7 +19,7 @@ import {
   WellKnownAnnotations,
 } from 'src/app/api';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import * as ClassicEditor from 'ckeditor/build/ckeditor';
+import  ClassicEditor  from 'ckeditor';
 
 export type NamedOptionSpec = OptionSpec & { displayName?: string };
 

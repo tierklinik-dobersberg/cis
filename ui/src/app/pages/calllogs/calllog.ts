@@ -5,7 +5,6 @@ import { BehaviorSubject, Subscription, combineLatest, interval } from 'rxjs';
 import { mergeMap, startWith } from 'rxjs/operators';
 import { UserService } from 'src/app/api';
 import { CALL_SERVICE } from 'src/app/api/connect_clients';
-import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { toDateString } from 'src/app/utils';
 
@@ -30,7 +29,6 @@ export class CallLogComponent implements OnInit, OnDestroy {
   constructor(
     private header: HeaderTitleService,
     private userService: UserService,
-    public layout: LayoutService,
   ) { }
 
   onChange(date: Date[]): void {
