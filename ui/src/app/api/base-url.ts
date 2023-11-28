@@ -3,12 +3,21 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { environment } from "src/environments/environment";
 
+function joinPaths(base: string, path: string): string {
+  let result = base;
+  if (!result.endsWith("/") && !path.endsWith("/")) {
+    result += "/"
+  }
+
+  return result + path
+}
+
 @Injectable({providedIn: 'root'})
 export class BaseURLInjector implements HttpInterceptor {
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         if (!req.url.startsWith("http") && !!environment.baseURL) {
             req = req.clone({
-                url: `${environment.baseURL}${req.url}`,
+                url: joinPaths(environment.baseURL, req.url),
                 withCredentials: true
             })
         }

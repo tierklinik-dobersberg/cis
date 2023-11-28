@@ -37,7 +37,7 @@ export class DoorAPI {
    * Tests which door state would be active at the given time and date.
    */
   test(year: number, month: number, day: number, hour: number, minute: number): Observable<TestResult> {
-    return this.http.get<RemoteTestResult>(`api/door/v1/${year}/${month}/${day}/${hour}/${minute}`)
+    return this.http.get<RemoteTestResult>(`/api/door/v1/${year}/${month}/${day}/${hour}/${minute}`)
       .pipe(
         map(resp => {
           return {
