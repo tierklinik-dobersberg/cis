@@ -5,17 +5,23 @@ import { environment } from "src/environments/environment";
 
 function joinPaths(base: string, path: string): string {
   let result = base;
-  if (!result.endsWith("/") && !path.endsWith("/")) {
-    result += "/"
+
+  if (result.endsWith("/")) {
+    result = result.slice(0, -1)
   }
 
-  return result + path
+  if (path.startsWith("/")) {
+    path = path.slice(1)
+  }
+
+  return result + "/" + path
 }
 
 @Injectable({providedIn: 'root'})
 export class BaseURLInjector implements HttpInterceptor {
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         if (!req.url.startsWith("http") && !!environment.baseURL) {
+            console.log(`updating call to ${req.url} to ${joinPaths(environment.baseURL, req.url)}`)
             req = req.clone({
                 url: joinPaths(environment.baseURL, req.url),
                 withCredentials: true
