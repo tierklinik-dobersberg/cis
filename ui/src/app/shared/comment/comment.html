@@ -1,18 +1,23 @@
 <div class="commenter-container">
-  <nz-avatar nzIcon="user" nzSize="small" nzShape="square" [nzSrc]="comment.profile?.user?.avatar">
+  <nz-avatar nzIcon="user" nzSize="small" nzShape="square" [nzSrc]="(comment.comment.creatorId | toUser).user?.avatar">
   </nz-avatar>
 
   <div class="commenter">
-    <span class="username">{{ (comment.profile | displayName) || 'Unbekannt' }}</span>
-    <span>{{ comment.edited ? 'bearbeitet am ' : 'erstellt am '}} {{ comment.date.toLocaleDateString() }}, {{
-      comment.date.toLocaleTimeString() }}</span>
+    <span class="username">{{ (comment.comment.creatorId | toUser | displayName) || 'Unbekannt' }}</span>
+    <span>erstellt am {{ comment.comment.createdAt | toDate | date:'short' }}</span>
   </div>
 </div>
-<p class="comment-content">
-  <markdown emoji class="prose-sm prose prose-important">
-    {{comment.message}}
+<div class="comment-content">
+
+  <markdown emoji class="prose-sm prose prose-important" *ngIf="!rendered">
+    {{comment.comment.content}}
   </markdown>
-</p>
+
+  <div
+    class="prose prose-sm prose-important" *ngIf="rendered" [innerHTML]="safeContent"></div>
+
+</div>
+
 <p class="comment-actions" *ngIf="canReply">
   <a (click)="toggleReply()">Antworten</a>
 </p>
@@ -30,6 +35,6 @@
 </div>
 
 <div [class.replies]="nestedCount < nestedLimit" *ngIf="showReplies">
-  <app-comment *ngFor="let reply of comment.children" [comment]="reply" (replied)="replied.next($event)"
+  <app-comment *ngFor="let reply of comment.answers" [comment]="reply" (replied)="replied.next($event)"
     [nestedLimit]="nestedLimit" [nestedCount]="nestedCount + 1"></app-comment>
 </div>

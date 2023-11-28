@@ -155,7 +155,13 @@ func FuzzySearchEndpoint(grp *app.Router) {
 
 			customers, err := app.Customers.FilterCustomer(ctx, filter, textScore)
 			if err != nil {
-				return err
+				// only abort if we failed to get a single customer, otherwise
+				// just log the error
+				if len(customers) == 0 {
+					return err
+				} else {
+					logger.From(ctx).Errorf("failed to filter customers: %s", err)
+				}
 			}
 
 			if singleResponse {

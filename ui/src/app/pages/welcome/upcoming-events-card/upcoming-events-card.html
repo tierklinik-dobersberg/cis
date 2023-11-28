@@ -1,8 +1,13 @@
 <nz-card>
     <nz-card-meta [nzTitle]="headerTemplate"></nz-card-meta>
     <ng-template #headerTemplate>
-        <span>Nächste Termine</span> - <a class="toggle" (click)="toggle()">{{showAll ? 'Nur nächste' : 'Alle'}}
-            anzeigen</a>
+        <span>
+          {{ mode === 'currentUser' ? 'Deine ' : '' }}Nächste Termine
+        </span>
+        -
+        <a class="toggle" (click)="toggle()">
+          {{showAll ? 'Nur nächste' : 'Alle'}} anzeigen
+        </a>
 
         <button class="inline-block float-right uppercase filter tkd-btn tkd-secondary tkd-small" nz-dropdown [nzDropdownMenu]="dropdown" [nzClickHide]="false">
             <i nz-icon nzType="filter" nzTheme="outline"></i>

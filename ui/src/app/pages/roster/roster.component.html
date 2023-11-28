@@ -5,11 +5,14 @@
         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   </div>
-  <div class="flex flex-col">
+  <div class="flex flex-col flex-grow">
     <span class="text-base font-semibold font-lato text-primary"> Dienstplan </span><span
       class="text-secondary ng-star-inserted">
       Deine Arbeitszeiten von {{ from | date:'shortDate'}} bis {{ to | date:'shortDate' }}
     </span>
+  </div>
+  <div class="flex flex-col items-center">
+    <a class="tkd-btn tkd-primary tkd-outline" [attr.href]="rosterServiceURL" target="_blank" >Alle anzeigen</a>
   </div>
 </div>
 
@@ -35,8 +38,8 @@
     <nz-table class="p-0" [nzData]="userShifts" #mobileTable *ngIf="!layout.isDesktopUp" [nzFrontPagination]="false"
       [nzPageSize]="200">
       <tbody>
-        <ng-container *ngFor="let entry of mobileTable.nzData; let index=index">
-          <ng-container *ngIf="index === 0 || mobileTable.nzData[index-1].dateStr !== entry.dateStr">
+        <ng-container *ngFor="let entry of mobileTable.data; let index=index">
+          <ng-container *ngIf="index === 0 || mobileTable.data[index-1].dateStr !== entry.dateStr">
             <tr class="bg-opacity-25" [ngClass]="{
                 'bg-secondary': entry.today,
                 'opacity-50': !!entry.offtime
@@ -45,7 +48,7 @@
                 <ng-container *ngTemplateOutlet="nameColumn; context: {
                   $implicit: entry,
                   index: index,
-                  data: mobileTable.nzData,
+                  data: mobileTable.data,
                   }">
                 </ng-container>
               </td>
@@ -101,16 +104,16 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let entry of desktopTable.nzData; let index=index" class="bg-opacity-25" [ngClass]="{
+        <tr *ngFor="let entry of desktopTable.data; let index=index" class="bg-opacity-25" [ngClass]="{
             'bg-secondary': entry.today,
             'opacity-50': !!entry.offtime
           }">
           <td>
-            <ng-container *ngIf="index === 0 || desktopTable.nzData[index-1].dateStr !== entry.dateStr">
+            <ng-container *ngIf="index === 0 || desktopTable.data[index-1].dateStr !== entry.dateStr">
               <ng-container *ngTemplateOutlet="nameColumn; context: {
                   $implicit: entry,
                   index: index,
-                  data: desktopTable.nzData,
+                  data: desktopTable.data,
                 }">
               </ng-container>
             </ng-container>
@@ -147,7 +150,6 @@
       </tbody>
     </nz-table>
 </div>
-
 
 
 <ng-template #nameColumn let-entry let-index="index" let-data="data">

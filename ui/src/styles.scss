@@ -283,14 +283,13 @@ button,
   margin-right: 1rem !important;
 }
 
-.ck-content {
-  & > pre {
-    background-color: unset;
-  }
-
+.ck.ck-content {
   @apply prose;
+
   max-width: unset;
+  font-size: inherit;
 }
+
 
 .ant-picker-calendar-full .ant-picker-panel .ant-picker-calendar-date-today {
   @apply print:border-none ;
@@ -300,3 +299,5 @@ button,
 .ant-dropdown-menu-item, .ant-dropdown-menu-submenu-title {
   padding: 0.5rem 1rem;
 }
+
+@import "@tkd/ckeditor-build/custom-style";

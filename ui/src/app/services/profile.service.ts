@@ -40,8 +40,8 @@ export function getCalendarId(user: UserProfile | Profile): string | null {
   return prop.kind.value;
 }
 
-export function getUserColor(user: UserProfile | Profile): string | null {
-  const prop = user.user?.extra?.fields[UserExtraKey.Color];
+export function getUserColor(profile: UserProfile | Profile): string | null {
+  const prop = profile?.user?.extra?.fields[UserExtraKey.Color];
 
   if (!prop || prop.kind.case !== 'stringValue') {
     return null
@@ -67,6 +67,14 @@ export class ProfileService {
     ) as Observable<UserProfile>;
 
   snapshot: UserProfile | null = null;
+
+  get id() {
+    return this.snapshot?.user?.id
+  }
+
+  calendarId(): string | null {
+    return getCalendarId(this.snapshot)
+  }
 
   constructor() {
       this.profile$

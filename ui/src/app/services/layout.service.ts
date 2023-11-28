@@ -45,6 +45,18 @@ export class LayoutService {
   isDesktopUp = false;
   isBigDesktopUp = false;
 
+  get isTablet() {
+    return this.isTabletPortraitUp && !this.isDesktopUp
+  }
+
+  get isTablePortrait() {
+    return this.isTabletPortraitUp && !this.isTabletLandscapeUp
+  }
+
+  get isTableLandscape() {
+    return this.isTabletLandscapeUp && !this.isDesktopUp
+  }
+
   constructor(
     private breakpointObserver: BreakpointObserver
   ) {

@@ -1,9 +1,12 @@
 import { coerceBooleanProperty } from "@angular/cdk/coercion";
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, inject, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { ControlValueAccessor, DefaultValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
 import { CKEditorComponent } from "@ckeditor/ckeditor5-angular";
-import  ClassicEditor  from 'ckeditor';
-import { Subject } from "rxjs";
+import { firstValueFrom, map, Subject } from "rxjs";
+import { UserService } from 'src/app/api';
+import { UserNamePipe } from "../pipes";
+
+import ClassicEditor from "@tkd/ckeditor-build"
 
 
 export type FormatType = 'plain' | 'html' | 'markdown';
@@ -19,6 +22,8 @@ export type FormatType = 'plain' | 'html' | 'markdown';
 })
 export class TextInputComponent implements OnDestroy, OnInit, ControlValueAccessor, AfterViewInit {
   public Editor = ClassicEditor;
+
+  private readonly userService = inject(UserService)
 
   @ViewChild('input', { static: false, read: DefaultValueAccessor })
   defaultAccessor: ControlValueAccessor | null = null;
@@ -41,6 +46,40 @@ export class TextInputComponent implements OnDestroy, OnInit, ControlValueAccess
   @Input()
   choices: string[] | null = null;
 
+  config: any = {
+    mention: {
+      feeds: [
+        {
+          marker: '@',
+          feed: (queryText: string) => {
+            console.log("query-text for mention: " + queryText);
+
+            return firstValueFrom(this.userService.users
+              .pipe(
+                map(users => {
+                  return users.filter(profile => {
+                    return profile.user.username.toLowerCase().includes(queryText)
+                      || profile.user.firstName?.toLowerCase().includes(queryText)
+                      || profile.user.displayName?.toLowerCase().includes(queryText)
+                  })
+                })
+              )
+            ).then(response => {
+              return response
+                .map(profile => {
+                  return {
+                    id: '@' + profile.user.username,
+                    userId: profile.user.id,
+                    name: new UserNamePipe().transform(profile),
+                  }
+                })
+            })
+          }
+        }
+      ]
+    }
+  }
+
   /**
    * Whether or not the input should be multiline.
    * This is only supported for "plain" format.
@@ -61,9 +100,6 @@ export class TextInputComponent implements OnDestroy, OnInit, ControlValueAccess
   }
   get disabled() { return this._disabled; }
   private _disabled: boolean = false;
-
-  /** The configuration for the CKEditor5 instance */
-  config: { [key: string]: any } = {};
 
   constructor(
     private cdr: ChangeDetectorRef

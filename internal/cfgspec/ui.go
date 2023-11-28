@@ -40,6 +40,11 @@ var UISpec = conf.SectionSpec{
 		Type:    conf.StringType,
 		Default: "Tierarzt",
 	},
+	{
+		Name:    "OfftimeCommentScope",
+		Type:    conf.StringType,
+		Default: "offtime-requests",
+	},
 }
 
 var RosterUISpec = conf.SectionSpec{

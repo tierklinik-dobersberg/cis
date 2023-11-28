@@ -5,7 +5,7 @@ import { GetVacationCreditsLeftResponse, OffTimeType, UserVacationSum } from "@t
 import { OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { ProfileService } from "src/app/services/profile.service";
 import { LayoutService } from 'src/app/services';
-import  ClassicEditor  from 'ckeditor';
+import ClassicEditor from '@tkd/ckeditor-build';
 import { Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
 

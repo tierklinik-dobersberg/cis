@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
-import { Profile } from '@tkd/apis';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnDestroy, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { GetVacationCreditsLeftResponse, Profile, UserVacationSum } from '@tkd/apis';
 import { Observable, Subject, forkJoin, interval } from 'rxjs';
 import { map, mergeMap, startWith, takeUntil } from 'rxjs/operators';
 import { VoiceMailAPI } from 'src/app/api';
+import { WORKTIME_SERVICE } from 'src/app/api/connect_clients';
 import { ProfileService } from 'src/app/services/profile.service';
 
 @Component({
@@ -11,26 +13,40 @@ import { ProfileService } from 'src/app/services/profile.service';
   styleUrls: ['./mobile-welcome-card.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MobileWelcomeCardComponent implements OnInit, OnDestroy {
-  user$: Observable<Profile> | null;
+export class MobileWelcomeCardComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly voicemail = inject(VoiceMailAPI);
+  private readonly worktTimeService = inject(WORKTIME_SERVICE);
+  private readonly profileService = inject(ProfileService);
+  private readonly cdr = inject(ChangeDetectorRef)
 
-  private destroy$ = new Subject<void>();
+  get user$() {
+    return this.profileService.profile$;
+  }
+
+  vacation: UserVacationSum | null = null;
 
   unreadMailboxes: { name: string, count: number }[] = [];
 
-  constructor(
-    private account: ProfileService,
-    private voicemail: VoiceMailAPI,
-  ) { }
-
   ngOnInit() {
-    this.user$ = this.account.profile$
-      .pipe(takeUntil(this.destroy$));
+    this.worktTimeService
+      .getVacationCreditsLeft({
+        forUsers: {
+          userIds: [this.profileService.id]
+        }
+      })
+      .catch(err => {
+        return new GetVacationCreditsLeftResponse();
+      })
+      .then(response => {
+        this.vacation = response.results.find(sum => sum.userId === this.profileService.id)
+        this.cdr.markForCheck();
+      })
 
     const update$ = interval(10000)
       .pipe(
         startWith(-1),
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
       );
 
     update$.pipe(
@@ -57,11 +73,8 @@ export class MobileWelcomeCardComponent implements OnInit, OnDestroy {
             count: mailboxes[key],
           })
         })
-      })
-  }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
+        this.cdr.markForCheck();
+      })
   }
 }

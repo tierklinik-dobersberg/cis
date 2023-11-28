@@ -1,9 +1,10 @@
+import { ConnectError, Code } from '@bufbuild/connect';
 import { coerceBooleanProperty, coerceCssPixelValue } from '@angular/cdk/coercion';
 import { ConnectedPosition, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, QueryList, TemplateRef, TrackByFunction, ViewChild, ViewChildren, ViewContainerRef, inject } from '@angular/core';
 import { Timestamp } from '@bufbuild/protobuf';
-import { Calendar, CalendarEvent, CalendarEventList, Profile } from '@tkd/apis';
+import { Calendar, CalendarEvent, CalendarEventList, GetWorkingStaffResponse, Profile } from '@tkd/apis';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { BehaviorSubject, Subject, combineLatest, forkJoin, from, interval, of } from 'rxjs';
@@ -492,7 +493,14 @@ export class DayViewComponent implements OnInit, OnDestroy {
                 }),
                 map(result => result.openingHours),
               ),
-            roster: this.rosterService.getWorkingStaff({ time: Timestamp.fromDate(date) }),
+            roster: this.rosterService.getWorkingStaff({ time: Timestamp.fromDate(date) })
+              .catch(err => {
+                if (ConnectError.from(err).code !== Code.NotFound) {
+                  console.error(err);
+                }
+
+                return new GetWorkingStaffResponse();
+              }),
             events: from(this.calendarapi.listEvents({
               searchTime: {
                 case: 'date',

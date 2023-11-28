@@ -1,6 +1,9 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
+import { CommentTree } from '@tkd/apis';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { Comment, CommentAPI } from 'src/app/api';
+import { COMMENT_SERVICE } from 'src/app/api/connect_clients';
 import { extractErrorMessage } from 'src/app/utils';
 
 @Component({
@@ -9,8 +12,17 @@ import { extractErrorMessage } from 'src/app/utils';
   styleUrls: ['./comment.scss']
 })
 export class CommentComponent implements OnInit {
+  private readonly commentService = inject(COMMENT_SERVICE);
+
   @Input()
-  comment: Comment;
+  comment: CommentTree;
+
+  @Input()
+  set rendered(v: any) {
+    this._rendered = coerceBooleanProperty(v)
+  }
+  get rendered() { return this._rendered }
+  private _rendered = false;
 
   @Input()
   nestedLimit = Infinity;
@@ -30,9 +42,13 @@ export class CommentComponent implements OnInit {
   commentText = '';
   reply = false;
 
+  get safeContent() {
+    return this.san.bypassSecurityTrustHtml(this.comment.comment.content)
+  }
+
   constructor(
-    private commentapi: CommentAPI,
     private nzMessage: NzMessageService,
+    private san: DomSanitizer,
   ) { }
 
   ngOnInit(): void {
@@ -51,14 +67,22 @@ export class CommentComponent implements OnInit {
   }
 
   replyComment(): void {
-    this.commentapi.reply(this.comment._id, this.commentText)
-      .subscribe(
+    this.commentService.createComment({
+      kind: {
+        case: 'parentId',
+        value: this.comment.comment.id,
+      },
+      content: this.commentText
+    })
+      .then(
         () => {
           this.replied.next();
           this.commentText = '';
           this.reply = false;
-        },
+        }
+      )
+      .catch(
         err => this.nzMessage.error(extractErrorMessage(err, 'Kommentar konnte nicht erstellt werden'))
-      );
+      )
   }
 }

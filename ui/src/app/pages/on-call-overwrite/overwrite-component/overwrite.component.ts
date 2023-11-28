@@ -222,12 +222,12 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
         .getWorkingStaff({
           onCall: true,
           time: Timestamp.fromDate(from),
-          rosterTypeName: this.config.current.OnCallRosterType || 'Tierarzt',
+          rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierarzt',
         }),
       this.rosterService.getRequiredShifts({
         from: toDateString(from),
         to: toDateString(to),
-        rosterTypeName: this.config.current.OnCallRosterType || 'Tierarzt',
+        rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierarzt',
       })
     ])
       .then(([response, shifts]) => {
@@ -477,7 +477,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
             .getWorkingStaff({
               onCall: true,
               time: Timestamp.fromDate(d),
-              rosterTypeName: this.config.current.OnCallRosterType || 'Tierarzt'
+              rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierarzt'
             })
             .catch(err => {
               if (ConnectError.from(err).code !== Code.NotFound) {

@@ -1,7 +1,7 @@
 
 # Build the frontend
 FROM node:16 as builder
-ARG CONFIGURATION
+ARG CONFIGURATION="staging"
 
 WORKDIR /app/ui
 
@@ -9,9 +9,6 @@ COPY ui/package.json ui/package-lock.json ./
 RUN npm install
 
 RUN npx browserslist@latest --update-db
-
-COPY ui/ckeditor/ ./ckeditor
-RUN npm run build-ckeditor
 
 COPY ./ui .
 RUN echo "Building frontend in configuration $CONFIGURATION"

@@ -9,6 +9,7 @@ export const environment = {
   accountService: '',
   calendarService: '',
   rosterService: '',
+  commentService: '',
   callService: '',
 };
 

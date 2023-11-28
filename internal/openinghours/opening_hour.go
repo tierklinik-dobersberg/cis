@@ -14,13 +14,9 @@ type OpeningHour struct {
 	daytime.Range
 
 	ID         string        `json:"id"`
-	Unofficial bool          `json:"unofficial"`
 	Holiday    bool          `json:"holiday"`
 	OpenBefore time.Duration `json:"closeBefore"`
 	CloseAfter time.Duration `json:"closeAfter"`
-
-	OnCallStartDay   *daytime.DayTime
-	OnCallStartNight *daytime.DayTime
 }
 
 // EffectiveOpen returns the duration from midnight at which

@@ -36,7 +36,7 @@ export class AuthorizationInterceptor implements HttpInterceptor {
                   this._resolve = resolve;
                 })
 
-                const transport = transportFactory(this.route, this.router, environment.accountService)
+                const transport = transportFactory(this.route, this.router, environment, "accountService")
                 const authClient = createPromiseClient(AuthService, transport);
 
                 return from(authClient.refreshToken({}))

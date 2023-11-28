@@ -25,12 +25,12 @@ import { TimeagoModule } from 'ngx-timeago';
 import { environment } from '../environments/environment';
 import { AuthorizationInterceptor } from './api';
 import { BaseURLInjector } from './api/base-url';
-import { connectProviders } from './api/connect_clients';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { IconsProviderModule } from './icons-provider.module';
 import { SharedModule } from './shared/shared.module';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import { TkdConnectModule, CONNECT_CONFIG } from '@tkd/angular/connect';
 
 registerLocaleData(de);
 
@@ -63,6 +63,7 @@ registerLocaleData(de);
     ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
     NgChartsModule,
     CKEditorModule,
+    TkdConnectModule,
   ],
   providers: [
     { provide: NZ_I18N, useValue: de_DE },
@@ -70,7 +71,7 @@ registerLocaleData(de);
     { provide: HTTP_INTERCEPTORS, useExisting: BaseURLInjector, multi: true },
     { provide: NZ_DATE_CONFIG, useValue: { firstDayOfWeek: 1 } },
     { provide: LOCALE_ID, useValue: 'de'},
-    ...connectProviders
+    { provide: CONNECT_CONFIG, useValue: environment },
   ],
   bootstrap: [AppComponent]
 })

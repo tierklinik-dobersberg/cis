@@ -11,6 +11,7 @@ import (
 	"github.com/antzucaro/matchr"
 	"github.com/tierklinik-dobersberg/cis/internal/database/dbutils"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
+	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -303,13 +304,21 @@ func (db *database) findCustomers(ctx context.Context, filter interface{}, proje
 	}
 	defer result.Close(ctx)
 
-	var customers []*Customer
+	var (
+		customers []*Customer
+		merr      = new(multierr.Error)
+	)
 
-	if err := result.All(ctx, &customers); err != nil {
-		return nil, fmt.Errorf("failed to decode customers: %w", err)
+	for result.Next(ctx) {
+		var c Customer
+		if err := result.Decode(&c); err != nil {
+			merr.Add(err)
+		} else {
+			customers = append(customers, &c)
+		}
 	}
 
-	return customers, nil
+	return customers, merr.ToError()
 }
 
 func (db *database) findSingleCustomer(ctx context.Context, filter interface{}) (*Customer, error) {

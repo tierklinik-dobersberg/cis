@@ -1,5 +1,4 @@
 export * from './authorization';
-export * from './comment.api';
 export * from './config.api';
 export * from './door.api';
 export * from './dxr.service';

@@ -122,13 +122,14 @@ export interface UIConfig {
     HideUsersWithRole?: string[];
     UserPhoneExtensionProperties?: string[];
     CreateEventAlwaysAllowCalendar?: string[];
+    OnCallRosterType: string;
+    OfftimeCommentScope: string;
   };
   ExternalLink?: ExternalLink[];
   QuickRosterOverwrite?: QuickRosterOverwrite[];
   KnownPhoneExtension?: KnownPhoneExtension[];
   TriggerAction?: TriggerAction[];
   Roster?: RosterUIConfig;
-  OnCallRosterType: string;
 }
 
 @Injectable({

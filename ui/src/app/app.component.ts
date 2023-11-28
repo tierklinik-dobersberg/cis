@@ -1,36 +1,32 @@
-import { Code } from '@bufbuild/connect';
-import { ConnectError } from '@bufbuild/connect';
-import { Timestamp } from '@bufbuild/protobuf';
 import { animate, style, transition, trigger } from '@angular/animations';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import {
   ApplicationRef,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   HostListener,
-  OnDestroy,
   OnInit,
   inject,
   isDevMode
 } from '@angular/core';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
+import { Code, ConnectError } from '@bufbuild/connect';
+import { Timestamp } from '@bufbuild/protobuf';
 import { Profile } from '@tkd/apis';
+import { GetOverwriteResponse } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { BehaviorSubject, Subject, combineLatest, interval, of } from 'rxjs';
+import { BehaviorSubject, combineLatest, interval } from 'rxjs';
 import {
-  catchError,
   delay,
-  filter,
   first,
-  map,
   mergeMap,
   retryWhen,
-  share,
   startWith,
-  switchMap,
-  takeUntil
+  switchMap
 } from 'rxjs/operators';
 import { LayoutService } from 'src/app/services';
 import {
@@ -39,11 +35,9 @@ import {
   UserService,
   VoiceMailAPI
 } from './api';
-import { InfoScreenAPI } from './api/infoscreen.api';
+import { CALL_SERVICE } from './api/connect_clients';
 import { ProfileService } from './services/profile.service';
 import { toggleRouteQueryParamFunc } from './utils';
-import { CALL_SERVICE, ROSTER_SERVICE } from './api/connect_clients';
-import { GetOverwriteResponse } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 
 interface MenuEntry {
   Icon: string;
@@ -83,15 +77,19 @@ interface SubMenu {
     ])
   ]
 })
-export class AppComponent implements OnInit, OnDestroy {
-  /** emits when the component is destroyed */
-  private destroy$ = new Subject<void>();
+export class AppComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly profileService = inject(ProfileService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly callService = inject(CALL_SERVICE);
 
+
+  /** Whether or not the menu is collapsed */
   isCollapsed = false;
+
   isDevMode = isDevMode();
 
-  profileService = inject(ProfileService);
-  cdr = inject(ChangeDetectorRef);
+  /** The current user profile */
   profile?: Profile;
 
 
@@ -109,42 +107,6 @@ export class AppComponent implements OnInit, OnDestroy {
   /** Used to trigger a reload of the current overwrite target */
   private reloadOverwrite$ = new BehaviorSubject<void>(undefined);
 
-  /** Returns true if the user has (at least read-only) access to the roster */
-  get hasRoster(): boolean {
-    return true
-  }
-
-  /** Returns true if the user can see voicemail records */
-  get hasVoiceMail(): boolean {
-    return true
-  }
-
-  /** Returns true if the user can see calllogs */
-  get hasCallLog(): boolean {
-    return true
-  }
-
-  /** Returns true if the user can see customer records */
-  get hasCustomers(): boolean {
-    return true
-  }
-
-  get hasInfoScreen(): boolean {
-    return false;
-  }
-
-  /**
-   * Returns true if the user can create calendar events. For usability,
-   * this also requires hasCustomer, hasCalllog and hasRoster
-   */
-  get canCreateEvent(): boolean {
-    return true;
-  }
-
-  infoScreenEnabled = false;
-
-  private rosterService = inject(ROSTER_SERVICE);
-  private callService = inject(CALL_SERVICE);
 
   constructor(
     private configapi: ConfigAPI,
@@ -166,18 +128,16 @@ export class AppComponent implements OnInit, OnDestroy {
     'show-menu'
   );
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
+  openProfilePage() {
+    this.profileService.openProfilePage();
   }
 
   ngOnInit(): void {
-    this.destroy$ = new Subject();
 
     // watch the user profile.
     this.profileService
       .profile$
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(profile => {
         this.profile = profile;
         this.cdr.markForCheck();
@@ -186,7 +146,7 @@ export class AppComponent implements OnInit, OnDestroy {
     combineLatest([interval(15000), this.reloadOverwrite$])
       .pipe(
         startWith(-1),
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
         switchMap(() =>
           this.callService.getOverwrite({
             selector: {
@@ -226,8 +186,9 @@ export class AppComponent implements OnInit, OnDestroy {
       });
 
     this.checkReachability();
+
     this.activeRoute.queryParamMap
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((params) => {
         this.isCollapsed = !params.has('show-menu');
       });
@@ -249,15 +210,9 @@ export class AppComponent implements OnInit, OnDestroy {
         });
     }
 
-    this.layout.change.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      this.isCollapsed = !this.layout.isTabletLandscapeUp;
-    });
-
     this.configapi.change
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cfg) => this.applyConfig(cfg));
-
-    this.isCollapsed = this.layout.isPhone;
   }
 
   @HostListener('window:focus')

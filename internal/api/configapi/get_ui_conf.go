@@ -36,7 +36,7 @@ func GetFlatConfigEndpoint(grp *app.Router) {
 					return httperr.NotFound("schema-type", key)
 				}
 
-				values, err := runtime.GlobalSchema.SchemaAsMap(ctx, key)
+				values, err := runtime.GlobalSchema.SchemaAsMap(ctx, key, true)
 				if err != nil {
 					logger.From(ctx).Errorf("failed to get schema for key %s: %s", key, err)
 					return echo.NewHTTPError(http.StatusInternalServerError, "failed to get values for "+key).

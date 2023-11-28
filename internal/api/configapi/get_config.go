@@ -27,7 +27,7 @@ func GetConfigByIDEndpoint(r *app.Router) {
 				return err
 			}
 
-			cfgs, err := runtime.GlobalSchema.SchemaAsMap(ctx, key)
+			cfgs, err := runtime.GlobalSchema.SchemaAsMap(ctx, key, false)
 			if err != nil {
 				if errors.Is(err, runtime.ErrCfgSectionNotFound) {
 					return httperr.NotFound("schema-type", key)

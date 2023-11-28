@@ -52,7 +52,7 @@ export class DoorAPI {
    * Returns the current state of the door.
    */
   state(): Observable<State> {
-    return this.http.get<RemoteState>(`api/door/v1/state`)
+    return this.http.get<RemoteState>(`/api/door/v1/state`)
       .pipe(
         map(resp => {
           return {

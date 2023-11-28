@@ -278,7 +278,7 @@ func (schema *ConfigSchema) SchemaByName(name string) (Schema, error) {
 	return Schema{}, ErrUnknownType
 }
 
-func (schema *ConfigSchema) SchemaAsMap(ctx context.Context, name string) (map[string]map[string]interface{}, error) {
+func (schema *ConfigSchema) SchemaAsMap(ctx context.Context, name string, withDefaults bool) (map[string]map[string]interface{}, error) {
 	lower := strings.ToLower(name)
 	spec, ok := schema.entries[lower]
 	if !ok {
@@ -295,6 +295,30 @@ func (schema *ConfigSchema) SchemaAsMap(ctx context.Context, name string) (map[s
 	configs, err := schema.provider.Get(ctx, name)
 	if err != nil {
 		return nil, err
+	}
+
+	if withDefaults {
+		for _, opt := range spec.Spec.All() {
+			for idx, sec := range configs {
+				found := false
+				for _, setOpt := range sec.Options {
+					if strings.EqualFold(setOpt.Name, opt.Name) {
+						found = true
+
+						break
+					}
+				}
+
+				if !found && opt.Default != "" {
+					sec.Options = append(sec.Options, conf.Option{
+						Name:  opt.Name,
+						Value: opt.Default,
+					})
+
+					configs[idx] = sec
+				}
+			}
+		}
 	}
 
 	decoder := conf.NewSectionDecoder(spec.Spec.All())

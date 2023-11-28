@@ -9,7 +9,7 @@ import { Color } from '@swimlane/ngx-charts/lib/utils/color-sets';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, combineLatest, forkJoin, of, Subscription } from 'rxjs';
 import { catchError, mergeMap } from 'rxjs/operators';
-import { Comment, CommentAPI, LocalPatient, PatientAPI, UserService } from 'src/app/api';
+import { LocalPatient, PatientAPI, UserService } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { LayoutService } from 'src/app/services';
 import { HeaderTitleService } from 'src/app/shared/header-title';
@@ -36,7 +36,6 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     private patientapi: PatientAPI,
     private userService: UserService,
     private activatedRoute: ActivatedRoute,
-    private commentapi: CommentAPI,
     private nzMessageService: NzMessageService,
     private router: Router,
     private changeDetector: ChangeDetectorRef,
@@ -47,15 +46,11 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
 
   bottomSheetRef: MatBottomSheetRef | null = null;
 
-  allComments: Comment[] = [];
   totalCallTime = 0;
   callrecords: CallEntry[] = [];
-  customerComment: Comment | null = null;
   customer: ExtendedCustomer | null = null;
   reload = new BehaviorSubject<void>(undefined);
-  showCommentModal = false;
   commentText = '';
-  showCommentDrawer = false;
   missingData: string[] = [];
   patients: LocalPatient[] = [];
 
@@ -79,36 +74,6 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     domain: ['#5AA45410', '#A10A2850']
   }
 
-  handleCommentCancel(): void {
-    this.showCommentModal = false;
-    this.commentText = '';
-  }
-
-  handleCommentOk(): void {
-    if (this.commentText === '') {
-      return;
-    }
-    this.commentapi.create(`customer:primaryNote:${this.customer.source}:${this.customer.cid}`, this.commentText)
-      .subscribe(
-        () => {
-          this.customerComment = null;
-          this.showCommentModal = false;
-          this.commentText = '';
-          this.reload.next();
-        },
-        err => {
-          this.nzMessageService.error(extractErrorMessage(err, 'Notiz konnte nicht gespeichert werden'));
-        }
-      );
-  }
-
-  editComment(): void {
-    this.showCommentModal = true;
-    this.commentText = this.customerComment?.message || '';
-  }
-
-  readonly toggleComments = toggleRouteQueryParamFunc(this.router, this.activatedRoute, 'show-comments')
-
   ngOnInit(): void {
     this.subscriptions = new Subscription();
 
@@ -116,7 +81,6 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
       customer: Customer;
       calllogs: GetLogsForCustomerResponse | ConnectError;
       patients: LocalPatient[] | HttpErrorResponse;
-      notes: Comment[] | HttpErrorResponse;
     }
 
     const routerSub = combineLatest([
@@ -137,8 +101,6 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
             }).catch(err => ConnectError.from(err)),
             patients: this.patientapi.getPatientsForCustomer(source, id)
               .pipe(catchError(err => of(err))),
-            notes: this.commentapi.list(`customer:primaryNote:${source}:${id}`, false, true)
-              .pipe(catchError(err => of(err)))
           });
         }),
         catchError(err => {
@@ -148,11 +110,6 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe((result: ForkJoinResult | null) => {
-        const showCommets = this.activatedRoute.snapshot.queryParamMap.has('show-comments')
-        if (showCommets !== this.showCommentDrawer) {
-          this.commentText = '';
-        }
-        this.showCommentDrawer = showCommets;
         if (!result) {
           this.header.set(`Kunde: N/A`);
           return;
@@ -166,20 +123,6 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
         } else {
           this.nzMessageService.error(
             extractErrorMessage(result.calllogs, 'Anruf Journal konnte nicht geladen werden')
-          );
-        }
-
-        this.allComments = [];
-        this.customerComment = null;
-        if (Array.isArray(result.notes)) {
-          this.allComments = result.notes;
-          // always display the very last note created.
-          if (result.notes.length > 0) {
-            this.customerComment = result.notes[result.notes.length - 1];
-          }
-        } else {
-          this.nzMessageService.error(
-            extractErrorMessage(result.notes, 'Kommentare konnten nicht geladen werden')
           );
         }
 

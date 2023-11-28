@@ -169,26 +169,6 @@ func (s *state) parseDates(c Definition) ([]string, error) {
 	return dates, nil
 }
 
-func (s *state) parseOnCallStartTimes(openingHourDef Definition) (day *daytime.DayTime, night *daytime.DayTime, err error) {
-	if openingHourDef.OnCallDayStart != "" {
-		dayStart, err := daytime.ParseDayTime(openingHourDef.OnCallDayStart)
-		if err != nil {
-			return nil, nil, fmt.Errorf("invalid OnCallDayStart: %w", err)
-		}
-		day = &dayStart
-	}
-
-	if openingHourDef.OnCallNightStart != "" {
-		nightStart, err := daytime.ParseDayTime(openingHourDef.OnCallNightStart)
-		if err != nil {
-			return nil, nil, fmt.Errorf("invalid OnCallNightStart: %w", err)
-		}
-		night = &nightStart
-	}
-
-	return day, night, nil
-}
-
 func (s *state) getTimeRanges(openingHourDef Definition) ([]OpeningHour, error) {
 	ranges := make([]OpeningHour, 0, len(openingHourDef.TimeRanges))
 	for _, r := range openingHourDef.TimeRanges {
@@ -207,19 +187,11 @@ func (s *state) getTimeRanges(openingHourDef Definition) ([]OpeningHour, error) 
 			openBefore = s.defaultOpenBefore
 		}
 
-		day, night, err := s.parseOnCallStartTimes(openingHourDef)
-		if err != nil {
-			return nil, err
-		}
-
 		ranges = append(ranges, OpeningHour{
-			ID:               openingHourDef.id,
-			Range:            timeRange,
-			CloseAfter:       closeAfter,
-			OpenBefore:       openBefore,
-			Unofficial:       openingHourDef.Unofficial,
-			OnCallStartDay:   day,
-			OnCallStartNight: night,
+			ID:         openingHourDef.id,
+			Range:      timeRange,
+			CloseAfter: closeAfter,
+			OpenBefore: openBefore,
 		})
 	}
 

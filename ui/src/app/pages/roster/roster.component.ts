@@ -1,4 +1,3 @@
-import { of } from 'rxjs';
 import { ConnectError, Code } from '@bufbuild/connect';
 import { Timestamp } from '@bufbuild/protobuf';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from "@angular/core";
@@ -9,6 +8,7 @@ import { ProfileService } from 'src/app/services/profile.service';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { LayoutService } from 'src/app/services';
 import { ca_ES } from 'ng-zorro-antd/i18n';
+import { environment } from 'src/environments/environment';
 
 interface LocalUserShift {
   from: Date;
@@ -37,6 +37,8 @@ export class RosterComponent implements OnInit {
   private readonly offTimeService = inject(OFFTIME_SERVICE);
   private readonly workTimeService = inject(WORKTIME_SERVICE)
   private readonly calendarService = inject(CALENDAR_SERVICE);
+
+  public readonly rosterServiceURL = environment.rosterService;
 
   readonly layout = inject(LayoutService).withAutoUpdate();
 

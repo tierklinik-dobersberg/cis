@@ -1,13 +1,16 @@
+import ClassicEditor from "@tkd/ckeditor-build"
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { Timestamp } from '@bufbuild/protobuf';
 import { ConnectError, Code } from '@bufbuild/connect';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, TrackByFunction, inject } from "@angular/core";
-import { OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
+import { COMMENT_SERVICE, OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { ProfileService } from "src/app/services/profile.service";
 import { HeaderTitleService } from "src/app/shared/header-title";
-import { FindOffTimeRequestsResponse, GetVacationCreditsLeftResponse, OffTimeEntry, OffTimeType, UserVacationSum } from '@tkd/apis';
+import { CommentTree, FindOffTimeRequestsResponse, GetVacationCreditsLeftResponse, ListCommentsResponse, OffTimeEntry, OffTimeType, UserVacationSum } from '@tkd/apis';
 import { LayoutService } from 'src/app/services';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { ConfigAPI } from 'src/app/api';
+import { extractErrorMessage } from 'src/app/utils';
 
 enum FilterState {
   All,
@@ -30,11 +33,14 @@ export class OffTimeListComponent implements OnInit {
   private readonly headerTitle = inject(HeaderTitleService);
   private readonly offTimeService = inject(OFFTIME_SERVICE);
   private readonly worktimeService = inject(WORKTIME_SERVICE);
+  private readonly commentService = inject(COMMENT_SERVICE);
+  private readonly configService = inject(ConfigAPI);
   private readonly profileService = inject(ProfileService);
   private readonly messageService = inject(NzMessageService);
   private readonly modalService = inject(NzModalService)
   private readonly cdr = inject(ChangeDetectorRef)
 
+  public readonly Editor = ClassicEditor;
   public readonly layout = inject(LayoutService).withAutoUpdate(this.cdr);
   public readonly possibleFilters = {
     [FilterState.All]: 'Alle',
@@ -45,6 +51,56 @@ export class OffTimeListComponent implements OnInit {
     [OffTimeType.TIME_OFF]: 'Zeitausgleich',
     [OffTimeType.VACATION]: 'Urlaub',
   };
+
+  newCommentText = ''
+  showEntryComments: OffTimeEntry | null = null;
+  comments: CommentTree[] = [];
+
+  createComment() {
+    if (this.newCommentText === '' || !this.showEntryComments) {
+      return;
+    }
+
+    this.commentService
+      .createComment({
+        content: this.newCommentText,
+        kind: {
+          case: 'root',
+          value: {
+            reference: this.showEntryComments.id,
+            scope: this.configService.current.UI?.OfftimeCommentScope,
+          }
+        },
+      })
+      .catch(err => {
+        this.messageService.error('Kommentar konnte nicht erstellt werden: ' + ConnectError.from(err).rawMessage)
+      })
+      .then(() => {
+        // reload
+        this.loadEntryComments(this.showEntryComments)
+      })
+  }
+
+  loadEntryComments(entry: OffTimeEntry) {
+    this.commentService
+      .listComments({
+        scope: this.configService.current.UI?.OfftimeCommentScope,
+        recurse: true,
+        reference: entry.id,
+        renderHtml: true
+      })
+      .catch(err => {
+        return new ListCommentsResponse()
+      })
+      .then(response => {
+        this.comments = response.result;
+
+        this.showEntryComments = entry;
+        this.newCommentText = '';
+
+        this.cdr.markForCheck();
+      })
+  }
 
   entries: OffTimeEntry[] = [];
 

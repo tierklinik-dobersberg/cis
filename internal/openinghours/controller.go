@@ -13,7 +13,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/cis/runtime"
-	"github.com/tierklinik-dobersberg/logger"
 )
 
 var log = pkglog.New("openinghours")
@@ -36,9 +35,6 @@ type (
 		// to retrieve the correct list of public holidays.
 		country string
 
-		defaultOnCallDayStart   daytime.DayTime
-		defaultOnCallNightStart daytime.DayTime
-
 		state *state
 	}
 )
@@ -48,15 +44,6 @@ func New(ctx context.Context, cfg cfgspec.Config, globalSchema *runtime.ConfigSc
 	loc, err := time.LoadLocation(cfg.TimeZone)
 	if err != nil {
 		return nil, fmt.Errorf("option Location: %w", err)
-	}
-
-	defaultOnCallDayStart, err := daytime.ParseDayTime(cfg.DefaultOnCallDayStart)
-	if err != nil {
-		return nil, fmt.Errorf("option DefaultOnCallDayStart: %w", err)
-	}
-	defaultOnCallNightStart, err := daytime.ParseDayTime(cfg.DefaultOnCallNightStart)
-	if err != nil {
-		return nil, fmt.Errorf("option DefaultOnCallNightStart: %w", err)
 	}
 
 	ctrl := &Controller{
@@ -69,8 +56,6 @@ func New(ctx context.Context, cfg cfgspec.Config, globalSchema *runtime.ConfigSc
 			defaultCloseAfter: cfg.DefaultCloseAfter,
 			defaultOpenBefore: cfg.DefaultOpenBefore,
 		},
-		defaultOnCallDayStart:   defaultOnCallDayStart,
-		defaultOnCallNightStart: defaultOnCallNightStart,
 	}
 
 	globalSchema.AddValidator(ctrl, "OpeningHour")
@@ -184,91 +169,6 @@ func (ctrl *Controller) AddOpeningHours(ctx context.Context, timeRanges ...Defin
 	ctrl.state = newState
 
 	return nil
-}
-
-// ChangeOnDuty returns the time at which the doctor-on-duty changes
-// and the given date. It makes sure d is in the correct timezone.
-// Note that ChangeOnDuty requires the Weekday of d which might differ
-// depending on t's zone information. The caller must make sure to have
-// t in the desired time zone!
-// trunk-ignore(golangci-lint/cyclop)
-func (ctrl *Controller) ChangeOnDuty(ctx context.Context, date time.Time) ChangeOnCall {
-	ctrl.rw.RLock()
-	defer ctrl.rw.RUnlock()
-
-	if date.Location() == time.UTC {
-		log.From(ctx).Errorf("WARNING: ChangeOnDuty called with time in UTC")
-	}
-	key := fmt.Sprintf("%02d/%02d", date.Month(), date.Day())
-
-	var (
-		startDay       *daytime.DayTime
-		startDayFrom   string
-		startNight     *daytime.DayTime
-		startNightFrom string
-	)
-
-	findStartTimes := func(openingHours []OpeningHour, source string) {
-		if startDay != nil && startNight != nil {
-			return
-		}
-
-		for idx := range openingHours {
-			oh := openingHours[idx]
-
-			if oh.OnCallStartDay != nil && startDay == nil {
-				startDay = oh.OnCallStartDay
-				startDayFrom = source
-			}
-			if oh.OnCallStartNight != nil && startNight == nil {
-				startNight = oh.OnCallStartNight
-				startNightFrom = source
-			}
-			if startDay != nil && startNight != nil {
-				break
-			}
-		}
-	}
-
-	findStartTimes(ctrl.state.DateSpecific[key], "date-specific")
-
-	// Check if we need to use holiday ranges ...
-	isHoliday, err := ctrl.holidays.IsHoliday(ctx, ctrl.country, date)
-	if err != nil {
-		isHoliday = false
-		log.From(ctx).Errorf("failed to load holidays: %s", err.Error())
-	}
-	if isHoliday {
-		findStartTimes(ctrl.state.Holiday, "holiday")
-	}
-
-	findStartTimes(ctrl.state.Regular[date.Weekday()], "regular")
-
-	if startDay == nil {
-		startDay = &ctrl.defaultOnCallDayStart
-		startDayFrom = "default"
-	}
-	if startNight == nil {
-		startNight = &ctrl.defaultOnCallNightStart
-		startNightFrom = "default"
-	}
-
-	log.From(ctx).WithFields(logger.Fields{
-		"weekday":          date.Weekday().String(),
-		"date-key":         key,
-		"startDay":         startDay.String(),
-		"startDaySource":   startDayFrom,
-		"startNight":       startNight.String(),
-		"startNightSource": startNightFrom,
-	}).V(7).Logf("change on duty found")
-
-	return ChangeOnCall{
-		dayStart:         *startDay,
-		nightStart:       *startNight,
-		loc:              ctrl.location,
-		SourceDayStart:   startDayFrom,
-		SourceNightStart: startNightFrom,
-	}
 }
 
 func (ctrl *Controller) UpcomingFrames(ctx context.Context, dateTime time.Time, limit int) []daytime.TimeRange {
@@ -397,27 +297,6 @@ func sortAndValidate(slice []OpeningHour) error {
 
 		if current.EffectiveClose() >= next.EffectiveOpen() {
 			return fmt.Errorf("overlapping time frames %s and %s", current, next)
-		}
-	}
-
-	// make sure we have at most one onCall start per day/night
-	var (
-		foundDay   string
-		foundNight string
-	)
-	for _, iter := range slice {
-		if iter.OnCallStartDay != nil {
-			if foundDay != "" {
-				return fmt.Errorf("OnCallDayStart= defined multiple times in %s and %s", foundDay, iter.ID)
-			}
-			foundDay = iter.ID
-		}
-
-		if iter.OnCallStartNight != nil {
-			if foundNight != "" {
-				return fmt.Errorf("OnCallNightStart= defined multiple times in %s and %s", foundNight, iter.ID)
-			}
-			foundNight = iter.ID
 		}
 	}
 

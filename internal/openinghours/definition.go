@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/ppacher/system-conf/conf"
-	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 )
 
@@ -34,24 +33,7 @@ type Definition struct {
 	// in the format of HH:MM - HH:MM.
 	TimeRanges []string
 
-	// OnCallDayStart defines the time the day-shift for the on-call doctor
-	// starts. This also denotes the end of the previous night shift.
-	// Format is HH:MM in the configured timezone.
-	OnCallDayStart string
-
-	// OnCallNightStart defines the time the night-shift for the on-call doctor
-	// starts. This also denotes the endof the previous day shift.
-	// Format is HH:MM in the configured timezone.
-	OnCallNightStart string
-
-	// Holiday controls whether this setting is in effect on holidays.
 	Holiday string
-
-	// Unofficial can be set to true if the opening hour is unofficial. That is,
-	// the entry door will be opened but no "work shift" is assigned for that specific
-	// time frame and the doctor-on-duty is responsible instead.
-	// TODO(ppacher): rework/rethink this together with tkd/cis#2.
-	Unofficial bool
 }
 
 // Spec describes the different configuration stanzas for the Definition struct.
@@ -135,22 +117,6 @@ var Spec = conf.SectionSpec{
 			),
 		),
 	},
-	{
-		Name:        "OnCallDayStart",
-		Type:        conf.StringType,
-		Description: "Defines the time the day-shift for the on-call doctor starts. This also denotes the end of the prvious night shift. Format is HH:MM in the configured timezone.",
-	},
-	{
-		Name:        "OnCallNightStart",
-		Type:        conf.StringType,
-		Description: "Defines the time the night-shift for the on-call doctor starts. This also denotes the end of the prvious day shift. Format is HH:MM in the configured timezone.",
-	},
-	{
-		Name:        "Unofficial",
-		Type:        conf.BoolType,
-		Description: "can be set to true if the opening hour is unofficial. That is, the entry door will be opened but no 'work shift' is assigned for that specific time frame and the doctor-on-duty is responsible instead.",
-		Default:     "no",
-	},
 }
 
 // Validate validates the opening hours defined in opt.
@@ -159,16 +125,6 @@ func (opt *Definition) Validate() error {
 	for _, day := range opt.OnWeekday {
 		if err := ValidDay(day); err != nil {
 			return err
-		}
-	}
-	if opt.OnCallDayStart != "" {
-		if _, err := daytime.ParseDayTime(opt.OnCallDayStart); err != nil {
-			return fmt.Errorf("OnCallDayStart: %w", err)
-		}
-	}
-	if opt.OnCallNightStart != "" {
-		if _, err := daytime.ParseDayTime(opt.OnCallNightStart); err != nil {
-			return fmt.Errorf("OnCallNightStart: %w", err)
 		}
 	}
 

@@ -63,7 +63,7 @@ export class RosterCardComponent implements OnInit, OnDestroy {
           staff: this.rosterService.getWorkingStaff({
             onCall: true,
             time: Timestamp.fromDate(new Date()),
-            rosterTypeName: this.config.current.OnCallRosterType || 'Tierarzt'
+            rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierarzt'
           }).catch(err => new GetWorkingStaffResponse()),
           shifts: this.workShiftService.listWorkShifts({})
             .catch(() => new ListWorkShiftsResponse())

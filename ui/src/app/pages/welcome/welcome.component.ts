@@ -1,7 +1,9 @@
-import { Component, isDevMode, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, isDevMode, OnDestroy, OnInit } from '@angular/core';
+import { CommentTree } from '@tkd/apis';
 import { Subscription } from 'rxjs';
 import { delay, retryWhen } from 'rxjs/operators';
 import { VoiceMailAPI } from 'src/app/api';
+import { COMMENT_SERVICE } from 'src/app/api/connect_clients';
 import { LayoutService } from 'src/app/services';
 import { ProfileService } from 'src/app/services/profile.service';
 import { HeaderTitleService } from 'src/app/shared/header-title';
@@ -32,7 +34,7 @@ export class WelcomeComponent implements OnInit, OnDestroy {
     private account: ProfileService,
     private voicemailapi: VoiceMailAPI,
     public layout: LayoutService,
-  ) { }
+  ) {}
 
   readonly isDevMode = isDevMode();
 
