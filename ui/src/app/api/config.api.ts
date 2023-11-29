@@ -12,7 +12,7 @@ import {
   throwError,
   timer,
 } from 'rxjs';
-import { delayWhen, map, retryWhen } from 'rxjs/operators';
+import { delayWhen, map, retry, retryWhen } from 'rxjs/operators';
 import { TriggerAPI } from '.';
 import { ProfileService } from '../services/profile.service';
 import { ROLE_SERVICE, USER_SERVICE } from './connect_clients';
@@ -167,24 +167,7 @@ export class ConfigAPI {
     ]).subscribe(() => {
       this.loaddUIConfig()
         .pipe(
-          retryWhen((errors) => {
-            return errors.pipe(
-              delayWhen((err) => {
-                if (!(err instanceof HttpErrorResponse) || err.status !== 401) {
-                  if (!loading) {
-                    loading = this.nzMessageService.loading(
-                      'Trying to load configuration'
-                    );
-                  }
-                  return timer(2000);
-                }
-
-                // this is an access denied error so abort now and wait for the next
-                // profileChange event
-                return throwError('access denied');
-              })
-            );
-          })
+          retry({delay: 10000}),
         )
         .subscribe(
           (cfg) => {
