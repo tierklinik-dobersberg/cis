@@ -113,10 +113,22 @@ export class UserService {
    * Returns a list of user profiles that have roleName.
    *
    * @param roleName The name of the role
+   * @deprecated - use byRoleID to be more explicit
    */
   byRole(roleName: string): Profile[] {
     return Array.from(this.usersByName.values()).filter((user) =>
       user.roles?.find(role => role.id === roleName || role.name == roleName) // FIXME
+    );
+  }
+
+  /**
+   * Returns a list of user profiles that have roleId.
+   *
+   * @param roleId The name of the role
+   */
+  byRoleID(roleId: string): Profile[] {
+    return Array.from(this.usersByName.values()).filter((user) =>
+      user.roles?.find(role => role.id === roleId)
     );
   }
 

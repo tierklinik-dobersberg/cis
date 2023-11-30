@@ -239,7 +239,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
           rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierarzt',
         })
         .catch(err => {
-          console.error(err);
+          console.error("failed to get required shifts", err);
 
           return new GetRequiredShiftsResponse()
         })
@@ -268,9 +268,13 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
 
         let set = new Map<string, Profile>();
 
+        // TODO(ppacher): we could also check for approved offtime-requests and hide those users
         this.availableShifts.forEach(shift =>
-          shift.assignedUserIds.forEach(staff => {
-            set.set(staff, this.userService.byId(staff))
+          shift.definition.eligibleRoleIds.forEach(roleId => {
+            this.userService.byRoleID(roleId)
+              .forEach(profile => {
+                set.set(profile.user.id, profile)
+              })
           }))
 
         // actually get the preferred users.
@@ -283,8 +287,11 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
             if (a.user.username < b.user.username) {
               return -1
             }
+
             return 0
           })
+
+        console.log(this.preferredUsers);
 
         // we just changed the date so the currently selected shift to overwrite
         // might not be available anymore. Better update the overwriteTarget
@@ -590,8 +597,6 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
 
     const shift = this.availableShifts.find(s => s.workShiftId === this.overwriteTarget);
     if (!shift) {
-      debugger;
-
       return
     }
 
