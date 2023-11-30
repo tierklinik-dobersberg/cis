@@ -60,7 +60,7 @@ export class ProfileService {
 
   profile$ = defer(() => from(this.authService.introspect({})))
     .pipe(
-      repeat({delay: 10000}),
+      repeat({delay: 20000}),
       map(response => response.profile!),
       share({connector: () => new BehaviorSubject<Profile | undefined>(undefined)}),
       filter(profile => !!profile),

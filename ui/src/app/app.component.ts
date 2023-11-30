@@ -24,6 +24,7 @@ import {
   delay,
   first,
   mergeMap,
+  repeat,
   retryWhen,
   startWith,
   switchMap
@@ -143,9 +144,9 @@ export class AppComponent implements OnInit {
         this.cdr.markForCheck();
       });
 
-    combineLatest([interval(15000), this.reloadOverwrite$])
+    this.reloadOverwrite$
       .pipe(
-        startWith(-1),
+        repeat({delay: 20000}),
         takeUntilDestroyed(this.destroyRef),
         switchMap(() =>
           this.callService.getOverwrite({

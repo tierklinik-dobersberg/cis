@@ -12,7 +12,7 @@ import {
   throwError,
   timer,
 } from 'rxjs';
-import { delayWhen, map, retry, retryWhen } from 'rxjs/operators';
+import { delayWhen, distinct, distinctUntilChanged, map, retry, retryWhen } from 'rxjs/operators';
 import { TriggerAPI } from '.';
 import { ProfileService } from '../services/profile.service';
 import { ROLE_SERVICE, USER_SERVICE } from './connect_clients';
@@ -112,7 +112,6 @@ export interface TriggerAction {
 }
 
 export interface RosterUIConfig {
-  EligibleRolesForOverwrite: string[];
   AllowAnyUserAsOverwrite: boolean;
   AllowPhoneNumberOverwrite: boolean;
 }
@@ -140,7 +139,10 @@ export class ConfigAPI {
   private reload$ = new BehaviorSubject<void>(undefined);
 
   get change(): Observable<UIConfig | null> {
-    return this.onChange;
+    return this.onChange
+      .pipe(
+        distinctUntilChanged((prev, cur) => JSON.stringify(prev) === JSON.stringify(cur))
+      )
   }
 
   get current(): UIConfig | null {
@@ -162,8 +164,13 @@ export class ConfigAPI {
   ) {
     let loading: NzMessageRef | null = null;
     combineLatest([
-      this.profileService.profile$,
+      this.profileService.profile$
+        .pipe(
+          map(profile => profile?.user?.id),
+          distinctUntilChanged(),
+        ),
       this.reload$,
+
     ]).subscribe(() => {
       this.loaddUIConfig()
         .pipe(

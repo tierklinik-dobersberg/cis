@@ -12,7 +12,7 @@ import {
   inject
 } from '@angular/core';
 import { PartialMessage, Timestamp } from '@bufbuild/protobuf';
-import { GetWorkingStaffResponse, PlannedShift, Profile, RequiredShift, WorkShift } from '@tkd/apis';
+import { GetRequiredShiftsResponse, GetWorkingStaffResponse, PlannedShift, Profile, RequiredShift, WorkShift } from '@tkd/apis';
 import { CreateOverwriteRequest, GetOverwriteResponse, Overwrite } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
@@ -223,12 +223,27 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
           onCall: true,
           time: Timestamp.fromDate(from),
           rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierarzt',
+        })
+        .catch(err => {
+          const cerr = ConnectError.from(err);
+          if (cerr.code !== Code.NotFound) {
+            console.error(cerr)
+          }
+
+          return new GetWorkingStaffResponse();
         }),
+
       this.rosterService.getRequiredShifts({
-        from: toDateString(from),
-        to: toDateString(to),
-        rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierarzt',
-      })
+          from: toDateString(from),
+          to: toDateString(to),
+          rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierarzt',
+        })
+        .catch(err => {
+          console.error(err);
+
+          return new GetRequiredShiftsResponse()
+        })
+
     ])
       .then(([response, shifts]) => {
         this.availableShifts = shifts.requiredShifts.map(rs => {
@@ -252,6 +267,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
         })
 
         let set = new Map<string, Profile>();
+
         this.availableShifts.forEach(shift =>
           shift.assignedUserIds.forEach(staff => {
             set.set(staff, this.userService.byId(staff))
