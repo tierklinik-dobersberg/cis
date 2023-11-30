@@ -49,17 +49,9 @@ var UISpec = conf.SectionSpec{
 
 var RosterUISpec = conf.SectionSpec{
 	{
-		Name:        "EligibleRolesForOverwrite",
-		Type:        conf.StringSliceType,
-		Description: "A list of role names that are eligible for roster overwrites",
-		Annotations: new(conf.Annotation).With(
-			runtime.OneOfRoles,
-		),
-	},
-	{
 		Name:        "AllowAnyUserAsOverwrite",
 		Type:        conf.BoolType,
-		Description: "Whether or not all users should be eligible for roster overwrites. if true, EligibleRolesForOverwrite will be used as a preference only.",
+		Description: "Whether or not all users should be eligible for roster overwrites",
 		Default:     "yes",
 	},
 	{
