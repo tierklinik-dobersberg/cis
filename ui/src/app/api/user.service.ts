@@ -145,6 +145,10 @@ export class UserService {
       phoneExtension.forEach((ext) => {
         const prop = profile.user?.extra?.fields[ext];
 
+        if (!prop) {
+          return;
+        }
+
         if (prop.kind.case === 'stringValue' || prop.kind.case === 'numberValue') {
           const value = `${prop.kind.value}`;
           if (!!value) {
