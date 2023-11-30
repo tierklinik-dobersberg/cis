@@ -62,7 +62,6 @@ export class SettingTestComponent implements OnInit {
       )
       .subscribe({
         next: (res) => {
-          console.log(res);
           if (!!res?.error) {
             this.testState = res.error;
           } else {

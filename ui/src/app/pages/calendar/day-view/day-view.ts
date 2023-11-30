@@ -677,7 +677,6 @@ export class DayViewComponent implements OnInit, OnDestroy {
 
             this.ngZone.onStable.pipe(take(1))
               .subscribe(() => {
-                console.log(`scrolling to ${offset}`, this.scrollable.nativeElement)
                 this.scrollable.nativeElement.scrollTo({
                   top: offset,
                   behavior: 'smooth'
@@ -718,7 +717,6 @@ export class DayViewComponent implements OnInit, OnDestroy {
               event.fontColor = getContrastFontColor(event.color);
             }
             stack.push(event);
-            console.log(cal.calendar.name, event.event.summary, stack);
           }
         })
       })

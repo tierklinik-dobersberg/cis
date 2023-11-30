@@ -269,13 +269,25 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
         let set = new Map<string, Profile>();
 
         // TODO(ppacher): we could also check for approved offtime-requests and hide those users
-        this.availableShifts.forEach(shift =>
+        this.availableShifts.forEach(shift => {
+          // use all users assigned to this shift.
+          if (shift.assignedUserIds?.length > 0) {
+            shift.assignedUserIds.forEach(userId => {
+              set.set(userId, this.userService.byId(userId)!)
+            })
+
+            return
+          }
+
+          // if there are not assigned users for this shift,
+          // use all eligible ones
           shift.definition.eligibleRoleIds.forEach(roleId => {
             this.userService.byRoleID(roleId)
               .forEach(profile => {
                 set.set(profile.user.id, profile)
               })
-          }))
+          })
+        })
 
         // actually get the preferred users.
         this.preferredUsers = Array.from(set.values())
@@ -290,8 +302,6 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
 
             return 0
           })
-
-        console.log(this.preferredUsers);
 
         // we just changed the date so the currently selected shift to overwrite
         // might not be available anymore. Better update the overwriteTarget
@@ -549,7 +559,6 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe((state) => {
-        console.log("overlapping", state.overlapping)
         this.overlapping = state.overlapping.overwrites
         this.cdr.markForCheck();
       });

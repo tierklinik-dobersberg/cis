@@ -34,7 +34,6 @@ export class ColorService {
 
         this.colors = Array.from(colors);
         this.byName = byName;
-        console.log(this.colors);
     }
 
     byIndex(i: number): string {

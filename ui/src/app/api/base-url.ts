@@ -21,7 +21,6 @@ function joinPaths(base: string, path: string): string {
 export class BaseURLInjector implements HttpInterceptor {
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         if (!req.url.startsWith("http") && !!environment.baseURL) {
-            console.log(`updating call to ${req.url} to ${joinPaths(environment.baseURL, req.url)}`)
             req = req.clone({
                 url: joinPaths(environment.baseURL, req.url),
                 withCredentials: true

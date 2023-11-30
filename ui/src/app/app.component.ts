@@ -267,8 +267,9 @@ export class AppComponent implements OnInit {
 
     this.subMenus = Array.from(menus.values());
     this.voice.listMailboxes().subscribe((mailboxes) => {
-      console.log(mailboxes);
       this.mailboxes = mailboxes;
+
+      this.cdr.markForCheck();
     });
   }
 }

@@ -186,7 +186,6 @@ export class ConfigAPI {
             // finally, notify all other subscribes of UI config
             // changes.
             this.onChange.next(cfg);
-            console.log(cfg);
           },
           (err) => {}
         );

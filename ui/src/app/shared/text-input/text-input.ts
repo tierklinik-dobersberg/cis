@@ -52,8 +52,6 @@ export class TextInputComponent implements OnDestroy, OnInit, ControlValueAccess
         {
           marker: '@',
           feed: (queryText: string) => {
-            console.log("query-text for mention: " + queryText);
-
             return firstValueFrom(this.userService.users
               .pipe(
                 map(users => {

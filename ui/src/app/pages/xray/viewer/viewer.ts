@@ -134,7 +134,6 @@ export class ViewerComponent implements OnInit, OnDestroy {
   }
 
   displayProgress(percent: number): void {
-    console.log(percent);
     this.loadProgress = percent;
     this.changeDetector.detectChanges();
   }

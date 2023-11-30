@@ -180,8 +180,6 @@ export class TriggerViewComponent implements OnInit, OnDestroy {
           this.trigger.actions = [...this.trigger.actions, newAction];
         }
 
-        console.log(this.trigger);
-
         this.cdr.markForCheck();
       },
       nzOnCancel: () => {},
