@@ -56,7 +56,7 @@
         <td>{{ data.entry.duration | duration }}</td>
         <td>
           <span *ngIf="!!data.entry.agentUserId" nz-tooltip [nzTooltipTitle]="data.entry.transferTarget">
-            {{ data.entry.agentUserId | toUser | displayName }}
+            {{ data.entry.agentUserId ? (data.entry.agentUserId | toUser | displayName) : data.entry.acceptedAgent }}
           </span>
           <span *ngIf="data.entry.transferTarget" class="transfer-target">
             (via
