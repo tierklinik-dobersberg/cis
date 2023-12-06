@@ -1,5 +1,5 @@
 import { Layout } from 'src/app/api/infoscreen.api';
-import { ConnectError } from '@bufbuild/connect';
+import { ConnectError } from '@connectrpc/connect';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import { MatBottomSheet, MatBottomSheetRef } from '@angular/material/bottom-sheet';
@@ -16,7 +16,7 @@ import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, toDateString, toggleRouteQueryParamFunc } from 'src/app/utils';
 import { customerTagColor, ExtendedCustomer, getMapsRouteUrl } from '../utils';
 import { CALL_SERVICE } from 'src/app/api/connect_clients';
-import { CallEntry, GetLogsForCustomerResponse } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
+import { CallEntry, GetLogsForCustomerResponse } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 
 @Component({
   templateUrl: './customer-view.html',

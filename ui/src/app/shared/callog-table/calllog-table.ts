@@ -8,8 +8,8 @@ import {
   Output,
   TrackByFunction,
 } from '@angular/core';
-import { Profile } from '@tkd/apis';
-import { CallEntry } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
+import { Profile } from '@tierklinik-dobersberg/apis';
+import { CallEntry } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { sum } from 'ng-zorro-antd/core/util';
 import {
   BehaviorSubject,

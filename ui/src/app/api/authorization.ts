@@ -1,8 +1,8 @@
 import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { createPromiseClient } from '@bufbuild/connect';
-import { AuthService } from '@tkd/apis';
+import { createPromiseClient } from '@connectrpc/connect';
+import { AuthService } from '@tierklinik-dobersberg/apis';
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';

@@ -10,7 +10,7 @@ import { InfoScreenAPI, Layout, Show, Slide, Variable } from "src/app/api/infosc
 import { HeaderTitleService } from "src/app/shared/header-title";
 import { extractErrorMessage } from "src/app/utils";
 import { Duration } from "src/utils/duration";
-import ClassicEditor from '@tkd/ckeditor-build'
+import ClassicEditor from '@tierklinik-dobersberg/ckeditor-build'
 
 
 interface SlideModel extends Slide {

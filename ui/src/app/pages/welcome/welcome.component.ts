@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, inject, isDevMode, OnDestroy, OnInit } from '@angular/core';
-import { CommentTree } from '@tkd/apis';
+import { CommentTree } from '@tierklinik-dobersberg/apis';
 import { Subscription } from 'rxjs';
 import { delay, retryWhen } from 'rxjs/operators';
 import { VoiceMailAPI } from 'src/app/api';

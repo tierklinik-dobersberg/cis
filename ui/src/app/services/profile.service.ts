@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import { Profile, User } from "@tkd/apis";
+import { Profile, User } from "@tierklinik-dobersberg/apis";
 import { BehaviorSubject, Observable, defer, filter, from, map, repeat, share } from "rxjs";
 import { environment } from "src/environments/environment";
 import { AUTH_SERVICE } from "../api/connect_clients";

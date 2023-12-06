@@ -1,1 +1,1 @@
-export * from '@tkd/angular/connect';
+export * from '@tierklinik-dobersberg/angular/connect';

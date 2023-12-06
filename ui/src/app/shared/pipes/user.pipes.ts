@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from "@angular/core";
-import { Profile } from "@tkd/apis";
+import { Profile } from "@tierklinik-dobersberg/apis";
 import { getUserColor } from "src/app/services/profile.service";
 import { getContrastFontColor } from "src/app/utils";
 

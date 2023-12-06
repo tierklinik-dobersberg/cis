@@ -1,11 +1,11 @@
 import { Timestamp } from '@bufbuild/protobuf';
-import { ConnectError, Code } from '@bufbuild/connect';
+import { ConnectError, Code } from '@connectrpc/connect';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from "@angular/core";
-import { GetVacationCreditsLeftResponse, OffTimeType, UserVacationSum } from "@tkd/apis";
+import { GetVacationCreditsLeftResponse, OffTimeType, UserVacationSum } from "@tierklinik-dobersberg/apis";
 import { OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { ProfileService } from "src/app/services/profile.service";
 import { LayoutService } from 'src/app/services';
-import ClassicEditor from '@tkd/ckeditor-build';
+import ClassicEditor from '@tierklinik-dobersberg/ckeditor-build';
 import { Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
 

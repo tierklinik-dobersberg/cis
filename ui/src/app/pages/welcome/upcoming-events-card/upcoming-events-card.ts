@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TrackByFunction, inject } from '@angular/core';
-import { Calendar, CalendarEvent, CalendarEventList, Profile, } from '@tkd/apis';
+import { Calendar, CalendarEvent, CalendarEventList, Profile, } from '@tierklinik-dobersberg/apis';
 import { BehaviorSubject, Subscription, combineLatest, from, interval, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, startWith } from 'rxjs/operators';
 import { UserService } from 'src/app/api';

@@ -6,7 +6,7 @@ import { firstValueFrom, map, Subject } from "rxjs";
 import { UserService } from 'src/app/api';
 import { UserNamePipe } from "../pipes";
 
-import ClassicEditor from "@tkd/ckeditor-build"
+import ClassicEditor from "@tierklinik-dobersberg/ckeditor-build"
 
 
 export type FormatType = 'plain' | 'html' | 'markdown';

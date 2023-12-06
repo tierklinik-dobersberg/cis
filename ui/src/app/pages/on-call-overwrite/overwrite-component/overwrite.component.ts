@@ -1,4 +1,4 @@
-import { ConnectError, Code } from '@bufbuild/connect';
+import { ConnectError, Code } from '@connectrpc/connect';
 import { animate, style, transition, trigger } from '@angular/animations';
 import {
   ChangeDetectionStrategy,
@@ -12,8 +12,8 @@ import {
   inject
 } from '@angular/core';
 import { PartialMessage, Timestamp } from '@bufbuild/protobuf';
-import { GetRequiredShiftsResponse, GetWorkingStaffResponse, PlannedShift, Profile, RequiredShift, WorkShift } from '@tkd/apis';
-import { CreateOverwriteRequest, GetOverwriteResponse, Overwrite } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
+import { GetRequiredShiftsResponse, GetWorkingStaffResponse, PlannedShift, Profile, RequiredShift, WorkShift } from '@tierklinik-dobersberg/apis';
+import { CreateOverwriteRequest, GetOverwriteResponse, Overwrite } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import {

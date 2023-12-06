@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@angular/core';
-import { Profile } from '@tkd/apis';
+import { Profile } from '@tierklinik-dobersberg/apis';
 import {
   BehaviorSubject,
   Observable,

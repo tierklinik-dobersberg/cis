@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnDestroy, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { GetVacationCreditsLeftResponse, Profile, UserVacationSum } from '@tkd/apis';
+import { GetVacationCreditsLeftResponse, Profile, UserVacationSum } from '@tierklinik-dobersberg/apis';
 import { Observable, Subject, forkJoin, interval } from 'rxjs';
 import { map, mergeMap, startWith, takeUntil } from 'rxjs/operators';
 import { VoiceMailAPI } from 'src/app/api';

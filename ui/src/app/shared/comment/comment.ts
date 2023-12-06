@@ -1,7 +1,7 @@
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { CommentTree } from '@tkd/apis';
+import { CommentTree } from '@tierklinik-dobersberg/apis';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { COMMENT_SERVICE } from 'src/app/api/connect_clients';
 import { extractErrorMessage } from 'src/app/utils';

@@ -1,6 +1,6 @@
 import { Timestamp } from '@bufbuild/protobuf';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { CallEntry } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
+import { CallEntry } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { BehaviorSubject, Subscription, combineLatest, interval } from 'rxjs';
 import { mergeMap, startWith } from 'rxjs/operators';
 import { UserService } from 'src/app/api';

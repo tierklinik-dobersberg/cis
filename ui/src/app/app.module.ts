@@ -30,7 +30,7 @@ import { AppComponent } from './app.component';
 import { IconsProviderModule } from './icons-provider.module';
 import { SharedModule } from './shared/shared.module';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
-import { TkdConnectModule, CONNECT_CONFIG } from '@tkd/angular/connect';
+import { TkdConnectModule, CONNECT_CONFIG } from '@tierklinik-dobersberg/angular/connect';
 
 registerLocaleData(de);
 

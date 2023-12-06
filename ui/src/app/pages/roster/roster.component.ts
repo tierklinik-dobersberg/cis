@@ -1,8 +1,8 @@
-import { ConnectError, Code } from '@bufbuild/connect';
+import { ConnectError, Code } from '@connectrpc/connect';
 import { Timestamp } from '@bufbuild/protobuf';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from "@angular/core";
 import { CALENDAR_SERVICE, HOLIDAY_SERVICE, OFFTIME_SERVICE, ROSTER_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
-import { AnalyzeWorkTimeResponse, Calendar, CalendarEvent, FindOffTimeRequestsResponse, GetHolidayResponse, GetOffTimeCostsResponse, GetUserShiftsResponse, GetVacationCreditsLeftResponse, GetWorkTimeResponse, ListEventsResponse, OffTimeCostSummary, OffTimeEntry, PlannedShift, PublicHoliday, UserVacationSum, WorkShift, WorkTime, WorkTimeAnalysis } from '@tkd/apis';
+import { AnalyzeWorkTimeResponse, Calendar, CalendarEvent, FindOffTimeRequestsResponse, GetHolidayResponse, GetOffTimeCostsResponse, GetUserShiftsResponse, GetVacationCreditsLeftResponse, GetWorkTimeResponse, ListEventsResponse, OffTimeCostSummary, OffTimeEntry, PlannedShift, PublicHoliday, UserVacationSum, WorkShift, WorkTime, WorkTimeAnalysis } from '@tierklinik-dobersberg/apis';
 import { toDateString } from 'src/app/utils';
 import { ProfileService } from 'src/app/services/profile.service';
 import { HeaderTitleService } from 'src/app/shared/header-title';

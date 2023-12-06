@@ -1,12 +1,12 @@
-import ClassicEditor from "@tkd/ckeditor-build"
+import ClassicEditor from "@tierklinik-dobersberg/ckeditor-build"
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { Timestamp } from '@bufbuild/protobuf';
-import { ConnectError, Code } from '@bufbuild/connect';
+import { ConnectError, Code } from '@connectrpc/connect';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, TrackByFunction, inject } from "@angular/core";
 import { COMMENT_SERVICE, OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { ProfileService } from "src/app/services/profile.service";
 import { HeaderTitleService } from "src/app/shared/header-title";
-import { CommentTree, FindOffTimeRequestsResponse, GetVacationCreditsLeftResponse, ListCommentsResponse, OffTimeEntry, OffTimeType, UserVacationSum } from '@tkd/apis';
+import { CommentTree, FindOffTimeRequestsResponse, GetVacationCreditsLeftResponse, ListCommentsResponse, OffTimeEntry, OffTimeType, UserVacationSum } from '@tierklinik-dobersberg/apis';
 import { LayoutService } from 'src/app/services';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { ConfigAPI } from 'src/app/api';

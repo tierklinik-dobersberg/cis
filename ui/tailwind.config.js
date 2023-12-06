@@ -1,1 +1,1 @@
-module.exports = require("@tkd/tailwind")
+module.exports = require("@tierklinik-dobersberg/tailwind")

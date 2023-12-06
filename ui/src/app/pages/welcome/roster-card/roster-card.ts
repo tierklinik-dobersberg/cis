@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import { Timestamp } from '@bufbuild/protobuf';
-import { GetWorkingStaffResponse, ListWorkShiftsResponse, PlannedShift, Profile, WorkShift } from '@tkd/apis';
+import { GetWorkingStaffResponse, ListWorkShiftsResponse, PlannedShift, Profile, WorkShift } from '@tierklinik-dobersberg/apis';
 import { BehaviorSubject, Subscription, combineLatest, forkJoin, interval } from 'rxjs';
 import { mergeMap, startWith } from 'rxjs/operators';
 import { ConfigAPI, UserService } from 'src/app/api';

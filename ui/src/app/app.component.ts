@@ -13,10 +13,10 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
-import { Code, ConnectError } from '@bufbuild/connect';
+import { Code, ConnectError } from '@connectrpc/connect';
 import { Timestamp } from '@bufbuild/protobuf';
-import { Profile } from '@tkd/apis';
-import { GetOverwriteResponse } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
+import { Profile } from '@tierklinik-dobersberg/apis';
+import { GetOverwriteResponse } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { BehaviorSubject, combineLatest, interval } from 'rxjs';

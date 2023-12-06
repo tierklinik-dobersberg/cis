@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction, inject } from '@angular/core';
-import { Code, ConnectError } from '@bufbuild/connect';
-import { GetOnCallResponse, OnCall } from '@tkd/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
+import { Code, ConnectError } from '@connectrpc/connect';
+import { GetOnCallResponse, OnCall } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { Subscription, interval } from 'rxjs';
 import { delay, mergeMap, retryWhen, startWith } from 'rxjs/operators';
 import {
