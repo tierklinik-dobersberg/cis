@@ -1,7 +1,7 @@
 
 # Build the frontend
 FROM node:16 as builder
-ARG CONFIGURATION="staging"
+ARG CONFIGURATION="production"
 ARG GITHUB_TOKEN
 
 WORKDIR /app/ui

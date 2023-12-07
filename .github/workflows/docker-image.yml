@@ -31,4 +31,7 @@ jobs:
             "github_token=${{ secrets.GITHUB_TOKEN }}"  
           tags: |
             ghcr.io/tierklinik-dobersberg/cis-cisd:latest
+          build-args: |
+            CONFIGURATION=production
+          
   
