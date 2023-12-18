@@ -61,9 +61,7 @@ export class RosterCardComponent implements OnInit, OnDestroy {
 
         mergeMap(() => forkJoin({
           staff: this.rosterService.getWorkingStaff({
-            onCall: true,
             time: Timestamp.fromDate(new Date()),
-            rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierarzt'
           }).catch(err => new GetWorkingStaffResponse()),
           shifts: this.workShiftService.listWorkShifts({})
             .catch(() => new ListWorkShiftsResponse())
