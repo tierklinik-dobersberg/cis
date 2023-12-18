@@ -11,7 +11,7 @@
 <ng-template #userGroupTemplate let-data>
   <nz-avatar-group>
     <ng-container *ngFor="let user of data">
-      <nz-avatar nzIcon="user" [nzSrc]="(user | toUser)?.user.avatar" [nzSize]="48"
+      <nz-avatar [nz-tooltip]="(user | toUser | displayName)" nzIcon="user" [nzSrc]="(user | toUser)?.user.avatar" [nzSize]="48"
         (mouseenter)="userHover.next(user)" (mouseleave)="userHover.next('')" (click)="userClicked(user)">
       </nz-avatar>
     </ng-container>

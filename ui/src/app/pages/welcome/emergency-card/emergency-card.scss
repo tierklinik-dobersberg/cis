@@ -26,10 +26,11 @@ nz-card {
 
 .header {
   margin-bottom: 6px;
-  display: block;
   text-transform: uppercase;
   color: gray;
   position: relative;
+
+  @apply flex flex-row justify-between items-center;
 }
 
 .on-duty-container {

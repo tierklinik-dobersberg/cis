@@ -20,10 +20,10 @@
         <span [nzTooltipTitle]="'bis ' + (onCall.until?.toDate() | date:'short')"
           nz-tooltip><u>{{
             onCall.profile?.user?.id | toUser | displayName }}</u></span>
-        <span class="phone">
+        <a class="phone" [attr.href]="'tel:' + onCall.transferTarget">
           <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
           {{ onCall.transferTarget }}
-        </span>
+        </a>
       </div>
     </ng-container>
 

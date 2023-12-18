@@ -2,10 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { Code, ConnectError } from '@connectrpc/connect';
 import { GetOnCallResponse, OnCall } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { Subscription, interval } from 'rxjs';
-import { delay, mergeMap, retryWhen, startWith } from 'rxjs/operators';
-import {
-  UserService
-} from 'src/app/api';
+import { delay, mergeMap, retry, startWith } from 'rxjs/operators';
 import { CALL_SERVICE } from 'src/app/api/connect_clients';
 
 @Component({
@@ -15,8 +12,10 @@ import { CALL_SERVICE } from 'src/app/api/connect_clients';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EmergencyCardComponent implements OnInit, OnDestroy {
+  private readonly callService = inject(CALL_SERVICE);
+  private readonly changeDetector  = inject(ChangeDetectorRef);
+
   private subscriptions = Subscription.EMPTY;
-  private callService = inject(CALL_SERVICE);
 
   onDuty: GetOnCallResponse | null = null;
 
@@ -24,10 +23,6 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
 
   trackBy: TrackByFunction<OnCall> = (_: number, item: OnCall) => item.transferTarget;
 
-  constructor(
-    private userService: UserService,
-    private changeDetector: ChangeDetectorRef,
-  ) { }
 
   get canSetOverwrite(): boolean {
     return true;
@@ -48,7 +43,7 @@ export class EmergencyCardComponent implements OnInit, OnDestroy {
               throw err
             })
         ),
-        retryWhen(errors => errors.pipe(delay(5000))),
+        retry({delay: 5000}),
       )
       .subscribe({
         next: result => {
