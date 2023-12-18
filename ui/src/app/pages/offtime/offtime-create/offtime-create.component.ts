@@ -8,6 +8,9 @@ import { LayoutService } from 'src/app/services';
 import ClassicEditor from '@tierklinik-dobersberg/ckeditor-build';
 import { Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { toDateString } from 'src/app/utils';
+
+const dateForDateTimeInputValue = date => new Date(date.getTime() + date.getTimezoneOffset() * -60 * 1000).toISOString().slice(0, 19);
 
 @Component({
   templateUrl: './offtime-create.component.html',
@@ -30,6 +33,35 @@ export class OffTimeCreateComponent implements OnInit {
   offTimeType: 'auto' | 'vacation' | 'timeoff' = 'auto';
   showTime = false;
   dateRange: [Date, Date] | null = null;
+
+  from: string = '';
+  to: string = '';
+
+  toggleShowTime() {
+    this.showTime = !this.showTime;
+
+    if (this.from) {
+      let from = new Date(this.from);
+
+      if (this.showTime) {
+        from = new Date(from.getFullYear(), from.getMonth(), from.getDate(), 0, 0, 0)
+      }
+
+      this.from = this.showTime ? dateForDateTimeInputValue(from) : toDateString(from);
+    }
+
+    if (this.to) {
+      let to = new Date(this.to);
+
+      if (this.showTime) {
+        to = new Date(to.getFullYear(), to.getMonth(), to.getDate()+1, 0, 0, -1)
+      }
+
+      this.to = this.showTime ? dateForDateTimeInputValue(to) : toDateString(to);
+    }
+
+    this.cdr.markForCheck();
+  }
 
   ngOnInit() {
     const endOfYear = new Date(new Date().getFullYear()+1, 0, 1, 0, 0, 0, -1)
@@ -56,6 +88,10 @@ export class OffTimeCreateComponent implements OnInit {
   }
 
   createRequest() {
+    if (!this.dateRange) {
+      this.dateRange = [ new Date(this.from) , new Date(this.to) ];
+    }
+
     let [from, to] = this.dateRange;
 
     if (!this.showTime) {

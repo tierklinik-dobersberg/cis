@@ -1,9 +1,8 @@
 <div class="bg-white rounded shadow">
-  <div class="flex flex-row justify-between items-center p-4 border-b sm:p-6 md:p-8 border-tertiary"
-    *ngIf="layout.isTabletPortraitUp">
+  <div class="flex flex-row justify-between items-center p-4 border-b sm:p-6 md:p-8 border-tertiary">
     <div>
       <h1 class="text-lg text-lato text-color-primary">Antrag auf Urlaub/Zeitausgleich</h1>
-      <span class="text-secondary" *ngIf="vacation">
+      <span class="text-secondary" *ngIf="vacation && layout.isTabletPortraitUp">
         Bis zum Ende des Jahres hast du noch
         <span [ngClass]="{
           'text-alert-green-dark': vacation.vacationCreditsLeft.seconds > 0,
@@ -23,31 +22,55 @@
     </div>
   </div>
 
-  <div class="flex flex-col gap-4">
+  <form class="flex flex-col" (ngSubmit)="createRequest()" #requestForm="ngForm">
+    <div class="border-b border-tertiary p-4 flex flex-col gap-3 justify-start items-start relative pl-16">
+      <label class="absolute left-0 top-0 p-2 bg-subtle w-12 flex flex-col items-center justify-center bottom-0 text-xl text-color-primary">1.</label>
 
-    <div class="border-b border-tertiary p-4 flex flex-col gap-2 justify-start items-start">
-      <label class="text-secondary text-sm">Zeitraum:</label>
-      <label nz-checkbox [ngModel]="!showTime" (ngModelChange)="showTime = !$event">Ganze Tage</label>
-      <nz-range-picker [(ngModel)]="dateRange" [nzShowTime]="showTime"></nz-range-picker>
+      <label class="text-secondary text-sm">Bitte wähle den gewünschten Zeitraum:</label>
+      <label nz-checkbox name="wholeDays" [ngModel]="!showTime" (ngModelChange)="toggleShowTime()">Ganze Tage</label>
+
+      <!-- Date-range picker on Desktop -->
+      <ng-container *ngIf="layout.isTabletPortraitUp">
+        <nz-range-picker [(ngModel)]="dateRange" [nzShowTime]="showTime" required name="daterange"></nz-range-picker>
+      </ng-container>
+
+      <!-- Mobile "date-range" picker -->
+      <ng-container *ngIf="!layout.isTabletPortraitUp">
+        <div class="flex flex-col gap-1 w-full">
+          <label class="text-secondary text-sm">Von</label>
+          <input [attr.type]="showTime ? 'datetime-local' : 'date'" required class="tkd-input" name="from" [(ngModel)]="from">
+        </div>
+
+        <div class="flex flex-col gap-1 w-full">
+          <label class="text-secondary text-sm">Bis</label>
+          <input [attr.type]="showTime ? 'datetime-local' : 'date'" required class="tkd-input" name="to" [(ngModel)]="to">
+        </div>
+      </ng-container>
     </div>
 
-    <div class="border-b border-tertiary p-4 flex flex-col gap-2 justify-start items-start">
-      <label class="text-secondary text-sm">Beschreibung</label>
-      <ckeditor [editor]="Editor" [(ngModel)]="description"></ckeditor>
+    <div class="border-b border-tertiary p-4 flex flex-col gap-3 justify-start items-start relative pl-16">
+      <label class="absolute left-0 top-0 p-2 bg-subtle w-12 flex flex-col items-center justify-center bottom-0 text-xl text-color-primary">2.</label>
+
+      <label class="text-secondary text-sm">Hier kannst du eine zusätzliche Beschreibung angeben:</label>
+      <ckeditor class="max-w-full w-full" [editor]="Editor" [(ngModel)]="description" name="description"></ckeditor>
     </div>
 
-    <div class="border-b border-tertiary p-4 flex flex-col gap-2 justify-start items-start">
-      <label class="text-secondary text-sm">Antragsart</label>
-      <nz-select [(ngModel)]="offTimeType">
+    <div class="border-b border-tertiary p-4 flex flex-col gap-3 justify-start items-start relative pl-16">
+      <label class="absolute left-0 top-0 p-2 bg-subtle w-12 flex flex-col items-center justify-center bottom-0 text-xl text-color-primary">3.</label>
+
+      <label class="text-secondary text-sm">Bitte wähle die Antragsart:</label>
+      <nz-select [(ngModel)]="offTimeType" required name="type">
         <nz-option nzLabel="Beliebig" nzValue="auto"></nz-option>
         <nz-option nzLabel="Urlaub" nzValue="vacation"></nz-option>
         <nz-option nzLabel="Zeitausgleich" nzValue="timeoff"></nz-option>
       </nz-select>
     </div>
 
-    <div class="border-b border-tertiary p-4 flex flex-col gap-2 justify-start items-start">
-      <button class="tkd-btn tkd-primary" (click)="createRequest()">Antrag erstellen</button>
+    <div class="border-b border-tertiary p-4 flex flex-col gap-2 justify-start items-start relative pl-16">
+      <label class="absolute left-0 top-0 p-2 bg-subtle w-12 flex flex-col items-center justify-center bottom-0 text-xl text-color-primary">4.</label>
+
+      <button class="tkd-btn tkd-primary" type="submit" [disabled]="requestForm.invalid">Antrag erstellen</button>
     </div>
 
-  </div>
+  </form>
 </div>

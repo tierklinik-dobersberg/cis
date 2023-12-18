@@ -6,6 +6,7 @@ import { OffTimeListComponent } from "./offtime-list/offtime-list.component";
 import { OffTimeCreateComponent } from './offtime-create/offtime-create.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   imports: [
@@ -14,6 +15,7 @@ import { NzDrawerModule } from 'ng-zorro-antd/drawer';
     NzMessageModule,
     NzDrawerModule,
     MarkdownModule,
+    FormsModule,
   ],
   declarations: [
     OffTimeListComponent,
