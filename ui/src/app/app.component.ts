@@ -153,7 +153,7 @@ export class AppComponent implements OnInit {
     // polling for updates with `interval()`.
     const appIsStable$ = this.appRef.isStable.pipe(first(isStable => isStable === true));
     const everySixHours$ = interval( 60 * 60 * 1000)
-      .pipe(startWith(-));
+      .pipe(startWith(-1));
 
     const everyHourOnceAppIsStable$ = concat(appIsStable$, everySixHours$);
 
