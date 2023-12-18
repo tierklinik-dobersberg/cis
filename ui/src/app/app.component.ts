@@ -19,13 +19,13 @@ import { Profile } from '@tierklinik-dobersberg/apis';
 import { GetOverwriteResponse } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { BehaviorSubject, combineLatest, interval } from 'rxjs';
+import { BehaviorSubject, combineLatest, concat, interval } from 'rxjs';
 import {
   delay,
   first,
   mergeMap,
   repeat,
-  retryWhen,
+  retry,
   startWith,
   switchMap
 } from 'rxjs/operators';
@@ -135,6 +135,43 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
 
+    this.updates.versionUpdates.subscribe(evt => {
+      switch (evt.type) {
+        case 'VERSION_DETECTED':
+          this.nzMessage.info(`Downloading new app version: ${evt.version.hash}`);
+          break;
+        case 'VERSION_READY':
+          this.nzMessage.info(`New app version ready for use: ${evt.latestVersion.hash}. Please reload the page`);
+          break;
+        case 'VERSION_INSTALLATION_FAILED':
+          this.nzMessage.error(`Failed to install app version '${evt.version.hash}': ${evt.error}`);
+          break;
+      }
+    });
+
+        // Allow the app to stabilize first, before starting
+    // polling for updates with `interval()`.
+    const appIsStable$ = this.appRef.isStable.pipe(first(isStable => isStable === true));
+    const everySixHours$ = interval( 60 * 60 * 1000);
+    const everyHourOnceAppIsStable$ = concat(appIsStable$, everySixHours$);
+
+    everyHourOnceAppIsStable$.subscribe(async () => {
+      try {
+        const updateFound = await this.updates.checkForUpdate();
+        console.log(updateFound ? 'A new version is available.' : 'Already on the latest version.');
+      } catch (err) {
+        console.error('Failed to check for updates:', err);
+      }
+    });
+
+    this.updates.unrecoverable.subscribe(event => {
+      this.nzMessage.error(
+        'An error occurred that we cannot recover from:' +
+        event.reason +
+        ' Please reload the page.'
+      );
+    });
+
     // watch the user profile.
     this.profileService
       .profile$
@@ -194,23 +231,6 @@ export class AppComponent implements OnInit {
         this.isCollapsed = !params.has('show-menu');
       });
 
-    this.updates.activated.subscribe((event) => {
-      this.nzMessage.info(
-        'Gratuliere! Du verwendest nun die neuste Version von CIS'
-      );
-    });
-
-    if (!isDevMode()) {
-      this.appRef.isStable
-        .pipe(
-          first((stable) => !!stable),
-          mergeMap(() => interval(10 * 60 * 1000).pipe(startWith(-1)))
-        )
-        .subscribe(() => {
-          this.updates.checkForUpdate();
-        });
-    }
-
     this.configapi.change
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cfg) => this.applyConfig(cfg));
@@ -225,10 +245,12 @@ export class AppComponent implements OnInit {
     this.http
       .get('/api/')
       .pipe(
-        retryWhen((d) => {
-          this.isReachable = false;
-          this.modal.closeAll();
-          return d.pipe(delay(2000));
+        retry({
+          delay: (d) => {
+            this.isReachable = false;
+            this.modal.closeAll();
+            return d.pipe(delay(2000));
+          }
         })
       )
       .subscribe({
