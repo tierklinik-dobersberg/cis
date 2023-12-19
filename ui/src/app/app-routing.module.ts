@@ -1,6 +1,7 @@
 import { NgModule, Type } from '@angular/core';
 import { RouterModule, Routes, CanActivateFn } from '@angular/router';
-import { UsersReadyGuard } from './guards';
+import { ComputerAccountGuard, UsersReadyGuard } from './guards';
+import { NotAllowedComponent } from './pages/not-allowed';
 
 const canActivate: Type<{
     canActivate: CanActivateFn;
@@ -21,7 +22,9 @@ const routes: Routes = [
   { canActivate, path: 'infoscreen', loadChildren: () => import('./pages/infoscreen/infoscreen.module').then(m => m.InfoScreenModule) },
   { canActivate, path: 'statistics', loadChildren: () => import('./pages/stats/stats.module').then(m => m.StatsModule) },
   { canActivate, path: 'roster', loadChildren: () => import('./pages/roster/roster.module').then(m => m.RosterModule) },
-  { canActivate, path: 'offtime', loadChildren: () => import('./pages/offtime/offtime.module').then(m => m.OfftimeModule) },
+  { canActivate: [UsersReadyGuard, ComputerAccountGuard], path: 'offtime', loadChildren: () => import('./pages/offtime/offtime.module').then(m => m.OfftimeModule) },
+  { path: 'not-allowed', component: NotAllowedComponent },
+  { path: '**', redirectTo: '/welcome' },
 ];
 
 @NgModule({

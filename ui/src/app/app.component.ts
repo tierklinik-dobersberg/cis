@@ -39,6 +39,7 @@ import {
 import { CALL_SERVICE } from './api/connect_clients';
 import { ProfileService } from './services/profile.service';
 import { toggleRouteQueryParamFunc } from './utils';
+import { environment } from 'src/environments/environment';
 
 interface MenuEntry {
   Icon: string;
@@ -131,6 +132,12 @@ export class AppComponent implements OnInit {
 
   openProfilePage() {
     this.profileService.openProfilePage();
+  }
+
+  changeProfile() {
+    const redirectUrl = btoa(`${location.href}`);
+
+    window.location.replace(`${environment.accountService}/login?force=true&redirect=${redirectUrl}`)
   }
 
   ngOnInit(): void {

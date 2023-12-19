@@ -45,6 +45,11 @@ var UISpec = conf.SectionSpec{
 		Type:    conf.StringType,
 		Default: "offtime-requests",
 	},
+	{
+		Name:    "ComputerAccountRole",
+		Type:    conf.StringType,
+		Default: "computer-accounts",
+	},
 }
 
 var RosterUISpec = conf.SectionSpec{

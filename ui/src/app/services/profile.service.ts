@@ -1,8 +1,9 @@
-import { Injectable, inject } from "@angular/core";
+import { Injectable, Injector, inject } from "@angular/core";
 import { Profile, User } from "@tierklinik-dobersberg/apis";
 import { BehaviorSubject, Observable, defer, filter, from, map, repeat, share } from "rxjs";
 import { environment } from "src/environments/environment";
 import { AUTH_SERVICE } from "../api/connect_clients";
+import { ConfigAPI } from "../api";
 
 export enum UserExtraKey {
   CalendarID = "calendarId",
@@ -52,6 +53,19 @@ export function getUserColor(profile: UserProfile | Profile): string | null {
 
 @Injectable({providedIn: 'root'})
 export class ProfileService {
+  private readonly injector = inject(Injector);
+
+  private _config: ConfigAPI | null = null;
+
+  private get config(): ConfigAPI {
+    if (this._config) {
+      return this._config;
+    }
+
+    this._config = this.injector.get(ConfigAPI);
+    return this._config
+  }
+
   authService = inject(AUTH_SERVICE);
 
   openProfilePage() {
@@ -74,6 +88,14 @@ export class ProfileService {
 
   calendarId(): string | null {
     return getCalendarId(this.snapshot)
+  }
+
+  get isComputerAccount() {
+    if (!this.config.current?.UI?.ComputerAccountRole) {
+      return false;
+    }
+
+    return this.snapshot?.roles?.find(role => role.id === this.config.current?.UI?.ComputerAccountRole);
   }
 
   constructor() {

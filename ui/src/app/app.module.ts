@@ -31,12 +31,14 @@ import { IconsProviderModule } from './icons-provider.module';
 import { SharedModule } from './shared/shared.module';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { TkdConnectModule, CONNECT_CONFIG } from '@tierklinik-dobersberg/angular/connect';
+import { NotAllowedComponent } from './pages/not-allowed';
 
 registerLocaleData(de);
 
 @NgModule({
   declarations: [
     AppComponent,
+    NotAllowedComponent,
   ],
   imports: [
     BrowserModule,

@@ -1,6 +1,5 @@
 import {
   HttpClient,
-  HttpErrorResponse,
   HttpParams,
 } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
@@ -8,11 +7,9 @@ import { NzMessageRef, NzMessageService } from 'ng-zorro-antd/message';
 import {
   BehaviorSubject,
   Observable,
-  combineLatest,
-  throwError,
-  timer,
+  combineLatest
 } from 'rxjs';
-import { delayWhen, distinct, distinctUntilChanged, map, retry, retryWhen } from 'rxjs/operators';
+import { distinctUntilChanged, map, retry } from 'rxjs/operators';
 import { TriggerAPI } from '.';
 import { ProfileService } from '../services/profile.service';
 import { ROLE_SERVICE, USER_SERVICE } from './connect_clients';
@@ -121,8 +118,9 @@ export interface UIConfig {
     HideUsersWithRole?: string[];
     UserPhoneExtensionProperties?: string[];
     CreateEventAlwaysAllowCalendar?: string[];
-    OnCallRosterType: string;
-    OfftimeCommentScope: string;
+    OnCallRosterType?: string;
+    OfftimeCommentScope?: string;
+    ComputerAccountRole?: string;
   };
   ExternalLink?: ExternalLink[];
   QuickRosterOverwrite?: QuickRosterOverwrite[];

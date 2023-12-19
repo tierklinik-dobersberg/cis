@@ -74,6 +74,11 @@
       <i nz-icon nzType="user" nzTheme="outline"></i>
       Mein Profil
     </li>
+
+    <li nz-menu-item (click)="changeProfile()" *ngIf="layout.isPhone">
+      <i nz-icon nzType="user" nzTheme="outline"></i>
+      Benutzer wechseln
+    </li>
   </ul>
 </ng-template>
 
@@ -174,6 +179,11 @@
             <li nz-menu-item (click)="openProfilePage()">
               <i nz-icon nzType="user" nzTheme="outline"></i>
               Mein Profil
+            </li>
+
+            <li nz-menu-item (click)="changeProfile()">
+              <i nz-icon nzType="user" nzTheme="outline"></i>
+              Benutzer wechseln
             </li>
 
             <li nz-menu-item routerLink="/offtime/create" class="whitespace-nowrap">
