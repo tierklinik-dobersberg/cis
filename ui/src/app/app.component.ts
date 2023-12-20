@@ -177,7 +177,7 @@ export class AppComponent implements OnInit {
           switchMap(() => {
             return this.swPush.subscription
           }),
-          distinctUntilChanged((prev, curr) => prev.endpoint === curr.endpoint)
+          distinctUntilChanged((prev, curr) => prev?.endpoint === curr?.endpoint)
         )
           .subscribe({
             next: sub => {
