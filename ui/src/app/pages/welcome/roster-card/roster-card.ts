@@ -84,9 +84,7 @@ export class RosterCardComponent implements OnInit, OnDestroy {
         this.shifts = response.staff.roster[0].shifts
           .filter(shift => {
             const from = shift.from.toDate()
-            const to = shift.to.toDate()
-
-            return toDateString(from) === now || toDateString(to) === now;
+            return toDateString(from) === now;
           })
           .map(shift => {
             const definition = response.shifts.workShifts.find(ws => ws.id === shift.workShiftId)
