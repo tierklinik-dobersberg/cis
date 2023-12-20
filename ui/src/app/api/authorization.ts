@@ -1,12 +1,12 @@
 import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { createPromiseClient } from '@connectrpc/connect';
 import { AuthService } from '@tierklinik-dobersberg/apis';
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
-import { transportFactory } from './connect_clients';
+import { UNAUTHENCIATED_HANDLER, transportFactory } from './connect_clients';
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +15,7 @@ export class AuthorizationInterceptor implements HttpInterceptor {
   private _resolve: any;
   private _reject: any;
   private pendingRefresh: Promise<never> | null = null
+  private handler = inject(UNAUTHENCIATED_HANDLER);
 
   constructor(
     private route: ActivatedRoute,
@@ -36,7 +37,7 @@ export class AuthorizationInterceptor implements HttpInterceptor {
                   this._resolve = resolve;
                 })
 
-                const transport = transportFactory(this.route, this.router, environment, "accountService")
+                const transport = transportFactory(this.route, this.router, environment, "accountService", this.handler)
                 const authClient = createPromiseClient(AuthService, transport);
 
                 return from(authClient.refreshToken({}))

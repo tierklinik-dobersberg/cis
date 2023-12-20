@@ -3,7 +3,7 @@ import { OverlayModule } from '@angular/cdk/overlay';
 import { registerLocaleData } from '@angular/common';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import de from '@angular/common/locales/de';
-import { LOCALE_ID, NgModule } from '@angular/core';
+import { LOCALE_ID, NgModule, isDevMode } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -32,6 +32,8 @@ import { SharedModule } from './shared/shared.module';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { TkdConnectModule, CONNECT_CONFIG } from '@tierklinik-dobersberg/angular/connect';
 import { NotAllowedComponent } from './pages/not-allowed';
+import { Code, ConnectError } from '@connectrpc/connect';
+import { PlatformModule } from '@angular/cdk/platform';
 
 registerLocaleData(de);
 
@@ -62,10 +64,23 @@ registerLocaleData(de);
     RouterModule,
     LayoutModule,
     TimeagoModule.forRoot(),
-    ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
     NgChartsModule,
     CKEditorModule,
-    TkdConnectModule,
+    PlatformModule,
+    TkdConnectModule.forRoot(environment, [
+      (err) => {
+        if (ConnectError.from(err).code === Code.Unauthenticated) {
+          const redirectTarget = btoa(`${location.href}`);
+          window.location.replace(`${environment.accountService}/login?redirect=${redirectTarget}&force=true`);
+        }
+      }
+    ]),
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: true, //!isDevMode(),
+      // Register the ServiceWorker as soon as the application is stable
+      // or after 30 seconds (whichever comes first).
+      registrationStrategy: 'registerWhenStable:30000'
+    }),
   ],
   providers: [
     { provide: NZ_I18N, useValue: de_DE },
@@ -73,7 +88,6 @@ registerLocaleData(de);
     { provide: HTTP_INTERCEPTORS, useExisting: BaseURLInjector, multi: true },
     { provide: NZ_DATE_CONFIG, useValue: { firstDayOfWeek: 1 } },
     { provide: LOCALE_ID, useValue: 'de'},
-    { provide: CONNECT_CONFIG, useValue: environment },
   ],
   bootstrap: [AppComponent]
 })
