@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import { Timestamp } from '@bufbuild/protobuf';
-import { GetWorkingStaffResponse, ListWorkShiftsResponse, PlannedShift, Profile, WorkShift } from '@tierklinik-dobersberg/apis';
+import { GetRosterResponse, GetWorkingStaffResponse, ListWorkShiftsResponse, PlannedShift, Profile, WorkShift } from '@tierklinik-dobersberg/apis';
 import { BehaviorSubject, Subscription, combineLatest, forkJoin, interval } from 'rxjs';
 import { mergeMap, startWith } from 'rxjs/operators';
 import { ConfigAPI, UserService } from 'src/app/api';
 import { ROSTER_SERVICE, WORK_SHIFT_SERVICE } from 'src/app/api/connect_clients';
+import { toDateString } from 'src/app/utils';
 
 @Component({
   selector: 'app-roster-card',
@@ -53,31 +54,50 @@ export class RosterCardComponent implements OnInit, OnDestroy {
     this.subscriptions = new Subscription();
 
     const rosterSubscription = combineLatest([
-      interval(10000),
+      interval(5 * 60 * 1000),
       triggerReload,
     ])
       .pipe(
         startWith(-1),
 
         mergeMap(() => forkJoin({
-          staff: this.rosterService.getWorkingStaff({
-            time: Timestamp.fromDate(new Date()),
-          }).catch(err => new GetWorkingStaffResponse()),
+          staff: this.rosterService.getRoster({
+            search: {
+              case: 'date',
+              value: Timestamp.fromDate(new Date()),
+            }
+          }).catch(err => new GetRosterResponse()),
+
           shifts: this.workShiftService.listWorkShifts({})
             .catch(() => new ListWorkShiftsResponse())
         })),
       )
       .subscribe((response) => {
-        this.shifts = response.staff.currentShifts.map(shift => {
-          const definition = response.shifts.workShifts.find(ws => ws.id === shift.workShiftId)
-          if (!!definition) {
-            Object.defineProperty(shift, 'definition', {
-              get: () => definition
-            })
-          }
+        const now = toDateString(new Date());
+        if (!response.staff.roster) {
+          this.shifts = [];
+          this.changeDetector.markForCheck();
 
-          return shift as any
-        });
+          return
+        }
+
+        this.shifts = response.staff.roster[0].shifts
+          .filter(shift => {
+            const from = shift.from.toDate()
+            const to = shift.to.toDate()
+
+            return toDateString(from) === now || toDateString(to) === now;
+          })
+          .map(shift => {
+            const definition = response.shifts.workShifts.find(ws => ws.id === shift.workShiftId)
+            if (!!definition) {
+              Object.defineProperty(shift, 'definition', {
+                get: () => definition
+              })
+            }
+
+            return shift;
+          }) as typeof this['shifts']
 
         this.changeDetector.markForCheck();
       });
