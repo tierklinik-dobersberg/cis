@@ -1,7 +1,7 @@
 import { Timestamp } from '@bufbuild/protobuf';
 import { ConnectError, Code } from '@connectrpc/connect';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from "@angular/core";
-import { GetVacationCreditsLeftResponse, OffTimeType, UserVacationSum } from "@tierklinik-dobersberg/apis";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from "@angular/core";
+import { FindOffTimeRequestsResponse, GetVacationCreditsLeftResponse, OffTimeEntry, OffTimeType, Profile, UserVacationSum } from "@tierklinik-dobersberg/apis";
 import { OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { ProfileService } from "src/app/services/profile.service";
 import { LayoutService } from 'src/app/services';
@@ -9,6 +9,8 @@ import ClassicEditor from '@tierklinik-dobersberg/ckeditor-build';
 import { Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { toDateString } from 'src/app/utils';
+import { UserService } from 'src/app/api';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 const dateForDateTimeInputValue = date => new Date(date.getTime() + date.getTimezoneOffset() * -60 * 1000).toISOString().slice(0, 19);
 
@@ -23,6 +25,8 @@ export class OffTimeCreateComponent implements OnInit {
   private readonly profileService = inject(ProfileService);
   private readonly router = inject(Router);
   private readonly messageService = inject(NzMessageService)
+  private readonly userService = inject(UserService)
+  private readonly destroyRef = inject(DestroyRef);
 
   public readonly Editor = ClassicEditor;
   public readonly layout = inject(LayoutService).withAutoUpdate(this.cdr)
@@ -33,6 +37,9 @@ export class OffTimeCreateComponent implements OnInit {
   offTimeType: 'auto' | 'vacation' | 'timeoff' = 'auto';
   showTime = false;
   dateRange: [Date, Date] | null = null;
+
+  existing: OffTimeEntry[] = [];
+  profiles: Profile[] = [];
 
   from: string = '';
   to: string = '';
@@ -66,6 +73,14 @@ export class OffTimeCreateComponent implements OnInit {
   ngOnInit() {
     const endOfYear = new Date(new Date().getFullYear()+1, 0, 1, 0, 0, 0, -1)
 
+    this.userService
+      .users
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(profiles => {
+        this.profiles = profiles;
+        this.cdr.markForCheck();
+      })
+
     this.workTimeService
       .getVacationCreditsLeft({
         forUsers: {
@@ -87,12 +102,49 @@ export class OffTimeCreateComponent implements OnInit {
       })
   }
 
-  createRequest() {
-    if (!this.dateRange) {
-      this.dateRange = [ new Date(this.from) , new Date(this.to) ];
+  checkExisting() {
+    let dateRange = this.dateRange;
+    if (!dateRange) {
+      if (!this.from || !this.to) {
+        return
+      }
+
+      dateRange = [ new Date(this.from) , new Date(this.to) ];
     }
 
-    let [from, to] = this.dateRange;
+    let [from, to] = dateRange;
+
+    try {
+
+    this.offTimeSerivce
+      .findOffTimeRequests({
+        from: Timestamp.fromDate(from),
+        to: Timestamp.fromDate(to),
+      })
+      .catch(err => {
+        this.messageService.error(ConnectError.from(err).rawMessage)
+
+        return new FindOffTimeRequestsResponse()
+      })
+      .then(response => {
+        this.existing = response.results || [];
+        this.cdr.markForCheck();
+      })
+    } catch(err) {
+    }
+  }
+
+  createRequest() {
+    let dateRange = this.dateRange;
+    if (!dateRange) {
+      if (!this.from || !this.to) {
+        return
+      }
+
+      dateRange = [ new Date(this.from) , new Date(this.to) ];
+    }
+
+    let [from, to] = dateRange;
 
     if (!this.showTime) {
       from = new Date(from.getFullYear(), from.getMonth(), from.getDate(), 0, 0, 0, 0)

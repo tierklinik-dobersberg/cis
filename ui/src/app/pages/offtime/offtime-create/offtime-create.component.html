@@ -31,19 +31,19 @@
 
       <!-- Date-range picker on Desktop -->
       <ng-container *ngIf="layout.isTabletPortraitUp">
-        <nz-range-picker [(ngModel)]="dateRange" [nzShowTime]="showTime" required name="daterange"></nz-range-picker>
+        <nz-range-picker [(ngModel)]="dateRange" [nzShowTime]="showTime" required name="daterange" (ngModelChange)="checkExisting()"></nz-range-picker>
       </ng-container>
 
       <!-- Mobile "date-range" picker -->
       <ng-container *ngIf="!layout.isTabletPortraitUp">
         <div class="flex flex-col gap-1 w-full">
           <label class="text-secondary text-sm">Von</label>
-          <input [attr.type]="showTime ? 'datetime-local' : 'date'" required class="tkd-input" name="from" [(ngModel)]="from">
+          <input [attr.type]="showTime ? 'datetime-local' : 'date'" required class="tkd-input" name="from" [(ngModel)]="from" (ngModelChange)="checkExisting()">
         </div>
 
         <div class="flex flex-col gap-1 w-full">
           <label class="text-secondary text-sm">Bis</label>
-          <input [attr.type]="showTime ? 'datetime-local' : 'date'" required class="tkd-input" name="to" [(ngModel)]="to">
+          <input [attr.type]="showTime ? 'datetime-local' : 'date'" required class="tkd-input" name="to" [(ngModel)]="to" (ngModelChange)="checkExisting()">
         </div>
       </ng-container>
     </div>
@@ -64,6 +64,28 @@
         <nz-option nzLabel="Urlaub" nzValue="vacation"></nz-option>
         <nz-option nzLabel="Zeitausgleich" nzValue="timeoff"></nz-option>
       </nz-select>
+    </div>
+
+    <div class="border-b border-tertiary p-4 flex flex-col gap-2 justify-start items-start relative pl-16" *ngIf="!!existing?.length">
+      <label class="absolute left-0 top-0 p-2 bg-subtle w-12 flex flex-col items-center justify-center bottom-0 text-xl text-color-primary"></label>
+
+        <div class="flex flex-col gap-1 w-full">
+          <label class="text-secondary text-sm">In diesem Zeitraum gibt es bereits Urlaubsanträge:</label>
+          <nz-table [nzData]="existing" #tbl="nzTable">
+            <thead>
+              <th class="font-lato font-light pl-3" *ngIf="layout.isTabletPortraitUp">Erstellt Am</th>
+              <th class="font-lato font-light pl-3">Zeitraum</th>
+              <th class="font-lato font-light pl-3">Mitarbeiter</th>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of tbl.data">
+                <td *ngIf="layout.isTabletPortraitUp">{{ row.createdAt | toDate | date:"mediumDate" }}</td>
+                <td>{{ row.from | toDate | date:"mediumDate" }} - {{ row.to | toDate | date:"mediumDate" }}</td>
+                <td>{{ (row.requestorId | toUser | displayName) || row.requestorId }}</td>
+              </tr>
+            </tbody>
+          </nz-table>
+        </div>
     </div>
 
     <div class="border-b border-tertiary p-4 flex flex-col gap-2 justify-start items-start relative pl-16">
