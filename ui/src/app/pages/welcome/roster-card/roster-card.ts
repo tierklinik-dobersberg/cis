@@ -74,14 +74,14 @@ export class RosterCardComponent implements OnInit, OnDestroy {
       )
       .subscribe((response) => {
         const now = toDateString(new Date());
-        if (!response.staff.roster) {
+        if (!response.staff.roster?.length) {
           this.shifts = [];
           this.changeDetector.markForCheck();
 
           return
         }
 
-        this.shifts = response.staff.roster[0].shifts
+        this.shifts = response.staff.roster[0]?.shifts
           .filter(shift => {
             const from = shift.from.toDate()
             return toDateString(from) === now;

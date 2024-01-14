@@ -222,7 +222,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
         .getWorkingStaff({
           onCall: true,
           time: Timestamp.fromDate(from),
-          rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierarzt',
+          rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierärzte',
         })
         .catch(err => {
           const cerr = ConnectError.from(err);
@@ -236,7 +236,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
       this.rosterService.getRequiredShifts({
           from: toDateString(from),
           to: toDateString(to),
-          rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierarzt',
+          rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierärzte',
         })
         .catch(err => {
           console.error("failed to get required shifts", err);
@@ -510,7 +510,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
             .getWorkingStaff({
               onCall: true,
               time: Timestamp.fromDate(d),
-              rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierarzt'
+              rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierärzte'
             })
             .catch(err => {
               if (ConnectError.from(err).code !== Code.NotFound) {
