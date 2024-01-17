@@ -33,6 +33,7 @@ import { CanDeleteCustomerPipe } from './pipes/can-delete-customer';
 import { TkdStringSliceInputComponent } from './simple-string-slice-input';
 import { TextInputComponent } from './text-input';
 import { UserAvatarComponent } from './user-avatar';
+import { InListPipe } from './pipes/in-list.pipe';
 
 @NgModule({
   imports: [
@@ -71,6 +72,7 @@ import { UserAvatarComponent } from './user-avatar';
     UserColorPipe,
     UserContrastColorPipe,
     ToDatePipe,
+    InListPipe,
   ],
   exports: [
     CommonModule,
@@ -111,6 +113,7 @@ import { UserAvatarComponent } from './user-avatar';
     UserContrastColorPipe,
     ToDatePipe,
     CKEditorModule,
+    InListPipe
   ],
 })
 export class SharedModule { }

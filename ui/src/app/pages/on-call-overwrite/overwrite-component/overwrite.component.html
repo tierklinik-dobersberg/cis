@@ -109,27 +109,30 @@
           <!-- Custom Overwrite Date/Time Range -->
 
           <ng-container *ngIf="overwriteTarget === 'custom'; else: dateSelector">
-            <div class="flex">
-              <div class="w-10 mt-1 text-center">Von</div>
-              <div class="flex flex-col flex-grow md:flex-row">
-                <nz-date-picker class="w-full md:w-auto" name="from" [(ngModel)]="customFrom" (ngModelChange)="onDateChange()"
-                  [nzDisabledDate]="disabledStartDate" [nzAllowClear]="false"></nz-date-picker>
-                <nz-time-picker class="w-full md:w-auto" nzFormat="HH:mm" [(ngModel)]="customFrom" nzS
-                  (ngModelChange)="onDateChange()" [nzMinuteStep]="15"
-                  [nzAllowEmpty]="false"></nz-time-picker>
-              </div>
-            </div>
+              <div class="flex">
+                <div class="w-10 mt-1 text-center">Von</div>
+                <div class="flex flex-col flex-grow md:flex-row">
 
-            <div class="flex">
-              <div class="w-10 mt-1 text-center">Bis</div>
-              <div class="flex flex-col flex-grow md:flex-row">
-                <nz-date-picker class="w-full md:w-auto" name="to" [(ngModel)]="customTo" (ngModelChange)="onDateChange()"
-                  [nzDisabledDate]="disabledEndDate" [nzAllowClear]="false"></nz-date-picker>
-                <nz-time-picker class="w-full md:w-auto" nzFormat="HH:mm" [(ngModel)]="customTo"
-                  (ngModelChange)="onDateChange()" [nzMinuteStep]="15"
-                  [nzAllowEmpty]="false"></nz-time-picker>
+                  <nz-date-picker class="w-full md:w-auto" name="from" [(ngModel)]="customFrom" (ngModelChange)="onDateChange()"
+                    [nzDisabledDate]="disabledStartDate" [nzAllowClear]="false"></nz-date-picker>
+
+                  <nz-time-picker class="w-full md:w-auto" nzFormat="HH:mm" [(ngModel)]="customFrom" nzS
+                    (ngModelChange)="onDateChange()" [nzMinuteStep]="15"
+                    [nzAllowEmpty]="false"></nz-time-picker>
+                </div>
               </div>
-            </div>
+
+              <div class="flex">
+                <div class="w-10 mt-1 text-center">Bis</div>
+                <div class="flex flex-col flex-grow md:flex-row">
+                  <nz-date-picker class="w-full md:w-auto" name="to" [(ngModel)]="customTo" (ngModelChange)="onDateChange()"
+                    [nzDisabledDate]="disabledEndDate" [nzAllowClear]="false"></nz-date-picker>
+
+                  <nz-time-picker class="w-full md:w-auto" nzFormat="HH:mm" [(ngModel)]="customTo"
+                    (ngModelChange)="onDateChange()" [nzMinuteStep]="15"
+                    [nzAllowEmpty]="false"></nz-time-picker>
+                </div>
+              </div>
           </ng-container>
 
           <!-- Quick Select Day/Night shift -->

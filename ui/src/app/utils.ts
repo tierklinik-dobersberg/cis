@@ -60,6 +60,10 @@ export function getContrastFontColor(bgColor: string): string {
   // if (red*0.299 + green*0.587 + blue*0.114) > 186 use #000000 else use #ffffff
   // based on https://stackoverflow.com/a/3943023
 
+  if (!bgColor) {
+    return '#000000'
+  }
+
   let col = bgColor;
   if (bgColor.startsWith('#') && bgColor.length > 7) {
     col = bgColor.slice(0, 7);

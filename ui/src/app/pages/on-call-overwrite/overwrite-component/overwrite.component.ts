@@ -39,6 +39,7 @@ import { CALL_SERVICE, ROSTER_SERVICE, WORK_SHIFT_SERVICE } from 'src/app/api/co
 import { ProfileService } from 'src/app/services/profile.service';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, toDateString } from 'src/app/utils';
+import { CandyDate } from 'ng-zorro-antd/core/time';
 
 @Component({
   templateUrl: './overwrite.component.html',
@@ -135,13 +136,27 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
 
   /** @private template-only - decided whether or not startValue should be displayed as disabled. */
   disabledStartDate = (startValue: Date): boolean => {
-    // FIXME
+    if (!this.customTo) {
+      return false
+    }
+
+    if (startValue.getTime() > this.customTo.getTime()) {
+      return true
+    }
+
     return false
   };
 
   /** @private template-only - decided whether or not endValue should be displayed as disabled. */
   disabledEndDate = (endValue: Date): boolean => {
-    // FIXME
+    if (!this.customFrom) {
+      return false
+    }
+
+    if (endValue.getTime() < this.customFrom.getTime()) {
+      return true
+    }
+
     return false
   };
 
@@ -237,6 +252,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
           from: toDateString(from),
           to: toDateString(to),
           rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierärzte',
+          onCall: true,
         })
         .catch(err => {
           console.error("failed to get required shifts", err);
@@ -248,6 +264,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
       .then(([response, shifts]) => {
         this.availableShifts = shifts.requiredShifts.map(rs => {
           let planned = response.currentShifts.find(cs => cs.workShiftId === rs.workShiftId && cs.from.seconds === rs.from.seconds && cs.to.seconds === rs.to.seconds)
+
           if (!planned) {
             planned = new PlannedShift({
               workShiftId: rs.workShiftId,

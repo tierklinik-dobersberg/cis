@@ -41,13 +41,7 @@
     </div>
   </div>
 
-  <nz-tabset id="offtime-tab-set" [nzSelectedIndex]="1">
-    <nz-tab nzTitle="Übersicht">
-      <div class="py-2">
-        <app-offtime-calendar-overview [profiles]="profiles"></app-offtime-calendar-overview>
-      </div>
-    </nz-tab>
-
+  <nz-tabset id="offtime-tab-set" [nzSelectedIndex]="0">
     <nz-tab nzTitle="Meine Anträge">
 
       <nz-table [nzData]="entries" #offTimeEntries>
@@ -152,9 +146,20 @@
           </ng-container>
         </tbody>
       </nz-table>
-
-
     </nz-tab>
+
+    <nz-tab nzTitle="Übersicht">
+      <div class="py-2">
+        <app-offtime-calendar-overview [profiles]="profiles"></app-offtime-calendar-overview>
+      </div>
+    </nz-tab>
+
+    <nz-tab nzTitle="Kalendar" *ngIf="layout.isTabletPortraitUp">
+      <div class="py-2">
+        <app-offtime-calendar-overview mode="calendar" [profiles]="profiles"></app-offtime-calendar-overview>
+      </div>
+    </nz-tab>
+
   </nz-tabset>
 </div>
 

@@ -16,6 +16,23 @@ import { LayoutService } from "src/app/services";
       background-color: white !important;
       border-color: white !important;
     }
+
+    #calendar ::ng-deep .ant-picker-cell-selected .ant-picker-cell-inner {
+      @apply bg-white;
+    }
+
+    #calendar ::ng-deep .ant-picker-cell-inner {
+      @apply border-0;
+    }
+
+    #calendar ::ng-deep .ant-picker-cell-inner:hover {
+      @apply bg-white;
+    }
+
+    #calendar ::ng-deep .ant-picker-cell-selected .ant-picker-cell-inner .date-header {
+      @apply text-primary;
+    }
+
     `
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,19 +54,35 @@ export class OffTimeCalendarOverviewComponent implements OnInit, OnChanges {
   @Output()
   calendarDateChange = new EventEmitter<CandyDate>();
 
+  @Input()
+  mode: 'list' | 'calendar' = 'list';
+
+  hoveredEntryId: string | null = null;
+
   existing: OffTimeEntry[] = [];
 
+  loading = false;
+
   ngOnInit(): void {
-    this.load();
+    this.load(this.calendarDate);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if ('calendarDate' in changes && !changes['calendarDate'].isFirstChange()) {
-      this.load();
+      this.load(this.calendarDate);
     }
   }
 
-  load(date: CandyDate = this.calendarDate) {
+  load(date: CandyDate | Date) {
+    this.loading = true;
+    this.cdr.detectChanges();
+
+    if (date instanceof Date) {
+      date = new CandyDate(date)
+    }
+
+    this.calendarDate = date;
+
     const from = new Date(date.nativeDate.getFullYear(), date.getMonth(), 1)
     const to = new Date(date.nativeDate.getFullYear(), date.getMonth() + 1, 0);
 
@@ -66,6 +99,8 @@ export class OffTimeCalendarOverviewComponent implements OnInit, OnChanges {
         })
         .then(response => {
           this.existing = response.results || [];
+          this.loading = false;
+
           this.cdr.markForCheck();
         })
     } catch(err) {

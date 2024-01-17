@@ -24,6 +24,12 @@ export class ToUserPipe implements PipeTransform {
         )
     }
 
-    return this.userService.byName(value) || this.userService.byId(value);
+    return this.userService.byName(value) || this.userService.byId(value) || new Profile({
+      user: {
+        id: value,
+        username: '<Deleted>',
+        displayName: '<Deleted>'
+      }
+    });
   }
 }
