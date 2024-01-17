@@ -11,6 +11,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { toDateString } from 'src/app/utils';
 import { UserService } from 'src/app/api';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CandyDate } from 'ng-zorro-antd/core/time';
 
 const dateForDateTimeInputValue = date => new Date(date.getTime() + date.getTimezoneOffset() * -60 * 1000).toISOString().slice(0, 19);
 
@@ -41,6 +42,8 @@ export class OffTimeCreateComponent implements OnInit {
   existing: OffTimeEntry[] = [];
   profiles: Profile[] = [];
 
+  calendarDate: CandyDate | null = null;
+
   from: string = '';
   to: string = '';
 
@@ -67,10 +70,15 @@ export class OffTimeCreateComponent implements OnInit {
       this.to = this.showTime ? dateForDateTimeInputValue(to) : toDateString(to);
     }
 
+    this.updateDateRange('from');
+
     this.cdr.markForCheck();
   }
 
   ngOnInit() {
+    this.calendarDate = new CandyDate();
+
+
     const endOfYear = new Date(new Date().getFullYear()+1, 0, 1, 0, 0, 0, -1)
 
     this.userService
@@ -102,48 +110,35 @@ export class OffTimeCreateComponent implements OnInit {
       })
   }
 
-  checkExisting() {
-    let dateRange = this.dateRange;
-    if (!dateRange) {
-      if (!this.from || !this.to) {
-        return
-      }
-
-      dateRange = [ new Date(this.from) , new Date(this.to) ];
+  get hoverValue(): any {
+    if (this.dateRange) {
+      return [ new CandyDate(this.dateRange[0]), new CandyDate(this.dateRange[1]) ]
     }
 
-    let [from, to] = dateRange;
+    return null;
+  }
 
-    try {
+  updateDateRange(what: 'from' | 'to' | 'both') {
+    if (what === 'both') {
+      if (!this.dateRange || this.dateRange.length != 2) {
+        return;
+      }
 
-    this.offTimeSerivce
-      .findOffTimeRequests({
-        from: Timestamp.fromDate(from),
-        to: Timestamp.fromDate(to),
-      })
-      .catch(err => {
-        this.messageService.error(ConnectError.from(err).rawMessage)
+      this.calendarDate = new CandyDate(this.dateRange[0]);
 
-        return new FindOffTimeRequestsResponse()
-      })
-      .then(response => {
-        this.existing = response.results || [];
-        this.cdr.markForCheck();
-      })
-    } catch(err) {
+      return
+    }
+
+    if (this.from && this.to) {
+      this.dateRange = [
+        new Date(this.from),
+        new Date(this.to),
+      ]
     }
   }
 
   createRequest() {
     let dateRange = this.dateRange;
-    if (!dateRange) {
-      if (!this.from || !this.to) {
-        return
-      }
-
-      dateRange = [ new Date(this.from) , new Date(this.to) ];
-    }
-
     let [from, to] = dateRange;
 
     if (!this.showTime) {

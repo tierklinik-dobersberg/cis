@@ -7,6 +7,12 @@ import { OffTimeCreateComponent } from './offtime-create/offtime-create.componen
 import { MarkdownModule } from 'ngx-markdown';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { FormsModule } from '@angular/forms';
+import { NzCalendarModule } from 'ng-zorro-antd/calendar';
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { MatchingOfftimePipe } from './matching-offtime.pipe';
+import { MatchingOfftimeTooltipPipe } from './matching-offtime-tooltip.pipe';
+import { LibPackerModule } from 'ng-zorro-antd/date-picker'
+import { OffTimeCalendarOverviewComponent } from './offtime-calendar-overview/calendar-overview';
 
 @NgModule({
   imports: [
@@ -14,12 +20,18 @@ import { FormsModule } from '@angular/forms';
     OfftimeRoutingModule,
     NzMessageModule,
     NzDrawerModule,
+    NzCalendarModule,
+    LibPackerModule,
+    NzTabsModule,
     MarkdownModule,
     FormsModule,
   ],
   declarations: [
     OffTimeListComponent,
     OffTimeCreateComponent,
+    MatchingOfftimePipe,
+    MatchingOfftimeTooltipPipe,
+    OffTimeCalendarOverviewComponent
   ]
 })
 export class OfftimeModule {}

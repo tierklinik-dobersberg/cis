@@ -6,10 +6,10 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, TrackByF
 import { COMMENT_SERVICE, OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { ProfileService } from "src/app/services/profile.service";
 import { HeaderTitleService } from "src/app/shared/header-title";
-import { CommentTree, FindOffTimeRequestsResponse, GetVacationCreditsLeftResponse, ListCommentsResponse, OffTimeEntry, OffTimeType, UserVacationSum } from '@tierklinik-dobersberg/apis';
+import { CommentTree, FindOffTimeRequestsResponse, GetVacationCreditsLeftResponse, GetWorkTimeResponse, ListCommentsResponse, OffTimeEntry, OffTimeType, Profile, UserVacationSum, WorkTime } from '@tierklinik-dobersberg/apis';
 import { LayoutService } from 'src/app/services';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { ConfigAPI } from 'src/app/api';
+import { ConfigAPI, UserService } from 'src/app/api';
 import { extractErrorMessage } from 'src/app/utils';
 
 enum FilterState {
@@ -28,6 +28,17 @@ const filterFuncs = {
 @Component({
   templateUrl: './offtime-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styles: [
+    `
+    #offtime-tab-set ::ng-deep > .ant-tabs-nav {
+      @apply px-4 bg-subtle;
+    }
+
+    #offtime-tab-set ::ng-deep > .ant-tabs-nav .ant-tabs-tab {
+      @apply w-40 justify-center;
+    }
+    `
+  ]
 })
 export class OffTimeListComponent implements OnInit {
   private readonly headerTitle = inject(HeaderTitleService);
@@ -36,6 +47,7 @@ export class OffTimeListComponent implements OnInit {
   private readonly commentService = inject(COMMENT_SERVICE);
   private readonly configService = inject(ConfigAPI);
   private readonly profileService = inject(ProfileService);
+  private readonly usersService = inject(UserService)
   private readonly messageService = inject(NzMessageService);
   private readonly modalService = inject(NzModalService)
   private readonly cdr = inject(ChangeDetectorRef)
@@ -55,6 +67,7 @@ export class OffTimeListComponent implements OnInit {
   newCommentText = ''
   showEntryComments: OffTimeEntry | null = null;
   comments: CommentTree[] = [];
+  profiles: Profile[] = [];
 
   createComment() {
     if (this.newCommentText === '' || !this.showEntryComments) {
@@ -106,6 +119,7 @@ export class OffTimeListComponent implements OnInit {
 
   filterState: FilterState = FilterState.All
   vacation: UserVacationSum | null = null;
+  worktime: WorkTime | null = null;
 
   trackEntry: TrackByFunction<OffTimeEntry> = (_, entry) => entry.id
 
@@ -143,6 +157,23 @@ export class OffTimeListComponent implements OnInit {
   load() {
     const messageRef = this.messageService.loading('Anträge werden geladen');
     const endOfYear = new Date(new Date().getFullYear()+1, 0, 1, 0, 0, 0, -1)
+
+    this.profiles = this.usersService.snapshot;
+
+    this.worktimeService
+      .getWorkTime({userIds: [this.profileService.id]})
+      .catch(err => {
+        if (ConnectError.from(err).code !== Code.NotFound) {
+          console.error(err);
+        }
+
+        return new GetWorkTimeResponse({results: []})
+      })
+      .then(response => {
+        this.worktime = response.results?.find(result => result.userId === this.profileService.id)?.current || null;
+
+        this.cdr.markForCheck();
+      })
 
     this.worktimeService
       .getVacationCreditsLeft({
