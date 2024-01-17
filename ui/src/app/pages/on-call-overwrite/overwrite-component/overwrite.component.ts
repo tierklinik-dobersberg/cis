@@ -40,6 +40,7 @@ import { ProfileService } from 'src/app/services/profile.service';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, toDateString } from 'src/app/utils';
 import { CandyDate } from 'ng-zorro-antd/core/time';
+import { LayoutService } from 'src/app/services';
 
 @Component({
   templateUrl: './overwrite.component.html',
@@ -62,6 +63,8 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private checkOverlapping$ = new BehaviorSubject<{ to: Date; from: Date }>(null);
   private reloadToday$ = new BehaviorSubject<void>(undefined);
+
+  readonly layout = inject(LayoutService).withAutoUpdate();
 
   @ViewChild('confirmDeleteCurrentOverwrite', {
     read: TemplateRef,
@@ -136,27 +139,13 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
 
   /** @private template-only - decided whether or not startValue should be displayed as disabled. */
   disabledStartDate = (startValue: Date): boolean => {
-    if (!this.customTo) {
-      return false
-    }
-
-    if (startValue.getTime() > this.customTo.getTime()) {
-      return true
-    }
-
+    // FIXME
     return false
   };
 
   /** @private template-only - decided whether or not endValue should be displayed as disabled. */
   disabledEndDate = (endValue: Date): boolean => {
-    if (!this.customFrom) {
-      return false
-    }
-
-    if (endValue.getTime() < this.customFrom.getTime()) {
-      return true
-    }
-
+    // FIXME
     return false
   };
 

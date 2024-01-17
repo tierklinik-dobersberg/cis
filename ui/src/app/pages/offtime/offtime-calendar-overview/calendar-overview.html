@@ -80,7 +80,7 @@
   <ng-template #dateCell let-date>
     <div
       class="h-32 flex flex-col items-stretch text-left justify-start border-t-2 border-alert-green border-opacity-20 mb-2 overflow-auto"
-      [ngClass]="{'!border-alert-red !border-opacity-20': (date | matchingOfftime:existing).length > 0}">
+      [ngClass]="{'!border-alert-red !border-opacity-20': (date | matchingOfftime:existing).length > 0}" (dblclick)="createEntry(date)">
       <div class="date-header text-xs text-center w-full py-0.5 mb-1 bg-subtle">{{ date | date:'d' }}</div>
 
       <ul class="px-1 font-inter text-xs space-y-0.5">

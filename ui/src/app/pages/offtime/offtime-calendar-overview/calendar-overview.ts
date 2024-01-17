@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, Input, EventEmitter, Output, inject, ViewChild, TemplateRef, ChangeDetectorRef, OnInit, OnChanges, SimpleChanges } from "@angular/core";
+import { Router } from "@angular/router";
 import { Timestamp } from "@bufbuild/protobuf";
 import { OFFTIME_SERVICE } from "@tierklinik-dobersberg/angular/connect";
 import { FindOffTimeRequestsResponse, OffTimeEntry, Profile } from "@tierklinik-dobersberg/apis";
 import { CandyDate } from "ng-zorro-antd/core/time";
 import { LayoutService } from "src/app/services";
+import { toDateString } from "src/app/utils";
 
 
 @Component({
@@ -39,8 +41,9 @@ import { LayoutService } from "src/app/services";
 })
 export class OffTimeCalendarOverviewComponent implements OnInit, OnChanges {
   readonly layout = inject(LayoutService).withAutoUpdate();
-  readonly offTimeService = inject(OFFTIME_SERVICE);
-  readonly cdr = inject(ChangeDetectorRef)
+  private readonly offTimeService = inject(OFFTIME_SERVICE);
+  private readonly cdr = inject(ChangeDetectorRef)
+  private readonly router = inject(Router)
 
   @ViewChild('dateCell', {read: TemplateRef, static: true})
   dateCellRender: TemplateRef<Date>;
@@ -71,6 +74,15 @@ export class OffTimeCalendarOverviewComponent implements OnInit, OnChanges {
     if ('calendarDate' in changes && !changes['calendarDate'].isFirstChange()) {
       this.load(this.calendarDate);
     }
+  }
+
+  createEntry(date: Date) {
+    this.router.navigate(['/offtime/create'], {
+        queryParams: {
+          d: toDateString(date),
+        },
+        queryParamsHandling: 'merge'
+    })
   }
 
   load(date: CandyDate | Date) {

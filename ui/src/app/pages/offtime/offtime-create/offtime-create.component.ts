@@ -6,7 +6,7 @@ import { OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { ProfileService } from "src/app/services/profile.service";
 import { LayoutService } from 'src/app/services';
 import ClassicEditor from '@tierklinik-dobersberg/ckeditor-build';
-import { Router } from '@angular/router';
+import { ActivatedRoute, ActivatedRouteSnapshot, Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { toDateString } from 'src/app/utils';
 import { UserService } from 'src/app/api';
@@ -28,6 +28,7 @@ export class OffTimeCreateComponent implements OnInit {
   private readonly messageService = inject(NzMessageService)
   private readonly userService = inject(UserService)
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
 
   public readonly Editor = ClassicEditor;
   public readonly layout = inject(LayoutService).withAutoUpdate(this.cdr)
@@ -76,8 +77,19 @@ export class OffTimeCreateComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.calendarDate = new CandyDate();
+    if (this.route.snapshot.queryParamMap.has("d")) {
+      const d = new Date(this.route.snapshot.queryParamMap.get("d"))
 
+      const from = new CandyDate(d).setHms(0, 0, 0).nativeDate
+      const to = new CandyDate(from).addDays(1).setHms(0, 0, -1).nativeDate
+
+      this.dateRange = [from, to]
+
+      this.updateDateRange('both')
+
+    } else {
+      this.calendarDate = new CandyDate();
+    }
 
     const endOfYear = new Date(new Date().getFullYear()+1, 0, 1, 0, 0, 0, -1)
 
