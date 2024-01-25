@@ -52,22 +52,20 @@
       </ul>
     </li>
 
-    <li nz-submenu nzTitle="Links" nzIcon="link" class="font-lato" *ngIf="!!subMenus?.length">
-      <ul>
-        <li *ngFor="let menu of subMenus" nz-submenu [nzTitle]="menu.Text">
-          <a *ngFor="let item of menu.Items" nz-menu-item [attr.href]="item.Link"
-            [attr.target]="item.BlankTarget ? '_blank' : null">
-            <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
-            <span>{{item.Text}}</span>
-          </a>
-        </li>
+    <li *ngFor="let item of (rootLinks || [])" nz-menu-item >
+      <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
+      <a [attr.href]="item.Link"
+      [attr.target]="item.BlankTarget ? '_blank' : null">
+        <span>{{item.Text}}</span>
+      </a>
+    </li>
 
-        <a *ngFor="let item of rootLinks" nz-menu-item [attr.href]="item.Link"
-          [attr.target]="item.BlankTarget ? '_blank' : null">
-          <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
-          <span>{{item.Text}}</span>
-        </a>
-      </ul>
+    <li *ngFor="let menu of (subMenus || [])" nz-submenu [nzTitle]="menu.Text">
+      <a *ngFor="let item of menu.Items" nz-menu-item [attr.href]="item.Link"
+        [attr.target]="item.BlankTarget ? '_blank' : null">
+        <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
+        <span>{{item.Text}}</span>
+      </a>
     </li>
 
     <li nz-menu-item (click)="openProfilePage()" *ngIf="layout.isPhone">
