@@ -1,0 +1,67 @@
+<ng-template #defaultHeaderCell let-calendar>
+  {{ calendar.name }}
+</ng-template>
+
+<ng-template #defaultEventCell let-event>
+  {{ event.id }}
+</ng-template>
+
+<header class="z-50 flex-grow-0 flex-shrink-0 w-full shadow grid-container">
+  <div *ngFor="let cal of data; trackBy: trackCalendar">
+    <ng-container
+      *ngTemplateOutlet="
+        headerCell || defaultHeaderCell;
+        context: {
+          $implicit: cal
+        }
+      "
+    ></ng-container>
+  </div>
+</header>
+
+<div class="overflow-auto flex-grow">
+  <div
+    class="w-full grid-container"
+    [style.height]="24 * 3600 | secondsToPixel : sizeFactor"
+  >
+    <div
+      #container
+      (click)="handleCalendarClick($event, cal, container, false)"
+      (dblclick)="handleCalendarClick($event, cal, container, true)"
+      *ngFor="let cal of data; trackBy: trackCalendar"
+      class="relative h-full"
+    >
+      <div
+        *ngFor="let h of hours"
+        class="absolute w-full text-xs border-t border-opacity-50 border-primary"
+        [ngStyle]="{
+        top: ((h * 60 * 60) | secondsToPixel: sizeFactor) + 'px',
+        height: ((60 * 60) | secondsToPixel: sizeFactor) + 'px',
+     }"
+      >
+        {{ h }}:00
+      </div>
+
+      <ng-container
+        *ngIf="cal.events | sort | eventStyle : sizeFactor : min as events"
+      >
+        <div
+          *ngFor="let event of events | sort; trackBy: trackEvent"
+          class="absolute transition duration-150 ease-in-out overfow-hidden"
+          [ngStyle]="$any(event).style"
+        >
+          <ng-container
+            *ngTemplateOutlet="
+                eventCell || defaultEventCell;
+                context: {
+                    $implicit: event,
+                    calendar: cal,
+                }
+            "
+          >
+          </ng-container>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>
