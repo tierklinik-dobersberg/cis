@@ -19,7 +19,7 @@
   </div>
 </header>
 
-<div class="overflow-auto flex-grow">
+<div class="overflow-auto relative flex-grow" #calendarContainer>
   <div
     class="w-full grid-container"
     [style.height]="24 * 3600 | secondsToPixel : sizeFactor"
@@ -63,5 +63,18 @@
         </div>
       </ng-container>
     </div>
+  </div>
+
+  <!-- Current Time Marker -->
+  <div
+    *ngIf="showCurrentTime"
+    class="absolute right-0 left-0 border-t border-alert-red"
+    [style.top.px]="currentTime$ | async | secondsToPixel : sizeFactor"
+  >
+    <span
+      class="absolute top-0 right-0 px-1 py-0.5 text-xs text-white rounded-b bg-alert-red"
+    >
+      {{ currentTime$ | async | time }}
+    </span>
   </div>
 </div>
