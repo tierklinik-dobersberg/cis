@@ -65,6 +65,9 @@ export class RosterCardComponent implements OnInit, OnDestroy {
             search: {
               case: 'date',
               value: Timestamp.fromDate(new Date()),
+            },
+            readMask: {
+              paths: ['roster']
             }
           }).catch(err => new GetRosterResponse()),
 
