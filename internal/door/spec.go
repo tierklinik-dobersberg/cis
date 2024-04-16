@@ -15,18 +15,48 @@ var (
 	AddToSchema   = configBuilder.AddToSchema
 )
 
-type MqttConfig struct {
-	ConnectionName string
-	CommandTopic   string
-	CommandPayload string
-	ResponseTopic  string
-	Timeout        time.Duration
+type DoorConfig struct {
+	Type            string
+	ShellyScriptURL string
+	ConnectionName  string
+	CommandTopic    string
+	CommandPayload  string
+	ResponseTopic   string
+	Timeout         time.Duration
 }
 
 var Spec = conf.SectionSpec{
 	{
-		Name:        "ConnectionName",
+		Name:        "Type",
 		Required:    true,
+		Default:     "disabled",
+		Description: "The type of door interface to use",
+		Type:        conf.StringType,
+		Annotations: new(conf.Annotation).With(
+			runtime.OneOf(
+				runtime.PossibleValue{
+					Display: "MQTT",
+					Value:   "mqtt",
+				},
+				runtime.PossibleValue{
+					Display: "Shelly Pro 2 (provided script)",
+					Value:   "shelly-script",
+				},
+				runtime.PossibleValue{
+					Display: "Disabled",
+					Value:   "disabled",
+				},
+			),
+		),
+	},
+	{
+		Name:        "ShellyScriptURL",
+		Type:        conf.StringType,
+		Description: "The URL to start the provided shelly script. Used only if Type is set to Shelly Pro 2",
+		Default:     "http://localhost/scripts/1/door",
+	},
+	{
+		Name:        "ConnectionName",
 		Type:        conf.StringType,
 		Description: "The name of the MQTT connection.",
 		Annotations: new(conf.Annotation).With(
@@ -132,10 +162,10 @@ func addDoorSchema(runtimeConfig *runtime.ConfigSchema) error {
 	})
 }
 
-func getTestDoor(ctx context.Context, cs *runtime.ConfigSchema, config []conf.Option) (*MqttDoor, error) {
+func getTestDoor(ctx context.Context, cs *runtime.ConfigSchema, config []conf.Option) (Interfacer, error) {
 	connectionManager := mqtt.NewConnectionManager(cs)
 
-	var cfg MqttConfig
+	var cfg DoorConfig
 	if err := conf.DecodeSections(
 		conf.Sections{
 			{
@@ -149,17 +179,34 @@ func getTestDoor(ctx context.Context, cs *runtime.ConfigSchema, config []conf.Op
 		return nil, fmt.Errorf("failed to decode configuration: %w", err)
 	}
 
-	cli, err := connectionManager.ClientWithRandomID(ctx, cfg.ConnectionName)
-	if err != nil {
-		return nil, err
-	}
+	switch cfg.Type {
+	case "mqtt":
+		cli, err := connectionManager.ClientWithRandomID(ctx, cfg.ConnectionName)
+		if err != nil {
+			return nil, err
+		}
 
-	door, err := NewMqttDoor(cli, cfg)
-	if err != nil {
-		return nil, err
-	}
+		door, err := NewMqttDoor(cli, cfg)
+		if err != nil {
+			return nil, err
+		}
 
-	return door, nil
+		return door, nil
+
+	case "shelly-script":
+		door := &ShellyScriptDoor{
+			url: cfg.ShellyScriptURL,
+		}
+
+		return door, nil
+
+	case "disabled":
+		return nil, fmt.Errorf("door control is disabled")
+
+	default:
+		return nil, fmt.Errorf("invalid door interface type: %q", cfg.Type)
+
+	}
 }
 
 func init() {

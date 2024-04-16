@@ -26,7 +26,7 @@ type MqttDoor struct {
 
 // NewMqttDoor connects to the MQTT server configured in cfg
 // and returns a new MqttDoor interfacer.
-func NewMqttDoor(client *runtimeMQTT.Client, cfg MqttConfig) (*MqttDoor, error) {
+func NewMqttDoor(client *runtimeMQTT.Client, cfg DoorConfig) (*MqttDoor, error) {
 	door := &MqttDoor{
 		cli:     client,
 		timeout: cfg.Timeout,

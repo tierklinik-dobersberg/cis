@@ -135,18 +135,33 @@ func NewDoorController(ctx context.Context, ohCtrl *openinghours.Controller, cs 
 }
 
 func (dc *Controller) Validate(ctx context.Context, sec runtime.Section) error {
-	var cfg MqttConfig
+	var cfg DoorConfig
 	if err := conf.DecodeSections([]conf.Section{sec.Section}, Spec, &cfg); err != nil {
 		return err
 	}
 
-	cli, err := dc.mqttConnectionManager.Client(ctx, cfg.ConnectionName)
-	if err != nil {
-		return err
-	}
-	defer cli.Release()
+	switch cfg.Type {
+	case "mqtt":
+		cli, err := dc.mqttConnectionManager.Client(ctx, cfg.ConnectionName)
+		if err != nil {
+			return err
+		}
+		defer cli.Release()
 
-	return nil
+		return nil
+
+	case "shelly-script":
+		if cfg.ShellyScriptURL == "" {
+			return fmt.Errorf("ShellScriptURL must be configured")
+		}
+
+		return nil
+
+	case "disabled":
+		return nil
+	}
+
+	return fmt.Errorf("unsupport door interface type: %q", cfg.Type)
 }
 
 func (dc *Controller) NotifyChange(ctx context.Context, changeType, id string, sec *conf.Section) error {
@@ -162,21 +177,35 @@ func (dc *Controller) NotifyChange(ctx context.Context, changeType, id string, s
 
 	switch changeType {
 	case "update", "create":
-		var cfg MqttConfig
+		var cfg DoorConfig
 		if err := conf.DecodeSections([]conf.Section{*sec}, Spec, &cfg); err != nil {
 			return err
 		}
 
-		cli, err := dc.mqttConnectionManager.Client(ctx, cfg.ConnectionName)
-		if err != nil {
-			return err
-		}
+		switch cfg.Type {
+		case "mqtt":
+			cli, err := dc.mqttConnectionManager.Client(ctx, cfg.ConnectionName)
+			if err != nil {
+				return err
+			}
 
-		interfacer, err := NewMqttDoor(cli, cfg)
-		if err != nil {
-			return err
+			interfacer, err := NewMqttDoor(cli, cfg)
+			if err != nil {
+				return err
+			}
+			dc.door = interfacer
+
+		case "shelly-script":
+			dc.door = &ShellyScriptDoor{
+				url: cfg.ShellyScriptURL,
+			}
+
+		case "disabled":
+			return nil
+
+		default:
+			return fmt.Errorf("invalid door interface type: %q", cfg.Type)
 		}
-		dc.door = interfacer
 	}
 
 	return nil
