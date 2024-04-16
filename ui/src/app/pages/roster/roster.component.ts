@@ -9,6 +9,7 @@ import { HeaderTitleService } from 'src/app/shared/header-title';
 import { LayoutService } from 'src/app/services';
 import { ca_ES } from 'ng-zorro-antd/i18n';
 import { environment } from 'src/environments/environment';
+import { NzMessageService } from 'ng-zorro-antd/message';
 
 interface LocalUserShift {
   from: Date;
@@ -37,6 +38,7 @@ export class RosterComponent implements OnInit {
   private readonly offTimeService = inject(OFFTIME_SERVICE);
   private readonly workTimeService = inject(WORKTIME_SERVICE)
   private readonly calendarService = inject(CALENDAR_SERVICE);
+  private readonly messageService = inject(NzMessageService)
 
   public readonly rosterServiceURL = environment.rosterService;
 
@@ -63,6 +65,7 @@ export class RosterComponent implements OnInit {
       undefined,
     )
 
+    const loadingMessageRef = this.messageService.loading("Dienstplan wird geladen ...");
 
     Promise.all([
       this.calendarService
@@ -253,7 +256,23 @@ export class RosterComponent implements OnInit {
         this.userShifts = shifts;
         this.cdr.markForCheck();
       })
-      .catch(err => console.error(err))
+      .catch(err => {
+        console.error(err)
+
+        let message = '';
+        if (typeof err === 'object' && 'message' in err) {
+          message = err.message;
+        } else if (typeof err === 'string') {
+          message = err
+        } else {
+          message = ConnectError.from(err).message
+        }
+
+        this.messageService.error("Ein Fehler ist aufgetreten: " + message)
+      })
+      .then( () => {
+        this.messageService.remove(loadingMessageRef.messageId)
+      })
 
     this.rosterService
       .analyzeWorkTime({

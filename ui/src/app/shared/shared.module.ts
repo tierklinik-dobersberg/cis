@@ -34,6 +34,7 @@ import { TkdStringSliceInputComponent } from './simple-string-slice-input';
 import { TextInputComponent } from './text-input';
 import { UserAvatarComponent } from './user-avatar';
 import { InListPipe } from './pipes/in-list.pipe';
+import { TkdDateInputModule } from './date-input';
 
 @NgModule({
   imports: [
@@ -52,6 +53,7 @@ import { InListPipe } from './pipes/in-list.pipe';
     RouterModule,
     CKEditorModule,
     TimeagoModule,
+    TkdDateInputModule
   ],
   declarations: [
     DurationPipe,
@@ -113,7 +115,8 @@ import { InListPipe } from './pipes/in-list.pipe';
     UserContrastColorPipe,
     ToDatePipe,
     CKEditorModule,
-    InListPipe
+    InListPipe,
+    TkdDateInputModule,
   ],
 })
 export class SharedModule { }
