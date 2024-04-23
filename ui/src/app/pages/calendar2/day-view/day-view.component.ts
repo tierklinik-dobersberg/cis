@@ -70,6 +70,7 @@ export interface CalendarMouseEvent<T extends Timed, C extends Calendar<T>> {
 }
 
 @Component({
+  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'tkd-day-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './day-view.component.html',
@@ -138,7 +139,7 @@ export class TkdDayViewComponent<T extends Timed, C extends Calendar<T>>
 
   /** Emits when the user clicks on a calendar */
   @Output()
-  onCalendarClick = new EventEmitter<CalendarMouseEvent<T, C>>();
+  calendarClick = new EventEmitter<CalendarMouseEvent<T, C>>();
 
   /** The scrollable calendar container */
   @ViewChild('calendarContainer', { read: ElementRef, static: true })
@@ -253,7 +254,7 @@ export class TkdDayViewComponent<T extends Timed, C extends Calendar<T>>
       );
     }
 
-    this.onCalendarClick.next({
+    this.calendarClick.next({
       seconds: seconds,
       calendar: cal,
       doubleClick: dblclick,

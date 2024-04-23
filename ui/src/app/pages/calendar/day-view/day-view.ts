@@ -37,6 +37,8 @@ interface LocalCalendar {
 }
 
 interface CreateEventData {
+  eventId?: string;
+  overlay?: OverlayRef;
   start: string;
   duration: number,
   summary: string,
@@ -112,7 +114,12 @@ export class DayViewComponent implements OnInit, OnDestroy {
     'selected': 'Nur ausgewählte',
   };
 
-  openingHours: { y: string, height: string }[] = [];
+  openingHours: {
+    y: string,
+    height: string,
+    from: number,
+    to: number,
+  }[] = [];
 
   @ViewChild('eventDetailsTemplate', { read: TemplateRef, static: true })
   eventDetailsTemplate: TemplateRef<any>;
@@ -121,7 +128,10 @@ export class DayViewComponent implements OnInit, OnDestroy {
   createEventTemplate: TemplateRef<any>;
 
   @ViewChildren('createEventMarker', { read: ElementRef })
-  createEventMarkers!: QueryList<ElementRef>;
+  createEventMarkers!: QueryList<ElementRef<HTMLDivElement>>;
+
+  @ViewChildren('calendarColumn', { read: ElementRef })
+  calendarColumns!: QueryList<ElementRef<HTMLDivElement>>;
 
   @Input()
   set inlineView(v: any) {
@@ -208,106 +218,174 @@ export class DayViewComponent implements OnInit, OnDestroy {
     this.updateCalendarMode();
   }
 
-  showCreateEventModal(event: MouseEvent, cal: LocalCalendar) {
-    let target: HTMLElement;
-    let iter: HTMLElement = event.target as HTMLElement;
-    while (!iter.classList.contains('times')) {
-      if (iter.classList.contains('event')) {
+  showCreateEventModal(event: MouseEvent, cal: LocalCalendar, existing?: CalendarEvent) {
+    let startTime: Date;
+    let defaultDuration = 15;
+
+    if (!!existing) {
+      startTime = existing.startTime!.toDate();
+      cal = this.calendars.find(c => c.calendar.id === existing.calendarId);
+
+      defaultDuration = (existing.endTime.toDate().getTime() - startTime.getTime()) / 1000 / 60
+
+    } else {
+      let target: HTMLElement;
+      let iter: HTMLElement = event.target as HTMLElement;
+      while (!iter.classList.contains('times')) {
+        if (iter.classList.contains('event')) {
+          return;
+        }
+        iter = iter.parentElement;
+        if (!iter) {
+          break;
+        }
+      }
+      if (!iter || this.activeEventID !== '') {
+        this.activeEventID = '';
         return;
       }
-      iter = iter.parentElement;
-      if (!iter) {
-        break;
-      }
-    }
-    if (!iter || this.activeEventID !== '') {
-      this.activeEventID = '';
-      return;
-    }
-    target = iter;
+      target = iter;
 
-    const rect = target.getBoundingClientRect();
-    const offset = event.y - rect.top;
-    let minutes = offset * (60 / this.hourHeight);
+      const rect = target.getBoundingClientRect();
+      const offset = event.y - rect.top;
+      let minutes = offset * (60 / this.hourHeight);
 
-    let realMinutes = minutes % 60;
-    if (realMinutes <= 15) {
-      realMinutes = 0;
-    } else
-      if (realMinutes <= 30) {
-        realMinutes = 15
+      let realMinutes = minutes % 60;
+      if (realMinutes <= 15) {
+        realMinutes = 0;
       } else
-        if (realMinutes <= 45) {
-          realMinutes = 30
-        } else {
-          realMinutes = 45
-        }
+        if (realMinutes <= 30) {
+          realMinutes = 15
+        } else
+          if (realMinutes <= 45) {
+            realMinutes = 30
+          } else {
+            realMinutes = 45
+          }
 
-    const duration = Duration.minutes(minutes);
-    const current = this._currentDate$.getValue();
-    let startTime = new Date(current.getFullYear(), current.getMonth(), current.getDate(), duration.hours, realMinutes)
-
-    /*
-    this.router.navigate(['/', 'create-event'], {
-        queryParams: {
-            calendar: cal.user?.name || cal.id,
-            start: startTime.toISOString(),
-        }
-    })
-    */
-
-    const overlay = this.overlay.create({
-      scrollStrategy: this.overlay.scrollStrategies.reposition(),
-      positionStrategy: this.overlay.position()
-        .flexibleConnectedTo(event.target as Element)
-        .withPositions(this.positions),
-    })
-
-    let marker = this.createEventMarkers.find(elem => (elem.nativeElement as HTMLDivElement).getAttribute("calid") === cal.calendar.id)
-
-    let user = this.userService.byCalendarID(cal.calendar.id)
+      let duration = Duration.minutes(minutes);
+      const current = this._currentDate$.getValue();
+      startTime = new Date(current.getFullYear(), current.getMonth(), current.getDate(), duration.hours, realMinutes)
+    }
 
     let data: CreateEventData = {
+      eventId: existing?.id || '',
       start: startTime.toISOString(),
-      duration: 15,
-      summary: '',
-      description: '',
-      user: user,
+      duration: defaultDuration,
+      summary: existing?.summary || '',
+      description: existing?.description || '',
       calName: cal.calendar.name,
       calID: cal.calendar.id,
-      marker: marker,
       update: null,
       close: () => {
-        // FIXME: use this one
-        overlay.dispose();
-        marker?.nativeElement.classList.add("hidden")
+        data.overlay?.dispose();
+
+        data.marker?.nativeElement.classList.add("hidden")
       }
     }
 
     data.update = () => {
+      const calendar = this.calendars.find(cal => cal.calendar.id === data.calID);
+
+      // if the new target calendar is not yet visible, mark it as visible
+      // and call update() again when the query list noticed the new calendar column
+      if (!calendar.displayed) {
+        calendar.displayed = true;
+        this.calendars = [
+          ...this.calendars
+        ];
+
+        this.calendarColumns.changes
+          .pipe(
+            take(1)
+          )
+          .subscribe(() => data.update());
+
+        this.cdr.markForCheck();
+
+        return;
+      }
+
+      const marker = this.createEventMarkers.find(elem => elem.nativeElement.getAttribute("calid") === data.calID)
+      const user = this.userService.byCalendarID(data.calID)
+
+      if (data.marker !== marker) {
+        data.marker?.nativeElement.classList.add("hidden");
+      }
+
+      data.marker = marker;
+      data.user = user;
+
+      const calendarColumn = this.calendarColumns.find(elem => elem.nativeElement.getAttribute("calid") === data.calID);
+      if (!calendarColumn) {
+        console.error("failed to find calendar column")
+        return;
+      }
+
+      const hours = calendarColumn.nativeElement.querySelector(".hours")?.children;
+      let match: HTMLElement | null = null;
+
+      const startTime = new Date(data.start).getHours();
+
+      for (let idx = 0; idx < hours.length; idx++) {
+        const from = +(hours.item(idx) as HTMLDivElement).getAttribute("from");
+        if (!isNaN(from) && startTime >= from) {
+          match = hours.item(idx) as HTMLDivElement;
+        } else if (startTime < from) {
+          break;
+        }
+      }
+
+      if (!match) {
+        console.error("failed to find matching hours container")
+        return;
+      }
+
       const el: HTMLDivElement = marker.nativeElement;
       el.classList.remove("hidden")
       el.style.top = coerceCssPixelValue(
         this.adjustToHours(this.offset(new Date(data.start)))
       )
-      el.style.height = coerceCssPixelValue(data.duration * (this.hourHeight / 60))
+      el.style.height = coerceCssPixelValue(data.duration * (this.hourHeight / 60));
+
+      if (!!data.overlay) {
+        data.overlay.updatePositionStrategy(
+          this.overlay.position()
+            .flexibleConnectedTo(match)
+            .withPositions(this.positions)
+        );
+      } else {
+        data.overlay = this.overlay.create({
+          scrollStrategy: this.overlay.scrollStrategies.reposition(),
+          positionStrategy: this.overlay.position()
+            .flexibleConnectedTo(match)
+            .withPositions(this.positions)
+        })
+      }
+
       this.cdr.markForCheck();
     }
 
     data.update()
 
-    overlay.attach(new TemplatePortal(
+    data.overlay?.attach(new TemplatePortal(
       this.createEventTemplate,
       this.viewContainer,
       {
         $implicit: data,
-        overlay: overlay,
+        overlay: data.overlay,
       }
     ))
 
-    overlay.outsidePointerEvents()
+    data.overlay?.outsidePointerEvents()
       .pipe(take(1))
-      .subscribe(() => overlay.dispose())
+      .subscribe(() => data.overlay.dispose())
+  }
+
+  showUpdateEvent(event: DisplayEvent, overlay: OverlayRef) {
+    overlay.dispose();
+
+    this.showCreateEventModal(null, null, event.event);
   }
 
   async createEvent(data: CreateEventData, overlay: OverlayRef) {
@@ -315,18 +393,52 @@ export class DayViewComponent implements OnInit, OnDestroy {
 
     try {
 
-      await this.calendarapi.createEvent({
-        name: data.summary,
-        calendarId: data.calID,
-        description: data.description,
-        // TODO(extraData)
-        start: {
-          seconds: BigInt(startSeconds),
-        },
-        end: {
-          seconds: BigInt(startSeconds + Duration.minutes(data.duration).seconds),
+      if (!data.eventId) {
+        await this.calendarapi.createEvent({
+          name: data.summary,
+          calendarId: data.calID,
+          description: data.description,
+          start: {
+            seconds: BigInt(startSeconds),
+          },
+          end: {
+            seconds: BigInt(startSeconds + Duration.minutes(data.duration).seconds),
+          }
+        })
+      } else {
+        // find the original calendar.
+        const calendar = this.calendars.find(cal => cal.events.find(event => event.event.id === data.eventId));
+
+        if (calendar.calendar.id !== data.calID) {
+          // we need to move the event first
+          const movedEvent = await this.calendarapi.moveEvent({
+            source: {
+              case: 'sourceCalendarId',
+              value: calendar.calendar.id,
+            },
+            eventId: data.eventId,
+            target: {
+              case: 'targetCalendarId',
+              value: data.calID,
+            }
+          });
+
+          data.eventId = movedEvent.event.id;
         }
-      })
+
+        await this.calendarapi.updateEvent({
+          calendarId: data.calID,
+          eventId: data.eventId,
+          description: data.description,
+          name: data.summary,
+          start: {
+            seconds: BigInt(startSeconds),
+          },
+          end: {
+            seconds: BigInt(startSeconds + Duration.minutes(data.duration).seconds),
+          }
+        })
+      }
 
       overlay.dispose();
       this._currentDate$.next(this._currentDate$.getValue());
@@ -528,6 +640,8 @@ export class DayViewComponent implements OnInit, OnDestroy {
             this.openingHours.push({
               y: this.adjustToHours(this.offset(oh.from)) + 'px',
               height: this.adjustToHours(this.offset(oh.to) - this.offset(oh.from)) + 'px',
+              from: oh.from.getSeconds(),
+              to: oh.to.getSeconds(),
             })
           })
 
