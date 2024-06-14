@@ -1,0 +1,107 @@
+<header class="flex flex-row items-center gap-2">
+  <!-- Date controls -->
+  <div class="flex flex-row flex-nowrap gap-1">
+    <button class="tkd-btn tkd-outline hover:bg-text-deEmphasized hover:bg-opacity-25 !text-secondary !border-text-deEmphasized" (click)="switchDate(-1)">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+      </svg>
+    </button>
+
+    <tkd-date-input [ngModel]="currentDate" (ngModelChange)="setDate($event)"></tkd-date-input>
+
+    <button class="tkd-btn tkd-outline hover:bg-text-deEmphasized hover:bg-opacity-25 !text-secondary !border-text-deEmphasized" (click)="switchDate(1)">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+      </svg>
+    </button>
+
+
+    <button class="tkd-btn tkd-outline hover:bg-text-deEmphasized hover:bg-opacity-25 !text-secondary !border-text-deEmphasized" (click)="loadToday()">
+      Heute
+    </button>
+  </div>
+
+  <!-- Spacer -->
+  <div class="flex-grow"></div>
+
+  <!-- Zoom Controls -->
+  <div class="flex flex-row flex-nowrap items-center gap-0">
+    <button nz-tooltip="Vergrößern (+)" class="tkd-btn tkd-outline hover:bg-text-deEmphasized hover:bg-opacity-25 !border-r-0 !text-secondary !border-text-deEmphasized rounded-r-none" (click)="dayView.zoomIn()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+        <path d="M9 6a.75.75 0 0 1 .75.75v1.5h1.5a.75.75 0 0 1 0 1.5h-1.5v1.5a.75.75 0 0 1-1.5 0v-1.5h-1.5a.75.75 0 0 1 0-1.5h1.5v-1.5A.75.75 0 0 1 9 6Z" />
+        <path fill-rule="evenodd" d="M2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Zm7-5.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z" clip-rule="evenodd" />
+      </svg>
+    </button>
+
+    <button nz-tooltip="Verkleinern (-)" class="tkd-btn tkd-outline hover:bg-text-deEmphasized hover:bg-opacity-25 !text-secondary !border-text-deEmphasized rounded-l-none" (click)="dayView.zoomOut()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+        <path d="M6.75 8.25a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5Z" />
+        <path fill-rule="evenodd" d="M9 2a7 7 0 1 0 4.391 12.452l3.329 3.328a.75.75 0 1 0 1.06-1.06l-3.328-3.329A7 7 0 0 0 9 2ZM3.5 9a5.5 5.5 0 1 1 11 0 5.5 5.5 0 0 1-11 0Z" clip-rule="evenodd" />
+      </svg>
+    </button>
+  </div>
+
+
+  <div class="text-secondary text-sm flex flex-row gap-1 items-center px-2 py-1.5 border border-text-deEmphasized shadow-inner rounded-md bg-text-deEmphasized bg-opacity-25">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" />
+    </svg>
+    <span *ngIf="(cursorTime$ | async) as time">
+      <ng-container *ngIf="time | isSameDay:currentDate; else: otherDayTemplate">
+        {{ time | time }}
+      </ng-container>
+      <ng-template #otherDayTemplate>
+        {{ time | toDate | date:'d.M, HH:mm' }}
+      </ng-template>
+    </span>
+  </div>
+</header>
+
+<!-- Calendar Header Cell -->
+<ng-template [headerCell]="calendarType" #headerCell="tkdCalendarHeaderCell" let-calendar>
+  <div class="p-2 underline bg-white font-bold border-b border-tertiary" [ngStyle]="{
+    color: (calendar.user | color)
+  }">
+    {{ calendar.name }}
+  </div>
+</ng-template>
+
+<!-- Event Cell Template -->
+<ng-template [eventCell]="calendarType" #eventCell="tkdCalendarEventCell" let-event let-calendar="calendar">
+  <div *ngIf="!event.isShiftType; else: shiftTypeTemplate" class="event-container h-full w-full overflow-hidden transform hover:outline-4 hover:outline-dotted hover:outline-white hover:-outline-offset-[3px] rounded-md hover:rounded-none">
+    <div class="text-xs p-2 h-full w-full overflow-hidden cursor-pointer border event-details" [ngStyle]="{
+      '--tw-bg-opacity': 1,
+      backgroundColor: (calendar.user | color | toRgba:'var(--tw-bg-opacity, 1)'),
+      color: (calendar.user | contrastColor | toRgba ),
+      borderColor: (calendar.user | contrastColor | toRgba:'var(--tw-border-opacity, 1)'),
+    }">
+      <div class="flex flex-row flex-nowrap overflow-hidden whitespace-nowrap event-summary w-full gap-1">
+        <span class="text-opacity-25">{{ event.startTime | toDate | date:'HH:mm' }} - </span>
+        <span class="overflow-hidden text-ellipsis font-semibold">{{ event.summary }}</span>
+        <span class="flex-grow"></span>
+        <span class="text-opacity-25">{{ event.duration | duration }}</span>
+      </div>
+
+      <div class="overflow-hidden w-full mt-1.5 pt-1.5 border-t border-dashed border-white border-opacity-50 hidden event-description">
+        {{ event.description }}
+      </div>
+    </div>
+  </div>
+
+  <ng-template #shiftTypeTemplate>
+    <div class="h-full w-full bg-secondary bg-opacity-20 shadow-inner cursor-default">
+
+    </div>
+  </ng-template>
+</ng-template>
+
+<tkd-day-view
+  [currentDate]="currentDate"
+  (calendarClick)="handleCalendarClick($event)"
+  #dayView="tkdDayView"
+  class="w-full h-full cursor-not-allowed p-2"
+  [autoScroll]="true"
+  [showCurrentTime]="isToday"
+  [headerCell]="headerCell"
+  [eventCell]="eventCell"
+  [data]="data | filter:filterDisplayed"></tkd-day-view>

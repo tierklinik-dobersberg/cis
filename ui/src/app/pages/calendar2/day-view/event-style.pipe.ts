@@ -1,7 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { Timed } from './day-view.component';
-import { coerceCssPixelValue } from '@angular/cdk/coercion';
 import { Duration, Timestamp } from '@bufbuild/protobuf';
+import { Timed } from './models';
 import { getSeconds } from './sort.pipe';
 
 export interface StyledTimed extends Timed {
@@ -58,11 +57,9 @@ export class EventStylePipe implements PipeTransform {
       for (let i = 0; i < list.length; i++) {
         const event = list[i];
 
-        console.log(`round #${round}: ${event.id}`);
 
         // skip this one if it's already done.
         if (done.has(event.id)) {
-          console.log(' -> event already done');
           continue;
         }
 
@@ -78,7 +75,6 @@ export class EventStylePipe implements PipeTransform {
 
           (event as any).style = style;
 
-          console.log(' -> done');
           done.set(event.id, round);
         }
       }

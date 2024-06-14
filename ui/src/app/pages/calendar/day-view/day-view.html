@@ -74,7 +74,7 @@
                 <div class="flex flex-col items-stretch justify-start" *ngIf="cal.displayed" [style.width.%]="100 / displayedCalendarCount">
                     <div class="calendar" #calendarColumn [attr.calid]="cal.calendar.id">
 
-                        <div class="bg-opacity-10 times bg-text-deEmphasized" (dblclick)="showCreateEventModal($event, cal)">
+                        <div class="bg-opacity-10 times bg-text-deEmphasized" (dblclick)="showCreateEditEventModal($event, cal)">
                             <div class="absolute w-full bg-white opening-hour" *ngFor="let oh of openingHours;"
                                 [attr.range]="oh.from + '-' + oh.to" [ngStyle]="{top: oh.y, height: oh.height}"></div>
 

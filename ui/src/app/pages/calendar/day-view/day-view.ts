@@ -218,7 +218,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
     this.updateCalendarMode();
   }
 
-  showCreateEventModal(event: MouseEvent, cal: LocalCalendar, existing?: CalendarEvent) {
+  showCreateEditEventModal(event: MouseEvent, cal: LocalCalendar, existing?: CalendarEvent) {
     let startTime: Date;
     let defaultDuration = 15;
 
@@ -385,7 +385,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
   showUpdateEvent(event: DisplayEvent, overlay: OverlayRef) {
     overlay.dispose();
 
-    this.showCreateEventModal(null, null, event.event);
+    this.showCreateEditEventModal(null, null, event.event);
   }
 
   async createEvent(data: CreateEventData, overlay: OverlayRef) {
@@ -444,7 +444,7 @@ export class DayViewComponent implements OnInit, OnDestroy {
       this._currentDate$.next(this._currentDate$.getValue());
       data.marker?.nativeElement.classList.add('hidden');
     } catch (err) {
-      this.nzMessageService.error(extractErrorMessage(err, 'Termin konnte nicht erstellt werden'))
+      this.nzMessageService.error(extractErrorMessage(err, 'Termin konnte nicht gespeichert werden'))
     }
   }
 

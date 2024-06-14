@@ -1,14 +1,15 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { Timed } from './day-view.component';
+import { Timed } from './models';
 import { Duration, Timestamp } from '@bufbuild/protobuf';
 
-export function getSeconds(b: number | Duration | Timestamp): number {
+export function getSeconds(b: number | Date | Duration | Timestamp): number {
   if (b instanceof Duration) {
     return Number(b.seconds);
   }
 
-  if (b instanceof Timestamp) {
-    return Number(b.seconds);
+  if (b instanceof Timestamp || b instanceof Date) {
+      const date = b instanceof Timestamp ? b.toDate() : b;
+      return date.getHours() * 60 * 60 + date.getMinutes() * 60 + date.getSeconds();
   }
 
   return b;
@@ -40,8 +41,6 @@ export class SortPipe implements PipeTransform {
 
       return db - da;
     });
-
-    console.log(copy);
 
     return copy;
   }
