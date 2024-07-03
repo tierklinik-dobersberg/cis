@@ -54,6 +54,8 @@ export class EventStylePipe implements PipeTransform {
 
     let round = 0;
     while (done.size < list.length) {
+      let didSomething = false;
+
       for (let i = 0; i < list.length; i++) {
         const event = list[i];
 
@@ -64,6 +66,8 @@ export class EventStylePipe implements PipeTransform {
         }
 
         if (event.ignoreOverlapping || !hasOverlapping(event, i, round)) {
+          didSomething = true;
+
           // calculate style
           const style: any = {
             top: this.secondsToPixel(event.from, factor) + 'px',
@@ -77,6 +81,11 @@ export class EventStylePipe implements PipeTransform {
 
           done.set(event.id, round);
         }
+      }
+
+      if (!didSomething) {
+        console.error("endless loop while calculating calendar event style")
+        break;
       }
 
       round++;

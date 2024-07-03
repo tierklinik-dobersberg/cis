@@ -9,14 +9,13 @@ import { UserColorPipe, UserContrastColorPipe } from "@tierklinik-dobersberg/ang
 import { CalendarEvent, Profile, WorkShift } from "@tierklinik-dobersberg/apis";
 import { NzMessageModule, NzMessageService } from "ng-zorro-antd/message";
 import { NzToolTipModule } from "ng-zorro-antd/tooltip";
-import { filter, forkJoin, map, of, switchMap, tap, Observable, share } from "rxjs";
+import { Observable, filter, forkJoin, map, of, switchMap, tap } from "rxjs";
 import { ConfigAPI, UserService } from "src/app/api";
 import { LayoutService } from "src/app/services";
 import { TkdDateInputModule } from "src/app/shared/date-input";
 import { SharedModule } from "src/app/shared/shared.module";
 import { toDateString } from "src/app/utils";
-import { Calendar, CalendarMouseEvent, DateInput, IsSameDayPipe, TimeFormatPipe, Timed, TkdCalendarEventCellTemplateDirective, TkdCalendarHeaderCellTemplateDirective, TkdDayViewComponent } from "../day-view";
-import { getSecondaryColor } from "@ant-design/icons-angular";
+import { Calendar, CalendarMouseEvent, IsSameDayPipe, TimeFormatPipe, Timed, TkdCalendarEventCellTemplateDirective, TkdCalendarHeaderCellTemplateDirective, TkdDayViewComponent } from "../day-view";
 import { getSeconds } from "../day-view/sort.pipe";
 
 type CalEvent = Timed & PlainMessage<CalendarEvent> & {
@@ -246,7 +245,7 @@ export class TkdCalendarViewComponent implements OnInit {
                         from: from,
                         duration: duration,
                         fullDay: false,
-                        id: 'shift-' + shift.from.toDate().toUTCString() + "-" + shift.to.toDate().toUTCString(),
+                        id: 'shift:' + shift.workShiftId + ":" + shift.from.toDate().toISOString() + "-" + shift.to.toDate().toISOString(),
                         description: '',
                         ignoreOverlapping: true,
                         isShiftType: true,
