@@ -18,23 +18,23 @@ import { toDateString } from "src/app/utils";
           background-color: white !important;
           border-color: white !important;
         }
-    
+
         #calendar ::ng-deep .ant-picker-cell-selected .ant-picker-cell-inner {
           @apply bg-white;
         }
-    
+
         #calendar ::ng-deep .ant-picker-cell-inner {
           @apply border-0;
         }
-    
+
         #calendar ::ng-deep .ant-picker-cell-inner:hover {
           @apply bg-white;
         }
-    
+
         #calendar ::ng-deep .ant-picker-cell-selected .ant-picker-cell-inner .date-header {
-          @apply text-primary;
+          @apply text-gray-800;
         }
-    
+
         `
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

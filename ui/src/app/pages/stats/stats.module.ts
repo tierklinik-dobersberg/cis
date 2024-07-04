@@ -9,6 +9,7 @@ import { TimeChartComponent } from "./time-chart";
 import { StatsChartComponent } from "./stats-chart";
 import { CounterStatComponent } from "./counter";
 import { NzDropDownModule } from "ng-zorro-antd/dropdown";
+import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 
 @NgModule({
     imports: [
@@ -17,7 +18,8 @@ import { NzDropDownModule } from "ng-zorro-antd/dropdown";
         SharedModule,
         NgChartsModule,
         NzDatePickerModule,
-        NzDropDownModule
+        NzDropDownModule,
+        HlmButtonDirective
     ],
     declarations: [
         StatsPageComponent,

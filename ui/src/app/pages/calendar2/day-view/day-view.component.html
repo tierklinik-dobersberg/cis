@@ -37,9 +37,9 @@
         @for (h of hours; track h; let last = $last) {
           <div
             [attr.hour]="h"
-            class="absolute w-full text-xs border-t border-opacity-50 border-primary p-2"
+            class="absolute w-full text-xs border-t border-opacity-50 border-sky-900 p-2"
         [ngClass]="{
-          'border-b-8 border-b-primary-dark': last
+          'border-b-8 border-b-primary': last
         }"
         [ngStyle]="{
         top: ((h * 60 * 60) | secondsToPixel: sizeFactor) + 'px',
@@ -79,11 +79,11 @@
 <!-- Current Time Marker -->
 @if (showCurrentTime) {
   <div
-    class="absolute right-0 left-0 border-t border-alert-red z-[100] drop-shadow"
+    class="absolute right-0 left-0 border-t border-red-700 z-[100] drop-shadow"
     [style.top.px]="currentTime$ | async | secondsToPixel : sizeFactor"
     >
     <span
-      class="absolute top-0 right-0 px-1 py-0.5 text-xs text-white rounded-b bg-alert-red"
+      class="absolute top-0 right-0 px-1 py-0.5 text-xs text-white rounded-b bg-red-700"
       >
       {{ currentTime$ | async | time }}
     </span>

@@ -1,7 +1,7 @@
 <div class="flex flex-row gap-2 w-full flex-wrap items-start" *ngIf="mode === 'list'">
   <div class="flex flex-col gap-1 w-96 flex-grow-0 flex-shrink-0 justify-center items-center">
     <div class="flex flex-row justify-center items-center gap-2 pb-1.5">
-      <button class="hover:bg-subtle text-color-primary hover:text-color-primary-dark"
+      <button class="hover:bg-gray-100 text-sky-800 hover:text-sky-800"
         (click)="load(calendarDate.addMonths(-1))" type="button">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
           <path fill-rule="evenodd"
@@ -14,7 +14,7 @@
       <span class="text-sm md:text-base lg:text-lg w-40 inline-block text-center">{{ calendarDate.nativeDate |
         date:'MMMM, YYYY' }}</span>
 
-      <button class="hover:bg-subtle text-color-primary hover:text-color-primary-dark"
+      <button class="hover:bg-gray-100 text-sky-800 hover:text-sky-800"
         (click)="load(calendarDate.addMonths(1))" type="button">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
           <path fill-rule="evenodd"
@@ -42,7 +42,7 @@
     </ng-template>
 
     <ng-template #emptyTmpl>
-      <nz-empty class="!text-secondary"
+      <nz-empty class="!text-gray-500"
         [nzNotFoundContent]="'Für ' + (calendarDate.nativeDate | date:'MMMM') + ' wurden noch keine Anträge gestellt'"></nz-empty>
     </ng-template>
 
@@ -50,10 +50,10 @@
       [nzLoadingDelay]="1000" [nzLoadingIndicator]="loadingTmpl" [nzNoResult]="emptyTmpl">
       <thead>
         <tr>
-          <th class="font-lato font-light pl-3 w-10">Von</th>
-          <th class="font-lato font-light pl-3 w-10">Bis</th>
-          <th class="font-lato font-light pl-3">Mitarbeiter</th>
-          <th class="font-lato font-light pl-3">Beschreibung</th>
+          <th class=" font-light pl-3 w-10">Von</th>
+          <th class=" font-light pl-3 w-10">Bis</th>
+          <th class=" font-light pl-3">Mitarbeiter</th>
+          <th class=" font-light pl-3">Beschreibung</th>
         </tr>
       </thead>
       <tbody>
@@ -62,7 +62,7 @@
           <td>{{ row.to | toDate | date:"mediumDate" }}</td>
           <td>
             <ng-container *ngIf="(row.requestorId | toUser) as user">
-              <nz-avatar nzIcon="user" [nzSrc]="user?.user.avatar" [nzSize]="32" class="!border !border-subtle">
+              <nz-avatar nzIcon="user" [nzSrc]="user?.user.avatar" [nzSize]="32" class="!border !border-gray-100">
               </nz-avatar>
 
               {{ (user | displayName) || row.requestorId }}
@@ -79,13 +79,13 @@
 <div class="flex flex-row gap-2 w-full flex-wrap items-start" *ngIf="mode === 'calendar'" id="calendar">
   <ng-template #dateCell let-date>
     <div
-      class="h-32 flex flex-col items-stretch text-left justify-start border-t-2 border-alert-green border-opacity-20 mb-2 overflow-auto"
-      [ngClass]="{'!border-alert-red !border-opacity-20': (date | matchingOfftime:existing).length > 0}" (dblclick)="createEntry(date)">
-      <div class="date-header text-xs text-center w-full py-0.5 mb-1 bg-subtle">{{ date | date:'d' }}</div>
+      class="h-32 flex flex-col items-stretch text-left justify-start border-t-2 border-green-700 border-opacity-20 mb-2 overflow-auto"
+      [ngClass]="{'!border-red-700 !border-opacity-20': (date | matchingOfftime:existing).length > 0}" (dblclick)="createEntry(date)">
+      <div class="date-header text-xs text-center w-full py-0.5 mb-1 bg-gray-100">{{ date | date:'d' }}</div>
 
       <ul class="px-1 font-inter text-xs space-y-0.5">
         <li *ngFor="let entry of (date | matchingOfftime:existing)"
-          class="px-1 py-0.5 block border border-subtle rounded text-primary" (mouseenter)="hoveredEntryId = entry.id"
+          class="px-1 py-0.5 block border border-gray-100 rounded text-gray-800" (mouseenter)="hoveredEntryId = entry.id"
           (mouseleave)="hoveredEntryId = null" [style.borderColor]="entry.requestorId | toUser | color"
           [style.backgroundColor]="hoveredEntryId === entry.id ? ((entry.requestorId | toUser | color) || 'rgb(245 246 248 / var(--tw-bg-opacity))') : 'white'"
           [style.borderColor]="entry.requestorId | toUser | color"
@@ -107,7 +107,7 @@
   </ng-template>
 
   <div class="ant-picker-cell-inner"
-    [ngClass]="{'border-b-2 border-alert-red border-opacity-50' : (date | matchingOfftime:existing).length, 'bg-alert-red bg-opacity-50': (hoveredEntryId|inList:(date|matchingOfftime:existing):'id')}"
+    [ngClass]="{'border-b-2 border-red-700 border-opacity-50' : (date | matchingOfftime:existing).length, 'bg-red-700 bg-opacity-50': (hoveredEntryId|inList:(date|matchingOfftime:existing):'id')}"
     [nz-tooltip]="(date | matchingOfftime:existing).length > 0 ? tooltipTemplate : null">
     {{ date | date:"d" }}
   </div>

@@ -4,24 +4,24 @@ tr.error {
 
 tr.inbound {
   .direction {
-    @apply text-meadow;
+    @apply text-emerald-500;
   }
 }
 
 tr.self-call {
-  @apply text-subtle;
+  @apply border-gray-400;
   opacity: 0.9;
 }
 
 tr.outbound {
   .direction {
-    @apply text-highlight;
+    @apply text-gray-700;
   }
 }
 
 tr.lost {
   .direction {
-    @apply text-alert-red;
+    @apply text-red-700;
   }
 }
 
@@ -38,7 +38,7 @@ tr.lost {
 }
 
 .transfer-target {
-  @apply text-deEmphasized;
+  @apply text-slate-200;
   font-size: 95%;
 }
 

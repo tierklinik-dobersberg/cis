@@ -65,7 +65,7 @@ span.ant-avatar {
   @apply border-0;
 
   li.ant-menu-item {
-    @apply text-primary font-lato border-r-4 border-transparent;
+    @apply text-gray-800  border-r-4 border-transparent;
     @apply outline-none;
 
     & > span {
@@ -85,24 +85,24 @@ span.ant-avatar {
       }
 
       &:active {
-        @apply bg-primary bg-opacity-20;
+        @apply bg-sky-900 bg-opacity-20;
       }
     }
 
     &.ant-menu-submenu.ant-menu-submenu-open {
-      @apply bg-subtle shadow-inner;
+      @apply bg-gray-100 shadow-inner;
 
       & > .ant-menu-submenu-title {
-        @apply bg-tertiary rounded-t bg-opacity-light;
+        @apply bg-gray-400 rounded-t bg-opacity-50;
       }
     }
 
     &:hover, &:focus {
-      @apply bg-subtle;
+      @apply bg-gray-100;
     }
 
     &.ant-menu-item-selected{
-      @apply border-primary text-primary bg-subtle;
+      @apply border-sky-900 text-gray-800 bg-gray-100;
 
       &::after {
         content: unset;

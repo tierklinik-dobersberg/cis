@@ -21,6 +21,7 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { OnCallOverwritePageComponent } from './overwrite-component';
 import { OnCallOverwriteRoutingModule } from './on-call-overwrite-routing.module';
+import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
 
 @NgModule({
   imports: [
@@ -47,6 +48,7 @@ import { OnCallOverwriteRoutingModule } from './on-call-overwrite-routing.module
     NzBadgeModule,
     OnCallOverwriteRoutingModule,
     SharedModule,
+    HlmButtonModule
   ],
   declarations: [
     OnCallOverwritePageComponent,

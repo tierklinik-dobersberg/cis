@@ -27,7 +27,7 @@ export class NotAllowedComponent implements OnInit {
     this.route
       .queryParamMap
       .subscribe(map => {
-        this.reason = map.get("reason") || '';
+        this.reason = map.get("reason");
 
         if (!this.reason) {
           this.router.navigate(['/welcome'])

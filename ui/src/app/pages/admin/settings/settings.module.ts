@@ -5,9 +5,10 @@ import { SettingEditorComponent } from './setting-editor';
 import { SettingTestComponent } from './setting-test';
 import { SettingViewComponent } from './setting-view';
 import { SettingsRoutingModule } from './settings-routing.module';
+import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
 
 @NgModule({
-  imports: [SharedModule, SettingsRoutingModule, NzTableModule],
+  imports: [SharedModule, SettingsRoutingModule, NzTableModule, HlmButtonModule],
   declarations: [
     SettingViewComponent,
     SettingEditorComponent,

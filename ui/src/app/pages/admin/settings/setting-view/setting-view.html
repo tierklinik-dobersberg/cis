@@ -9,7 +9,7 @@
       bg-white
       rounded-full
       shadow
-      text-color-primary
+      text-sky-800
     "
     >
     @if (!!schema?.svgData) {
@@ -24,11 +24,11 @@
   </div>
 
   <div class="flex flex-col">
-    <span class="text-base font-semibold font-lato text-primary">
+    <span class="text-base font-semibold  text-gray-800">
       {{ schema?.displayName || schema?.name }}
     </span>
     @if (!!schema?.description) {
-      <span class="text-secondary">
+      <span class="text-gray-500">
         {{ schema?.description }}
       </span>
     }
@@ -151,7 +151,7 @@
                     {{ data.value[spec.name] }}
                   </span>
                 } @else {
-                  <span class="text-xs text-tertiary">N/A</span>
+                  <span class="text-xs text-gray-400">N/A</span>
                 }
               </td>
             }

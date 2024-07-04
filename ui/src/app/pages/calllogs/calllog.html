@@ -1,10 +1,10 @@
 <div class="flex items-center space-x-3">
     <nz-range-picker [nzShowTime]="true"  [(ngModel)]="dateRange" [nzAllowClear]="false" (ngModelChange)="onChange($event)"></nz-range-picker>
-    <button class="tkd-btn tkd-primary">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+    <button hlmBtn size="sm">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 mr-2">
         <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
       </svg>
-      <span>Suchen</span>
+      Suchen
     </button>
 </div>
 
@@ -12,21 +12,12 @@
   <div class="p-2 bg-white rounded shadow sm:p-4">
     <div class="flex items-center space-x-5">
       <span class="space-x-1 leading-3">
-        <h1 class="text-3xl font-bold text-color-primary font-roboto">{{ logs.length }}</h1>
-        <span class="text-secondary font-lato">Telefonate</span>
+        <h1 class="text-3xl font-bold text-sky-800 font-roboto">{{ logs.length }}</h1>
+        <span class="text-gray-500 ">Telefonate</span>
       </span>
       <span class="space-x-1 leading-3">
-        <h1 class="text-3xl font-bold text-meadow font-roboto">{{ distinctCallers.size }}</h1>
-        <span class="text-secondary font-lato">Anrufer</span>
-      </span>
-    </div>
-  </div>
-
-  <div class="p-2 bg-white rounded shadow sm:p-4">
-    <div class="flex items-center space-x-5">
-      <span class="space-x-1 leading-3">
-        <h1 class="text-3xl font-bold text-color-secondary-dark font-roboto">{{ totalCallTime | duration }}</h1>
-        <span class="text-secondary font-lato">Gesamte Dauer</span>
+        <h1 class="text-3xl font-bold text-emerald-500 font-roboto">{{ distinctCallers.size }}</h1>
+        <span class="text-gray-500 ">Anrufer</span>
       </span>
     </div>
   </div>
@@ -34,17 +25,26 @@
   <div class="p-2 bg-white rounded shadow sm:p-4">
     <div class="flex items-center space-x-5">
       <span class="space-x-1 leading-3">
-        <h1 class="text-3xl font-bold text-rost-dust font-roboto">{{ (logs.length > 0 ? 100 / logs.length * missedCalls : 0) | number:"1.2-2" }}%</h1>
-        <span class="text-secondary font-lato"><span class="font-semibold text-highlight">{{missedCalls}}</span> Verpasste Anrufe</span>
+        <h1 class="text-3xl font-bold text-sky-600 font-roboto">{{ totalCallTime | duration }}</h1>
+        <span class="text-gray-500 ">Gesamte Dauer</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="p-2 bg-white rounded shadow sm:p-4">
+    <div class="flex items-center space-x-5">
+      <span class="space-x-1 leading-3">
+        <h1 class="text-3xl font-bold text-rose-800 font-roboto">{{ (logs.length > 0 ? 100 / logs.length * missedCalls : 0) | number:"1.2-2" }}%</h1>
+        <span class="text-gray-500 "><span class="font-semibold text-gray-700">{{missedCalls}}</span> Verpasste Anrufe</span>
       </span>
     </div>
   </div>
 </div>
 
 <div class="bg-white rounded shadow">
-  <div class="p-4 border-b sm:p-6 md:p-8 border-tertiary">
-    <h1 class="text-lg text-lato text-color-primary">Journal</h1>
-    <span class="text-secondary">Im folgenden findest du eine Liste an eingehenden und ausgehenden Telefongesprächen im gewünschten Zeitraum.</span>
+  <div class="p-4 border-b sm:p-6 md:p-8 border-gray-400">
+    <h1 class="text-lg text-lato text-sky-800">Journal</h1>
+    <span class="text-gray-500">Im folgenden findest du eine Liste an eingehenden und ausgehenden Telefongesprächen im gewünschten Zeitraum.</span>
   </div>
 
   <app-calllog-table [records]="logs" (totalCallTime)="totalCallTime = $event"></app-calllog-table>

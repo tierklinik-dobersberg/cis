@@ -14,7 +14,7 @@
   <nz-avatar-group>
     @for (user of data; track user) {
       <nz-avatar [nz-tooltip]="(user | toUser | displayName)" nzIcon="user" [nzSrc]="(user | toUser)?.user.avatar" [nzSize]="48"
-        (mouseenter)="userHover.next(user)" (mouseleave)="userHover.next('')" (click)="userClicked(user)" class="!border !border-subtle">
+        (mouseenter)="userHover.next(user)" (mouseleave)="userHover.next('')" (click)="userClicked(user)" class="!border !border-gray-100">
       </nz-avatar>
     }
   </nz-avatar-group>

@@ -13,6 +13,7 @@ import { MatchingOfftimePipe } from './matching-offtime.pipe';
 import { MatchingOfftimeTooltipPipe } from './matching-offtime-tooltip.pipe';
 import { LibPackerModule } from 'ng-zorro-antd/date-picker'
 import { OffTimeCalendarOverviewComponent } from './offtime-calendar-overview/calendar-overview';
+import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
 
 @NgModule({
   imports: [
@@ -25,6 +26,7 @@ import { OffTimeCalendarOverviewComponent } from './offtime-calendar-overview/ca
     NzTabsModule,
     MarkdownModule,
     FormsModule,
+    HlmButtonModule
   ],
   declarations: [
     OffTimeListComponent,

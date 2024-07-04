@@ -35,6 +35,8 @@ import { NotAllowedComponent } from './pages/not-allowed';
 import { Code, ConnectError } from '@connectrpc/connect';
 import { PlatformModule } from '@angular/cdk/platform';
 
+import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button'
+
 registerLocaleData(de);
 
 @NgModule({
@@ -81,6 +83,9 @@ registerLocaleData(de);
       // or after 30 seconds (whichever comes first).
       registrationStrategy: 'registerWhenStable:30000'
     }),
+
+    // FIXME: Migration
+    HlmButtonModule,
   ],
   providers: [
     { provide: NZ_I18N, useValue: de_DE },

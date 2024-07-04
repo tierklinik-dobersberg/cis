@@ -3,7 +3,7 @@ ul {
 }
 
 li {
-  @apply flex flex-col items-center justify-around bg-primary hover:bg-primary-dark rounded shadow text-white p-4 text-center active:bg-primary-dark focus:bg-primary-dark;
+  @apply flex flex-col items-center justify-around bg-sky-900 hover:bg-sky-900 rounded shadow text-white p-4 text-center active:bg-sky-900 focus:bg-sky-900;
 
   svg {
     @apply h-10 w-10;

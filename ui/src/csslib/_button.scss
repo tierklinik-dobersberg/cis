@@ -1,6 +1,6 @@
 @layer components {
     .tkd-icon-btn {
-      @apply p-2 w-9 h-9  rounded-full shadow-sm cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-light active:shadow-inner;
+      @apply p-2 w-9 h-9  rounded-full shadow-sm cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-sky-900 focus:ring-opacity-50 active:shadow-inner;
       @apply transition-all duration-75 ease-in-out;
 
       &.tkd-small {
@@ -12,32 +12,32 @@
       }
 
       &.tkd-primary {
-        @apply bg-white  text-color-primary;
+        @apply bg-white  text-sky-800;
         &:not([disabled]) {
-          @apply hover:bg-primary  hover:text-white;
+          @apply hover:bg-sky-900  hover:text-white;
         }
         &[disabled] {
           @apply cursor-not-allowed opacity-50;
         }
       }
       &.tkd-secondary {
-        @apply bg-white  hover:bg-secondary text-color-secondary hover:text-white;
+        @apply bg-white  hover:bg-sky-600 text-sky-600 hover:text-white;
       }
       &.tkd-danger {
-        @apply bg-white  hover:bg-alert-red text-alert-red hover:text-white;
+        @apply bg-white  hover:bg-red-700 text-red-700 hover:text-white;
       }
     }
 
     .tkd-icon-btn-inverse {
       @apply tkd-icon-btn;
       &.tkd-primary {
-        @apply hover:bg-white  bg-primary hover:text-color-primary text-white;
+        @apply hover:bg-white  bg-sky-900 hover:text-sky-800 text-white;
       }
       &.tkd-secondary {
-        @apply hover:bg-white  bg-secondary hover:text-color-secondary text-white;
+        @apply hover:bg-white  bg-sky-600 hover:text-sky-600 text-white;
       }
       &.tkd-danger {
-        @apply hover:bg-white  bg-alert-red hover:text-alert-red text-white;
+        @apply hover:bg-white  bg-red-700 hover:text-red-700 text-white;
       }
     }
 

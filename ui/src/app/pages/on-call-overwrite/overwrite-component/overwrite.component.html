@@ -9,23 +9,23 @@
           }
         </div>
         <div class="flex flex-col justify-start flex-grow ml-4">
-          <span class="font-semibold text-primary">
+          <span class="font-semibold text-gray-800">
             {{
             currentOverwrite.target.case === 'userId'
             ? (currentOverwrite.target.value | toUser | displayName)
             : (currentOverwrite.target.value.displayName)
             }}
           </span>
-          <span class="text-secondary">
-            Telefon ist bis <span class="text-highlight">{{ currentOverwrite.to.toDate() | date:'medium' }}</span> umgeleitet und folgt
+          <span class="text-gray-500">
+            Telefon ist bis <span class="text-gray-700">{{ currentOverwrite.to.toDate() | date:'medium' }}</span> umgeleitet und folgt
             nicht dem aktuellen Dienstplan!
           </span>
-          <span class="text-secondary">
+          <span class="text-gray-500">
             Klicke rechts auf Löschen um die Umleitung zu entfernen.
             <!--
             FIXME
-            <span  class="text-alert-red">
-              Achtung, es existiert <a class="underline text-alert-red-dark" routerLink="/roster">kein Dienstplan für
+            <span  class="text-red-700">
+              Achtung, es existiert <a class="underline text-red-700" routerLink="/roster">kein Dienstplan für
             heute!</a></span>
             -->
           </span>
@@ -46,22 +46,22 @@
         <nz-avatar nzIcon="user" nzShape="circle" [nzSize]="56" class="rounded-full shadow"
         [nzSrc]="(currentRoster.userIds[0] | toUser)?.user.avatar"></nz-avatar>
         <div class="flex flex-col justify-start flex-grow ml-4">
-          <span class="font-semibold text-primary">{{ currentRoster.userIds[0] | toUser | displayName }}</span>
-          <span class="text-secondary">
+          <span class="font-semibold text-gray-800">{{ currentRoster.userIds[0] | toUser | displayName }}</span>
+          <span class="text-gray-500">
             Anrufe werden
-            <a routerLink="/roster" class="underline text-highlight">laut Dienstplan</a>
+            <a routerLink="/roster" class="underline text-gray-700">laut Dienstplan</a>
             zugestellt.
           </span>
         </div>
       </div>
     } @else {
       <div class="flex flex-row items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="p-2 text-white rounded-full shadow w-14 h-14 bg-alert-red"
+        <svg xmlns="http://www.w3.org/2000/svg" class="p-2 text-white rounded-full shadow w-14 h-14 bg-red-700"
           fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
-        <span class="ml-4 font-semibold text-alert-red">
+        <span class="ml-4 font-semibold text-red-700">
           Es ist momentan
           <a class="underline" routerLink="/roster">kein Dienstplan</a> und
           keine Umleitung eingestellt,
@@ -79,17 +79,17 @@
   <header>
     <h1>Telefon umleiten</h1>
     <span>Hier kannst du den bestehenden
-      <a class="text-highlight hover:underline" routerLink="/roster">Dienstplan</a>
+      <a class="text-gray-700 hover:underline" routerLink="/roster">Dienstplan</a>
     überschreiben bzw das Notruf-Telefon umleiten.</span>
   </header>
 
   <div class="p-12 space-y-8">
     <section class="space-y-4">
       <div>
-        <h2 class="text-lg font-semibold text-primary font-lato">
+        <h2 class="text-lg font-semibold text-gray-800 ">
           1. Wähle den Zeitraum
         </h2>
-        <span class="text-sm text-secondary">In welchem Zeitraum möchstest du den Dienstplan überschreiben und das
+        <span class="text-sm text-gray-500">In welchem Zeitraum möchstest du den Dienstplan überschreiben und das
         Notruf-Telefon umleiten?</span>
       </div>
 
@@ -133,7 +133,7 @@
               <span class="w-10 mt-1 text-center">vom</span>
               <nz-date-picker class="flex-grow md:flex-grow-0" [(ngModel)]="customFrom" (ngModelChange)="onDateChange()"
               [nzDisabledDate]="isBeforeRosterDate" [nzAllowClear]="false"></nz-date-picker>
-              <svg xmlns="http://www.w3.org/2000/svg" class="mt-1.5 ml-1.5 w-5 h-5 text-deEmphasized"
+              <svg xmlns="http://www.w3.org/2000/svg" class="mt-1.5 ml-1.5 w-5 h-5 text-slate-200"
                 viewBox="0 0 20 20" fill="currentColor" [nz-tooltip]="tooltipTemplate">
                 <path fill-rule="evenodd"
                   d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
@@ -154,7 +154,7 @@
       @if (availableShifts?.length) {
         <div
           class="flex flex-col space-y-2 sm:space-x-2 sm:space-y-0 sm:flex-row sm:items-center">
-          <span class="text-primary">Im Dienst laut Plan:</span>
+          <span class="text-gray-800">Im Dienst laut Plan:</span>
           @for (shift of availableShifts; track shift) {
             <nz-avatar-group class="current-state">
               @for (user of shift.assignedUserIds; track user) {
@@ -169,7 +169,7 @@
       <!-- List of overlapping overwrites -->
       @if (overlapping?.length && !firstLoad) {
         <div
-          class="p-4 text-white border rounded shadow bg-alert-red border-alert-red-dark" [@scaleInOut]>
+          class="p-4 text-white border rounded shadow bg-red-700 border-red-700" [@scaleInOut]>
           <div class="mb-2">
             <h2 class="text-base text-white underline">
               Überlappende Einträge gefunden
@@ -232,10 +232,10 @@
 
     <section [class.ready]="!!selectedUser || !!selectedQuickTargetNumber || !!customPhoneNumber" class="space-y-4">
       <div>
-        <h2 class="text-lg font-semibold text-primary font-lato">
+        <h2 class="text-lg font-semibold text-gray-800 ">
           2. Wähle das neue Ziel
         </h2>
-        <span class="text-sm text-secondary">Wähle die Person beziehungsweise das Umleitungsziel für den
+        <span class="text-sm text-gray-500">Wähle die Person beziehungsweise das Umleitungsziel für den
         angegebenen Zeitraum.</span>
       </div>
 
@@ -275,7 +275,7 @@
     </section>
 
     <div class="actions">
-      <button class="text-sm uppercase font-lato tkd-btn tkd-primary" (click)="createOverwrite()" [disabled]="!valid">
+      <button hlmBtn (click)="createOverwrite()" [disabled]="!valid">
         Umleiten
       </button>
     </div>
@@ -288,10 +288,10 @@
   <br />
   @if (currentRoster?.userIds?.length) {
     Anrufe werden dann laut Dienstplan an
-    <span class="underline text-highlight">{{ currentRoster.userIds[0] | toUser | displayName }}</span>
+    <span class="underline text-gray-700">{{ currentRoster.userIds[0] | toUser | displayName }}</span>
     weitergeleitet.
   } @else {
-    <span class="text-alert-red">Es ist kein Dienstplan für heute konfiguriert, wenn die Umleitung
+    <span class="text-red-700">Es ist kein Dienstplan für heute konfiguriert, wenn die Umleitung
       gelöscht wird <u>können Anrufe nicht zugestellt werden!</u></span>
     }
   </ng-template>

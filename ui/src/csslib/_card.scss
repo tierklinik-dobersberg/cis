@@ -3,14 +3,14 @@
     @apply bg-white rounded shadow;
 
     & > header {
-      @apply p-4 border-b sm:p-6 md:p-8 border-tertiary;
+      @apply p-4 border-b sm:p-6 md:p-8 border-gray-400;
 
       h1 {
-        @apply text-lg font-lato text-color-primary;
+        @apply text-lg  text-sky-800;
       }
 
       h1 ~ span {
-        @apply text-secondary;
+        @apply text-gray-500;
       }
     }
 

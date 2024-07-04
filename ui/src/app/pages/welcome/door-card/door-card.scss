@@ -33,9 +33,9 @@ nz-card {
 }
 
 .door-locked {
-  @apply bg-rost-dust bg-opacity-light;
+  @apply bg-rose-800 bg-opacity-50;
 }
 
 .door-unlocked {
-  @apply bg-meadow bg-opacity-light;
+  @apply bg-emerald-500 bg-opacity-50;
 }

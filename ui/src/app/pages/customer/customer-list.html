@@ -1,5 +1,5 @@
 <div class="flex flex-col flex-grow bg-white rounded shadow">
-  <div class="flex flex-col p-4 space-y-2 border-b border-tertiary">
+  <div class="flex flex-col p-4 space-y-2 border-b border-gray-400">
     <div class="flex space-x-2">
       @if (!useAdvancedSearch) {
         <input type="text" class="flex-grow tkd-input" placeholder="Suche nach Name oder Addresse ..." [(ngModel)]="searchText"
@@ -18,8 +18,8 @@
         }
       </nz-select>
 
-      <button class="tkd-btn tkd-primary" (click)="search(searchText)">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+      <button hlmBtn size="sm" (click)="search(searchText)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 sm:mr-2">
           <path fill-rule="evenodd"
             d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
             clip-rule="evenodd" />
@@ -28,12 +28,12 @@
       </button>
     </div>
     <div class="justify-between hidden space-x-2 md:flex">
-      <div class="flex items-center space-x-2 text-secondary">
+      <div class="flex items-center space-x-2 text-gray-500">
         <nz-switch nzSize="small" [(ngModel)]="useAdvancedSearch"></nz-switch>
-        <span class="text-sm font-lato">Expertenmodus</span>
+        <span class="text-sm ">Expertenmodus</span>
       </div>
       <div>
-        <span class="text-sm text-secondary">
+        <span class="text-sm text-gray-500">
           {{customers?.length}}
           Ergebnisse
         </span>
@@ -54,15 +54,15 @@
 
     <div class="p-4">
       <li *cdkVirtualFor="let customer of customers; trackBy: trackBy"
-        class="flex flex-row items-start justify-between p-2 rounded outline-none cursor-pointer md:items-center hover:bg-secondary hover:bg-opacity-25"
+        class="flex flex-row items-start justify-between p-2 rounded outline-none cursor-pointer md:items-center hover:bg-sky-600 hover:bg-opacity-25"
         [routerLink]="['view', customer.source, customer.cid]">
         <div class="flex flex-col">
           <div>
             <a>{{ customer.name }} {{ customer.firstname }} </a>
           </div>
 
-          <div class="text-secondary">
-            <svg xmlns="http://www.w3.org/2000/svg" class="hidden w-3 h-3 align-baseline sm:inline-block text-tertiary" viewBox="0 0 20 20" fill="currentColor">
+          <div class="text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="hidden w-3 h-3 align-baseline sm:inline-block text-gray-400" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
             </svg>
             {{ customer.cityCode }}&nbsp;{{ customer.city }} - {{ customer.street }}
@@ -70,7 +70,7 @@
               @if (!!(customer.phoneNumbers || [])[0]) {
                 <a class="hidden sm:block lg:inline-block"
                   [attr.href]="'tel:' + (customer.phoneNumbers || [])[0]">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="hidden w-3 h-3 align-baseline text-tertiary sm:inline-block" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="hidden w-3 h-3 align-baseline text-gray-400 sm:inline-block" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                   </svg>
                   {{(customer.distinctPhoneNumbers || [])[0]}}
@@ -103,18 +103,18 @@
 </div>
 
 <ng-template #customerSelectPhone let-data>
-  <h1 class="p-4 text-primary">
+  <h1 class="p-4 text-gray-800">
     Welche Telefonnummer möchtest du anrufen?
   </h1>
 
   <ul class="list-none">
     @for (phone of data.distinctPhoneNumbers; track phone) {
       <li>
-        <a class="flex-row items-center p-2 space-x-3 text-base outline-none font-lato text-primaryflex md:p-4 hover:bg-secondary hover:bg-opacity-25 pointer text-color-primary text-opacity-light hover:text-color-primary hover:text-opacity-100" href="tel:{{phone}}" >
+        <a class="flex-row items-center p-2 space-x-3 text-base outline-none  text-gray-800flex md:p-4 hover:bg-sky-600 hover:bg-opacity-25 pointer text-sky-800 text-opacity-50 hover:text-sky-800 hover:text-opacity-100" href="tel:{{phone}}" >
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6">
             <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
           </svg>
-          <span class="text-base text-lato text-primary hover:text-color-primary-dark">{{ phone }}</span>
+          <span class="text-base text-lato text-gray-800 hover:text-sky-800">{{ phone }}</span>
         </a>
       </li>
     }

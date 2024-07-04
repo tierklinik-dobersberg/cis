@@ -24,6 +24,7 @@ import { XRayComponent } from './xray';
 import { XRayRoutingModule } from './xray-routing.module';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { PreviewUrlPipe } from './preview-url.pipe';
+import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 
 @NgModule({
     imports: [
@@ -47,7 +48,8 @@ import { PreviewUrlPipe } from './preview-url.pipe';
         NzDropDownModule,
         LayoutModule,
         CdkScrollableModule,
-        ScrollingModule
+        ScrollingModule,
+        HlmButtonDirective
     ],
     exports: [
         XRayComponent,

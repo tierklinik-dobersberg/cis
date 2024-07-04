@@ -11,7 +11,7 @@ nz-card {
   img.card-image {
     display: none;
 
-    @apply text-color-primary opacity-25;
+    @apply text-sky-800 opacity-25;
 
     @include for-tablet-portrait-up {
       display: block;

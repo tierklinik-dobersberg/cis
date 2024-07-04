@@ -76,7 +76,7 @@
     }
 
     .event {
-        @apply text-ellipsis font-lato text-sm block absolute overflow-hidden p-1 shadow cursor-pointer border border-white rounded-sm;
+        @apply text-ellipsis  text-sm block absolute overflow-hidden p-1 shadow cursor-pointer border border-white rounded-sm;
         transition: all .3s cubic-bezier(0.19, 1, 0.22, 1);
 
         &.inactive {

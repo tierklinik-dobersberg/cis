@@ -1,20 +1,20 @@
 <div class="bg-white rounded shadow">
-  <div class="flex flex-row justify-between items-center p-4 border-b sm:p-6 md:p-8 border-tertiary">
+  <div class="flex flex-row justify-between items-center p-4 border-b sm:p-6 md:p-8 border-gray-400">
     <div>
-      <h1 class="text-lg text-lato text-color-primary">Antrag auf Urlaub/Zeitausgleich</h1>
+      <h1 class="text-lg text-lato text-sky-800">Antrag auf Urlaub/Zeitausgleich</h1>
       @if (vacation && layout.isTabletPortraitUp) {
-        <span class="text-secondary">
+        <span class="text-gray-500">
           Bis zum Ende des Jahres hast du noch
         <span [ngClass]="{
-          'text-alert-green-dark': vacation.vacationCreditsLeft.seconds > 0,
-          'text-alert-red': vacation.vacationCreditsLeft.seconds <= 0
+          'text-green-700': vacation.vacationCreditsLeft.seconds > 0,
+          'text-red-700': vacation.vacationCreditsLeft.seconds <= 0
         }" class="font-medium underline">
           {{ vacation.vacationCreditsLeft | duration:'default-hours':undefined:true }}</span>
           Urlaubsanspruch.
           Dein Zeitausgleich-Guthaben beträgt derzeit
         <span [ngClass]="{
-          'text-alert-green-dark': vacation.timeOffCredits.seconds > 0,
-          'text-alert-red': vacation.timeOffCredits.seconds <= 0
+          'text-green-700': vacation.timeOffCredits.seconds > 0,
+          'text-red-700': vacation.timeOffCredits.seconds <= 0
         }" class="font-medium underline">
           {{ vacation.timeOffCredits | duration:'default-hours':undefined:true }}</span>
         </span>
@@ -23,11 +23,11 @@
   </div>
 
   <form class="flex flex-col" (ngSubmit)="createRequest()" #requestForm="ngForm">
-    <div class="border-b border-tertiary p-4 flex flex-col gap-3 justify-start items-start relative pl-16">
+    <div class="border-b border-gray-400 p-4 flex flex-col gap-3 justify-start items-start relative pl-16">
       <label
-      class="absolute left-0 top-0 p-2 bg-subtle w-12 flex flex-col items-center justify-center bottom-0 text-xl text-color-primary">1.</label>
+      class="absolute left-0 top-0 p-2 bg-gray-100 w-12 flex flex-col items-center justify-center bottom-0 text-xl text-sky-800">1.</label>
 
-      <label class="text-secondary text-sm">Bitte wähle den gewünschten Zeitraum:</label>
+      <label class="text-gray-500 text-sm">Bitte wähle den gewünschten Zeitraum:</label>
       <label nz-checkbox name="wholeDays" [ngModel]="!showTime" (ngModelChange)="toggleShowTime()">Ganze Tage</label>
 
       <!-- Date-range picker on Desktop -->
@@ -40,42 +40,42 @@
       <!-- Mobile "date-range" picker -->
       @if (!layout.isTabletPortraitUp) {
         <div class="flex flex-col gap-1 w-full">
-          <label class="text-secondary text-sm">Von</label>
+          <label class="text-gray-500 text-sm">Von</label>
           <input [attr.type]="showTime ? 'datetime-local' : 'date'" required class="tkd-input" name="from"
             [(ngModel)]="from" (ngModelChange)="updateDateRange('from')">
         </div>
         <div class="flex flex-col gap-1 w-full">
-          <label class="text-secondary text-sm">Bis</label>
+          <label class="text-gray-500 text-sm">Bis</label>
           <input [attr.type]="showTime ? 'datetime-local' : 'date'" required class="tkd-input" name="to"
             [(ngModel)]="to" (ngModelChange)="updateDateRange('to')">
         </div>
       }
     </div>
 
-    <div class="border-b border-tertiary p-4 flex flex-col gap-2 justify-start items-start relative pl-16">
+    <div class="border-b border-gray-400 p-4 flex flex-col gap-2 justify-start items-start relative pl-16">
       <label
-      class="absolute left-0 top-0 p-2 bg-subtle w-12 flex flex-col items-center justify-center bottom-0 text-xl text-color-primary"></label>
+      class="absolute left-0 top-0 p-2 bg-gray-100 w-12 flex flex-col items-center justify-center bottom-0 text-xl text-sky-800"></label>
 
-      <label class="text-secondary text-sm">Vorhandene Urlaubsanträge:</label>
+      <label class="text-gray-500 text-sm">Vorhandene Urlaubsanträge:</label>
 
       <app-offtime-calendar-overview class="block w-full" #view="calendarView" [hoverValue]="hoverValue" [calendarDate]="calendarDate" [profiles]="profiles"></app-offtime-calendar-overview>
 
     </div>
 
 
-    <div class="border-b border-tertiary p-4 flex flex-col gap-3 justify-start items-start relative pl-16">
+    <div class="border-b border-gray-400 p-4 flex flex-col gap-3 justify-start items-start relative pl-16">
       <label
-      class="absolute left-0 top-0 p-2 bg-subtle w-12 flex flex-col items-center justify-center bottom-0 text-xl text-color-primary">2.</label>
+      class="absolute left-0 top-0 p-2 bg-gray-100 w-12 flex flex-col items-center justify-center bottom-0 text-xl text-sky-800">2.</label>
 
-      <label class="text-secondary text-sm">Hier kannst du eine zusätzliche Beschreibung angeben:</label>
+      <label class="text-gray-500 text-sm">Hier kannst du eine zusätzliche Beschreibung angeben:</label>
       <ckeditor class="max-w-full w-full" [editor]="Editor" [(ngModel)]="description" name="description"></ckeditor>
     </div>
 
-    <div class="border-b border-tertiary p-4 flex flex-col gap-3 justify-start items-start relative pl-16">
+    <div class="border-b border-gray-400 p-4 flex flex-col gap-3 justify-start items-start relative pl-16">
       <label
-      class="absolute left-0 top-0 p-2 bg-subtle w-12 flex flex-col items-center justify-center bottom-0 text-xl text-color-primary">3.</label>
+      class="absolute left-0 top-0 p-2 bg-gray-100 w-12 flex flex-col items-center justify-center bottom-0 text-xl text-sky-800">3.</label>
 
-      <label class="text-secondary text-sm">Bitte wähle die Antragsart:</label>
+      <label class="text-gray-500 text-sm">Bitte wähle die Antragsart:</label>
       <nz-select [(ngModel)]="offTimeType" required name="type" class="w-40">
         <nz-option nzLabel="Beliebig" nzValue="auto"></nz-option>
         <nz-option nzLabel="Urlaub" nzValue="vacation"></nz-option>
@@ -83,11 +83,11 @@
       </nz-select>
     </div>
 
-    <div class="border-b border-tertiary p-4 flex flex-col gap-2 justify-start items-start relative pl-16">
+    <div class="border-b border-gray-400 p-4 flex flex-col gap-2 justify-start items-start relative pl-16">
       <label
-      class="absolute left-0 top-0 p-2 bg-subtle w-12 flex flex-col items-center justify-center bottom-0 text-xl text-color-primary">4.</label>
+      class="absolute left-0 top-0 p-2 bg-gray-100 w-12 flex flex-col items-center justify-center bottom-0 text-xl text-sky-800">4.</label>
 
-      <button class="tkd-btn tkd-primary" type="submit" [disabled]="requestForm.invalid">Antrag erstellen</button>
+      <button hlmBtn type="submit" [disabled]="requestForm.invalid">Antrag erstellen</button>
     </div>
 
   </form>

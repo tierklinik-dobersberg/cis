@@ -17,6 +17,7 @@ import { SharedModule } from "src/app/shared/shared.module";
 import { toDateString } from "src/app/utils";
 import { Calendar, CalendarMouseEvent, IsSameDayPipe, TimeFormatPipe, Timed, TkdCalendarEventCellTemplateDirective, TkdCalendarHeaderCellTemplateDirective, TkdDayViewComponent } from "../day-view";
 import { getSeconds } from "../day-view/sort.pipe";
+import { HlmButtonModule } from "@tierklinik-dobersberg/angular/button";
 
 type CalEvent = Timed & PlainMessage<CalendarEvent> & {
   isShiftType?: boolean;
@@ -46,27 +47,28 @@ type LocalCalendar = Calendar<CalEvent> & {
     TkdDateInputModule,
     NzToolTipModule,
     NzMessageModule,
-    IsSameDayPipe
+    IsSameDayPipe,
+    HlmButtonModule
 ],
   styles: [
     `
         .event-container {
           container-type: size;
         }
-    
+
         @container (max-height: 1.5rem) {
           .event-details {
             @apply py-0 flex flex-row flex-nowrap items-center;
             font-size: 75%;
           }
         }
-    
+
         @container (max-height: 54px) {
           .event-details {
             @apply flex flex-row items-center flex-nowrap;
           }
         }
-    
+
         @container (min-height: 55px) {
           .event-description {
             display: block;

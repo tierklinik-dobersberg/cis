@@ -37,6 +37,7 @@ import { RosterCardComponent } from './roster-card';
 import { UpcomingEventsCardComponent } from './upcoming-events-card';
 import { WelcomeRoutingModule } from './welcome-routing.module';
 import { WelcomeComponent } from './welcome.component';
+import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 
 @NgModule({
   imports: [
@@ -70,6 +71,7 @@ import { WelcomeComponent } from './welcome.component';
     NzBadgeModule,
     CalendarModule,
     SharedModule,
+    HlmButtonDirective
   ],
   declarations: [
     WelcomeComponent,

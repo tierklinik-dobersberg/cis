@@ -30,7 +30,7 @@ const filterFuncs = {
   styles: [
     `
         #offtime-tab-set ::ng-deep > .ant-tabs-nav {
-          @apply px-4 bg-subtle;
+          @apply px-4 bg-gray-100;
         }
 
         #offtime-tab-set ::ng-deep > .ant-tabs-nav .ant-tabs-tab {

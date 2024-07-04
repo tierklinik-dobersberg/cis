@@ -60,7 +60,7 @@
     "@angular/compiler-cli": "^17.3.11",
     "@tailwindcss/typography": "^0.5.13",
     "@tierklinik-dobersberg/angular": "^0.1.8",
-    "@tierklinik-dobersberg/tailwind": "^0.0.9",
+    "@tierklinik-dobersberg/tailwind": "^0.1.1",
     "@types/jasmine": "^4.3.0",
     "@types/node": "^18.11.8",
     "@typescript-eslint/eslint-plugin": "^7.2.0",

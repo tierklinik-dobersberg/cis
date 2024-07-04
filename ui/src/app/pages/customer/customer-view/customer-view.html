@@ -1,6 +1,6 @@
 <div class="flex flex-row space-x-4">
   <svg xmlns="http://www.w3.org/2000/svg"
-    class="block p-2.5 w-12 h-12 bg-white rounded-full shadow text-color-primary" fill="none" viewBox="0 0 24 24"
+    class="block p-2.5 w-12 h-12 bg-white rounded-full shadow text-sky-800" fill="none" viewBox="0 0 24 24"
     stroke="currentColor">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -8,10 +8,10 @@
 
   <div class="flex flex-col space-y-4">
     <div class="flex flex-col">
-      <span class="text-base font-semibold font-lato text-primary">
+      <span class="text-base font-semibold  text-gray-800">
         {{ customer?.name}}&nbsp;{{ customer?.firstname }}
       </span>
-      <span class="text-sm text-secondary font-iter">
+      <span class="text-sm text-gray-500 font-iter">
         importiert von
         <nz-tag [nzColor]="customer?.tagColor" nz-tooltip [nzTooltipTitle]="tooltipTemplate">{{ customer?.source }}
         </nz-tag>
@@ -22,7 +22,7 @@
       </span>
     </div>
 
-    <div class="flex flex-col text-sm text-secondary">
+    <div class="flex flex-col text-sm text-gray-500">
       @if (!!customer?.distinctPhoneNumbers?.length) {
         <span class="flex flex-row items-center space-x-1">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -65,21 +65,12 @@
       <div class="p-2 bg-white rounded shadow sm:p-4">
         <div class="flex items-center space-x-5">
           <span class="space-x-1 leading-3">
-            <h1 class="text-3xl font-bold text-color-primary font-roboto">{{ callrecords.length  }}</h1>
-            <span class="text-secondary font-lato">Anrufe</span>
+            <h1 class="text-3xl font-bold text-sky-800 font-roboto">{{ callrecords.length  }}</h1>
+            <span class="text-gray-500 ">Anrufe</span>
           </span>
           <span class="space-x-1 leading-3">
-            <h1 class="text-3xl font-bold text-meadow font-roboto">{{ (totalCallTime || 0) | duration }}</h1>
-            <span class="text-secondary font-lato">Dauer</span>
-          </span>
-        </div>
-      </div>
-
-      <div class="p-2 bg-white rounded shadow sm:p-4">
-        <div class="flex items-center space-x-5">
-          <span class="space-x-1 leading-3">
-            <h1 class="text-3xl font-bold text-color-secondary font-roboto">{{ callrecords.length > 0 ? (callrecords[0].receivedAt.toDate() | date:'short':'':'de') : 'N/A' }}</h1>
-            <span class="text-secondary font-lato">Letzes Telefonat</span>
+            <h1 class="text-3xl font-bold text-emerald-500 font-roboto">{{ (totalCallTime || 0) | duration }}</h1>
+            <span class="text-gray-500 ">Dauer</span>
           </span>
         </div>
       </div>
@@ -87,8 +78,17 @@
       <div class="p-2 bg-white rounded shadow sm:p-4">
         <div class="flex items-center space-x-5">
           <span class="space-x-1 leading-3">
-            <h1 class="text-3xl font-bold text-color-secondary font-roboto">{{ patients?.length || 0 }}</h1>
-            <span class="text-secondary font-lato">Tiere</span>
+            <h1 class="text-3xl font-bold text-sky-600 font-roboto">{{ callrecords.length > 0 ? (callrecords[0].receivedAt.toDate() | date:'short':'':'de') : 'N/A' }}</h1>
+            <span class="text-gray-500 ">Letzes Telefonat</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="p-2 bg-white rounded shadow sm:p-4">
+        <div class="flex items-center space-x-5">
+          <span class="space-x-1 leading-3">
+            <h1 class="text-3xl font-bold text-sky-600 font-roboto">{{ patients?.length || 0 }}</h1>
+            <span class="text-gray-500 ">Tiere</span>
           </span>
         </div>
       </div>
@@ -97,11 +97,11 @@
     @if (!!missingData.length) {
       <div class="p-12 mb-8 bg-white rounded shadow md:mb-12">
         <div class="flex flex-col">
-          <span class="mb-1.5 text-lg font-semibold text-alert-red font-lato">Fehlende Kundendaten</span>
-          <span class="text-sm text-secondary font-iter">Es sind nicht alle Kundendaten vorhanden. Bitte ergänze die folgenden Informationen:</span>
+          <span class="mb-1.5 text-lg font-semibold text-red-700 ">Fehlende Kundendaten</span>
+          <span class="text-sm text-gray-500 font-iter">Es sind nicht alle Kundendaten vorhanden. Bitte ergänze die folgenden Informationen:</span>
         </div>
         <div class="mt-4 font-iter">
-          <ul class="pl-4 text-sm list-disc text-highlight">
+          <ul class="pl-4 text-sm list-disc text-gray-700">
             @for (point of missingData; track point) {
               <li>{{ point }}</li>
             }
@@ -194,18 +194,18 @@
 </nz-tabset>
 
 <ng-template #customerSelectPhone let-data>
-  <h1 class="p-4 text-primary">
+  <h1 class="p-4 text-gray-800">
     Welche Telefonnummer möchtest du anrufen?
   </h1>
 
   <ul class="list-none">
     @for (phone of data.distinctPhoneNumbers; track phone) {
       <li>
-        <a class="flex-row items-center p-2 space-x-3 text-base font-lato text-primaryflex md:p-4 hover:bg-secondary hover:bg-opacity-25 pointer text-color-primary text-opacity-light hover:text-color-primary hover:text-opacity-100" href="tel:{{phone}}">
+        <a class="flex-row items-center p-2 space-x-3 text-base  text-gray-800flex md:p-4 hover:bg-sky-600 hover:bg-opacity-25 pointer text-sky-800 text-opacity-50 hover:text-sky-800 hover:text-opacity-100" href="tel:{{phone}}">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6 ">
             <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
           </svg>
-          <span class="text-base text-lato text-primary hover:text-color-primary-dark">{{ phone }}</span>
+          <span class="text-base text-lato text-gray-800 hover:text-sky-800">{{ phone }}</span>
         </a>
       </li>
     }

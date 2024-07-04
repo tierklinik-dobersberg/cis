@@ -9,6 +9,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { CallLogComponent } from './calllog';
 import { CallLogRoutingModule } from './calllog-routing.module';
+import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
 
 @NgModule({
   imports: [
@@ -21,6 +22,7 @@ import { CallLogRoutingModule } from './calllog-routing.module';
     SharedModule,
     NzDatePickerModule,
     CallLogRoutingModule,
+    HlmButtonModule,
   ],
   declarations: [
     CallLogComponent,

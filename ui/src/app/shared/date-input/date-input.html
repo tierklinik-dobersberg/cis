@@ -2,12 +2,12 @@
   @if (isRangeInput) {
     <div class="flex flex-row gap-2 flex-wrap items-center">
       <div class="flex flex-row gap-1 flex-nowrap items-center">
-        <span class="text-secondary">Von</span>
+        <span class="text-gray-500">Von</span>
         <input [attr.type]="showTime ? 'datetime-local' : 'date'" class="tkd-input" name="from" [attr.min]="min | toNativeDateString:showTime" [attr.max]="max | toNativeDateString:showTime" (blur)="_onBlur()"
           [ngModel]="value[0] | toNativeDateString:showTime" (ngModelChange)="updateValue([$event, value[1]])">
       </div>
       <div class="flex flex-row gap-1 flex-nowrap items-center">
-        <span class="text-secondary">Bis</span>
+        <span class="text-gray-500">Bis</span>
         <input [attr.type]="showTime ? 'datetime-local' : 'date'" class="tkd-input" name="to" [attr.min]="min | toNativeDateString:showTime" [attr.max]="max | toNativeDateString:showTime" (blur)="_onBlur()"
           [ngModel]="value[1] | toNativeDateString:showTime" (ngModelChange)="updateValue([value[0], $event])">
       </div>

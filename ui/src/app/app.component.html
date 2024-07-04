@@ -21,7 +21,7 @@
       <span>Dienstplan</span>
     </li>
 
-    <li nzMatchRouter nz-menu-item class="font-lato" routerLink="/offtime">
+    <li nzMatchRouter nz-menu-item class="" routerLink="/offtime">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M7.875 14.25l1.214 1.942a2.25 2.25 0 001.908 1.058h2.006c.776 0 1.497-.4 1.908-1.058l1.214-1.942M2.41 9h4.636a2.25 2.25 0 011.872 1.002l.164.246a2.25 2.25 0 001.872 1.002h2.092a2.25 2.25 0 001.872-1.002l.164-.246A2.25 2.25 0 0116.954 9h4.636M2.41 9a2.25 2.25 0 00-.16.832V12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 12V9.832c0-.287-.055-.57-.16-.832M2.41 9a2.25 2.25 0 01.382-.632l3.285-3.832a2.25 2.25 0 011.708-.786h8.43c.657 0 1.281.287 1.709.786l3.284 3.832c.163.19.291.404.382.632M4.5 20.25h15A2.25 2.25 0 0021.75 18v-2.625c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125V18a2.25 2.25 0 002.25 2.25z" />
       </svg>
@@ -43,7 +43,7 @@
       <span>Röntgen</span>
     </li>
 
-    <li nz-submenu class="font-lato" nzTitle="Anrufe / Voice Mails" nzMatchRouter
+    <li nz-submenu class="" nzTitle="Anrufe / Voice Mails" nzMatchRouter
       nzIcon="customer-service">
       <ul>
         <li nz-menu-item nzMatchRouter routerLink="/calllogs">Anruf Journal</li>
@@ -121,7 +121,7 @@
       <div class="px-4 py-4 ml-1 h-14">
         <a class="flex items-center space-x-2" routerLink="/welcome">
           <img src="assets/logo.png" class="w-10 h-10" alt="logo">
-          <h1 class="flex flex-col text-base font-semibold leading-4 font-lato">
+          <h1 class="flex flex-col text-base font-semibold leading-4 ">
             <span style="color: #1080cf">Tierklinik</span>
             <span style="color: #15377e">Dobersberg</span>
           </h1>
@@ -132,8 +132,8 @@
         <ng-container *ngTemplateOutlet="menuTemplate"></ng-container>
       </div>
       <!-- Copyright -->
-      <span class="flex flex-col items-center justify-around py-2 text-xs text-center text-secondary font-lato">
-        <span class="font-semibold text-highlight">V1.19</span>
+      <span class="flex flex-col items-center justify-around py-2 text-xs text-center text-gray-500 ">
+        <span class="font-semibold text-gray-700">V1.19</span>
         <span>
           <i nz-icon nzType="copyright" nzTheme="outline"></i>
           2019 - 2023
@@ -167,22 +167,21 @@
         <div class="flex items-center space-x-4">
 
           @if (!layout.isDesktopUp) {
-            <button class="block tkd-icon-btn tkd-small no-shadow text-secondary" (click)="toggleMenu()">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button hlmBtn variant="ghost" size="icon" (click)="toggleMenu()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
           }
 
           @if (!layout.isPhone) {
-            <button [class.tkd-danger]="!!overwriteTarget" [class.tkd-primary]="!overwriteTarget" class="tkd-btn tkd-outline" [nz-tooltip]="overwriteTarget ? overwriteTooltip : ''" routerLink="/on-call/overwrite">
-              <svg xmlns="http://www.w3.org/2000/svg" class="inline-block w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <button hlmBtn [variant]="overwriteTarget ? 'destructive' : 'outline'" [nz-tooltip]="overwriteTarget ? overwriteTooltip : ''" routerLink="/on-call/overwrite">
+              <svg xmlns="http://www.w3.org/2000/svg" class="inline-block w-4 h-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M14.414 7l3.293-3.293a1 1 0 00-1.414-1.414L13 5.586V4a1 1 0 10-2 0v4.003a.996.996 0 00.617.921A.997.997 0 0012 9h4a1 1 0 100-2h-1.586z" />
                 <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
               </svg>
-              <span>
-                {{ overwriteTarget || 'Umleiten' }}
-              </span>
+
+              {{ overwriteTarget || 'Umleiten' }}
             </button>
           }
 
@@ -191,7 +190,7 @@
           </ng-template>
 
           @if (!layout.isPhone) {
-            <span nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click" class="p-0.5 rounded-full border border-opacity-40 border-meadow">
+            <span nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click" class="p-0.5 rounded-full border border-opacity-40 border-emerald-500">
               <nz-avatar class="shadow cursor-pointer" nzIcon="user" [nzSrc]="profile?.user?.avatar">
               </nz-avatar>
             </span>
@@ -237,10 +236,10 @@
         </nz-dropdown-menu>
       </div>
 
-      <div class="w-full border-b border-tertiary"></div>
+      <div class="w-full border-b border-gray-400"></div>
     </header>
 
-    <content class="flex items-stretch self-stretch flex-grow w-full overflow-auto bg-opacity-50 justify-items-stretch bg-subtle router-content" cdkScrollable>
+    <content class="flex items-stretch self-stretch flex-grow w-full overflow-auto bg-opacity-50 justify-items-stretch bg-gray-100 router-content" cdkScrollable>
       <router-outlet></router-outlet>
     </content>
 
@@ -248,27 +247,27 @@
     On mobile we have an additional navigation bar at the bottom
     -->
     @if (!layout.isDesktopUp) {
-      <div class="z-10 flex items-center flex-grow-0 flex-shrink-0 w-full h-12 py-1 mt-1 text-xs list-none border-t justify-evenly text-color-primary text-opacity-light border-tertiary">
+      <div class="z-10 flex items-center flex-grow-0 flex-shrink-0 w-full h-12 py-1 mt-1 text-xs list-none border-t justify-evenly text-sky-800 text-opacity-50 border-gray-400">
         <!-- Dashboard -->
-        <li routerLink="/welcome" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
+        <li routerLink="/welcome" routerLinkActive="bg-sky-900 text-white" class="p-1.5 rounded-full">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
         </li>
         <!-- Kalender -->
-        <li routerLink="/calendar" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
+        <li routerLink="/calendar" routerLinkActive="bg-sky-900 text-white" class="p-1.5 rounded-full">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5"  viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
         </li>
         <!-- Dienstplan -->
-        <li routerLink="/roster" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
+        <li routerLink="/roster" routerLinkActive="bg-sky-900 text-white" class="p-1.5 rounded-full">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5"  viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </li>
         <!-- Röntgen -->
-        <li routerLink="/xray" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
+        <li routerLink="/xray" routerLinkActive="bg-sky-900 text-white" class="p-1.5 rounded-full">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5"  viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
           </svg>

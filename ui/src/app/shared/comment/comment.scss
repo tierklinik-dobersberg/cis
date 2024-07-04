@@ -32,7 +32,7 @@ span.ant-avatar {
 }
 
 ::ng-deep span.mention {
-    @apply bg-secondary bg-opacity-10 rounded-sm px-0.5 py-0.5 text-color-primary text-xs;
+    @apply bg-sky-600 bg-opacity-10 rounded-sm px-0.5 py-0.5 text-sky-800 text-xs;
   }
 
 .comment-actions {

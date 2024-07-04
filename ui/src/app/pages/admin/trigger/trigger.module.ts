@@ -7,6 +7,7 @@ import { EditActionComponent } from "./edit-action";
 import { TriggerListComponent } from "./trigger-list";
 import { TriggerRoutingModule } from "./trigger-routing.module";
 import { TriggerViewComponent } from "./trigger-view";
+import { HlmButtonModule } from "@tierklinik-dobersberg/angular/button";
 
 @NgModule({
   imports: [
@@ -15,6 +16,7 @@ import { TriggerViewComponent } from "./trigger-view";
     NzModalModule,
     NzTableModule,
     NzTabsModule,
+    HlmButtonModule
   ],
   declarations: [
     TriggerListComponent,

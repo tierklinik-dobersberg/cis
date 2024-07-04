@@ -17,6 +17,7 @@ import { SharedModule } from 'src/app/shared/shared.module';
 import { CustomerListComponent } from './customer-list';
 import { CustomerRoutingModule } from './customer-routing.module';
 import { CustomerViewComponent } from './customer-view';
+import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
 
 @NgModule({
   imports: [
@@ -37,6 +38,7 @@ import { CustomerViewComponent } from './customer-view';
     ScrollingModule,
     CustomerRoutingModule,
     SharedModule,
+    HlmButtonModule
   ],
   exports: [
     CustomerListComponent,

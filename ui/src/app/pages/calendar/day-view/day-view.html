@@ -62,7 +62,7 @@
     <div id="height-wrapper" class="absolute top-0"></div>
     @if (!calendars?.length && !loading) {
       <div class="calendar">
-        <div class="bg-opacity-10 times bg-text-deEmphasized">
+        <div class="bg-opacity-10 times bg-text-slate-200">
           @for (oh of openingHours; track oh) {
             <div class="relative w-full bg-white opening-hour"
               [ngStyle]="{top: oh.y, height: oh.height}">
@@ -84,7 +84,7 @@
         @if (cal.displayed) {
           <div class="flex flex-col items-stretch justify-start" [style.width.%]="100 / displayedCalendarCount">
             <div class="calendar" #calendarColumn [attr.calid]="cal.calendar.id">
-              <div class="bg-opacity-10 times bg-text-deEmphasized" (dblclick)="showCreateEditEventModal($event, cal)">
+              <div class="bg-opacity-10 times bg-text-slate-200" (dblclick)="showCreateEditEventModal($event, cal)">
                 @for (oh of openingHours; track oh) {
                   <div class="absolute w-full bg-white opening-hour"
                   [attr.range]="oh.from + '-' + oh.to" [ngStyle]="{top: oh.y, height: oh.height}"></div>
@@ -101,7 +101,7 @@
                     [class.inactive]="activeEventID !== ''" #origin (click)="onEventActivate(event, origin)"
                     [class.active]="activeEventID === event.event.id"
                     [ngStyle]="{top: (event.top +  event.offsettop) + 'px', 'min-height': event.height + 'px', height: event.height + 'px', left: event.left + 'px', right: '0px', backgroundColor: event.color || cal.color, color: event.fontColor}">
-                    <span class="text-xs leading-3 opacity-80 font-lato">
+                    <span class="text-xs leading-3 opacity-80 ">
                       {{ event.event.startTime.toDate() | date:'HH:mm'}}
                     </span>
                     <span class="text-xs font-inter">
@@ -113,7 +113,7 @@
                     }
                   </span>
                 }
-                <div #createEventMarker [attr.calid]="cal.calendar.id" class="absolute hidden w-full transition-all duration-200 ease-in-out border-2 border-opacity-50 border-dashed rounded opacity-75 bg-opacity-5 border-primary bg-primary"></div>
+                <div #createEventMarker [attr.calid]="cal.calendar.id" class="absolute hidden w-full transition-all duration-200 ease-in-out border-2 border-opacity-50 border-dashed rounded opacity-75 bg-opacity-5 border-sky-900 bg-sky-900"></div>
               </div>
             </div>
           </div>
@@ -123,9 +123,9 @@
 
 
     @if (isToday) {
-      <div class="absolute w-full border-t-2 border-opacity-75 current-time border-alert-red"
+      <div class="absolute w-full border-t-2 border-opacity-75 current-time border-red-700"
         [ngStyle]="{top: todayOffset + 'px', left: scrollable.nativeElement.scrollLeft}">
-        <span class="relative text-white bg-opacity-75 bg-alert-red">
+        <span class="relative text-white bg-opacity-75 bg-red-700">
           {{ currentTime | date:'HH:mm' }}
         </span>
       </div>
@@ -137,25 +137,25 @@
 Details Template
 -->
 <ng-template #eventDetailsTemplate let-event let-overlay="overlay">
-  <div class="relative p-4 flex flex-col gap-2 bg-white border rounded-sm shadow-lg w-72 border-text-deEmphasized">
-    <h1 class="mr-4 text-base text-color-primary font-lato">
+  <div class="relative p-4 flex flex-col gap-2 bg-white border rounded-sm shadow-lg w-72 border-slate-200">
+    <h1 class="mr-4 text-base text-sky-800 ">
       {{ event.event.summary }}
     </h1>
     @if (!!event.event.startTime && !!event.event.endTime && !event.event.fullDay) {
-      <span class="text-secondary font-lato"> {{ event.event.startTime.toDate() | date:"HH:mm" }} - {{ event.event.endTime.toDate() | date:'HH:mm' }}</span>
+      <span class="text-gray-500 "> {{ event.event.startTime.toDate() | date:"HH:mm" }} - {{ event.event.endTime.toDate() | date:'HH:mm' }}</span>
     }
     @if (event.event.fullDay) {
-      <span class="text-secondary font-lato">Ganztags</span>
+      <span class="text-gray-500 ">Ganztags</span>
     }
 
     @if (event.event.description) {
-      <span class="text-primary font-inter">
+      <span class="text-gray-800 font-inter">
         {{ event.event.description }}
       </span>
     }
 
     @if (!event.event.description) {
-      <span class="text-tertiary font-inter">
+      <span class="text-gray-400 font-inter">
         Keine Beschreibung
       </span>
     }
@@ -176,7 +176,7 @@ Details Template
       </button>
     </div>
 
-    <div (click)="onDeactivate(overlay)" class="absolute w-4 h-4 cursor-pointer right-4 top-5 text-secondary hover:text-primary">
+    <div (click)="onDeactivate(overlay)" class="absolute w-4 h-4 cursor-pointer right-4 top-5 text-gray-500 hover:text-gray-800">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
       </svg>
@@ -189,8 +189,8 @@ Details Template
 Create Event Template
 -->
 <ng-template #createEventTemplate let-data let-overlay="overlay">
-  <div class="relative flex flex-col gap-4 p-4 space-y-2 bg-white border rounded-sm shadow-lg border-text-deEmphasized">
-    <h1 class="flex flex-row items-center justify-start gap-4 text-base text-color-primary font-lato">
+  <div class="relative flex flex-col gap-4 p-4 space-y-2 bg-white border rounded-sm shadow-lg border-slate-200">
+    <h1 class="flex flex-row items-center justify-start gap-4 text-base text-sky-800 ">
       <div>
         <tkd-user-avatar class="block shadow-md w-14 h-14" [avatar]="data.user?.avatar"></tkd-user-avatar>
       </div>

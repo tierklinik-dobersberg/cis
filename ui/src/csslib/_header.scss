@@ -5,7 +5,7 @@
     // Avatar / Page Title Image
     & > img,
     & > svg {
-      @apply block w-12 h-12 bg-white rounded-full shadow text-color-primary;
+      @apply block w-12 h-12 bg-white rounded-full shadow text-sky-800;
     }
     & > svg {
       @apply p-2.5 overflow-visible;
@@ -15,10 +15,10 @@
       @apply flex flex-col flex-grow leading-4;
 
       h1 {
-        @apply text-base font-semibold font-lato text-primary;
+        @apply text-base font-semibold  text-gray-800;
       }
       span {
-        @apply text-secondary;
+        @apply text-gray-500;
       }
     }
 
