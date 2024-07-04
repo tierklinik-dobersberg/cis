@@ -7,8 +7,9 @@
 </ng-template>
 
 <header class="z-50 flex-grow-0 flex-shrink-0 w-full grid-container">
-  <div *ngFor="let cal of data; trackBy: trackCalendar">
-    <ng-container
+  @for (cal of data; track trackCalendar($index, cal)) {
+    <div>
+      <ng-container
       *ngTemplateOutlet="
         headerCell?.template || defaultHeaderCell.template;
         context: {
@@ -17,25 +18,26 @@
       "
     ></ng-container>
   </div>
+}
 </header>
 
 <div class="overflow-auto relative flex-grow" #calendarContainer (scroll)="handleScroll($event)">
   <div
     class="w-full grid-container"
     [style.height]="24 * 3600 | secondsToPixel : sizeFactor"
-  >
-    <div
-      #container
-      (click)="handleCalendarClick($event, cal, container, false)"
-      (dblclick)="handleCalendarClick($event, cal, container, true)"
-      *ngFor="let cal of data; trackBy: trackCalendar"
-      class="relative h-full"
-      [attr.calendar-id]="cal.id"
     >
+    @for (cal of data; track trackCalendar($index, cal)) {
       <div
-        *ngFor="let h of hours; let last=last"
-        [attr.hour]="h"
-        class="absolute w-full text-xs border-t border-opacity-50 border-primary p-2"
+        #container
+        (click)="handleCalendarClick($event, cal, container, false)"
+        (dblclick)="handleCalendarClick($event, cal, container, true)"
+        class="relative h-full"
+        [attr.calendar-id]="cal.id"
+        >
+        @for (h of hours; track h; let last = $last) {
+          <div
+            [attr.hour]="h"
+            class="absolute w-full text-xs border-t border-opacity-50 border-primary p-2"
         [ngClass]="{
           'border-b-8 border-b-primary-dark': last
         }"
@@ -43,23 +45,21 @@
         top: ((h * 60 * 60) | secondsToPixel: sizeFactor) + 'px',
         height: ((60 * 60) | secondsToPixel: sizeFactor) + 'px',
      }"
-      >
-        {{ h }}:00
-      </div>
-
-      <ng-container
-        *ngIf="cal.events | sort | eventStyle : sizeFactor : min as events"
-      >
-        <div
-          *ngFor="let event of events | sort; trackBy: trackEvent"
-          class="absolute transition duration-150 ease-in-out overflow-visible"
+            >
+            {{ h }}:00
+          </div>
+        }
+        @if (cal.events | sort | eventStyle : sizeFactor : min; as events) {
+          @for (event of events | sort; track event.id) {
+            <div
+              class="absolute transition duration-150 ease-in-out overflow-visible"
           [ngClass]="{
             'hover:!z-[100]': !event.ignoreOverlapping
           }"
-          [attr.event-id]="event.id"
-          [ngStyle]="$any(event).style"
-        >
-          <ng-container
+              [attr.event-id]="event.id"
+              [ngStyle]="$any(event).style"
+              >
+              <ng-container
             *ngTemplateOutlet="
                 eventCell?.template || defaultEventCell.template;
                 context: {
@@ -67,23 +67,26 @@
                     calendar: cal,
                 }
             "
-          >
-          </ng-container>
-        </div>
-      </ng-container>
+              >
+            </ng-container>
+          </div>
+        }
+      }
     </div>
-  </div>
+  }
+</div>
 
-  <!-- Current Time Marker -->
+<!-- Current Time Marker -->
+@if (showCurrentTime) {
   <div
-    *ngIf="showCurrentTime"
     class="absolute right-0 left-0 border-t border-alert-red z-[100] drop-shadow"
     [style.top.px]="currentTime$ | async | secondsToPixel : sizeFactor"
-  >
+    >
     <span
       class="absolute top-0 right-0 px-1 py-0.5 text-xs text-white rounded-b bg-alert-red"
-    >
+      >
       {{ currentTime$ | async | time }}
     </span>
   </div>
+}
 </div>

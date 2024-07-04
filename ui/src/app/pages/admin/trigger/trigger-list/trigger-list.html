@@ -5,19 +5,19 @@
       class="tkd-icon-btn tkd-primary"
       nz-tooltip="Erstelle einen neuen Trigger"
       [routerLink]="['create']"
-    >
+      >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
-      >
+        >
         <path
           stroke-linecap="round"
           stroke-linejoin="round"
           stroke-width="2"
           d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-        />
+          />
       </svg>
     </button>
   </div>
@@ -35,26 +35,30 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let row of table.data; trackBy: trackInstance">
-      <td>{{ row.config?.Name }}</td>
-      <td>{{ row.config?.Description }}</td>
-      <td>{{ row.config?.Group }}</td>
-      <td>
-        <ul class="space-y-0.5">
-          <li *ngFor="let filter of row.config?.EventFilter">
-            <pre class="text-xs bg-subtle py-0.4 px-1 border border-tertiary rounded text-secondary">{{ filter }}</pre>
-          </li>
-        </ul>
-      </td>
-      <td>{{ row.actions?.length || 0 }}</td>
-      <td class="flex flex-row items-center justify-end">
-        <tkd-list-action-buttons
-          [value]="row.id"
-          (delete)="deleteTrigger($event)"
-          (edit)="editTrigger($event)"
-        >
-        </tkd-list-action-buttons>
-      </td>
-    </tr>
+    @for (row of table.data; track trackInstance($index, row)) {
+      <tr>
+        <td>{{ row.config?.Name }}</td>
+        <td>{{ row.config?.Description }}</td>
+        <td>{{ row.config?.Group }}</td>
+        <td>
+          <ul class="space-y-0.5">
+            @for (filter of row.config?.EventFilter; track filter) {
+              <li>
+                <pre class="text-xs bg-subtle py-0.4 px-1 border border-tertiary rounded text-secondary">{{ filter }}</pre>
+              </li>
+            }
+          </ul>
+        </td>
+        <td>{{ row.actions?.length || 0 }}</td>
+        <td class="flex flex-row items-center justify-end">
+          <tkd-list-action-buttons
+            [value]="row.id"
+            (delete)="deleteTrigger($event)"
+            (edit)="editTrigger($event)"
+            >
+          </tkd-list-action-buttons>
+        </td>
+      </tr>
+    }
   </tbody>
 </nz-table>

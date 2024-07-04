@@ -1,9 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { ChartData, ChartDataset } from 'chart.js';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { ColorService } from '../shared/charts/color.service';
 
 export interface Group {
   id: string;
@@ -67,7 +65,6 @@ export class CustomerAPI {
 
   constructor(
     private http: HttpClient,
-    private colorService: ColorService,
   ) {
     // customer sources will likely never change during
     // runtime as it can only happen with new CIS releases.

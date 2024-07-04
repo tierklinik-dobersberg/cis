@@ -9,32 +9,43 @@
 </div>
 <div class="comment-content">
 
-  <markdown emoji class="prose-sm prose prose-important" *ngIf="!rendered">
-    {{comment.comment.content}}
-  </markdown>
+  @if (!rendered) {
+    <markdown emoji class="prose-sm prose prose-important">
+      {{comment.comment.content}}
+    </markdown>
+  }
 
-  <div
-    class="prose prose-sm prose-important" *ngIf="rendered" [innerHTML]="safeContent"></div>
+  @if (rendered) {
+    <div
+    class="prose prose-sm prose-important" [innerHTML]="safeContent"></div>
+  }
 
 </div>
 
-<p class="comment-actions" *ngIf="canReply">
-  <a (click)="toggleReply()">Antworten</a>
-</p>
+@if (canReply) {
+  <p class="comment-actions">
+    <a (click)="toggleReply()">Antworten</a>
+  </p>
+}
 
-<div *ngIf="reply" class="create-comment-container">
-  <app-text-input [(ngModel)]="commentText" format="markdown"></app-text-input>
-  <div class="actions">
-    <div>
-      <button nz-button nzType="primary" nzSize="small" (click)="replyComment()">Kommentieren</button>
-      <button nz-button nzType="text" nzSize="small" (click)="toggleReply()">Abbrechen</button>
+@if (reply) {
+  <div class="create-comment-container">
+    <app-text-input [(ngModel)]="commentText" format="markdown"></app-text-input>
+    <div class="actions">
+      <div>
+        <button nz-button nzType="primary" nzSize="small" (click)="replyComment()">Kommentieren</button>
+        <button nz-button nzType="text" nzSize="small" (click)="toggleReply()">Abbrechen</button>
+      </div>
+      <a href="https://guides.github.com/features/mastering-markdown/" target="_blank">Markdown</a>
     </div>
-    <a href="https://guides.github.com/features/mastering-markdown/" target="_blank">Markdown</a>
   </div>
+}
 
-</div>
-
-<div [class.replies]="nestedCount < nestedLimit" *ngIf="showReplies">
-  <app-comment *ngFor="let reply of comment.answers" [comment]="reply" (replied)="replied.next($event)"
-    [nestedLimit]="nestedLimit" [nestedCount]="nestedCount + 1"></app-comment>
-</div>
+@if (showReplies) {
+  <div [class.replies]="nestedCount < nestedLimit">
+    @for (reply of comment.answers; track reply) {
+      <app-comment [comment]="reply" (replied)="replied.next($event)"
+      [nestedLimit]="nestedLimit" [nestedCount]="nestedCount + 1"></app-comment>
+    }
+  </div>
+}

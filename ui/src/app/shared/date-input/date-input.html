@@ -1,29 +1,30 @@
-<ng-container *ngIf="layout.isPhone; else: tabletViewTemplate">
-  <div *ngIf="isRangeInput" class="flex flex-row gap-2 flex-wrap items-center">
-    <div class="flex flex-row gap-1 flex-nowrap items-center">
-      <span class="text-secondary">Von</span>
-      <input [attr.type]="showTime ? 'datetime-local' : 'date'" class="tkd-input" name="from" [attr.min]="min | toNativeDateString:showTime" [attr.max]="max | toNativeDateString:showTime" (blur)="_onBlur()"
-        [ngModel]="value[0] | toNativeDateString:showTime" (ngModelChange)="updateValue([$event, value[1]])">
+@if (layout.isPhone) {
+  @if (isRangeInput) {
+    <div class="flex flex-row gap-2 flex-wrap items-center">
+      <div class="flex flex-row gap-1 flex-nowrap items-center">
+        <span class="text-secondary">Von</span>
+        <input [attr.type]="showTime ? 'datetime-local' : 'date'" class="tkd-input" name="from" [attr.min]="min | toNativeDateString:showTime" [attr.max]="max | toNativeDateString:showTime" (blur)="_onBlur()"
+          [ngModel]="value[0] | toNativeDateString:showTime" (ngModelChange)="updateValue([$event, value[1]])">
+      </div>
+      <div class="flex flex-row gap-1 flex-nowrap items-center">
+        <span class="text-secondary">Bis</span>
+        <input [attr.type]="showTime ? 'datetime-local' : 'date'" class="tkd-input" name="to" [attr.min]="min | toNativeDateString:showTime" [attr.max]="max | toNativeDateString:showTime" (blur)="_onBlur()"
+          [ngModel]="value[1] | toNativeDateString:showTime" (ngModelChange)="updateValue([value[0], $event])">
+      </div>
     </div>
-
-    <div class="flex flex-row gap-1 flex-nowrap items-center">
-      <span class="text-secondary">Bis</span>
-      <input [attr.type]="showTime ? 'datetime-local' : 'date'" class="tkd-input" name="to" [attr.min]="min | toNativeDateString:showTime" [attr.max]="max | toNativeDateString:showTime" (blur)="_onBlur()"
-        [ngModel]="value[1] | toNativeDateString:showTime" (ngModelChange)="updateValue([value[0], $event])">
-    </div>
-
-  </div>
-
-  <ng-container *ngIf="!isRangeInput">
+  }
+  @if (!isRangeInput) {
     <input [attr.type]="showTime ? 'datetime-local' : 'date'" class="tkd-input" name="time" [attr.min]="min | toNativeDateString:showTime" [attr.max]="max | toNativeDateString:showTime" (blur)="_onBlur()"
       [ngModel]="value" (ngModelChange)="updateValue($event)">
-  </ng-container>
-</ng-container>
+  }
+} @else {
+  @if (!isRangeInput) {
+    <nz-date-picker [ngModel]="value" (ngModelChange)="updateValue($event)" [nzShowTime]="showTime" [nzDisabled]="disabled" [nzDisabledDate]="nzIsDateDisabled" (blur)="_onBlur()" [nzDateRender]="nzDateRender">
+    </nz-date-picker>
+  }
+  @if (isRangeInput) {
+    <nz-range-picker [ngModel]="value" (ngModelChange)="updateValue($event)" [nzShowTime]="showTime"  [nzDisabled]="disabled" [nzDisabledDate]="nzIsDateDisabled" (blur)="_onBlur()" [nzDateRender]="nzDateRender">
+    </nz-range-picker>
+  }
+}
 
-<ng-template #tabletViewTemplate>
-  <nz-date-picker *ngIf="!isRangeInput" [ngModel]="value" (ngModelChange)="updateValue($event)" [nzShowTime]="showTime" [nzDisabled]="disabled" [nzDisabledDate]="nzIsDateDisabled" (blur)="_onBlur()" [nzDateRender]="nzDateRender">
-  </nz-date-picker>
-
-  <nz-range-picker *ngIf="isRangeInput" [ngModel]="value" (ngModelChange)="updateValue($event)" [nzShowTime]="showTime"  [nzDisabled]="disabled" [nzDisabledDate]="nzIsDateDisabled" (blur)="_onBlur()" [nzDateRender]="nzDateRender">
-  </nz-range-picker>
-</ng-template>

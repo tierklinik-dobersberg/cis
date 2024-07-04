@@ -46,14 +46,15 @@
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
       <path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" />
     </svg>
-    <span *ngIf="(cursorTime$ | async) as time">
-      <ng-container *ngIf="time | isSameDay:currentDate; else: otherDayTemplate">
-        {{ time | time }}
-      </ng-container>
-      <ng-template #otherDayTemplate>
-        {{ time | toDate | date:'d.M, HH:mm' }}
-      </ng-template>
-    </span>
+    @if ((cursorTime$ | async); as time) {
+      <span>
+        @if (time | isSameDay:currentDate) {
+          {{ time | time }}
+        } @else {
+          {{ time | toDate | date:'d.M, HH:mm' }}
+        }
+      </span>
+    }
   </div>
 </header>
 
@@ -68,31 +69,30 @@
 
 <!-- Event Cell Template -->
 <ng-template [eventCell]="calendarType" #eventCell="tkdCalendarEventCell" let-event let-calendar="calendar">
-  <div *ngIf="!event.isShiftType; else: shiftTypeTemplate" class="event-container h-full w-full overflow-hidden transform hover:outline-4 hover:outline-dotted hover:outline-white hover:-outline-offset-[3px] rounded-md hover:rounded-none">
+  @if (!event.isShiftType) {
+    <div class="event-container h-full w-full overflow-hidden transform hover:outline-4 hover:outline-dotted hover:outline-white hover:-outline-offset-[3px] rounded-md hover:rounded-none">
     <div class="text-xs p-2 h-full w-full overflow-hidden cursor-pointer border event-details" [ngStyle]="{
       '--tw-bg-opacity': 1,
       backgroundColor: (calendar.user | color | toRgba:'var(--tw-bg-opacity, 1)'),
       color: (calendar.user | contrastColor | toRgba ),
       borderColor: (calendar.user | contrastColor | toRgba:'var(--tw-border-opacity, 1)'),
     }">
-      <div class="flex flex-row flex-nowrap overflow-hidden whitespace-nowrap event-summary w-full gap-1">
-        <span class="text-opacity-25">{{ event.startTime | toDate | date:'HH:mm' }} - </span>
-        <span class="overflow-hidden text-ellipsis font-semibold">{{ event.summary }}</span>
-        <span class="flex-grow"></span>
-        <span class="text-opacity-25">{{ event.duration | duration }}</span>
-      </div>
-
-      <div class="overflow-hidden w-full mt-1.5 pt-1.5 border-t border-dashed border-white border-opacity-50 hidden event-description">
-        {{ event.description }}
+        <div class="flex flex-row flex-nowrap overflow-hidden whitespace-nowrap event-summary w-full gap-1">
+          <span class="text-opacity-25">{{ event.startTime | toDate | date:'HH:mm' }} - </span>
+          <span class="overflow-hidden text-ellipsis font-semibold">{{ event.summary }}</span>
+          <span class="flex-grow"></span>
+          <span class="text-opacity-25">{{ event.duration | duration }}</span>
+        </div>
+        <div class="overflow-hidden w-full mt-1.5 pt-1.5 border-t border-dashed border-white border-opacity-50 hidden event-description">
+          {{ event.description }}
+        </div>
       </div>
     </div>
-  </div>
-
-  <ng-template #shiftTypeTemplate>
+  } @else {
     <div class="h-full w-full bg-secondary bg-opacity-20 shadow-inner cursor-default">
-
     </div>
-  </ng-template>
+  }
+
 </ng-template>
 
 <tkd-day-view
@@ -104,4 +104,4 @@
   [showCurrentTime]="isToday"
   [headerCell]="headerCell"
   [eventCell]="eventCell"
-  [data]="data | filter:filterDisplayed"></tkd-day-view>
+[data]="data | filter:filterDisplayed"></tkd-day-view>

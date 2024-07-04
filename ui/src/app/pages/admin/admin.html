@@ -14,18 +14,24 @@
 
   </div>
 
-  <ng-container *ngFor="let cat of categories; trackBy: trackCategory">
-    <span class="block mt-5 mb-3 text-base font-semibold text-secondary font-lato"
-      *ngIf="cat.name">{{ cat.name }}</span>
+  @for (cat of categories; track trackCategory($index, cat)) {
+    @if (cat.name) {
+      <span class="block mt-5 mb-3 text-base font-semibold text-secondary font-lato"
+      >{{ cat.name }}</span>
+    }
     <div class="grid w-full gap-4 leading-3 auto-cols-max font-lato"
       style="grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))">
-      <a class="flex flex-col items-center justify-center h-20 px-2 text-center text-white rounded w-36 hover:bg-opacity-75 bg-primary hover:bg-primary hover:text-white"
-        *ngFor="let s of cat.schemas; trackBy: trackSchema" [routerLink]="'/admin/settings/' + s.name"
-        [nz-tooltip]="s.description || null" nzTooltipPlacement="bottom">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mb-1" fill="none" viewBox="0 0 24 24"
-          stroke="currentColor" *ngIf="!!s.svgData" stroke-width="1" [innerHTML]="dom.bypassSecurityTrustHtml(s.svgData)"></svg>
-        {{ s.displayName || s.name }}
-      </a>
+      @for (s of cat.schemas; track trackSchema($index, s)) {
+        <a class="flex flex-col items-center justify-center h-20 px-2 text-center text-white rounded w-36 hover:bg-opacity-75 bg-primary hover:bg-primary hover:text-white"
+          [routerLink]="'/admin/settings/' + s.name"
+          [nz-tooltip]="s.description || null" nzTooltipPlacement="bottom">
+          @if (!!s.svgData) {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mb-1" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor" stroke-width="1" [innerHTML]="dom.bypassSecurityTrustHtml(s.svgData)"></svg>
+          }
+          {{ s.displayName || s.name }}
+        </a>
+      }
     </div>
-  </ng-container>
+  }
 </div>

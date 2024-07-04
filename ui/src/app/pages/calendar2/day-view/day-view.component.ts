@@ -1,12 +1,4 @@
-import {
-  AsyncPipe,
-  NgClass,
-  NgFor,
-  NgForOf,
-  NgIf,
-  NgStyle,
-  NgTemplateOutlet,
-} from '@angular/common';
+import { AsyncPipe, NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -60,9 +52,6 @@ export const DEFAULT_HOUR_HEIGHT_PX = 200;
   standalone: true,
   exportAs: 'tkdDayView',
   imports: [
-    NgFor,
-    NgForOf,
-    NgIf,
     NgStyle,
     NgTemplateOutlet,
     NgClass,
@@ -72,15 +61,15 @@ export const DEFAULT_HOUR_HEIGHT_PX = 200;
     EventStylePipe,
     TimeFormatPipe,
     TkdCalendarHeaderCellTemplateDirective,
-    TkdCalendarEventCellTemplateDirective,
-  ],
+    TkdCalendarEventCellTemplateDirective
+],
   styles: [
     `
           :host {
             display: flex;
             flex-direction: column;
           }
-    
+
           .grid-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
@@ -176,9 +165,6 @@ export class TkdDayViewComponent<E extends Timed, C extends Calendar<E>>
 
   /** TrackByFunction for calendars */
   trackCalendar: TrackByFunction<C> = (_, cal) => cal.id;
-
-  /** TrackByFunction for calendar events */
-  trackEvent: TrackByFunction<E> = (_, e) => e.id;
 
   /** The current time */
   currentTime$ = interval(45 * 1000).pipe(

@@ -1,54 +1,63 @@
 <nz-card>
-    <nz-card-meta [nzTitle]="headerTemplate"></nz-card-meta>
-    <ng-template #headerTemplate>
-        <span>
-          {{ mode === 'currentUser' ? 'Deine ' : '' }}Nächste Termine
-        </span>
-        -
-        <a class="toggle" (click)="toggle()">
-          {{showAll ? 'Nur nächste' : 'Alle'}} anzeigen
-        </a>
+  <nz-card-meta [nzTitle]="headerTemplate"></nz-card-meta>
+  <ng-template #headerTemplate>
+    <span>
+      {{ mode === 'currentUser' ? 'Deine ' : '' }}Nächste Termine
+    </span>
+    -
+    <a class="toggle" (click)="toggle()">
+      {{showAll ? 'Nur nächste' : 'Alle'}} anzeigen
+    </a>
 
-        <button class="inline-block float-right uppercase filter tkd-btn tkd-secondary tkd-small" nz-dropdown [nzDropdownMenu]="dropdown" [nzClickHide]="false">
-            <i nz-icon nzType="filter" nzTheme="outline"></i>
-            <span>Filter</span>
-        </button>
+    <button class="inline-block float-right uppercase filter tkd-btn tkd-secondary tkd-small" nz-dropdown [nzDropdownMenu]="dropdown" [nzClickHide]="false">
+      <i nz-icon nzType="filter" nzTheme="outline"></i>
+      <span>Filter</span>
+    </button>
 
-        <nz-dropdown-menu #dropdown="nzDropdownMenu">
-            <ul nz-menu>
-                <li nz-menu-item *ngFor="let cal of allCalendars.values()" (click)="cal.displayed = !cal.displayed"
-                    (dblclick)="selectOnly(cal.calendar.id)">
-                    <i [style.opacity]="cal.displayed ? 1 : 0" nz-icon nzType="check" nzTheme="outline"></i>
-                    {{ cal.calendar.name }}
-                </li>
-            </ul>
-        </nz-dropdown-menu>
-    </ng-template>
-    <div class="event-container" *ngIf="events.length > 0">
-        <ul>
-            <ng-container *ngFor="let event of events; trackBy: trackEvent">
-                <li *ngIf="allCalendars.get(event.event.calendarId).displayed" class="event" [class.past]="event.past"
-                    [class.highlight-active]="highlightUser !== ''"
-                    [class.highlight]="event.user?.user?.id === highlightUser">
-                    <span class="time" [style.color]="(event.user | color) || null">
-                        <span>{{ event.event.startTime.toDate() | date:"HH:mm" }}</span>
-                        <span class="duration" *ngIf="event.duration">{{ event.duration | duration }}</span>
-                    </span>
-
-                    <span class="summary-container">
-                        <span class="summary">{{ event.event.summary }}</span>
-                        <span class="user name" *ngIf="!!event.user; else calendarName"
-                            [style.backgroundColor]="event.user|color" [style.color]="event.user | contrastColor">{{
-                            event.user | displayName }}</span>
-
-                        <ng-template #calendarName>
-                            <span class="user">{{ allCalendars.get(event.event.calendarId)?.calendar.name }}</span>
-                        </ng-template>
-                    </span>
-                </li>
-            </ng-container>
-        </ul>
+    <nz-dropdown-menu #dropdown="nzDropdownMenu">
+      <ul nz-menu>
+        @for (cal of allCalendars.values(); track cal) {
+          <li nz-menu-item (click)="cal.displayed = !cal.displayed"
+            (dblclick)="selectOnly(cal.calendar.id)">
+            <i [style.opacity]="cal.displayed ? 1 : 0" nz-icon nzType="check" nzTheme="outline"></i>
+            {{ cal.calendar.name }}
+          </li>
+        }
+      </ul>
+    </nz-dropdown-menu>
+  </ng-template>
+  @if (events.length > 0) {
+    <div class="event-container">
+      <ul>
+        @for (event of events; track trackEvent($index, event)) {
+          @if (allCalendars.get(event.event.calendarId).displayed) {
+            <li class="event" [class.past]="event.past"
+              [class.highlight-active]="highlightUser !== ''"
+              [class.highlight]="event.user?.user?.id === highlightUser">
+              <span class="time" [style.color]="(event.user | color) || null">
+                <span>{{ event.event.startTime.toDate() | date:"HH:mm" }}</span>
+                @if (event.duration) {
+                  <span class="duration">{{ event.duration | duration }}</span>
+                }
+              </span>
+              <span class="summary-container">
+                <span class="summary">{{ event.event.summary }}</span>
+                @if (!!event.user) {
+                  <span class="user name"
+                    [style.backgroundColor]="event.user|color" [style.color]="event.user | contrastColor">{{
+                  event.user | displayName }}</span>
+                } @else {
+                  <span class="user">{{ allCalendars.get(event.event.calendarId)?.calendar.name }}</span>
+                }
+              </span>
+            </li>
+          }
+        }
+      </ul>
     </div>
+  }
 
-    <nz-empty *ngIf="events.length === 0" nzNotFoundContent="Keine Termine mehr"></nz-empty>
+  @if (events.length === 0) {
+    <nz-empty nzNotFoundContent="Keine Termine mehr"></nz-empty>
+  }
 </nz-card>

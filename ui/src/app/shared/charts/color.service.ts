@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ChartDataset } from 'chart.js';
-import config from '../../../../tailwind.config.js';
+import config from '../../../../tailwind.config';
 
 @Injectable({providedIn: 'root'})
 export class ColorService {
@@ -11,7 +11,7 @@ export class ColorService {
         const colors = new Set<string>();
         const byName = new Map<string, string>();
         ['DEFAULT', 'dark'].forEach(key => {
-            [config.theme.foundationColors, config.theme.specialColors].forEach(colorset => {
+            [(config as any).theme.foundationColors, (config as any).theme.specialColors].forEach(colorset => {
                 Object.keys(colorset)
                     .forEach(colorName => {
                         if (colorName === 'tertiary') {

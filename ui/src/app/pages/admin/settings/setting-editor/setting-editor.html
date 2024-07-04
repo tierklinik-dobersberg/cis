@@ -1,8 +1,12 @@
 <div class="tkd-card">
-  <header *ngIf="showHeader">
-    <h1>{{ schema.displayName || schema.name }}</h1>
-    <span *ngIf="schema.description">{{ schema.description }}</span>
-  </header>
+  @if (showHeader) {
+    <header>
+      <h1>{{ schema.displayName || schema.name }}</h1>
+      @if (schema.description) {
+        <span>{{ schema.description }}</span>
+      }
+    </header>
+  }
 
   <tkd-option-list-input [disabled]="disabled" class="tkd-card-content" [showIndex]="showIndex" [specs]="schema.options" [(ngModel)]="value" (ngModelChange)="_onChange(value)" (blur)="_onBlur()"></tkd-option-list-input>
 </div>

@@ -1,32 +1,30 @@
-<ng-container [ngSwitch]="format">
-  <ng-template ngSwitchCase="plain">
 
-    <nz-select *ngIf="!!choices; else: inputTemplate" #input>
-      <nz-option *ngFor="let choice of choices" [nzValue]="choice" [nzLabel]="choice"></nz-option>
-    </nz-select>
-
-    <ng-template #inputTemplate>
-      <input ngDefaultControl nz-input *ngIf="!multiline; else: multilineTemplate" #input>
-    </ng-template>
-
-    <ng-template #multilineTemplate>
-      <textarea ngDefaultControl #input nz-input></textarea>
-    </ng-template>
-
-  </ng-template>
-
-  <ng-template ngSwitchCase="html">
+@switch (format) {
+  @case ("plain") {
+    @if (!!choices) {
+      <nz-select #input>
+        @for (choice of choices; track choice) {
+          <nz-option [nzValue]="choice" [nzLabel]="choice"></nz-option>
+        }
+      </nz-select>
+    } @else {
+      @if (!multiline) {
+        <input ngDefaultControl nz-input #input>
+      } @else {
+        <textarea ngDefaultControl #input nz-input></textarea>
+      }
+    }
+  }
+  @case ("html") {
     <ng-container *ngTemplateOutlet="ckeditorTemplate"></ng-container>
-  </ng-template>
-
-  <ng-template ngSwitchCase="markdown">
+  }
+  @case ("markdown") {
     <ng-container *ngTemplateOutlet="ckeditorTemplate"></ng-container>
-  </ng-template>
-
-  <ng-template ngSwitchDefault>
+  }
+  @default {
     <p>Input type not yet supported</p>
-  </ng-template>
-</ng-container>
+  }
+}
 
 <ng-template #ckeditorTemplate>
   <ckeditor #input [config]="config" [editor]="Editor" class="prose" (onReady)="onReady()">

@@ -47,46 +47,64 @@
       nzIcon="customer-service">
       <ul>
         <li nz-menu-item nzMatchRouter routerLink="/calllogs">Anruf Journal</li>
-        <li *ngFor="let mailbox of mailboxes" nz-menu-item nzMatchRouter [routerLink]="['/voicemail', mailbox]">{{
+        @for (mailbox of mailboxes; track mailbox) {
+          <li nz-menu-item nzMatchRouter [routerLink]="['/voicemail', mailbox]">{{
           mailbox }}</li>
+        }
       </ul>
     </li>
 
-    <li *ngFor="let item of (rootLinks || [])" nz-menu-item >
-      <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
-      <a [attr.href]="item.Link"
-      [attr.target]="item.BlankTarget ? '_blank' : null">
-        <span>{{item.Text}}</span>
-      </a>
-    </li>
+    @for (item of (rootLinks || []); track item) {
+      <li nz-menu-item >
+        @if (!!item.Icon) {
+          <i nz-icon [nzType]="item.Icon"></i>
+        }
+        <a [attr.href]="item.Link"
+          [attr.target]="item.BlankTarget ? '_blank' : null">
+          <span>{{item.Text}}</span>
+        </a>
+      </li>
+    }
 
-    <li *ngFor="let menu of (subMenus || [])" nz-submenu [nzTitle]="menu.Text">
-      <a *ngFor="let item of menu.Items" nz-menu-item [attr.href]="item.Link"
-        [attr.target]="item.BlankTarget ? '_blank' : null">
-        <i *ngIf="!!item.Icon" nz-icon [nzType]="item.Icon"></i>
-        <span>{{item.Text}}</span>
-      </a>
-    </li>
+    @for (menu of (subMenus || []); track menu) {
+      <li nz-submenu [nzTitle]="menu.Text">
+        @for (item of menu.Items; track item) {
+          <a nz-menu-item [attr.href]="item.Link"
+            [attr.target]="item.BlankTarget ? '_blank' : null">
+            @if (!!item.Icon) {
+              <i nz-icon [nzType]="item.Icon"></i>
+            }
+            <span>{{item.Text}}</span>
+          </a>
+        }
+      </li>
+    }
 
-    <li nz-menu-item (click)="openProfilePage()" *ngIf="layout.isPhone">
-      <i nz-icon nzType="user" nzTheme="outline"></i>
-      Mein Profil
-    </li>
+    @if (layout.isPhone) {
+      <li nz-menu-item (click)="openProfilePage()">
+        <i nz-icon nzType="user" nzTheme="outline"></i>
+        Mein Profil
+      </li>
+    }
 
-    <li nz-menu-item (click)="changeProfile()" *ngIf="layout.isPhone">
-      <i nz-icon nzType="user" nzTheme="outline"></i>
-      Benutzer wechseln
-    </li>
+    @if (layout.isPhone) {
+      <li nz-menu-item (click)="changeProfile()">
+        <i nz-icon nzType="user" nzTheme="outline"></i>
+        Benutzer wechseln
+      </li>
+    }
   </ul>
 </ng-template>
 
 <!-- menu for mobile/phone/table -->
-<nz-drawer *ngIf="!layout.isDesktopUp" [nzClosable]="false" [nzVisible]="!isCollapsed" nzPlacement="left"
-  [nzTitle]="drawerTitleTemplate" (nzOnClose)="toggleMenu()" nzWrapClassName="menu-container">
-  <div *nzDrawerContent class="px-2">
-    <ng-container *ngTemplateOutlet="menuTemplate"></ng-container>
-  </div>
-</nz-drawer>
+@if (!layout.isDesktopUp) {
+  <nz-drawer [nzClosable]="false" [nzVisible]="!isCollapsed" nzPlacement="left"
+    [nzTitle]="drawerTitleTemplate" (nzOnClose)="toggleMenu()" nzWrapClassName="menu-container">
+    <div *nzDrawerContent class="px-2">
+      <ng-container *ngTemplateOutlet="menuTemplate"></ng-container>
+    </div>
+  </nz-drawer>
+}
 
 <ng-template #drawerTitleTemplate>
   <i nz-icon nzType="close" nzTheme="outline" (click)="toggleMenu()"></i>
@@ -95,41 +113,41 @@
 
 <div class="flex w-screen h-screen print:h-auto">
   <!--
-    Menu on Desktop and up
+  Menu on Desktop and up
   -->
-  <nav *ngIf="layout.isDesktopUp" [@moveInOut] class="relative z-10 flex flex-col flex-shrink-0 w-64 h-full bg-white shadow-md print:hidden">
-    <!-- Logo -->
-    <div class="px-4 py-4 ml-1 h-14">
-      <a class="flex items-center space-x-2" routerLink="/welcome">
-        <img src="assets/logo.png" class="w-10 h-10" alt="logo">
-        <h1 class="flex flex-col text-base font-semibold leading-4 font-lato">
-          <span style="color: #1080cf">Tierklinik</span>
-          <span style="color: #15377e">Dobersberg</span>
-        </h1>
-      </a>
-    </div>
-
-    <!-- Actual Menu -->
-    <div class="flex-grow mt-4">
-      <ng-container *ngTemplateOutlet="menuTemplate"></ng-container>
-    </div>
-
-    <!-- Copyright -->
-    <span class="flex flex-col items-center justify-around py-2 text-xs text-center text-secondary font-lato">
-      <span class="font-semibold text-highlight">V1.19</span>
-      <span>
-        <i nz-icon nzType="copyright" nzTheme="outline"></i>
-        2019 - 2023
-        <br />
-        <a href="https://github.com/tierklinik-dobersberg" target="_blank">Tierklinik Dobersberg</a>
-        /
-        <a href="https://github.com/ppacher" target="_blank">Patrick Pacher</a>
+  @if (layout.isDesktopUp) {
+    <nav [@moveInOut] class="relative z-10 flex flex-col flex-shrink-0 w-64 h-full bg-white shadow-md print:hidden">
+      <!-- Logo -->
+      <div class="px-4 py-4 ml-1 h-14">
+        <a class="flex items-center space-x-2" routerLink="/welcome">
+          <img src="assets/logo.png" class="w-10 h-10" alt="logo">
+          <h1 class="flex flex-col text-base font-semibold leading-4 font-lato">
+            <span style="color: #1080cf">Tierklinik</span>
+            <span style="color: #15377e">Dobersberg</span>
+          </h1>
+        </a>
+      </div>
+      <!-- Actual Menu -->
+      <div class="flex-grow mt-4">
+        <ng-container *ngTemplateOutlet="menuTemplate"></ng-container>
+      </div>
+      <!-- Copyright -->
+      <span class="flex flex-col items-center justify-around py-2 text-xs text-center text-secondary font-lato">
+        <span class="font-semibold text-highlight">V1.19</span>
+        <span>
+          <i nz-icon nzType="copyright" nzTheme="outline"></i>
+          2019 - 2023
+          <br />
+          <a href="https://github.com/tierklinik-dobersberg" target="_blank">Tierklinik Dobersberg</a>
+          /
+          <a href="https://github.com/ppacher" target="_blank">Patrick Pacher</a>
+        </span>
       </span>
-    </span>
-  </nav>
+    </nav>
+  }
 
   <!--
-    Next to the sidebar there's the main content container including the header
+  Next to the sidebar there's the main content container including the header
   -->
   <div class="flex flex-col self-stretch flex-grow overflow-x-hidden bg-white print:overflow-visible">
 
@@ -138,38 +156,46 @@
       <div class="flex items-center justify-between px-2 py-4 sm:px-4 md:px-8 lg:px-12">
 
         <!-- On mobile the logo is put into the header -->
-        <a class="block w-8 h-8 mr-2" *ngIf="!layout.isDesktopUp" routerLink="/welcome">
-          <img class="w-full h-full" src="assets/logo.png" alt="logo">
-        </a>
+        @if (!layout.isDesktopUp) {
+          <a class="block w-8 h-8 mr-2" routerLink="/welcome">
+            <img class="w-full h-full" src="assets/logo.png" alt="logo">
+          </a>
+        }
 
         <app-header-title-outlet class="flex-grow"></app-header-title-outlet>
 
         <div class="flex items-center space-x-4">
 
-          <button *ngIf="!layout.isDesktopUp" class="block tkd-icon-btn tkd-small no-shadow text-secondary" (click)="toggleMenu()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          @if (!layout.isDesktopUp) {
+            <button class="block tkd-icon-btn tkd-small no-shadow text-secondary" (click)="toggleMenu()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          }
 
-          <button *ngIf="!layout.isPhone" [class.tkd-danger]="!!overwriteTarget" [class.tkd-primary]="!overwriteTarget" class="tkd-btn tkd-outline" [nz-tooltip]="overwriteTarget ? overwriteTooltip : ''" routerLink="/on-call/overwrite">
-            <svg xmlns="http://www.w3.org/2000/svg" class="inline-block w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M14.414 7l3.293-3.293a1 1 0 00-1.414-1.414L13 5.586V4a1 1 0 10-2 0v4.003a.996.996 0 00.617.921A.997.997 0 0012 9h4a1 1 0 100-2h-1.586z" />
-              <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-            </svg>
-            <span>
-              {{ overwriteTarget || 'Umleiten' }}
-            </span>
-          </button>
+          @if (!layout.isPhone) {
+            <button [class.tkd-danger]="!!overwriteTarget" [class.tkd-primary]="!overwriteTarget" class="tkd-btn tkd-outline" [nz-tooltip]="overwriteTarget ? overwriteTooltip : ''" routerLink="/on-call/overwrite">
+              <svg xmlns="http://www.w3.org/2000/svg" class="inline-block w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M14.414 7l3.293-3.293a1 1 0 00-1.414-1.414L13 5.586V4a1 1 0 10-2 0v4.003a.996.996 0 00.617.921A.997.997 0 0012 9h4a1 1 0 100-2h-1.586z" />
+                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+              </svg>
+              <span>
+                {{ overwriteTarget || 'Umleiten' }}
+              </span>
+            </button>
+          }
 
           <ng-template #overwriteTooltip>
             Notrufe sind derzeit an {{ overwriteTarget }} umgeleitet.
           </ng-template>
 
-          <span *ngIf="!layout.isPhone" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click" class="p-0.5 rounded-full border border-opacity-40 border-meadow">
-            <nz-avatar class="shadow cursor-pointer" nzIcon="user" [nzSrc]="profile?.user?.avatar">
-            </nz-avatar>
-          </span>
+          @if (!layout.isPhone) {
+            <span nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click" class="p-0.5 rounded-full border border-opacity-40 border-meadow">
+              <nz-avatar class="shadow cursor-pointer" nzIcon="user" [nzSrc]="profile?.user?.avatar">
+              </nz-avatar>
+            </span>
+          }
         </div>
 
         <nz-dropdown-menu #userMenu="nzDropdownMenu">
@@ -219,44 +245,48 @@
     </content>
 
     <!--
-      On mobile we have an additional navigation bar at the bottom
+    On mobile we have an additional navigation bar at the bottom
     -->
-    <div *ngIf="!layout.isDesktopUp" class="z-10 flex items-center flex-grow-0 flex-shrink-0 w-full h-12 py-1 mt-1 text-xs list-none border-t justify-evenly text-color-primary text-opacity-light border-tertiary">
-      <!-- Dashboard -->
-      <li routerLink="/welcome" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
-      </li>
-      <!-- Kalender -->
-      <li routerLink="/calendar" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5"  viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      </li>
-      <!-- Dienstplan -->
-      <li routerLink="/roster" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5"  viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      </li>
-      <!-- Röntgen -->
-      <li routerLink="/xray" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5"  viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-        </svg>
-      </li>
-      <!-- Open menu -->
-      <li>
-        <i (click)="toggleMenu()" nz-icon nzType="menu"  class="w-4 h-4"  nzTheme="outline"></i>
-      </li>
-    </div>
+    @if (!layout.isDesktopUp) {
+      <div class="z-10 flex items-center flex-grow-0 flex-shrink-0 w-full h-12 py-1 mt-1 text-xs list-none border-t justify-evenly text-color-primary text-opacity-light border-tertiary">
+        <!-- Dashboard -->
+        <li routerLink="/welcome" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        </li>
+        <!-- Kalender -->
+        <li routerLink="/calendar" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5"  viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </li>
+        <!-- Dienstplan -->
+        <li routerLink="/roster" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5"  viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </li>
+        <!-- Röntgen -->
+        <li routerLink="/xray" routerLinkActive="bg-primary text-white" class="p-1.5 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="w-5 h-5"  viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+          </svg>
+        </li>
+        <!-- Open menu -->
+        <li>
+          <i (click)="toggleMenu()" nz-icon nzType="menu"  class="w-4 h-4"  nzTheme="outline"></i>
+        </li>
+      </div>
+    }
   </div>
 
 </div>
 
-<div *ngIf="!isReachable" class="not-reachable-container">
-  <i nz-icon [nzType]="'sync'" [nzSpin]="true"></i>
-  <p>Verbindung zu CIS unterbrochen</p>
-  <p>Bitte haben Sie einen Moment Geduld!</p>
-</div>
+@if (!isReachable) {
+  <div class="not-reachable-container">
+    <i nz-icon [nzType]="'sync'" [nzSpin]="true"></i>
+    <p>Verbindung zu CIS unterbrochen</p>
+    <p>Bitte haben Sie einen Moment Geduld!</p>
+  </div>
+}

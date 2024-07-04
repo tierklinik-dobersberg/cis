@@ -1,4 +1,4 @@
-import { CommonModule, DOCUMENT, NgIf } from "@angular/common";
+import { CommonModule, DOCUMENT } from "@angular/common";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, Renderer2, ViewChild, inject } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormsModule } from "@angular/forms";
@@ -46,9 +46,8 @@ type LocalCalendar = Calendar<CalEvent> & {
     TkdDateInputModule,
     NzToolTipModule,
     NzMessageModule,
-    IsSameDayPipe,
-    NgIf,
-  ],
+    IsSameDayPipe
+],
   styles: [
     `
         .event-container {

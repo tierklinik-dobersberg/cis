@@ -1,140 +1,164 @@
 <div class="flex items-center justify-between -mb-3" [ngClass]="{'p-2': !inlineView, 'pb-2': inlineView}">
-    <div>
-        <nz-button-group>
-            <button nz-button (click)="prevDay()" nzType="text">
-                <i nz-icon nzType="left" nzTheme="outline"></i>
-            </button>
-            <nz-date-picker [nzAllowClear]="false" [(ngModel)]="date"></nz-date-picker>
-            <button nz-button (click)="nextDay()" nzType="text">
-                <i nz-icon nzType="right" nzTheme="outline"></i>
-            </button>
-        </nz-button-group>
-    </div>
+  <div>
+    <nz-button-group>
+      <button nz-button (click)="prevDay()" nzType="text">
+        <i nz-icon nzType="left" nzTheme="outline"></i>
+      </button>
+      <nz-date-picker [nzAllowClear]="false" [(ngModel)]="date"></nz-date-picker>
+      <button nz-button (click)="nextDay()" nzType="text">
+        <i nz-icon nzType="right" nzTheme="outline"></i>
+      </button>
+    </nz-button-group>
+  </div>
 
-    <div>
-        <nz-button-group>
-            <button nz-button nzType="default" (click)="toggleAll()">
-                {{ calendarModeText[calendarMode] }}
-            </button>
+  <div>
+    <nz-button-group>
+      <button nz-button nzType="default" (click)="toggleAll()">
+        {{ calendarModeText[calendarMode] }}
+      </button>
 
-            <button nz-button nzType="default" nz-dropdown [nzDropdownMenu]="dropdown" [nzClickHide]="false">
-                <i nz-icon nzType="table" nzTheme="outline"></i>
-            </button>
-        </nz-button-group>
+      <button nz-button nzType="default" nz-dropdown [nzDropdownMenu]="dropdown" [nzClickHide]="false">
+        <i nz-icon nzType="table" nzTheme="outline"></i>
+      </button>
+    </nz-button-group>
 
-        <nz-dropdown-menu #dropdown="nzDropdownMenu">
-            <ul nz-menu>
-                <li nz-menu-item *ngFor="let cal of calendars; trackBy: trackCalendar" (click)="updateFilter(cal)"
-                    (dblclick)="onFilterDblClick(cal)">
-                    <i [style.opacity]="cal.displayed ? 1 : 0" nz-icon nzType="check" nzTheme="outline"></i>
-                    {{ cal.calendar.name }}
-                </li>
-            </ul>
-        </nz-dropdown-menu>
+    <nz-dropdown-menu #dropdown="nzDropdownMenu">
+      <ul nz-menu>
+        @for (cal of calendars; track trackCalendar($index, cal)) {
+          <li nz-menu-item (click)="updateFilter(cal)"
+            (dblclick)="onFilterDblClick(cal)">
+            <i [style.opacity]="cal.displayed ? 1 : 0" nz-icon nzType="check" nzTheme="outline"></i>
+            {{ cal.calendar.name }}
+          </li>
+        }
+      </ul>
+    </nz-dropdown-menu>
 
-        <!--
-        <button class="create" nz-button nzType="primary" routerLink="/create-event">
-            Neuer Termin
-        </button>
+    <!--
+    <button class="create" nz-button nzType="primary" routerLink="/create-event">
+      Neuer Termin
+    </button>
     -->
-    </div>
+  </div>
 </div>
 
 <div class="flex flex-col flex-grow overflow-hidden"
-    [ngClass]="{'bg-white rounded shadow p-2 md:p-4': !inlineView, 'mt-2': inlineView}">
-    <div class="flex">
-        <ng-container *ngFor="let cal of calendars; trackBy: trackCalendar; let last=last">
-            <div class="flex flex-col justify-start" *ngIf="cal.displayed" [style.width.%]="100 / displayedCalendarCount">
-                <div class="flex-1 flex-grow flex-shrink">
-                    <div class="w-full overflow-hidden header text-ellipsis" (dblclick)="onFilterDblClick(cal)">
-                        {{ (cal.user | displayName) || cal.calendar.name }}
-                    </div>
-                </div>
+  [ngClass]="{'bg-white rounded shadow p-2 md:p-4': !inlineView, 'mt-2': inlineView}">
+  <div class="flex">
+    @for (cal of calendars; track trackCalendar($index, cal); let last = $last) {
+      @if (cal.displayed) {
+        <div class="flex flex-col justify-start" [style.width.%]="100 / displayedCalendarCount">
+          <div class="flex-1 flex-grow flex-shrink">
+            <div class="w-full overflow-hidden header text-ellipsis" (dblclick)="onFilterDblClick(cal)">
+              {{ (cal.user | displayName) || cal.calendar.name }}
             </div>
-        </ng-container>
-    </div>
+          </div>
+        </div>
+      }
+    }
+  </div>
 
-    <div class="relative flex flex-grow overflow-auto" cdkScrollable #scrollContainer>
-        <div id="height-wrapper" class="absolute top-0"></div>
-        <div class="calendar" *ngIf="!calendars?.length && !loading">
-            <div class="bg-opacity-10 times bg-text-deEmphasized">
-                <div class="relative w-full bg-white opening-hour" *ngFor="let oh of openingHours;"
-                    [ngStyle]="{top: oh.y, height: oh.height}">
-                </div>
-                <div class="hours">
-                    <div *ngFor="let hour of hours" [ngStyle]="{height: hourHeight}" [attr.from]="hour">
-                        <caption>{{hour < 10 ? '0' + hour : hour}}:00</caption>
-                    </div>
-                </div>
+  <div class="relative flex flex-grow overflow-auto" cdkScrollable #scrollContainer>
+    <div id="height-wrapper" class="absolute top-0"></div>
+    @if (!calendars?.length && !loading) {
+      <div class="calendar">
+        <div class="bg-opacity-10 times bg-text-deEmphasized">
+          @for (oh of openingHours; track oh) {
+            <div class="relative w-full bg-white opening-hour"
+              [ngStyle]="{top: oh.y, height: oh.height}">
             </div>
+          }
+          <div class="hours">
+            @for (hour of hours; track hour) {
+              <div [ngStyle]="{height: hourHeight}" [attr.from]="hour">
+                <caption>{{hour < 10 ? '0' + hour : hour}}:00</caption>
+              </div>
+            }
+          </div>
         </div>
+      </div>
+    }
 
-        <ng-container *ngIf="!loading">
-            <ng-container *ngFor="let cal of calendars; trackBy: trackCalendar; let last=last">
-                <div class="flex flex-col items-stretch justify-start" *ngIf="cal.displayed" [style.width.%]="100 / displayedCalendarCount">
-                    <div class="calendar" #calendarColumn [attr.calid]="cal.calendar.id">
-
-                        <div class="bg-opacity-10 times bg-text-deEmphasized" (dblclick)="showCreateEditEventModal($event, cal)">
-                            <div class="absolute w-full bg-white opening-hour" *ngFor="let oh of openingHours;"
-                                [attr.range]="oh.from + '-' + oh.to" [ngStyle]="{top: oh.y, height: oh.height}"></div>
-
-                            <div class="cursor-pointer select-none hours">
-                                <div *ngFor="let hour of hours" [ngStyle]="{height: hourHeight + 'px'}" [attr.from]="hour">
-                                    <caption>{{hour < 10 ? '0' + hour : hour}}:00</caption>
-                                </div>
-                            </div>
-
-                            <span class="select-none event hover:w-auto" *ngFor="let event of cal.events; trackBy: trackEvent"
-                                [class.inactive]="activeEventID !== ''" #origin (click)="onEventActivate(event, origin)"
-                                [class.active]="activeEventID === event.event.id"
-                                [ngStyle]="{top: (event.top +  event.offsettop) + 'px', 'min-height': event.height + 'px', height: event.height + 'px', left: event.left + 'px', right: '0px', backgroundColor: event.color || cal.color, color: event.fontColor}">
-                                <span class="text-xs leading-3 opacity-80 font-lato">
-                                  {{ event.event.startTime.toDate() | date:'HH:mm'}}
-                                </span>
-                                <span class="text-xs font-inter">
-                                  {{ event.event.summary }}
-                                </span>
-                                <ng-container *ngIf="activeEventID === event.event.id && !!event.event.description">
-                                    <hr />
-                                    {{ event.event.description }}
-                                </ng-container>
-                            </span>
-
-                            <div #createEventMarker [attr.calid]="cal.calendar.id" class="absolute hidden w-full transition-all duration-200 ease-in-out border-2 border-opacity-50 border-dashed rounded opacity-75 bg-opacity-5 border-primary bg-primary"></div>
-                        </div>
+    @if (!loading) {
+      @for (cal of calendars; track trackCalendar($index, cal); let last = $last) {
+        @if (cal.displayed) {
+          <div class="flex flex-col items-stretch justify-start" [style.width.%]="100 / displayedCalendarCount">
+            <div class="calendar" #calendarColumn [attr.calid]="cal.calendar.id">
+              <div class="bg-opacity-10 times bg-text-deEmphasized" (dblclick)="showCreateEditEventModal($event, cal)">
+                @for (oh of openingHours; track oh) {
+                  <div class="absolute w-full bg-white opening-hour"
+                  [attr.range]="oh.from + '-' + oh.to" [ngStyle]="{top: oh.y, height: oh.height}"></div>
+                }
+                <div class="cursor-pointer select-none hours">
+                  @for (hour of hours; track hour) {
+                    <div [ngStyle]="{height: hourHeight + 'px'}" [attr.from]="hour">
+                      <caption>{{hour < 10 ? '0' + hour : hour}}:00</caption>
                     </div>
+                  }
                 </div>
-            </ng-container>
-        </ng-container>
+                @for (event of cal.events; track trackEvent($index, event)) {
+                  <span class="select-none event hover:w-auto"
+                    [class.inactive]="activeEventID !== ''" #origin (click)="onEventActivate(event, origin)"
+                    [class.active]="activeEventID === event.event.id"
+                    [ngStyle]="{top: (event.top +  event.offsettop) + 'px', 'min-height': event.height + 'px', height: event.height + 'px', left: event.left + 'px', right: '0px', backgroundColor: event.color || cal.color, color: event.fontColor}">
+                    <span class="text-xs leading-3 opacity-80 font-lato">
+                      {{ event.event.startTime.toDate() | date:'HH:mm'}}
+                    </span>
+                    <span class="text-xs font-inter">
+                      {{ event.event.summary }}
+                    </span>
+                    @if (activeEventID === event.event.id && !!event.event.description) {
+                      <hr />
+                      {{ event.event.description }}
+                    }
+                  </span>
+                }
+                <div #createEventMarker [attr.calid]="cal.calendar.id" class="absolute hidden w-full transition-all duration-200 ease-in-out border-2 border-opacity-50 border-dashed rounded opacity-75 bg-opacity-5 border-primary bg-primary"></div>
+              </div>
+            </div>
+          </div>
+        }
+      }
+    }
 
 
-        <div class="absolute w-full border-t-2 border-opacity-75 current-time border-alert-red" *ngIf="isToday"
-            [ngStyle]="{top: todayOffset + 'px', left: scrollable.nativeElement.scrollLeft}">
-            <span class="relative text-white bg-opacity-75 bg-alert-red">
-                {{ currentTime | date:'HH:mm' }}
-            </span>
-        </div>
-    </div>
+    @if (isToday) {
+      <div class="absolute w-full border-t-2 border-opacity-75 current-time border-alert-red"
+        [ngStyle]="{top: todayOffset + 'px', left: scrollable.nativeElement.scrollLeft}">
+        <span class="relative text-white bg-opacity-75 bg-alert-red">
+          {{ currentTime | date:'HH:mm' }}
+        </span>
+      </div>
+    }
+  </div>
 </div>
 
 <!--
-  Details Template
+Details Template
 -->
 <ng-template #eventDetailsTemplate let-event let-overlay="overlay">
   <div class="relative p-4 flex flex-col gap-2 bg-white border rounded-sm shadow-lg w-72 border-text-deEmphasized">
     <h1 class="mr-4 text-base text-color-primary font-lato">
       {{ event.event.summary }}
     </h1>
-    <span class="text-secondary font-lato" *ngIf="!!event.event.startTime && !!event.event.endTime && !event.event.fullDay"> {{ event.event.startTime.toDate() | date:"HH:mm" }} - {{ event.event.endTime.toDate() | date:'HH:mm' }}</span>
-    <span class="text-secondary font-lato" *ngIf="event.event.fullDay">Ganztags</span>
+    @if (!!event.event.startTime && !!event.event.endTime && !event.event.fullDay) {
+      <span class="text-secondary font-lato"> {{ event.event.startTime.toDate() | date:"HH:mm" }} - {{ event.event.endTime.toDate() | date:'HH:mm' }}</span>
+    }
+    @if (event.event.fullDay) {
+      <span class="text-secondary font-lato">Ganztags</span>
+    }
 
-    <span class="text-primary font-inter" *ngIf="event.event.description">
-      {{ event.event.description }}
-    </span>
+    @if (event.event.description) {
+      <span class="text-primary font-inter">
+        {{ event.event.description }}
+      </span>
+    }
 
-    <span class="text-tertiary font-inter" *ngIf="!event.event.description">
-      Keine Beschreibung
-    </span>
+    @if (!event.event.description) {
+      <span class="text-tertiary font-inter">
+        Keine Beschreibung
+      </span>
+    }
 
     <div class="mt-4 flex flex-row items-center gap-4">
       <button class="gap-1 tkd-btn tkd-outline tkd-danger tkd-small" (click)="showUpdateEvent(event, overlay)">
@@ -162,7 +186,7 @@
 
 
 <!--
-  Create Event Template
+Create Event Template
 -->
 <ng-template #createEventTemplate let-data let-overlay="overlay">
   <div class="relative flex flex-col gap-4 p-4 space-y-2 bg-white border rounded-sm shadow-lg border-text-deEmphasized">
@@ -176,14 +200,16 @@
         </span>
 
         <nz-select [(ngModel)]="data.calID" class="w-full" (ngModelChange)="data.update()">
-          <nz-option *ngFor="let cal of calendars; trackBy: trackCalendar" [nzValue]="cal.calendar.id" [nzLabel]="cal.calendar.name"></nz-option>
+          @for (cal of calendars; track trackCalendar($index, cal)) {
+            <nz-option [nzValue]="cal.calendar.id" [nzLabel]="cal.calendar.name"></nz-option>
+          }
         </nz-select>
       </span>
     </h1>
 
     <div class="flex flex-row items-center gap-3 justify-evenly">
       am
-        <nz-time-picker [(ngModel)]="data.start" (ngModelChange)="data.update()" nzFormat="HH:mm" [nzMinuteStep]="15"></nz-time-picker>
+      <nz-time-picker [(ngModel)]="data.start" (ngModelChange)="data.update()" nzFormat="HH:mm" [nzMinuteStep]="15"></nz-time-picker>
       für
       <nz-select [(ngModel)]="data.duration" (ngModelChange)="data.update()" class="w-28">
         <nz-option [nzValue]="15" nzLabel="15 min"></nz-option>

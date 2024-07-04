@@ -10,13 +10,13 @@
       <div class="flex flex-col">
         <h1 class="text-xl font-semibold font-lato text-color-primary-dark">Kunden</h1>
         <span class="text-sm text-secondary">Hier findest du Statistiken zu den vorhandenen
-          Kundendatensätzen.</span>
+        Kundendatensätzen.</span>
       </div>
     </div>
 
     <div class="flex items-center space-x-3">
       <nz-range-picker [nzShowTime]="false" [nzAllowClear]="false" [ngModel]="dateRange"
-        (ngModelChange)="newRange($event)"></nz-range-picker>
+      (ngModelChange)="newRange($event)"></nz-range-picker>
       <button class=" tkd-btn tkd-outline tkd-primary" nz-dropdown [nzDropdownMenu]="menu">
         {{ translateTimeRanges[timeRange] }}
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
@@ -25,7 +25,9 @@
       </button>
       <nz-dropdown-menu #menu="nzDropdownMenu">
         <ul nz-menu>
-          <li nz-menu-item *ngFor="let tr of timeRanges" (click)="setTimeRange(tr)">{{translateTimeRanges[tr]}}</li>
+          @for (tr of timeRanges; track tr) {
+            <li nz-menu-item (click)="setTimeRange(tr)">{{translateTimeRanges[tr]}}</li>
+          }
         </ul>
       </nz-dropdown-menu>
       <button class="tkd-btn tkd-primary tkd-outline" (click)="reload()">
@@ -41,7 +43,7 @@
 
   <div class="grid grid-cols-1 gap-2 lg:grid-cols-2 md:gap-6 2xl:grid-cols-4 auto-rows-auto">
     <tkd-counter title="Übersicht" class="2xl:col-span-2" description="Übersicht aller Kundendaten"
-      gridClass="grid-cols-2 auto-cols-fr" [count]="counters"></tkd-counter>
+    gridClass="grid-cols-2 auto-cols-fr" [count]="counters"></tkd-counter>
     <tkd-stats-chart chartType="pie" title="Kundenverteilung" description="Anzahl der Kunden nach Ursprung"
       [load]="sourceDistribution" [options]="{
             plugins: {
@@ -50,12 +52,12 @@
               }
             }
           }"></tkd-stats-chart>
-    <tkd-stats-chart chartType="bar" title="Impferinnerung" description="Gruppierung der Kunden nach Impferinnerung"
-      [load]="byVaccinationReminder"></tkd-stats-chart>
-    <tkd-time-chart [timeRange]="timeRange" class="2xl:col-span-4" chartType="bar" title="Neue Kunden"
-      description="Anzahl an neuen Kundendatensätzen im angegebenen Zeitraum" [from]="dateRange[0]" [to]="dateRange[1]"
-      [load]="newCustomerStats"></tkd-time-chart>
-  </div>
+<tkd-stats-chart chartType="bar" title="Impferinnerung" description="Gruppierung der Kunden nach Impferinnerung"
+[load]="byVaccinationReminder"></tkd-stats-chart>
+<tkd-time-chart [timeRange]="timeRange" class="2xl:col-span-4" chartType="bar" title="Neue Kunden"
+  description="Anzahl an neuen Kundendatensätzen im angegebenen Zeitraum" [from]="dateRange[0]" [to]="dateRange[1]"
+[load]="newCustomerStats"></tkd-time-chart>
+</div>
 </section>
 
 <div class="border-t border-text-tertiary border-opacity-light"></div>
@@ -72,16 +74,16 @@
       <div class="flex flex-col">
         <h1 class="text-xl font-semibold font-lato text-color-primary-dark">Telefonie</h1>
         <span class="text-sm text-secondary">Hier findest du Statistiken zu Anrufen, Dauer der Telefonate und
-          mehr.</span>
+        mehr.</span>
       </div>
     </div>
   </div>
   <div class="grid grid-cols-1 gap-2 md:gap-6 2xl:grid-cols-2 auto-rows-auto">
     <tkd-time-chart [timeRange]="timeRange" chartType="bar" title="Telefonierte Zeit"
       description="Summe der Dauer der Telefonate nach Zeit und Kunden-Ursprung" [from]="dateRange[0]"
-      [to]="dateRange[1]" [options]="callopts" [load]="calllogs"></tkd-time-chart>
+    [to]="dateRange[1]" [options]="callopts" [load]="calllogs"></tkd-time-chart>
     <tkd-time-chart [timeRange]="timeRange" chartType="bar" title="Eindeutige Anrufer" description="Anzahl an unterschiedlichen Anrufern"
-      [from]="dateRange[0]" [to]="dateRange[1]" [load]="callers"></tkd-time-chart>
+    [from]="dateRange[0]" [to]="dateRange[1]" [load]="callers"></tkd-time-chart>
   </div>
 </section>
 
@@ -99,7 +101,7 @@
       <div class="flex flex-col">
         <h1 class="text-xl font-semibold font-lato text-color-primary-dark">Termine</h1>
         <span class="text-sm text-secondary">Hier findest du Statistiken zur Terminvergabe, Auslastung und
-          Stoßzeiten.</span>
+        Stoßzeiten.</span>
       </div>
     </div>
   </div>

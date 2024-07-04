@@ -1,14 +1,28 @@
 <div class="grid overflow-x-hidden">
-  <app-mobile-welcome-card *ngIf="layout.isPhone"></app-mobile-welcome-card>
-  <app-door-card *ngIf="hasDoorAccess" class="dash-card"></app-door-card>
-  <app-emergency-card *ngIf="hasDoctorOnDutyAccess" class="dash-card"></app-emergency-card>
-  <app-roster-card class="dash-card" *ngIf="hasRosterAccess">
-  </app-roster-card>
-  <app-voicemail-card class="dash-card" *ngFor="let name of mailboxes" [mailboxName]="name"></app-voicemail-card>
-  <app-upcoming-events-card #upcomingEvents class="dash-card" *ngIf="!layout.isTabletLandscapeUp"></app-upcoming-events-card>
-  <div class="dash-card app-calendar-day-view-container" *ngIf="layout.isTabletLandscapeUp">
-    <nz-card class="max-w-full">
-      <app-calendar-day-view inlineView="true"></app-calendar-day-view>
-    </nz-card>
-  </div>
+  @if (layout.isPhone) {
+    <app-mobile-welcome-card></app-mobile-welcome-card>
+  }
+  @if (hasDoorAccess) {
+    <app-door-card class="dash-card"></app-door-card>
+  }
+  @if (hasDoctorOnDutyAccess) {
+    <app-emergency-card class="dash-card"></app-emergency-card>
+  }
+  @if (hasRosterAccess) {
+    <app-roster-card class="dash-card">
+    </app-roster-card>
+  }
+  @for (name of mailboxes; track name) {
+    <app-voicemail-card class="dash-card" [mailboxName]="name"></app-voicemail-card>
+  }
+  @if (!layout.isTabletLandscapeUp) {
+    <app-upcoming-events-card #upcomingEvents class="dash-card"></app-upcoming-events-card>
+  }
+  @if (layout.isTabletLandscapeUp) {
+    <div class="dash-card app-calendar-day-view-container">
+      <nz-card class="max-w-full">
+        <app-calendar-day-view inlineView="true"></app-calendar-day-view>
+      </nz-card>
+    </div>
+  }
 </div>

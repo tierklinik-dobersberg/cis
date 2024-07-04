@@ -65,9 +65,6 @@ importers:
       '@tierklinik-dobersberg/apis':
         specifier: ^0.0.24
         version: 0.0.24(@bufbuild/protobuf@1.10.0)(@connectrpc/connect-web@1.4.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.4.0(@bufbuild/protobuf@1.10.0)))(@connectrpc/connect@1.4.0(@bufbuild/protobuf@1.10.0))
-      '@tierklinik-dobersberg/ckeditor-build':
-        specifier: ^0.0.2
-        version: 0.0.2(@ckeditor/ckeditor5-autoformat@42.0.0)(@ckeditor/ckeditor5-basic-styles@42.0.0)(@ckeditor/ckeditor5-block-quote@42.0.0)(@ckeditor/ckeditor5-ckbox@42.0.0)(@ckeditor/ckeditor5-cloud-services@42.0.0)(@ckeditor/ckeditor5-editor-classic@42.0.0)(@ckeditor/ckeditor5-essentials@42.0.0)(@ckeditor/ckeditor5-heading@42.0.0)(@ckeditor/ckeditor5-image@42.0.0)(@ckeditor/ckeditor5-indent@42.0.0)(@ckeditor/ckeditor5-link@42.0.0)(@ckeditor/ckeditor5-list@42.0.0)(@ckeditor/ckeditor5-markdown-gfm@42.0.0)(@ckeditor/ckeditor5-media-embed@42.0.0)(@ckeditor/ckeditor5-mention@42.0.0)(@ckeditor/ckeditor5-paragraph@42.0.0)(@ckeditor/ckeditor5-paste-from-office@42.0.0)(@ckeditor/ckeditor5-table@42.0.0)(@ckeditor/ckeditor5-typing@42.0.0)
       '@webcomponents/custom-elements':
         specifier: ^1.5.1
         version: 1.6.0
@@ -145,7 +142,7 @@ importers:
         specifier: ^17.3.11
         version: 17.3.11(@angular/compiler@17.3.11(@angular/core@17.3.11(rxjs@7.8.1)(zone.js@0.14.7)))(typescript@5.4.5)
       '@tailwindcss/typography':
-        specifier: ^0.5.7
+        specifier: ^0.5.13
         version: 0.5.13(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@18.19.39)(typescript@5.4.5)))
       '@tierklinik-dobersberg/angular':
         specifier: ^0.1.8
@@ -2446,29 +2443,6 @@ packages:
       '@bufbuild/protobuf': ^1.9.0
       '@connectrpc/connect': ^1.4.0
       '@connectrpc/connect-web': ^1.4.0
-
-  '@tierklinik-dobersberg/ckeditor-build@0.0.2':
-    resolution: {integrity: sha512-otHxG3Hi+gKGg21oAVSwaiRaI88+rgISNgfL3e3Cu554YzR1Cu0yHpH+XJ69mE0ZzUJUYbOd/2Kuod7mMM67RQ==, tarball: https://npm.pkg.github.com/download/@tierklinik-dobersberg/ckeditor-build/0.0.2/eda023402b5b4cdf50ecb861361a170a39b9336e}
-    peerDependencies:
-      '@ckeditor/ckeditor5-autoformat': 40.0.0
-      '@ckeditor/ckeditor5-basic-styles': 40.0.0
-      '@ckeditor/ckeditor5-block-quote': 40.0.0
-      '@ckeditor/ckeditor5-ckbox': 40.0.0
-      '@ckeditor/ckeditor5-cloud-services': 40.0.0
-      '@ckeditor/ckeditor5-editor-classic': 40.0.0
-      '@ckeditor/ckeditor5-essentials': 40.0.0
-      '@ckeditor/ckeditor5-heading': 40.0.0
-      '@ckeditor/ckeditor5-image': 40.0.0
-      '@ckeditor/ckeditor5-indent': 40.0.0
-      '@ckeditor/ckeditor5-link': 40.0.0
-      '@ckeditor/ckeditor5-list': 40.0.0
-      '@ckeditor/ckeditor5-markdown-gfm': 40.0.0
-      '@ckeditor/ckeditor5-media-embed': 40.0.0
-      '@ckeditor/ckeditor5-mention': ^40.0.0
-      '@ckeditor/ckeditor5-paragraph': 40.0.0
-      '@ckeditor/ckeditor5-paste-from-office': 40.0.0
-      '@ckeditor/ckeditor5-table': 40.0.0
-      '@ckeditor/ckeditor5-typing': 40.0.0
 
   '@tierklinik-dobersberg/tailwind@0.0.9':
     resolution: {integrity: sha512-Tc0XgLtLkiJFeh5yOxUoQ5wESOF/yjGX8rD2++s9FLfiEhHwtXjfQ+OfgSrYxRH2eH1CMO4nw3r4YbbB7yf+OQ==, tarball: https://npm.pkg.github.com/download/@tierklinik-dobersberg/tailwind/0.0.9/a05614f70479bcb82bf0b04b78db35e2cd455ca1}
@@ -9444,28 +9418,6 @@ snapshots:
       '@bufbuild/protobuf': 1.10.0
       '@connectrpc/connect': 1.4.0(@bufbuild/protobuf@1.10.0)
       '@connectrpc/connect-web': 1.4.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.4.0(@bufbuild/protobuf@1.10.0))
-
-  '@tierklinik-dobersberg/ckeditor-build@0.0.2(@ckeditor/ckeditor5-autoformat@42.0.0)(@ckeditor/ckeditor5-basic-styles@42.0.0)(@ckeditor/ckeditor5-block-quote@42.0.0)(@ckeditor/ckeditor5-ckbox@42.0.0)(@ckeditor/ckeditor5-cloud-services@42.0.0)(@ckeditor/ckeditor5-editor-classic@42.0.0)(@ckeditor/ckeditor5-essentials@42.0.0)(@ckeditor/ckeditor5-heading@42.0.0)(@ckeditor/ckeditor5-image@42.0.0)(@ckeditor/ckeditor5-indent@42.0.0)(@ckeditor/ckeditor5-link@42.0.0)(@ckeditor/ckeditor5-list@42.0.0)(@ckeditor/ckeditor5-markdown-gfm@42.0.0)(@ckeditor/ckeditor5-media-embed@42.0.0)(@ckeditor/ckeditor5-mention@42.0.0)(@ckeditor/ckeditor5-paragraph@42.0.0)(@ckeditor/ckeditor5-paste-from-office@42.0.0)(@ckeditor/ckeditor5-table@42.0.0)(@ckeditor/ckeditor5-typing@42.0.0)':
-    dependencies:
-      '@ckeditor/ckeditor5-autoformat': 42.0.0
-      '@ckeditor/ckeditor5-basic-styles': 42.0.0
-      '@ckeditor/ckeditor5-block-quote': 42.0.0
-      '@ckeditor/ckeditor5-ckbox': 42.0.0
-      '@ckeditor/ckeditor5-cloud-services': 42.0.0
-      '@ckeditor/ckeditor5-editor-classic': 42.0.0
-      '@ckeditor/ckeditor5-essentials': 42.0.0
-      '@ckeditor/ckeditor5-heading': 42.0.0
-      '@ckeditor/ckeditor5-image': 42.0.0
-      '@ckeditor/ckeditor5-indent': 42.0.0
-      '@ckeditor/ckeditor5-link': 42.0.0
-      '@ckeditor/ckeditor5-list': 42.0.0
-      '@ckeditor/ckeditor5-markdown-gfm': 42.0.0
-      '@ckeditor/ckeditor5-media-embed': 42.0.0
-      '@ckeditor/ckeditor5-mention': 42.0.0
-      '@ckeditor/ckeditor5-paragraph': 42.0.0
-      '@ckeditor/ckeditor5-paste-from-office': 42.0.0
-      '@ckeditor/ckeditor5-table': 42.0.0
-      '@ckeditor/ckeditor5-typing': 42.0.0
 
   '@tierklinik-dobersberg/tailwind@0.0.9(@tailwindcss/typography@0.5.13(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@18.19.39)(typescript@5.4.5))))(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@18.19.39)(typescript@5.4.5)))':
     dependencies:

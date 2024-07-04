@@ -1,19 +1,21 @@
 <nz-card>
   <nz-card-meta nzTitle="Heute im Dienst"></nz-card-meta>
   <div class="grid">
-    <div *ngFor="let shift of shifts">
-      <h3>{{ shift.definition?.name }}</h3>
-      <ng-container *ngTemplateOutlet="userGroupTemplate; context:{$implicit: shift.assignedUserIds}"></ng-container>
-    </div>
+    @for (shift of shifts; track shift) {
+      <div>
+        <h3>{{ shift.definition?.name }}</h3>
+        <ng-container *ngTemplateOutlet="userGroupTemplate; context:{$implicit: shift.assignedUserIds}"></ng-container>
+      </div>
+    }
   </div>
 </nz-card>
 
 <ng-template #userGroupTemplate let-data>
   <nz-avatar-group>
-    <ng-container *ngFor="let user of data">
+    @for (user of data; track user) {
       <nz-avatar [nz-tooltip]="(user | toUser | displayName)" nzIcon="user" [nzSrc]="(user | toUser)?.user.avatar" [nzSize]="48"
         (mouseenter)="userHover.next(user)" (mouseleave)="userHover.next('')" (click)="userClicked(user)" class="!border !border-subtle">
       </nz-avatar>
-    </ng-container>
+    }
   </nz-avatar-group>
 </ng-template>

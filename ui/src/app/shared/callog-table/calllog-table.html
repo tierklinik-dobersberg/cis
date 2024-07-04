@@ -4,76 +4,89 @@
       <th></th>
       <th>Zeit</th>
       <th>Kunde / Anrufer</th>
-      <ng-container *ngIf="layout.isTabletLandscapeUp">
+      @if (layout.isTabletLandscapeUp) {
         <th>Dauer</th>
         <th>Agent</th>
         <th>Type</th>
-      </ng-container>
+      }
       <th></th>
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let data of basicTable.data; trackBy: trackLog" [class.error]="!!data.entry.error"
-      [class.outbound]="data.outbound" [class.self-call]="data.isSelf" [class.inbound]="!data.outbound"
-      [class.lost]="data.isLostOrUnanswared">
-      <td class="direction">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" *ngIf="!data.outbound && !data.isLostOrUnanswared">
-          <path d="M14.414 7l3.293-3.293a1 1 0 00-1.414-1.414L13 5.586V4a1 1 0 10-2 0v4.003a.996.996 0 00.617.921A.997.997 0 0012 9h4a1 1 0 100-2h-1.586z" />
-          <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-        </svg>
-
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" *ngIf="!data.outbound && data.isLostOrUnanswared">
-          <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-          <path d="M16.707 3.293a1 1 0 010 1.414L15.414 6l1.293 1.293a1 1 0 01-1.414 1.414L14 7.414l-1.293 1.293a1 1 0 11-1.414-1.414L12.586 6l-1.293-1.293a1 1 0 011.414-1.414L14 4.586l1.293-1.293a1 1 0 011.414 0z" />
-        </svg>
-
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" *ngIf="data.outbound">
-          <path d="M17.924 2.617a.997.997 0 00-.215-.322l-.004-.004A.997.997 0 0017 2h-4a1 1 0 100 2h1.586l-3.293 3.293a1 1 0 001.414 1.414L16 5.414V7a1 1 0 102 0V3a.997.997 0 00-.076-.383z" />
-          <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-        </svg>
-      </td>
-      <td class="date-time">
-        <span *ngIf="!data.isToday || !layout.isPhone">
-          {{data.localDate}},
-        </span>
-        <span>
-          {{ data.localTime}}
-        </span>
-      </td>
-
-      <td>
-        <a class="customer-link" *ngIf="!!data.customer; else: caller"
-          [routerLink]="['/customer/view', data.customer.source, data.customer.cid]" nz-tooltip
-          [nzTooltipTitle]="data.entry.caller">
-          {{data.customer.name}}&nbsp;{{data.customer.firstname}}
-        </a>
-        <ng-template #caller>
-          <a href="tel:{{data.entry.caller}}">{{ data.entry.caller }}</a>
-        </ng-template>
-      </td>
-
-      <ng-container *ngIf="layout.isTabletLandscapeUp">
-        <td>{{ data.entry.duration | duration }}</td>
-        <td>
-          <span *ngIf="!!data.entry.agentUserId || data.entry.acceptedAgent" nz-tooltip [nzTooltipTitle]="data.entry.transferTarget">
-            {{ data.entry.agentUserId | toUser | displayName }} <span class="italic text-secondary">({{ data.entry.acceptedAgent }})</span>
-          </span>
-          <span *ngIf="data.entry.transferTarget" class="transfer-target">
-            (via
-              {{ data.entry.transferTarget }}
-            )
+    @for (data of basicTable.data; track trackLog($index, data)) {
+      <tr [class.error]="!!data.entry.error"
+        [class.outbound]="data.outbound" [class.self-call]="data.isSelf" [class.inbound]="!data.outbound"
+        [class.lost]="data.isLostOrUnanswared">
+        <td class="direction">
+          @if (!data.outbound && !data.isLostOrUnanswared) {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M14.414 7l3.293-3.293a1 1 0 00-1.414-1.414L13 5.586V4a1 1 0 10-2 0v4.003a.996.996 0 00.617.921A.997.997 0 0012 9h4a1 1 0 100-2h-1.586z" />
+              <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+            </svg>
+          }
+          @if (!data.outbound && data.isLostOrUnanswared) {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+              <path d="M16.707 3.293a1 1 0 010 1.414L15.414 6l1.293 1.293a1 1 0 01-1.414 1.414L14 7.414l-1.293 1.293a1 1 0 11-1.414-1.414L12.586 6l-1.293-1.293a1 1 0 011.414-1.414L14 4.586l1.293-1.293a1 1 0 011.414 0z" />
+            </svg>
+          }
+          @if (data.outbound) {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M17.924 2.617a.997.997 0 00-.215-.322l-.004-.004A.997.997 0 0017 2h-4a1 1 0 100 2h1.586l-3.293 3.293a1 1 0 001.414 1.414L16 5.414V7a1 1 0 102 0V3a.997.997 0 00-.076-.383z" />
+              <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+            </svg>
+          }
+        </td>
+        <td class="date-time">
+          @if (!data.isToday || !layout.isPhone) {
+            <span>
+              {{data.localDate}},
+            </span>
+          }
+          <span>
+            {{ data.localTime}}
           </span>
         </td>
-        <td>{{ data.entry.callType || 'Lost' }}</td>
-      </ng-container>
-
-      <td>
-        <a class="flex-row items-center p-2 space-x-3 text-base outline-none font-lato text-primaryflex md:p-4 hover:bg-secondary hover:bg-opacity-25 pointer text-color-primary text-opacity-light hover:text-color-primary hover:text-opacity-100" href="tel:{{data.entry.caller}}" >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6">
-            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-          </svg>
-        </a>
-      </td>
-    </tr>
+        <td>
+          @if (!!data.customer) {
+            <a class="customer-link"
+              [routerLink]="['/customer/view', data.customer.source, data.customer.cid]" nz-tooltip
+              [nzTooltipTitle]="data.entry.caller">
+              {{data.customer.name}}&nbsp;{{data.customer.firstname}}
+            </a>
+          } @else {
+            <a href="tel:{{data.entry.caller}}">{{ data.entry.caller }}</a>
+          }
+          <ng-template #caller>
+            <a href="tel:{{data.entry.caller}}">{{ data.entry.caller }}</a>
+          </ng-template>
+        </td>
+        @if (layout.isTabletLandscapeUp) {
+          <td>{{ data.entry.duration | duration }}</td>
+          <td>
+            @if (!!data.entry.agentUserId || data.entry.acceptedAgent) {
+              <span nz-tooltip [nzTooltipTitle]="data.entry.transferTarget">
+                {{ data.entry.agentUserId | toUser | displayName }} <span class="italic text-secondary">({{ data.entry.acceptedAgent }})</span>
+              </span>
+            }
+            @if (data.entry.transferTarget) {
+              <span class="transfer-target">
+                (via
+                {{ data.entry.transferTarget }}
+                )
+              </span>
+            }
+          </td>
+          <td>{{ data.entry.callType || 'Lost' }}</td>
+        }
+        <td>
+          <a class="flex-row items-center p-2 space-x-3 text-base outline-none font-lato text-primaryflex md:p-4 hover:bg-secondary hover:bg-opacity-25 pointer text-color-primary text-opacity-light hover:text-color-primary hover:text-opacity-100" href="tel:{{data.entry.caller}}" >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6">
+              <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+            </svg>
+          </a>
+        </td>
+      </tr>
+    }
   </tbody>
 </nz-table>

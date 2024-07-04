@@ -1,12 +1,16 @@
-<span *ngIf="index !== null" class="text-2xl text-color-primary-dark font-lato">
-  {{index}}.
-</span>
+@if (index !== null) {
+  <span class="text-2xl text-color-primary-dark font-lato">
+    {{index}}.
+  </span>
+}
 
 <div class="flex flex-col flex-grow">
   <div class="flex flex-col">
     <span class="text-sm font-medium font-lato">
       {{ spec.displayName || spec.name }}
-      <span *ngIf="spec.required" class="text-color-primary-dark">*</span>
+      @if (spec.required) {
+        <span class="text-color-primary-dark">*</span>
+      }
     </span>
     <span class="text-sm text-secondary font-lato">
       {{ spec.description }}
@@ -15,14 +19,12 @@
   <div>
     <div class="flex items-center mt-3 space-x-2">
       <!-- slot for custom content -->
-      <ng-container *ngIf="!!inputHeadSlot">
+      @if (!!inputHeadSlot) {
         <ng-container *ngTemplateOutlet="inputHeadSlot"></ng-container>
-      </ng-container>
+      }
 
       <!-- Actual Input -->
-      <ng-container
-        *ngIf="possibleValues?.length > 0; else: typeSwitchTempalte"
-      >
+      @if (possibleValues?.length > 0) {
         <nz-select
           class="flex-grow w-full"
           [nzDisabled]="isReadonly"
@@ -31,103 +33,105 @@
           [(ngModel)]="value"
           (ngModelChange)="_onChanged($event)"
           (nzBlur)="_onBlur()"
-        >
-          <nz-option
-            *ngFor="let item of possibleValues"
-            [nzLabel]="item.display"
-            [nzValue]="item.value"
-          ></nz-option>
+          >
+          @for (item of possibleValues; track item) {
+            <nz-option
+              [nzLabel]="item.display"
+              [nzValue]="item.value"
+            ></nz-option>
+          }
         </nz-select>
-      </ng-container>
-      <ng-template #typeSwitchTempalte>
-        <ng-container [ngSwitch]="spec.type">
-          <ng-container *ngSwitchCase="'string'">
+      } @else {
+        @switch (spec.type) {
+          @case ('string') {
+            @if (!isMarkdown && !isPlainText) {
+              <input
+                [type]="isSecret ? 'password' : 'text'"
+                [attr.placeholder]="spec.default"
+                class="flex-grow tkd-input"
+                [disabled]="isReadonly"
+                [(ngModel)]="value"
+                (ngModelChange)="_onChanged($event)"
+                (blur)="_onBlur()"
+                />
+            } @else {
+              @if (isMarkdown) {
+                <ckeditor
+                  class="flex-grow tkd-input"
+                  [disabled]="isReadonly"
+                  [config]="{}"
+                  [editor]="Editor"
+                  [(ngModel)]="value"
+                  (ngModelChange)="_onChanged($event)"
+                  (blur)="_onBlur()"
+                  >
+                </ckeditor>
+              } @else {
+                <textarea [attr.placeholder]="spec.default" class="flex-grow tkd-input" [(ngModel)]="value" (ngModelChange)="_onChanged($event)" (blur)="_onBlur()" #input nz-input></textarea>
+              }
+            }
+          }
+          @case ('duration') {
             <input
-              *ngIf="!isMarkdown && !isPlainText; else: multiLineText"
-              [type]="isSecret ? 'password' : 'text'"
+              type="text"
               [attr.placeholder]="spec.default"
               class="flex-grow tkd-input"
+              [(ngModel)]="value"
+              [disabled]="isReadonly"
+              (ngModelChange)="_onChanged($event)"
+              (blur)="_onBlur()"
+              />
+          }
+          @case ('[]string') {
+            <tkd-string-slice-input
+              class="flex-grow"
+              [placeholder]="spec.default"
+              [(ngModel)]="value"
+              [disabled]="isReadonly"
+              (ngModelChange)="_onChanged($event)"
+              (blur)="_onBlur()"
+              >
+            </tkd-string-slice-input>
+          }
+          @case ('bool') {
+            <label
+              class="flex-grow"
+              nz-checkbox
               [disabled]="isReadonly"
               [(ngModel)]="value"
               (ngModelChange)="_onChanged($event)"
               (blur)="_onBlur()"
-            />
-            <ng-template #multiLineText>
-              <ckeditor
-                *ngIf="isMarkdown; else: plainTextTemplate"
+              >Enabled</label
+              >
+            }
+            @case ('int') {
+              <input
+                type="number"
+                [attr.placeholder]="spec.default"
                 class="flex-grow tkd-input"
                 [disabled]="isReadonly"
-                [config]="{}"
-                [editor]="Editor"
                 [(ngModel)]="value"
                 (ngModelChange)="_onChanged($event)"
                 (blur)="_onBlur()"
-              >
-              </ckeditor>
+                />
+            }
+            @default {
+              <div
+                class="flex-grow p-3 border border-alert-red text-alert-red font-lato"
+                >
+                Option type
+                <span class="font-semibold underline">{{ spec.type }}</span> is not
+                yet supported
+              </div>
+            }
+          }
+        }
 
-              <ng-template #plainTextTemplate>
-                <textarea [attr.placeholder]="spec.default" class="flex-grow tkd-input" [(ngModel)]="value" (ngModelChange)="_onChanged($event)" (blur)="_onBlur()" #input nz-input></textarea>
-              </ng-template>
-            </ng-template>
-          </ng-container>
+        <!-- slot for custom content -->
+        @if (!!inputTailSlot) {
+          <ng-container *ngTemplateOutlet="inputTailSlot"></ng-container>
+        }
 
-          <input
-            type="text"
-            [attr.placeholder]="spec.default"
-            class="flex-grow tkd-input"
-            *ngSwitchCase="'duration'"
-            [(ngModel)]="value"
-              [disabled]="isReadonly"
-            (ngModelChange)="_onChanged($event)"
-            (blur)="_onBlur()"
-          />
-          <tkd-string-slice-input
-            class="flex-grow"
-            [placeholder]="spec.default"
-            *ngSwitchCase="'[]string'"
-            [(ngModel)]="value"
-              [disabled]="isReadonly"
-            (ngModelChange)="_onChanged($event)"
-            (blur)="_onBlur()"
-          >
-          </tkd-string-slice-input>
-          <label
-            *ngSwitchCase="'bool'"
-            class="flex-grow"
-            nz-checkbox
-              [disabled]="isReadonly"
-            [(ngModel)]="value"
-            (ngModelChange)="_onChanged($event)"
-            (blur)="_onBlur()"
-            >Enabled</label
-          >
-          <input
-            type="number"
-            [attr.placeholder]="spec.default"
-            class="flex-grow tkd-input"
-              [disabled]="isReadonly"
-            *ngSwitchCase="'int'"
-            [(ngModel)]="value"
-            (ngModelChange)="_onChanged($event)"
-            (blur)="_onBlur()"
-          />
-
-          <div
-            *ngSwitchDefault
-            class="flex-grow p-3 border border-alert-red text-alert-red font-lato"
-          >
-            Option type
-            <span class="font-semibold underline">{{ spec.type }}</span> is not
-            yet supported
-          </div>
-        </ng-container>
-      </ng-template>
-
-      <!-- slot for custom content -->
-      <ng-container *ngIf="!!inputTailSlot">
-        <ng-container *ngTemplateOutlet="inputTailSlot"></ng-container>
-      </ng-container>
-
+      </div>
     </div>
   </div>
-</div>

@@ -1,87 +1,88 @@
 <div class="rounded shadow viewer" [class.image-loaded]="loadProgress > 100">
-    <div *ngIf="loadProgress <= 100" class="image-loader">
-        <img class="loading-image" src="/assets/xray.png">
-        <div class="text">
-            <h3>Aufnahmen von <strong>{{ study?.animalName }}</strong> werden geladen ...</h3>
-            <nz-progress nzStrokeLinecap="round" [nzPercent]="loadProgress"></nz-progress>
-        </div>
+  @if (loadProgress <= 100) {
+    <div class="image-loader">
+      <img class="loading-image" src="/assets/xray.png">
+      <div class="text">
+        <h3>Aufnahmen von <strong>{{ study?.animalName }}</strong> werden geladen ...</h3>
+        <nz-progress nzStrokeLinecap="round" [nzPercent]="loadProgress"></nz-progress>
+      </div>
     </div>
-    <div class="viewer-main">
-        <div class="viewer-content" [style.visibility]="loadProgress <= 100 ? 'hidden' : 'visible'">
-            <div class="toolbar">
-                <nz-button-group>
-                    <button nz-button nzGhost nz-tooltip nzTooltipTitle="Rückgängig" nzTooltipPlacement="bottom">
-                        <i nz-icon nzType="undo" nzTheme="outline" (click)="dwvApp.undo()"></i>
-                    </button>
-                    <button nz-button nzGhost nz-tooltip nzTooltipTitle="Wiederherstellen" nzTooltipPlacement="bottom">
-                        <i nz-icon nzType="redo" nzTheme="outline" (click)="dwvApp.redo()"></i>
-                    </button>
-                </nz-button-group>
+  }
+  <div class="viewer-main">
+    <div class="viewer-content" [style.visibility]="loadProgress <= 100 ? 'hidden' : 'visible'">
+      <div class="toolbar">
+        <nz-button-group>
+          <button nz-button nzGhost nz-tooltip nzTooltipTitle="Rückgängig" nzTooltipPlacement="bottom">
+            <i nz-icon nzType="undo" nzTheme="outline" (click)="dwvApp.undo()"></i>
+          </button>
+          <button nz-button nzGhost nz-tooltip nzTooltipTitle="Wiederherstellen" nzTooltipPlacement="bottom">
+            <i nz-icon nzType="redo" nzTheme="outline" (click)="dwvApp.redo()"></i>
+          </button>
+        </nz-button-group>
 
-                <nz-button-group>
-                    <button [class.selected]="selectedTool === 'ZoomAndPan'" nz-button nzGhost
-                        (click)="selectTool('ZoomAndPan')">
-                        Zoom / Bewegen
-                    </button>
-                    <button [class.selected]="selectedTool === 'WindowLevel'" nz-button nzGhost
-                        (click)="selectTool('WindowLevel')">
-                        Belichtung / Kontrast
-                    </button>
-                    <button [class.selected]="selectedTool === 'Draw'" nz-button nzGhost nz-dropdown
-                        [nzDropdownMenu]="drawMenu">
-                        Zeichnen / Messen
-                        <i nz-icon nzType="down"></i>
-                    </button>
+        <nz-button-group>
+          <button [class.selected]="selectedTool === 'ZoomAndPan'" nz-button nzGhost
+            (click)="selectTool('ZoomAndPan')">
+            Zoom / Bewegen
+          </button>
+          <button [class.selected]="selectedTool === 'WindowLevel'" nz-button nzGhost
+            (click)="selectTool('WindowLevel')">
+            Belichtung / Kontrast
+          </button>
+          <button [class.selected]="selectedTool === 'Draw'" nz-button nzGhost nz-dropdown
+            [nzDropdownMenu]="drawMenu">
+            Zeichnen / Messen
+            <i nz-icon nzType="down"></i>
+          </button>
 
-                    <nz-dropdown-menu #drawMenu="nzDropdownMenu">
-                        <ul nz-menu>
-                            <li nz-menu-item (click)="selectTool('Draw', 'Ruler')">
-                                <a>Lineal</a>
-                            </li>
-                            <li nz-menu-item (click)="selectTool('Draw', 'Protractor')">
-                                <a>Winkelmesser</a>
-                            </li>
-                            <li nz-menu-item (click)="selectTool('Draw', 'Rectangle')">
-                                <a>Rechteck</a>
-                            </li>
-                            <li nz-menu-item (click)="selectTool('Draw', 'Arrow')">
-                                <a>Pfeil</a>
-                            </li>
-                            <li nz-menu-item (click)="selectTool('Draw', 'Ellipse')">
-                                <a>Ellipse</a>
-                            </li>
-                            <li nz-menu-item (click)="selectTool('Draw', 'Roi')">
-                                <a>Roi</a>
-                            </li>
-                            <li nz-menu-item (click)="selectTool('Draw', 'FreeHand')">
-                                <a>Frei</a>
-                            </li>
-                        </ul>
-                    </nz-dropdown-menu>
-                </nz-button-group>
-            </div>
-            <div id="dwv" name="dwv">
-                <div class="layerContainer">
-                    <canvas class="imageLayer">Only for HTML5 compatible browsers ...</canvas>
-                    <div class="drawDiv"></div>
-                </div>
-            </div>
+          <nz-dropdown-menu #drawMenu="nzDropdownMenu">
+            <ul nz-menu>
+              <li nz-menu-item (click)="selectTool('Draw', 'Ruler')">
+                <a>Lineal</a>
+              </li>
+              <li nz-menu-item (click)="selectTool('Draw', 'Protractor')">
+                <a>Winkelmesser</a>
+              </li>
+              <li nz-menu-item (click)="selectTool('Draw', 'Rectangle')">
+                <a>Rechteck</a>
+              </li>
+              <li nz-menu-item (click)="selectTool('Draw', 'Arrow')">
+                <a>Pfeil</a>
+              </li>
+              <li nz-menu-item (click)="selectTool('Draw', 'Ellipse')">
+                <a>Ellipse</a>
+              </li>
+              <li nz-menu-item (click)="selectTool('Draw', 'Roi')">
+                <a>Roi</a>
+              </li>
+              <li nz-menu-item (click)="selectTool('Draw', 'FreeHand')">
+                <a>Frei</a>
+              </li>
+            </ul>
+          </nz-dropdown-menu>
+        </nz-button-group>
+      </div>
+      <div id="dwv" name="dwv">
+        <div class="layerContainer">
+          <canvas class="imageLayer">Only for HTML5 compatible browsers ...</canvas>
+          <div class="drawDiv"></div>
         </div>
-
-        <div class="series-list">
-            <ng-container *ngFor="let series of study?.seriesList">
-                <ng-container *ngFor="let instance of series?.instances">
-                    <div [class.current]="instance.sopInstanceUid === currentInstanceUid" nz-tooltip
-                        [nzTooltipTitle]="tooltipTemplate" nzTooltipPlacement="left"
-                        [routerLink]="['/xray/viewer', study?.studyInstanceUid, series?.seriesInstanceUid, instance?.sopInstanceUid]">
-                        <img [attr.src]="getUrl(instance.url)">
-                    </div>
-
-                    <ng-template #tooltipTemplate>
-                        {{ series.seriesDescription }}
-                    </ng-template>
-                </ng-container>
-            </ng-container>
-        </div>
+      </div>
     </div>
+
+    <div class="series-list">
+      @for (series of study?.seriesList; track series) {
+        @for (instance of series?.instances; track instance) {
+          <div [class.current]="instance.sopInstanceUid === currentInstanceUid" nz-tooltip
+            [nzTooltipTitle]="tooltipTemplate" nzTooltipPlacement="left"
+            [routerLink]="['/xray/viewer', study?.studyInstanceUid, series?.seriesInstanceUid, instance?.sopInstanceUid]">
+            <img [attr.src]="getUrl(instance.url)">
+          </div>
+          <ng-template #tooltipTemplate>
+            {{ series.seriesDescription }}
+          </ng-template>
+        }
+      }
+    </div>
+  </div>
 </div>

@@ -1,30 +1,32 @@
 <div class="bg-white rounded shadow tkd-card">
   <header>
-      <h1 class="text-lg text-lato text-color-primary">Zugriff verweigert</h1>
+    <h1 class="text-lg text-lato text-color-primary">Zugriff verweigert</h1>
   </header>
 
-  <div *ngIf="(profile | async) as profile" class="p-12 space-y-8">
-    <section [ngSwitch]="reason">
-      <div *ngSwitchCase="'computer-account'" class="max-w-md space-y-4">
-        <h1 class="font-lato text-lg md:text-xl">Hallo <span class="text-color-primary-dark">{{ profile | displayName }}</span>,</h1>
-
-        <p class="py-2">
-          du bist derzeit mit einem geteilten Computer-Konto angemeldet. Zugriff auf die
-          von dir geforderte Seite ist mit diesem Konto nicht möglich.
-        </p>
-
-        <ng-container *ngIf="redirectUrl">
-          <p class="py-2">
-            Bitte melde dich unter deinem eigenen Konto an:
-          </p>
-
-          <div class="flex flex-row pt-6">
-            <a class="tkd-btn tkd-primary flex-grow-0 block" [attr.href]="redirectUrl">Anmelden</a>
-          </div>
-        </ng-container>
-
-      </div>
-    </section>
-  </div>
+  @if ((profile | async); as profile) {
+    <div class="p-12 space-y-8">
+      <section>
+        @switch (reason) {
+          @case ('computer-account') {
+            <div class="max-w-md space-y-4">
+              <h1 class="font-lato text-lg md:text-xl">Hallo <span class="text-color-primary-dark">{{ profile | displayName }}</span>,</h1>
+              <p class="py-2">
+                du bist derzeit mit einem geteilten Computer-Konto angemeldet. Zugriff auf die
+                von dir geforderte Seite ist mit diesem Konto nicht möglich.
+              </p>
+              @if (redirectUrl) {
+                <p class="py-2">
+                  Bitte melde dich unter deinem eigenen Konto an:
+                </p>
+                <div class="flex flex-row pt-6">
+                  <a class="tkd-btn tkd-primary flex-grow-0 block" [attr.href]="redirectUrl">Anmelden</a>
+                </div>
+              }
+            </div>
+          }
+        }
+      </section>
+    </div>
+  }
 
 </div>

@@ -1,72 +1,76 @@
 <div class="content-section selection-container">
-    <div class="date-selection">
-        <label>Aufnahmen anzeigen für:</label>
-        <nz-date-picker [nzAllowClear]="true" [ngModel]="date" (ngModelChange)="onChange($event, undefined)">
-        </nz-date-picker>
-    </div>
-    <div class="date-selection">
-        <label nz-checkbox [ngModel]="onlyUnseen" (ngModelChange)="onChange(undefined, $event)">Nur neue
-            anzeigen</label>
-    </div>
-    <div class="date-selection">
-        <button nz-button nzType="primary" (click)="onChange(date, undefined)" [nzLoading]="loading">
-            <i nz-icon nzType="search" nzTheme="outline"></i>
-            Suchen
-        </button>
-    </div>
+  <div class="date-selection">
+    <label>Aufnahmen anzeigen für:</label>
+    <nz-date-picker [nzAllowClear]="true" [ngModel]="date" (ngModelChange)="onChange($event, undefined)">
+    </nz-date-picker>
+  </div>
+  <div class="date-selection">
+    <label nz-checkbox [ngModel]="onlyUnseen" (ngModelChange)="onChange(undefined, $event)">Nur neue
+    anzeigen</label>
+  </div>
+  <div class="date-selection">
+    <button nz-button nzType="primary" (click)="onChange(date, undefined)" [nzLoading]="loading">
+      <i nz-icon nzType="search" nzTheme="outline"></i>
+      Suchen
+    </button>
+  </div>
 </div>
 
 <nz-table #basicTable [nzData]="recordings" class="content-section data-container">
-    <thead>
-        <tr>
-            <th>Zeit</th>
-            <th>Kunde / Anrufer</th>
-            <th>
-                <ng-container *ngIf="layout.isTabletPortraitUp">
-                    Aufnahme
-                </ng-container>
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let data of basicTable.data; trackBy: trackRecording">
-            <td>
-                <ng-container *ngIf="layout.isTabletPortraitUp; else: mobileDateTemplate">
-                    {{data.localDate.toLocaleString()}}
-                </ng-container>
-                <ng-template #mobileDateTemplate>
-                    {{data.localDate.toLocaleDateString()}}<br />
-                    {{data.localDate.toLocaleTimeString()}}
-                </ng-template>
-            </td>
-            <td>
-                <a class="customer-link" *ngIf="!!data.customer"
-                    [routerLink]="['/customer/view', data.customer.source, data.customer.cid]">
-                    {{ data.customer.name }}&nbsp;{{ data.customer.firstname }}
-                </a>
-                <span>
-                    {{data.from}}
-                </span>
-            </td>
-            <td>
-
-                <nz-button-group>
-                    <button nz-button [nzType]="data.read ? 'default' : 'primary'" (click)="playRecording(data)"
-                        [nzLoading]="data.playing">
-                        <i nz-icon nzType="play-circle" nzTheme="outline"></i>
-                        <span *ngIf="!layout.isPhone">Abspielen</span>
-                    </button>
-                    <button nz-button nz-dropdown [nzDropdownMenu]="menu" nzPlacement="bottomRight">
-                        <i nz-icon nzType="ellipsis"></i>
-                    </button>
-                    <nz-dropdown-menu #menu="nzDropdownMenu">
-                        <ul nz-menu>
-                            <li nz-menu-item (click)="changeSeen(data, false)">Als <b>ungelesen</b> markieren</li>
-                            <li nz-menu-item (click)="changeSeen(data, true)">Als <b>gelesen</b> markieren</li>
-                        </ul>
-                    </nz-dropdown-menu>
-                </nz-button-group>
-            </td>
-        </tr>
-    </tbody>
+  <thead>
+    <tr>
+      <th>Zeit</th>
+      <th>Kunde / Anrufer</th>
+      <th>
+        @if (layout.isTabletPortraitUp) {
+          Aufnahme
+        }
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (data of basicTable.data; track trackRecording($index, data)) {
+      <tr>
+        <td>
+          @if (layout.isTabletPortraitUp) {
+            {{data.localDate.toLocaleString()}}
+          } @else {
+            {{data.localDate.toLocaleDateString()}}<br />
+            {{data.localDate.toLocaleTimeString()}}
+          }
+        </td>
+        <td>
+          @if (!!data.customer) {
+            <a class="customer-link"
+              [routerLink]="['/customer/view', data.customer.source, data.customer.cid]">
+              {{ data.customer.name }}&nbsp;{{ data.customer.firstname }}
+            </a>
+          }
+          <span>
+            {{data.from}}
+          </span>
+        </td>
+        <td>
+          <nz-button-group>
+            <button nz-button [nzType]="data.read ? 'default' : 'primary'" (click)="playRecording(data)"
+              [nzLoading]="data.playing">
+              <i nz-icon nzType="play-circle" nzTheme="outline"></i>
+              @if (!layout.isPhone) {
+                <span>Abspielen</span>
+              }
+            </button>
+            <button nz-button nz-dropdown [nzDropdownMenu]="menu" nzPlacement="bottomRight">
+              <i nz-icon nzType="ellipsis"></i>
+            </button>
+            <nz-dropdown-menu #menu="nzDropdownMenu">
+              <ul nz-menu>
+                <li nz-menu-item (click)="changeSeen(data, false)">Als <b>ungelesen</b> markieren</li>
+                <li nz-menu-item (click)="changeSeen(data, true)">Als <b>gelesen</b> markieren</li>
+              </ul>
+            </nz-dropdown-menu>
+          </nz-button-group>
+        </td>
+      </tr>
+    }
+  </tbody>
 </nz-table>

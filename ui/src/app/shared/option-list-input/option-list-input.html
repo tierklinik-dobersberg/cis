@@ -1,10 +1,11 @@
-<tkd-option-spec-input
-  class="border-b border-subtle"
-  *ngFor="let spec of specs; trackBy: trackSpec; let index=index"
-  [index]="showIndex ? indexOffset + index : null"
-  [spec]="spec"
-  [(ngModel)]="config[spec.name]"
-  [disabled]="disabled"
-  (ngModelChange)="_onChanged(config)"
-  (blur)="_onBlur()"
-></tkd-option-spec-input>
+@for (spec of specs; track trackSpec(index, spec); let index = $index) {
+  <tkd-option-spec-input
+    class="border-b border-subtle"
+    [index]="showIndex ? indexOffset + index : null"
+    [spec]="spec"
+    [(ngModel)]="config[spec.name]"
+    [disabled]="disabled"
+    (ngModelChange)="_onChanged(config)"
+    (blur)="_onBlur()"
+  ></tkd-option-spec-input>
+}

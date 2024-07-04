@@ -8,37 +8,43 @@
 <ng-template #titleTemplate>
   <span class="header">
     Bereitschaftsdienst {{ onDuty?.isOverwrite ? '(ÜBERSCHRIEBEN)' : ''}}
-    <i nz-dropdown *ngIf="canSetOverwrite" nzTrigger="click" nz-icon nzType="edit" nzTheme="outline"
+    @if (canSetOverwrite) {
+      <i nz-dropdown nzTrigger="click" nz-icon nzType="edit" nzTheme="outline"
       style="cursor: pointer" nz-tooltip nzTooltipTitle="Nachdienst ändern" routerLink="/on-call/overwrite"></i>
+    }
   </span>
 
   <div class="on-duty-container">
 
-    <ng-container *ngFor="let onCall of onDuty?.onCall">
+    @for (onCall of onDuty?.onCall; track onCall) {
       <nz-avatar [nzSize]="64" nzShape="square" nzIcon="user" [nzSrc]="(onCall.profile?.user?.id | toUser)?.user.avatar"></nz-avatar>
       <div class="primary-on-duty">
         <span [nzTooltipTitle]="'bis ' + (onCall.until?.toDate() | date:'short')"
           nz-tooltip><u>{{
-            onCall.profile?.user?.id | toUser | displayName }}</u></span>
+        onCall.profile?.user?.id | toUser | displayName }}</u></span>
         <a class="phone" [attr.href]="'tel:' + onCall.transferTarget">
           <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
           {{ onCall.transferTarget }}
         </a>
       </div>
-    </ng-container>
+    }
 
   </div>
 </ng-template>
 
 <ng-template #descriptionTemplate>
-  <ng-container *ngIf="firstLoad">
+  @if (firstLoad) {
     <nz-spin nzSimple [nzSize]="'small'"></nz-spin>
     <span> Laden ...</span>
-  </ng-container>
-  <span *ngIf="!firstLoad" class="description">
-    <span style="color: red" *ngIf="onDuty?.onCall?.length === 0">
-      <i nz-icon nzType="warning" nzTheme="outline" style="margin-right: 4px;"></i>
-      Nicht eingetragen!
+  }
+  @if (!firstLoad) {
+    <span class="description">
+      @if (onDuty?.onCall?.length === 0) {
+        <span style="color: red">
+          <i nz-icon nzType="warning" nzTheme="outline" style="margin-right: 4px;"></i>
+          Nicht eingetragen!
+        </span>
+      }
     </span>
-  </span>
+  }
 </ng-template>

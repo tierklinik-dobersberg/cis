@@ -5,20 +5,21 @@
   [(ngModel)]="selectedActionType"
   class="w-full"
   (ngModelChange)="onActionTypeChanged()"
->
-  <nz-option
-    *ngFor="let item of availableTypes"
-    [nzValue]="item"
-    [nzLabel]="item.description || item.name"
-  ></nz-option>
+  >
+  @for (item of availableTypes; track item) {
+    <nz-option
+      [nzValue]="item"
+      [nzLabel]="item.description || item.name"
+    ></nz-option>
+  }
 </nz-select>
 
 <div class="w-full mt-4 mb-2 border-b border-subtle"></div>
 
-<ng-container *ngIf="!!selectedActionType">
+@if (!!selectedActionType) {
   <tkd-option-list-input
     [specs]="selectedActionType.spec"
     [(ngModel)]="config"
-  >
+    >
   </tkd-option-list-input>
-</ng-container>
+}

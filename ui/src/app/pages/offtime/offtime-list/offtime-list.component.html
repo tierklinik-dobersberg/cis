@@ -5,32 +5,34 @@
     }">
     <div>
       <h1 class="text-lg text-lato text-color-primary">Urlaubsanträge & Zeitausgleich</h1>
-      <span class="text-secondary"
-        *ngIf="vacation && worktime && !worktime.excludeFromTimeTracking && layout.isTabletLandscapeUp">
-        Bis zum Ende des Jahres hast du noch
+      @if (vacation && worktime && !worktime.excludeFromTimeTracking && layout.isTabletLandscapeUp) {
+        <span class="text-secondary"
+          >
+          Bis zum Ende des Jahres hast du noch
         <span [ngClass]="{
           'text-alert-green-dark': vacation.vacationCreditsLeft.seconds > 0,
           'text-alert-red': vacation.vacationCreditsLeft.seconds <= 0
         }" class="font-medium underline">
           {{ vacation.vacationCreditsLeft | duration:'default-hours':undefined:true }}</span>
-
-        Urlaubsanspruch.
-
-        Dein Zeitausgleich-Guthaben beträgt derzeit
+          Urlaubsanspruch.
+          Dein Zeitausgleich-Guthaben beträgt derzeit
         <span [ngClass]="{
           'text-alert-green-dark': vacation.timeOffCredits.seconds > 0,
           'text-alert-red': vacation.timeOffCredits.seconds <= 0
         }" class="font-medium underline">
           {{ vacation.timeOffCredits | duration:'default-hours':undefined:true }}</span>
-      </span>
+        </span>
+      }
     </div>
 
     <div class="flex flex-row gap-4 items-center">
       <div>
         <span class="text-secondary">Filtern: </span>
         <nz-select [(ngModel)]="filterState" (ngModelChange)="load()" class="w-32">
-          <nz-option *ngFor="let state of (possibleFilters|keyvalue)" [nzValue]="state.key"
+          @for (state of (possibleFilters|keyvalue); track state) {
+            <nz-option [nzValue]="state.key"
             [nzLabel]="state.value"></nz-option>
+          }
         </nz-select>
       </div>
 
@@ -47,78 +49,97 @@
       <nz-table [nzData]="entries" #offTimeEntries>
         <thead>
           <!-- Desktop Header -->
-          <tr *ngIf="layout.isTabletLandscapeUp">
-            <th>Zeitraum</th>
-            <th>Antragsart</th>
-            <th>Beschreibung</th>
-            <th>Erstellt am</th>
-            <th>Bestätigt</th>
-            <th></th>
-          </tr>
+          @if (layout.isTabletLandscapeUp) {
+            <tr>
+              <th>Zeitraum</th>
+              <th>Antragsart</th>
+              <th>Beschreibung</th>
+              <th>Erstellt am</th>
+              <th>Bestätigt</th>
+              <th></th>
+            </tr>
+          }
         </thead>
 
         <tbody>
           <!-- Desktop View -->
-          <ng-container *ngIf="layout.isTabletLandscapeUp">
-            <tr *ngFor="let entry of offTimeEntries.data; trackBy: trackEntry">
-              <td>
-                <span>{{ entry.from | toDate | date:'mediumDate' }}</span>
-                <span class="text-secondary"> bis </span>
-                <span>{{ entry.to | toDate | date:'mediumDate' }}</span>
-              </td>
-              <td>
-                {{ types[entry.type] }}
-              </td>
-              <td>
-                <markdown class="prose prose-sm" [data]="entry.description"></markdown>
-              </td>
-              <td>
-                {{ entry.createdAt | toDate | date:'mediumDate'}}
-                <span *ngIf="entry.creatorId !== entry.requestorId" class="text-secondary">
-                  (von {{ entry.creatorId | toUser | displayName }})
-                </span>
-              </td>
-              <td>
-                <span *ngIf="entry.approval; else: naTmpl" [ngClass]="{
+          @if (layout.isTabletLandscapeUp) {
+            @for (entry of offTimeEntries.data; track trackEntry($index, entry)) {
+              <tr>
+                <td>
+                  <span>{{ entry.from | toDate | date:'mediumDate' }}</span>
+                  <span class="text-secondary"> bis </span>
+                  <span>{{ entry.to | toDate | date:'mediumDate' }}</span>
+                </td>
+                <td>
+                  {{ types[entry.type] }}
+                </td>
+                <td>
+                  <markdown class="prose prose-sm" [data]="entry.description"></markdown>
+                </td>
+                <td>
+                  {{ entry.createdAt | toDate | date:'mediumDate'}}
+                  @if (entry.creatorId !== entry.requestorId) {
+                    <span class="text-secondary">
+                      (von {{ entry.creatorId | toUser | displayName }})
+                    </span>
+                  }
+                </td>
+                <td>
+                  @if (entry.approval) {
+<span [ngClass]="{
               'text-alert-green': entry.approval.approved,
               'text-alert-red': !entry.approval.approved
             }" [nz-tooltip]="'Von ' + (entry.approval.approverId | toUser | displayName) + ' am ' + (entry.approval.approvedAt | toDate | date:'short')">
-                  {{ entry.approval.approved ? 'Bestätigt' : 'Abgelehnt'}}
-                </span>
-              </td>
-              <td>
-                <div class="flex flex-row justify-end gap-2">
-                  <button class="tkd-icon-btn-inverse tkd-primary tkd-small" (click)="loadEntryComments(entry)">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                      stroke="currentColor" class="w-4 h-4">
-                      <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
-                    </svg>
-                  </button>
-
-                  <button *ngIf="!entry.approval" class="tkd-btn tkd-primary tkd-outline"
-                    (click)="deleteRequest(entry)">Löschen</button>
-                </div>
-              </td>
-            </tr>
-          </ng-container>
+                      {{ entry.approval.approved ? 'Bestätigt' : 'Abgelehnt'}}
+                    </span>
+                  } @else {
+                    <span class="text-secondary">Noch nicht genehmigt</span>
+                  }
+                </td>
+                <td>
+                  <div class="flex flex-row justify-end gap-2">
+                    <button class="tkd-icon-btn-inverse tkd-primary tkd-small" (click)="loadEntryComments(entry)">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+                      </svg>
+                    </button>
+                    @if (!entry.approval) {
+                      <button class="tkd-btn tkd-primary tkd-outline"
+                      (click)="deleteRequest(entry)">Löschen</button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          }
 
           <!-- Mobile View -->
-          <ng-container *ngIf="!layout.isTabletLandscapeUp">
-            <ng-container *ngFor="let entry of offTimeEntries.data; trackBy: trackEntry">
+          @if (!layout.isTabletLandscapeUp) {
+            @for (entry of offTimeEntries.data; track trackEntry($index, entry)) {
               <tr class="group-[foo]">
                 <td class="!border-0">
-                  <markdown class="prose prose-sm underline" [data]="entry.description" *ngIf="entry.description">
-                  </markdown>
-                  <span class="text-secondary italic" *ngIf="!entry.description">Keine Beschreibung</span>
+                  @if (entry.description) {
+                    <markdown class="prose prose-sm underline" [data]="entry.description">
+                    </markdown>
+                  }
+                  @if (!entry.description) {
+                    <span class="text-secondary italic">Keine Beschreibung</span>
+                  }
                 </td>
                 <td class="!border-0 text-right">
-                  <span *ngIf="entry.approval; else: naTmpl" [ngClass]="{
+                  @if (entry.approval) {
+<span [ngClass]="{
                 'text-alert-green': entry.approval.approved,
                 'text-alert-red': !entry.approval.approved
               }" [nz-tooltip]="'Von ' + (entry.approval.approverId | toUser | displayName) + ' am ' + (entry.approval.approvedAt | toDate | date:'short')">
-                    {{ entry.approval.approved ? 'Bestätigt' : 'Abgelehnt'}}
-                  </span>
+                      {{ entry.approval.approved ? 'Bestätigt' : 'Abgelehnt'}}
+                    </span>
+                  } @else {
+                    <span class="text-secondary">Noch nicht genehmigt</span>
+                  }
                 </td>
               </tr>
               <tr class="group-[foo] hover:group-[foo]:bg-text-secondary">
@@ -136,14 +157,15 @@
                           d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
                       </svg>
                     </button>
-
-                    <button *ngIf="!entry.approval" class="tkd-btn tkd-primary tkd-outline"
+                    @if (!entry.approval) {
+                      <button class="tkd-btn tkd-primary tkd-outline"
                       (click)="deleteRequest(entry)">Löschen</button>
+                    }
                   </div>
                 </td>
               </tr>
-            </ng-container>
-          </ng-container>
+            }
+          }
         </tbody>
       </nz-table>
     </nz-tab>
@@ -154,24 +176,25 @@
       </div>
     </nz-tab>
 
-    <nz-tab nzTitle="Kalendar" *ngIf="layout.isTabletPortraitUp">
-      <div class="py-2">
-        <app-offtime-calendar-overview mode="calendar" [profiles]="profiles"></app-offtime-calendar-overview>
-      </div>
-    </nz-tab>
+    @if (layout.isTabletPortraitUp) {
+      <nz-tab nzTitle="Kalendar">
+        <div class="py-2">
+          <app-offtime-calendar-overview mode="calendar" [profiles]="profiles"></app-offtime-calendar-overview>
+        </div>
+      </nz-tab>
+    }
 
   </nz-tabset>
 </div>
 
-<ng-template #naTmpl>
-  <span class="text-secondary">Noch nicht genehmigt</span>
-</ng-template>
 
 <nz-drawer [nzVisible]="!!showEntryComments" (nzOnClose)="showEntryComments = null"
   [nzWidth]="layout.isTabletPortraitUp ? '50vw' : '100vw'" nzTitle="Kommentare">
   <div *nzDrawerContent>
-    <app-comment *ngFor="let comment of comments" [comment]="comment" [rendered]="true" [canReply]="true"
+    @for (comment of comments; track comment) {
+      <app-comment [comment]="comment" [rendered]="true" [canReply]="true"
       (replied)="loadEntryComments(showEntryComments)"></app-comment>
+    }
 
     <div class="flex flex-col gap-2">
       <h2 class="text-base">Neuen Kommentar</h2>

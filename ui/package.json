@@ -58,7 +58,7 @@
     "@angular-eslint/template-parser": "^17.5.2",
     "@angular/cli": "^17.3.8",
     "@angular/compiler-cli": "^17.3.11",
-    "@tailwindcss/typography": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.13",
     "@tierklinik-dobersberg/angular": "^0.1.8",
     "@tierklinik-dobersberg/tailwind": "^0.0.9",
     "@types/jasmine": "^4.3.0",

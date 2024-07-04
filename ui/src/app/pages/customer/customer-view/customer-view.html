@@ -23,31 +23,38 @@
     </div>
 
     <div class="flex flex-col text-sm text-secondary">
-      <span *ngIf="!!customer?.distinctPhoneNumbers?.length" class="flex flex-row items-center space-x-1">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-        </svg>
-
-        <a *ngFor="let number of customer?.distinctPhoneNumbers; let last=last" href="tel:{{number}}" class="text-sm">
-          {{ number }}{{ last ? '' : ', '}}
-        </a>
-      </span>
+      @if (!!customer?.distinctPhoneNumbers?.length) {
+        <span class="flex flex-row items-center space-x-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+          </svg>
+          @for (number of customer?.distinctPhoneNumbers; track number; let last = $last) {
+            <a href="tel:{{number}}" class="text-sm">
+              {{ number }}{{ last ? '' : ', '}}
+            </a>
+          }
+        </span>
+      }
     </div>
   </div>
 
   <div class="flex-grow"></div>
 
   <div class="flex flex-row space-x-3">
-    <a *ngIf="customer?.distinctPhoneNumbers?.length > 0" no-bubble target="_blank" class="block tkd-icon-btn tkd-primary tkd-small" nz-tooltip="Anrufen" (click)="callCustomer(customer)">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-      </svg>
-    </a>
-    <a no-bubble *ngIf="customer?.mapsUrl as url" [attr.href]="url" target="_blank" class="block tkd-icon-btn tkd-primary tkd-small" nz-tooltip="Navigation starten">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-      </svg>
-    </a>
+    @if (customer?.distinctPhoneNumbers?.length > 0) {
+      <a no-bubble target="_blank" class="block tkd-icon-btn tkd-primary tkd-small" nz-tooltip="Anrufen" (click)="callCustomer(customer)">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+        </svg>
+      </a>
+    }
+    @if (customer?.mapsUrl; as url) {
+      <a no-bubble [attr.href]="url" target="_blank" class="block tkd-icon-btn tkd-primary tkd-small" nz-tooltip="Navigation starten">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+        </svg>
+      </a>
+    }
   </div>
 </div>
 
@@ -87,18 +94,21 @@
       </div>
     </div>
 
-    <div class="p-12 mb-8 bg-white rounded shadow md:mb-12" *ngIf="!!missingData.length">
-      <div class="flex flex-col">
-        <span class="mb-1.5 text-lg font-semibold text-alert-red font-lato">Fehlende Kundendaten</span>
-        <span class="text-sm text-secondary font-iter">Es sind nicht alle Kundendaten vorhanden. Bitte ergänze die folgenden Informationen:</span>
+    @if (!!missingData.length) {
+      <div class="p-12 mb-8 bg-white rounded shadow md:mb-12">
+        <div class="flex flex-col">
+          <span class="mb-1.5 text-lg font-semibold text-alert-red font-lato">Fehlende Kundendaten</span>
+          <span class="text-sm text-secondary font-iter">Es sind nicht alle Kundendaten vorhanden. Bitte ergänze die folgenden Informationen:</span>
+        </div>
+        <div class="mt-4 font-iter">
+          <ul class="pl-4 text-sm list-disc text-highlight">
+            @for (point of missingData; track point) {
+              <li>{{ point }}</li>
+            }
+          </ul>
+        </div>
       </div>
-
-      <div class="mt-4 font-iter">
-        <ul class="pl-4 text-sm list-disc text-highlight">
-          <li *ngFor="let point of missingData">{{ point }}</li>
-        </ul>
-      </div>
-    </div>
+    }
 
     <div class="p-12 mb-8 bg-white rounded shadow md:mb-12">
       <nz-descriptions nzBordered>
@@ -107,12 +117,16 @@
         <nz-descriptions-item nzTitle="Titel" [nzSpan]="3">{{customer?.title || 'N/A'}}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="Gruppe" [nzSpan]="3">{{customer?.group || 'N/A'}}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="Impferinnerung" [nzSpan]="3">{{ customer?.vaccinationReminder ? 'Ja' : 'Nein'
-          }}</nz-descriptions-item>
+        }}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="Telefon" [nzSpan]="3">
-          <li *ngFor="let phone of customer?.distinctPhoneNumbers">{{phone}}</li>
+          @for (phone of customer?.distinctPhoneNumbers; track phone) {
+            <li>{{phone}}</li>
+          }
         </nz-descriptions-item>
         <nz-descriptions-item nzTitle="E-Mail" [nzSpan]="3">
-          <li *ngFor="let mail of customer?.mailAddresses">{{mail}}</li>
+          @for (mail of customer?.mailAddresses; track mail) {
+            <li>{{mail}}</li>
+          }
         </nz-descriptions-item>
         <nz-descriptions-item nzTitle="Addresse" [nzSpan]="3">
           {{ customer?.street }}<br />
@@ -125,28 +139,28 @@
   <nz-tab nzTitle="Patienten">
     <div class="p-12 mb-8 bg-white rounded shadow md:mb-12">
       <nz-list nzSize="small">
-        <nz-list-item *ngFor="let patient of patients">
-          <nz-list-item-meta>
-            <nz-list-item-meta-title>
-              <ng-container *ngIf="patient.name; else noName">
-                {{ patient.name }}
-              </ng-container>
-              <ng-template #noName>
-                <i>Kein Name</i>
-              </ng-template>
-            </nz-list-item-meta-title>
-
-            <nz-list-item-meta-description>
-              {{ patient.species }}
-              <ng-container *ngIf="patient.breed">
-                &nbsp;|&nbsp;{{ patient.breed }}
-              </ng-container>
-              <ng-container *ngIf="patient.birthday">
-                &nbsp; - <i nz-icon nzType="calendar" nzTheme="outline"></i> {{ patient.birthday }}
-              </ng-container>
-            </nz-list-item-meta-description>
-          </nz-list-item-meta>
-        </nz-list-item>
+        @for (patient of patients; track patient) {
+          <nz-list-item>
+            <nz-list-item-meta>
+              <nz-list-item-meta-title>
+                @if (patient.name) {
+                  {{ patient.name }}
+                } @else {
+                  <i>Kein Name</i>
+                }
+              </nz-list-item-meta-title>
+              <nz-list-item-meta-description>
+                {{ patient.species }}
+                @if (patient.breed) {
+                  &nbsp;|&nbsp;{{ patient.breed }}
+                }
+                @if (patient.birthday) {
+                  &nbsp; - <i nz-icon nzType="calendar" nzTheme="outline"></i> {{ patient.birthday }}
+                }
+              </nz-list-item-meta-description>
+            </nz-list-item-meta>
+          </nz-list-item>
+        }
       </nz-list>
     </div>
   </nz-tab>
@@ -168,7 +182,7 @@
         </div>
       </div>
 
-        <app-calllog-table [records]="callrecords" (totalCallTime)="totalCallTime = $event" class="block bg-white rounded shadow"></app-calllog-table>
+      <app-calllog-table [records]="callrecords" (totalCallTime)="totalCallTime = $event" class="block bg-white rounded shadow"></app-calllog-table>
     </ng-template>
   </nz-tab>
 
@@ -185,13 +199,15 @@
   </h1>
 
   <ul class="list-none">
-    <li *ngFor="let phone of data.distinctPhoneNumbers">
-      <a class="flex-row items-center p-2 space-x-3 text-base font-lato text-primaryflex md:p-4 hover:bg-secondary hover:bg-opacity-25 pointer text-color-primary text-opacity-light hover:text-color-primary hover:text-opacity-100" href="tel:{{phone}}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6 ">
-          <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-        </svg>
-        <span class="text-base text-lato text-primary hover:text-color-primary-dark">{{ phone }}</span>
-      </a>
-    </li>
+    @for (phone of data.distinctPhoneNumbers; track phone) {
+      <li>
+        <a class="flex-row items-center p-2 space-x-3 text-base font-lato text-primaryflex md:p-4 hover:bg-secondary hover:bg-opacity-25 pointer text-color-primary text-opacity-light hover:text-color-primary hover:text-opacity-100" href="tel:{{phone}}">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6 ">
+            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+          </svg>
+          <span class="text-base text-lato text-primary hover:text-color-primary-dark">{{ phone }}</span>
+        </a>
+      </li>
+    }
   </ul>
 </ng-template>
