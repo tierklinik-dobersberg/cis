@@ -5,8 +5,8 @@ import { CKEditorComponent } from "@ckeditor/ckeditor5-angular";
 import { firstValueFrom, map, Subject } from "rxjs";
 import { UserService } from 'src/app/api';
 import { UserNamePipe } from "../pipes";
+import { MyEditor } from "src/app/ckeditor";
 
-import ClassicEditor from "@tierklinik-dobersberg/ckeditor-build"
 
 
 export type FormatType = 'plain' | 'html' | 'markdown';
@@ -21,7 +21,7 @@ export type FormatType = 'plain' | 'html' | 'markdown';
   ]
 })
 export class TextInputComponent implements OnDestroy, OnInit, ControlValueAccessor, AfterViewInit {
-  public Editor = ClassicEditor;
+  public Editor = MyEditor;
 
   private readonly userService = inject(UserService)
 

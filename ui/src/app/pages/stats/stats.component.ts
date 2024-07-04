@@ -1,4 +1,3 @@
-import { ThisReceiver } from "@angular/compiler";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { ChartConfiguration } from "chart.js";
 import { BaseChartDirective } from "ng2-charts";

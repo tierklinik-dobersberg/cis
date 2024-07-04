@@ -2,7 +2,6 @@ import { Layout } from 'src/app/api/infoscreen.api';
 import { ConnectError } from '@connectrpc/connect';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
-import { MatBottomSheet, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ScaleType } from '@swimlane/ngx-charts';
 import { Color } from '@swimlane/ngx-charts/lib/utils/color-sets';
@@ -39,12 +38,12 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     private nzMessageService: NzMessageService,
     private router: Router,
     private changeDetector: ChangeDetectorRef,
-    private bottomSheet: MatBottomSheet,
+    //private bottomSheet: MatBottomSheet,
   ) { }
 
   private subscriptions = Subscription.EMPTY;
 
-  bottomSheetRef: MatBottomSheetRef | null = null;
+//  bottomSheetRef: MatBottomSheetRef | null = null;
 
   totalCallTime = 0;
   callrecords: CallEntry[] = [];
@@ -155,11 +154,13 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
       window.open(`tel:` + cus.distinctPhoneNumbers[0])
     }
 
+    /** FIXME
     this.bottomSheetRef = this.bottomSheet.open(this.customerSelectPhone!, {
       data: cus,
     })
     this.bottomSheetRef.afterDismissed()
       .subscribe(() => this.bottomSheetRef = null);
+    */
   }
 
 

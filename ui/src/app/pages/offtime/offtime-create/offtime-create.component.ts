@@ -1,17 +1,17 @@
-import { Timestamp } from '@bufbuild/protobuf';
-import { ConnectError, Code } from '@connectrpc/connect';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from "@angular/core";
-import { FindOffTimeRequestsResponse, GetVacationCreditsLeftResponse, OffTimeEntry, OffTimeType, Profile, UserVacationSum } from "@tierklinik-dobersberg/apis";
-import { OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
-import { ProfileService } from "src/app/services/profile.service";
-import { LayoutService } from 'src/app/services';
-import ClassicEditor from '@tierklinik-dobersberg/ckeditor-build';
-import { ActivatedRoute, ActivatedRouteSnapshot, Router } from '@angular/router';
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { toDateString } from 'src/app/utils';
-import { UserService } from 'src/app/api';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Timestamp } from '@bufbuild/protobuf';
+import { Code, ConnectError } from '@connectrpc/connect';
+import { GetVacationCreditsLeftResponse, OffTimeEntry, OffTimeType, Profile, UserVacationSum } from "@tierklinik-dobersberg/apis";
 import { CandyDate } from 'ng-zorro-antd/core/time';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { UserService } from 'src/app/api';
+import { OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
+import { MyEditor } from 'src/app/ckeditor';
+import { LayoutService } from 'src/app/services';
+import { ProfileService } from "src/app/services/profile.service";
+import { toDateString } from 'src/app/utils';
 
 const dateForDateTimeInputValue = date => new Date(date.getTime() + date.getTimezoneOffset() * -60 * 1000).toISOString().slice(0, 19);
 
@@ -30,7 +30,7 @@ export class OffTimeCreateComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
 
-  public readonly Editor = ClassicEditor;
+  public readonly Editor = MyEditor;
   public readonly layout = inject(LayoutService).withAutoUpdate(this.cdr)
 
   vacation: UserVacationSum | null = null;

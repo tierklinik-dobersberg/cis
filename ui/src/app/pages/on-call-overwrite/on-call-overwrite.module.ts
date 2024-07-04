@@ -8,7 +8,6 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { StorageModule } from '@ngx-pwa/local-storage';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
@@ -47,7 +46,6 @@ import { OnCallOverwriteRoutingModule } from './on-call-overwrite-routing.module
     NzDrawerModule,
     NzBadgeModule,
     OnCallOverwriteRoutingModule,
-    StorageModule,
     SharedModule,
   ],
   declarations: [

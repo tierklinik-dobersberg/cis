@@ -14,28 +14,28 @@ import { toDateString } from "src/app/utils";
   exportAs: 'calendarView',
   styles: [
     `
-    ::ng-deep #custom-calendar .ant-picker-cell-selected .ant-picker-cell-inner {
-      background-color: white !important;
-      border-color: white !important;
-    }
-
-    #calendar ::ng-deep .ant-picker-cell-selected .ant-picker-cell-inner {
-      @apply bg-white;
-    }
-
-    #calendar ::ng-deep .ant-picker-cell-inner {
-      @apply border-0;
-    }
-
-    #calendar ::ng-deep .ant-picker-cell-inner:hover {
-      @apply bg-white;
-    }
-
-    #calendar ::ng-deep .ant-picker-cell-selected .ant-picker-cell-inner .date-header {
-      @apply text-primary;
-    }
-
-    `
+        ::ng-deep #custom-calendar .ant-picker-cell-selected .ant-picker-cell-inner {
+          background-color: white !important;
+          border-color: white !important;
+        }
+    
+        #calendar ::ng-deep .ant-picker-cell-selected .ant-picker-cell-inner {
+          @apply bg-white;
+        }
+    
+        #calendar ::ng-deep .ant-picker-cell-inner {
+          @apply border-0;
+        }
+    
+        #calendar ::ng-deep .ant-picker-cell-inner:hover {
+          @apply bg-white;
+        }
+    
+        #calendar ::ng-deep .ant-picker-cell-selected .ant-picker-cell-inner .date-header {
+          @apply text-primary;
+        }
+    
+        `
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

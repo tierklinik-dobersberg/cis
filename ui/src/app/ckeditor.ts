@@ -1,96 +1,111 @@
-import { ClassicEditor } from '@ckeditor/ckeditor5-editor-classic';
+/**
+ * @license Copyright (c) 2014-2023, CKSource Holding sp. z o.o. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
+ */
 
-import { Alignment } from '@ckeditor/ckeditor5-alignment';  // Importing the package.
-import { Autoformat } from '@ckeditor/ckeditor5-autoformat';
-import { Bold, Italic } from '@ckeditor/ckeditor5-basic-styles';
-import { BlockQuote } from '@ckeditor/ckeditor5-block-quote';
-import { CloudServices } from '@ckeditor/ckeditor5-cloud-services';
-import { Essentials } from '@ckeditor/ckeditor5-essentials';
-import { Heading } from '@ckeditor/ckeditor5-heading';
-import {
+import { Autoformat, BlockQuote, Image, Bold, ClassicEditor, Heading, ImageStyle, ImageToolbar, ImageUpload, Indent, Italic, Link, List, Markdown, MediaEmbed, Mention, Paragraph, PasteFromOffice, Table, TableToolbar } from 'ckeditor5';
+
+export class MyEditor extends ClassicEditor {
+  public static builtinPlugins = [
+    Mention,
+    Autoformat,
+    BlockQuote,
+    Bold,
+    Heading,
     Image,
-    ImageCaption,
     ImageStyle,
     ImageToolbar,
-    ImageUpload
-} from '@ckeditor/ckeditor5-image';
-import { Indent } from '@ckeditor/ckeditor5-indent';
-import { Link } from '@ckeditor/ckeditor5-link';
-import { List } from '@ckeditor/ckeditor5-list';
-import { MediaEmbed } from '@ckeditor/ckeditor5-media-embed';
-import { Paragraph } from '@ckeditor/ckeditor5-paragraph';
-import { PasteFromOffice } from '@ckeditor/ckeditor5-paste-from-office';
-import { Table, TableToolbar } from '@ckeditor/ckeditor5-table';
-import { TextTransformation } from '@ckeditor/ckeditor5-typing';
-import { Markdown } from '@ckeditor/ckeditor5-markdown-gfm'
+    ImageUpload,
+    Indent,
+    Italic,
+    Link,
+    List,
+    Markdown,
+    MediaEmbed,
+    Paragraph,
+    PasteFromOffice,
+    Table,
+    TableToolbar,
+  ];
 
-export class Editor extends ClassicEditor {
-    public static override builtinPlugins = [
-        Markdown,
-        Alignment,  // Adding the package to the list of plugins.
-        Autoformat,
-        BlockQuote,
-        Bold,
-        CloudServices,
-        Essentials,
-        Heading,
-        Image,
-        ImageCaption,
-        ImageStyle,
-        ImageToolbar,
-        ImageUpload,
-        Indent,
-        Italic,
-        Link,
-        List,
-        MediaEmbed,
-        Paragraph,
-        PasteFromOffice,
-        Table,
-        TableToolbar,
-        TextTransformation
-    ];
+  public static defaultConfig = {
+    toolbar: {
+      items: [
+        'undo', 'redo',
+        '|', 'heading',
+        '|', 'bold', 'italic',
+        '|', 'link', 'uploadImage', 'insertTable', 'mediaEmbed',
+        '|', 'bulletedList', 'numberedList', 'outdent', 'indent'
+      ]
+    },
+    language: 'de',
+    image: {
+      toolbar: [
+        'imageTextAlternative',
+        'toggleImageCaption',
+        'imageStyle:inline',
+        'imageStyle:block',
+        'imageStyle:side'
+      ]
+    },
+    table: {
+      contentToolbar: [
+        'tableColumn',
+        'tableRow',
+        'mergeTableCells'
+      ]
+    }
+  };
+}
 
-    // Editor configuration.
-    public static override defaultConfig = {
-        toolbar: {
-            items: [
-                'alignment',  // Displaying the proper UI element in the toolbar.
-                'heading',
-                '|',
-                'bold',
-                'italic',
-                'link',
-                'bulletedList',
-                'numberedList',
-                '|',
-                'outdent',
-                'indent',
-                '|',
-                'imageUpload',
-                'blockQuote',
-                'insertTable',
-                'mediaEmbed',
-                'undo',
-                'redo'
-            ]
-        },
-        language: 'en',
-        image: {
-            toolbar: [
-                'imageTextAlternative',
-                'toggleImageCaption',
-                'imageStyle:inline',
-                'imageStyle:block',
-                'imageStyle:side'
-            ]
-        },
-        table: {
-            contentToolbar: [
-                'tableColumn',
-                'tableRow',
-                'mergeTableCells'
-            ]
-        }
-    };
+export const Editor = ClassicEditor;
+
+export const config = {
+  plugins: [
+    Mention,
+    Autoformat,
+    BlockQuote,
+    Bold,
+    Heading,
+    Image,
+    ImageStyle,
+    ImageToolbar,
+    ImageUpload,
+    Indent,
+    Italic,
+    Link,
+    List,
+    Markdown,
+    MediaEmbed,
+    Paragraph,
+    PasteFromOffice,
+    Table,
+    TableToolbar,
+  ],
+  toolbar: {
+    items: [
+      'undo', 'redo',
+      '|', 'heading',
+      '|', 'bold', 'italic',
+      '|', 'link', 'uploadImage', 'insertTable', 'mediaEmbed',
+      '|', 'bulletedList', 'numberedList', 'outdent', 'indent'
+    ]
+  },
+  language: 'de',
+  image: {
+    toolbar: [
+      'imageTextAlternative',
+      'toggleImageCaption',
+      'imageStyle:inline',
+      'imageStyle:block',
+      'imageStyle:side'
+    ]
+  },
+  table: {
+    contentToolbar: [
+      'tableColumn',
+      'tableRow',
+      'mergeTableCells'
+    ]
+  }
 }

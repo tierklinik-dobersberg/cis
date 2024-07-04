@@ -2,7 +2,6 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { RouterModule } from '@angular/router';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
@@ -104,7 +103,6 @@ import { TkdDateInputModule } from './date-input';
     TextInputComponent,
     CanDeleteCustomerPipe,
     LinkNoBubbleDirective,
-    MatBottomSheetModule,
     TkdStringSliceInputComponent,
     TkdOptionSpecInputComponent,
     TkdOptionListInputComponent,

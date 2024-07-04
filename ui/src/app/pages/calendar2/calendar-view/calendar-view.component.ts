@@ -51,29 +51,29 @@ type LocalCalendar = Calendar<CalEvent> & {
   ],
   styles: [
     `
-    .event-container {
-      container-type: size;
-    }
-
-    @container (max-height: 1.5rem) {
-      .event-details {
-        @apply py-0 flex flex-row flex-nowrap items-center;
-        font-size: 75%;
-      }
-    }
-
-    @container (max-height: 54px) {
-      .event-details {
-        @apply flex flex-row items-center flex-nowrap;
-      }
-    }
-
-    @container (min-height: 55px) {
-      .event-description {
-        display: block;
-      }
-    }
-    `
+        .event-container {
+          container-type: size;
+        }
+    
+        @container (max-height: 1.5rem) {
+          .event-details {
+            @apply py-0 flex flex-row flex-nowrap items-center;
+            font-size: 75%;
+          }
+        }
+    
+        @container (max-height: 54px) {
+          .event-details {
+            @apply flex flex-row items-center flex-nowrap;
+          }
+        }
+    
+        @container (min-height: 55px) {
+          .event-description {
+            display: block;
+          }
+        }
+        `
   ]
 })
 export class TkdCalendarViewComponent implements OnInit {

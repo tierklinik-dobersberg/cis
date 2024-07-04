@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { OptionSpec } from './config.api';import { Options } from 'selenium-webdriver';
+import { OptionSpec } from './config.api';
 ;
 
 export interface ActionDef {

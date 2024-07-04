@@ -1,14 +1,13 @@
 import { Component, OnDestroy, OnInit, TemplateRef, TrackByFunction, ViewChild } from '@angular/core';
-import { MatBottomSheet, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { debounceTime, map, takeUntil } from 'rxjs/operators';
 import { parse as parseQuery } from 'search-query-parser';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, toMongoDBFilter } from 'src/app/utils';
-import { customerTagColor, ExtendedCustomer, getMapsRouteUrl } from './utils';
+import { ExtendedCustomer, customerTagColor, getMapsRouteUrl } from './utils';
 
 @Component({
   templateUrl: './customer-list.html',
@@ -31,7 +30,7 @@ export class CustomerListComponent implements OnInit, OnDestroy {
 
   visibleTag: 'all' | string = 'all';
 
-  bottomSheetRef: MatBottomSheetRef | null = null;
+  // bottomSheetRef: MatBottomSheetRef | null = null;
 
   trackBy: TrackByFunction<ExtendedCustomer> = (_: number, cust: ExtendedCustomer) => cust.cid;
 
@@ -39,7 +38,7 @@ export class CustomerListComponent implements OnInit, OnDestroy {
     private header: HeaderTitleService,
     private customerapi: CustomerAPI,
     private nzMessageService: NzMessageService,
-    private bottomSheet: MatBottomSheet,
+    // private bottomSheet: MatBottomSheet,
     private route: ActivatedRoute,
     private router: Router,
   ) { }
@@ -132,11 +131,13 @@ export class CustomerListComponent implements OnInit, OnDestroy {
       return;
     }
 
+/** FIXME
     this.bottomSheetRef = this.bottomSheet.open(this.customerSelectPhone!, {
       data: cus,
     })
     this.bottomSheetRef.afterDismissed()
       .subscribe(() => this.bottomSheetRef = null);
+*/
   }
 
   search(term: string): void {

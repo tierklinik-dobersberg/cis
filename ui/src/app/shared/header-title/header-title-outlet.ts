@@ -23,12 +23,12 @@ import { HeaderTitleService, PageHeader } from './header.service';
   `,
   styles: [
     `
-        :host {
-            display: inline-flex;
-            flex-direction: row;
-            align-self: center;
-        }
-        `
+            :host {
+                display: inline-flex;
+                flex-direction: row;
+                align-self: center;
+            }
+            `
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

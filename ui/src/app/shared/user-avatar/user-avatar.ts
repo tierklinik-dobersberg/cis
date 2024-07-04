@@ -5,10 +5,10 @@ import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
   templateUrl: './user-avatar.html',
   styles: [
     `
-    :host {
-      @apply rounded-full overflow-hidden inline-block;
-    }
-    `
+        :host {
+          @apply rounded-full overflow-hidden inline-block;
+        }
+        `
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

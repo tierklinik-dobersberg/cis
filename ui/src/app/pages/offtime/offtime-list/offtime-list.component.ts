@@ -1,16 +1,15 @@
-import ClassicEditor from "@tierklinik-dobersberg/ckeditor-build"
-import { NzModalService } from 'ng-zorro-antd/modal';
-import { Timestamp } from '@bufbuild/protobuf';
-import { ConnectError, Code } from '@connectrpc/connect';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, TrackByFunction, inject } from "@angular/core";
+import { Timestamp } from '@bufbuild/protobuf';
+import { Code, ConnectError } from '@connectrpc/connect';
+import { CommentTree, FindOffTimeRequestsResponse, GetVacationCreditsLeftResponse, GetWorkTimeResponse, ListCommentsResponse, OffTimeEntry, OffTimeType, Profile, UserVacationSum, WorkTime } from '@tierklinik-dobersberg/apis';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalService } from 'ng-zorro-antd/modal';
+import { ConfigAPI, UserService } from 'src/app/api';
 import { COMMENT_SERVICE, OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
+import { MyEditor } from 'src/app/ckeditor';
+import { LayoutService } from 'src/app/services';
 import { ProfileService } from "src/app/services/profile.service";
 import { HeaderTitleService } from "src/app/shared/header-title";
-import { CommentTree, FindOffTimeRequestsResponse, GetVacationCreditsLeftResponse, GetWorkTimeResponse, ListCommentsResponse, OffTimeEntry, OffTimeType, Profile, UserVacationSum, WorkTime } from '@tierklinik-dobersberg/apis';
-import { LayoutService } from 'src/app/services';
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { ConfigAPI, UserService } from 'src/app/api';
-import { extractErrorMessage } from 'src/app/utils';
 
 enum FilterState {
   All,
@@ -30,14 +29,14 @@ const filterFuncs = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [
     `
-    #offtime-tab-set ::ng-deep > .ant-tabs-nav {
-      @apply px-4 bg-subtle;
-    }
+        #offtime-tab-set ::ng-deep > .ant-tabs-nav {
+          @apply px-4 bg-subtle;
+        }
 
-    #offtime-tab-set ::ng-deep > .ant-tabs-nav .ant-tabs-tab {
-      @apply w-40 justify-center;
-    }
-    `
+        #offtime-tab-set ::ng-deep > .ant-tabs-nav .ant-tabs-tab {
+          @apply w-40 justify-center;
+        }
+        `
   ]
 })
 export class OffTimeListComponent implements OnInit {
@@ -52,7 +51,7 @@ export class OffTimeListComponent implements OnInit {
   private readonly modalService = inject(NzModalService)
   private readonly cdr = inject(ChangeDetectorRef)
 
-  public readonly Editor = ClassicEditor;
+  public readonly Editor = MyEditor;
   public readonly layout = inject(LayoutService).withAutoUpdate(this.cdr);
   public readonly possibleFilters = {
     [FilterState.All]: 'Alle',

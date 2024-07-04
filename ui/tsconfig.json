@@ -1,6 +1,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "skipLibCheck": true,
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
@@ -11,11 +12,6 @@
     "importHelpers": true,
     "target": "ES2022",
     "module": "es2020",
-    "paths": {
-      "stream": [
-        "./node_modules/readable-stream/readable.js"
-      ]
-    },
     "lib": [
       "es2021",
       "es2018",

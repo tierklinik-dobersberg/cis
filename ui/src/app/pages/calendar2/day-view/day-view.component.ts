@@ -76,16 +76,16 @@ export const DEFAULT_HOUR_HEIGHT_PX = 200;
   ],
   styles: [
     `
-      :host {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .grid-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-      }
-    `,
+          :host {
+            display: flex;
+            flex-direction: column;
+          }
+    
+          .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+          }
+        `,
   ],
 })
 export class TkdDayViewComponent<E extends Timed, C extends Calendar<E>>

@@ -19,7 +19,7 @@ import {
   WellKnownAnnotations,
 } from 'src/app/api';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import  ClassicEditor  from '@tierklinik-dobersberg/ckeditor-build';
+import { MyEditor } from 'src/app/ckeditor';
 
 export type NamedOptionSpec = OptionSpec & { displayName?: string };
 
@@ -40,7 +40,7 @@ export type NamedOptionSpec = OptionSpec & { displayName?: string };
 export class TkdOptionSpecInputComponent
   implements ControlValueAccessor, OnChanges
 {
-  public readonly Editor = ClassicEditor;
+  public readonly Editor = MyEditor;
 
   private _disabled = false;
 

@@ -20,7 +20,6 @@ const routes: Routes = [
   { canActivate, path: 'voicemail', loadChildren: () => import('./pages/voicemails/voicemails.module').then(m => m.VoiceMailsModule) },
   //{ canActivate, path: 'calendar', loadChildren: () => import('./pages/calendar/calendar.module').then(m => m.CalendarModule) },
   { canActivate, path: 'calendar', loadComponent: () => import('./pages/calendar2/calendar-view/calendar-view.component').then(m => m.TkdCalendarViewComponent) },
-  { canActivate, path: 'infoscreen', loadChildren: () => import('./pages/infoscreen/infoscreen.module').then(m => m.InfoScreenModule) },
   { canActivate, path: 'statistics', loadChildren: () => import('./pages/stats/stats.module').then(m => m.StatsModule) },
   { canActivate, path: 'roster', loadChildren: () => import('./pages/roster/roster.module').then(m => m.RosterModule) },
   { canActivate: [UsersReadyGuard, ComputerAccountGuard], path: 'offtime', loadChildren: () => import('./pages/offtime/offtime.module').then(m => m.OfftimeModule) },

@@ -118,27 +118,27 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "console:build"
+            "buildTarget": "console:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "console:build:production"
+              "buildTarget": "console:build:production"
             },
             "compose": {
-              "browserTarget": "console:build:compose"
+              "buildTarget": "console:build:compose"
             },
             "e2e": {
-              "browserTarget": "console:build:e2e"
+              "buildTarget": "console:build:e2e"
             },
             "staging": {
-              "browserTarget": "console:build:staging"
+              "buildTarget": "console:build:staging"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "console:build"
+            "buildTarget": "console:build"
           }
         },
         "test": {
@@ -185,6 +185,7 @@
     }
   },
   "cli": {
+    "packageManager": "pnpm",
     "schematicCollections": [
       "@angular-eslint/schematics"
     ]

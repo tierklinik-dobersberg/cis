@@ -1,5 +1,4 @@
 @layer components {
-  @variants responsive {
     .tkd-icon-btn {
       @apply p-2 w-9 h-9  rounded-full shadow-sm cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-light active:shadow-inner;
       @apply transition-all duration-75 ease-in-out;
@@ -48,5 +47,4 @@
     .tkd-icon-btn-inverse.no-shadow {
       box-shadow: none;
     }
-  }
 }
