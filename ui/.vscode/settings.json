@@ -1,1 +1,22 @@
-{}
+{
+    "[html]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+            "source.fixAll.eslint": "explicit"
+        },
+        "editor.formatOnSave": true
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+        "editor.codeActionsOnSave": {
+            "source.fixAll.eslint": "explicit",
+            "source.addMissingImports.ts": "explicit",
+            "source.organizeImports": "explicit"
+        },
+        "editor.formatOnSave": false
+    },
+    "editor.suggest.snippetsPreventQuickSuggestions": false,
+    "editor.inlineSuggest.enabled": true,
+    "prettier.ignorePath": ".gitignore",
+    "prettier.requireConfig": true
+}

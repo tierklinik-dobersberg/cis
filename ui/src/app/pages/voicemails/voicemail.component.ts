@@ -5,8 +5,8 @@ import { BehaviorSubject, combineLatest, forkJoin, Observable, of, Subscription 
 import { catchError, mergeMap } from 'rxjs/operators';
 import { SearchParams, VoiceMailAPI, VoiceMailRecording } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
+import { HeaderTitleService } from 'src/app/layout/header-title';
 import { LayoutService } from 'src/app/services';
-import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage } from 'src/app/utils';
 
 interface VoiceMailWithCustomer extends VoiceMailRecording {

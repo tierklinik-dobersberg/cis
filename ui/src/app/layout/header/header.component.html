@@ -1,0 +1,50 @@
+<header class="relative flex flex-col shadow-sm print:hidden">
+  <div
+    class="flex items-center justify-between px-2 py-4 sm:px-4 md:px-8 lg:px-12">
+    <!-- On mobile the logo is put into the header -->
+    @if (!layout.lg()) {
+      <a class="mr-2 block h-8 w-8" routerLink="/welcome">
+        <img class="h-full w-full" src="assets/logo.png" alt="logo" />
+      </a>
+    }
+
+    <app-header-title-outlet class="flex-grow"></app-header-title-outlet>
+
+    <div class="flex items-center space-x-4">
+      @if (!layout.lg()) {
+        <app-navigation-sheet />
+      }
+
+      @if (layout.sm()) {
+        <app-redirect-emergency-button />
+
+        <app-avatar [user]="profile()" [brnMenuTriggerFor]="menu" />
+
+        <ng-template #menu>
+          <hlm-menu class="w-56">
+            <hlm-menu-label>Mein Konto</hlm-menu-label>
+            <hlm-menu-separator />
+            <hlm-menu-group>
+              <button hlmMenuItem (click)="profileService.openProfilePage()">
+                <hlm-icon name="lucideUser" hlmMenuIcon />
+                Mein Profile
+              </button>
+              <button hlmMenuItem routerLink="/offtime/create">
+                <hlm-icon name="lucidePlus" hlmMenuIcon />
+                Urlaubsantrag erstellen
+              </button>
+              <button hlmMenuItem routerLink="/offtime">
+                <hlm-icon name="lucideLayers" hlmMenuIcon />
+                Meine Urlaubsanträge
+              </button>
+              <button hlmMenuItem routerLink="/admin">
+                <hlm-icon name="lucideCog" hlmMenuIcon />
+                Administration
+              </button>
+            </hlm-menu-group>
+          </hlm-menu>
+        </ng-template>
+      }
+    </div>
+  </div>
+</header>

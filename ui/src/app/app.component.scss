@@ -61,59 +61,7 @@ span.ant-avatar {
       }
 }
 
-.tkd-menu ::ng-deep {
-  @apply border-0;
 
-  li.ant-menu-item {
-    @apply text-gray-800  border-r-4 border-transparent;
-    @apply outline-none;
-
-    & > span {
-      @apply flex flex-row gap-2 items-center justify-start;
-      & > svg {
-        @apply mr-2;
-      }
-
-      svg {
-        @apply h-4 w-4;
-      }
-    }
-
-    &, &.ant-menu-submenu > .ant-menu-submenu-title {
-      &:active, &:hover, &:focus {
-        @apply outline-none;
-      }
-
-      &:active {
-        @apply bg-sky-900 bg-opacity-20;
-      }
-    }
-
-    &.ant-menu-submenu.ant-menu-submenu-open {
-      @apply bg-gray-100 shadow-inner;
-
-      & > .ant-menu-submenu-title {
-        @apply bg-gray-400 rounded-t bg-opacity-50;
-      }
-    }
-
-    &:hover, &:focus {
-      @apply bg-gray-100;
-    }
-
-    &.ant-menu-item-selected{
-      @apply border-sky-900 text-gray-800 bg-gray-100;
-
-      &::after {
-        content: unset;
-      }
-    }
-  }
-
-  div.ant-menu-sub {
-    @apply bg-transparent rounded;
-  }
-}
 
 .router-content {
   ::ng-deep & > * {

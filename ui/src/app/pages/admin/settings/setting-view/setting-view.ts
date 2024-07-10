@@ -1,12 +1,12 @@
 import { KeyValue } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit,
-  TrackByFunction,
-  ViewChild,
+    ChangeDetectionStrategy,
+    ChangeDetectorRef,
+    Component,
+    OnDestroy,
+    OnInit,
+    TrackByFunction,
+    ViewChild,
 } from '@angular/core';
 import { NgModel } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -14,22 +14,22 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import {
-  BehaviorSubject,
-  combineLatest,
-  forkJoin,
-  Observable,
-  of,
-  Subject,
+    BehaviorSubject,
+    combineLatest,
+    forkJoin,
+    Observable,
+    of,
+    Subject,
 } from 'rxjs';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 import {
-  ConfigAPI,
-  OptionSpec,
-  Schema,
-  SchemaInstance,
-  WellKnownAnnotations,
+    ConfigAPI,
+    OptionSpec,
+    Schema,
+    SchemaInstance,
+    WellKnownAnnotations,
 } from 'src/app/api';
-import { Breadcrump, HeaderTitleService } from 'src/app/shared/header-title';
+import { Breadcrump, HeaderTitleService } from 'src/app/layout/header-title';
 import { extractErrorMessage } from 'src/app/utils';
 import { SettingTestComponent } from '../setting-test';
 

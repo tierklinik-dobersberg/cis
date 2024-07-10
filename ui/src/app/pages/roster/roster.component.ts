@@ -1,15 +1,14 @@
-import { ConnectError, Code } from '@connectrpc/connect';
-import { Timestamp } from '@bufbuild/protobuf';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from "@angular/core";
-import { CALENDAR_SERVICE, HOLIDAY_SERVICE, OFFTIME_SERVICE, ROSTER_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
-import { AnalyzeWorkTimeResponse, Calendar, CalendarEvent, FindOffTimeRequestsResponse, GetHolidayResponse, GetOffTimeCostsResponse, GetUserShiftsResponse, GetVacationCreditsLeftResponse, GetWorkTimeResponse, ListEventsResponse, OffTimeCostSummary, OffTimeEntry, PlannedShift, PublicHoliday, UserVacationSum, WorkShift, WorkTime, WorkTimeAnalysis } from '@tierklinik-dobersberg/apis';
-import { toDateString } from 'src/app/utils';
-import { ProfileService } from 'src/app/services/profile.service';
-import { HeaderTitleService } from 'src/app/shared/header-title';
-import { LayoutService } from 'src/app/services';
-import { ca_ES } from 'ng-zorro-antd/i18n';
-import { environment } from 'src/environments/environment';
+import { Timestamp } from '@bufbuild/protobuf';
+import { Code, ConnectError } from '@connectrpc/connect';
+import { AnalyzeWorkTimeResponse, CalendarEvent, FindOffTimeRequestsResponse, GetHolidayResponse, GetOffTimeCostsResponse, GetUserShiftsResponse, GetVacationCreditsLeftResponse, GetWorkTimeResponse, ListEventsResponse, OffTimeCostSummary, OffTimeEntry, PlannedShift, PublicHoliday, UserVacationSum, WorkShift, WorkTime, WorkTimeAnalysis } from '@tierklinik-dobersberg/apis';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { CALENDAR_SERVICE, HOLIDAY_SERVICE, OFFTIME_SERVICE, ROSTER_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
+import { HeaderTitleService } from 'src/app/layout/header-title';
+import { LayoutService } from 'src/app/services';
+import { ProfileService } from 'src/app/services/profile.service';
+import { toDateString } from 'src/app/utils';
+import { environment } from 'src/environments/environment';
 
 interface LocalUserShift {
   from: Date;

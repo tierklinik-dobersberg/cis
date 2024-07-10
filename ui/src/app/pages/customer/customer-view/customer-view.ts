@@ -1,21 +1,20 @@
-import { Layout } from 'src/app/api/infoscreen.api';
-import { ConnectError } from '@connectrpc/connect';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ConnectError } from '@connectrpc/connect';
 import { ScaleType } from '@swimlane/ngx-charts';
 import { Color } from '@swimlane/ngx-charts/lib/utils/color-sets';
+import { CallEntry, GetLogsForCustomerResponse } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, combineLatest, forkJoin, of, Subscription } from 'rxjs';
 import { catchError, mergeMap } from 'rxjs/operators';
 import { LocalPatient, PatientAPI, UserService } from 'src/app/api';
-import { Customer, CustomerAPI } from 'src/app/api/customer.api';
-import { LayoutService } from 'src/app/services';
-import { HeaderTitleService } from 'src/app/shared/header-title';
-import { extractErrorMessage, toDateString, toggleRouteQueryParamFunc } from 'src/app/utils';
-import { customerTagColor, ExtendedCustomer, getMapsRouteUrl } from '../utils';
 import { CALL_SERVICE } from 'src/app/api/connect_clients';
-import { CallEntry, GetLogsForCustomerResponse } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
+import { Customer, CustomerAPI } from 'src/app/api/customer.api';
+import { HeaderTitleService } from 'src/app/layout/header-title';
+import { LayoutService } from 'src/app/services';
+import { extractErrorMessage, toDateString } from 'src/app/utils';
+import { customerTagColor, ExtendedCustomer, getMapsRouteUrl } from '../utils';
 
 @Component({
   templateUrl: './customer-view.html',

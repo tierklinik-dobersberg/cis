@@ -1,10 +1,10 @@
 import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit,
-  TrackByFunction,
+    ChangeDetectionStrategy,
+    ChangeDetectorRef,
+    Component,
+    OnDestroy,
+    OnInit,
+    TrackByFunction,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -12,13 +12,13 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { of, Subject } from 'rxjs';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import {
-  ActionDef,
-  ActionType,
-  OptionSpec,
-  TriggerAPI,
-  TriggerInstance,
+    ActionDef,
+    ActionType,
+    OptionSpec,
+    TriggerAPI,
+    TriggerInstance,
 } from 'src/app/api';
-import { HeaderTitleService } from 'src/app/shared/header-title';
+import { HeaderTitleService } from 'src/app/layout/header-title';
 import { extractErrorMessage } from 'src/app/utils';
 import { EditActionComponent } from '../edit-action';
 

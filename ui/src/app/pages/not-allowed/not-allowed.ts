@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
+import { HeaderTitleService } from "src/app/layout/header-title";
 import { ProfileService } from "src/app/services/profile.service";
-import { HeaderTitleService } from "src/app/shared/header-title";
 import { environment } from "src/environments/environment";
 
 @Component({

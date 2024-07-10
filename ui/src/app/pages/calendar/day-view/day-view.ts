@@ -1,9 +1,9 @@
-import { ConnectError, Code } from '@connectrpc/connect';
 import { coerceBooleanProperty, coerceCssPixelValue } from '@angular/cdk/coercion';
 import { ConnectedPosition, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, QueryList, TemplateRef, TrackByFunction, ViewChild, ViewChildren, ViewContainerRef, inject } from '@angular/core';
 import { Timestamp } from '@bufbuild/protobuf';
+import { Code, ConnectError } from '@connectrpc/connect';
 import { Calendar, CalendarEvent, CalendarEventList, GetWorkingStaffResponse, Profile } from '@tierklinik-dobersberg/apis';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
@@ -11,8 +11,8 @@ import { BehaviorSubject, Subject, combineLatest, forkJoin, from, interval, of }
 import { catchError, map, startWith, switchMap, take, takeUntil } from 'rxjs/operators';
 import { OpeningHoursAPI, OpeningHoursResponse, UserService } from 'src/app/api';
 import { CALENDAR_SERVICE, ROSTER_SERVICE } from 'src/app/api/connect_clients';
+import { HeaderTitleService } from 'src/app/layout/header-title';
 import { ProfileService, getCalendarId, getUserColor } from 'src/app/services/profile.service';
-import { HeaderTitleService } from 'src/app/shared/header-title';
 import { extractErrorMessage, getContrastFontColor } from 'src/app/utils';
 import { Duration, formatDate } from 'src/utils/duration';
 

@@ -1,16 +1,16 @@
 import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit,
-  TrackByFunction,
+    ChangeDetectionStrategy,
+    ChangeDetectorRef,
+    Component,
+    OnDestroy,
+    OnInit,
+    TrackByFunction,
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ConfigAPI, Schema } from 'src/app/api';
-import { HeaderTitleService } from 'src/app/shared/header-title';
+import { HeaderTitleService } from 'src/app/layout/header-title';
 
 interface Category {
   name: string;

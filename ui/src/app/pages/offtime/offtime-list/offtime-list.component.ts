@@ -7,9 +7,9 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { ConfigAPI, UserService } from 'src/app/api';
 import { COMMENT_SERVICE, OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { MyEditor } from 'src/app/ckeditor';
+import { HeaderTitleService } from "src/app/layout/header-title";
 import { LayoutService } from 'src/app/services';
 import { ProfileService } from "src/app/services/profile.service";
-import { HeaderTitleService } from "src/app/shared/header-title";
 
 enum FilterState {
   All,

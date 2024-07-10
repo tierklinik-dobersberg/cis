@@ -1,0 +1,181 @@
+<nav class="relative flex h-full flex-shrink-0 flex-col bg-white">
+  @if (!sheet()) {
+    <!-- Logo -->
+    <app-logo class="ml-1 h-14 px-4 py-4" />
+  }
+
+  <hlm-menu
+    variant="menubar"
+    class="mt-4 w-56 flex-grow rounded-none border-none shadow-none">
+    <hlm-menu-group class="space-y-1">
+      <button
+        hlmMenuItem
+        routerLink="/welcome"
+        routerLinkActive="bg-gray-100"
+        class="px-4 py-2">
+        <hlm-icon name="lucideHome" hlmMenuIcon />
+        Dashboard
+      </button>
+
+      <button
+        hlmMenuItem
+        routerLink="/calendar"
+        routerLinkActive="bg-gray-100"
+        class="px-4 py-2">
+        <hlm-icon name="lucideCalendar" hlmMenuIcon />
+        Kalendar
+      </button>
+
+      <button
+        hlmMenuItem
+        routerLink="/roster"
+        routerLinkActive="bg-gray-100"
+        class="px-4 py-2">
+        <hlm-icon name="lucideTimer" hlmMenuIcon />
+        Dienstplan
+      </button>
+
+      <button
+        hlmMenuItem
+        [brnMenuTriggerFor]="offtimeMenu"
+        class="px-4 py-2"
+        #trigger="cdkMenuTriggerFor"
+        (mouseenter)="trigger.isOpen() || trigger.open()">
+        <hlm-icon name="lucideLayers" hlmMenuIcon />
+        Urlaubsanträge
+        <hlm-menu-item-sub-indicator />
+      </button>
+
+      <ng-template #offtimeMenu>
+        <hlm-sub-menu>
+          <hlm-menu-label>Urlaubsanträge</hlm-menu-label>
+          <hlm-menu-separator />
+
+          <button
+            hlmMenuItem
+            class="px-4 py-2"
+            routerLink="/offtime"
+            routerLinkActive="bg-gray-100">
+            <hlm-icon name="lucideLayers" hlmMenuIcon />
+            Alle anzeigen
+          </button>
+
+          <button
+            hlmMenuItem
+            class="px-4 py-2"
+            routerLink="/offtime/create"
+            routerLinkActive="bg-gray-100">
+            <hlm-icon name="lucidePlus" hlmMenuIcon />
+            Antrag erstellen
+          </button>
+        </hlm-sub-menu>
+      </ng-template>
+
+      <button
+        hlmMenuItem
+        routerLink="/cutomer"
+        routerLinkActive="bg-gray-100"
+        class="px-4 py-2">
+        <hlm-icon name="lucideUserCircle" hlmMenuIcon />
+        Kunden
+      </button>
+
+      <button
+        hlmMenuItem
+        routerLink="/xray"
+        routerLinkActive="bg-gray-100"
+        class="px-4 py-2">
+        <hlm-icon name="lucideFilm" hlmMenuIcon />
+        Röntgen
+      </button>
+    </hlm-menu-group>
+
+    <hlm-menu-separator />
+
+    <hlm-menu-group class="space-y-1">
+      @if (mailboxes().length) {
+        <button hlmMenuItem class="px-4 py-2">
+          <hlm-icon
+            name="lucideFileAudio"
+            hlmMenuIcon
+            [brnMenuTriggerFor]="voiceMails" />
+          Voice-Mails
+          <hlm-menu-item-sub-indicator />
+        </button>
+
+        <ng-template #voiceMails>
+          <hlm-sub-menu class="w-56">
+            <hlm-menu-label>Voice-Mails</hlm-menu-label>
+            <hlm-menu-separator />
+            <hlm-menu-group class="space-y-1">
+              @for (mailbox of mailboxes(); track mailbox) {
+                <button
+                  hlmMenuItem
+                  routerLinkActive="bg-gray-100"
+                  [routerLink]="['/voicemail', mailbox]"
+                  class="px-4 py-2">
+                  {{ mailbox }}
+                </button>
+              }
+            </hlm-menu-group>
+          </hlm-sub-menu>
+        </ng-template>
+      }
+
+      @for (item of rootLinks(); track item) {
+        <a
+          hlmMenuItem
+          [attr.href]="item.Link"
+          [attr.target]="item.BlankTarget ? '_blank' : null"
+          class="px-4 py-2">
+          {{ item.Text }}
+        </a>
+      }
+
+      @for (menu of subMenus(); track menu) {
+        <button
+          hlmMenuItem
+          inset="true"
+          [brnMenuTriggerFor]="subMenu"
+          class="px-4 py-2">
+          {{ menu.Text }}
+          <hlm-menu-item-sub-indicator />
+        </button>
+
+        <ng-template #subMenu>
+          <hlm-sub-menu class="w-56">
+            <hlm-menu-label>{{ menu.Text }}</hlm-menu-label>
+            <hlm-menu-separator />
+            <hlm-menu-group class="space-y-1">
+              @for (item of menu.Items; track item) {
+                <a
+                  hlmMenuItem
+                  [attr.href]="item.Link"
+                  [attr.target]="item.BlankTarget ? '_blank' : null"
+                  class="px-4 py-2">
+                  {{ item.Text }}
+                </a>
+              }
+            </hlm-menu-group>
+          </hlm-sub-menu>
+        </ng-template>
+      }
+    </hlm-menu-group>
+  </hlm-menu>
+
+  <!-- Copyright -->
+  <span
+    class="flex flex-col items-center justify-around py-2 text-center text-xs text-gray-500">
+    <span class="font-semibold text-gray-700">V1.19</span>
+    <span>
+      <hlm-icon name="lucideCopyright" size="sm" />
+      2019 - 2023
+      <br />
+      <a href="https://github.com/tierklinik-dobersberg" target="_blank"
+        >Tierklinik Dobersberg</a
+      >
+      /
+      <a href="https://github.com/ppacher" target="_blank">Patrick Pacher</a>
+    </span>
+  </span>
+</nav>

@@ -5,7 +5,7 @@ import { Observable, Subject } from 'rxjs';
 import { debounceTime, map, takeUntil } from 'rxjs/operators';
 import { parse as parseQuery } from 'search-query-parser';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
-import { HeaderTitleService } from 'src/app/shared/header-title';
+import { HeaderTitleService } from 'src/app/layout/header-title';
 import { extractErrorMessage, toMongoDBFilter } from 'src/app/utils';
 import { ExtendedCustomer, customerTagColor, getMapsRouteUrl } from './utils';
 

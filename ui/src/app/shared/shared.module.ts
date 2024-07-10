@@ -19,21 +19,21 @@ import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { MarkdownModule } from 'ngx-markdown';
 import { TimeagoModule } from 'ngx-timeago';
+import { HeaderTitleOutletComponent } from '../layout/header-title';
 import { LinkNoBubbleDirective } from './a-no-bubble.directive';
 import { CallLogTableComponent } from './callog-table';
 import { CommentComponent } from './comment';
+import { TkdDateInputModule } from './date-input';
 import { TkdDebounceEventDirective } from './debounce-event.directive';
-import { HeaderTitleOutletComponent } from './header-title';
 import { ListActionButtonGroupComponent } from './list-btn-group';
 import { TkdOptionListInputComponent } from './option-list-input';
 import { TkdOptionSpecInputComponent } from './option-spec-input';
 import { ColorShadePipe, DurationPipe, FilterPipe, ToDatePipe, ToRGBAPipe, ToUserPipe, UserColorPipe, UserContrastColorPipe, UserNamePipe } from './pipes';
 import { CanDeleteCustomerPipe } from './pipes/can-delete-customer';
+import { InListPipe } from './pipes/in-list.pipe';
 import { TkdStringSliceInputComponent } from './simple-string-slice-input';
 import { TextInputComponent } from './text-input';
 import { UserAvatarComponent } from './user-avatar';
-import { InListPipe } from './pipes/in-list.pipe';
-import { TkdDateInputModule } from './date-input';
 
 @NgModule({
   imports: [
@@ -55,11 +55,11 @@ import { TkdDateInputModule } from './date-input';
     TkdDateInputModule,
     FilterPipe,
     ToRGBAPipe,
-    ColorShadePipe
+    ColorShadePipe,
+    HeaderTitleOutletComponent,
   ],
   declarations: [
     DurationPipe,
-    HeaderTitleOutletComponent,
     CallLogTableComponent,
     CommentComponent,
     TextInputComponent,
@@ -97,7 +97,6 @@ import { TkdDateInputModule } from './date-input';
     ScrollingModule,
     NzModalModule,
     DurationPipe,
-    HeaderTitleOutletComponent,
     CommentComponent,
     CallLogTableComponent,
     TextInputComponent,
@@ -120,7 +119,8 @@ import { TkdDateInputModule } from './date-input';
     TkdDateInputModule,
     FilterPipe,
     ToRGBAPipe,
-    ColorShadePipe
+    ColorShadePipe,
+    HeaderTitleOutletComponent,
   ],
 })
 export class SharedModule { }

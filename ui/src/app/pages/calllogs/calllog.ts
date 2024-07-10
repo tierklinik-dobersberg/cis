@@ -1,11 +1,11 @@
-import { Timestamp } from '@bufbuild/protobuf';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Timestamp } from '@bufbuild/protobuf';
 import { CallEntry } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { BehaviorSubject, Subscription, combineLatest, interval } from 'rxjs';
 import { mergeMap, startWith } from 'rxjs/operators';
 import { UserService } from 'src/app/api';
 import { CALL_SERVICE } from 'src/app/api/connect_clients';
-import { HeaderTitleService } from 'src/app/shared/header-title';
+import { HeaderTitleService } from 'src/app/layout/header-title';
 import { toDateString } from 'src/app/utils';
 
 @Component({

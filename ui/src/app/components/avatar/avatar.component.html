@@ -1,0 +1,15 @@
+@if (profileOrId() | toUser: profiles(); as profile) {
+  <hlm-avatar [variant]="variant()" [class]="_computedClasses()">
+    <img
+      [attr.src]="profileOrId() | avatar"
+      hlmAvatarImage
+      [attr.alt]="profile | displayName" />
+    <span
+      class="uppercase"
+      hlmAvatarFallback
+      [style.backgroundColor]="profile | color"
+      [style.color]="profile | contrastColor"
+      >{{ profile | userLetter }}</span
+    >
+  </hlm-avatar>
+}

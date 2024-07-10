@@ -1,46 +1,45 @@
-import { ConnectError, Code } from '@connectrpc/connect';
 import { animate, style, transition, trigger } from '@angular/animations';
 import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit,
-  TemplateRef,
-  TrackByFunction,
-  ViewChild,
-  inject
+    ChangeDetectionStrategy,
+    ChangeDetectorRef,
+    Component,
+    OnDestroy,
+    OnInit,
+    TemplateRef,
+    TrackByFunction,
+    ViewChild,
+    inject
 } from '@angular/core';
 import { PartialMessage, Timestamp } from '@bufbuild/protobuf';
-import { GetRequiredShiftsResponse, GetWorkingStaffResponse, PlannedShift, Profile, RequiredShift, WorkShift } from '@tierklinik-dobersberg/apis';
+import { Code, ConnectError } from '@connectrpc/connect';
+import { GetRequiredShiftsResponse, GetWorkingStaffResponse, PlannedShift, Profile, WorkShift } from '@tierklinik-dobersberg/apis';
 import { CreateOverwriteRequest, GetOverwriteResponse, Overwrite } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import {
-  BehaviorSubject,
-  Subject,
-  combineLatest,
-  forkJoin,
-  interval
+    BehaviorSubject,
+    Subject,
+    combineLatest,
+    forkJoin,
+    interval
 } from 'rxjs';
 import {
-  debounceTime,
-  filter,
-  map, startWith,
-  switchMap,
-  takeUntil
+    debounceTime,
+    filter,
+    map, startWith,
+    switchMap,
+    takeUntil
 } from 'rxjs/operators';
 import {
-  ConfigAPI,
-  QuickRosterOverwrite,
-  UserService
+    ConfigAPI,
+    QuickRosterOverwrite,
+    UserService
 } from 'src/app/api';
-import { CALL_SERVICE, ROSTER_SERVICE, WORK_SHIFT_SERVICE } from 'src/app/api/connect_clients';
-import { ProfileService } from 'src/app/services/profile.service';
-import { HeaderTitleService } from 'src/app/shared/header-title';
-import { extractErrorMessage, toDateString } from 'src/app/utils';
-import { CandyDate } from 'ng-zorro-antd/core/time';
+import { CALL_SERVICE, ROSTER_SERVICE } from 'src/app/api/connect_clients';
+import { HeaderTitleService } from 'src/app/layout/header-title';
 import { LayoutService } from 'src/app/services';
+import { ProfileService } from 'src/app/services/profile.service';
+import { extractErrorMessage, toDateString } from 'src/app/utils';
 
 @Component({
   templateUrl: './overwrite.component.html',

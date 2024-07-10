@@ -1,5 +1,6 @@
 import { LayoutModule } from '@angular/cdk/layout';
 import { OverlayModule } from '@angular/cdk/overlay';
+import { PlatformModule } from '@angular/cdk/platform';
 import { registerLocaleData } from '@angular/common';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import de from '@angular/common/locales/de';
@@ -9,6 +10,12 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 import { ServiceWorkerModule } from '@angular/service-worker';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import { Code, ConnectError } from '@connectrpc/connect';
+import {
+    TkdConnectModule
+} from '@tierklinik-dobersberg/angular/connect';
+import { Breakpoints } from '@tierklinik-dobersberg/tailwind/breakpoints';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
@@ -28,22 +35,22 @@ import { BaseURLInjector } from './api/base-url';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { IconsProviderModule } from './icons-provider.module';
-import { SharedModule } from './shared/shared.module';
-import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
-import { TkdConnectModule, CONNECT_CONFIG } from '@tierklinik-dobersberg/angular/connect';
 import { NotAllowedComponent } from './pages/not-allowed';
-import { Code, ConnectError } from '@connectrpc/connect';
-import { PlatformModule } from '@angular/cdk/platform';
+import { SharedModule } from './shared/shared.module';
 
-import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button'
+import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
+import { provideBreakpoints } from '@tierklinik-dobersberg/angular/layout';
+import { HlmToasterModule } from '@tierklinik-dobersberg/angular/sonner';
+import { AppHeaderComponent } from './layout';
+import {
+    AppNavigationComponent,
+    AppSheetNavigationComponent,
+} from './layout/navigation';
 
 registerLocaleData(de);
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    NotAllowedComponent,
-  ],
+  declarations: [AppComponent, NotAllowedComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
@@ -69,32 +76,42 @@ registerLocaleData(de);
     NgChartsModule,
     CKEditorModule,
     PlatformModule,
+    HlmToasterModule,
     TkdConnectModule.forRoot(environment, [
       (err) => {
         if (ConnectError.from(err).code === Code.Unauthenticated) {
           const redirectTarget = btoa(`${location.href}`);
-          window.location.replace(`${environment.accountService}/login?redirect=${redirectTarget}&force=true`);
+          window.location.replace(
+            `${environment.accountService}/login?redirect=${redirectTarget}&force=true`,
+          );
         }
-      }
+      },
     ]),
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: !isDevMode(),
       // Register the ServiceWorker as soon as the application is stable
       // or after 30 seconds (whichever comes first).
-      registrationStrategy: 'registerWhenStable:30000'
+      registrationStrategy: 'registerWhenStable:30000',
     }),
 
     // FIXME: Migration
     HlmButtonModule,
+    AppNavigationComponent,
+    AppSheetNavigationComponent,
+    AppHeaderComponent,
   ],
   providers: [
     { provide: NZ_I18N, useValue: de_DE },
-    { provide: HTTP_INTERCEPTORS, useExisting: AuthorizationInterceptor, multi: true },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useExisting: AuthorizationInterceptor,
+      multi: true,
+    },
     { provide: HTTP_INTERCEPTORS, useExisting: BaseURLInjector, multi: true },
     { provide: NZ_DATE_CONFIG, useValue: { firstDayOfWeek: 1 } },
-    { provide: LOCALE_ID, useValue: 'de'},
+    { provide: LOCALE_ID, useValue: 'de' },
+    provideBreakpoints(Breakpoints),
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule {
-}
+export class AppModule {}
