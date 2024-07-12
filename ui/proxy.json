@@ -1,7 +1,7 @@
 {
   "/api": {
-    "target": "https://cis.dobersberg.dev",
-    "secure": false,
+    "target": "https://my.dobersberg.vet",
+    "secure": true,
     "changeOrigin": true
   }
 }

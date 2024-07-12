@@ -2,51 +2,51 @@
   <div
     class="flex flex-row items-center justify-between border-b border-gray-400 p-4 sm:p-6 md:p-8"
     [ngClass]="{
-      '!flex-col gap-2': !layout.isTabletLandscapeUp,
+      '!flex-col gap-2': !layout.md(),
     }">
     <div>
       <h1 class="text-lato text-lg text-sky-800">
         Urlaubsanträge & Zeitausgleich
       </h1>
-      @if (
-        vacation &&
-        worktime &&
-        !worktime.excludeFromTimeTracking &&
-        layout.isTabletLandscapeUp
-      ) {
-        <span class="text-gray-500">
-          Bis zum Ende des Jahres hast du noch
-          <span
-            [ngClass]="{
-              'text-green-700': vacation.vacationCreditsLeft.seconds > 0,
-              'text-red-700': vacation.vacationCreditsLeft.seconds <= 0,
-            }"
-            class="font-medium underline">
-            {{
-              vacation.vacationCreditsLeft
-                | duration: 'default-hours' : undefined : true
-            }}</span
-          >
-          Urlaubsanspruch. Dein Zeitausgleich-Guthaben beträgt derzeit
-          <span
-            [ngClass]="{
-              'text-green-700': vacation.timeOffCredits.seconds > 0,
-              'text-red-700': vacation.timeOffCredits.seconds <= 0,
-            }"
-            class="font-medium underline">
-            {{
-              vacation.timeOffCredits
-                | duration: 'default-hours' : undefined : true
-            }}</span
-          >
-        </span>
+
+      @if (!worktime()?.excludeFromTimeTracking) {
+        @if (vacation(); as vacation) {
+          <span class="text-gray-500">
+            Bis zum Ende des Jahres hast du noch
+            <span
+              [ngClass]="{
+                'text-green-700': vacation.vacationCreditsLeft.seconds > 0,
+                'text-red-700': vacation.vacationCreditsLeft.seconds <= 0,
+              }"
+              class="font-medium underline">
+              {{
+                vacation.vacationCreditsLeft
+                  | duration: 'default-hours' : undefined
+              }}
+            </span>
+            Urlaubsanspruch.
+            <br />
+            Dein Zeitausgleich-Guthaben beträgt derzeit
+            <span
+              [ngClass]="{
+                'text-green-700': vacation.timeOffCredits.seconds > 0,
+                'text-red-700': vacation.timeOffCredits.seconds <= 0,
+              }"
+              class="font-medium underline">
+              {{
+                vacation.timeOffCredits | duration: 'default-hours' : undefined
+              }}
+            </span>
+          </span>
+        }
       }
     </div>
 
     <div class="flex flex-row items-center gap-4">
       <div>
-        <span class="text-gray-500">Filtern: </span>
+        <label for="filter" class="text-gray-500">Filtern: </label>
         <nz-select
+          name="filter"
           [(ngModel)]="filterState"
           (ngModelChange)="load()"
           class="w-32">
@@ -60,16 +60,18 @@
 
       <span class="block h-8 w-[1px] bg-gray-400"></span>
 
-      <button hlmBtn routerLink="create">Neuer Antrag</button>
+      <button hlmBtn routerLink="create" class="whitespace-nowrap">
+        Neuer Antrag
+      </button>
     </div>
   </div>
 
   <nz-tabset id="offtime-tab-set" [nzSelectedIndex]="0">
     <nz-tab nzTitle="Meine Anträge">
-      <nz-table [nzData]="entries" #offTimeEntries>
+      <nz-table [nzData]="entries()" #offTimeEntries>
         <thead>
           <!-- Desktop Header -->
-          @if (layout.isTabletLandscapeUp) {
+          @if (layout.md()) {
             <tr>
               <th>Zeitraum</th>
               <th>Antragsart</th>
@@ -83,11 +85,8 @@
 
         <tbody>
           <!-- Desktop View -->
-          @if (layout.isTabletLandscapeUp) {
-            @for (
-              entry of offTimeEntries.data;
-              track trackEntry($index, entry)
-            ) {
+          @if (layout.md()) {
+            @for (entry of offTimeEntries.data; track entry.id) {
               <tr>
                 <td>
                   <span>{{ entry.from | toDate | date: 'mediumDate' }}</span>
@@ -106,25 +105,36 @@
                   {{ entry.createdAt | toDate | date: 'mediumDate' }}
                   @if (entry.creatorId !== entry.requestorId) {
                     <span class="text-gray-500">
-                      (von {{ entry.creatorId | toUser | displayName }})
+                      (von
+                      {{ entry.creatorId | toUser: profiles() | displayName }})
                     </span>
                   }
                 </td>
                 <td>
                   @if (entry.approval) {
-                    <span
-                      [ngClass]="{
-                        'text-green-700': entry.approval.approved,
-                        'text-red-700': !entry.approval.approved,
-                      }"
-                      [nz-tooltip]="
-                        'Von ' +
-                        (entry.approval.approverId | toUser | displayName) +
-                        ' am ' +
-                        (entry.approval.approvedAt | toDate | date: 'short')
-                      ">
-                      {{ entry.approval.approved ? 'Bestätigt' : 'Abgelehnt' }}
-                    </span>
+                    <hlm-tooltip>
+                      <span
+                        hlmTooltipTrigger
+                        [ngClass]="{
+                          'text-green-700': entry.approval.approved,
+                          'text-red-700': !entry.approval.approved,
+                        }">
+                        {{
+                          entry.approval.approved ? 'Bestätigt' : 'Abgelehnt'
+                        }}
+                      </span>
+
+                      <span *brnTooltipContent hlm>
+                        Von
+                        {{
+                          entry.approval.approverId
+                            | toUser: profiles()
+                            | displayName
+                        }}
+                        am
+                        {{ entry.approval.approvedAt | toDate | date: 'short' }}
+                      </span>
+                    </hlm-tooltip>
                   } @else {
                     <span class="text-gray-500">Noch nicht genehmigt</span>
                   }
@@ -134,7 +144,9 @@
                     <button
                       hlmBtn
                       variant="ghost"
-                      (click)="loadEntryComments(entry)">
+                      [appSheetTriggerFor]="sheet"
+                      side="right"
+                      (click)="selectedEntry.set(entry)">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -152,7 +164,8 @@
                       <button
                         hlmBtn
                         variant="outline"
-                        (click)="deleteRequest(entry)">
+                        [brnAlertDialogTriggerFor]="alertDialog"
+                        (click)="entryToDelete.set(entry)">
                         Löschen
                       </button>
                     }
@@ -163,11 +176,8 @@
           }
 
           <!-- Mobile View -->
-          @if (!layout.isTabletLandscapeUp) {
-            @for (
-              entry of offTimeEntries.data;
-              track trackEntry($index, entry)
-            ) {
+          @if (!layout.md()) {
+            @for (entry of offTimeEntries.data; track entry.id) {
               <tr class="group-[foo]">
                 <td class="!border-0">
                   @if (entry.description) {
@@ -182,19 +192,29 @@
                 </td>
                 <td class="!border-0 text-right">
                   @if (entry.approval) {
-                    <span
-                      [ngClass]="{
-                        'text-green-700': entry.approval.approved,
-                        'text-red-700': !entry.approval.approved,
-                      }"
-                      [nz-tooltip]="
-                        'Von ' +
-                        (entry.approval.approverId | toUser | displayName) +
-                        ' am ' +
-                        (entry.approval.approvedAt | toDate | date: 'short')
-                      ">
-                      {{ entry.approval.approved ? 'Bestätigt' : 'Abgelehnt' }}
-                    </span>
+                    <hlm-tooltip>
+                      <span
+                        hlmTooltipTrigger
+                        [ngClass]="{
+                          'text-green-700': entry.approval.approved,
+                          'text-red-700': !entry.approval.approved,
+                        }">
+                        {{
+                          entry?.approval?.approved ? 'Bestätigt' : 'Abgelehnt'
+                        }}
+                      </span>
+
+                      <span *brnTooltipContent hlm>
+                        Von
+                        {{
+                          entry?.approval?.approverId
+                            | toUser: profiles()
+                            | displayName
+                        }}
+                        am
+                        {{ entry.approval.approvedAt | toDate | date: 'short' }}
+                      </span>
+                    </hlm-tooltip>
                   } @else {
                     <span class="text-gray-500">Noch nicht genehmigt</span>
                   }
@@ -209,8 +229,10 @@
                 <td>
                   <div class="flex flex-row justify-end gap-2">
                     <button
-                      class="tkd-icon-btn-inverse tkd-primary tkd-small"
-                      (click)="loadEntryComments(entry)">
+                      hlmBtn
+                      variant="ghost"
+                      size="icon"
+                      (click)="selectedEntry.set(entry)">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -228,7 +250,8 @@
                       <button
                         hlmBtn
                         variant="outline"
-                        (click)="deleteRequest(entry)">
+                        [brnAlertDialogTriggerFor]="alertDialog"
+                        (click)="entryToDelete.set(entry)">
                         Löschen
                       </button>
                     }
@@ -247,7 +270,7 @@
       </div>
     </nz-tab>
 
-    @if (layout.isTabletPortraitUp) {
+    @if (layout.md()) {
       <nz-tab nzTitle="Kalendar">
         <div class="py-2">
           <app-offtime-calendar-overview
@@ -258,26 +281,53 @@
   </nz-tabset>
 </div>
 
-<nz-drawer
-  [nzVisible]="!!showEntryComments"
-  (nzOnClose)="showEntryComments = null"
-  [nzWidth]="layout.isTabletPortraitUp ? '50vw' : '100vw'"
-  nzTitle="Kommentare">
-  <div *nzDrawerContent>
-    @for (comment of comments; track comment) {
+<hlm-sheet #sheet side="right">
+  <hlm-sheet-content *brnSheetContent>
+    <hlm-sheet-header>
+      <h3 hlmSheetTitle>Kommentare</h3>
+    </hlm-sheet-header>
+
+    @for (comment of comments(); track comment) {
       <app-comment
         [comment]="comment"
         [rendered]="true"
         [canReply]="true"
-        (replied)="loadEntryComments(showEntryComments)"></app-comment>
+        (replied)="reloadComments()"></app-comment>
     }
 
     <div class="flex flex-col gap-2">
       <h2 class="text-base">Neuen Kommentar</h2>
       <app-text-input
         format="markdown"
-        [(ngModel)]="newCommentText"></app-text-input>
+        name="commentText"
+        [(ngModel)]="commentText"></app-text-input>
       <button hlmBtn (click)="createComment()">Erstellen</button>
     </div>
-  </div>
-</nz-drawer>
+  </hlm-sheet-content>
+</hlm-sheet>
+
+<hlm-alert-dialog #alertDialog>
+  <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+    @if (entryToDelete(); as entry) {
+      <hlm-alert-dialog-header>
+        <h3 hlmAlertDialogTitle>Antrag wirklich löschen?</h3>
+        <p hlmAlertDialogDescription>
+          Diese Aktion kann nicht mehr rückgängig gemacht werden!
+        </p>
+      </hlm-alert-dialog-header>
+
+      <hlm-alert-dialog-footer class="mt-2 flex flex-row gap-2">
+        <button hlmBtn variant="secondary" (click)="ctx.close()">
+          Abbrechen
+        </button>
+
+        <button
+          hlmBtn
+          variant="destructive"
+          (click)="deleteRequest(entry); ctx.close()">
+          Löschen
+        </button>
+      </hlm-alert-dialog-footer>
+    }
+  </hlm-alert-dialog-content>
+</hlm-alert-dialog>

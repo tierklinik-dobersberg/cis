@@ -85,6 +85,14 @@
                 }
               ]
             },
+            "prodtest": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ]
+            },
             "production": {
               "fileReplacements": [
                 {
@@ -132,6 +140,9 @@
             },
             "staging": {
               "buildTarget": "console:build:staging"
+            },
+            "prodtest": {
+              "buildTarget": "console:build:prodtest"
             }
           }
         },

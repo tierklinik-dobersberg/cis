@@ -1,78 +1,9 @@
-:host {
-  display       : block;
-  padding-bottom: 6px;
-}
-
-.commenter-container {
-  display        : flex;
-  justify-content: space-between;
-  align-items    : center;
-
-}
-
-span.ant-avatar {
-  width   : 40px;
-  height  : 40px;
-  overflow: hidden;
-
-  img {
-    width : 100%;
-    height: auto;
-  }
-}
-
-.comment-content {
-  @apply text-sm;
-
-  display: inline-block;
-  padding-top  : 6px;
-  margin-left  : 30px;
-  margin-bottom: 0;
-
-}
-
 ::ng-deep span.mention {
     @apply bg-sky-600 bg-opacity-10 rounded-sm px-0.5 py-0.5 text-sky-800 text-xs;
   }
-
-.comment-actions {
-  margin-left  : 30px;
-  font-size    : 90%;
-  margin-bottom: 3px;
-}
-
-.commenter {
-  flex-grow     : 1;
-  padding-left  : 6px;
-  display       : flex;
-  flex-direction: column;
-  color         : gray;
-
-  span:not(.username) {
-    font-size : 90%;
-    margin-top: -3px;
-  }
-}
-
-.actions {
-  margin-top     : 6px;
-  display        : flex;
-  justify-content: space-between;
-  align-items    : center;
-}
 
 .replies {
   margin-top  : 6px;
   margin-left : 12px;
   padding-left: 6px;
-  border-left : 1px solid rgba(211, 211, 211, 0.342);
-}
-
-.create-comment-container {
-  button {
-    margin-right: 6px;
-  }
-
-  margin-bottom: 36px;
-  margin-top   : 12px;
 }

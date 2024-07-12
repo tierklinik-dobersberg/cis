@@ -1,5 +1,5 @@
 import { NgModule, Type } from '@angular/core';
-import { RouterModule, Routes, CanActivateFn } from '@angular/router';
+import { CanActivateFn, RouterModule, Routes } from '@angular/router';
 import { ComputerAccountGuard, UsersReadyGuard } from './guards';
 import { NotAllowedComponent } from './pages/not-allowed';
 
@@ -20,7 +20,7 @@ const routes: Routes = [
   //{ canActivate, path: 'calendar', loadChildren: () => import('./pages/calendar/calendar.module').then(m => m.CalendarModule) },
   { canActivate, path: 'calendar', loadComponent: () => import('./pages/calendar2/calendar-view/calendar-view.component').then(m => m.TkdCalendarViewComponent) },
   { canActivate, path: 'roster', loadChildren: () => import('./pages/roster/roster.module').then(m => m.RosterModule) },
-  { canActivate: [UsersReadyGuard, ComputerAccountGuard], path: 'offtime', loadChildren: () => import('./pages/offtime/offtime.module').then(m => m.OfftimeModule) },
+  { canActivate: [ComputerAccountGuard], path: 'offtime', loadChildren: () => import('./pages/offtime/offtime-routes').then(m => m.OFFTIME_ROUTES) },
   { path: 'not-allowed', component: NotAllowedComponent },
   { path: '**', redirectTo: '/welcome' },
 ];

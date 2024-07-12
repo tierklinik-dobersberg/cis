@@ -1,22 +1,28 @@
 import { NgClass } from "@angular/common";
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from "@angular/core";
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, model, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from '@angular/router';
 import { Timestamp } from '@bufbuild/protobuf';
 import { CKEditorModule } from "@ckeditor/ckeditor5-angular";
 import { Code, ConnectError } from '@connectrpc/connect';
+import { BrnAlertDialogModule } from '@spartan-ng/ui-alertdialog-brain';
+import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
+import { HlmAlertDialogModule } from "@tierklinik-dobersberg/angular/alertdialog";
+import { injectCurrentProfile, injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
+import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
+import { HlmCheckboxModule } from '@tierklinik-dobersberg/angular/checkbox';
+import { HlmInputModule } from '@tierklinik-dobersberg/angular/input';
+import { HlmLabelModule } from '@tierklinik-dobersberg/angular/label';
+import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
 import { DurationPipe } from "@tierklinik-dobersberg/angular/pipes";
-import { GetVacationCreditsLeftResponse, OffTimeEntry, OffTimeType, Profile, UserVacationSum } from "@tierklinik-dobersberg/apis";
+import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
+import { GetVacationCreditsLeftResponse, OffTimeType, UserVacationSum } from "@tierklinik-dobersberg/apis";
 import { CandyDate } from 'ng-zorro-antd/core/time';
 import { NzDatePickerModule } from "ng-zorro-antd/date-picker";
-import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSelectModule } from "ng-zorro-antd/select";
-import { UserService } from 'src/app/api';
+import { toast } from "ngx-sonner";
 import { OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { MyEditor } from 'src/app/ckeditor';
-import { LayoutService } from 'src/app/services';
-import { ProfileService } from "src/app/services/profile.service";
 import { toDateString } from 'src/app/utils';
 import { OffTimeCalendarOverviewComponent } from "../offtime-calendar-overview/calendar-overview";
 
@@ -33,64 +39,144 @@ const dateForDateTimeInputValue = date => new Date(date.getTime() + date.getTime
     OffTimeCalendarOverviewComponent,
     NzSelectModule,
     CKEditorModule,
-    DurationPipe
+    DurationPipe,
+    HlmInputModule,
+    HlmButtonDirective,
+    BrnSelectModule,
+    HlmSelectModule,
+    HlmLabelModule,
+    HlmCheckboxModule,
+    HlmAlertDialogModule,
+    BrnAlertDialogModule
   ]
 })
 export class OffTimeCreateComponent implements OnInit {
   private readonly offTimeSerivce = inject(OFFTIME_SERVICE);
   private readonly workTimeService = inject(WORKTIME_SERVICE);
-  private readonly cdr = inject(ChangeDetectorRef);
-  private readonly profileService = inject(ProfileService);
   private readonly router = inject(Router);
-  private readonly messageService = inject(NzMessageService)
-  private readonly userService = inject(UserService)
-  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
 
   public readonly Editor = MyEditor;
-  public readonly layout = inject(LayoutService).withAutoUpdate(this.cdr)
+  public readonly layout = inject(LayoutService);
 
-  vacation: UserVacationSum | null = null;
+  protected readonly description = model('');
+  protected readonly offTimeType = model<'auto' | 'vacation' | 'timeoff'>('auto');
+  protected readonly showTime = model(false);
 
-  description: string = '';
-  offTimeType: 'auto' | 'vacation' | 'timeoff' = 'auto';
-  showTime = false;
-  dateRange: [Date, Date] | null = null;
+  protected readonly _computedCandyDate = computed(() => {
+    const from = this.from();
+    
+    if (from) {
+      return new CandyDate(from);
+    }
+    
+    return null
+  })
+  
+  protected readonly _computedDateRange = computed(() => {
+    const from = this.from();
+    const to = this.to();
+    
+    if (!from || !to) {
+      return null
+    }
+    
+    return [
+      new Date(from),
+      new Date(to),
+    ]
+  })
+  
+  protected readonly _computedHoverValue = computed<[CandyDate, CandyDate]|null>(() => {
+    const range = this._computedDateRange();
+    if (!range) {
+      return null
+    }
+    
+    return [
+      new CandyDate(range[0]),
+      new CandyDate(range[1]),
+    ]
+  })
+  
+  protected readonly from = signal((new Date).toDateString());
+  protected readonly to   = signal('');
+  
+  protected readonly profiles = injectUserProfiles();
+  protected readonly currentUser = injectCurrentProfile();
+  protected readonly vacation = signal<UserVacationSum | null>(null)
+  
+  // load user vacation credits once the profile is set
+  private readonly _loadUserCreditsEffect = effect(() => {
+    const current = this.currentUser();
+    const endOfYear = new Date(new Date().getFullYear()+1, 0, 1, 0, 0, 0, -1)
+    
+    if (!current) {
+      return;
+    }
 
-  existing: OffTimeEntry[] = [];
-  profiles: Profile[] = [];
+    this.workTimeService
+      .getVacationCreditsLeft({
+        forUsers: {
+          userIds: [current.user.id]
+        },
+        until: Timestamp.fromDate(endOfYear),
+      })
+      .catch(err => {
+        const cerr = ConnectError.from(err);
+        if (cerr.code !== Code.NotFound) {
+          toast.error('Resturlaub und ZA-Guthaben konnte nicht geladen werden', {
+            description: cerr.message,
+          })
+        }
 
-  calendarDate: CandyDate | null = null;
+        return new GetVacationCreditsLeftResponse()
+      })
+      .then(response => {
+        this.vacation.set(response.results.find(sum => sum.userId === current.user.id) || null);
+      })
+  })
 
-  from: string = '';
-  to: string = '';
+  protected updateFromRangePicker(value: [Date, Date]) {
+    if (value[0]) {
+      this.from.set(
+        this.showTime()
+          ? dateForDateTimeInputValue(value[0])
+          : toDateString(value[0])
+      )
+    }
+
+    if (value[1]) {
+      this.to.set(
+        this.showTime()
+          ? dateForDateTimeInputValue(value[1])
+          : toDateString(value[1])
+      )
+    }
+  }
 
   toggleShowTime() {
-    this.showTime = !this.showTime;
+    this.showTime.set(!this.showTime());
 
-    if (this.from) {
-      let from = new Date(this.from);
+    if (this.from()) {
+      let from = new Date(this.from());
 
-      if (this.showTime) {
+      if (this.showTime()) {
         from = new Date(from.getFullYear(), from.getMonth(), from.getDate(), 0, 0, 0)
       }
 
-      this.from = this.showTime ? dateForDateTimeInputValue(from) : toDateString(from);
+      this.from.set(this.showTime() ? dateForDateTimeInputValue(from) : toDateString(from));
     }
 
-    if (this.to) {
-      let to = new Date(this.to);
+    if (this.to()) {
+      let to = new Date(this.to());
 
-      if (this.showTime) {
+      if (this.showTime()) {
         to = new Date(to.getFullYear(), to.getMonth(), to.getDate()+1, 0, 0, -1)
       }
 
-      this.to = this.showTime ? dateForDateTimeInputValue(to) : toDateString(to);
+      this.to.set(this.showTime() ? dateForDateTimeInputValue(to) : toDateString(to));
     }
-
-    this.updateDateRange('from');
-
-    this.cdr.markForCheck();
   }
 
   ngOnInit() {
@@ -100,76 +186,20 @@ export class OffTimeCreateComponent implements OnInit {
       const from = new CandyDate(d).setHms(0, 0, 0).nativeDate
       const to = new CandyDate(from).addDays(1).setHms(0, 0, -1).nativeDate
 
-      this.dateRange = [from, to]
-
-      this.updateDateRange('both')
-
-    } else {
-      this.calendarDate = new CandyDate();
-    }
-
-    const endOfYear = new Date(new Date().getFullYear()+1, 0, 1, 0, 0, 0, -1)
-
-    this.userService
-      .users
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(profiles => {
-        this.profiles = profiles;
-        this.cdr.markForCheck();
-      })
-
-    this.workTimeService
-      .getVacationCreditsLeft({
-        forUsers: {
-          userIds: [this.profileService.snapshot.user.id]
-        },
-        until: Timestamp.fromDate(endOfYear),
-      })
-      .catch(err => {
-        if (ConnectError.from(err).code !== Code.NotFound) {
-          console.error(err);
-        }
-
-        return new GetVacationCreditsLeftResponse()
-      })
-      .then(response => {
-        this.vacation = response.results.find(sum => sum.userId === this.profileService.snapshot.user.id) || null;
-
-        this.cdr.markForCheck();
-      })
-  }
-
-  get hoverValue(): any {
-    if (this.dateRange) {
-      return [ new CandyDate(this.dateRange[0]), new CandyDate(this.dateRange[1]) ]
-    }
-
-    return null;
-  }
-
-  updateDateRange(what: 'from' | 'to' | 'both') {
-    if (what === 'both') {
-      if (!this.dateRange || this.dateRange.length != 2) {
-        return;
-      }
-
-      this.calendarDate = new CandyDate(this.dateRange[0]);
-
-      return
-    }
-
-    if (this.from && this.to) {
-      this.dateRange = [
-        new Date(this.from),
-        new Date(this.to),
-      ]
+      this.from.set(from.toDateString());
+      this.to.set(to.toDateString());
     }
   }
 
   createRequest() {
-    let dateRange = this.dateRange;
+    const current = this.currentUser();
+    const dateRange = this._computedDateRange();
+    if (!dateRange || dateRange.length != 2) {
+      toast.error('Start und Enddatum müssen angegeben werden');
+      return
+    }
+    
     let [from, to] = dateRange;
-
     if (!this.showTime) {
       from = new Date(from.getFullYear(), from.getMonth(), from.getDate(), 0, 0, 0, 0)
       to = new Date(to.getFullYear(), to.getMonth(), to.getDate() + 1, 0, 0, -1)
@@ -177,12 +207,12 @@ export class OffTimeCreateComponent implements OnInit {
 
     this.offTimeSerivce
       .createOffTimeRequest({
-        description: this.description,
-        requestorId: this.profileService.snapshot.user.id,
+        description: this.description(),
+        requestorId: current.user.id,
         from: Timestamp.fromDate(from),
         to: Timestamp.fromDate(to),
         requestType: (() => {
-          switch (this.offTimeType) {
+          switch (this.offTimeType()) {
             case 'auto':
               return OffTimeType.UNSPECIFIED
             case 'timeoff':
@@ -193,11 +223,11 @@ export class OffTimeCreateComponent implements OnInit {
         })(),
       })
       .then(() => {
-        this.messageService.success('Antrag wurde erfolgreich erstellt')
+        toast.success('Antrag wurde erfolgreich erstellt')
         this.router.navigate(['/offtime'])
       })
       .catch(err => {
-        this.messageService.error('Antrag konnte nicht erstellt werden: ' + ConnectError.from(err).rawMessage)
+        toast.error('Antrag konnte nicht erstellt werden', { description: ConnectError.from(err).message })
       })
   }
 }

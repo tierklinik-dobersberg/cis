@@ -3,7 +3,7 @@ import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, ViewChild, ViewEncapsulation, booleanAttribute, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterModule } from '@angular/router';
-import { lucideCalendar, lucideCopyright, lucideFileAudio, lucideFilm, lucideHome, lucideLayers, lucidePlus, lucideTimer, lucideUserCircle } from '@ng-icons/lucide';
+import { lucideCalendar, lucideCircuitBoard, lucideCopyright, lucideFileAudio, lucideFilm, lucideHome, lucideLayers, lucidePlus, lucideTimer, lucideUserCircle } from '@ng-icons/lucide';
 import { BrnMenuModule } from '@spartan-ng/ui-menu-brain';
 import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
@@ -55,6 +55,7 @@ interface SubMenu {
       lucideFileAudio,
       lucideCopyright,
       lucidePlus,
+      lucideCircuitBoard
     })
   ]
 })

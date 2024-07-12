@@ -26,5 +26,4 @@ export class MatchingOfftimePipe implements PipeTransform {
       return from <= ts && to >= ts;
     })
   }
-
 }

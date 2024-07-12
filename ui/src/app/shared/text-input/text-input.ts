@@ -1,13 +1,13 @@
 import { coerceBooleanProperty } from "@angular/cdk/coercion";
+import { NgTemplateOutlet } from "@angular/common";
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, inject, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { ControlValueAccessor, DefaultValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
-import { CKEditorComponent } from "@ckeditor/ckeditor5-angular";
+import { CKEditorComponent, CKEditorModule } from "@ckeditor/ckeditor5-angular";
+import { NzSelectModule } from "ng-zorro-antd/select";
 import { firstValueFrom, map, Subject } from "rxjs";
 import { UserService } from 'src/app/api';
-import { UserNamePipe } from "../pipes";
 import { MyEditor } from "src/app/ckeditor";
-
-
+import { UserNamePipe } from "../pipes";
 
 export type FormatType = 'plain' | 'html' | 'markdown';
 
@@ -16,8 +16,14 @@ export type FormatType = 'plain' | 'html' | 'markdown';
   templateUrl: './text-input.html',
   styleUrls: ['./text-input.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
   providers: [
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => TextInputComponent), multi: true }
+  ],
+  imports: [
+   NzSelectModule,
+   CKEditorModule ,
+   NgTemplateOutlet,
   ]
 })
 export class TextInputComponent implements OnDestroy, OnInit, ControlValueAccessor, AfterViewInit {

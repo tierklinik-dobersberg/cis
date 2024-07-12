@@ -98,16 +98,18 @@
 
     <hlm-menu-group class="space-y-1">
       @if (mailboxes().length) {
-        <button hlmMenuItem class="px-4 py-2">
-          <hlm-icon
-            name="lucideFileAudio"
-            hlmMenuIcon
-            [brnMenuTriggerFor]="voiceMails" />
+        <button
+          hlmMenuItem
+          class="px-4 py-2"
+          #trigger="cdkMenuTriggerFor"
+          (mouseenter)="trigger.isOpen() || trigger.open()"
+          [brnMenuTriggerFor]="voiceMailsTemplate">
+          <hlm-icon name="lucideFileAudio" hlmMenuIcon />
           Voice-Mails
           <hlm-menu-item-sub-indicator />
         </button>
 
-        <ng-template #voiceMails>
+        <ng-template #voiceMailsTemplate>
           <hlm-sub-menu class="w-56">
             <hlm-menu-label>Voice-Mails</hlm-menu-label>
             <hlm-menu-separator />
@@ -115,6 +117,7 @@
               @for (mailbox of mailboxes(); track mailbox) {
                 <button
                   hlmMenuItem
+                  inset
                   routerLinkActive="bg-gray-100"
                   [routerLink]="['/voicemail', mailbox]"
                   class="px-4 py-2">
@@ -132,6 +135,8 @@
           [attr.href]="item.Link"
           [attr.target]="item.BlankTarget ? '_blank' : null"
           class="px-4 py-2">
+          <hlm-icon name="lucideCircuitBoard" hlmMenuIcon />
+
           {{ item.Text }}
         </a>
       }
@@ -139,10 +144,15 @@
       @for (menu of subMenus(); track menu) {
         <button
           hlmMenuItem
-          inset="true"
+          [inset]="true"
           [brnMenuTriggerFor]="subMenu"
+          #trigger="cdkMenuTriggerFor"
+          (mouseenter)="trigger.isOpen() || trigger.open()"
           class="px-4 py-2">
+          <hlm-icon name="lucideCircuitBoard" hlmMenuIcon />
+
           {{ menu.Text }}
+
           <hlm-menu-item-sub-indicator />
         </button>
 
@@ -154,6 +164,7 @@
               @for (item of menu.Items; track item) {
                 <a
                   hlmMenuItem
+                  inset
                   [attr.href]="item.Link"
                   [attr.target]="item.BlankTarget ? '_blank' : null"
                   class="px-4 py-2">

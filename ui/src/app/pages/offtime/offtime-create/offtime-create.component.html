@@ -1,11 +1,11 @@
 <div class="rounded bg-white shadow">
   <div
-    class="flex flex-row items-center justify-between border-b border-gray-400 p-4 sm:p-6 md:p-8">
+    class="flex flex-row items-center justify-between border-b border-border p-4 sm:p-6 md:p-8">
     <div>
       <h1 class="text-lato text-lg text-sky-800">
         Antrag auf Urlaub/Zeitausgleich
       </h1>
-      @if (vacation && layout.isTabletPortraitUp) {
+      @if (layout.sm() && vacation(); as vacation) {
         <span class="text-gray-500">
           Bis zum Ende des Jahres hast du noch
           <span
@@ -17,9 +17,11 @@
             {{
               vacation.vacationCreditsLeft
                 | duration: 'default-hours' : undefined
-            }}</span
-          >
+            }}
+          </span>
+
           Urlaubsanspruch. Dein Zeitausgleich-Guthaben beträgt derzeit
+
           <span
             [ngClass]="{
               'text-green-700': vacation.timeOffCredits.seconds > 0,
@@ -35,88 +37,86 @@
     </div>
   </div>
 
-  <form
-    class="flex flex-col"
-    (ngSubmit)="createRequest()"
-    #requestForm="ngForm">
+  <form class="flex flex-col" #requestForm="ngForm">
     <div
-      class="relative flex flex-col items-start justify-start gap-3 border-b border-gray-400 p-4 pl-16">
+      class="relative flex flex-col items-start justify-start gap-3 border-b border-border p-4 pl-16">
       <label
-        class="absolute bottom-0 left-0 top-0 flex w-12 flex-col items-center justify-center bg-gray-100 p-2 text-xl text-sky-800"
-        >1.</label
-      >
+        class="absolute bottom-0 left-0 top-0 flex w-12 flex-col items-center justify-center bg-gray-100 p-2 text-xl text-sky-800">
+        1.
+      </label>
 
-      <label class="text-sm text-gray-500"
-        >Bitte wähle den gewünschten Zeitraum:</label
-      >
-      <label
-        nz-checkbox
-        name="wholeDays"
-        [ngModel]="!showTime"
-        (ngModelChange)="toggleShowTime()"
-        >Ganze Tage</label
-      >
+      <label hlmLabel> Bitte wähle den gewünschten Zeitraum: </label>
+
+      <label hlmLabel for="wholeDays" class="flex items-center">
+        <hlm-checkbox
+          name="wholeDays"
+          class="mr-2"
+          [ngModel]="!showTime()"
+          (ngModelChange)="toggleShowTime()" />
+        Ganze Tage
+      </label>
 
       <!-- Date-range picker on Desktop -->
-      @if (layout.isTabletPortraitUp) {
+      @if (layout.md()) {
         <nz-range-picker
-          [(ngModel)]="dateRange"
-          [nzShowTime]="showTime"
+          hlmInput
+          [ngModel]="_computedDateRange()"
+          (ngModelChange)="updateFromRangePicker($event)"
+          [nzShowTime]="showTime()"
           required
           name="daterange"
-          (ngModelChange)="updateDateRange('both')"
           [nzDateRender]="view.dateCellRender"></nz-range-picker>
-      }
-
-      <!-- Mobile "date-range" picker -->
-      @if (!layout.isTabletPortraitUp) {
+      } @else {
         <div class="flex w-full flex-col gap-1">
-          <label class="text-sm text-gray-500">Von</label>
-          <input
-            [attr.type]="showTime ? 'datetime-local' : 'date'"
-            required
-            class="tkd-input"
-            name="from"
-            [(ngModel)]="from"
-            (ngModelChange)="updateDateRange('from')" />
+          <label hlmLabel for="from">
+            Von
+            <input
+              hlmInput
+              [attr.type]="showTime() ? 'datetime-local' : 'date'"
+              required
+              name="from"
+              [(ngModel)]="from" />
+          </label>
         </div>
+
         <div class="flex w-full flex-col gap-1">
-          <label class="text-sm text-gray-500">Bis</label>
-          <input
-            [attr.type]="showTime ? 'datetime-local' : 'date'"
-            required
-            class="tkd-input"
-            name="to"
-            [(ngModel)]="to"
-            (ngModelChange)="updateDateRange('to')" />
+          <label hlmLabel for="to">
+            Bis
+            <input
+              hlmInput
+              [attr.type]="showTime() ? 'datetime-local' : 'date'"
+              required
+              name="to"
+              [(ngModel)]="to" />
+          </label>
         </div>
       }
     </div>
 
     <div
-      class="relative flex flex-col items-start justify-start gap-2 border-b border-gray-400 p-4 pl-16">
+      class="relative flex flex-col items-start justify-start gap-2 border-b border-border p-4 pl-16">
       <label
         class="absolute bottom-0 left-0 top-0 flex w-12 flex-col items-center justify-center bg-gray-100 p-2 text-xl text-sky-800"></label>
 
-      <label class="text-sm text-gray-500">Vorhandene Urlaubsanträge:</label>
+      <label hlmLabel> Vorhandene Urlaubsanträge: </label>
 
       <app-offtime-calendar-overview
         class="block w-full"
         #view="calendarView"
-        [hoverValue]="hoverValue"
-        [calendarDate]="calendarDate" />
+        [hoverValue]="_computedHoverValue()"
+        [calendarDate]="_computedCandyDate()" />
     </div>
 
     <div
-      class="relative flex flex-col items-start justify-start gap-3 border-b border-gray-400 p-4 pl-16">
+      class="relative flex flex-col items-start justify-start gap-3 border-b border-border p-4 pl-16">
       <label
-        class="absolute bottom-0 left-0 top-0 flex w-12 flex-col items-center justify-center bg-gray-100 p-2 text-xl text-sky-800"
-        >2.</label
-      >
+        class="absolute bottom-0 left-0 top-0 flex w-12 flex-col items-center justify-center bg-gray-100 p-2 text-xl text-sky-800">
+        2.
+      </label>
 
-      <label class="text-sm text-gray-500"
-        >Hier kannst du eine zusätzliche Beschreibung angeben:</label
-      >
+      <label hlmLabel for="description">
+        Hier kannst du eine zusätzliche Beschreibung angeben:
+      </label>
       <ckeditor
         class="w-full max-w-full"
         [editor]="Editor"
@@ -125,30 +125,96 @@
     </div>
 
     <div
-      class="relative flex flex-col items-start justify-start gap-3 border-b border-gray-400 p-4 pl-16">
+      class="relative flex flex-col items-start justify-start gap-3 border-b border-border p-4 pl-16">
       <label
-        class="absolute bottom-0 left-0 top-0 flex w-12 flex-col items-center justify-center bg-gray-100 p-2 text-xl text-sky-800"
-        >3.</label
-      >
+        class="absolute bottom-0 left-0 top-0 flex w-12 flex-col items-center justify-center bg-gray-100 p-2 text-xl text-sky-800">
+        3.
+      </label>
 
-      <label class="text-sm text-gray-500">Bitte wähle die Antragsart:</label>
-      <nz-select [(ngModel)]="offTimeType" required name="type" class="w-40">
-        <nz-option nzLabel="Beliebig" nzValue="auto"></nz-option>
-        <nz-option nzLabel="Urlaub" nzValue="vacation"></nz-option>
-        <nz-option nzLabel="Zeitausgleich" nzValue="timeoff"></nz-option>
-      </nz-select>
+      <label for="type" hlmLabel> Bitte wähle die Antragsart: </label>
+
+      <brn-select
+        placeholder="Bitte auswählen"
+        required
+        [(ngModel)]="offTimeType"
+        name="type">
+        <hlm-select-trigger class="w-56">
+          <hlm-select-value />
+        </hlm-select-trigger>
+
+        <hlm-select-content>
+          <hlm-option value="auto">Beliebig</hlm-option>
+          <hlm-option value="vacation">Urlaub</hlm-option>
+          <hlm-option value="timeoff">Zeitausgleich</hlm-option>
+        </hlm-select-content>
+      </brn-select>
     </div>
 
     <div
-      class="relative flex flex-col items-start justify-start gap-2 border-b border-gray-400 p-4 pl-16">
+      class="relative flex flex-col items-start justify-start gap-2 border-b border-border p-4 pl-16">
       <label
-        class="absolute bottom-0 left-0 top-0 flex w-12 flex-col items-center justify-center bg-gray-100 p-2 text-xl text-sky-800"
-        >4.</label
-      >
+        class="absolute bottom-0 left-0 top-0 flex w-12 flex-col items-center justify-center bg-gray-100 p-2 text-xl text-sky-800">
+        4.
+      </label>
 
-      <button hlmBtn type="submit" [disabled]="requestForm.invalid">
-        Antrag erstellen
-      </button>
+      <hlm-alert-dialog>
+        <button
+          hlmBtn
+          type="button"
+          [disabled]="requestForm.invalid"
+          brnAlertDialogTrigger>
+          Antrag erstellen
+        </button>
+
+        <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+          <hlm-alert-dialog-header>
+            <h3 hlmAlertDialogTitle>Bestätigung erforderlich</h3>
+            <p hlmAlertDialogDescription>
+              Bitte überprüfe die Daten deines Antrags!
+            </p>
+          </hlm-alert-dialog-header>
+
+          <div
+            class="flex flex-col items-start gap-1 rounded-md border border-border bg-border/20 p-2 font-medium">
+            <span>
+              <span class="font-normal">Von:</span>
+              {{ from() }}
+            </span>
+            <span>
+              <span class="font-normal">Bis:</span>
+              {{ to() }}
+            </span>
+            <span>
+              <span class="font-normal">Antragsart:</span>
+              @switch (offTimeType()) {
+                @case ('auto') {
+                  Beliebig
+                }
+                @case ('timeoff') {
+                  Zeitausgleich
+                }
+                @case ('vacation') {
+                  Urlaub
+                }
+              }
+            </span>
+          </div>
+
+          <hlm-alert-dialog-footer>
+            <button hlmBtn variant="secondary" (click)="ctx.close()">
+              Abbrechen
+            </button>
+
+            <button
+              hlmBtn
+              (click)="createRequest()"
+              [disabled]="requestForm.invalid"
+              brnAlertDialogTrigger>
+              Antrag erstellen
+            </button>
+          </hlm-alert-dialog-footer>
+        </hlm-alert-dialog-content>
+      </hlm-alert-dialog>
     </div>
   </form>
 </div>

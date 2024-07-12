@@ -13,6 +13,7 @@ import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { OFFTIME_SERVICE } from "@tierklinik-dobersberg/angular/connect";
 import { TkdEmptyTableComponent } from '@tierklinik-dobersberg/angular/empty-table';
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
+import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
 import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
 import { DisplayNamePipe, InListPipe, ToDatePipe, ToUserPipe, UserColorPipe, UserContrastColorPipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
@@ -25,8 +26,8 @@ import { toast } from 'ngx-sonner';
 import { UserColorVarsDirective } from "src/app/components/user-color-vars";
 import { toDateString } from "src/app/utils";
 import { AppAvatarComponent } from "../../../components/avatar/avatar.component";
-import { MatchingOfftimeTooltipPipe } from "../matching-offtime-tooltip.pipe";
-import { MatchingOfftimePipe } from "../matching-offtime.pipe";
+import { MatchingOfftimeTooltipPipe } from "../pipes/matching-offtime-tooltip.pipe";
+import { MatchingOfftimePipe } from "../pipes/matching-offtime.pipe";
 
 @Component({
   selector: 'app-offtime-calendar-overview',
@@ -44,7 +45,7 @@ import { MatchingOfftimePipe } from "../matching-offtime.pipe";
         }
 
         #calendar ::ng-deep .ant-picker-cell-inner {
-          @apply border-0;
+          @apply border-0 !font-normal;
         }
 
         #calendar ::ng-deep .ant-picker-cell-inner:hover {
@@ -52,7 +53,10 @@ import { MatchingOfftimePipe } from "../matching-offtime.pipe";
         }
 
         #calendar ::ng-deep .ant-picker-cell-selected .ant-picker-cell-inner .date-header {
-          @apply text-gray-800;
+          @apply !text-gray-800;
+        }
+        #calendar ::ng-deep .ant-picker-cell-selected .ant-picker-cell-inner {
+          @apply !text-gray-800;
         }
 
         `
@@ -82,7 +86,8 @@ import { MatchingOfftimePipe } from "../matching-offtime.pipe";
     BrnTooltipModule,
     HlmTooltipModule,
     UserColorVarsDirective,
-    CdkTableModule
+    CdkTableModule,
+    HlmInputDirective
 ],
   providers: [
     ...provideIcons({
@@ -107,7 +112,6 @@ export class OffTimeCalendarOverviewComponent {
   public readonly dateCellRender: TemplateRef<Date>;
   
   // Template Signals and Variables
-  protected readonly loading = signal(false);
   protected readonly entries = signal<OffTimeEntry[]>([]);
   protected readonly hoveredEntryId = signal<string | null>(null);
   protected readonly _computedNativeDate = computed(() => {
@@ -128,18 +132,25 @@ export class OffTimeCalendarOverviewComponent {
   protected readonly trackEntry: TrackByFunction<OffTimeEntry> = (_, e) => e.id;
   
   constructor() {
+    let lastAbrtCtrl: AbortController | null = null;
+
     effect(() => {
       const date = this.calendarDate();
       const from = new Date(date.nativeDate.getFullYear(), date.getMonth(), 1)
       const to = new Date(date.nativeDate.getFullYear(), date.getMonth() + 1, 0);
       
-      this.loading.set(true);
+      if (lastAbrtCtrl !== null) {
+        lastAbrtCtrl.abort();
+      }
+      
+      const abrt = new AbortController();
+      lastAbrtCtrl = abrt;
 
       this.offTimeService
         .findOffTimeRequests({
           from: Timestamp.fromDate(from),
           to: Timestamp.fromDate(to),
-        })
+        }, {signal: abrt.signal})
         .catch(err => {
           const cErr = ConnectError.from(err);
           if (cErr.code !== Code.NotFound) {
@@ -149,8 +160,14 @@ export class OffTimeCalendarOverviewComponent {
           return new FindOffTimeRequestsResponse();
         })
         .then(response => {
-          this.loading.set(false);
-          this.entries.set(response.results || []);
+          if (abrt === lastAbrtCtrl) {
+            lastAbrtCtrl = null;
+          }
+
+          // drop the response if the user already changed again.
+          if (date === this.calendarDate()) {
+            this.entries.set(response.results || []);
+          }
         })
     }, { allowSignalWrites: true });
   }
@@ -175,6 +192,11 @@ export class OffTimeCalendarOverviewComponent {
     
     if (offSetInMonths !== undefined) {
       date = date.addMonths(offSetInMonths)
+    }
+    
+    // avoid reloading if nothing changed.
+    if (date.getTime() === this.calendarDate().getTime()) {
+      return
     }
     
     this.calendarDate.set(date);

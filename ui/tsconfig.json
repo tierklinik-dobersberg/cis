@@ -18,7 +18,10 @@
       "dom"
     ],
     "useDefineForClassFields": false,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "@angular/*": ["./node_modules/@angular/*"]
+    }
   },
   "angularCompilerOptions": {
     "strictTemplates": true

@@ -1,51 +1,50 @@
-<div class="commenter-container">
-  <nz-avatar nzIcon="user" nzSize="small" nzShape="square" [nzSrc]="(comment.comment.creatorId | toUser).user?.avatar">
-  </nz-avatar>
-
-  <div class="commenter">
-    <span class="username">{{ (comment.comment.creatorId | toUser | displayName) || 'Unbekannt' }}</span>
-    <span>erstellt am {{ comment.comment.createdAt | toDate | date:'short' }}</span>
-  </div>
-</div>
-<div class="comment-content">
+<div class="mt-2 flex flex-col gap-2 rounded-md border border-border p-2">
+  <app-avatar [user]="comment.comment.creatorId" showName="true" />
 
   @if (!rendered) {
-    <markdown emoji class="prose-sm prose prose-important">
-      {{comment.comment.content}}
+    <markdown emoji class="prose-important prose prose-sm">
+      {{ comment.comment.content }}
     </markdown>
   }
 
   @if (rendered) {
-    <div
-    class="prose prose-sm prose-important" [innerHTML]="safeContent"></div>
+    <div class="prose-important prose prose-sm" [innerHTML]="safeContent"></div>
   }
 
-</div>
+  <div class="flex flex-row items-center justify-between">
+    <span class="text-sm leading-3 text-gray-400">
+      erstellt am
+      {{ comment.comment.createdAt | toDate | date: 'short' }}
+    </span>
 
-@if (canReply) {
-  <p class="comment-actions">
-    <a (click)="toggleReply()">Antworten</a>
-  </p>
-}
-
-@if (reply) {
-  <div class="create-comment-container">
-    <app-text-input [(ngModel)]="commentText" format="markdown"></app-text-input>
-    <div class="actions">
-      <div>
-        <button nz-button nzType="primary" nzSize="small" (click)="replyComment()">Kommentieren</button>
-        <button nz-button nzType="text" nzSize="small" (click)="toggleReply()">Abbrechen</button>
-      </div>
-      <a href="https://guides.github.com/features/mastering-markdown/" target="_blank">Markdown</a>
-    </div>
+    @if (canReply) {
+      <button hlmBtn size="sm" variant="ghost" (click)="toggleReply()">
+        Antworten
+      </button>
+    }
   </div>
-}
+
+  @if (reply) {
+    <app-text-input
+      [(ngModel)]="commentText"
+      format="markdown"></app-text-input>
+    <div class="mt-2 flex flex-row gap-2">
+      <button hlmBtn (click)="replyComment()">Kommentieren</button>
+      <button hlmBtn variant="secondary" (click)="toggleReply()">
+        Abbrechen
+      </button>
+    </div>
+  }
+</div>
 
 @if (showReplies) {
   <div [class.replies]="nestedCount < nestedLimit">
     @for (reply of comment.answers; track reply) {
-      <app-comment [comment]="reply" (replied)="replied.next($event)"
-      [nestedLimit]="nestedLimit" [nestedCount]="nestedCount + 1"></app-comment>
+      <app-comment
+        [comment]="reply"
+        (replied)="replied.next($event)"
+        [nestedLimit]="nestedLimit"
+        [nestedCount]="nestedCount + 1"></app-comment>
     }
   </div>
 }

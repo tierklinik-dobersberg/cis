@@ -1,15 +1,35 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, TrackByFunction, inject } from "@angular/core";
-import { Timestamp } from '@bufbuild/protobuf';
+import { DatePipe, KeyValuePipe, NgClass } from "@angular/common";
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, model, signal } from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { RouterLink } from "@angular/router";
+import { PartialMessage, Timestamp } from '@bufbuild/protobuf';
 import { Code, ConnectError } from '@connectrpc/connect';
-import { CommentTree, FindOffTimeRequestsResponse, GetVacationCreditsLeftResponse, GetWorkTimeResponse, ListCommentsResponse, OffTimeEntry, OffTimeType, Profile, UserVacationSum, WorkTime } from '@tierklinik-dobersberg/apis';
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzModalService } from 'ng-zorro-antd/modal';
-import { ConfigAPI, UserService } from 'src/app/api';
+import { BrnAlertDialogModule } from "@spartan-ng/ui-alertdialog-brain";
+import { BrnSelectModule } from "@spartan-ng/ui-select-brain";
+import { BrnSheetModule } from "@spartan-ng/ui-sheet-brain";
+import { BrnTooltipModule } from "@spartan-ng/ui-tooltip-brain";
+import { HlmAlertDialogModule } from "@tierklinik-dobersberg/angular/alertdialog";
+import { injectCurrentProfile, injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
+import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
+import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
+import { DisplayNamePipe, DurationPipe, ToDatePipe, ToUserPipe } from "@tierklinik-dobersberg/angular/pipes";
+import { HlmSelectModule } from "@tierklinik-dobersberg/angular/select";
+import { HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
+import { HlmTooltipModule } from "@tierklinik-dobersberg/angular/tooltip";
+import { CommentTree, FindOffTimeRequestsResponse, GetVacationCreditsLeftResponse, GetWorkTimeResponse, ListCommentsResponse, OffTimeEntry, OffTimeType, UserVacationSum, WorkTime } from '@tierklinik-dobersberg/apis';
+import { NzSelectModule } from "ng-zorro-antd/select";
+import { NzTableModule } from "ng-zorro-antd/table";
+import { NzTabsModule } from "ng-zorro-antd/tabs";
+import { MarkdownModule } from "ngx-markdown";
+import { toast } from "ngx-sonner";
+import { ConfigAPI } from 'src/app/api';
 import { COMMENT_SERVICE, OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { MyEditor } from 'src/app/ckeditor';
+import { AppSheetTriggerDirective } from "src/app/components/sheet-trigger";
 import { HeaderTitleService } from "src/app/layout/header-title";
-import { LayoutService } from 'src/app/services';
-import { ProfileService } from "src/app/services/profile.service";
+import { CommentComponent } from "src/app/shared/comment";
+import { TextInputComponent } from "src/app/shared/text-input";
+import { OffTimeCalendarOverviewComponent } from "../offtime-calendar-overview/calendar-overview";
 
 enum FilterState {
   All,
@@ -27,6 +47,7 @@ const filterFuncs = {
 @Component({
   templateUrl: './offtime-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
   styles: [
     `
         #offtime-tab-set ::ng-deep > .ant-tabs-nav {
@@ -37,6 +58,34 @@ const filterFuncs = {
           @apply w-40 justify-center;
         }
         `
+  ],
+  imports: [
+    NgClass,
+    NzSelectModule,
+    DurationPipe,
+    FormsModule,
+    NzTabsModule,
+    NzTableModule,
+    MarkdownModule,
+    HlmTooltipModule,
+    BrnTooltipModule,
+    ToUserPipe,
+    ToDatePipe,
+    DisplayNamePipe,
+    DatePipe,
+    OffTimeCalendarOverviewComponent,
+    HlmSheetModule,
+    BrnSheetModule,
+    CommentComponent,
+    KeyValuePipe,
+    HlmButtonDirective,
+    HlmSelectModule,
+    BrnSelectModule,
+    RouterLink,
+    TextInputComponent,
+    AppSheetTriggerDirective,
+    HlmAlertDialogModule,
+    BrnAlertDialogModule,
   ]
 })
 export class OffTimeListComponent implements OnInit {
@@ -45,55 +94,52 @@ export class OffTimeListComponent implements OnInit {
   private readonly worktimeService = inject(WORKTIME_SERVICE);
   private readonly commentService = inject(COMMENT_SERVICE);
   private readonly configService = inject(ConfigAPI);
-  private readonly profileService = inject(ProfileService);
-  private readonly usersService = inject(UserService)
-  private readonly messageService = inject(NzMessageService);
-  private readonly modalService = inject(NzModalService)
-  private readonly cdr = inject(ChangeDetectorRef)
+  private readonly currentUser = injectCurrentProfile();
+  public readonly layout = inject(LayoutService);
 
-  public readonly Editor = MyEditor;
-  public readonly layout = inject(LayoutService).withAutoUpdate(this.cdr);
-  public readonly possibleFilters = {
+  protected readonly Editor = MyEditor;
+  protected readonly possibleFilters = {
     [FilterState.All]: 'Alle',
     [FilterState.OnlyNew]: 'Nur Neue'
   };
-  public readonly types = {
+
+  protected readonly types = {
     [OffTimeType.UNSPECIFIED]: 'Beliebig',
     [OffTimeType.TIME_OFF]: 'Zeitausgleich',
     [OffTimeType.VACATION]: 'Urlaub',
   };
 
-  newCommentText = ''
-  showEntryComments: OffTimeEntry | null = null;
-  comments: CommentTree[] = [];
-  profiles: Profile[] = [];
+  protected readonly commentText = model('');
+  protected readonly selectedEntry = signal<PartialMessage<OffTimeEntry> | null>(null);
+  protected readonly comments = signal<CommentTree[]>([]);
+  protected readonly profiles = injectUserProfiles();
+  protected readonly entries = signal<OffTimeEntry[]>([]);
+  protected readonly filterState = signal(FilterState.All);
+  protected readonly vacation = signal<UserVacationSum | null>(null);
+  protected readonly worktime = signal< WorkTime | null >(null);
+  protected readonly entryToDelete = signal<OffTimeEntry | null>(null);
 
-  createComment() {
-    if (this.newCommentText === '' || !this.showEntryComments) {
-      return;
+  protected readonly _computedFilteredEntries = computed(() => {
+    const profile = this.currentUser();
+    const entries = this.entries();
+        let filterFunc = filterFuncs[this.filterState()];
+        if (!filterFunc) {
+          filterFunc = filterFunc[FilterState.All]
+        }
+        
+    return entries.filter(entry => entry.requestorId === profile.user.id)
+        .filter(filterFunc)
+  })
+
+  protected readonly _loadCommentsEffect = effect(() => {
+    const entry = this.selectedEntry();
+
+    this.commentText.set('')
+    if (!entry) {
+      this.comments.set([]);
+      return
     }
 
-    this.commentService
-      .createComment({
-        content: this.newCommentText,
-        kind: {
-          case: 'root',
-          value: {
-            reference: this.showEntryComments.id,
-            scope: this.configService.current.UI?.OfftimeCommentScope,
-          }
-        },
-      })
-      .catch(err => {
-        this.messageService.error('Kommentar konnte nicht erstellt werden: ' + ConnectError.from(err).rawMessage)
-      })
-      .then(() => {
-        // reload
-        this.loadEntryComments(this.showEntryComments)
-      })
-  }
-
-  loadEntryComments(entry: OffTimeEntry) {
     this.commentService
       .listComments({
         scope: this.configService.current.UI?.OfftimeCommentScope,
@@ -102,25 +148,46 @@ export class OffTimeListComponent implements OnInit {
         renderHtml: true
       })
       .catch(err => {
+        const cerr = ConnectError.from(err);
+        if (cerr.code !== Code.NotFound) {
+          toast.error('Kommentare konnten nicht geladen werden', {
+            description: cerr.message
+          })
+        }
+        console.error(cerr);
+
         return new ListCommentsResponse()
       })
       .then(response => {
-        this.comments = response.result;
-
-        this.showEntryComments = entry;
-        this.newCommentText = '';
-
-        this.cdr.markForCheck();
+        this.comments.set(response.result);
       })
+  }, {allowSignalWrites: true});
+  
+  protected createComment() {
+    const comment = this.commentText();
+    const commentEntry = this.selectedEntry();
+    if (comment === '' || !commentEntry) {
+      return;
+    }
+
+    this.commentService
+      .createComment({
+        content: comment,
+        kind: {
+          case: 'root',
+          value: {
+            reference: commentEntry.id,
+            scope: this.configService.current.UI?.OfftimeCommentScope,
+          }
+        },
+      })
+      .catch(err => {
+        toast.error('Kommentar konnte nicht erstellt werden', {
+          description: ConnectError.from(err).message
+        })
+      })
+      .then(() => this.reloadComments())
   }
-
-  entries: OffTimeEntry[] = [];
-
-  filterState: FilterState = FilterState.All
-  vacation: UserVacationSum | null = null;
-  worktime: WorkTime | null = null;
-
-  trackEntry: TrackByFunction<OffTimeEntry> = (_, entry) => entry.id
 
   ngOnInit(): void {
     this.headerTitle
@@ -130,37 +197,37 @@ export class OffTimeListComponent implements OnInit {
   }
 
   deleteRequest(req: OffTimeEntry) {
-    this.modalService
-      .confirm({
-        nzTitle: 'Antrag löschen',
-        nzContent: 'Möchtest du den Urlaubsantrag wirklich löschen',
-        nzOkText: 'Ja, Löschen',
-        nzOkDanger: true,
-        nzCancelText: 'Nein',
-        nzOnOk: () => {
-          this.offTimeService
-            .deleteOffTimeRequest({
-              id: [req.id],
-            })
-            .then(() => {
-              this.load()
-              this.messageService.success('Antrag wurde erfolgreich gelöscht')
-            })
-            .catch(err => {
-              this.messageService.error('Antrag konnte nicht gelöscht werden: ' + ConnectError.from(err).rawMessage)
-            })
-        }
+    this.entryToDelete.set(null);
+
+    this.offTimeService
+      .deleteOffTimeRequest({
+        id: [req.id],
+      })
+      .then(() => {
+        this.load()
+        toast.success('Antrag wurde erfolgreich gelöscht')
+      })
+      .catch(err => {
+        toast.error('Antrag konnte nicht gelöscht werden', {description: ConnectError.from(err).message })
       })
   }
 
+  protected reloadComments() {
+    this.selectedEntry.set({...this.selectedEntry()});
+  }
+
   load() {
-    const messageRef = this.messageService.loading('Anträge werden geladen');
+    const messageRef = toast.loading('Urlaubsanträge werden geladen');
+    const userId = this.currentUser()?.user?.id; 
+    
+    if (!userId) {
+      return;
+    }
+
     const endOfYear = new Date(new Date().getFullYear()+1, 0, 1, 0, 0, 0, -1)
 
-    this.profiles = this.usersService.snapshot;
-
     this.worktimeService
-      .getWorkTime({userIds: [this.profileService.id]})
+      .getWorkTime({userIds: [userId]})
       .catch(err => {
         if (ConnectError.from(err).code !== Code.NotFound) {
           console.error(err);
@@ -169,15 +236,13 @@ export class OffTimeListComponent implements OnInit {
         return new GetWorkTimeResponse({results: []})
       })
       .then(response => {
-        this.worktime = response.results?.find(result => result.userId === this.profileService.id)?.current || null;
-
-        this.cdr.markForCheck();
+        this.worktime.set(response.results?.find(result => result.userId === userId)?.current || null);
       })
 
     this.worktimeService
       .getVacationCreditsLeft({
         forUsers: {
-          userIds: [this.profileService.snapshot.user.id]
+          userIds: [userId]
         },
         until: Timestamp.fromDate(endOfYear),
       })
@@ -189,36 +254,30 @@ export class OffTimeListComponent implements OnInit {
         return new GetVacationCreditsLeftResponse()
       })
       .then(response => {
-        this.vacation = response.results.find(sum => sum.userId === this.profileService.snapshot.user.id) || null;
-
-        this.cdr.markForCheck();
+        this.vacation.set(response.results.find(sum => sum.userId === userId) || null);
       })
 
     this.offTimeService
       .findOffTimeRequests({
         userIds: [
-          this.profileService.snapshot.user.id
+          userId
         ],
       })
       .catch(err => {
-        if (ConnectError.from(err).code !== Code.NotFound) {
-          console.error(err);
+        const cerr = ConnectError.from(err);
+        if (cerr.code !== Code.NotFound) {
+          toast.error('Urlaubsanträge konnte nicht geladen werden', {
+            description: cerr.message,
+          })
         }
 
         return new FindOffTimeRequestsResponse()
       })
       .then(response => {
-        let filterFunc = filterFuncs[this.filterState];
-        if (!filterFunc) {
-          filterFunc = filterFunc[FilterState.All]
-        }
 
-        this.entries = response.results
-          .filter(entry => entry.requestorId === this.profileService.snapshot.user.id)
-          .filter(filterFunc)
-
-        this.messageService.remove(messageRef.messageId);
-        this.cdr.markForCheck();
+        this.entries.set(response.results)
+          
+        toast.dismiss(messageRef)
       })
   }
 }

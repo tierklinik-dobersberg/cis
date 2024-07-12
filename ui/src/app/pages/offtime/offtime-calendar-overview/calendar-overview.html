@@ -1,7 +1,8 @@
 @if (mode() === 'list') {
-  <div class="flex w-full flex-row flex-wrap items-start gap-2">
+  <div class="flex w-full flex-col flex-nowrap items-center md:items-start gap-2 md:flex-row">
     <div
       class="flex w-96 flex-shrink-0 flex-grow-0 flex-col items-center justify-center gap-1">
+
       <div class="flex flex-row items-center justify-center gap-2 pb-1.5">
         <button
           hlmBtn
@@ -27,10 +28,11 @@
         </button>
       </div>
 
-      <div class="ant-picker-panel">
+      <div class="ant-picker-panel rounded-md border border-border">
         <div class="ant-picker-date-panel">
           <div class="ant-picker-body">
             <date-table
+              id="calendar"
               [selectedValue]="hoverValue()"
               [fullCellRender]="dateCell"
               prefixCls="ant-picker-calendar"
@@ -42,52 +44,50 @@
       </div>
     </div>
 
-    @if (layout.sm()) {
-      <brn-table
-        hlm
-        stickHeader
-        customTemplateDataRows="true"
-        class="mt-4 block min-h-[200px] flex-grow overflow-auto rounded-md border @container"
-        [dataSource]="entries()"
-        [displayedColumns]="_computedDisplayedColumns()"
-        [trackBy]="trackEntry">
-        <tkd-empty-table brnNoDataRow [totalCount]="0" [filteredCount]="0" />
+    <brn-table
+      hlm
+      stickHeader
+      customTemplateDataRows="true"
+      class="mt-4 block min-h-[200px] flex-grow self-stretch overflow-auto rounded-md border @container"
+      [dataSource]="entries()"
+      [displayedColumns]="_computedDisplayedColumns()"
+      [trackBy]="trackEntry">
+      <tkd-empty-table brnNoDataRow [totalCount]="0" [filteredCount]="0" />
 
-        <cdk-row
-          (mouseenter)="hoveredEntryId.set(row.id)"
-          (mouseleave)="hoveredEntryId.set(null)"
-          *cdkRowDef="let row; columns: _computedDisplayedColumns()"
-          class="flex w-fit min-w-[100%] border-b border-border transition-[background-color] hover:bg-muted/50 [&:has([role=checkbox][aria-checked=true])]:bg-muted" />
+      <cdk-row
+        (mouseenter)="hoveredEntryId.set(row.id)"
+        (mouseleave)="hoveredEntryId.set(null)"
+        *cdkRowDef="let row; columns: _computedDisplayedColumns()"
+        class="flex w-fit min-w-[100%] border-b border-border transition-[background-color] hover:bg-muted/50 [&:has([role=checkbox][aria-checked=true])]:bg-muted" />
 
-        <brn-column-def name="from" class="flex-[0_0_8rem]">
-          <hlm-th *brnHeaderDef> Von </hlm-th>
-          <hlm-td *brnCellDef="let entry">
-            {{ entry.from | toDate | date: 'mediumDate' }}
-          </hlm-td>
-        </brn-column-def>
+      <brn-column-def name="from" class="flex-[0_0_8rem]">
+        <hlm-th *brnHeaderDef> Von </hlm-th>
+        <hlm-td *brnCellDef="let entry">
+          {{ entry.from | toDate | date: 'mediumDate' }}
+        </hlm-td>
+      </brn-column-def>
 
-        <brn-column-def name="to" class="flex-[0_0_8rem]">
-          <hlm-th *brnHeaderDef> Bis </hlm-th>
-          <hlm-td *brnCellDef="let entry">
-            {{ entry.to | toDate | date: 'mediumDate' }}
-          </hlm-td>
-        </brn-column-def>
+      <brn-column-def name="to" class="flex-[0_0_8rem]">
+        <hlm-th *brnHeaderDef> Bis </hlm-th>
+        <hlm-td *brnCellDef="let entry">
+          {{ entry.to | toDate | date: 'mediumDate' }}
+        </hlm-td>
+      </brn-column-def>
 
-        <brn-column-def name="user" class="flex-[0_0_12rem]">
-          <hlm-th *brnHeaderDef> Mitarbeiter </hlm-th>
-          <hlm-td *brnCellDef="let entry">
-            <app-avatar [user]="entry.requestorId" showName="true" />
-          </hlm-td>
-        </brn-column-def>
+      <brn-column-def name="user" class="flex-[0_0_12rem]">
+        <hlm-th *brnHeaderDef> Mitarbeiter </hlm-th>
+        <hlm-td *brnCellDef="let entry">
+          <app-avatar [user]="entry.requestorId" showName="true" />
+        </hlm-td>
+      </brn-column-def>
 
-        <brn-column-def name="description" class="flex-[1_0_10rem]">
-          <hlm-th *brnHeaderDef> Beschreibung </hlm-th>
-          <hlm-td *brnCellDef="let entry">
-            {{ entry.description }}
-          </hlm-td>
-        </brn-column-def>
-      </brn-table>
-    }
+      <brn-column-def name="description" class="flex-[1_0_10rem]">
+        <hlm-th *brnHeaderDef> Beschreibung </hlm-th>
+        <hlm-td *brnCellDef="let entry">
+          {{ entry.description }}
+        </hlm-td>
+      </brn-column-def>
+    </brn-table>
   </div>
 
   <ng-template let-date #dateCell>
@@ -101,7 +101,7 @@
         <div
           class="ant-picker-cell-inner"
           [ngClass]="{
-            'border-b-2 border-red-700 border-opacity-50': dateEntries.length,
+            '!border-b-2 border-red-700 border-opacity-50': dateEntries.length,
             'bg-red-700 bg-opacity-50':
               hoveredEntryId() | inList: dateEntries : 'id',
           }"
@@ -130,7 +130,7 @@
           @for (entry of date | matchingOfftime: entries(); track entry.id) {
             @if (entry.requestorId | toUser: profiles(); as user) {
               <li
-                class="block rounded border border-[var(--user-color)] border-gray-100 px-1 py-0.5 text-gray-800 data-[active=true]:bg-[var(--user-color)] data-[active=true]:text-[var(--user-contrast)]"
+                class="block rounded border border-[var(--user-color)] px-1 py-0.5 text-gray-800 data-[active=true]:bg-[var(--user-color)] data-[active=true]:text-[var(--user-contrast)]"
                 [attr.data-active]="entry.id === hoveredEntryId()"
                 (mouseenter)="hoveredEntryId.set(entry.id)"
                 (mouseleave)="hoveredEntryId.set(null)"
