@@ -1,5 +1,5 @@
 import { NgStyle } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, input } from "@angular/core";
+import { booleanAttribute, ChangeDetectionStrategy, Component, computed, input } from "@angular/core";
 import { hlm } from '@spartan-ng/ui-core';
 import { avatarVariants, HlmAvatarModule } from '@tierklinik-dobersberg/angular/avatar';
 import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
@@ -27,11 +27,19 @@ export const defaultClasses = "";
         UserContrastColorPipe,
         UserLetterPipe,
     ],
+    styles: [
+        `
+        :host {
+            @apply inline-flex items-center gap-1 flex-nowrap overflow-hidden text-ellipsis whitespace-nowrap;
+        }
+        `,
+    ]
 })
 export class AppAvatarComponent {
     public readonly profileOrId = input.required<Profile | string>({alias: 'user'});
     public readonly variant = input<AvatarVariants['variant']>('medium');
     public readonly userClasses = input<ClassValue | ClassArray>([], {alias: "class"});
+    public readonly showName = input(false, {transform: booleanAttribute});
     
     protected readonly profiles = injectUserProfiles();
     

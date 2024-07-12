@@ -1,0 +1,51 @@
+import { computed, Directive, effect, ElementRef, inject, input, Renderer2, RendererStyleFlags2 } from "@angular/core";
+import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
+import { UserColorPipe, UserContrastColorPipe } from "@tierklinik-dobersberg/angular/pipes";
+import { Profile } from "@tierklinik-dobersberg/apis";
+
+@Directive({
+    selector: '[userColorVars]',
+    standalone: true,
+})
+export class UserColorVarsDirective {
+    private readonly profiles = injectUserProfiles();
+    private readonly renderer = inject(Renderer2);
+    private readonly host = inject(ElementRef);
+
+    public readonly user = input<Profile | string | null>(null, {
+        alias: 'userColorVars'
+    });
+    
+    private userColor = new UserColorPipe;
+    private contrastColor = new UserContrastColorPipe;
+    
+    protected readonly _computedStyle = computed(() => {
+        let user = this.user();
+        let profiles = this.profiles();
+        
+        if (typeof user === 'string')  {
+            user = profiles.find(p => p.user!.id === user);
+        }
+        
+        return {
+            '--user-color': this.userColor.transform(user),
+            '--user-contrast': this.contrastColor.transform(user),
+        }
+    })
+    
+    constructor() {
+        effect(() => {
+            const style = this._computedStyle();
+            
+            if (!this.host) {
+                return;
+            }
+            
+            Object.keys(style)
+                .forEach(key => {
+                    this.renderer.setStyle(this.host.nativeElement, key, style[key], RendererStyleFlags2.DashCase);
+                })
+        })
+    }
+}
+

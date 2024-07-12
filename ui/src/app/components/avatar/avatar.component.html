@@ -12,4 +12,8 @@
       >{{ profile | userLetter }}</span
     >
   </hlm-avatar>
+
+  @if (showName()) {
+    {{ profile | displayName }}
+  }
 }

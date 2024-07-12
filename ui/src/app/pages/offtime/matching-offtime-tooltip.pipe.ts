@@ -1,11 +1,12 @@
 import { Pipe, PipeTransform, inject } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { OffTimeEntry, Profile } from '@tierklinik-dobersberg/apis';
 import { DisplayNamePipe } from '@tierklinik-dobersberg/angular/pipes';
+import { OffTimeEntry, Profile } from '@tierklinik-dobersberg/apis';
 
 @Pipe({
   name: 'matchingOfftimeTooltip',
-  pure: true
+  pure: true,
+  standalone: true,
 })
 export class MatchingOfftimeTooltipPipe implements PipeTransform {
   private readonly sanitizer = inject(DomSanitizer);

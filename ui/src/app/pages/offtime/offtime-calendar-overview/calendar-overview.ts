@@ -1,12 +1,32 @@
-import { ChangeDetectionStrategy, Component, Input, EventEmitter, Output, inject, ViewChild, TemplateRef, ChangeDetectorRef, OnInit, OnChanges, SimpleChanges } from "@angular/core";
+import { CdkTableModule } from "@angular/cdk/table";
+import { DatePipe, NgClass } from "@angular/common";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, model, signal, TemplateRef, TrackByFunction, ViewChild } from "@angular/core";
+import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { Timestamp } from "@bufbuild/protobuf";
+import { Code, ConnectError } from "@connectrpc/connect";
+import { lucideArrowLeft, lucideArrowRight } from "@ng-icons/lucide";
+import { BrnTableModule } from '@spartan-ng/ui-table-brain';
+import { BrnTooltipModule } from "@spartan-ng/ui-tooltip-brain";
+import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
+import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { OFFTIME_SERVICE } from "@tierklinik-dobersberg/angular/connect";
-import { FindOffTimeRequestsResponse, OffTimeEntry, Profile } from "@tierklinik-dobersberg/apis";
+import { TkdEmptyTableComponent } from '@tierklinik-dobersberg/angular/empty-table';
+import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
+import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
+import { DisplayNamePipe, InListPipe, ToDatePipe, ToUserPipe, UserColorPipe, UserContrastColorPipe } from "@tierklinik-dobersberg/angular/pipes";
+import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
+import { HlmTooltipModule } from "@tierklinik-dobersberg/angular/tooltip";
+import { FindOffTimeRequestsResponse, OffTimeEntry } from "@tierklinik-dobersberg/apis";
+import { NzCalendarModule } from "ng-zorro-antd/calendar";
 import { CandyDate } from "ng-zorro-antd/core/time";
-import { LayoutService } from "src/app/services";
+import { LibPackerModule } from "ng-zorro-antd/date-picker";
+import { toast } from 'ngx-sonner';
+import { UserColorVarsDirective } from "src/app/components/user-color-vars";
 import { toDateString } from "src/app/utils";
-
+import { AppAvatarComponent } from "../../../components/avatar/avatar.component";
+import { MatchingOfftimeTooltipPipe } from "../matching-offtime-tooltip.pipe";
+import { MatchingOfftimePipe } from "../matching-offtime.pipe";
 
 @Component({
   selector: 'app-offtime-calendar-overview',
@@ -38,45 +58,104 @@ import { toDateString } from "src/app/utils";
         `
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    LibPackerModule,
+    NzCalendarModule,
+    DatePipe,
+    ToDatePipe,
+    DisplayNamePipe,
+    NgClass,
+    FormsModule,
+    MatchingOfftimePipe,
+    MatchingOfftimeTooltipPipe,
+    UserColorPipe,
+    UserContrastColorPipe,
+    InListPipe,
+    ToUserPipe,
+    HlmButtonDirective,
+    HlmIconModule,
+    HlmTableModule,
+    BrnTableModule,
+    TkdEmptyTableComponent,
+    AppAvatarComponent,
+    BrnTooltipModule,
+    HlmTooltipModule,
+    UserColorVarsDirective,
+    CdkTableModule
+],
+  providers: [
+    ...provideIcons({
+      lucideArrowLeft,
+      lucideArrowRight,
+    })
+  ]
 })
-export class OffTimeCalendarOverviewComponent implements OnInit, OnChanges {
-  readonly layout = inject(LayoutService).withAutoUpdate();
+export class OffTimeCalendarOverviewComponent {
+  protected readonly profiles = injectUserProfiles();
+  protected readonly layout = inject(LayoutService);
+
   private readonly offTimeService = inject(OFFTIME_SERVICE);
-  private readonly cdr = inject(ChangeDetectorRef)
   private readonly router = inject(Router)
 
+  // Inputs & Outputs
+  public readonly hoverValue = input<[CandyDate, CandyDate] | null>(null);
+  public readonly calendarDate = model<CandyDate>(new CandyDate());
+  public readonly mode = input<'list' | 'calendar'>('list')
+
   @ViewChild('dateCell', {read: TemplateRef, static: true})
-  dateCellRender: TemplateRef<Date>;
-
-  @Input() profiles: Profile[] = [];
-  @Input() hoverValue: [CandyDate, CandyDate] | null = null;
-
-  @Input()
-  calendarDate: CandyDate = new CandyDate();
-
-  @Output()
-  calendarDateChange = new EventEmitter<CandyDate>();
-
-  @Input()
-  mode: 'list' | 'calendar' = 'list';
-
-  hoveredEntryId: string | null = null;
-
-  existing: OffTimeEntry[] = [];
-
-  loading = false;
-
-  ngOnInit(): void {
-    this.load(this.calendarDate);
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if ('calendarDate' in changes && !changes['calendarDate'].isFirstChange()) {
-      this.load(this.calendarDate);
+  public readonly dateCellRender: TemplateRef<Date>;
+  
+  // Template Signals and Variables
+  protected readonly loading = signal(false);
+  protected readonly entries = signal<OffTimeEntry[]>([]);
+  protected readonly hoveredEntryId = signal<string | null>(null);
+  protected readonly _computedNativeDate = computed(() => {
+    return this.calendarDate().nativeDate;
+  })
+  protected readonly _computedDisplayedColumns = computed(() => {
+    const isMd = this.layout.md();
+    
+    if (isMd) {
+      return [
+        'from', 'to', 'user', 'description'
+      ];
     }
+      return [
+        'from', 'to', 'user'
+      ];
+  })
+  protected readonly trackEntry: TrackByFunction<OffTimeEntry> = (_, e) => e.id;
+  
+  constructor() {
+    effect(() => {
+      const date = this.calendarDate();
+      const from = new Date(date.nativeDate.getFullYear(), date.getMonth(), 1)
+      const to = new Date(date.nativeDate.getFullYear(), date.getMonth() + 1, 0);
+      
+      this.loading.set(true);
+
+      this.offTimeService
+        .findOffTimeRequests({
+          from: Timestamp.fromDate(from),
+          to: Timestamp.fromDate(to),
+        })
+        .catch(err => {
+          const cErr = ConnectError.from(err);
+          if (cErr.code !== Code.NotFound) {
+            toast.error('Anträge konnten nicht geladen werden', {description: cErr.message})
+          }
+          
+          return new FindOffTimeRequestsResponse();
+        })
+        .then(response => {
+          this.loading.set(false);
+          this.entries.set(response.results || []);
+        })
+    }, { allowSignalWrites: true });
   }
 
-  createEntry(date: Date) {
+  protected createEntry(date: Date) {
     this.router.navigate(['/offtime/create'], {
         queryParams: {
           d: toDateString(date),
@@ -85,36 +164,19 @@ export class OffTimeCalendarOverviewComponent implements OnInit, OnChanges {
     })
   }
 
-  load(date: CandyDate | Date) {
-    this.loading = true;
-    this.cdr.detectChanges();
+  protected switchDate(date: CandyDate | Date | null, offSetInMonths?: number) {
+    if (date === null) {
+      date = this.calendarDate();
+    }
 
     if (date instanceof Date) {
       date = new CandyDate(date)
     }
-
-    this.calendarDate = date;
-
-    const from = new Date(date.nativeDate.getFullYear(), date.getMonth(), 1)
-    const to = new Date(date.nativeDate.getFullYear(), date.getMonth() + 1, 0);
-
-    this.calendarDateChange.next(date);
-
-    try {
-      this.offTimeService
-        .findOffTimeRequests({
-          from: Timestamp.fromDate(from),
-          to: Timestamp.fromDate(to),
-        })
-        .catch(err => {
-          return new FindOffTimeRequestsResponse()
-        })
-        .then(response => {
-          this.existing = response.results || [];
-          this.loading = false;
-
-          this.cdr.markForCheck();
-        })
-    } catch(err) {
+    
+    if (offSetInMonths !== undefined) {
+      date = date.addMonths(offSetInMonths)
     }
-  }}
+    
+    this.calendarDate.set(date);
+  }
+}

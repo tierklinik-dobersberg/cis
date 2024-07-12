@@ -1,23 +1,40 @@
+import { NgClass } from "@angular/common";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from "@angular/core";
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from '@angular/router';
 import { Timestamp } from '@bufbuild/protobuf';
+import { CKEditorModule } from "@ckeditor/ckeditor5-angular";
 import { Code, ConnectError } from '@connectrpc/connect';
+import { DurationPipe } from "@tierklinik-dobersberg/angular/pipes";
 import { GetVacationCreditsLeftResponse, OffTimeEntry, OffTimeType, Profile, UserVacationSum } from "@tierklinik-dobersberg/apis";
 import { CandyDate } from 'ng-zorro-antd/core/time';
+import { NzDatePickerModule } from "ng-zorro-antd/date-picker";
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzSelectModule } from "ng-zorro-antd/select";
 import { UserService } from 'src/app/api';
 import { OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { MyEditor } from 'src/app/ckeditor';
 import { LayoutService } from 'src/app/services';
 import { ProfileService } from "src/app/services/profile.service";
 import { toDateString } from 'src/app/utils';
+import { OffTimeCalendarOverviewComponent } from "../offtime-calendar-overview/calendar-overview";
 
 const dateForDateTimeInputValue = date => new Date(date.getTime() + date.getTimezoneOffset() * -60 * 1000).toISOString().slice(0, 19);
 
 @Component({
   templateUrl: './offtime-create.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    NgClass,
+    NzDatePickerModule,
+    FormsModule,
+    OffTimeCalendarOverviewComponent,
+    NzSelectModule,
+    CKEditorModule,
+    DurationPipe
+  ]
 })
 export class OffTimeCreateComponent implements OnInit {
   private readonly offTimeSerivce = inject(OFFTIME_SERVICE);

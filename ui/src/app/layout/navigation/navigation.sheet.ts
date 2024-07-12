@@ -20,9 +20,9 @@ import { AppNavigationComponent } from './navigation.component';
         <hlm-icon name="lucideMenu" size="sm" />
       </button>
 
-      <hlm-sheet-content *brnSheetContent="let ctx">
+      <hlm-sheet-content *brnSheetContent="let ctx" class="w-64 p-0">
         <hlm-sheet-header>
-          <app-logo />
+          <app-logo class="ml-1 h-14 px-4 py-4" />
         </hlm-sheet-header>
         <app-navigation sheet="true" />
       </hlm-sheet-content>

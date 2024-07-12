@@ -1,37 +1,59 @@
-<div class="bg-white rounded shadow">
-
-  <div class="flex flex-row justify-between items-center p-4 border-b sm:p-6 md:p-8 border-gray-400" [ngClass]="{
-      '!flex-col gap-2': !layout.isTabletLandscapeUp
+<div class="rounded bg-white shadow">
+  <div
+    class="flex flex-row items-center justify-between border-b border-gray-400 p-4 sm:p-6 md:p-8"
+    [ngClass]="{
+      '!flex-col gap-2': !layout.isTabletLandscapeUp,
     }">
     <div>
-      <h1 class="text-lg text-lato text-sky-800">Urlaubsanträge & Zeitausgleich</h1>
-      @if (vacation && worktime && !worktime.excludeFromTimeTracking && layout.isTabletLandscapeUp) {
-        <span class="text-gray-500"
-          >
+      <h1 class="text-lato text-lg text-sky-800">
+        Urlaubsanträge & Zeitausgleich
+      </h1>
+      @if (
+        vacation &&
+        worktime &&
+        !worktime.excludeFromTimeTracking &&
+        layout.isTabletLandscapeUp
+      ) {
+        <span class="text-gray-500">
           Bis zum Ende des Jahres hast du noch
-        <span [ngClass]="{
-          'text-green-700': vacation.vacationCreditsLeft.seconds > 0,
-          'text-red-700': vacation.vacationCreditsLeft.seconds <= 0
-        }" class="font-medium underline">
-          {{ vacation.vacationCreditsLeft | duration:'default-hours':undefined:true }}</span>
-          Urlaubsanspruch.
-          Dein Zeitausgleich-Guthaben beträgt derzeit
-        <span [ngClass]="{
-          'text-green-700': vacation.timeOffCredits.seconds > 0,
-          'text-red-700': vacation.timeOffCredits.seconds <= 0
-        }" class="font-medium underline">
-          {{ vacation.timeOffCredits | duration:'default-hours':undefined:true }}</span>
+          <span
+            [ngClass]="{
+              'text-green-700': vacation.vacationCreditsLeft.seconds > 0,
+              'text-red-700': vacation.vacationCreditsLeft.seconds <= 0,
+            }"
+            class="font-medium underline">
+            {{
+              vacation.vacationCreditsLeft
+                | duration: 'default-hours' : undefined : true
+            }}</span
+          >
+          Urlaubsanspruch. Dein Zeitausgleich-Guthaben beträgt derzeit
+          <span
+            [ngClass]="{
+              'text-green-700': vacation.timeOffCredits.seconds > 0,
+              'text-red-700': vacation.timeOffCredits.seconds <= 0,
+            }"
+            class="font-medium underline">
+            {{
+              vacation.timeOffCredits
+                | duration: 'default-hours' : undefined : true
+            }}</span
+          >
         </span>
       }
     </div>
 
-    <div class="flex flex-row gap-4 items-center">
+    <div class="flex flex-row items-center gap-4">
       <div>
         <span class="text-gray-500">Filtern: </span>
-        <nz-select [(ngModel)]="filterState" (ngModelChange)="load()" class="w-32">
-          @for (state of (possibleFilters|keyvalue); track state) {
-            <nz-option [nzValue]="state.key"
-            [nzLabel]="state.value"></nz-option>
+        <nz-select
+          [(ngModel)]="filterState"
+          (ngModelChange)="load()"
+          class="w-32">
+          @for (state of possibleFilters | keyvalue; track state) {
+            <nz-option
+              [nzValue]="state.key"
+              [nzLabel]="state.value"></nz-option>
           }
         </nz-select>
       </div>
@@ -39,13 +61,11 @@
       <span class="block h-8 w-[1px] bg-gray-400"></span>
 
       <button hlmBtn routerLink="create">Neuer Antrag</button>
-
     </div>
   </div>
 
   <nz-tabset id="offtime-tab-set" [nzSelectedIndex]="0">
     <nz-tab nzTitle="Meine Anträge">
-
       <nz-table [nzData]="entries" #offTimeEntries>
         <thead>
           <!-- Desktop Header -->
@@ -64,21 +84,26 @@
         <tbody>
           <!-- Desktop View -->
           @if (layout.isTabletLandscapeUp) {
-            @for (entry of offTimeEntries.data; track trackEntry($index, entry)) {
+            @for (
+              entry of offTimeEntries.data;
+              track trackEntry($index, entry)
+            ) {
               <tr>
                 <td>
-                  <span>{{ entry.from | toDate | date:'mediumDate' }}</span>
+                  <span>{{ entry.from | toDate | date: 'mediumDate' }}</span>
                   <span class="text-gray-500"> bis </span>
-                  <span>{{ entry.to | toDate | date:'mediumDate' }}</span>
+                  <span>{{ entry.to | toDate | date: 'mediumDate' }}</span>
                 </td>
                 <td>
                   {{ types[entry.type] }}
                 </td>
                 <td>
-                  <markdown class="prose prose-sm" [data]="entry.description"></markdown>
+                  <markdown
+                    class="prose prose-sm"
+                    [data]="entry.description"></markdown>
                 </td>
                 <td>
-                  {{ entry.createdAt | toDate | date:'mediumDate'}}
+                  {{ entry.createdAt | toDate | date: 'mediumDate' }}
                   @if (entry.creatorId !== entry.requestorId) {
                     <span class="text-gray-500">
                       (von {{ entry.creatorId | toUser | displayName }})
@@ -87,11 +112,18 @@
                 </td>
                 <td>
                   @if (entry.approval) {
-<span [ngClass]="{
-              'text-green-700': entry.approval.approved,
-              'text-red-700': !entry.approval.approved
-            }" [nz-tooltip]="'Von ' + (entry.approval.approverId | toUser | displayName) + ' am ' + (entry.approval.approvedAt | toDate | date:'short')">
-                      {{ entry.approval.approved ? 'Bestätigt' : 'Abgelehnt'}}
+                    <span
+                      [ngClass]="{
+                        'text-green-700': entry.approval.approved,
+                        'text-red-700': !entry.approval.approved,
+                      }"
+                      [nz-tooltip]="
+                        'Von ' +
+                        (entry.approval.approverId | toUser | displayName) +
+                        ' am ' +
+                        (entry.approval.approvedAt | toDate | date: 'short')
+                      ">
+                      {{ entry.approval.approved ? 'Bestätigt' : 'Abgelehnt' }}
                     </span>
                   } @else {
                     <span class="text-gray-500">Noch nicht genehmigt</span>
@@ -99,16 +131,30 @@
                 </td>
                 <td>
                   <div class="flex flex-row justify-end gap-2">
-                    <button hlmBtn variant="ghost" (click)="loadEntryComments(entry)">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="w-4 h-4">
-                        <path stroke-linecap="round" stroke-linejoin="round"
+                    <button
+                      hlmBtn
+                      variant="ghost"
+                      (click)="loadEntryComments(entry)">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="h-4 w-4">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
                           d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
                       </svg>
                     </button>
                     @if (!entry.approval) {
-                      <button hlmBtn variant="outline"
-                      (click)="deleteRequest(entry)">Löschen</button>
+                      <button
+                        hlmBtn
+                        variant="outline"
+                        (click)="deleteRequest(entry)">
+                        Löschen
+                      </button>
                     }
                   </div>
                 </td>
@@ -118,24 +164,36 @@
 
           <!-- Mobile View -->
           @if (!layout.isTabletLandscapeUp) {
-            @for (entry of offTimeEntries.data; track trackEntry($index, entry)) {
+            @for (
+              entry of offTimeEntries.data;
+              track trackEntry($index, entry)
+            ) {
               <tr class="group-[foo]">
                 <td class="!border-0">
                   @if (entry.description) {
-                    <markdown class="prose prose-sm underline" [data]="entry.description">
+                    <markdown
+                      class="prose prose-sm underline"
+                      [data]="entry.description">
                     </markdown>
                   }
                   @if (!entry.description) {
-                    <span class="text-gray-500 italic">Keine Beschreibung</span>
+                    <span class="italic text-gray-500">Keine Beschreibung</span>
                   }
                 </td>
                 <td class="!border-0 text-right">
                   @if (entry.approval) {
-<span [ngClass]="{
-                'text-green-700': entry.approval.approved,
-                'text-red-700': !entry.approval.approved
-              }" [nz-tooltip]="'Von ' + (entry.approval.approverId | toUser | displayName) + ' am ' + (entry.approval.approvedAt | toDate | date:'short')">
-                      {{ entry.approval.approved ? 'Bestätigt' : 'Abgelehnt'}}
+                    <span
+                      [ngClass]="{
+                        'text-green-700': entry.approval.approved,
+                        'text-red-700': !entry.approval.approved,
+                      }"
+                      [nz-tooltip]="
+                        'Von ' +
+                        (entry.approval.approverId | toUser | displayName) +
+                        ' am ' +
+                        (entry.approval.approvedAt | toDate | date: 'short')
+                      ">
+                      {{ entry.approval.approved ? 'Bestätigt' : 'Abgelehnt' }}
                     </span>
                   } @else {
                     <span class="text-gray-500">Noch nicht genehmigt</span>
@@ -144,22 +202,35 @@
               </tr>
               <tr class="group-[foo] hover:group-[foo]:bg-text-gray-500">
                 <td>
-                  <span>{{ entry.from | toDate | date:'mediumDate' }}</span>
+                  <span>{{ entry.from | toDate | date: 'mediumDate' }}</span>
                   <span class="text-gray-500"> bis </span>
-                  <span>{{ entry.to | toDate | date:'mediumDate' }}</span>
+                  <span>{{ entry.to | toDate | date: 'mediumDate' }}</span>
                 </td>
                 <td>
                   <div class="flex flex-row justify-end gap-2">
-                    <button class="tkd-icon-btn-inverse tkd-primary tkd-small" (click)="loadEntryComments(entry)">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="w-4 h-4">
-                        <path stroke-linecap="round" stroke-linejoin="round"
+                    <button
+                      class="tkd-icon-btn-inverse tkd-primary tkd-small"
+                      (click)="loadEntryComments(entry)">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="h-4 w-4">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
                           d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
                       </svg>
                     </button>
                     @if (!entry.approval) {
-                      <button hlmBtn variant="outline"
-                      (click)="deleteRequest(entry)">Löschen</button>
+                      <button
+                        hlmBtn
+                        variant="outline"
+                        (click)="deleteRequest(entry)">
+                        Löschen
+                      </button>
                     }
                   </div>
                 </td>
@@ -172,35 +243,41 @@
 
     <nz-tab nzTitle="Übersicht">
       <div class="py-2">
-        <app-offtime-calendar-overview [profiles]="profiles"></app-offtime-calendar-overview>
+        <app-offtime-calendar-overview></app-offtime-calendar-overview>
       </div>
     </nz-tab>
 
     @if (layout.isTabletPortraitUp) {
       <nz-tab nzTitle="Kalendar">
         <div class="py-2">
-          <app-offtime-calendar-overview mode="calendar" [profiles]="profiles"></app-offtime-calendar-overview>
+          <app-offtime-calendar-overview
+            mode="calendar"></app-offtime-calendar-overview>
         </div>
       </nz-tab>
     }
-
   </nz-tabset>
 </div>
 
-
-<nz-drawer [nzVisible]="!!showEntryComments" (nzOnClose)="showEntryComments = null"
-  [nzWidth]="layout.isTabletPortraitUp ? '50vw' : '100vw'" nzTitle="Kommentare">
+<nz-drawer
+  [nzVisible]="!!showEntryComments"
+  (nzOnClose)="showEntryComments = null"
+  [nzWidth]="layout.isTabletPortraitUp ? '50vw' : '100vw'"
+  nzTitle="Kommentare">
   <div *nzDrawerContent>
     @for (comment of comments; track comment) {
-      <app-comment [comment]="comment" [rendered]="true" [canReply]="true"
-      (replied)="loadEntryComments(showEntryComments)"></app-comment>
+      <app-comment
+        [comment]="comment"
+        [rendered]="true"
+        [canReply]="true"
+        (replied)="loadEntryComments(showEntryComments)"></app-comment>
     }
 
     <div class="flex flex-col gap-2">
       <h2 class="text-base">Neuen Kommentar</h2>
-      <app-text-input format="markdown" [(ngModel)]="newCommentText"></app-text-input>
+      <app-text-input
+        format="markdown"
+        [(ngModel)]="newCommentText"></app-text-input>
       <button hlmBtn (click)="createComment()">Erstellen</button>
     </div>
-
   </div>
 </nz-drawer>

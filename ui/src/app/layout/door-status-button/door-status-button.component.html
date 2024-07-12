@@ -1,0 +1,47 @@
+<hlm-tooltip>
+  <button
+    hlmBtn
+    variant="secondary"
+    size="icon"
+    hlmTooltipTrigger
+    [class]="_computedBtnClass()"
+    [brnMenuTriggerFor]="doorMenu">
+    <hlm-icon
+      class="!stroke-1"
+      [name]="_computedIsLocked() ? 'lucideDoorClosed' : 'lucideDoorOpen'" />
+  </button>
+
+  <span hlm *brnTooltipContent>
+    @if (_computedIsLocked()) {
+      Gesperrt
+    } @else {
+      Geöffnet
+    }
+    bis {{ _computedUntil() }}
+  </span>
+</hlm-tooltip>
+
+<ng-template #doorMenu>
+  <app-menu>
+    <hlm-menu-label>
+      @if (_computedIsLocked()) {
+        Öffnen für ...
+      } @else {
+        Sperren für ...
+      }
+    </hlm-menu-label>
+    <hlm-menu-separator />
+    <button inset hlmMenuItem (click)="toggle('10m')">10 Minuten</button>
+    <button inset hlmMenuItem (click)="toggle('20m')">20 Minuten</button>
+    <button inset hlmMenuItem (click)="toggle('30m')">30 Minuten</button>
+    <button inset hlmMenuItem (click)="toggle('1h')">1 Stunde</button>
+    <button inset hlmMenuItem (click)="toggle('1h30m')">1.5 Stunden</button>
+    <button inset hlmMenuItem (click)="toggle('2h')">2 Stunden</button>
+  </app-menu>
+</ng-template>
+
+<hlm-sheet #sheet>
+  <hlm-sheet-content *brnSheetContent>
+    <ng-template *ngTemplateOutlet="doorMenu" />
+  </hlm-sheet-content>
+</hlm-sheet>

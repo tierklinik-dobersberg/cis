@@ -6,7 +6,7 @@
 
   <hlm-menu
     variant="menubar"
-    class="mt-4 w-56 flex-grow rounded-none border-none shadow-none">
+    class="mt-4 w-full flex-grow rounded-none border-none shadow-none">
     <hlm-menu-group class="space-y-1">
       <button
         hlmMenuItem
@@ -40,6 +40,8 @@
         [brnMenuTriggerFor]="offtimeMenu"
         class="px-4 py-2"
         #trigger="cdkMenuTriggerFor"
+        routerLink="/offtime"
+        routerLinkActive="bg-gray-100"
         (mouseenter)="trigger.isOpen() || trigger.open()">
         <hlm-icon name="lucideLayers" hlmMenuIcon />
         Urlaubsanträge
@@ -55,6 +57,7 @@
             hlmMenuItem
             class="px-4 py-2"
             routerLink="/offtime"
+            [routerLinkActiveOptions]="{ exact: true }"
             routerLinkActive="bg-gray-100">
             <hlm-icon name="lucideLayers" hlmMenuIcon />
             Alle anzeigen
@@ -63,6 +66,7 @@
           <button
             hlmMenuItem
             class="px-4 py-2"
+            [routerLinkActiveOptions]="{ exact: true }"
             routerLink="/offtime/create"
             routerLinkActive="bg-gray-100">
             <hlm-icon name="lucidePlus" hlmMenuIcon />

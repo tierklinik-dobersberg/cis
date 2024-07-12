@@ -11,9 +11,7 @@
     <app-header-title-outlet class="flex-grow"></app-header-title-outlet>
 
     <div class="flex items-center space-x-4">
-      @if (!layout.lg()) {
-        <app-navigation-sheet />
-      }
+      <app-door-status-button />
 
       @if (layout.sm()) {
         <app-redirect-emergency-button />
@@ -21,7 +19,7 @@
         <app-avatar [user]="profile()" [brnMenuTriggerFor]="menu" />
 
         <ng-template #menu>
-          <hlm-menu class="w-56">
+          <app-menu class="w-56">
             <hlm-menu-label>Mein Konto</hlm-menu-label>
             <hlm-menu-separator />
             <hlm-menu-group>
@@ -42,8 +40,12 @@
                 Administration
               </button>
             </hlm-menu-group>
-          </hlm-menu>
+          </app-menu>
         </ng-template>
+      }
+
+      @if (!layout.lg()) {
+        <app-navigation-sheet />
       }
     </div>
   </div>

@@ -4,6 +4,7 @@ import { OffTimeEntry } from '@tierklinik-dobersberg/apis';
 @Pipe({
   name: 'matchingOfftime',
   pure: true,
+  standalone: true,
 })
 export class MatchingOfftimePipe implements PipeTransform {
 

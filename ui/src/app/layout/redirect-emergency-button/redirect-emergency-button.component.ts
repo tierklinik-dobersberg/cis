@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
+import { RouterLink } from "@angular/router";
 import { BrnTooltipModule } from '@spartan-ng/ui-tooltip-brain';
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
@@ -13,6 +14,7 @@ import { EmergencyTargetService } from "./emergency-target.service";
         HlmButtonDirective,
         BrnTooltipModule,
         HlmTooltipModule,
+        RouterLink
     ]
 })
 export class AppRedirectEmergencyButtonComponent { 

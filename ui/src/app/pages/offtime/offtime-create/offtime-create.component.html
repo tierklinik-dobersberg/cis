@@ -1,81 +1,137 @@
-<div class="bg-white rounded shadow">
-  <div class="flex flex-row justify-between items-center p-4 border-b sm:p-6 md:p-8 border-gray-400">
+<div class="rounded bg-white shadow">
+  <div
+    class="flex flex-row items-center justify-between border-b border-gray-400 p-4 sm:p-6 md:p-8">
     <div>
-      <h1 class="text-lg text-lato text-sky-800">Antrag auf Urlaub/Zeitausgleich</h1>
+      <h1 class="text-lato text-lg text-sky-800">
+        Antrag auf Urlaub/Zeitausgleich
+      </h1>
       @if (vacation && layout.isTabletPortraitUp) {
         <span class="text-gray-500">
           Bis zum Ende des Jahres hast du noch
-        <span [ngClass]="{
-          'text-green-700': vacation.vacationCreditsLeft.seconds > 0,
-          'text-red-700': vacation.vacationCreditsLeft.seconds <= 0
-        }" class="font-medium underline">
-          {{ vacation.vacationCreditsLeft | duration:'default-hours':undefined:true }}</span>
-          Urlaubsanspruch.
-          Dein Zeitausgleich-Guthaben beträgt derzeit
-        <span [ngClass]="{
-          'text-green-700': vacation.timeOffCredits.seconds > 0,
-          'text-red-700': vacation.timeOffCredits.seconds <= 0
-        }" class="font-medium underline">
-          {{ vacation.timeOffCredits | duration:'default-hours':undefined:true }}</span>
+          <span
+            [ngClass]="{
+              'text-green-700': vacation.vacationCreditsLeft.seconds > 0,
+              'text-red-700': vacation.vacationCreditsLeft.seconds <= 0,
+            }"
+            class="font-medium underline">
+            {{
+              vacation.vacationCreditsLeft
+                | duration: 'default-hours' : undefined
+            }}</span
+          >
+          Urlaubsanspruch. Dein Zeitausgleich-Guthaben beträgt derzeit
+          <span
+            [ngClass]="{
+              'text-green-700': vacation.timeOffCredits.seconds > 0,
+              'text-red-700': vacation.timeOffCredits.seconds <= 0,
+            }"
+            class="font-medium underline">
+            {{
+              vacation.timeOffCredits | duration: 'default-hours' : undefined
+            }}</span
+          >
         </span>
       }
     </div>
   </div>
 
-  <form class="flex flex-col" (ngSubmit)="createRequest()" #requestForm="ngForm">
-    <div class="border-b border-gray-400 p-4 flex flex-col gap-3 justify-start items-start relative pl-16">
+  <form
+    class="flex flex-col"
+    (ngSubmit)="createRequest()"
+    #requestForm="ngForm">
+    <div
+      class="relative flex flex-col items-start justify-start gap-3 border-b border-gray-400 p-4 pl-16">
       <label
-      class="absolute left-0 top-0 p-2 bg-gray-100 w-12 flex flex-col items-center justify-center bottom-0 text-xl text-sky-800">1.</label>
+        class="absolute bottom-0 left-0 top-0 flex w-12 flex-col items-center justify-center bg-gray-100 p-2 text-xl text-sky-800"
+        >1.</label
+      >
 
-      <label class="text-gray-500 text-sm">Bitte wähle den gewünschten Zeitraum:</label>
-      <label nz-checkbox name="wholeDays" [ngModel]="!showTime" (ngModelChange)="toggleShowTime()">Ganze Tage</label>
+      <label class="text-sm text-gray-500"
+        >Bitte wähle den gewünschten Zeitraum:</label
+      >
+      <label
+        nz-checkbox
+        name="wholeDays"
+        [ngModel]="!showTime"
+        (ngModelChange)="toggleShowTime()"
+        >Ganze Tage</label
+      >
 
       <!-- Date-range picker on Desktop -->
       @if (layout.isTabletPortraitUp) {
-        <nz-range-picker [(ngModel)]="dateRange" [nzShowTime]="showTime" required name="daterange"
-        (ngModelChange)="updateDateRange('both')" [nzDateRender]="view.dateCellRender"></nz-range-picker>
+        <nz-range-picker
+          [(ngModel)]="dateRange"
+          [nzShowTime]="showTime"
+          required
+          name="daterange"
+          (ngModelChange)="updateDateRange('both')"
+          [nzDateRender]="view.dateCellRender"></nz-range-picker>
       }
-
 
       <!-- Mobile "date-range" picker -->
       @if (!layout.isTabletPortraitUp) {
-        <div class="flex flex-col gap-1 w-full">
-          <label class="text-gray-500 text-sm">Von</label>
-          <input [attr.type]="showTime ? 'datetime-local' : 'date'" required class="tkd-input" name="from"
-            [(ngModel)]="from" (ngModelChange)="updateDateRange('from')">
+        <div class="flex w-full flex-col gap-1">
+          <label class="text-sm text-gray-500">Von</label>
+          <input
+            [attr.type]="showTime ? 'datetime-local' : 'date'"
+            required
+            class="tkd-input"
+            name="from"
+            [(ngModel)]="from"
+            (ngModelChange)="updateDateRange('from')" />
         </div>
-        <div class="flex flex-col gap-1 w-full">
-          <label class="text-gray-500 text-sm">Bis</label>
-          <input [attr.type]="showTime ? 'datetime-local' : 'date'" required class="tkd-input" name="to"
-            [(ngModel)]="to" (ngModelChange)="updateDateRange('to')">
+        <div class="flex w-full flex-col gap-1">
+          <label class="text-sm text-gray-500">Bis</label>
+          <input
+            [attr.type]="showTime ? 'datetime-local' : 'date'"
+            required
+            class="tkd-input"
+            name="to"
+            [(ngModel)]="to"
+            (ngModelChange)="updateDateRange('to')" />
         </div>
       }
     </div>
 
-    <div class="border-b border-gray-400 p-4 flex flex-col gap-2 justify-start items-start relative pl-16">
+    <div
+      class="relative flex flex-col items-start justify-start gap-2 border-b border-gray-400 p-4 pl-16">
       <label
-      class="absolute left-0 top-0 p-2 bg-gray-100 w-12 flex flex-col items-center justify-center bottom-0 text-xl text-sky-800"></label>
+        class="absolute bottom-0 left-0 top-0 flex w-12 flex-col items-center justify-center bg-gray-100 p-2 text-xl text-sky-800"></label>
 
-      <label class="text-gray-500 text-sm">Vorhandene Urlaubsanträge:</label>
+      <label class="text-sm text-gray-500">Vorhandene Urlaubsanträge:</label>
 
-      <app-offtime-calendar-overview class="block w-full" #view="calendarView" [hoverValue]="hoverValue" [calendarDate]="calendarDate" [profiles]="profiles"></app-offtime-calendar-overview>
-
+      <app-offtime-calendar-overview
+        class="block w-full"
+        #view="calendarView"
+        [hoverValue]="hoverValue"
+        [calendarDate]="calendarDate" />
     </div>
 
-
-    <div class="border-b border-gray-400 p-4 flex flex-col gap-3 justify-start items-start relative pl-16">
+    <div
+      class="relative flex flex-col items-start justify-start gap-3 border-b border-gray-400 p-4 pl-16">
       <label
-      class="absolute left-0 top-0 p-2 bg-gray-100 w-12 flex flex-col items-center justify-center bottom-0 text-xl text-sky-800">2.</label>
+        class="absolute bottom-0 left-0 top-0 flex w-12 flex-col items-center justify-center bg-gray-100 p-2 text-xl text-sky-800"
+        >2.</label
+      >
 
-      <label class="text-gray-500 text-sm">Hier kannst du eine zusätzliche Beschreibung angeben:</label>
-      <ckeditor class="max-w-full w-full" [editor]="Editor" [(ngModel)]="description" name="description"></ckeditor>
+      <label class="text-sm text-gray-500"
+        >Hier kannst du eine zusätzliche Beschreibung angeben:</label
+      >
+      <ckeditor
+        class="w-full max-w-full"
+        [editor]="Editor"
+        [(ngModel)]="description"
+        name="description"></ckeditor>
     </div>
 
-    <div class="border-b border-gray-400 p-4 flex flex-col gap-3 justify-start items-start relative pl-16">
+    <div
+      class="relative flex flex-col items-start justify-start gap-3 border-b border-gray-400 p-4 pl-16">
       <label
-      class="absolute left-0 top-0 p-2 bg-gray-100 w-12 flex flex-col items-center justify-center bottom-0 text-xl text-sky-800">3.</label>
+        class="absolute bottom-0 left-0 top-0 flex w-12 flex-col items-center justify-center bg-gray-100 p-2 text-xl text-sky-800"
+        >3.</label
+      >
 
-      <label class="text-gray-500 text-sm">Bitte wähle die Antragsart:</label>
+      <label class="text-sm text-gray-500">Bitte wähle die Antragsart:</label>
       <nz-select [(ngModel)]="offTimeType" required name="type" class="w-40">
         <nz-option nzLabel="Beliebig" nzValue="auto"></nz-option>
         <nz-option nzLabel="Urlaub" nzValue="vacation"></nz-option>
@@ -83,12 +139,16 @@
       </nz-select>
     </div>
 
-    <div class="border-b border-gray-400 p-4 flex flex-col gap-2 justify-start items-start relative pl-16">
+    <div
+      class="relative flex flex-col items-start justify-start gap-2 border-b border-gray-400 p-4 pl-16">
       <label
-      class="absolute left-0 top-0 p-2 bg-gray-100 w-12 flex flex-col items-center justify-center bottom-0 text-xl text-sky-800">4.</label>
+        class="absolute bottom-0 left-0 top-0 flex w-12 flex-col items-center justify-center bg-gray-100 p-2 text-xl text-sky-800"
+        >4.</label
+      >
 
-      <button hlmBtn type="submit" [disabled]="requestForm.invalid">Antrag erstellen</button>
+      <button hlmBtn type="submit" [disabled]="requestForm.invalid">
+        Antrag erstellen
+      </button>
     </div>
-
   </form>
 </div>
