@@ -1,5 +1,5 @@
 import { DatePipe, KeyValuePipe, NgClass } from "@angular/common";
-import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, model, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, model, OnInit, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { RouterLink } from "@angular/router";
 import { PartialMessage, Timestamp } from '@bufbuild/protobuf';
@@ -30,19 +30,7 @@ import { HeaderTitleService } from "src/app/layout/header-title";
 import { CommentComponent } from "src/app/shared/comment";
 import { TextInputComponent } from "src/app/shared/text-input";
 import { OffTimeCalendarOverviewComponent } from "../offtime-calendar-overview/calendar-overview";
-
-enum FilterState {
-  All,
-  OnlyNew,
-}
-
-const filterFuncs = {
-  [FilterState.All]: () => true,
-  [FilterState.OnlyNew]: (entry: OffTimeEntry) => {
-    const now = new Date().getTime();
-    return entry.from.toDate().getTime() >= now || entry.to.toDate().getTime() >= now;
-  },
-}
+import { AppOffTimeFilterSheetComponent, filterOffTimeEntries, OffTimeFilter } from "./offtime-filter";
 
 @Component({
   templateUrl: './offtime-list.component.html',
@@ -86,6 +74,7 @@ const filterFuncs = {
     AppSheetTriggerDirective,
     HlmAlertDialogModule,
     BrnAlertDialogModule,
+    AppOffTimeFilterSheetComponent,
   ]
 })
 export class OffTimeListComponent implements OnInit {
@@ -98,10 +87,7 @@ export class OffTimeListComponent implements OnInit {
   public readonly layout = inject(LayoutService);
 
   protected readonly Editor = MyEditor;
-  protected readonly possibleFilters = {
-    [FilterState.All]: 'Alle',
-    [FilterState.OnlyNew]: 'Nur Neue'
-  };
+
 
   protected readonly types = {
     [OffTimeType.UNSPECIFIED]: 'Beliebig',
@@ -114,21 +100,27 @@ export class OffTimeListComponent implements OnInit {
   protected readonly comments = signal<CommentTree[]>([]);
   protected readonly profiles = injectUserProfiles();
   protected readonly entries = signal<OffTimeEntry[]>([]);
-  protected readonly filterState = signal(FilterState.All);
   protected readonly vacation = signal<UserVacationSum | null>(null);
   protected readonly worktime = signal< WorkTime | null >(null);
   protected readonly entryToDelete = signal<OffTimeEntry | null>(null);
+  protected readonly filter = model<OffTimeFilter>();
 
   protected readonly _computedFilteredEntries = computed(() => {
-    const profile = this.currentUser();
+    const filter = this.filter();
     const entries = this.entries();
-        let filterFunc = filterFuncs[this.filterState()];
-        if (!filterFunc) {
-          filterFunc = filterFunc[FilterState.All]
-        }
-        
-    return entries.filter(entry => entry.requestorId === profile.user.id)
-        .filter(filterFunc)
+    
+    // wait for the first filter state
+    if (!filter) {
+      return [];
+    }
+
+    console.log("applying filter", filter)
+    
+    const result = filterOffTimeEntries(entries, filter);
+    
+    console.log("filtered result", result)
+
+    return result;
   })
 
   protected readonly _loadCommentsEffect = effect(() => {
@@ -258,11 +250,7 @@ export class OffTimeListComponent implements OnInit {
       })
 
     this.offTimeService
-      .findOffTimeRequests({
-        userIds: [
-          userId
-        ],
-      })
+      .findOffTimeRequests({})
       .catch(err => {
         const cerr = ConnectError.from(err);
         if (cerr.code !== Code.NotFound) {

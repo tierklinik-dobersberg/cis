@@ -1,0 +1,87 @@
+<hlm-sheet>
+  <button
+    hlmBtn
+    [variant]="_computedFilterButtonVariant()"
+    brnSheetTrigger
+    [side]="sheetSide()">
+    Filtern
+  </button>
+
+  <hlm-sheet-content *brnSheetContent="let ctx">
+    <hlm-sheet-header>
+      <h3 hlmSheetTitle>Filter</h3>
+      <p hlmSheetDescription>Urlaubsanträge filtern</p>
+    </hlm-sheet-header>
+
+    <div class="space-y-2">
+      <brn-separator hlm decorative />
+
+      <section>
+        <label hlmLabel for="state">
+          Welche Anträge sollten angezeigt werden:
+        </label>
+
+        <brn-select name="state" [(ngModel)]="state">
+          <hlm-select-trigger class="w-full">
+            <hlm-select-value />
+          </hlm-select-trigger>
+
+          <hlm-select-content>
+            <hlm-option value="all">Alle Anträge</hlm-option>
+            <hlm-option value="new">Neue Anträge</hlm-option>
+            <hlm-option value="approved">Genehmigte Anträge</hlm-option>
+            <hlm-option value="rejected">Abgelehnte Anträge</hlm-option>
+          </hlm-select-content>
+        </brn-select>
+      </section>
+
+      <brn-separator hlm decorative />
+
+      <section>
+        <label hlmLabel for="userIds"> Nach Mitarbeitern filtern: </label>
+
+        <brn-select name="user" [(ngModel)]="userIds" [multiple]="true">
+          <hlm-select-trigger class="w-full">
+            <app-select-user-value />
+          </hlm-select-trigger>
+
+          <hlm-select-content class="h-64">
+            @for (profile of profiles(); track profile.user.id) {
+              <hlm-option [value]="profile.user.id">
+                <app-avatar [user]="profile" showName="true" variant="small" />
+              </hlm-option>
+            }
+          </hlm-select-content>
+        </brn-select>
+      </section>
+
+      <brn-separator hlm decorative />
+
+      <section>
+        <label hlmLabel for="from">
+          Von
+          <input
+            type="datetime-local"
+            [(ngModel)]="from"
+            hlmInput
+            name="from" />
+        </label>
+
+        <label hlmLabel for="from">
+          Bis
+          <input type="datetime-local" [(ngModel)]="to" hlmInput name="to" />
+        </label>
+      </section>
+
+      <brn-separator hlm decorative />
+    </div>
+
+    <hlm-sheet-footer class="flex flex-row flex-wrap items-center gap-2">
+      <button hlmBtn variant="secondary" (click)="reset(); ctx.close()">
+        Zurücksetzten
+      </button>
+
+      <button hlmBtn (click)="apply(); ctx.close()">Anwenden</button>
+    </hlm-sheet-footer>
+  </hlm-sheet-content>
+</hlm-sheet>

@@ -7,6 +7,7 @@ import { CKEditorModule } from "@ckeditor/ckeditor5-angular";
 import { Code, ConnectError } from '@connectrpc/connect';
 import { BrnAlertDialogModule } from '@spartan-ng/ui-alertdialog-brain';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
+import { BrnSheetModule } from "@spartan-ng/ui-sheet-brain";
 import { HlmAlertDialogModule } from "@tierklinik-dobersberg/angular/alertdialog";
 import { injectCurrentProfile, injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
@@ -16,6 +17,7 @@ import { HlmLabelModule } from '@tierklinik-dobersberg/angular/label';
 import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
 import { DurationPipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
+import { HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
 import { GetVacationCreditsLeftResponse, OffTimeType, UserVacationSum } from "@tierklinik-dobersberg/apis";
 import { CandyDate } from 'ng-zorro-antd/core/time';
 import { NzDatePickerModule } from "ng-zorro-antd/date-picker";
@@ -47,7 +49,9 @@ const dateForDateTimeInputValue = date => new Date(date.getTime() + date.getTime
     HlmLabelModule,
     HlmCheckboxModule,
     HlmAlertDialogModule,
-    BrnAlertDialogModule
+    BrnAlertDialogModule,
+    HlmSheetModule,
+    BrnSheetModule,
   ]
 })
 export class OffTimeCreateComponent implements OnInit {

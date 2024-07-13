@@ -43,22 +43,7 @@
     </div>
 
     <div class="flex flex-row items-center gap-4">
-      <div>
-        <label for="filter" class="text-gray-500">Filtern: </label>
-        <nz-select
-          name="filter"
-          [(ngModel)]="filterState"
-          (ngModelChange)="load()"
-          class="w-32">
-          @for (state of possibleFilters | keyvalue; track state) {
-            <nz-option
-              [nzValue]="state.key"
-              [nzLabel]="state.value"></nz-option>
-          }
-        </nz-select>
-      </div>
-
-      <span class="block h-8 w-[1px] bg-gray-400"></span>
+      <app-offtime-filter-sheet (filter)="filter.set($event)" />
 
       <button hlmBtn routerLink="create" class="whitespace-nowrap">
         Neuer Antrag
@@ -68,7 +53,7 @@
 
   <nz-tabset id="offtime-tab-set" [nzSelectedIndex]="0">
     <nz-tab nzTitle="Meine Anträge">
-      <nz-table [nzData]="entries()" #offTimeEntries>
+      <nz-table [nzData]="_computedFilteredEntries()" #offTimeEntries>
         <thead>
           <!-- Desktop Header -->
           @if (layout.md()) {

@@ -133,21 +133,65 @@
 
       <label for="type" hlmLabel> Bitte wähle die Antragsart: </label>
 
-      <brn-select
-        placeholder="Bitte auswählen"
-        required
-        [(ngModel)]="offTimeType"
-        name="type">
-        <hlm-select-trigger class="w-56">
-          <hlm-select-value />
-        </hlm-select-trigger>
+      @if (layout.lg()) {
+        <brn-select
+          placeholder="Bitte auswählen"
+          required
+          [(ngModel)]="offTimeType"
+          name="type">
+          <hlm-select-trigger class="w-56">
+            <hlm-select-value />
+          </hlm-select-trigger>
 
-        <hlm-select-content>
-          <hlm-option value="auto">Beliebig</hlm-option>
-          <hlm-option value="vacation">Urlaub</hlm-option>
-          <hlm-option value="timeoff">Zeitausgleich</hlm-option>
-        </hlm-select-content>
-      </brn-select>
+          <hlm-select-content>
+            <hlm-option value="auto">Beliebig</hlm-option>
+            <hlm-option value="vacation">Urlaub</hlm-option>
+            <hlm-option value="timeoff">Zeitausgleich</hlm-option>
+          </hlm-select-content>
+        </brn-select>
+      } @else {
+        <hlm-sheet side="bottom">
+          <button
+            hlmBtn
+            variant="secondary"
+            class="border border-border"
+            brnSheetTrigger>
+            {{ offTimeType() }}
+          </button>
+
+          <hlm-sheet-content *brnSheetContent="let ctx">
+            <hlm-sheet-header>
+              <h3 hlmSheetTitle>Antrags-Art</h3>
+            </hlm-sheet-header>
+
+            <div class="flex flex-col items-stretch justify-start gap-1">
+              <button
+                hlmBtn
+                variant="ghost"
+                class="w-full"
+                (click)="offTimeType.set('auto'); ctx.close()">
+                Beliebig
+              </button>
+
+              <button
+                hlmBtn
+                variant="ghost"
+                class="w-full"
+                (click)="offTimeType.set('vacation'); ctx.close()">
+                Urlaub
+              </button>
+
+              <button
+                hlmBtn
+                variant="ghost"
+                class="w-full"
+                (click)="offTimeType.set('timeoff'); ctx.close()">
+                Zeitausgleich
+              </button>
+            </div>
+          </hlm-sheet-content>
+        </hlm-sheet>
+      }
     </div>
 
     <div
