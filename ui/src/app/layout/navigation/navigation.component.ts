@@ -1,17 +1,15 @@
 import { CdkMenu } from '@angular/cdk/menu';
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, ViewChild, ViewEncapsulation, booleanAttribute, inject, input, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { booleanAttribute, ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, OnInit, signal, untracked, ViewChild, ViewEncapsulation } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { lucideCalendar, lucideCircuitBoard, lucideCopyright, lucideFileAudio, lucideFilm, lucideHome, lucideLayers, lucidePlus, lucideTimer, lucideUserCircle } from '@ng-icons/lucide';
+import { lucideCalendar, lucideCircuitBoard, lucideCopyright, lucideFileAudio, lucideFilm, lucideHome, lucideLayers, lucidePhoneCall, lucidePlus, lucideTimer, lucideUserCircle } from '@ng-icons/lucide';
 import { BrnMenuModule } from '@spartan-ng/ui-menu-brain';
 import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { HlmMenuModule } from '@tierklinik-dobersberg/angular/menu';
 import { HlmSheetHeaderComponent } from '@tierklinik-dobersberg/angular/sheet';
 import { environment } from 'src/environments/environment';
-import { ConfigAPI, UIConfig, VoiceMailAPI } from '../../api';
-import { ProfileService } from '../../services';
+import { injectCurrentConfig, UIConfig, VoiceMailAPI } from '../../api';
 import { AppLogo } from './logo.component';
 
 interface MenuEntry {
@@ -55,15 +53,15 @@ interface SubMenu {
       lucideFileAudio,
       lucideCopyright,
       lucidePlus,
-      lucideCircuitBoard
+      lucideCircuitBoard,
+      lucidePhoneCall
     })
   ]
 })
 export class AppNavigationComponent implements OnInit {
   protected readonly layout = inject(LayoutService);
   protected readonly voiceService = inject(VoiceMailAPI);
-  protected readonly profileService = inject(ProfileService);
-  protected readonly config = inject(ConfigAPI);
+  protected readonly config = injectCurrentConfig()
   protected readonly destroyRef = inject(DestroyRef);
   
   protected readonly rootLinks = signal<MenuEntry[]>([]);
@@ -87,15 +85,14 @@ export class AppNavigationComponent implements OnInit {
         originX: "start"
       }
     }
-
-    this.config
-      .change
-      .pipe(
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe(cfg => {
-        this.applyConfig(cfg);
-      })
+  }
+  
+  constructor() {
+    effect(() => {
+      const config = this.config();
+      
+      untracked(() => this.applyConfig(config))
+    }, { allowSignalWrites: true })
   }
 
   private applyConfig(cfg: UIConfig | null): void {

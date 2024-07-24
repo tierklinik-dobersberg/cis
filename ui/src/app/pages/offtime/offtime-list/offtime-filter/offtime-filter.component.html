@@ -57,19 +57,25 @@
 
       <brn-separator hlm decorative />
 
-      <section>
-        <label hlmLabel for="from">
+      <section class="flex flex-row flex-wrap gap-2">
+        <label hlmLabel for="from" class="flex-grow">
           Von
           <input
             type="datetime-local"
             [(ngModel)]="from"
             hlmInput
+            class="w-full"
             name="from" />
         </label>
 
-        <label hlmLabel for="from">
+        <label hlmLabel for="from" class="flex-grow">
           Bis
-          <input type="datetime-local" [(ngModel)]="to" hlmInput name="to" />
+          <input
+            type="datetime-local"
+            [(ngModel)]="to"
+            hlmInput
+            name="to"
+            class="w-full" />
         </label>
       </section>
 

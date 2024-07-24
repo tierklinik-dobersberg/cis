@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, effect, model, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, model, output, ViewChild } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { BrnSelectModule } from "@spartan-ng/ui-select-brain";
 import { BrnSeparatorModule } from '@spartan-ng/ui-separator-brain';
-import { BrnSheetModule } from "@spartan-ng/ui-sheet-brain";
+import { BrnSheetModule, BrnSheetTriggerDirective } from "@spartan-ng/ui-sheet-brain";
 import { injectComputedFilterSheetSide, injectCurrentProfile, injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
+import { Filter } from "@tierklinik-dobersberg/angular/empty-table";
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { HlmInputModule } from "@tierklinik-dobersberg/angular/input";
 import { HlmLabelModule } from "@tierklinik-dobersberg/angular/label";
@@ -114,7 +115,7 @@ export function filterOffTimeEntries(entries: OffTimeEntry[], filter: OffTimeFil
         ...provideIcons({})
     ]
 })
-export class AppOffTimeFilterSheetComponent {
+export class AppOffTimeFilterSheetComponent implements Filter {
     protected readonly profiles = injectUserProfiles(); 
     protected readonly currentUser = injectCurrentProfile();
     
@@ -142,6 +143,9 @@ export class AppOffTimeFilterSheetComponent {
     })
     
     public readonly filter = output<OffTimeFilter>();
+
+    @ViewChild(BrnSheetTriggerDirective, { static: true, read: ElementRef })
+    protected trigger: ElementRef<HTMLButtonElement>;
     
     constructor() {
         // We default to only show off-time entries for the logged-in user.
@@ -155,7 +159,7 @@ export class AppOffTimeFilterSheetComponent {
             }
             
             if (userIds.length === 0) {
-               this.userIds.set([current.user!.id]) 
+               //this.userIds.set([current.user!.id]) 
                effectRef.destroy();
             } 
             
@@ -185,7 +189,11 @@ export class AppOffTimeFilterSheetComponent {
         this.filter.emit(filter);
     }
     
-    protected reset() {
+    public open() {
+        this.trigger.nativeElement.click();
+    }
+    
+    public reset() {
         this.userIds.set([this.currentUser().user.id])
         this.from.set(null)
         this.to.set(null);

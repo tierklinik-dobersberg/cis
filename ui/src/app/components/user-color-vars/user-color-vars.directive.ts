@@ -2,6 +2,7 @@ import { computed, Directive, effect, ElementRef, inject, input, Renderer2, Rend
 import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { UserColorPipe, UserContrastColorPipe } from "@tierklinik-dobersberg/angular/pipes";
 import { Profile } from "@tierklinik-dobersberg/apis";
+import { ToRGBAPipe } from "src/app/shared/pipes";
 
 @Directive({
     selector: '[userColorVars]',
@@ -18,6 +19,7 @@ export class UserColorVarsDirective {
     
     private userColor = new UserColorPipe;
     private contrastColor = new UserContrastColorPipe;
+    private toRGBA = new ToRGBAPipe();
     
     protected readonly _computedStyle = computed(() => {
         let user = this.user();
@@ -26,10 +28,14 @@ export class UserColorVarsDirective {
         if (typeof user === 'string')  {
             user = profiles.find(p => p.user!.id === user);
         }
+
+        if (!user) {
+            return {}
+        }
         
         return {
-            '--user-color': this.userColor.transform(user),
-            '--user-contrast': this.contrastColor.transform(user),
+            '--user-color': this.toRGBA.transform(this.userColor.transform(user), 'var(--user-color-opacity,1)'),
+            '--user-contrast': this.toRGBA.transform(this.contrastColor.transform(user), 'var(--user-contrast-opacity,1)'),
         }
     })
     

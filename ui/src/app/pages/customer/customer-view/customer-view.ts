@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { ConnectError } from '@connectrpc/connect';
 import { ScaleType } from '@swimlane/ngx-charts';
 import { Color } from '@swimlane/ngx-charts/lib/utils/color-sets';
@@ -8,7 +8,7 @@ import { CallEntry, GetLogsForCustomerResponse } from '@tierklinik-dobersberg/ap
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, combineLatest, forkJoin, of, Subscription } from 'rxjs';
 import { catchError, mergeMap } from 'rxjs/operators';
-import { LocalPatient, PatientAPI, UserService } from 'src/app/api';
+import { LocalPatient, PatientAPI } from 'src/app/api';
 import { CALL_SERVICE } from 'src/app/api/connect_clients';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import { HeaderTitleService } from 'src/app/layout/header-title';
@@ -32,10 +32,8 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     private header: HeaderTitleService,
     private customerapi: CustomerAPI,
     private patientapi: PatientAPI,
-    private userService: UserService,
     private activatedRoute: ActivatedRoute,
     private nzMessageService: NzMessageService,
-    private router: Router,
     private changeDetector: ChangeDetectorRef,
     //private bottomSheet: MatBottomSheet,
   ) { }
@@ -44,7 +42,6 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
 
 //  bottomSheetRef: MatBottomSheetRef | null = null;
 
-  totalCallTime = 0;
   callrecords: CallEntry[] = [];
   customer: ExtendedCustomer | null = null;
   reload = new BehaviorSubject<void>(undefined);
@@ -84,7 +81,6 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
     const routerSub = combineLatest([
       this.activatedRoute.paramMap,
       this.activatedRoute.queryParamMap,
-      this.userService.updated,
       this.reload,
     ])
       .pipe(

@@ -5,10 +5,12 @@ import {
   Component,
   HostListener,
   OnInit,
+  effect,
   inject,
   signal
 } from '@angular/core';
 import { Code, ConnectError } from '@connectrpc/connect';
+import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import {
   retry,
@@ -16,7 +18,6 @@ import {
 } from 'rxjs/operators';
 import { SwUpdateManager, WebPushSubscriptionManager } from 'src/app/services';
 import { environment } from 'src/environments/environment';
-import { ProfileService } from './services/profile.service';
 
 interface MenuEntry {
   Icon: string;
@@ -62,16 +63,25 @@ export class AppComponent implements OnInit {
   private readonly updateManager = inject(SwUpdateManager);
 
   protected readonly layout = inject(LayoutService);
-  protected readonly profileService = inject(ProfileService);
 
   protected readonly isReachable = signal(false);
   protected readonly checkRunning = signal(false);
 
   private readonly http = inject(HttpClient);
+  private readonly currentUser = injectCurrentProfile();
 
+  constructor() {
+    let ref = effect(() => {
+      const profile = this.currentUser();
+
+      if (profile) {
+        setTimeout(() => this.webPushManager.updateWebPushSubscription(), 1000)
+        ref.destroy();
+      }
+    })
+  }
 
   ngOnInit(): void {
-    this.webPushManager.updateWebPushSubscription();
     this.updateManager.init();
 
     this.checkReachability();

@@ -1,11 +1,11 @@
-import { Component, isDevMode, OnDestroy, OnInit } from '@angular/core';
+import { Component, effect, isDevMode, OnDestroy, OnInit } from '@angular/core';
+import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
+import { DisplayNamePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { Subscription } from 'rxjs';
-import { delay, retryWhen } from 'rxjs/operators';
+import { retry } from 'rxjs/operators';
 import { VoiceMailAPI } from 'src/app/api';
 import { HeaderTitleService } from 'src/app/layout/header-title';
 import { LayoutService } from 'src/app/services';
-import { ProfileService } from 'src/app/services/profile.service';
-import { UserNamePipe } from 'src/app/shared/pipes';
 
 @Component({
   selector: 'app-welcome',
@@ -14,6 +14,8 @@ import { UserNamePipe } from 'src/app/shared/pipes';
 })
 export class WelcomeComponent implements OnInit, OnDestroy {
   mailboxes: string[] = [];
+  
+  protected readonly currentUser = injectCurrentProfile();
 
   get hasDoorAccess(): boolean {
     return true;
@@ -29,22 +31,25 @@ export class WelcomeComponent implements OnInit, OnDestroy {
 
   constructor(
     private header: HeaderTitleService,
-    private account: ProfileService,
     private voicemailapi: VoiceMailAPI,
     public layout: LayoutService,
-  ) {}
+  ) {
+    effect(() => {
+      const profile = this.currentUser();
+      const name = new DisplayNamePipe().transform(profile);
+
+      this.header.set(`Hallo ${name},`, 'Hier findest du eine Übersicht der wichtigsten Informationen.');
+    })
+  }
 
   readonly isDevMode = isDevMode();
 
   private allSub = new Subscription();
 
   ngOnInit(): void {
-    const name = UserNamePipe.transform(this.account.snapshot);
-
-    this.header.set(`Hallo ${name},`, 'Hier findest du eine Übersicht der wichtigsten Informationen.');
 
     this.voicemailapi.listMailboxes()
-      .pipe(retryWhen(e => e.pipe(delay(10000))))
+      .pipe(retry({delay: 10000}))
       .subscribe(mailboxes => {
         this.mailboxes = mailboxes;
       });

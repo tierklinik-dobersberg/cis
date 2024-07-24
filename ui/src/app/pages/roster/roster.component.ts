@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from "@angular/core";
 import { Timestamp } from '@bufbuild/protobuf';
 import { Code, ConnectError } from '@connectrpc/connect';
+import { injectCurrentProfile } from "@tierklinik-dobersberg/angular/behaviors";
 import { AnalyzeWorkTimeResponse, CalendarEvent, FindOffTimeRequestsResponse, GetHolidayResponse, GetOffTimeCostsResponse, GetUserShiftsResponse, GetVacationCreditsLeftResponse, GetWorkTimeResponse, ListEventsResponse, OffTimeCostSummary, OffTimeEntry, PlannedShift, PublicHoliday, UserVacationSum, WorkShift, WorkTime, WorkTimeAnalysis } from '@tierklinik-dobersberg/apis';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { CALENDAR_SERVICE, HOLIDAY_SERVICE, OFFTIME_SERVICE, ROSTER_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { HeaderTitleService } from 'src/app/layout/header-title';
 import { LayoutService } from 'src/app/services';
-import { ProfileService } from 'src/app/services/profile.service';
 import { toDateString } from 'src/app/utils';
 import { environment } from 'src/environments/environment';
 
@@ -31,7 +31,6 @@ interface LocalUserShift {
 export class RosterComponent implements OnInit {
   private readonly rosterService = inject(ROSTER_SERVICE);
   private readonly cdr = inject(ChangeDetectorRef)
-  private readonly profileService = inject(ProfileService);
   private readonly headerTitle = inject(HeaderTitleService);
   private readonly holidayService = inject(HOLIDAY_SERVICE)
   private readonly offTimeService = inject(OFFTIME_SERVICE);
@@ -41,6 +40,7 @@ export class RosterComponent implements OnInit {
 
   public readonly rosterServiceURL = environment.rosterService;
 
+  readonly currentUser = injectCurrentProfile()
   readonly layout = inject(LayoutService).withAutoUpdate();
 
   userShifts: LocalUserShift[] = [];
@@ -66,13 +66,14 @@ export class RosterComponent implements OnInit {
 
     const loadingMessageRef = this.messageService.loading("Dienstplan wird geladen ...");
 
+    const user = this.currentUser()?.user.id;
     Promise.all([
       this.calendarService
         .listEvents({
           source: {
             case: 'sources',
             value: {
-              userIds: [this.profileService.snapshot.user.id],
+              userIds: [user]
             }
           }
         })
@@ -115,7 +116,7 @@ export class RosterComponent implements OnInit {
       this.offTimeService
         .getOffTimeCosts({
           forUsers: {
-            userIds: [this.profileService.snapshot.user.id]
+            userIds: [user]
           },
         })
         .catch(err => {
@@ -130,7 +131,7 @@ export class RosterComponent implements OnInit {
         .getVacationCreditsLeft({
           analyze: true,
           forUsers: {
-            userIds: [this.profileService.snapshot.user.id],
+            userIds: [user],
           },
           until: Timestamp.fromDate(new Date(this.now.getFullYear(), 11, 1, 23, 59, 59)),
         })
@@ -144,7 +145,7 @@ export class RosterComponent implements OnInit {
 
       this.workTimeService
         .getWorkTime({
-          userIds: [this.profileService.snapshot.user.id]
+          userIds: [user]
         })
         .catch(err => {
           if (ConnectError.from(err).code !== Code.NotFound) {
@@ -158,7 +159,7 @@ export class RosterComponent implements OnInit {
         .findOffTimeRequests({
           from: from,
           to: to,
-          userIds: [this.profileService.snapshot.user.id],
+          userIds: [user],
           approved: true,
         })
         .catch(err => {
@@ -183,9 +184,9 @@ export class RosterComponent implements OnInit {
           })
         })
 
-        this.offTimeCosts = costs.results.find(entry => entry.userId === this.profileService.snapshot.user.id)?.summary || null;
-        this.vacation = vacation.results.find(entry => entry.userId === this.profileService.snapshot.user.id) || null;
-        this.currentWorkTime = worktime.results.find(entry => entry.userId === this.profileService.snapshot.user.id)?.current || null;
+        this.offTimeCosts = costs.results.find(entry => entry.userId === user)?.summary || null;
+        this.vacation = vacation.results.find(entry => entry.userId === user) || null;
+        this.currentWorkTime = worktime.results.find(entry => entry.userId === user)?.current || null;
 
         const localShifts = shifts.shifts
           .map(plannedShift => {
@@ -208,7 +209,7 @@ export class RosterComponent implements OnInit {
           });
 
         offtime.results
-          .filter(entry => entry.requestorId === this.profileService.snapshot.user.id)
+          .filter(entry => entry.requestorId === user)
           .forEach(entry => {
             const fromDateStr = toDateString(entry.from.toDate())
             const toDateStr = toDateString(entry.to.toDate())
@@ -288,7 +289,7 @@ export class RosterComponent implements OnInit {
         return new AnalyzeWorkTimeResponse()
       })
       .then(response => {
-        this.workTime = response.results.find(result => result.userId === this.profileService.snapshot.user.id) || null;
+        this.workTime = response.results.find(result => result.userId === user) || null;
         this.cdr.markForCheck();
       })
   }

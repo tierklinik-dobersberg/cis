@@ -1,44 +1,46 @@
 import { animate, style, transition, trigger } from '@angular/animations';
 import {
-    ChangeDetectionStrategy,
-    ChangeDetectorRef,
-    Component,
-    OnDestroy,
-    OnInit,
-    TemplateRef,
-    TrackByFunction,
-    ViewChild,
-    inject
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  TemplateRef,
+  TrackByFunction,
+  ViewChild,
+  effect,
+  inject,
+  signal
 } from '@angular/core';
 import { PartialMessage, Timestamp } from '@bufbuild/protobuf';
 import { Code, ConnectError } from '@connectrpc/connect';
+import { injectCurrentProfile, injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
 import { GetRequiredShiftsResponse, GetWorkingStaffResponse, PlannedShift, Profile, WorkShift } from '@tierklinik-dobersberg/apis';
 import { CreateOverwriteRequest, GetOverwriteResponse, Overwrite } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import {
-    BehaviorSubject,
-    Subject,
-    combineLatest,
-    forkJoin,
-    interval
+  BehaviorSubject,
+  Subject,
+  combineLatest,
+  forkJoin,
+  interval
 } from 'rxjs';
 import {
-    debounceTime,
-    filter,
-    map, startWith,
-    switchMap,
-    takeUntil
+  debounceTime,
+  filter,
+  map, startWith,
+  switchMap,
+  takeUntil
 } from 'rxjs/operators';
 import {
-    ConfigAPI,
-    QuickRosterOverwrite,
-    UserService
+  QuickRosterOverwrite,
+  UserService,
+  injectCurrentConfig
 } from 'src/app/api';
 import { CALL_SERVICE, ROSTER_SERVICE } from 'src/app/api/connect_clients';
 import { HeaderTitleService } from 'src/app/layout/header-title';
 import { LayoutService } from 'src/app/services';
-import { ProfileService } from 'src/app/services/profile.service';
 import { extractErrorMessage, toDateString } from 'src/app/utils';
 
 @Component({
@@ -62,6 +64,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private checkOverlapping$ = new BehaviorSubject<{ to: Date; from: Date }>(null);
   private reloadToday$ = new BehaviorSubject<void>(undefined);
+  private config = injectCurrentConfig();
 
   readonly layout = inject(LayoutService).withAutoUpdate();
 
@@ -81,7 +84,9 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
   preferredUsers: Profile[] = [];
 
   /** A list of other users that can be used as overwrites */
-  allUsers: Profile[] = [];
+  protected readonly allUsers = injectUserProfiles();
+  
+  protected readonly currentUser = injectCurrentProfile();
 
   /** Whether or not all users should be shown */
   showAllUsers = false;
@@ -108,10 +113,10 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
   overwriteTarget: string | 'custom' = '';
 
   /** A list of configured quick-settings  */
-  quickSettings: QuickRosterOverwrite[];
+  quickSettings = signal<QuickRosterOverwrite[]>([]);
 
   /** Whether or not direct phone-number overwrites are allowed */
-  allowPhone = false;
+  allowPhone = signal(false);
 
   /** The custom phone number entered by the user if allowPhone is true */
   customPhoneNumber = '';
@@ -165,13 +170,27 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
 
   constructor(
     private userService: UserService,
-    private account: ProfileService,
-    private config: ConfigAPI,
     private cdr: ChangeDetectorRef,
     private modal: NzModalService,
     private nzMessage: NzMessageService,
     private header: HeaderTitleService
-  ) { }
+  ) {
+    effect(() => {
+      const config = this.config();
+      const user = this.currentUser();
+
+      let currentUserRoles = new Set<string>();
+      user.roles.forEach(role => {
+        currentUserRoles.add(role.id)
+      })
+
+      this.quickSettings.set((config?.QuickRosterOverwrite || []).filter(setting => {
+        return !setting.RequiresRole || setting.RequiresRole.length === 0 || setting.RequiresRole.some(role => currentUserRoles.has(role));
+      }));
+
+      this.allowPhone.set(config.Roster?.AllowPhoneNumberOverwrite || false);
+    })
+  }
 
   trackPlannedShift: TrackByFunction<PlannedShift & { definition: WorkShift }> = (_, s) => `${s.workShiftId}-${s.from.seconds}-${s.to.seconds}`
 
@@ -225,7 +244,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
         .getWorkingStaff({
           onCall: true,
           time: Timestamp.fromDate(from),
-          rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierärzte',
+          rosterTypeName: this.config().UI?.OnCallRosterType || 'Tierärzte',
         })
         .catch(err => {
           const cerr = ConnectError.from(err);
@@ -239,7 +258,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
       this.rosterService.getRequiredShifts({
           from: toDateString(from),
           to: toDateString(to),
-          rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierärzte',
+          rosterTypeName: this.config().UI?.OnCallRosterType || 'Tierärzte',
           onCall: true,
         })
         .catch(err => {
@@ -361,7 +380,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
     let target: string = '';
 
     if (!!this.selectedQuickTargetNumber) {
-      const s = this.quickSettings.find(
+      const s = this.quickSettings().find(
         (q) => q.TargetNumber === this.selectedQuickTargetNumber
       );
       if (!s) {
@@ -470,27 +489,6 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
       'Überschreibe den Dienstplan und wähle ein neues Ziel für Anrufe außerhalb der Öffnungszeiten'
     );
 
-    // load and watch preferred and other allowed users.
-    const rosterConfig$ = this.config.change;
-    combineLatest([rosterConfig$, this.userService.users])
-      .pipe(
-        takeUntil(this.destroy$)
-      )
-      .subscribe(([c, users]) => {
-        let currentUserRoles = new Set<string>();
-        this.account.snapshot?.roles.forEach(role => {
-          currentUserRoles.add(role.id)
-        })
-
-        this.quickSettings = (c.QuickRosterOverwrite || []).filter(setting => {
-          return !setting.RequiresRole || setting.RequiresRole.length === 0 || setting.RequiresRole.some(role => currentUserRoles.has(role));
-        });
-
-        this.allUsers = users;
-        this.allowPhone = c.Roster?.AllowPhoneNumberOverwrite || false;
-        this.cdr.markForCheck();
-      });
-
     // load and watch the currently active overwrite for this day
     combineLatest([interval(5000).pipe(startWith(-1)), this.reloadToday$])
       .pipe(
@@ -515,7 +513,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
             .getWorkingStaff({
               onCall: true,
               time: Timestamp.fromDate(d),
-              rosterTypeName: this.config.current.UI?.OnCallRosterType || 'Tierärzte'
+              rosterTypeName: this.config().UI?.OnCallRosterType || 'Tierärzte'
             })
             .catch(err => {
               if (ConnectError.from(err).code !== Code.NotFound) {
@@ -597,7 +595,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
     };
 
     this.preferredUsers.forEach(matchUser);
-    this.allUsers.forEach(matchUser);
+    this.allUsers().forEach(matchUser);
     return result;
   }
 

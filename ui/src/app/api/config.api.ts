@@ -2,17 +2,16 @@ import {
   HttpClient,
   HttpParams,
 } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
-import { NzMessageRef, NzMessageService } from 'ng-zorro-antd/message';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { ConnectError } from '@connectrpc/connect';
+import { injectCurrentProfile, injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
+import { toast } from 'ngx-sonner';
 import {
-  BehaviorSubject,
-  Observable,
-  combineLatest
+  Observable
 } from 'rxjs';
-import { distinctUntilChanged, map, retry } from 'rxjs/operators';
+import { map, retry } from 'rxjs/operators';
 import { TriggerAPI } from '.';
-import { ProfileService } from '../services/profile.service';
-import { ROLE_SERVICE, USER_SERVICE } from './connect_clients';
+import { injectRoleService } from './connect_clients';
 
 export interface ExternalLink {
   ParentMenu: string;
@@ -129,69 +128,39 @@ export interface UIConfig {
   Roster?: RosterUIConfig;
 }
 
+export function injectCurrentConfig() {
+  const api = inject(ConfigAPI);
+
+  return computed(() => api.config())
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class ConfigAPI {
-  private onChange = new BehaviorSubject<UIConfig | null>(null);
-  private reload$ = new BehaviorSubject<void>(undefined);
+  private currentUser = injectCurrentProfile();
 
-  get change(): Observable<UIConfig | null> {
-    return this.onChange
-      .pipe(
-        distinctUntilChanged((prev, cur) => JSON.stringify(prev) === JSON.stringify(cur))
-      )
-  }
+  private roleService = injectRoleService()
+  private profiles = injectUserProfiles();
+  private triggerapi = inject(TriggerAPI);
+  private http = inject(HttpClient);
+  
+  private readonly _config = signal<UIConfig>({})
 
-  get current(): UIConfig | null {
-    return this.onChange.getValue();
+  public readonly config = this._config.asReadonly();
+
+  constructor() {
+    effect(() => {
+      const currentUser = this.currentUser();
+
+      this.reload();
+    })
   }
 
   reload() {
-    this.reload$.next();
-  }
+    console.log("Loading current configuration")
 
-  private roleService = inject(ROLE_SERVICE);
-  private userService = inject(USER_SERVICE);
-
-  constructor(
-    private http: HttpClient,
-    private nzMessageService: NzMessageService,
-    private triggerapi: TriggerAPI,
-    private profileService: ProfileService,
-  ) {
-    let loading: NzMessageRef | null = null;
-    combineLatest([
-      this.profileService.profile$
-        .pipe(
-          map(profile => profile?.user?.id),
-          distinctUntilChanged(),
-        ),
-      this.reload$,
-
-    ]).subscribe(() => {
-      this.loaddUIConfig()
-        .pipe(
-          retry({delay: 10000}),
-        )
-        .subscribe(
-          (cfg) => {
-            if (!!loading) {
-              this.nzMessageService.remove(loading.messageId);
-              loading = null;
-            }
-
-            // finally, notify all other subscribes of UI config
-            // changes.
-            this.onChange.next(cfg);
-          },
-          (err) => {}
-        );
-    });
-  }
-
-  loaddUIConfig(): Observable<UIConfig> {
-    return this.http.get<UIConfig>('/api/config/v1/flat', {
+    this.http.get<UIConfig>('/api/config/v1/flat', {
       params: new HttpParams()
         .append('keys', 'UI')
         .append('keys', 'ExternalLink')
@@ -199,7 +168,17 @@ export class ConfigAPI {
         .append('keys', 'TriggerAction')
         .append('keys', 'KnownPhoneExtension')
         .append('keys', 'Roster')
-    });
+    }).pipe(retry({delay: 2000, count: 5}))
+      .subscribe({
+        next: result => this._config.set(result),
+        error: err => {
+          console.error(err);
+          
+          toast.error('Internal Error: failed to fetch configuration', {
+            description: ConnectError.from(err).message
+          })
+        }
+      })
   }
 
   hasAnnotation(obj: Annotated, annotationKey: WellKnownAnnotations): boolean {
@@ -254,7 +233,7 @@ export class ConfigAPI {
         values = (await this.roleService.listRoles({})).roles;
         break;
       case 'identity:users':
-        values = (await this.userService.listUsers({})).users;
+        values = this.profiles();
         break;
       case 'trigger':
         const triggers = await this.triggerapi.listInstances().toPromise()

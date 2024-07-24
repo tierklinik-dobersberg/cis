@@ -40,10 +40,13 @@ export class EventStylePipe implements PipeTransform {
         const endOverlaps = eventEnd >= otherStart && eventEnd < otherEnd;
 
         if (startOverlaps || endOverlaps) {
+          const otherDone = done.get(other.id);
+
           if (
             round >= 0 &&
-            (done.get(other.id) === round || done.get(other.id) === round - 1)
+            (done.get(other.id) === round)
           ) {
+
             return true;
           }
         }
@@ -76,7 +79,7 @@ export class EventStylePipe implements PipeTransform {
             left: round * 10 + '%',
             zIndex: event.ignoreOverlapping ? 'unset' : (round + 1) * 5,
           };
-
+          
           (event as any).style = style;
 
           done.set(event.id, round);
@@ -85,6 +88,7 @@ export class EventStylePipe implements PipeTransform {
 
       if (!didSomething) {
         console.error("endless loop while calculating calendar event style")
+        debugger;
         break;
       }
 

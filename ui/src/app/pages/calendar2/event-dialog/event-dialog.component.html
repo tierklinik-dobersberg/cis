@@ -1,0 +1,151 @@
+<hlm-dialog-header>
+  <h3 hlmDialogTitle>Termin Details</h3>
+  <p hlmDialogDescription></p>
+</hlm-dialog-header>
+
+<hlm-table
+  class="w-full [&_hlm-td]:flex-1 [&_hlm-th]:h-8 [&_hlm-th]:sm:h-12 [&_hlm-trow]:flex-col [&_hlm-trow]:sm:flex-row">
+  <hlm-trow>
+    <hlm-th class="w-48 overflow-hidden text-ellipsis">Kalender</hlm-th>
+    <hlm-td>
+      @if (edit() && availableCalendars().length) {
+        <brn-select [(ngModel)]="calendarId" required class="w-full">
+          <hlm-select-trigger class="w-full flex-1">
+            <hlm-select-value />
+          </hlm-select-trigger>
+
+          <hlm-select-content class="max-h-60">
+            @for (cal of availableCalendars(); track cal.id) {
+              <hlm-option [value]="cal.id">{{ cal.name }}</hlm-option>
+            }
+          </hlm-select-content>
+        </brn-select>
+      } @else {
+        @if (user) {
+          <app-avatar [user]="user()" showName="true" />
+        } @else {
+          <span>
+            {{ calendar.name }}
+          </span>
+        }
+      }
+    </hlm-td>
+  </hlm-trow>
+
+  <hlm-trow>
+    <hlm-th class="w-48 overflow-hidden text-ellipsis">Zusammenfassung</hlm-th>
+    <hlm-td class="whitespace-normal">
+      @if (edit()) {
+        <input
+          type="text"
+          required
+          hlmInput
+          [(ngModel)]="summary"
+          class="w-full flex-1" />
+      } @else {
+        {{ event.summary }}
+      }
+    </hlm-td>
+  </hlm-trow>
+
+  <hlm-trow>
+    <hlm-th class="w-48 overflow-hidden text-ellipsis">Zeitraum</hlm-th>
+    <hlm-td class="flex flex-col items-start justify-start gap-1">
+      @if (edit()) {
+        <tkd-date-picker
+          required
+          [minutes]="[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]"
+          class="inline-block w-full"
+          [(ngModel)]="startTime"
+          withTime="true" />
+
+        <brn-select [(ngModel)]="duration" required duration class="w-full">
+          <hlm-select-trigger class="[&>button]:w-full">
+            <hlm-select-value class="w-full" />
+          </hlm-select-trigger>
+
+          <hlm-select-content>
+            <hlm-option value="10m">10 Minuten</hlm-option>
+            <hlm-option value="15m">15 Minuten</hlm-option>
+            <hlm-option value="30m">30 Minuten</hlm-option>
+            <hlm-option value="45m">45 Minuten</hlm-option>
+            <hlm-option value="1h">1 Stunde</hlm-option>
+            <hlm-option value="1h30m">1,5 Stunden</hlm-option>
+            <hlm-option value="2h">2 Stunden</hlm-option>
+          </hlm-select-content>
+        </brn-select>
+      } @else {
+        <span class="flex flex-row items-center gap-2">
+          <hlm-icon name="lucideCalendar" size="sm" />
+          {{ event.startTime | toDate | date: 'longDate' }}
+        </span>
+
+        <span class="flex flex-row items-center gap-2">
+          <hlm-icon name="lucideClock" size="sm" />
+          {{ event.startTime | toDate | date: 'shortTime' }}
+          -
+          {{ event.endTime | toDate | date: 'shortTime' }}
+        </span>
+      }
+    </hlm-td>
+  </hlm-trow>
+
+  <hlm-trow>
+    <hlm-th class="w-48 overflow-hidden text-ellipsis">Beschreibung</hlm-th>
+    <hlm-td class="whitespace-normal">
+      @if (edit()) {
+        <ckeditor
+          class="min-h-[80px] w-[200px] flex-[1_1_200px]"
+          [editor]="editor"
+          [config]="config"
+          [(ngModel)]="description" />
+      } @else {
+        <span [innerHTML]="event.description || 'N/A'"></span>
+      }
+    </hlm-td>
+  </hlm-trow>
+</hlm-table>
+
+<div class="flex-grow"></div>
+
+<hlm-dialog-footer
+  class="mt-4 flex flex-row flex-wrap items-center justify-between gap-2 p-1">
+  <button hlmBtn variant="secondary" (click)="close()">Schließen</button>
+
+  <div class="flex flex-row flex-wrap items-center justify-end gap-2">
+    @if (edit()) {
+      <button hlmBtn (click)="isNew() ? create() : save()">Speichern</button>
+    } @else {
+      <button hlmBtn (click)="edit.set(true)">Bearbeiten</button>
+    }
+
+    @if (!isNew()) {
+      <hlm-alert-dialog>
+        <button hlmBtn variant="destructive" brnAlertDialogTrigger>
+          Löschen
+        </button>
+
+        <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+          <hlm-alert-dialog-header>
+            <h3 hlmAlertDialogTitle>Bestätigung erforderlich</h3>
+            <p hlmAlertDialogDescription>
+              Möchtest du den Termin wirklich löschen
+            </p>
+          </hlm-alert-dialog-header>
+          <hlm-alert-dialog-footer>
+            <button hlmBtn variant="secondary" (click)="ctx.close()">
+              Abbrechen
+            </button>
+
+            <button
+              hlmBtn
+              variant="destructive"
+              (click)="delete(); ctx.close()">
+              Löschen
+            </button>
+          </hlm-alert-dialog-footer>
+        </hlm-alert-dialog-content>
+      </hlm-alert-dialog>
+    }
+  </div>
+</hlm-dialog-footer>

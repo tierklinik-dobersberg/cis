@@ -1,25 +1,22 @@
 import { Duration, Timestamp } from '@bufbuild/protobuf';
-import { StringOrNumberOrDate } from '@swimlane/ngx-charts';
 
 export interface Timed {
   id: string | number;
   from: Timestamp | number;
   duration: Duration | number;
   ignoreOverlapping?: boolean;
+  calendarId: string;
 }
 
-export interface Calendar<T extends Timed> {
+export interface Calendar {
   /** A unique id of the calendar */
   id: string;
 
   /** The name of the calendar */
   name: string;
-
-  /** A list of events to render */
-  events: T[];
 }
 
-export interface CalendarMouseEvent<T extends Timed, C extends Calendar<T>> {
+export interface CalendarMouseEvent<T extends Timed, C extends Calendar> {
   // The calendar that has been clicked.
   calendar: C;
 

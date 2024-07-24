@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction, inject } from '@angular/core';
 import { Code, ConnectError } from '@connectrpc/connect';
+import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
 import { GetOnCallResponse, OnCall } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
 import { Subscription, interval } from 'rxjs';
-import { delay, mergeMap, retry, startWith } from 'rxjs/operators';
+import { mergeMap, retry, startWith } from 'rxjs/operators';
 import { CALL_SERVICE } from 'src/app/api/connect_clients';
 
 @Component({
@@ -14,7 +15,7 @@ import { CALL_SERVICE } from 'src/app/api/connect_clients';
 export class EmergencyCardComponent implements OnInit, OnDestroy {
   private readonly callService = inject(CALL_SERVICE);
   private readonly changeDetector  = inject(ChangeDetectorRef);
-
+  protected readonly profiles = injectUserProfiles();
   private subscriptions = Subscription.EMPTY;
 
   onDuty: GetOnCallResponse | null = null;

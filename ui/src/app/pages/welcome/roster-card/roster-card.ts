@@ -1,31 +1,46 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import { Timestamp } from '@bufbuild/protobuf';
-import { GetRosterResponse, GetWorkingStaffResponse, ListWorkShiftsResponse, PlannedShift, Profile, WorkShift } from '@tierklinik-dobersberg/apis';
+import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
+import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
+import { DisplayNamePipe, ToUserPipe } from '@tierklinik-dobersberg/angular/pipes';
+import { GetRosterResponse, ListWorkShiftsResponse, PlannedShift, WorkShift } from '@tierklinik-dobersberg/apis';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { BehaviorSubject, Subscription, combineLatest, forkJoin, interval } from 'rxjs';
 import { mergeMap, startWith } from 'rxjs/operators';
-import { ConfigAPI, UserService } from 'src/app/api';
 import { ROSTER_SERVICE, WORK_SHIFT_SERVICE } from 'src/app/api/connect_clients';
+import { AppAvatarComponent } from 'src/app/components/avatar';
 import { toDateString } from 'src/app/utils';
 
 @Component({
   selector: 'app-roster-card',
   templateUrl: './roster-card.html',
-  styleUrls: ['./roster-card.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    NzCardModule,
+    NgTemplateOutlet,
+    ToUserPipe,
+    DisplayNamePipe,
+    NzToolTipModule,
+    AppAvatarComponent,
+    HlmLabelDirective
+  ]
 })
 export class RosterCardComponent implements OnInit, OnDestroy {
   private subscriptions = Subscription.EMPTY;
 
   shifts: (PlannedShift & {definition: WorkShift})[] = [];
-  profiles: {
-    [key: string]: Profile
-  } = {}
+  
+  protected readonly profiles = injectUserProfiles();
 
   @Output()
   userHover = new EventEmitter<string>();
 
   @Output()
   userClick = new EventEmitter<string>();
+
   private _lastUserClick = '';
 
   userClicked(user: string) {
@@ -41,10 +56,8 @@ export class RosterCardComponent implements OnInit, OnDestroy {
 
   private rosterService = inject(ROSTER_SERVICE)
   private workShiftService = inject(WORK_SHIFT_SERVICE);
-  private config = inject(ConfigAPI);
 
   constructor(
-    private userService: UserService,
     private changeDetector: ChangeDetectorRef,
   ) { }
 
@@ -104,15 +117,6 @@ export class RosterCardComponent implements OnInit, OnDestroy {
       });
 
     this.subscriptions.add(rosterSubscription);
-
-    const userSub =this.userService.users
-      .subscribe(users => {
-        this.profiles = {};
-        users.forEach(u => this.profiles[u.user.id] = u);
-        this.changeDetector.markForCheck();
-      });
-
-    this.subscriptions.add(userSub);
   }
 
   ngOnDestroy(): void {

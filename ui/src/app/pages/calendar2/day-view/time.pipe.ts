@@ -1,8 +1,8 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { Timestamp, Duration } from '@bufbuild/protobuf';
+import { Duration } from '@bufbuild/protobuf';
 import { padLeft } from 'src/utils/strings';
-import { getSeconds } from './sort.pipe';
 import { DateInput } from './models';
+import { getSeconds } from './sort.pipe';
 
 @Pipe({
   name: 'time',

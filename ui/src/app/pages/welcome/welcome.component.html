@@ -9,20 +9,15 @@
     <app-emergency-card class="dash-card"></app-emergency-card>
   }
   @if (hasRosterAccess) {
-    <app-roster-card class="dash-card">
-    </app-roster-card>
+    <app-roster-card class="dash-card"> </app-roster-card>
   }
   @for (name of mailboxes; track name) {
-    <app-voicemail-card class="dash-card" [mailboxName]="name"></app-voicemail-card>
+    <app-voicemail-card
+      class="dash-card"
+      [mailboxName]="name"></app-voicemail-card>
   }
-  @if (!layout.isTabletLandscapeUp) {
-    <app-upcoming-events-card #upcomingEvents class="dash-card"></app-upcoming-events-card>
-  }
-  @if (layout.isTabletLandscapeUp) {
-    <div class="dash-card app-calendar-day-view-container">
-      <nz-card class="max-w-full">
-        <app-calendar-day-view inlineView="true"></app-calendar-day-view>
-      </nz-card>
-    </div>
-  }
+
+  <app-upcoming-events-card
+    #upcomingEvents
+    class="dash-card"></app-upcoming-events-card>
 </div>

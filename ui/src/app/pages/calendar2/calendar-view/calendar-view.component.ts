@@ -1,32 +1,92 @@
-import { CommonModule, DOCUMENT } from "@angular/common";
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, Renderer2, ViewChild, inject } from "@angular/core";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { FormsModule } from "@angular/forms";
-import { ActivatedRoute, Router } from "@angular/router";
+import { CommonModule, DOCUMENT } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  Renderer2,
+  ViewChild,
+  computed,
+  effect,
+  inject,
+  model,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
-import { CALENDAR_SERVICE, ROSTER_SERVICE } from "@tierklinik-dobersberg/angular/connect";
-import { UserColorPipe, UserContrastColorPipe } from "@tierklinik-dobersberg/angular/pipes";
-import { CalendarEvent, Profile, WorkShift } from "@tierklinik-dobersberg/apis";
-import { NzMessageModule, NzMessageService } from "ng-zorro-antd/message";
-import { NzToolTipModule } from "ng-zorro-antd/tooltip";
-import { Observable, filter, forkJoin, map, of, switchMap, tap } from "rxjs";
-import { ConfigAPI, UserService } from "src/app/api";
-import { LayoutService } from "src/app/services";
-import { TkdDateInputModule } from "src/app/shared/date-input";
-import { SharedModule } from "src/app/shared/shared.module";
-import { toDateString } from "src/app/utils";
-import { Calendar, CalendarMouseEvent, IsSameDayPipe, TimeFormatPipe, Timed, TkdCalendarEventCellTemplateDirective, TkdCalendarHeaderCellTemplateDirective, TkdDayViewComponent } from "../day-view";
-import { getSeconds } from "../day-view/sort.pipe";
-import { HlmButtonModule } from "@tierklinik-dobersberg/angular/button";
+import {
+  lucideArrowLeft,
+  lucideArrowRight,
+  lucideZoomIn,
+  lucideZoomOut,
+} from '@ng-icons/lucide';
+import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
+import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
+import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
+import {
+  CALENDAR_SERVICE,
+  ROSTER_SERVICE,
+} from '@tierklinik-dobersberg/angular/connect';
+import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
+import {
+  HlmIconModule,
+  provideIcons,
+} from '@tierklinik-dobersberg/angular/icon';
+import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
+import {
+  UserColorPipe,
+  UserContrastColorPipe,
+} from '@tierklinik-dobersberg/angular/pipes';
+import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
+import {
+  CalendarEvent,
+  Calendar as PbCalendar,
+  PlannedShift,
+  Profile,
+  WorkShift,
+} from '@tierklinik-dobersberg/apis';
+import {
+  addDays,
+  endOfDay,
+  getMinutes,
+  isBefore,
+  isSameDay,
+  setMinutes,
+  setSeconds,
+  startOfDay,
+} from 'date-fns';
+import { NzMessageModule } from 'ng-zorro-antd/message';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import {
+  filter,
+  map
+} from 'rxjs';
+import { TkdDatePickerComponent } from 'src/app/components/date-picker';
+import { UserColorVarsDirective } from 'src/app/components/user-color-vars';
+import { ByCalendarIdPipe } from 'src/app/pipes/by-calendar-id.pipe';
+import { getCalendarId } from 'src/app/services';
+import { TkdDateInputModule } from 'src/app/shared/date-input';
+import { SharedModule } from 'src/app/shared/shared.module';
+import { toDateString } from 'src/app/utils';
+import {
+  Calendar,
+  CalendarMouseEvent,
+  IsSameDayPipe,
+  TimeFormatPipe,
+  Timed,
+  TkdCalendarEventCellTemplateDirective,
+  TkdCalendarHeaderCellTemplateDirective,
+  TkdDayViewComponent,
+} from '../day-view';
+import { getSeconds } from '../day-view/sort.pipe';
+import { AppEventDialogComponent } from '../event-dialog';
 
-type CalEvent = Timed & PlainMessage<CalendarEvent> & {
-  isShiftType?: boolean;
-};
-
-type LocalCalendar = Calendar<CalEvent> & {
-  user?: Profile;
-  display?: boolean;
-};
+type CalEvent = Timed &
+  PlainMessage<CalendarEvent> & {
+    isShiftType?: boolean;
+  };
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -48,61 +108,162 @@ type LocalCalendar = Calendar<CalEvent> & {
     NzToolTipModule,
     NzMessageModule,
     IsSameDayPipe,
-    HlmButtonModule
-],
+    HlmButtonModule,
+    UserColorVarsDirective,
+    HlmIconModule,
+    TkdDatePickerComponent,
+    BrnSelectModule,
+    HlmSelectModule,
+    ByCalendarIdPipe,
+  ],
+  providers: [
+    ...provideIcons({
+      lucideArrowLeft,
+      lucideArrowRight,
+      lucideZoomIn,
+      lucideZoomOut,
+    }),
+  ],
   styles: [
     `
-        .event-container {
-          container-type: size;
-        }
+      :host {
+        @apply flex h-full flex-col pb-8;
+      }
+      .event-container {
+        container-type: size;
+      }
 
-        @container (max-height: 1.5rem) {
-          .event-details {
-            @apply py-0 flex flex-row flex-nowrap items-center;
-            font-size: 75%;
-          }
+      @container (max-height: 1.5rem) {
+        .event-details {
+          @apply flex flex-row flex-nowrap items-center py-0;
+          font-size: 75%;
         }
+      }
 
-        @container (max-height: 54px) {
-          .event-details {
-            @apply flex flex-row items-center flex-nowrap;
-          }
+      @container (max-height: 54px) {
+        .event-details {
+          @apply flex flex-row flex-nowrap items-center;
         }
+      }
 
-        @container (min-height: 55px) {
-          .event-description {
-            display: block;
-          }
+      @container (min-height: 55px) {
+        .event-description {
+          display: block;
         }
-        `
-  ]
+      }
+    `,
+  ],
 })
 export class TkdCalendarViewComponent implements OnInit {
   private readonly calendarAPI = inject(CALENDAR_SERVICE);
   private readonly rosterAPI = inject(ROSTER_SERVICE);
-  private readonly userService = inject(UserService);
   private readonly activeRoute = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly renderer = inject(Renderer2);
   private readonly document = inject(DOCUMENT);
-  private readonly message = inject(NzMessageService);
-  private readonly config = inject(ConfigAPI);
-  private readonly layout = inject(LayoutService)
-    .withAutoUpdate()
+  private readonly dialog = inject(HlmDialogService);
 
+  protected readonly layout = inject(LayoutService);
 
-  cursorTime$: Observable<Date> = of(new Date());
+  protected readonly isToday = computed(() => {
+    const date = this.currentDate();
+    if (!date) {
+      return;
+    }
 
-  data: LocalCalendar[] = [];
-  isToday = false;
-  currentDate: Date | null = null;
+    return isSameDay(date, new Date());
+  });
 
-  readonly calendarType: LocalCalendar = null;
+  protected readonly currentDate = signal<Date | null>(null);
+
+  /** A list of available calendars */
+  protected readonly calendars = signal<PbCalendar[]>([]);
+
+  /** The user profiles */
+  protected readonly profiles = injectUserProfiles();
+
+  /** A list of calendar ids to display */
+  protected readonly displayedCalendars = model<string[]>([]);
+
+  /** The list of events */
+  protected readonly events = signal<CalEvent[]>([]);
+
+  protected readonly shifts = signal<PlannedShift[]>([]);
+  protected readonly shiftDefinitions = signal<WorkShift[]>([]);
+
+  protected readonly _computedShiftEvents = computed(() => {
+    const shifts = this.shifts();
+    const profiles = this.profiles();
+    const date = this.currentDate();
+
+    const definitions = this.shiftDefinitions();
+    const lm = new Map<string, WorkShift>();
+
+    definitions.forEach(def => lm.set(def.id, def));
+
+    const profileById = new Map<string, Profile>();
+    profiles.forEach(p => {
+      profileById.set(p.user.id, p);
+    });
+
+    const shiftEvents: CalEvent[] = [];
+
+    shifts.forEach(shift => {
+      let from = getSeconds(shift.from);
+      let duration = getSeconds(shift.to) - getSeconds(shift.from);
+
+      // clip the shift beginning to the start of the day.
+      if (isBefore(shift.from.toDate(), date)) {
+        duration -= getSeconds(date) - getSeconds(shift.from);
+        from = 0;
+      }
+
+      shift.assignedUserIds
+        .map(id => profileById.get(id))
+        .filter(profile => !!profile)
+        .forEach(profile => {
+          const calendarId = getCalendarId(profile);
+          if (!calendarId) {
+            return;
+          }
+
+          shiftEvents.push({
+            calendarId: calendarId,
+            summary: lm.get(shift.workShiftId)?.name || 'unknown',
+            from: from,
+            duration: duration,
+            fullDay: false,
+            id:
+              'shift:' +
+              profile.user.id +
+              ':' +
+              shift.workShiftId +
+              ':' +
+              shift.from.toDate().toISOString() +
+              '-' +
+              shift.to.toDate().toISOString(),
+            description: '',
+            ignoreOverlapping: true,
+            isShiftType: true,
+          });
+        });
+    });
+
+    return shiftEvents;
+  });
+
+  protected readonly _computedEvents = computed(() => {
+    const shiftEvents = this._computedShiftEvents();
+    const events = this.events();
+
+    return [...shiftEvents, ...events];
+  });
+
+  protected readonly calendarType: Calendar = null;
 
   @ViewChild(TkdDayViewComponent, { static: true })
-  dayViewComponent!: TkdDayViewComponent<CalEvent, LocalCalendar>;
+  dayViewComponent!: TkdDayViewComponent<CalEvent>;
 
   private handleKeyPress(event: KeyboardEvent) {
     if (event.key === '+') {
@@ -114,18 +275,41 @@ export class TkdCalendarViewComponent implements OnInit {
     }
   }
 
-  handleCalendarClick(event: CalendarMouseEvent<CalEvent, LocalCalendar>) {
-    console.log(event);
+  handleCalendarClick(event: CalendarMouseEvent<CalEvent, Calendar>) {
+    const contentClass =
+      'w-screen overflow-auto max-w-[unset] sm:w-[750px] md:w-[750px] max-h-full sm:h-[unset] ';
+
+    let ctx: any = {
+      calendar: event.calendar,
+    };
+
+    if (event.doubleClick) {
+      // clear out the seconds and round mintues to the nearest multiple of 15
+      let date = setSeconds(event.date, 0);
+      date = setMinutes(date, Math.round(getMinutes(date) / 15) * 15);
+
+      ctx.startTime = date;
+    } else if (event.clickedEvent && !event.clickedEvent.isShiftType) {
+      ctx.event = event.clickedEvent;
+    } else {
+      return;
+    }
+
+    this.dialog
+      .open(AppEventDialogComponent, {
+        context: ctx,
+        contentClass,
+      })
+      .closed$.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadEvents(this.currentDate()));
   }
 
   switchDate(offsetInDays: number) {
-    this.setDate(
-      new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), this.currentDate.getDate() + offsetInDays)
-    )
+    this.setDate(addDays(this.currentDate(), offsetInDays));
   }
 
   loadToday() {
-    this.setDate(new Date())
+    this.setDate(new Date());
   }
 
   setDate(date: Date) {
@@ -133,150 +317,115 @@ export class TkdCalendarViewComponent implements OnInit {
       queryParams: {
         d: toDateString(date),
       },
-      queryParamsHandling: 'merge'
-    })
+      queryParamsHandling: 'merge',
+    });
   }
 
-  filterDisplayed = (cal: LocalCalendar) => cal.display;
+  private isFirstLoad = true;
+
+  constructor() {
+    effect(() => {
+      const date = this.currentDate();
+
+      if (!date) {
+        return;
+      }
+
+      this.isFirstLoad = true;
+
+      this.rosterAPI
+        .getUserShifts({
+          timerange: {
+            from: Timestamp.fromDate(startOfDay(date)),
+            to: Timestamp.fromDate(endOfDay(date)),
+          },
+          users: {
+            allUsers: true,
+          },
+        })
+        .then(response => {
+          this.shiftDefinitions.set(response.definitions);
+          this.shifts.set(response.shifts);
+        });
+
+      this.loadEvents(date);
+    });
+  }
+
+  private loadEvents(date: Date) {
+    this.calendarAPI
+      .listEvents({
+        searchTime: {
+          case: 'date',
+          value: toDateString(date),
+        },
+        source: {
+          case: 'allCalendars',
+          value: true,
+        },
+      })
+      .then(response => {
+        let events: CalEvent[] = [];
+        response.results.forEach(eventList => {
+          eventList.events.forEach(evt => {
+            events.push({
+              ...evt,
+              from: evt.startTime,
+              duration: getSeconds(evt.endTime) - getSeconds(evt.startTime),
+            });
+          });
+        });
+        this.events.set(events);
+
+        if (this.isFirstLoad) {
+          this.isFirstLoad = false;
+
+          let set = new Set<string>();
+          this.events().forEach(evt => {
+            set.add(evt.calendarId);
+          });
+
+          this.displayedCalendars.set(Array.from(set.values()));
+        }
+      });
+  }
 
   ngOnInit(): void {
-    this.cursorTime$ = this.dayViewComponent
-      .cursorTime$;
+    this.calendarAPI.listCalendars({}).then(response => {
+      this.calendars.set(
+        response.calendars.sort((a, b) => a.id.localeCompare(b.id))
+      );
+    });
 
     this.destroyRef.onDestroy(
-      this.renderer.listen(this.document, 'keypress', this.handleKeyPress.bind(this))
+      this.renderer.listen(
+        this.document,
+        'keypress',
+        this.handleKeyPress.bind(this)
+      )
     );
 
-    this.activeRoute
-      .queryParamMap
+    this.activeRoute.queryParamMap
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        map(paramMap => paramMap.get("d")),
+        map(paramMap => paramMap.get('d')),
         filter(dateString => {
           if (dateString) {
-            return true
+            return true;
           }
 
           this.router.navigate([], {
             queryParams: {
-              d:toDateString(new Date()),
+              d: toDateString(new Date()),
             },
-            queryParamsHandling: 'merge'
-          })
+            queryParamsHandling: 'merge',
+          });
 
           return false;
-        }),
-        map(dateString => new Date(dateString)),
-        switchMap(date => {
-          const ref = this.message.loading("Termine werden geladen ...")
-
-          return forkJoin({
-            events: this.calendarAPI.listEvents({
-              searchTime: {
-                case: 'date',
-                value: toDateString(date)
-              },
-              source: {
-                case: 'allUsers',
-                value: true,
-              }
-            }),
-            shifts: this.rosterAPI.getUserShifts({
-              timerange: {
-                from: Timestamp.fromDate(new Date(date.getFullYear(), date.getMonth(), date.getDate())),
-                to: Timestamp.fromDate(new Date(date.getFullYear(), date.getMonth(), date.getDate() +1 , 0, 0, -1)),
-              },
-              users: {
-                allUsers: true,
-              }
-            }),
-            date: of(date),
-          })
-            .pipe(
-              tap({
-                next: () => {
-                  this.message.remove(ref.messageId)
-                },
-                error: err => {
-                  this.message.remove(ref.messageId);
-                }
-              })
-            )
-        }),
-        map(result => {
-          const lm = new Map<string, WorkShift>();
-          result.shifts.definitions.forEach(def => lm.set(def.id, def))
-
-          return {
-            calendars: result.events.results
-              .map(eventList => {
-                const user = this.userService.byCalendarID(eventList.calendar!.id);
-
-                let local: LocalCalendar = {
-                  id: eventList.calendar!.id,
-                  name: eventList.calendar!.name,
-                  user,
-                  events: eventList.events.map(event => {
-                    let localEvent: CalEvent = {
-                      ...event,
-                      from: event.startTime!,
-                      duration: (event.endTime!.toDate().getTime() - event.startTime!.toDate().getTime()) / 1000,
-                    }
-
-                    return localEvent;
-                  })
-                }
-
-                if (user && user.user) {
-                  // gather all user shifts and prepend them to the events list
-                  let shifts = result.shifts.shifts
-                    .filter(shift => shift.assignedUserIds.includes(user.user.id))
-                    .map(shift => {
-                      let from = getSeconds(shift.from);
-                      let duration = (shift.to.toDate().getTime() - shift.from.toDate().getTime()) / 1000;
-
-                      if (shift.from.toDate().getTime() < result.date.getTime()) {
-                        duration -= ((result.date.getTime() - shift.from.toDate().getTime()) / 1000);
-                        from = 0;
-                      }
-
-                      let localEvent: CalEvent = {
-                        calendarId: eventList.calendar!.id,
-                        summary: lm.get(shift.workShiftId)?.name || 'unknown',
-                        from: from,
-                        duration: duration,
-                        fullDay: false,
-                        id: 'shift:' + shift.workShiftId + ":" + shift.from.toDate().toISOString() + "-" + shift.to.toDate().toISOString(),
-                        description: '',
-                        ignoreOverlapping: true,
-                        isShiftType: true,
-                      }
-
-                      return localEvent;
-                    })
-
-                  local.events.splice(0, 0, ...shifts);
-                }
-
-                // if there are any calendar events for this calendar,
-                // make sure to display it
-                if (local.events.length > 0) {
-                  local.display = true;
-                }
-
-                return local;
-              }),
-
-            date: result.date,
-          };
         })
       )
       .subscribe(result => {
-        this.data = result.calendars;
-        this.currentDate = result.date;
-        this.isToday = (new Date()).toDateString() == result.date.toDateString();
-        this.cdr.markForCheck();
+        this.currentDate.set(new Date(result));
       });
   }
 }
-

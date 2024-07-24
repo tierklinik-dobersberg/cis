@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { GetVacationCreditsLeftResponse, Profile, UserVacationSum } from '@tierklinik-dobersberg/apis';
-import { Observable, Subject, forkJoin, interval } from 'rxjs';
-import { map, mergeMap, startWith, takeUntil } from 'rxjs/operators';
+import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
+import { GetVacationCreditsLeftResponse, UserVacationSum } from '@tierklinik-dobersberg/apis';
+import { Observable, forkJoin, interval } from 'rxjs';
+import { map, mergeMap, startWith } from 'rxjs/operators';
 import { VoiceMailAPI } from 'src/app/api';
 import { WORKTIME_SERVICE } from 'src/app/api/connect_clients';
-import { ProfileService } from 'src/app/services/profile.service';
 
 @Component({
   selector: 'app-mobile-welcome-card',
@@ -17,12 +17,9 @@ export class MobileWelcomeCardComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly voicemail = inject(VoiceMailAPI);
   private readonly worktTimeService = inject(WORKTIME_SERVICE);
-  private readonly profileService = inject(ProfileService);
   private readonly cdr = inject(ChangeDetectorRef)
 
-  get user$() {
-    return this.profileService.profile$;
-  }
+  protected currentUser = injectCurrentProfile();
 
   vacation: UserVacationSum | null = null;
 
@@ -32,14 +29,14 @@ export class MobileWelcomeCardComponent implements OnInit {
     this.worktTimeService
       .getVacationCreditsLeft({
         forUsers: {
-          userIds: [this.profileService.id]
+          userIds: [this.currentUser()?.user.id]
         }
       })
       .catch(err => {
         return new GetVacationCreditsLeftResponse();
       })
       .then(response => {
-        this.vacation = response.results.find(sum => sum.userId === this.profileService.id)
+        this.vacation = response.results.find(sum => sum.userId === this.currentUser()?.user.id)
         this.cdr.markForCheck();
       })
 

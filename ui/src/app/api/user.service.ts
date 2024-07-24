@@ -1,15 +1,12 @@
-import { Inject, Injectable } from '@angular/core';
+import { effect, inject, Injectable } from '@angular/core';
+import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
 import { Profile } from '@tierklinik-dobersberg/apis';
 import {
-  BehaviorSubject,
   Observable,
-  OperatorFunction,
-  combineLatest,
-  from,
+  OperatorFunction
 } from 'rxjs';
-import { delay, filter, map, mergeMap, retryWhen } from 'rxjs/operators';
-import { ConfigAPI } from './config.api';
-import { USER_SERVICE, UserServiceClient } from './connect_clients';
+import { map } from 'rxjs/operators';
+import { ConfigAPI, UIConfig } from './config.api';
 
 /**
  * UserService keeps a list of all users to be used
@@ -19,8 +16,8 @@ import { USER_SERVICE, UserServiceClient } from './connect_clients';
   providedIn: 'root',
 })
 export class UserService {
-  /** Used to notify subscribers about new user data. */
-  private updated$ = new BehaviorSubject<boolean>(false);
+  private readonly profiles = injectUserProfiles();
+  private readonly configAPI = inject(ConfigAPI);
 
   /** Users indexed by name */
   private usersByName: Map<string, Profile> = new Map();
@@ -34,42 +31,13 @@ export class UserService {
   /** Users indexed by calendar ID */
   private usersByCalendarID: Map<string, Profile> = new Map();
 
-  /** Emits whenever users have been reloaded */
-  get updated(): Observable<void> {
-    return this.updated$.asObservable().pipe(
-      filter((loaded) => !!loaded),
-      map(() => {})
-    );
-  }
+  constructor() {
+    effect(() => {
+      const profiles = this.profiles();
+      const cfg = this.configAPI.config();
 
-  /** Emits all users */
-  get users(): Observable<Profile[]> {
-    return this.updated.pipe(map(() => Array.from(this.usersByName.values())));
-  }
-
-  /** Returns all users */
-  get snapshot(): Profile[] {
-    return Array.from(this.usersByName.values());
-  }
-
-  private reload$ = new BehaviorSubject<void>(undefined);
-
-  /** Force a reload of all available users. */
-  reloadUsers() {
-    this.reload$.next();
-  }
-
-  constructor(
-    @Inject(USER_SERVICE) private userService: UserServiceClient,
-    private configapi: ConfigAPI) {
-
-    combineLatest([this.configapi.change, this.reload$])
-      .pipe(
-        filter(([cfg]) => !!cfg),
-        mergeMap(() => from(this.userService.listUsers({}))),
-        retryWhen((err) => err.pipe(delay(2000)))
-      )
-      .subscribe((response) => this.updateUsers(response.users));
+      this.updateUsers(profiles, cfg);
+    })
   }
 
   /**
@@ -137,13 +105,12 @@ export class UserService {
    *
    * @param profiles The list of users loaded from CIS.
    */
-  private updateUsers(profiles: Profile[]): void {
+  private updateUsers(profiles: Profile[], cfg: UIConfig): void {
     this.usersByExtension = new Map();
     this.usersByName = new Map();
     this.usersById = new Map();
     this.usersByCalendarID = new Map();
 
-    const cfg = this.configapi.current;
     const phoneExtension = cfg?.UI?.UserPhoneExtensionProperties || [];
     profiles.forEach((profile) => {
 
@@ -170,8 +137,6 @@ export class UserService {
 
       });
     });
-
-    this.updated$.next(true);
   }
 
   extendList<T, K extends string>(

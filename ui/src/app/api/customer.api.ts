@@ -175,7 +175,7 @@ export class CustomerAPI {
   }
 
   extendedSearch(query: any): Observable<Customer[]> {
-    return this.http.post<Customer[]>(`/api/customer/v1/search/`, query)
+    return this.http.post<Customer[]>(`/api/customer/v1/search`, query)
       .pipe(map(result => result.map(customer => ({
         ...customer,
         distinctPhoneNumbers: distinctPhoneNumbers(customer.phoneNumbers)

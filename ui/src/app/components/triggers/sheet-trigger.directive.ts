@@ -5,6 +5,7 @@ import { BrnSheetComponent } from '@spartan-ng/ui-sheet-brain';
 @Directive({
 	selector: '[appSheetTriggerFor]',
 	standalone: true,
+	exportAs: "appSheetTrigger"
 })
 export class AppSheetTriggerDirective extends BrnDialogTriggerDirective {
     public readonly sheet = input<BrnSheetComponent | undefined>(undefined, {alias: 'appSheetTriggerFor'})

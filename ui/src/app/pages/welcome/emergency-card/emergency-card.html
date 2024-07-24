@@ -1,34 +1,54 @@
 <nz-card class="overflow-hidden">
-  <img class="card-image" src="assets/moon-cloud.png">
+  <img class="card-image" src="assets/moon-cloud.png" />
   <nz-card-meta [nzTitle]="titleTemplate" [nzDescription]="descriptionTemplate">
   </nz-card-meta>
-
 </nz-card>
 
 <ng-template #titleTemplate>
   <span class="header">
-    Bereitschaftsdienst {{ onDuty?.isOverwrite ? '(ÜBERSCHRIEBEN)' : ''}}
+    Bereitschaftsdienst {{ onDuty?.isOverwrite ? '(ÜBERSCHRIEBEN)' : '' }}
     @if (canSetOverwrite) {
-      <i nz-dropdown nzTrigger="click" nz-icon nzType="edit" nzTheme="outline"
-      style="cursor: pointer" nz-tooltip nzTooltipTitle="Nachdienst ändern" routerLink="/on-call/overwrite"></i>
+      <i
+        nz-dropdown
+        nzTrigger="click"
+        nz-icon
+        nzType="edit"
+        nzTheme="outline"
+        style="cursor: pointer"
+        nz-tooltip
+        nzTooltipTitle="Nachdienst ändern"
+        routerLink="/on-call/overwrite"></i>
     }
   </span>
 
-  <div class="on-duty-container">
-
+  <div class="grid grid-cols-1 gap-2">
     @for (onCall of onDuty?.onCall; track onCall) {
-      <nz-avatar [nzSize]="64" nzShape="square" nzIcon="user" [nzSrc]="(onCall.profile?.user?.id | toUser)?.user.avatar"></nz-avatar>
-      <div class="primary-on-duty">
-        <span [nzTooltipTitle]="'bis ' + (onCall.until?.toDate() | date:'short')"
-          nz-tooltip><u>{{
-        onCall.profile?.user?.id | toUser | displayName }}</u></span>
-        <a class="phone" [attr.href]="'tel:' + onCall.transferTarget">
-          <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
-          {{ onCall.transferTarget }}
-        </a>
+      <div
+        class="flex flex-row items-center justify-start gap-4 rounded-md border border-border p-2">
+        @if (onCall.profile) {
+          <app-avatar
+            [user]="onCall.profile"
+            class="ml-1"
+            variant="large"
+            [nzTooltipTitle]="'bis ' + (onCall.until | toDate | date: 'short')"
+            nz-tooltip />
+
+          <brn-separator hlm decorative orientation="vertical" />
+        }
+        <div class="flex flex-col gap-0">
+          @if (onCall.profile) {
+            <span hlmLabel class="text-lg">
+              {{ onCall.profile | toUser: profiles() | displayName }}
+            </span>
+          }
+
+          <a class="text-gray-600" [attr.href]="'tel:' + onCall.transferTarget">
+            <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
+            {{ onCall.transferTarget }}
+          </a>
+        </div>
       </div>
     }
-
   </div>
 </ng-template>
 
@@ -41,7 +61,11 @@
     <span class="description">
       @if (onDuty?.onCall?.length === 0) {
         <span style="color: red">
-          <i nz-icon nzType="warning" nzTheme="outline" style="margin-right: 4px;"></i>
+          <i
+            nz-icon
+            nzType="warning"
+            nzTheme="outline"
+            style="margin-right: 4px"></i>
           Nicht eingetragen!
         </span>
       }

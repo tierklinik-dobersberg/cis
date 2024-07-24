@@ -15,7 +15,7 @@ import { toast } from 'ngx-sonner';
 import { BehaviorSubject, combineLatest, finalize, interval, mergeMap, retry, startWith } from "rxjs";
 import { DoorAPI } from "src/app/api";
 import { AppMenuComponent } from "src/app/components/app-menu";
-import { AppSheetTriggerDirective } from "src/app/components/sheet-trigger";
+import { AppSheetTriggerDirective } from "src/app/components/triggers";
 import { extractErrorMessage } from "src/app/utils";
 
 @Component({

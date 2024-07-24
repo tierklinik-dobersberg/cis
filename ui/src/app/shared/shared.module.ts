@@ -4,6 +4,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import { DisplayNamePipe, ToUserPipe, UserColorPipe, UserContrastColorPipe } from '@tierklinik-dobersberg/angular/pipes';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
@@ -21,14 +22,13 @@ import { MarkdownModule } from 'ngx-markdown';
 import { TimeagoModule } from 'ngx-timeago';
 import { HeaderTitleOutletComponent } from '../layout/header-title';
 import { LinkNoBubbleDirective } from './a-no-bubble.directive';
-import { CallLogTableComponent } from './callog-table';
 import { CommentComponent } from './comment';
 import { TkdDateInputModule } from './date-input';
 import { TkdDebounceEventDirective } from './debounce-event.directive';
 import { ListActionButtonGroupComponent } from './list-btn-group';
 import { TkdOptionListInputComponent } from './option-list-input';
 import { TkdOptionSpecInputComponent } from './option-spec-input';
-import { ColorShadePipe, DurationPipe, FilterPipe, ToDatePipe, ToRGBAPipe, ToUserPipe, UserColorPipe, UserContrastColorPipe, UserNamePipe } from './pipes';
+import { ColorShadePipe, DurationPipe, FilterPipe, ToDatePipe, ToRGBAPipe } from './pipes';
 import { CanDeleteCustomerPipe } from './pipes/can-delete-customer';
 import { InListPipe } from './pipes/in-list.pipe';
 import { TkdStringSliceInputComponent } from './simple-string-slice-input';
@@ -59,22 +59,21 @@ import { UserAvatarComponent } from './user-avatar';
     HeaderTitleOutletComponent,
     CommentComponent,
     TextInputComponent,
+    TkdDebounceEventDirective,
+    ToUserPipe,
+    DisplayNamePipe,
+    UserColorPipe,
+    UserContrastColorPipe
   ],
   declarations: [
     DurationPipe,
-    CallLogTableComponent,
     CanDeleteCustomerPipe,
     LinkNoBubbleDirective,
     TkdStringSliceInputComponent,
     TkdOptionSpecInputComponent,
     TkdOptionListInputComponent,
     ListActionButtonGroupComponent,
-    TkdDebounceEventDirective,
     UserAvatarComponent,
-    ToUserPipe,
-    UserNamePipe,
-    UserColorPipe,
-    UserContrastColorPipe,
     ToDatePipe,
     InListPipe,
   ],
@@ -98,7 +97,6 @@ import { UserAvatarComponent } from './user-avatar';
     NzModalModule,
     DurationPipe,
     CommentComponent,
-    CallLogTableComponent,
     TextInputComponent,
     CanDeleteCustomerPipe,
     LinkNoBubbleDirective,
@@ -108,11 +106,7 @@ import { UserAvatarComponent } from './user-avatar';
     ListActionButtonGroupComponent,
     UserAvatarComponent,
     TimeagoModule,
-    ToUserPipe,
     TkdDebounceEventDirective,
-    UserNamePipe,
-    UserColorPipe,
-    UserContrastColorPipe,
     ToDatePipe,
     CKEditorModule,
     InListPipe,
@@ -121,6 +115,10 @@ import { UserAvatarComponent } from './user-avatar';
     ToRGBAPipe,
     ColorShadePipe,
     HeaderTitleOutletComponent,
+    ToUserPipe,
+    DisplayNamePipe,
+    UserColorPipe,
+    UserContrastColorPipe
   ],
 })
 export class SharedModule { }

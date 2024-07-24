@@ -1,13 +1,28 @@
-import { coerceBooleanProperty } from "@angular/cdk/coercion";
-import { NgTemplateOutlet } from "@angular/common";
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, inject, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
-import { ControlValueAccessor, DefaultValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
-import { CKEditorComponent, CKEditorModule } from "@ckeditor/ckeditor5-angular";
-import { NzSelectModule } from "ng-zorro-antd/select";
-import { firstValueFrom, map, Subject } from "rxjs";
-import { UserService } from 'src/app/api';
-import { MyEditor } from "src/app/ckeditor";
-import { UserNamePipe } from "../pipes";
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { NgTemplateOutlet } from '@angular/common';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  computed,
+  forwardRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from '@angular/core';
+import {
+  ControlValueAccessor,
+  DefaultValueAccessor,
+  NG_VALUE_ACCESSOR,
+} from '@angular/forms';
+import { CKEditorComponent, CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
+import { DisplayNamePipe } from '@tierklinik-dobersberg/angular/pipes';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { Subject } from 'rxjs';
+import { MyEditor } from 'src/app/ckeditor';
 
 export type FormatType = 'plain' | 'html' | 'markdown';
 
@@ -18,18 +33,20 @@ export type FormatType = 'plain' | 'html' | 'markdown';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   providers: [
-    { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => TextInputComponent), multi: true }
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => TextInputComponent),
+      multi: true,
+    },
   ],
-  imports: [
-   NzSelectModule,
-   CKEditorModule ,
-   NgTemplateOutlet,
-  ]
+  imports: [NzSelectModule, CKEditorModule, NgTemplateOutlet],
 })
-export class TextInputComponent implements OnDestroy, OnInit, ControlValueAccessor, AfterViewInit {
+export class TextInputComponent
+  implements OnDestroy, OnInit, ControlValueAccessor, AfterViewInit
+{
   public Editor = MyEditor;
 
-  private readonly userService = inject(UserService)
+  protected readonly profiles = injectUserProfiles();
 
   @ViewChild('input', { static: false, read: DefaultValueAccessor })
   defaultAccessor: ControlValueAccessor | null = null;
@@ -42,47 +59,56 @@ export class TextInputComponent implements OnDestroy, OnInit, ControlValueAccess
   /** The expected output format. Only valid if choices is not set. */
   @Input()
   set format(format: '' | FormatType) {
-    if (format === '') { format = 'plain' };
+    if (format === '') {
+      format = 'plain';
+    }
     this._format = format;
   }
-  get format() { return this._format; }
+  get format() {
+    return this._format;
+  }
   private _format: FormatType;
 
   /** Available input choices. Causes text-input to render a select box. */
   @Input()
   choices: string[] | null = null;
 
-  config: any = {
-    mention: {
-      feeds: [
-        {
-          marker: '@',
-          feed: (queryText: string) => {
-            return firstValueFrom(this.userService.users
-              .pipe(
-                map(users => {
-                  return users.filter(profile => {
-                    return profile.user.username.toLowerCase().includes(queryText)
-                      || profile.user.firstName?.toLowerCase().includes(queryText)
-                      || profile.user.displayName?.toLowerCase().includes(queryText)
+  protected readonly config: any = computed(() => {
+    const profiles = this.profiles();
+
+    return {
+      mention: {
+        feeds: [
+          {
+            marker: '@',
+            feed: (queryText: string) => {
+              return new Promise((resolve, reject) => {
+                const users = profiles
+                  .filter(profile => {
+                    return (
+                      profile.user.username.toLowerCase().includes(queryText) ||
+                      profile.user.firstName
+                        ?.toLowerCase()
+                        .includes(queryText) ||
+                      profile.user.displayName
+                        ?.toLowerCase()
+                        .includes(queryText)
+                    );
                   })
-                })
-              )
-            ).then(response => {
-              return response
-                .map(profile => {
-                  return {
+                  .map(profile => ({
                     id: '@' + profile.user.username,
                     userId: profile.user.id,
-                    name: new UserNamePipe().transform(profile),
-                  }
-                })
-            })
-          }
-        }
-      ]
-    }
-  }
+                    name: new DisplayNamePipe().transform(profile),
+                  }));
+
+                resolve(users);
+              });
+            },
+          },
+        ],
+      },
+    };
+  });
 
   /**
    * Whether or not the input should be multiline.
@@ -93,7 +119,9 @@ export class TextInputComponent implements OnDestroy, OnInit, ControlValueAccess
   set multiline(v: any) {
     this._multiline = coerceBooleanProperty(v);
   }
-  get multiline() { return this._multiline; }
+  get multiline() {
+    return this._multiline;
+  }
   private _multiline = false;
 
   _value: string = '';
@@ -102,21 +130,21 @@ export class TextInputComponent implements OnDestroy, OnInit, ControlValueAccess
   set disabled(v: any) {
     this.setDisabledState(coerceBooleanProperty(v));
   }
-  get disabled() { return this._disabled; }
+  get disabled() {
+    return this._disabled;
+  }
   private _disabled: boolean = false;
 
-  constructor(
-    private cdr: ChangeDetectorRef
-  ) { }
+  constructor(private cdr: ChangeDetectorRef) {}
 
-  _onChange: (_: string) => void = () => { }
+  _onChange: (_: string) => void = () => {};
   registerOnChange(fn: (_: string) => void) {
     this._onChange = fn;
     this.defaultAccessor?.registerOnChange(this._onChange);
     this.ckEditor?.registerOnChange(this._onChange);
   }
 
-  _onTouch: () => any = () => { };
+  _onTouch: () => any = () => {};
   registerOnTouched(fn: () => {}) {
     this._onTouch = fn;
     this.defaultAccessor?.registerOnTouched(this._onTouch);

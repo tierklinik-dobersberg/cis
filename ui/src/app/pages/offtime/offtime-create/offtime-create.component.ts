@@ -1,5 +1,5 @@
-import { NgClass } from "@angular/common";
-import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, model, signal } from "@angular/core";
+import { DatePipe, NgClass } from "@angular/common";
+import { ChangeDetectionStrategy, Component, OnInit, effect, inject, model, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from '@angular/router';
 import { Timestamp } from '@bufbuild/protobuf';
@@ -18,14 +18,16 @@ import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
 import { DurationPipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
+import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
 import { GetVacationCreditsLeftResponse, OffTimeType, UserVacationSum } from "@tierklinik-dobersberg/apis";
 import { CandyDate } from 'ng-zorro-antd/core/time';
 import { NzDatePickerModule } from "ng-zorro-antd/date-picker";
 import { NzSelectModule } from "ng-zorro-antd/select";
+import { MarkdownModule } from "ngx-markdown";
 import { toast } from "ngx-sonner";
 import { OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { MyEditor } from 'src/app/ckeditor';
-import { toDateString } from 'src/app/utils';
+import { TkdDatePickerComponent } from "src/app/components/date-picker";
 import { OffTimeCalendarOverviewComponent } from "../offtime-calendar-overview/calendar-overview";
 
 const dateForDateTimeInputValue = date => new Date(date.getTime() + date.getTimezoneOffset() * -60 * 1000).toISOString().slice(0, 19);
@@ -52,6 +54,10 @@ const dateForDateTimeInputValue = date => new Date(date.getTime() + date.getTime
     BrnAlertDialogModule,
     HlmSheetModule,
     BrnSheetModule,
+    TkdDatePickerComponent,
+    DatePipe,
+    HlmTableModule,
+    MarkdownModule
   ]
 })
 export class OffTimeCreateComponent implements OnInit {
@@ -67,44 +73,7 @@ export class OffTimeCreateComponent implements OnInit {
   protected readonly offTimeType = model<'auto' | 'vacation' | 'timeoff'>('auto');
   protected readonly showTime = model(false);
 
-  protected readonly _computedCandyDate = computed(() => {
-    const from = this.from();
-    
-    if (from) {
-      return new CandyDate(from);
-    }
-    
-    return null
-  })
-  
-  protected readonly _computedDateRange = computed(() => {
-    const from = this.from();
-    const to = this.to();
-    
-    if (!from || !to) {
-      return null
-    }
-    
-    return [
-      new Date(from),
-      new Date(to),
-    ]
-  })
-  
-  protected readonly _computedHoverValue = computed<[CandyDate, CandyDate]|null>(() => {
-    const range = this._computedDateRange();
-    if (!range) {
-      return null
-    }
-    
-    return [
-      new CandyDate(range[0]),
-      new CandyDate(range[1]),
-    ]
-  })
-  
-  protected readonly from = signal((new Date).toDateString());
-  protected readonly to   = signal('');
+  protected readonly dateRange = model<[Date, Date]>([null, null])
   
   protected readonly profiles = injectUserProfiles();
   protected readonly currentUser = injectCurrentProfile();
@@ -141,48 +110,6 @@ export class OffTimeCreateComponent implements OnInit {
       })
   })
 
-  protected updateFromRangePicker(value: [Date, Date]) {
-    if (value[0]) {
-      this.from.set(
-        this.showTime()
-          ? dateForDateTimeInputValue(value[0])
-          : toDateString(value[0])
-      )
-    }
-
-    if (value[1]) {
-      this.to.set(
-        this.showTime()
-          ? dateForDateTimeInputValue(value[1])
-          : toDateString(value[1])
-      )
-    }
-  }
-
-  toggleShowTime() {
-    this.showTime.set(!this.showTime());
-
-    if (this.from()) {
-      let from = new Date(this.from());
-
-      if (this.showTime()) {
-        from = new Date(from.getFullYear(), from.getMonth(), from.getDate(), 0, 0, 0)
-      }
-
-      this.from.set(this.showTime() ? dateForDateTimeInputValue(from) : toDateString(from));
-    }
-
-    if (this.to()) {
-      let to = new Date(this.to());
-
-      if (this.showTime()) {
-        to = new Date(to.getFullYear(), to.getMonth(), to.getDate()+1, 0, 0, -1)
-      }
-
-      this.to.set(this.showTime() ? dateForDateTimeInputValue(to) : toDateString(to));
-    }
-  }
-
   ngOnInit() {
     if (this.route.snapshot.queryParamMap.has("d")) {
       const d = new Date(this.route.snapshot.queryParamMap.get("d"))
@@ -190,25 +117,19 @@ export class OffTimeCreateComponent implements OnInit {
       const from = new CandyDate(d).setHms(0, 0, 0).nativeDate
       const to = new CandyDate(from).addDays(1).setHms(0, 0, -1).nativeDate
 
-      this.from.set(from.toDateString());
-      this.to.set(to.toDateString());
+      this.dateRange.set([from, to])
     }
   }
 
   createRequest() {
     const current = this.currentUser();
-    const dateRange = this._computedDateRange();
+    const dateRange = this.dateRange();
     if (!dateRange || dateRange.length != 2) {
       toast.error('Start und Enddatum müssen angegeben werden');
       return
     }
     
     let [from, to] = dateRange;
-    if (!this.showTime) {
-      from = new Date(from.getFullYear(), from.getMonth(), from.getDate(), 0, 0, 0, 0)
-      to = new Date(to.getFullYear(), to.getMonth(), to.getDate() + 1, 0, 0, -1)
-    }
-
     this.offTimeSerivce
       .createOffTimeRequest({
         description: this.description(),

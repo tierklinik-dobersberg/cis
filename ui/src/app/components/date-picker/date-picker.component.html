@@ -1,0 +1,259 @@
+@if (variant() === 'default') {
+  @if (layout.sm()) {
+    <brn-popover sideOffset="-4" (closed)="apply()" #popover>
+      <div appPopoverTrigger>
+        <ng-container
+          *ngTemplateOutlet="
+            inputTemplate;
+            context: {
+              $implicit: popover,
+            }
+          " />
+      </div>
+
+      <div
+        hlmPopoverContent
+        *brnPopoverContent="let ctx"
+        class="w-auto min-w-96"
+        #content>
+        <ng-container
+          *ngTemplateOutlet="
+            pickerTemplate;
+            context: {
+              $implicit: ctx,
+            }
+          " />
+      </div>
+    </brn-popover>
+  } @else {
+    <hlm-sheet #sheet (closed)="apply()">
+      <div [appSheetTriggerFor]="sheet" side="top">
+        <ng-container
+          *ngTemplateOutlet="
+            inputTemplate;
+            context: {
+              $implicit: sheet,
+            }
+          " />
+      </div>
+
+      <hlm-sheet-content *brnSheetContent="let ctx">
+        <ng-container
+          *ngTemplateOutlet="
+            pickerTemplate;
+            context: {
+              $implicit: ctx,
+            }
+          " />
+      </hlm-sheet-content>
+    </hlm-sheet>
+  }
+} @else {
+  <ng-container
+    *ngTemplateOutlet="
+      pickerTemplate;
+      context: {
+        $implicit: null,
+      }
+    " />
+}
+
+<ng-template #inputTemplate let-dialog>
+  <div
+    class="inline-flex w-full items-center gap-2 bg-white focus:outline"
+    hlmInput
+    tabindex="0">
+    <input
+      type="text"
+      class="h-full flex-grow bg-transparent outline-none focus:outline-none"
+      readonly
+      [value]="
+        _computedStartDate()
+          ? (_computedStartDate()
+            | toDate
+            | date: (withTime() ? 'medium' : 'mediumDate'))
+          : ''
+      " />
+
+    @if (mode() === 'range') {
+      <hlm-icon name="lucideArrowRight" size="xs" />
+      <input
+        type="text"
+        class="h-full flex-grow bg-transparent outline-none focus:outline-none"
+        readonly
+        [value]="
+          _computedEndDate()
+            ? (_computedEndDate()
+              | toDate
+              | date: (withTime() ? 'medium' : 'mediumDate'))
+            : ''
+        " />
+    }
+
+    <button
+      class="relative left-1 flex flex-shrink-0 items-center justify-center border-none bg-transparent outline-none"
+      tabindex="-1">
+      <hlm-icon name="lucideCalendar" size="sm" />
+    </button>
+  </div>
+</ng-template>
+
+<ng-template let-ctx #pickerTemplate>
+  <div class="flex items-center justify-between gap-4 p-4 sm:p-2">
+    <button hlmBtn variant="ghost" size="icon" (click)="prevMonth()">
+      <hlm-icon name="lucideArrowLeft" size="sm" />
+    </button>
+    {{ calendarDate() | toDate | date: 'MMMM, YYYY' }}
+    <button hlmBtn variant="ghost" size="icon" (click)="nextMonth()">
+      <hlm-icon name="lucideArrowRight" size="sm" />
+    </button>
+  </div>
+
+  <div class="flex flex-row flex-wrap gap-2">
+    <app-date-table
+      class="w-full flex-shrink-0 flex-grow sm:w-[unset] sm:min-w-72"
+      changable="true"
+      variant="small"
+      [ranges]="_computedRanges()"
+      (dateClick)="updateDate($event.date)"
+      [ngClass]="{
+        'rounded-md border border-border': !layout.sm(),
+      }"
+      (dateHover)="hoveredDate.set($event?.date || null)"
+      [calendarDate]="calendarDate()">
+      <div
+        class="flex h-full w-full items-center justify-center self-stretch rounded-md p-2 text-sm transition-colors duration-150 ease-in-out"
+        *dateTableCell="let date"
+        [highlightRange]="date"
+        [highlightRangeClasses]="_computedRangeClasses()"
+        [ngClass]="{
+          '!rounded-none bg-gray-100': !date.currentMonth,
+        }">
+        {{ date.date | date: 'd' }}
+      </div>
+    </app-date-table>
+
+    @if (withTime()) {
+      <div class="flex flex-shrink-0 flex-grow flex-row gap-2">
+        <ng-container
+          *ngTemplateOutlet="
+            timeSelection;
+            context: {
+              $implicit: 'start',
+            }
+          " />
+
+        @if (mode() === 'range') {
+          <ng-container
+            *ngTemplateOutlet="
+              timeSelection;
+              context: {
+                $implicit: 'end',
+              }
+            " />
+        }
+      </div>
+    }
+  </div>
+
+  @if (ctx) {
+    <brn-separator decorative hlm />
+
+    <div class="flex flex-row items-center justify-between">
+      <button hlmBtn variant="ghost" size="sm" (click)="today(); ctx.close()">
+        Heute
+      </button>
+      @if (allowClear()) {
+        <button
+          hlmBtn
+          variant="ghost"
+          size="sm"
+          (click)="value.set(null); ctx.close()">
+          Löschen
+        </button>
+      }
+      <button hlmBtn variant="ghost" size="sm" (click)="ctx.close()">
+        Anwenden
+      </button>
+    </div>
+  }
+</ng-template>
+
+<ng-template #timeSelection let-what>
+  <div
+    class="flex flex-shrink-0 flex-grow flex-col border-l border-border px-1"
+    [ngClass]="{
+      'rounded-md border': !layout.sm(),
+    }">
+    <label
+      hlmLabel
+      class="flex flex-row items-center justify-center gap-2 py-[0.85rem]">
+      <hlm-icon name="lucideClock" size="sm" class="text-gray-400" />
+
+      @if (mode() === 'range') {
+        @switch (what) {
+          @case ('start') {
+            Startzeit
+          }
+          @case ('end') {
+            Endzeit
+          }
+        }
+      } @else {
+        Uhrzeit
+      }
+    </label>
+
+    <brn-separator hlm decorative />
+
+    <div class="mt-2 grid h-48 flex-shrink-0 grid-cols-2 gap-1 overflow-hidden">
+      <ol
+        class="flex h-full flex-col items-center overflow-y-auto overflow-x-hidden px-1">
+        @for (h of hours(); track h) {
+          <button
+            hlmBtn
+            #hourBtn
+            [attr.hour]="h"
+            class="w-full min-w-10 flex-shrink-0 flex-grow self-stretch"
+            (click)="setHour(h, what)"
+            [variant]="
+              h ===
+              (what === 'start'
+                ? _computedCurrentStartHour()
+                : _computedCurrentEndHour())
+                ? 'default'
+                : 'ghost'
+            "
+            size="icon"
+            role="listitem">
+            {{ h }}
+          </button>
+        }
+      </ol>
+
+      <ol
+        class="flex h-full flex-col items-center overflow-y-auto overflow-x-hidden px-1">
+        @for (m of minutes(); track m) {
+          <button
+            hlmBtn
+            [attr.minute]="m"
+            #minBtn
+            class="w-full min-w-10 flex-shrink-0 flex-grow self-stretch"
+            (click)="setMinute(m, what)"
+            [variant]="
+              m ===
+              (what === 'start'
+                ? _computedCurrentStartMinute()
+                : _computedCurrentEndMinute())
+                ? 'default'
+                : 'ghost'
+            "
+            size="icon"
+            role="listitem">
+            {{ m }}
+          </button>
+        }
+      </ol>
+    </div>
+  </div>
+</ng-template>

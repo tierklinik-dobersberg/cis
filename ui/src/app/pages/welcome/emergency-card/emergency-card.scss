@@ -33,28 +33,6 @@ nz-card {
   @apply flex flex-row justify-between items-center;
 }
 
-.on-duty-container {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-
-  .primary-on-duty {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
-
-    .phone {
-      color: gray;
-      font-size: 95%;
-    }
-  }
-
-  nz-avatar {
-    margin-right: 18px;
-  }
-}
-
 .user-dropdown {
   width: 100%;
   h4 {

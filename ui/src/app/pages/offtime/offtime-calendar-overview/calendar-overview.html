@@ -1,8 +1,8 @@
 @if (mode() === 'list') {
-  <div class="flex w-full flex-col flex-nowrap items-center md:items-start gap-2 md:flex-row">
+  <div
+    class="flex w-full flex-col flex-nowrap items-center gap-2 md:flex-row md:items-start">
     <div
       class="flex w-96 flex-shrink-0 flex-grow-0 flex-col items-center justify-center gap-1">
-
       <div class="flex flex-row items-center justify-center gap-2 pb-1.5">
         <button
           hlmBtn
@@ -28,20 +28,45 @@
         </button>
       </div>
 
-      <div class="ant-picker-panel rounded-md border border-border">
-        <div class="ant-picker-date-panel">
-          <div class="ant-picker-body">
-            <date-table
-              id="calendar"
-              [selectedValue]="hoverValue()"
-              [fullCellRender]="dateCell"
-              prefixCls="ant-picker-calendar"
-              [value]="calendarDate()"
-              [activeDate]="calendarDate()"
-              (valueChange)="switchDate($event)"></date-table>
-          </div>
-        </div>
-      </div>
+      <app-date-table
+        [calendarDate]="_computedNativeDate()"
+        variant="small"
+        [ranges]="calendarRanges()">
+        <ng-container *dateTableCell="let date">
+          @if (date.date | matchingOfftime: entries(); as dateEntries) {
+            <ng-template #tooltipTemplate>
+              <div
+                [innerHTML]="
+                  dateEntries | matchingOfftimeTooltip: profiles()
+                "></div>
+            </ng-template>
+
+            <hlm-tooltip>
+              <div
+                [highlightRange]="date"
+                [highlightRangeClasses]="{
+                  selection: {
+                    start: 'rounded-l !bg-green-400',
+                    end: '!bg-green-400 rounded-r',
+                    between: 'bg-green-400/50',
+                  },
+                }"
+                class="flex h-8 w-full items-center justify-center text-sm"
+                [ngClass]="{
+                  '!border-b-2 border-red-700 border-opacity-50':
+                    dateEntries.length,
+                  'bg-red-700 bg-opacity-50':
+                    hoveredEntryId() | inList: dateEntries : 'id',
+                }"
+                [hlmTooltipTrigger]="
+                  dateEntries.length ? tooltipTemplate : null
+                ">
+                {{ date.date | date: 'd' }}
+              </div>
+            </hlm-tooltip>
+          }
+        </ng-container>
+      </app-date-table>
     </div>
 
     <brn-table
@@ -89,45 +114,27 @@
       </brn-column-def>
     </brn-table>
   </div>
-
-  <ng-template let-date #dateCell>
-    @if (date | matchingOfftime: entries(); as dateEntries) {
-      <ng-template #tooltipTemplate>
-        <div
-          [innerHTML]="dateEntries | matchingOfftimeTooltip: profiles()"></div>
-      </ng-template>
-
-      <hlm-tooltip>
-        <div
-          class="ant-picker-cell-inner"
-          [ngClass]="{
-            '!border-b-2 border-red-700 border-opacity-50': dateEntries.length,
-            'bg-red-700 bg-opacity-50':
-              hoveredEntryId() | inList: dateEntries : 'id',
-          }"
-          [hlmTooltipTrigger]="dateEntries.length ? tooltipTemplate : null">
-          {{ date | date: 'd' }}
-        </div>
-      </hlm-tooltip>
-    }
-  </ng-template>
 } @else {
   <div class="flex w-full flex-row flex-wrap items-start gap-2" id="calendar">
-    <ng-template #dateCell let-date>
+    <app-date-table [calendarDate]="_computedNativeDate()">
       <div
-        class="mb-2 flex h-32 flex-col items-stretch justify-start overflow-auto border-t-2 border-green-700 border-opacity-20 text-left"
+        *dateTableCell="let ctx"
+        class="mb-2 flex h-32 max-h-[8rem] flex-col items-stretch justify-start overflow-auto border-t-2 border-green-700 border-opacity-20 text-left"
         [ngClass]="{
           '!border-red-700 !border-opacity-20':
-            (date | matchingOfftime: entries()).length > 0,
+            (ctx.date | matchingOfftime: entries()).length > 0,
         }"
-        (dblclick)="createEntry(date)">
+        (dblclick)="createEntry(ctx.date)">
         <div
           class="date-header mb-1 w-full bg-gray-100 py-0.5 text-center text-xs">
-          {{ date | date: 'd' }}
+          {{ ctx.date | date: 'd' }}
         </div>
 
         <ul class="font-inter space-y-0.5 px-1 text-xs">
-          @for (entry of date | matchingOfftime: entries(); track entry.id) {
+          @for (
+            entry of ctx.date | matchingOfftime: entries();
+            track entry.id
+          ) {
             @if (entry.requestorId | toUser: profiles(); as user) {
               <li
                 class="block rounded border border-[var(--user-color)] px-1 py-0.5 text-gray-800 data-[active=true]:bg-[var(--user-color)] data-[active=true]:text-[var(--user-contrast)]"
@@ -145,12 +152,6 @@
           }
         </ul>
       </div>
-    </ng-template>
-
-    <nz-calendar
-      nzMode="month"
-      [ngModel]="_computedNativeDate()"
-      (ngModelChange)="switchDate($event)"
-      [nzDateFullCell]="dateCell" />
+    </app-date-table>
   </div>
 }

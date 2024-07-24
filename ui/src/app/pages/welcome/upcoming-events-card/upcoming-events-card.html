@@ -1,53 +1,80 @@
 <nz-card>
   <nz-card-meta [nzTitle]="headerTemplate"></nz-card-meta>
   <ng-template #headerTemplate>
-    <span>
-      {{ mode === 'currentUser' ? 'Deine ' : '' }}Nächste Termine
-    </span>
+    <span> {{ mode() === 'currentUser' ? 'Deine ' : '' }}Nächste Termine </span>
     -
     <a class="toggle" (click)="toggle()">
-      {{showAll ? 'Nur nächste' : 'Alle'}} anzeigen
+      {{ showAll() ? 'Nur nächste' : 'Alle' }} anzeigen
     </a>
 
-    <button hlmBtn variant="secondary" size="sm" class="inline-block float-right uppercase" nz-dropdown [nzDropdownMenu]="dropdown" [nzClickHide]="false">
+    <button
+      hlmBtn
+      variant="secondary"
+      size="sm"
+      class="float-right inline-block uppercase"
+      nz-dropdown
+      [nzDropdownMenu]="dropdown"
+      [nzClickHide]="false">
       <i nz-icon nzType="filter" nzTheme="outline" class="mr-2"></i>
       <span>Filter</span>
     </button>
 
     <nz-dropdown-menu #dropdown="nzDropdownMenu">
       <ul nz-menu>
-        @for (cal of allCalendars.values(); track cal) {
-          <li nz-menu-item (click)="cal.displayed = !cal.displayed"
+        @for (cal of allCalendars().values(); track cal) {
+          <li
+            nz-menu-item
+            (click)="cal.displayed = !cal.displayed"
             (dblclick)="selectOnly(cal.calendar.id)">
-            <i [style.opacity]="cal.displayed ? 1 : 0" nz-icon nzType="check" nzTheme="outline"></i>
+            <i
+              [style.opacity]="cal.displayed ? 1 : 0"
+              nz-icon
+              nzType="check"
+              nzTheme="outline"></i>
             {{ cal.calendar.name }}
           </li>
         }
       </ul>
     </nz-dropdown-menu>
   </ng-template>
-  @if (events.length > 0) {
+  @if (events().length > 0) {
     <div class="event-container">
       <ul>
-        @for (event of events; track trackEvent($index, event)) {
-          @if (allCalendars.get(event.event.calendarId).displayed) {
-            <li class="event" [class.past]="event.past"
-              [class.highlight-active]="highlightUser !== ''"
-              [class.highlight]="event.user?.user?.id === highlightUser">
-              <span class="time" [style.color]="(event.user | color) || null">
-                <span>{{ event.event.startTime.toDate() | date:"HH:mm" }}</span>
+        @for (event of events(); track trackEvent($index, event)) {
+          @if (allCalendars().get(event.event.calendarId).displayed) {
+            <li
+              class="event"
+              [class.past]="event.past"
+              [class.highlight-active]="highlightUser() !== ''"
+              [userColorVars]="
+                event.event.calendarId | byCalendarId: profiles()
+              "
+              [class.highlight]="
+                (event.event.calendarId | byCalendarId: profiles())?.user.id ===
+                highlightUser()
+              ">
+              <span class="time text-[var(--user-color)]">
+                <span>{{
+                  event.event.startTime.toDate() | date: 'HH:mm'
+                }}</span>
                 @if (event.duration) {
                   <span class="duration">{{ event.duration | duration }}</span>
                 }
               </span>
               <span class="summary-container">
                 <span class="summary">{{ event.event.summary }}</span>
-                @if (!!event.user) {
-                  <span class="user name"
-                    [style.backgroundColor]="event.user|color" [style.color]="event.user | contrastColor">{{
-                  event.user | displayName }}</span>
+                @if (
+                  event.event.calendarId | byCalendarId: profiles();
+                  as user
+                ) {
+                  <span
+                    class="user name bg-[var(--user-color,gray)] text-[var(--user-contrast,white)]">
+                    {{ user | displayName }}
+                  </span>
                 } @else {
-                  <span class="user">{{ allCalendars.get(event.event.calendarId)?.calendar.name }}</span>
+                  <span class="user">{{
+                    allCalendars().get(event.event.calendarId)?.calendar.name
+                  }}</span>
                 }
               </span>
             </li>

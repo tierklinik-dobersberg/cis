@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { Timed } from './models';
 import { Duration, Timestamp } from '@bufbuild/protobuf';
+import { Timed } from './models';
 
 export function getSeconds(b: number | Date | Duration | Timestamp): number {
   if (b instanceof Duration) {
@@ -21,7 +21,7 @@ export function getSeconds(b: number | Date | Duration | Timestamp): number {
   standalone: true,
 })
 export class SortPipe implements PipeTransform {
-  transform(events: Timed[]): Timed[] {
+  transform<T extends Timed>(events: T[]): T[] {
     let copy = [...events];
 
     copy.sort((a, b) => {

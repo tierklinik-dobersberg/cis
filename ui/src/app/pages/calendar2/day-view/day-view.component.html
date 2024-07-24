@@ -1,92 +1,99 @@
-<ng-template [headerCell]="calendarType" #defaultHeaderCell="tkdCalendarHeaderCell" let-calendar>
+<ng-template
+  [headerCell]="calendarType"
+  #defaultHeaderCell="tkdCalendarHeaderCell"
+  let-calendar>
   {{ calendar.name }}
 </ng-template>
 
-<ng-template [eventCell]="calendarType" #defaultEventCell="tkdCalendarEventCell" let-event>
+<ng-template
+  [eventCell]="calendarType"
+  #defaultEventCell="tkdCalendarEventCell"
+  let-event>
   {{ event.id }}
 </ng-template>
 
-<header class="z-50 flex-grow-0 flex-shrink-0 w-full grid-container">
-  @for (cal of data; track trackCalendar($index, cal)) {
-    <div>
+<header
+  class="grid-container z-50 w-full flex-shrink-0 flex-grow-0 border-b border-border drop-shadow-sm"
+  [style.gridTemplateColumns]="_computedGridTemplateColumns()">
+  @for (cal of _computedCalendarsToDisplay(); track cal.id) {
+    <div class="overflow-hidden text-ellipsis">
       <ng-container
-      *ngTemplateOutlet="
-        headerCell?.template || defaultHeaderCell.template;
-        context: {
-          $implicit: cal
-        }
-      "
-    ></ng-container>
-  </div>
-}
+        *ngTemplateOutlet="
+          headerCell?.template || defaultHeaderCell.template;
+          context: {
+            $implicit: cal,
+          }
+        "></ng-container>
+    </div>
+  }
 </header>
 
-<div class="overflow-auto relative flex-grow" #calendarContainer (scroll)="handleScroll($event)">
+<div
+  class="relative flex-grow flex-nowrap overflow-auto"
+  #calendarContainer
+  (scroll)="handleScroll($event)">
   <div
-    class="w-full grid-container"
-    [style.height]="24 * 3600 | secondsToPixel : sizeFactor"
-    >
-    @for (cal of data; track trackCalendar($index, cal)) {
+    class="grid-container w-full"
+    [style.gridTemplateColumns]="_computedGridTemplateColumns()"
+    [style.height]="24 * 3600 | secondsToPixel: sizeFactor()">
+    @for (cal of _computedCalendarsToDisplay(); track cal.id) {
       <div
         #container
-        (click)="handleCalendarClick($event, cal, container, false)"
+        tkdDebounceEvent="click"
+        tkdDebounceStopEvent="dblclick"
+        [tkdDebounceEventTime]="10"
+        (tkdOnEvent)="handleCalendarClick($any($event), cal, container, false)"
         (dblclick)="handleCalendarClick($event, cal, container, true)"
         class="relative h-full"
-        [attr.calendar-id]="cal.id"
-        >
+        [attr.calendar-id]="cal.id">
         @for (h of hours; track h; let last = $last) {
           <div
             [attr.hour]="h"
-            class="absolute w-full text-xs border-t border-opacity-50 border-sky-900 p-2"
-        [ngClass]="{
-          'border-b-8 border-b-primary': last
-        }"
-        [ngStyle]="{
-        top: ((h * 60 * 60) | secondsToPixel: sizeFactor) + 'px',
-        height: ((60 * 60) | secondsToPixel: sizeFactor) + 'px',
-     }"
-            >
+            class="absolute w-full border-t border-sky-900 border-opacity-50 p-2 text-xs"
+            [ngClass]="{
+              'border-b-8 border-b-primary': last,
+            }"
+            [ngStyle]="{
+              top: (h * 60 * 60 | secondsToPixel: sizeFactor()) + 'px',
+              height: (60 * 60 | secondsToPixel: sizeFactor()) + 'px',
+            }">
             {{ h }}:00
           </div>
         }
-        @if (cal.events | sort | eventStyle : sizeFactor : min; as events) {
-          @for (event of events | sort; track event.id) {
+        @if (cal.events | eventStyle: sizeFactor() : min; as events) {
+          @for (event of events; track event.id) {
             <div
-              class="absolute transition duration-150 ease-in-out overflow-visible"
-          [ngClass]="{
-            'hover:!z-[100]': !event.ignoreOverlapping
-          }"
+              class="absolute overflow-visible transition duration-150 ease-in-out"
+              [ngClass]="{
+                'hover:!z-[100]': !event.ignoreOverlapping,
+              }"
               [attr.event-id]="event.id"
-              [ngStyle]="$any(event).style"
-              >
+              [ngStyle]="event.style">
               <ng-container
-            *ngTemplateOutlet="
-                eventCell?.template || defaultEventCell.template;
-                context: {
-                    $implicit: $any(event),
+                *ngTemplateOutlet="
+                  eventCell?.template || defaultEventCell.template;
+                  context: {
+                    $implicit: event,
                     calendar: cal,
-                }
-            "
-              >
-            </ng-container>
-          </div>
+                  }
+                ">
+              </ng-container>
+            </div>
+          }
         }
-      }
+      </div>
+    }
+  </div>
+
+  <!-- Current Time Marker -->
+  @if (showCurrentTime()) {
+    <div
+      class="absolute left-0 right-0 z-[100] border-t border-primary drop-shadow"
+      [style.top.px]="currentTime$ | async | secondsToPixel: sizeFactor()">
+      <span
+        class="absolute right-0 top-0 rounded-b bg-primary px-1 py-0.5 text-xs font-medium text-primary-foreground">
+        {{ currentTime$ | async | time }}
+      </span>
     </div>
   }
-</div>
-
-<!-- Current Time Marker -->
-@if (showCurrentTime) {
-  <div
-    class="absolute right-0 left-0 border-t border-red-700 z-[100] drop-shadow"
-    [style.top.px]="currentTime$ | async | secondsToPixel : sizeFactor"
-    >
-    <span
-      class="absolute top-0 right-0 px-1 py-0.5 text-xs text-white rounded-b bg-red-700"
-      >
-      {{ currentTime$ | async | time }}
-    </span>
-  </div>
-}
 </div>

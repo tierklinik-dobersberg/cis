@@ -1,19 +1,22 @@
 @if (profileOrId() | toUser: profiles(); as profile) {
-  <hlm-avatar [variant]="variant()" [class]="_computedClasses()">
+  <hlm-avatar
+    [variant]="variant()"
+    [class]="_computedClasses()"
+    [userColorVars]="profile">
     <img
       [attr.src]="profileOrId() | avatar"
       hlmAvatarImage
       [attr.alt]="profile | displayName" />
     <span
-      class="uppercase"
+      class="bg-[var(--user-color)] uppercase text-[var(--user-contrast)]"
       hlmAvatarFallback
-      [style.backgroundColor]="profile | color"
-      [style.color]="profile | contrastColor"
       >{{ profile | userLetter }}</span
     >
   </hlm-avatar>
 
   @if (showName()) {
-    {{ profile | displayName }}
+    <span class="ml-2 inline-block overflow-hidden text-ellipsis">
+      {{ profile | displayName }}
+    </span>
   }
 }

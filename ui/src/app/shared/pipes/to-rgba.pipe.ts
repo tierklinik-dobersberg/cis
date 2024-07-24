@@ -12,6 +12,10 @@ export class ToRGBAPipe implements PipeTransform {
 
   static transform(input: string, alpha: string = ''): string {
     const rgb = hexToRgb(input);
+    
+    if (rgb === null) {
+      return ''
+    }
 
     const result = `rgb(${rgb.r} ${rgb.g} ${rgb.b}`
 

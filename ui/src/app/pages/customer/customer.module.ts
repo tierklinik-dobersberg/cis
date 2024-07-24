@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -10,14 +11,14 @@ import { NzListModule } from 'ng-zorro-antd/list';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzPopoverModule } from 'ng-zorro-antd/popover';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { CallLogTableComponent } from 'src/app/components/callog-table';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { CustomerListComponent } from './customer-list';
 import { CustomerRoutingModule } from './customer-routing.module';
 import { CustomerViewComponent } from './customer-view';
-import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
 
 @NgModule({
   imports: [
@@ -38,7 +39,8 @@ import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
     ScrollingModule,
     CustomerRoutingModule,
     SharedModule,
-    HlmButtonModule
+    HlmButtonModule,
+    CallLogTableComponent,
   ],
   exports: [
     CustomerListComponent,

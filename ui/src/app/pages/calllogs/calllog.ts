@@ -1,93 +1,104 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Timestamp } from '@bufbuild/protobuf';
-import { CallEntry } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
-import { BehaviorSubject, Subscription, combineLatest, interval } from 'rxjs';
-import { mergeMap, startWith } from 'rxjs/operators';
-import { UserService } from 'src/app/api';
-import { CALL_SERVICE } from 'src/app/api/connect_clients';
+import { Code, ConnectError } from '@connectrpc/connect';
+import { DurationPipe } from '@tierklinik-dobersberg/angular/pipes';
+import { CallEntry, SearchCallLogsResponse } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
+import { endOfDay, startOfDay } from 'date-fns';
+import { toast } from 'ngx-sonner';
+import { injectCallService } from 'src/app/api/connect_clients';
+import { CallLogTableComponent } from 'src/app/components/callog-table';
+import { TkdDatePickerComponent } from 'src/app/components/date-picker';
 import { HeaderTitleService } from 'src/app/layout/header-title';
-import { toDateString } from 'src/app/utils';
 
 @Component({
   templateUrl: './calllog.html',
   styleUrls: ['./calllog.scss'],
+  standalone: true,
+  changeDetection:ChangeDetectionStrategy.OnPush,
+  imports: [
+    TkdDatePickerComponent,
+    FormsModule,
+    CallLogTableComponent,
+    DurationPipe,
+    DecimalPipe
+  ]
 })
-export class CallLogComponent implements OnInit, OnDestroy {
-  private subscriptions = Subscription.EMPTY;
-  private selectedDate = new BehaviorSubject<Date[]>([]);
+export class CallLogComponent implements OnInit {
 
-  dateRange: Date[] = [];
 
-  distinctCallers: Set<string> = new Set();
-  missedCalls = 0;
-  totalCallTime = 0;
-  logs: CallEntry[] = [];
-  loading = false;
+  protected readonly distinctCallers = computed(() => {
+    const logs = this.logs();
+    const set = new Set<string>();
+    
+    logs.forEach(entry => set.add(entry.caller))
+    
+    return set.size;
+  })
 
-  private callService = inject(CALL_SERVICE);
+  protected readonly missedCalls = computed(() => {
+    const logs = this.logs();
 
-  constructor(
-    private header: HeaderTitleService,
-    private userService: UserService,
-  ) { }
+    return logs
+      .filter(entry => !entry.callType)    
+      .length;
+  })
 
-  onChange(date: Date[]): void {
-    this.selectedDate.next(date);
+  protected readonly totalCallTime = computed(() => {
+    const logs = this.logs();
+    
+    return logs.reduce((sum, current) => {
+      return sum + current.duration.seconds
+    }, BigInt(0))
+  })
+  
+  private readonly header = inject(HeaderTitleService);
+  
+  protected readonly logs = signal<CallEntry[]>([]);
+  protected readonly loading = signal(false);
+  protected readonly dateRange = signal<[Date, Date]>((() => {
+    const now = new Date();
+    return [
+      startOfDay(now),
+      endOfDay(now),
+    ]
+  })())
+
+  private callService = injectCallService();
+  
+  constructor() {
+    effect(() => {
+      const range = this.dateRange();
+
+      this.loading.set(true);
+
+      this.callService
+        .searchCallLogs({
+          timeRange: {
+            from: Timestamp.fromDate(range[0]),
+            to: Timestamp.fromDate(range[1]),
+          }
+        })
+        .catch(err => {
+          const cErr = ConnectError.from(err);
+
+          if (cErr.code !== Code.NotFound) {
+            toast.error('Anruf-Journal konnte nicht geladen werden', {
+              description: cErr.message
+            })
+          }
+          
+          return new SearchCallLogsResponse()
+        })
+        .then(response => {
+          this.logs.set(response.results);
+        })
+      
+    }, { allowSignalWrites: true })
   }
 
   ngOnInit(): void {
     this.header.set('Anruf Journal', 'Protokol der eingehenden und ausgehenden Telefonate.');
-    this.subscriptions = new Subscription();
-
-    const now = new Date();
-    this.dateRange = [
-      new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0),
-      new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
-    ]
-    this.selectedDate.next(this.dateRange);
-
-    const sub =
-      combineLatest([
-        interval(60000).pipe(startWith(-1)),
-        this.selectedDate,
-        this.userService.updated,
-      ])
-        .pipe(
-          mergeMap(() => this.selectedDate),
-          mergeMap(d => {
-            this.loading = true;
-
-            if (!!d[0] && !!d[1]) {
-              return this.callService.searchCallLogs({
-                timeRange: {
-                  from: Timestamp.fromDate(d[0]),
-                  to: Timestamp.fromDate(d[1]),
-                }
-              })
-            }
-            return this.callService.searchCallLogs({date: toDateString(d[0])});
-          }),
-        )
-        .subscribe(logs => {
-          this.missedCalls = 0;
-          this.logs = logs.results || [];
-          this.distinctCallers = new Set();
-          this.logs.forEach(log => {
-            this.distinctCallers.add(log.caller);
-            if (!log.callType) {
-              this.missedCalls++;
-            }
-          });
-
-          setTimeout(() => {
-            this.loading = false;
-          }, 300);
-        });
-
-    this.subscriptions.add(sub);
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
   }
 }

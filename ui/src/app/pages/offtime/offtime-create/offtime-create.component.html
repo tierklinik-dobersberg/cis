@@ -52,59 +52,21 @@
           name="wholeDays"
           class="mr-2"
           [ngModel]="!showTime()"
-          (ngModelChange)="toggleShowTime()" />
+          (ngModelChange)="showTime.set(!showTime())" />
         Ganze Tage
       </label>
 
-      <!-- Date-range picker on Desktop -->
-      @if (layout.md()) {
-        <nz-range-picker
-          hlmInput
-          [ngModel]="_computedDateRange()"
-          (ngModelChange)="updateFromRangePicker($event)"
-          [nzShowTime]="showTime()"
-          required
-          name="daterange"
-          [nzDateRender]="view.dateCellRender"></nz-range-picker>
-      } @else {
-        <div class="flex w-full flex-col gap-1">
-          <label hlmLabel for="from">
-            Von
-            <input
-              hlmInput
-              [attr.type]="showTime() ? 'datetime-local' : 'date'"
-              required
-              name="from"
-              [(ngModel)]="from" />
-          </label>
-        </div>
-
-        <div class="flex w-full flex-col gap-1">
-          <label hlmLabel for="to">
-            Bis
-            <input
-              hlmInput
-              [attr.type]="showTime() ? 'datetime-local' : 'date'"
-              required
-              name="to"
-              [(ngModel)]="to" />
-          </label>
-        </div>
-      }
-    </div>
-
-    <div
-      class="relative flex flex-col items-start justify-start gap-2 border-b border-border p-4 pl-16">
-      <label
-        class="absolute bottom-0 left-0 top-0 flex w-12 flex-col items-center justify-center bg-gray-100 p-2 text-xl text-sky-800"></label>
-
-      <label hlmLabel> Vorhandene Urlaubsanträge: </label>
-
-      <app-offtime-calendar-overview
-        class="block w-full"
-        #view="calendarView"
-        [hoverValue]="_computedHoverValue()"
-        [calendarDate]="_computedCandyDate()" />
+      <tkd-date-picker
+        [ngClass]="{
+          'rounded-md border border-border': layout.sm(),
+        }"
+        name="test"
+        required
+        [minutes]="[0, 15, 30, 45, 60]"
+        [variant]="layout.md() ? 'inline' : 'default'"
+        [(ngModel)]="dateRange"
+        [withTime]="showTime()"
+        mode="range" />
     </div>
 
     <div
@@ -133,7 +95,7 @@
 
       <label for="type" hlmLabel> Bitte wähle die Antragsart: </label>
 
-      @if (layout.lg()) {
+      @if (layout.md()) {
         <brn-select
           placeholder="Bitte auswählen"
           required
@@ -156,35 +118,46 @@
             variant="secondary"
             class="border border-border"
             brnSheetTrigger>
-            {{ offTimeType() }}
+            @switch (offTimeType()) {
+              @case ('auto') {
+                Beliebig
+              }
+              @case ('timeoff') {
+                Zeitausgleich
+              }
+              @case ('vacation') {
+                Urlaub
+              }
+            }
           </button>
 
           <hlm-sheet-content *brnSheetContent="let ctx">
             <hlm-sheet-header>
               <h3 hlmSheetTitle>Antrags-Art</h3>
+              <p hlmSheetDescription>Bitte wähle die gewünschte Antrags-Art.</p>
             </hlm-sheet-header>
 
-            <div class="flex flex-col items-stretch justify-start gap-1">
+            <div class="mt-4 flex flex-col items-stretch justify-start gap-1">
               <button
                 hlmBtn
-                variant="ghost"
-                class="w-full"
+                [variant]="offTimeType() === 'auto' ? 'secondary' : 'ghost'"
+                class="w-full border border-border"
                 (click)="offTimeType.set('auto'); ctx.close()">
                 Beliebig
               </button>
 
               <button
                 hlmBtn
-                variant="ghost"
-                class="w-full"
+                [variant]="offTimeType() === 'vacation' ? 'secondary' : 'ghost'"
+                class="w-full border border-border"
                 (click)="offTimeType.set('vacation'); ctx.close()">
                 Urlaub
               </button>
 
               <button
                 hlmBtn
-                variant="ghost"
-                class="w-full"
+                [variant]="offTimeType() === 'timeoff' ? 'secondary' : 'ghost'"
+                class="w-full border border-border"
                 (click)="offTimeType.set('timeoff'); ctx.close()">
                 Zeitausgleich
               </button>
@@ -218,33 +191,47 @@
             </p>
           </hlm-alert-dialog-header>
 
-          <div
-            class="flex flex-col items-start gap-1 rounded-md border border-border bg-border/20 p-2 font-medium">
-            <span>
-              <span class="font-normal">Von:</span>
-              {{ from() }}
-            </span>
-            <span>
-              <span class="font-normal">Bis:</span>
-              {{ to() }}
-            </span>
-            <span>
-              <span class="font-normal">Antragsart:</span>
-              @switch (offTimeType()) {
-                @case ('auto') {
-                  Beliebig
+          <hlm-table class="[&_hlm-th]:h-8 [&_hlm-trow]:flex-col">
+            <hlm-trow>
+              <hlm-th> Von </hlm-th>
+              <hlm-td>
+                {{ dateRange()[0] | date: 'medium' }}
+              </hlm-td>
+            </hlm-trow>
+            <hlm-trow>
+              <hlm-th> Bis </hlm-th>
+              <hlm-td>
+                {{ dateRange()[1] | date: 'medium' }}
+              </hlm-td>
+            </hlm-trow>
+            <hlm-trow>
+              <hlm-th>Antrags-Art</hlm-th>
+              <hlm-td>
+                @switch (offTimeType()) {
+                  @case ('auto') {
+                    Beliebig
+                  }
+                  @case ('timeoff') {
+                    Zeitausgleich
+                  }
+                  @case ('vacation') {
+                    Urlaub
+                  }
                 }
-                @case ('timeoff') {
-                  Zeitausgleich
-                }
-                @case ('vacation') {
-                  Urlaub
-                }
-              }
-            </span>
-          </div>
+              </hlm-td>
+            </hlm-trow>
+            <hlm-trow>
+              <hlm-th>Beschreibung</hlm-th>
+              <hlm-td>
+                <markdown class="prose prose-sm">
+                  {{ description() }}
+                </markdown>
+              </hlm-td>
+            </hlm-trow>
+          </hlm-table>
 
-          <hlm-alert-dialog-footer>
+          <hlm-alert-dialog-footer
+            class="flex flex-col-reverse flex-wrap gap-2 sm:flex-row">
             <button hlmBtn variant="secondary" (click)="ctx.close()">
               Abbrechen
             </button>

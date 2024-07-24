@@ -1,12 +1,10 @@
 import { coerceNumberProperty } from "@angular/cdk/coercion";
 import { Directive, ElementRef, EventEmitter, Input, OnChanges, Output, Renderer2, SimpleChanges } from "@angular/core";
-import { Subject } from "rxjs/internal/Subject";
-import { Subscription } from "rxjs/internal/Subscription";
-import { debounceTime } from "rxjs/operators";
 
 @Directive({
     selector: '[tkdDebounceEvent]',
     exportAs: 'tkdDebounceEvent',
+    standalone: true,
 })
 export class TkdDebounceEventDirective implements OnChanges {
     private sub: () => void = () => {};

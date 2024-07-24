@@ -16,7 +16,6 @@ import {
   tap,
 } from 'rxjs/operators';
 import { DoorAPI, State } from 'src/app/api';
-import { ProfileService } from 'src/app/services/profile.service';
 import { extractErrorMessage } from 'src/app/utils';
 
 @Component({
@@ -30,7 +29,6 @@ export class DoorCardComponent implements OnInit, OnDestroy {
   }
 
   constructor(
-    private account: ProfileService,
     private doorapi: DoorAPI,
     private nzMessageService: NzMessageService
   ) {}

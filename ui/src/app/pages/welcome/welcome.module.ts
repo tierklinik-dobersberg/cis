@@ -2,6 +2,10 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { BrnSeparatorModule } from '@spartan-ng/ui-separator-brain';
+import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
+import { HlmLabelModule } from '@tierklinik-dobersberg/angular/label';
+import { HlmSeparatorModule } from '@tierklinik-dobersberg/angular/separator';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -26,8 +30,10 @@ import { NzStatisticModule } from 'ng-zorro-antd/statistic';
 import { NzStepsModule } from 'ng-zorro-antd/steps';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { AppAvatarComponent } from 'src/app/components/avatar';
+import { UserColorVarsDirective } from 'src/app/components/user-color-vars';
+import { ByCalendarIdPipe } from 'src/app/pipes/by-calendar-id.pipe';
 import { SharedModule } from 'src/app/shared/shared.module';
-import { CalendarModule } from '../calendar/calendar.module';
 import { ClockCardComponent } from './clock-card';
 import { DoorCardComponent } from './door-card';
 import { EmergencyCardComponent } from './emergency-card';
@@ -37,7 +43,6 @@ import { RosterCardComponent } from './roster-card';
 import { UpcomingEventsCardComponent } from './upcoming-events-card';
 import { WelcomeRoutingModule } from './welcome-routing.module';
 import { WelcomeComponent } from './welcome.component';
-import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 
 @NgModule({
   imports: [
@@ -69,16 +74,21 @@ import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
     NzStatisticModule,
     NzEmptyModule,
     NzBadgeModule,
-    CalendarModule,
     SharedModule,
-    HlmButtonDirective
+    HlmButtonDirective,
+    RosterCardComponent,
+    ByCalendarIdPipe,
+    UserColorVarsDirective,
+    HlmLabelModule,
+    AppAvatarComponent,
+    BrnSeparatorModule,
+    HlmSeparatorModule
   ],
   declarations: [
     WelcomeComponent,
     DoorCardComponent,
     ClockCardComponent,
     EmergencyCardComponent,
-    RosterCardComponent,
     VoiceMailCardComponent,
     UpcomingEventsCardComponent,
     MobileWelcomeCardComponent,

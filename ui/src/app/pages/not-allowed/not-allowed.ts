@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
+import { injectCurrentProfile } from "@tierklinik-dobersberg/angular/behaviors";
 import { HeaderTitleService } from "src/app/layout/header-title";
-import { ProfileService } from "src/app/services/profile.service";
 import { environment } from "src/environments/environment";
 
 @Component({
@@ -12,12 +12,9 @@ export class NotAllowedComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly titleService = inject(HeaderTitleService);
-  private readonly profileService = inject(ProfileService);
   private readonly accountService = environment.accountService;
 
-  get profile() {
-    return this.profileService.profile$;
-  }
+  protected readonly currentUser = injectCurrentProfile();
 
   reason: string = '';
   deniedRoute: string = '';

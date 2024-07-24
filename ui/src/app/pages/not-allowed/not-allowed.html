@@ -1,32 +1,40 @@
-<div class="bg-white rounded shadow tkd-card">
+<div class="tkd-card rounded bg-white shadow">
   <header>
-    <h1 class="text-lg text-lato text-sky-800">Zugriff verweigert</h1>
+    <h1 class="text-lato text-lg text-sky-800">Zugriff verweigert</h1>
   </header>
 
-  @if ((profile | async); as profile) {
-    <div class="p-12 space-y-8">
-      <section>
-        @switch (reason) {
-          @case ('computer-account') {
-            <div class="max-w-md space-y-4">
-              <h1 class=" text-lg md:text-xl">Hallo <span class="text-sky-800">{{ profile | displayName }}</span>,</h1>
+  <div class="space-y-8 p-12">
+    <section>
+      @switch (reason) {
+        @case ('computer-account') {
+          <div class="max-w-md space-y-4">
+            <h1 class="text-lg md:text-xl">
+              Hallo
+              <span class="text-sky-800">{{ currentUser() | displayName }}</span
+              >,
+            </h1>
+            <p class="py-2">
+              du bist derzeit mit einem geteilten Computer-Konto angemeldet.
+              Zugriff auf die von dir geforderte Seite ist mit diesem Konto
+              nicht möglich.
+            </p>
+            @if (redirectUrl) {
               <p class="py-2">
-                du bist derzeit mit einem geteilten Computer-Konto angemeldet. Zugriff auf die
-                von dir geforderte Seite ist mit diesem Konto nicht möglich.
+                Bitte melde dich unter deinem eigenen Konto an:
               </p>
-              @if (redirectUrl) {
-                <p class="py-2">
-                  Bitte melde dich unter deinem eigenen Konto an:
-                </p>
-                <div class="flex flex-row pt-6">
-                  <a hlmBtn variant="default" class="flex-grow-0 block" [attr.href]="redirectUrl">Anmelden</a>
-                </div>
-              }
-            </div>
-          }
+              <div class="flex flex-row pt-6">
+                <a
+                  hlmBtn
+                  variant="default"
+                  class="block flex-grow-0"
+                  [attr.href]="redirectUrl"
+                  >Anmelden</a
+                >
+              </div>
+            }
+          </div>
         }
-      </section>
-    </div>
-  }
-
+      }
+    </section>
+  </div>
 </div>

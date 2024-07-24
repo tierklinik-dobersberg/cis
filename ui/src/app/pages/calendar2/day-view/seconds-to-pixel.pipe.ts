@@ -1,7 +1,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { Duration, Timestamp } from '@bufbuild/protobuf';
-import { getSeconds } from './sort.pipe';
+import { Duration } from '@bufbuild/protobuf';
 import { DateInput } from './models';
+import { getSeconds } from './sort.pipe';
 
 @Pipe({
   name: 'secondsToPixel',

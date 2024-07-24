@@ -1,15 +1,15 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TrackByFunction, inject } from '@angular/core';
-import { Calendar, CalendarEvent, CalendarEventList, Profile, } from '@tierklinik-dobersberg/apis';
-import { BehaviorSubject, Subscription, combineLatest, from, interval, of } from 'rxjs';
+import { ChangeDetectionStrategy, Component, TrackByFunction, effect, input, signal } from '@angular/core';
+import { injectCurrentProfile, injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
+import { Calendar, CalendarEvent, CalendarEventList } from '@tierklinik-dobersberg/apis';
+import { BehaviorSubject, combineLatest, from, interval, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, startWith } from 'rxjs/operators';
-import { UserService } from 'src/app/api';
-import { CALENDAR_SERVICE } from 'src/app/api/connect_clients';
-import { ProfileService } from 'src/app/services/profile.service';
+import { injectCalendarService } from 'src/app/api/connect_clients';
+import { getCalendarId } from 'src/app/services';
 import { formatDate } from 'src/utils/duration';
+import { getSeconds } from '../../calendar2/day-view/sort.pipe';
 
 interface DisplayEvent {
   event: CalendarEvent;
-  user?: Profile;
   past: boolean;
   duration?: number;
 }
@@ -25,57 +25,27 @@ interface LocalCalendar {
   styleUrls: ['./upcoming-events-card.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
+export class UpcomingEventsCardComponent {
+  private readonly calendarapi = injectCalendarService()
+  private readonly profile= injectCurrentProfile()
 
-  @Input()
-  set highlightUser(s: string) {
-    this._highlightUser = s;
-    this.changeDetectorRef.markForCheck();
-  }
-  get highlightUser() { return this._highlightUser; }
-
-  @Input()
-  set selectUserFilter(user: string) {
-    const all = Array.from(this.allCalendars.values());
-    if (user === '' && this._externalUserFilter !== '') {
-      all.forEach(cal => cal.displayed = true);
-      this._externalUserFilter = '';
-      this.changeDetectorRef.markForCheck();
-      return;
-    }
-
-    if (user !== '') {
-      all.forEach(cal => cal.displayed = cal.calendar.name === user);
-      this._externalUserFilter = user;
-      this.changeDetectorRef.markForCheck();
-      return;
-    }
-  }
-  private _externalUserFilter = '';
-
-  private readonly calendarapi = inject(CALENDAR_SERVICE);
-  private readonly profileSerivce = inject(ProfileService);
-
-  constructor(
-    private userService: UserService,
-    private changeDetectorRef: ChangeDetectorRef,
-  ) { }
-  private subscription = Subscription.EMPTY;
 
   /** A list of upcoming calendar events */
-  events: DisplayEvent[] = [];
+  protected readonly events = signal<DisplayEvent[]>([]);
 
   /** The current display mode */
-  mode: 'currentUser' | 'selected' = 'currentUser';
+  protected readonly mode = signal<'currentUser' | 'selected'>('currentUser')
 
   /** Whether or not only future events will be shown */
-  showAll = false;
+  protected readonly showAll = signal(false);
 
   /** A lookup map for all calendars */
-  allCalendars: Map<string, LocalCalendar> = new Map();
+  protected readonly allCalendars = signal<Map<string, LocalCalendar>>(new Map);
 
   /** The currently hightlighted user, if any */
-  private _highlightUser = '';
+  public readonly highlightUser = input('');
+
+  protected readonly profiles = injectUserProfiles();
 
   /** Triggers a reload of all calendar events */
   private reload = new BehaviorSubject<void>(undefined);
@@ -84,9 +54,9 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
   trackEvent: TrackByFunction<DisplayEvent> = (_: number, event: DisplayEvent) => event.event.id;
 
   selectOnly(id: string) {
-    this.mode = 'selected';
+    this.mode.set('selected');
 
-    const all = Array.from(this.allCalendars.values());
+    const all = Array.from(this.allCalendars().values());
     // if all all calendars are hidden an we handle a double
     // click than display all again
     if (!all.filter(cal => cal.calendar.id !== id).some(cal => cal.displayed)) {
@@ -97,17 +67,24 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
     all.forEach(val => {
       val.displayed = val.calendar.id === id;
     });
-
-    this.changeDetectorRef.markForCheck();
+  }
+  
+  constructor() {
+    const ref = effect(() => {
+      const profile = this.profile();
+      if (!profile) {
+        return
+      }
+      
+      if (getCalendarId(profile) === null) {
+        this.mode.set('selected');
+      }
+      
+      ref.destroy();
+    }, { allowSignalWrites: true })
   }
 
   ngOnInit() {
-    this.subscription = new Subscription();
-
-    if (this.profileSerivce.calendarId() === null) {
-      this.mode = 'selected';
-    }
-
     const events = combineLatest([
       interval(10000).pipe(startWith(-1)),
       this.reload,
@@ -133,15 +110,15 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
 
         let allCalendars = new Map<string, LocalCalendar>();
 
-        this.events = [];
+        const events = [];
 
-        const calendarIdOfActiveUser = this.profileSerivce.calendarId();
+        const calendarIdOfActiveUser = getCalendarId(this.profile())
 
         eventList.forEach(calendarEvents => {
-          let isDisplayed = this.allCalendars.get(calendarEvents.calendar.id)?.displayed;
+          let isDisplayed = this.allCalendars().get(calendarEvents.calendar.id)?.displayed;
 
           if (isDisplayed === undefined) {
-            if (this.mode === 'currentUser') {
+            if (this.mode() === 'currentUser') {
               isDisplayed = calendarEvents.calendar.id === calendarIdOfActiveUser;
             } else {
               isDisplayed = true
@@ -158,17 +135,16 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
 
           calendarEvents.events
             .filter(evt => !evt.fullDay)
-            .filter(evt => evt.startTime.toDate().getTime() >= threshold || this.showAll)
+            .filter(evt => evt.startTime.toDate().getTime() >= threshold || this.showAll())
             .map(event => ({
               event: event,
               past: event.startTime.toDate().getTime() < now,
-              user: this.userService.byCalendarID(event.calendarId),
-              duration: !!event.endTime ? (event.endTime.toDate().getTime() - event.startTime.toDate().getTime()) / 1000 : null,
+              duration: !!event.endTime ?  getSeconds(event.endTime) - getSeconds(event.startTime) : null
             }))
-            .forEach(event => this.events.push(event));
+            .forEach(event => events.push(event));
         })
 
-        this.events
+        events
           .sort((a, b) => {
             const diff = Number(a.event.startTime.seconds - b.event.startTime.seconds);
             if (diff !== 0) {
@@ -182,20 +158,15 @@ export class UpcomingEventsCardComponent implements OnInit, OnDestroy {
             return -1;
           })
 
-        this.allCalendars = allCalendars;
+        this.events.set(events)
+        
 
-        this.changeDetectorRef.markForCheck();
+        this.allCalendars.set(allCalendars);
       });
-
-    this.subscription.add(events);
-  }
-
-  ngOnDestroy() {
-    this.subscription.unsubscribe();
   }
 
   toggle() {
-    this.showAll = !this.showAll;
+    this.showAll.set(!this.showAll());
     this.reload.next();
   }
 }

@@ -43,7 +43,7 @@
     </div>
 
     <div class="flex flex-row items-center gap-4">
-      <app-offtime-filter-sheet (filter)="filter.set($event)" />
+      <app-offtime-filter-sheet #filterSheet (filter)="filter.set($event)" />
 
       <button hlmBtn routerLink="create" class="whitespace-nowrap">
         Neuer Antrag
@@ -51,219 +51,257 @@
     </div>
   </div>
 
-  <nz-tabset id="offtime-tab-set" [nzSelectedIndex]="0">
-    <nz-tab nzTitle="Meine Anträge">
-      <nz-table [nzData]="_computedFilteredEntries()" #offTimeEntries>
-        <thead>
-          <!-- Desktop Header -->
-          @if (layout.md()) {
-            <tr>
-              <th>Zeitraum</th>
-              <th>Antragsart</th>
-              <th>Beschreibung</th>
-              <th>Erstellt am</th>
-              <th>Bestätigt</th>
-              <th></th>
-            </tr>
-          }
-        </thead>
+  <div
+    class="sticky -top-5 z-50 flex flex-row items-center justify-center gap-2 bg-white pb-1.5">
+    <button
+      hlmBtn
+      variant="ghost"
+      size="icon"
+      (click)="switchDate(null, -1)"
+      type="button">
+      <hlm-icon name="lucideArrowLeft" size="sm" />
+    </button>
 
-        <tbody>
-          <!-- Desktop View -->
-          @if (layout.md()) {
-            @for (entry of offTimeEntries.data; track entry.id) {
-              <tr>
-                <td>
-                  <span>{{ entry.from | toDate | date: 'mediumDate' }}</span>
-                  <span class="text-gray-500"> bis </span>
-                  <span>{{ entry.to | toDate | date: 'mediumDate' }}</span>
-                </td>
-                <td>
-                  {{ types[entry.type] }}
-                </td>
-                <td>
-                  <markdown
-                    class="prose prose-sm"
-                    [data]="entry.description"></markdown>
-                </td>
-                <td>
-                  {{ entry.createdAt | toDate | date: 'mediumDate' }}
-                  @if (entry.creatorId !== entry.requestorId) {
-                    <span class="text-gray-500">
-                      (von
-                      {{ entry.creatorId | toUser: profiles() | displayName }})
-                    </span>
-                  }
-                </td>
-                <td>
-                  @if (entry.approval) {
-                    <hlm-tooltip>
-                      <span
-                        hlmTooltipTrigger
-                        [ngClass]="{
-                          'text-green-700': entry.approval.approved,
-                          'text-red-700': !entry.approval.approved,
-                        }">
-                        {{
-                          entry.approval.approved ? 'Bestätigt' : 'Abgelehnt'
-                        }}
-                      </span>
+    <span
+      class="inline-block w-40 text-center text-sm font-medium md:text-base lg:text-lg">
+      {{ _selectedMonth() | date: 'MMMM, YYYY' }}
+    </span>
 
-                      <span *brnTooltipContent hlm>
-                        Von
-                        {{
-                          entry.approval.approverId
-                            | toUser: profiles()
-                            | displayName
-                        }}
-                        am
-                        {{ entry.approval.approvedAt | toDate | date: 'short' }}
-                      </span>
-                    </hlm-tooltip>
-                  } @else {
-                    <span class="text-gray-500">Noch nicht genehmigt</span>
-                  }
-                </td>
-                <td>
-                  <div class="flex flex-row justify-end gap-2">
-                    <button
-                      hlmBtn
-                      variant="ghost"
-                      [appSheetTriggerFor]="sheet"
-                      side="right"
-                      (click)="selectedEntry.set(entry)">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="h-4 w-4">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
-                      </svg>
-                    </button>
-                    @if (!entry.approval) {
-                      <button
-                        hlmBtn
-                        variant="outline"
-                        [brnAlertDialogTriggerFor]="alertDialog"
-                        (click)="entryToDelete.set(entry)">
-                        Löschen
-                      </button>
-                    }
-                  </div>
-                </td>
-              </tr>
+    <button
+      hlmBtn
+      variant="ghost"
+      size="icon"
+      (click)="switchDate(null, 1)"
+      type="button">
+      <hlm-icon name="lucideArrowRight" size="sm" />
+    </button>
+  </div>
+
+  <hlm-tabs class="w-full" tab="overview">
+    <hlm-tabs-list class="grid w-full grid-cols-2">
+      <button hlmTabsTrigger="overview">Übersicht</button>
+      <button hlmTabsTrigger="calendar">Kalender</button>
+    </hlm-tabs-list>
+
+    <div hlmTabsContent="overview">
+      <div class="sticky top-3 z-50 bg-white p-4">
+        <app-date-table
+          [variant]="layout.sm() ? 'default' : 'small'"
+          class="mx-4 block rounded-md border border-border"
+          [calendarDate]="_selectedMonth()"
+          (calendarDateChange)="switchDate($event, 0)"
+          changable="true"
+          [ranges]="_computedCalendarRanges()">
+          <div
+            [highlightRange]="ctx"
+            [highlightRangeClasses]="{
+              highlight: {
+                start: '!bg-red-200 rounded-l border-l',
+                between: 'bg-red-200/50 border-t border-b border-red-300',
+                end: '!bg-red-200 rounded-r border-r',
+              },
+            }"
+            class="my-0.5 flex !h-8 items-center justify-center text-sm transition-all duration-150 ease-in-out"
+            [class.bg-gray-100]="!ctx.currentMonth"
+            *dateTableCell="let ctx">
+            @if (
+              ctx.date | matchingOfftime: _computedFilteredEntries();
+              as entries
+            ) {
+              <span [class.text-red-500]="entries.length > 0">{{
+                ctx.date | date: 'd'
+              }}</span>
             }
-          }
-
-          <!-- Mobile View -->
-          @if (!layout.md()) {
-            @for (entry of offTimeEntries.data; track entry.id) {
-              <tr class="group-[foo]">
-                <td class="!border-0">
-                  @if (entry.description) {
-                    <markdown
-                      class="prose prose-sm underline"
-                      [data]="entry.description">
-                    </markdown>
-                  }
-                  @if (!entry.description) {
-                    <span class="italic text-gray-500">Keine Beschreibung</span>
-                  }
-                </td>
-                <td class="!border-0 text-right">
-                  @if (entry.approval) {
-                    <hlm-tooltip>
-                      <span
-                        hlmTooltipTrigger
-                        [ngClass]="{
-                          'text-green-700': entry.approval.approved,
-                          'text-red-700': !entry.approval.approved,
-                        }">
-                        {{
-                          entry?.approval?.approved ? 'Bestätigt' : 'Abgelehnt'
-                        }}
-                      </span>
-
-                      <span *brnTooltipContent hlm>
-                        Von
-                        {{
-                          entry?.approval?.approverId
-                            | toUser: profiles()
-                            | displayName
-                        }}
-                        am
-                        {{ entry.approval.approvedAt | toDate | date: 'short' }}
-                      </span>
-                    </hlm-tooltip>
-                  } @else {
-                    <span class="text-gray-500">Noch nicht genehmigt</span>
-                  }
-                </td>
-              </tr>
-              <tr class="group-[foo] hover:group-[foo]:bg-text-gray-500">
-                <td>
-                  <span>{{ entry.from | toDate | date: 'mediumDate' }}</span>
-                  <span class="text-gray-500"> bis </span>
-                  <span>{{ entry.to | toDate | date: 'mediumDate' }}</span>
-                </td>
-                <td>
-                  <div class="flex flex-row justify-end gap-2">
-                    <button
-                      hlmBtn
-                      variant="ghost"
-                      size="icon"
-                      (click)="selectedEntry.set(entry)">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="h-4 w-4">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
-                      </svg>
-                    </button>
-                    @if (!entry.approval) {
-                      <button
-                        hlmBtn
-                        variant="outline"
-                        [brnAlertDialogTriggerFor]="alertDialog"
-                        (click)="entryToDelete.set(entry)">
-                        Löschen
-                      </button>
-                    }
-                  </div>
-                </td>
-              </tr>
-            }
-          }
-        </tbody>
-      </nz-table>
-    </nz-tab>
-
-    <nz-tab nzTitle="Übersicht">
-      <div class="py-2">
-        <app-offtime-calendar-overview></app-offtime-calendar-overview>
+          </div>
+        </app-date-table>
       </div>
-    </nz-tab>
 
-    @if (layout.md()) {
-      <nz-tab nzTitle="Kalendar">
-        <div class="py-2">
-          <app-offtime-calendar-overview
-            mode="calendar"></app-offtime-calendar-overview>
+      <brn-table
+        hlm
+        stickHeader
+        customTemplateDataRows="true"
+        class="mt-4 block min-h-[200px] flex-grow self-stretch overflow-auto border-t border-border @container"
+        [dataSource]="_computedFilteredEntries()"
+        [displayedColumns]="_computedDisplayedColumns()"
+        [trackBy]="trackEntry">
+        <tkd-empty-table
+          brnNoDataRow
+          [filter]="filterSheet"
+          [totalCount]="_computedTotalCount()"
+          [filteredCount]="_computedFilteredCount()" />
+
+        <cdk-row
+          (mouseenter)="hoveredEntryId.set(row.id)"
+          (mouseleave)="hoveredEntryId.set(null)"
+          *cdkRowDef="let row; columns: _computedDisplayedColumns()"
+          class="flex w-fit min-w-[100%] border-b border-border transition-[background-color] hover:bg-muted/50 [&:has([role=checkbox][aria-checked=true])]:bg-muted" />
+
+        <brn-column-def name="from" class="flex-[0_0_8rem]">
+          <hlm-th *brnHeaderDef> Von </hlm-th>
+          <hlm-td *brnCellDef="let entry">
+            {{ entry.from | toDate | date: 'mediumDate' }}
+          </hlm-td>
+        </brn-column-def>
+
+        <brn-column-def name="to" class="flex-[0_0_8rem]">
+          <hlm-th *brnHeaderDef> Bis </hlm-th>
+          <hlm-td *brnCellDef="let entry">
+            {{ entry.to | toDate | date: 'mediumDate' }}
+          </hlm-td>
+        </brn-column-def>
+
+        <brn-column-def name="user" class="flex-[0_0_24rem] overflow-hidden">
+          <hlm-th *brnHeaderDef> Mitarbeiter </hlm-th>
+          <hlm-td *brnCellDef="let entry">
+            <app-avatar [user]="entry.requestorId" showName="true" />
+          </hlm-td>
+        </brn-column-def>
+
+        <brn-column-def name="description" class="flex-[1_0_10rem]">
+          <hlm-th *brnHeaderDef> Beschreibung </hlm-th>
+          <hlm-td *brnCellDef="let entry">
+            {{ entry.description }}
+          </hlm-td>
+        </brn-column-def>
+
+        <brn-column-def
+          name="actions"
+          class="flex flex-[0_0_12rem] flex-row items-center justify-end">
+          <hlm-th *brnHeaderDef></hlm-th>
+          <hlm-td *brnCellDef="let entry">
+            <div class="flex flex-row justify-end gap-2">
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                [appSheetTriggerFor]="sheet"
+                side="right"
+                (click)="selectedEntry.set(entry)">
+                <hlm-icon name="lucideMessageCircle" size="sm" />
+              </button>
+
+              @if (
+                !entry.approval && entry.requestorId === currentUser()?.user.id
+              ) {
+                <button
+                  hlmBtn
+                  variant="outline"
+                  [brnAlertDialogTriggerFor]="alertDialog"
+                  (click)="entryToDelete.set(entry)">
+                  Löschen
+                </button>
+              }
+            </div>
+          </hlm-td>
+        </brn-column-def>
+      </brn-table>
+    </div>
+
+    <div hlmTabsContent="calendar">
+      <app-date-table
+        [_calendarDate]="_selectedMonth()"
+        changable="true"
+        (calendarDateChange)="switchDate($event, 0)">
+        <div
+          *dateTableCell="let ctx"
+          [ngClass]="{
+            'bg-gray-100': !ctx.currentMonth,
+          }"
+          class="m-1 flex !h-36 flex-col rounded-md border border-border">
+          <header
+            class="flex flex-row items-center justify-center overflow-hidden text-sm font-medium">
+            {{ ctx.date | date: 'd' }}
+          </header>
+
+          <ul class="flex flex-grow flex-col gap-1 overflow-auto p-1">
+            @for (
+              entry of ctx.date | matchingOfftime: _computedFilteredEntries();
+              track entry.id
+            ) {
+              <brn-hover-card>
+                <li
+                  class="flex flex-row items-center gap-2 rounded-md border border-[var(--user-color,var(--border-border))] px-1 py-0.5 text-xs transition-colors duration-150"
+                  (mouseenter)="hoveredEntryId.set(entry.id)"
+                  (mouseleave)="hoveredEntryId.set(null)"
+                  brnHoverCardTrigger
+                  [ngClass]="{
+                    'bg-[var(--user-color,var(--border-border))] text-[var(--user-contrast)]':
+                      hoveredEntryId() === entry.id,
+                  }"
+                  [userColorVars]="entry.requestorId">
+                  @if (entry.approval?.approved) {
+                    <hlm-icon name="lucideCheckCircle" size="sm" />
+                  }
+
+                  <span>{{
+                    entry.requestorId | toUser: profiles() | displayName
+                  }}</span>
+                </li>
+
+                <hlm-hover-card-content
+                  *brnHoverCardContent
+                  class="min-w-[20rem]">
+                  <div class="w-full">
+                    <app-avatar
+                      [user]="entry.requestorId"
+                      showName="true"
+                      class="block text-base" />
+
+                    <span
+                      class="-mt-3 ml-[50px] flex flex-row items-center gap-2 text-sm font-medium">
+                      {{ entry.from | toDate | date: 'mediumDate' }}
+                      <hlm-icon name="lucideArrowRight" size="sm" />
+                      {{ entry.to | toDate | date: 'mediumDate' }}
+                    </span>
+
+                    <brn-separator decorative="true" hlm />
+
+                    <div class="ml-[50px] flex flex-col gap-2">
+                      <markdown class="block text-sm text-gray-600">
+                        {{ entry.description }}
+                      </markdown>
+
+                      <span class="flex flex-row gap-2 text-xs text-gray-600">
+                        <hlm-icon name="lucideCalendar" size="sm" />
+                        Erstellt am
+                        <span class="underline">
+                          {{ entry.createdAt | toDate | date: 'mediumDate' }}
+                        </span>
+                      </span>
+
+                      @if (entry.approval) {
+                        <span class="flex flex-row gap-2 text-xs text-gray-600">
+                          @if (entry.approval.approved) {
+                            <hlm-icon name="lucideCheckCircle" size="sm" />
+                            Genehmigt
+                          } @else {
+                            <hlm-icon name="lucideXCircle" size="sm" />
+                            Abgelehnt
+                          }
+                          am
+                          {{
+                            entry.approval.approvedAt
+                              | toDate
+                              | date: 'mediumDate'
+                          }}
+                          von
+                          {{
+                            entry.approval.approverId
+                              | toUser: profiles()
+                              | displayName
+                          }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                </hlm-hover-card-content>
+              </brn-hover-card>
+            }
+          </ul>
         </div>
-      </nz-tab>
-    }
-  </nz-tabset>
+      </app-date-table>
+    </div>
+  </hlm-tabs>
 </div>
 
 <hlm-sheet #sheet side="right">

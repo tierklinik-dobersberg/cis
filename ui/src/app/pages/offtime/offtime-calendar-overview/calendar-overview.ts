@@ -23,6 +23,7 @@ import { NzCalendarModule } from "ng-zorro-antd/calendar";
 import { CandyDate } from "ng-zorro-antd/core/time";
 import { LibPackerModule } from "ng-zorro-antd/date-picker";
 import { toast } from 'ngx-sonner';
+import { AppDateTableModule, CalendarRange } from "src/app/components/date-table";
 import { UserColorVarsDirective } from "src/app/components/user-color-vars";
 import { toDateString } from "src/app/utils";
 import { AppAvatarComponent } from "../../../components/avatar/avatar.component";
@@ -87,7 +88,8 @@ import { MatchingOfftimePipe } from "../pipes/matching-offtime.pipe";
     HlmTooltipModule,
     UserColorVarsDirective,
     CdkTableModule,
-    HlmInputDirective
+    HlmInputDirective,
+    AppDateTableModule
 ],
   providers: [
     ...provideIcons({
@@ -104,7 +106,7 @@ export class OffTimeCalendarOverviewComponent {
   private readonly router = inject(Router)
 
   // Inputs & Outputs
-  public readonly hoverValue = input<[CandyDate, CandyDate] | null>(null);
+  public readonly calendarRanges = input<CalendarRange[]>([]);
   public readonly calendarDate = model<CandyDate>(new CandyDate());
   public readonly mode = input<'list' | 'calendar'>('list')
 

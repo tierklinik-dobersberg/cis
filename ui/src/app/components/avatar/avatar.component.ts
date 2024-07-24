@@ -3,14 +3,15 @@ import { booleanAttribute, ChangeDetectionStrategy, Component, computed, input }
 import { hlm } from '@spartan-ng/ui-core';
 import { avatarVariants, HlmAvatarModule } from '@tierklinik-dobersberg/angular/avatar';
 import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
-import { DisplayNamePipe, ToUserPipe, UserAvatarPipe, UserColorPipe, UserContrastColorPipe, UserLetterPipe } from "@tierklinik-dobersberg/angular/pipes";
+import { DisplayNamePipe, ToUserPipe, UserAvatarPipe, UserLetterPipe } from "@tierklinik-dobersberg/angular/pipes";
 import { Profile } from "@tierklinik-dobersberg/apis";
 import type { VariantProps } from 'class-variance-authority';
 import { type ClassArray, type ClassValue, clsx } from 'clsx';
+import { UserColorVarsDirective } from "../user-color-vars";
 
 type AvatarVariants = VariantProps<typeof avatarVariants>;
 
-export const defaultClasses = "";
+export const defaultClasses = "border border-[var(--user-color,var(--border))] [--user-color-opacity:0.4]";
 
 @Component({
     selector: 'app-avatar',
@@ -23,9 +24,8 @@ export const defaultClasses = "";
         ToUserPipe,
         UserAvatarPipe,
         DisplayNamePipe,
-        UserColorPipe,
-        UserContrastColorPipe,
         UserLetterPipe,
+        UserColorVarsDirective
     ],
     styles: [
         `
