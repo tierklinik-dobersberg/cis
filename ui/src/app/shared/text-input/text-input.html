@@ -1,6 +1,5 @@
-
 @switch (format) {
-  @case ("plain") {
+  @case ('plain') {
     @if (!!choices) {
       <nz-select #input>
         @for (choice of choices; track choice) {
@@ -9,16 +8,16 @@
       </nz-select>
     } @else {
       @if (!multiline) {
-        <input ngDefaultControl nz-input #input>
+        <input ngDefaultControl nz-input #input />
       } @else {
         <textarea ngDefaultControl #input nz-input></textarea>
       }
     }
   }
-  @case ("html") {
+  @case ('html') {
     <ng-container *ngTemplateOutlet="ckeditorTemplate"></ng-container>
   }
-  @case ("markdown") {
+  @case ('markdown') {
     <ng-container *ngTemplateOutlet="ckeditorTemplate"></ng-container>
   }
   @default {
@@ -27,6 +26,11 @@
 }
 
 <ng-template #ckeditorTemplate>
-  <ckeditor #input [config]="config" [editor]="Editor" class="prose" (onReady)="onReady()">
+  <ckeditor
+    #input
+    [config]="config()"
+    [editor]="Editor"
+    class="prose"
+    (onReady)="onReady()">
   </ckeditor>
 </ng-template>

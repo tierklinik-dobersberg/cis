@@ -1,13 +1,15 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-import { OnCallOverwritePageComponent } from './overwrite-component';
+import { Routes } from '@angular/router';
+import { OverwriteOverviewComponent } from './overwrite-overview';
 
-const routes: Routes = [
-  { path: 'overwrite', component: OnCallOverwritePageComponent }
+export const routes: Routes = [
+  {
+    path: '',
+    pathMatch: 'full',
+    component: OverwriteOverviewComponent,
+  },
+  {
+    path: 'create',
+    loadComponent: () =>
+      import('./overwrite-component').then(m => m.OnCallOverwritePageComponent),
+  },
 ];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
-})
-export class OnCallOverwriteRoutingModule { }

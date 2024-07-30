@@ -1,3 +1,5 @@
+import { computed } from '@angular/core';
+import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { Profile, User } from '@tierklinik-dobersberg/apis';
 import { environment } from 'src/environments/environment';
 
@@ -57,4 +59,16 @@ export function getUserColor(profile: UserProfile | Profile): string | null {
 
 export function openProfilePage() {
   window.open(environment.accountService, '_blank');
+}
+
+export function injectCurrentUserIsAdmin() {
+  const user = injectCurrentProfile();
+  return computed(() => {
+    const profile = user();
+    if (!profile) {
+      return false;
+    }
+
+    return profile.roles.some(r => r.id === 'idm_superuser')
+  })
 }

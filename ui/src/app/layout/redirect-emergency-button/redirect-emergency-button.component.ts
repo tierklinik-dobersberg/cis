@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
-import { RouterLink } from "@angular/router";
 import { BrnTooltipModule } from '@spartan-ng/ui-tooltip-brain';
 import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
@@ -16,7 +15,6 @@ import { EmergencyTargetService } from "./emergency-target.service";
         HlmButtonDirective,
         BrnTooltipModule,
         HlmTooltipModule,
-        RouterLink,
         ToUserPipe,
         DisplayNamePipe
     ]

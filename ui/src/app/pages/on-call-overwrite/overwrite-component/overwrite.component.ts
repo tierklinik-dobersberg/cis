@@ -1,4 +1,5 @@
 import { animate, style, transition, trigger } from '@angular/animations';
+import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -12,13 +13,21 @@ import {
   inject,
   signal
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { PartialMessage, Timestamp } from '@bufbuild/protobuf';
 import { Code, ConnectError } from '@connectrpc/connect';
 import { injectCurrentProfile, injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
+import { DisplayNamePipe, ToUserPipe } from '@tierklinik-dobersberg/angular/pipes';
 import { GetRequiredShiftsResponse, GetWorkingStaffResponse, PlannedShift, Profile, WorkShift } from '@tierklinik-dobersberg/apis';
 import { CreateOverwriteRequest, GetOverwriteResponse, Overwrite } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
+import { NzAvatarModule } from 'ng-zorro-antd/avatar';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import {
   BehaviorSubject,
   Subject,
@@ -42,11 +51,26 @@ import { CALL_SERVICE, ROSTER_SERVICE } from 'src/app/api/connect_clients';
 import { HeaderTitleService } from 'src/app/layout/header-title';
 import { LayoutService } from 'src/app/services';
 import { extractErrorMessage, toDateString } from 'src/app/utils';
+import { AppAvatarComponent } from "../../../components/avatar/avatar.component";
 
 @Component({
   templateUrl: './overwrite.component.html',
   styleUrls: ['./overwrite.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    AppAvatarComponent,
+    ToUserPipe,
+    DisplayNamePipe,
+    DatePipe, 
+    FormsModule,
+    NzSelectModule,
+    NzDatePickerModule,
+    NzTimePickerModule,
+    NzToolTipModule,
+    NzAvatarModule,
+    NzInputModule
+],
   animations: [
     trigger('scaleInOut', [
       transition(':enter', [
@@ -127,6 +151,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
   /** Evaluates to true if everything is ready to create a new roster overwrite */
   get valid(): boolean {
     // FIXME
+    console.log("FIXME")
     return true;
   }
 
@@ -189,7 +214,7 @@ export class OnCallOverwritePageComponent implements OnInit, OnDestroy {
       }));
 
       this.allowPhone.set(config.Roster?.AllowPhoneNumberOverwrite || false);
-    })
+    }, { allowSignalWrites: true })
   }
 
   trackPlannedShift: TrackByFunction<PlannedShift & { definition: WorkShift }> = (_, s) => `${s.workShiftId}-${s.from.seconds}-${s.to.seconds}`

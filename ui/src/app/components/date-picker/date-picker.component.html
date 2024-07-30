@@ -4,7 +4,7 @@
       <div appPopoverTrigger>
         <ng-container
           *ngTemplateOutlet="
-            inputTemplate;
+            inputDirective?.template || inputTemplate;
             context: {
               $implicit: popover,
             }
@@ -30,7 +30,7 @@
       <div [appSheetTriggerFor]="sheet" side="top">
         <ng-container
           *ngTemplateOutlet="
-            inputTemplate;
+            inputDirective?.template || inputTemplate;
             context: {
               $implicit: sheet,
             }
@@ -58,14 +58,14 @@
     " />
 }
 
-<ng-template #inputTemplate let-dialog>
+<ng-template #inputTemplate>
   <div
-    class="inline-flex w-full items-center gap-2 bg-white focus:outline"
+    class="relative inline-flex w-full items-center justify-evenly overflow-hidden bg-white focus:outline"
     hlmInput
     tabindex="0">
     <input
       type="text"
-      class="h-full flex-grow bg-transparent outline-none focus:outline-none"
+      class="h-full w-16 min-w-16 flex-1 bg-transparent text-center outline-none focus:outline-none"
       readonly
       [value]="
         _computedStartDate()
@@ -76,10 +76,11 @@
       " />
 
     @if (mode() === 'range') {
-      <hlm-icon name="lucideArrowRight" size="xs" />
+      <hlm-icon class="flex-shrink-0" name="lucideArrowRight" size="xs" />
+
       <input
         type="text"
-        class="h-full flex-grow bg-transparent outline-none focus:outline-none"
+        class="h-full w-16 min-w-16 flex-1 bg-transparent text-center outline-none focus:outline-none"
         readonly
         [value]="
           _computedEndDate()
@@ -91,7 +92,7 @@
     }
 
     <button
-      class="relative left-1 flex flex-shrink-0 items-center justify-center border-none bg-transparent outline-none"
+      class="absolute right-2.5 top-2.5 flex w-4 items-center justify-center border-none bg-transparent outline-none"
       tabindex="-1">
       <hlm-icon name="lucideCalendar" size="sm" />
     </button>

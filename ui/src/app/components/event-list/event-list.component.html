@@ -1,0 +1,73 @@
+<ol class="flex h-full flex-col">
+  @if (loading()) {
+    <li
+      class="relative flex cursor-pointer flex-row items-center gap-2 overflow-hidden border-b border-border p-2 text-gray-900 hover:bg-gray-50">
+      <div class="flex w-0 flex-[0_0_2.5rem] flex-col gap-1 text-sm">
+        <hlm-skeleton class="h-3 w-10" />
+        <hlm-skeleton class="h-3 w-10" />
+      </div>
+
+      <hlm-skeleton class="h-3 w-32" />
+    </li>
+    <li
+      class="relative flex cursor-pointer flex-row items-center gap-2 overflow-hidden border-b border-border p-2 text-gray-900 hover:bg-gray-50">
+      <div class="flex w-0 flex-[0_0_2.5rem] flex-col gap-1 text-sm">
+        <hlm-skeleton class="h-3 w-10" />
+        <hlm-skeleton class="h-3 w-10" />
+      </div>
+
+      <hlm-skeleton class="h-3 w-52" />
+    </li>
+    <li
+      class="relative flex cursor-pointer flex-row items-center gap-2 overflow-hidden border-b border-border p-2 text-gray-900 hover:bg-gray-50">
+      <div class="flex w-0 flex-[0_0_2.5rem] flex-col gap-1 text-sm">
+        <hlm-skeleton class="h-3 w-10" />
+        <hlm-skeleton class="h-3 w-10" />
+      </div>
+
+      <hlm-skeleton class="h-3 w-40" />
+    </li>
+  } @else {
+    @for (event of _computedEvents(); track event.id) {
+      <li
+        [userColorVars]="event.profile"
+        class="relative flex flex-shrink-0 cursor-pointer flex-row items-center gap-2 overflow-hidden border-b border-border p-2 text-gray-900 hover:bg-gray-50 {{
+          event.classes
+        }}"
+        [class.bg-yellow-50]="event.isNow && !event.fullDay"
+        [class.text-opacity-70]="event.isOver"
+        (click)="openEvent(event)">
+        <hlm-tooltip>
+          <div
+            class="flex w-0 flex-[0_0_2.5rem] flex-col text-sm"
+            hlmTooltipTrigger>
+            <span>
+              {{ event.startTime | toDate | date: 'shortTime' }}
+            </span>
+            <span>
+              {{ event.endTime | toDate | date: 'shortTime' }}
+            </span>
+          </div>
+
+          <span *brnTooltipContent>
+            Dauer: {{ event.duration | duration: 'default-hours' }}
+          </span>
+        </hlm-tooltip>
+
+        <span
+          class="flex-grow text-ellipsis whitespace-normal text-sm font-medium">
+          {{ event.summary }}
+        </span>
+
+        <span
+          class="absolute bottom-0 right-0 top-0 block h-full w-[4px] bg-[var(--user-color,transparent)]"></span>
+      </li>
+    } @empty {
+      <li
+        class="flex h-full flex-col items-center justify-center gap-4 self-stretch py-4">
+        <hlm-icon name="lucideCheckCircle" size="xl" class="text-green-500" />
+        Keine Termine mehr
+      </li>
+    }
+  }
+</ol>

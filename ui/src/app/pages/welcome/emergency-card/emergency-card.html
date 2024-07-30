@@ -1,74 +1,62 @@
-<nz-card class="overflow-hidden">
-  <img class="card-image" src="assets/moon-cloud.png" />
-  <nz-card-meta [nzTitle]="titleTemplate" [nzDescription]="descriptionTemplate">
-  </nz-card-meta>
-</nz-card>
+<section hlmCard>
+  <div class="flex flex-col gap-8 pt-4" hlmCardContent>
+    @for (entry of onCall(); track entry.number.number) {
+      <div class="flex flex-col gap-4">
+        <label hlmLabel class="text-sky-700">
+          {{ entry.number.displayName || entry.number }}
+        </label>
 
-<ng-template #titleTemplate>
-  <span class="header">
-    Bereitschaftsdienst {{ onDuty?.isOverwrite ? '(ÜBERSCHRIEBEN)' : '' }}
-    @if (canSetOverwrite) {
-      <i
-        nz-dropdown
-        nzTrigger="click"
-        nz-icon
-        nzType="edit"
-        nzTheme="outline"
-        style="cursor: pointer"
-        nz-tooltip
-        nzTooltipTitle="Nachdienst ändern"
-        routerLink="/on-call/overwrite"></i>
-    }
-  </span>
+        <div class="grid grid-cols-1 gap-2">
+          @for (onCall of entry.onCall; track onCall.transferTarget) {
+            <div
+              class="flex flex-row items-center justify-start gap-4 rounded-md border border-border p-2">
+              @if (onCall.profile) {
+                <app-avatar
+                  [user]="onCall.profile"
+                  class="ml-1"
+                  variant="large"
+                  [nzTooltipTitle]="
+                    'bis ' + (onCall.until | toDate | date: 'short')
+                  "
+                  nz-tooltip />
 
-  <div class="grid grid-cols-1 gap-2">
-    @for (onCall of onDuty?.onCall; track onCall) {
-      <div
-        class="flex flex-row items-center justify-start gap-4 rounded-md border border-border p-2">
-        @if (onCall.profile) {
-          <app-avatar
-            [user]="onCall.profile"
-            class="ml-1"
-            variant="large"
-            [nzTooltipTitle]="'bis ' + (onCall.until | toDate | date: 'short')"
-            nz-tooltip />
+                <brn-separator hlm decorative orientation="vertical" />
+              }
+              <div class="flex flex-col gap-0">
+                @if (onCall.profile) {
+                  <span hlmLabel class="text-lg">
+                    {{ onCall.profile | toUser: profiles() | displayName }}
+                  </span>
+                }
 
-          <brn-separator hlm decorative orientation="vertical" />
-        }
-        <div class="flex flex-col gap-0">
-          @if (onCall.profile) {
-            <span hlmLabel class="text-lg">
-              {{ onCall.profile | toUser: profiles() | displayName }}
-            </span>
+                <a
+                  class="text-gray-600"
+                  [attr.href]="'tel:' + onCall.transferTarget">
+                  <hlm-icon name="lucidePhone" size="xs" />
+                  {{ onCall.transferTarget }}
+                </a>
+              </div>
+
+              <div class="flex-grow"></div>
+
+              <a
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                [attr.href]="'tel:' + onCall.transferTarget">
+                <hlm-icon name="lucidePhoneCall" />
+              </a>
+            </div>
+          } @empty {
+            <div hlmAlert>
+              <h3 hlmAlertTitle class="font-medium text-red-500">
+                Nicht eingetragen!
+              </h3>
+              <p hlmAlertDescription>Es wurde kein Dienstzuweisung gefunden.</p>
+            </div>
           }
-
-          <a class="text-gray-600" [attr.href]="'tel:' + onCall.transferTarget">
-            <i nz-icon nzType="phone" nzTheme="outline" [nzRotate]="95"></i>
-            {{ onCall.transferTarget }}
-          </a>
         </div>
       </div>
     }
   </div>
-</ng-template>
-
-<ng-template #descriptionTemplate>
-  @if (firstLoad) {
-    <nz-spin nzSimple [nzSize]="'small'"></nz-spin>
-    <span> Laden ...</span>
-  }
-  @if (!firstLoad) {
-    <span class="description">
-      @if (onDuty?.onCall?.length === 0) {
-        <span style="color: red">
-          <i
-            nz-icon
-            nzType="warning"
-            nzTheme="outline"
-            style="margin-right: 4px"></i>
-          Nicht eingetragen!
-        </span>
-      }
-    </span>
-  }
-</ng-template>
+</section>

@@ -1,23 +1,33 @@
 <div class="grid overflow-x-hidden">
   @if (layout.isPhone) {
-    <app-mobile-welcome-card></app-mobile-welcome-card>
-  }
-  @if (hasDoorAccess) {
-    <app-door-card class="dash-card"></app-door-card>
+    @defer {
+      <app-mobile-welcome-card></app-mobile-welcome-card>
+    }
   }
   @if (hasDoctorOnDutyAccess) {
-    <app-emergency-card class="dash-card"></app-emergency-card>
+    @defer {
+      <app-emergency-card class="dash-card"></app-emergency-card>
+    }
   }
   @if (hasRosterAccess) {
-    <app-roster-card class="dash-card"> </app-roster-card>
-  }
-  @for (name of mailboxes; track name) {
-    <app-voicemail-card
-      class="dash-card"
-      [mailboxName]="name"></app-voicemail-card>
+    @defer {
+      <app-roster-card (userHover)="hoveredUser.set($event)"> </app-roster-card>
+    }
   }
 
-  <app-upcoming-events-card
-    #upcomingEvents
-    class="dash-card"></app-upcoming-events-card>
+  @defer {
+    @for (name of mailboxes; track name) {
+      <app-voicemail-card
+        class="dash-card"
+        [mailboxName]="name"></app-voicemail-card>
+    }
+  }
+
+  @defer {
+    <app-upcoming-events-card
+      #upcomingEvents
+      [displayedCalendars]="
+        hoveredUser() ? [hoveredUser() | calendarId] : null
+      " />
+  }
 </div>

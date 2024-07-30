@@ -82,6 +82,8 @@ export class TextInputComponent
           {
             marker: '@',
             feed: (queryText: string) => {
+              queryText = queryText.toLowerCase();
+              
               return new Promise((resolve, reject) => {
                 const users = profiles
                   .filter(profile => {

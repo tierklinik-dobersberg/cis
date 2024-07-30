@@ -1,17 +1,51 @@
-import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output, inject } from '@angular/core';
+import { DatePipe, NgTemplateOutlet } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  model,
+  output,
+  signal,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Timestamp } from '@bufbuild/protobuf';
+import { ConnectError } from '@connectrpc/connect';
+import { lucideArrowLeft, lucideArrowRight, lucideCalendarDays } from '@ng-icons/lucide';
+import { BrnTooltipModule } from '@spartan-ng/ui-tooltip-brain';
 import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
+import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
+import {
+  HlmCardDirective,
+  HlmCardModule,
+} from '@tierklinik-dobersberg/angular/card';
+import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
+import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
-import { DisplayNamePipe, ToUserPipe } from '@tierklinik-dobersberg/angular/pipes';
-import { GetRosterResponse, ListWorkShiftsResponse, PlannedShift, WorkShift } from '@tierklinik-dobersberg/apis';
+import {
+  DisplayNamePipe,
+  ToUserPipe,
+} from '@tierklinik-dobersberg/angular/pipes';
+import { HlmSkeletonComponent } from '@tierklinik-dobersberg/angular/skeleton';
+import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
+import {
+  GetWorkingStaffResponse,
+  PlannedShift,
+  Profile
+} from '@tierklinik-dobersberg/apis';
+import { TimeRange } from '@tierklinik-dobersberg/apis/gen/es/tkd/common/v1/time_range_pb';
+import { differenceInDays, endOfDay, startOfDay } from 'date-fns';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
-import { BehaviorSubject, Subscription, combineLatest, forkJoin, interval } from 'rxjs';
-import { mergeMap, startWith } from 'rxjs/operators';
-import { ROSTER_SERVICE, WORK_SHIFT_SERVICE } from 'src/app/api/connect_clients';
+import { toast } from 'ngx-sonner';
+import { injectCurrentConfig } from 'src/app/api';
+import {
+  injectRosterService
+} from 'src/app/api/connect_clients';
 import { AppAvatarComponent } from 'src/app/components/avatar';
-import { toDateString } from 'src/app/utils';
+import { TkdDatePickerComponent, TkdDatePickerInputDirective } from 'src/app/components/date-picker';
+import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
+import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shifts';
 
 @Component({
   selector: 'app-roster-card',
@@ -23,103 +57,114 @@ import { toDateString } from 'src/app/utils';
     NgTemplateOutlet,
     ToUserPipe,
     DisplayNamePipe,
-    NzToolTipModule,
     AppAvatarComponent,
-    HlmLabelDirective
+    HlmLabelDirective,
+    HlmTooltipModule,
+    BrnTooltipModule,
+    HlmCardModule,
+    HlmIconModule,
+    TkdDatePickerComponent,
+    TkdDatePickerInputDirective,
+    TkdDatePickerTriggerComponent,
+    FormsModule,
+    HlmButtonDirective,
+    DatePipe,
+    HlmSkeletonComponent,
+    HlmTooltipModule,
+    BrnTooltipModule,
+
+  ],
+  hostDirectives: [HlmCardDirective],
+  providers: [
+    ...provideIcons({lucideArrowLeft, lucideArrowRight, lucideCalendarDays})
   ]
 })
-export class RosterCardComponent implements OnInit, OnDestroy {
-  private subscriptions = Subscription.EMPTY;
+export class RosterCardComponent {
+  private readonly rosterService = injectRosterService();
+  private readonly dialogService = inject(HlmDialogService);
 
-  shifts: (PlannedShift & {definition: WorkShift})[] = [];
-  
+  public readonly userHover = output<Profile | null>();
+
+  protected readonly currentShifts = signal<PlannedShift[]>([]);
   protected readonly profiles = injectUserProfiles();
+  protected readonly config = injectCurrentConfig();
 
-  @Output()
-  userHover = new EventEmitter<string>();
+  protected readonly rosterLoading = signal(true);
+  protected readonly calendarDate = model<Date>(new Date);
 
-  @Output()
-  userClick = new EventEmitter<string>();
+  protected readonly localPlannedShifts = injectLocalPlannedShifts(this.currentShifts)
 
-  private _lastUserClick = '';
+  protected readonly _computedShifts = computed<LocalPlannedShift[]>(() => {
+    const current = this.localPlannedShifts();
 
-  userClicked(user: string) {
-    if (this._lastUserClick === user) {
-      this.userClick.next('');
-      this._lastUserClick = '';
-      return
+    return current
+      .filter(shift => shift.assignedUserIds?.length > 0)
+      .sort((a, b) => {
+        return Number((b.definition?.order || BigInt(0)) - (a.definition?.order || BigInt(0)))
+      })
+  });
+
+  protected readonly _computedDateKind = computed<'yesterday' | 'today' | 'tomorrow' | 'other'>(() => {
+    const date = startOfDay(this.calendarDate());
+    const today = startOfDay(new Date());
+
+    const diff = Math.floor(differenceInDays(date, today));
+
+    if (diff === -1) {
+      return 'yesterday'
     }
 
-    this.userClick.next(user);
-    this._lastUserClick = user;
+    if (diff === 0) {
+      return 'today'
+    }
+
+    if (diff === 1) {
+      return 'tomorrow'
+    }
+
+    return 'other'
+  })
+
+  protected openUserEvents(userId: string) {
+    import("../../../dialogs/event-list-dialog")
+      .then(m => {
+        m.EventListDialogComponent.open(this.dialogService, {
+          userId: userId,
+          date: new Date()
+        })
+      })
   }
 
-  private rosterService = inject(ROSTER_SERVICE)
-  private workShiftService = inject(WORK_SHIFT_SERVICE);
+  constructor() {
+    effect(() => {
+      const config = this.config();
+      const date = this.calendarDate();
 
-  constructor(
-    private changeDetector: ChangeDetectorRef,
-  ) { }
+      this.rosterLoading.set(true)
+      this.currentShifts.set([]);
 
-  ngOnInit(): void {
-    const triggerReload = new BehaviorSubject<void>(undefined);
+      this.rosterService
+        .getWorkingStaff2({
+          query: {
+            case: 'timeRange',
+            value: new TimeRange({
+              from: Timestamp.fromDate(startOfDay(date)),
+              to: Timestamp.fromDate(endOfDay(date)),
+            }),
+          },
+          rosterTypeName: config?.UI?.OnCallRosterType
+        })
+        .catch(err => {
+          toast.error('Dienste konnten nicht geladen werden', {
+            description: ConnectError.from(err).message,
+          });
 
-    this.subscriptions = new Subscription();
-
-    const rosterSubscription = combineLatest([
-      interval(5 * 60 * 1000),
-      triggerReload,
-    ])
-      .pipe(
-        startWith(-1),
-
-        mergeMap(() => forkJoin({
-          staff: this.rosterService.getRoster({
-            search: {
-              case: 'date',
-              value: Timestamp.fromDate(new Date()),
-            },
-            readMask: {
-              paths: ['roster']
-            }
-          }).catch(err => new GetRosterResponse()),
-
-          shifts: this.workShiftService.listWorkShifts({})
-            .catch(() => new ListWorkShiftsResponse())
-        })),
-      )
-      .subscribe((response) => {
-        const now = toDateString(new Date());
-        if (!response.staff.roster?.length) {
-          this.shifts = [];
-          this.changeDetector.markForCheck();
-
-          return
-        }
-
-        this.shifts = response.staff.roster[0]?.shifts
-          .filter(shift => {
-            const from = shift.from.toDate()
-            return toDateString(from) === now;
-          })
-          .map(shift => {
-            const definition = response.shifts.workShifts.find(ws => ws.id === shift.workShiftId)
-            if (!!definition) {
-              Object.defineProperty(shift, 'definition', {
-                get: () => definition
-              })
-            }
-
-            return shift;
-          }) as typeof this['shifts']
-
-        this.changeDetector.markForCheck();
-      });
-
-    this.subscriptions.add(rosterSubscription);
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
+          return new GetWorkingStaffResponse();
+        })
+        .then(response => {
+          this.currentShifts.set(response.currentShifts || []);
+          this.rosterLoading.set(false);
+        });
+    }, { allowSignalWrites: true });
   }
 }

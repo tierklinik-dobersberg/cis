@@ -17,3 +17,18 @@ export class ByCalendarIdPipe implements PipeTransform {
         return p
     }
 }
+
+@Pipe({
+    name: 'calendarId',
+    pure: true,
+    standalone: true
+})
+export class CalendarIdPipe implements PipeTransform {
+    transform(value?: Profile, ...args: any[]) {
+        if (!value) {
+            return null
+        }
+
+        return getCalendarId(value); 
+    }
+}

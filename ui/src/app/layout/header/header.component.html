@@ -14,9 +14,13 @@
       <app-door-status-button />
 
       @if (layout.sm()) {
-        <app-redirect-emergency-button />
+        @defer (on idle) {
+          <app-redirect-emergency-button />
+        }
 
-        <app-avatar [user]="profile()" [brnMenuTriggerFor]="menu" />
+        @defer (on idle) {
+          <app-avatar [user]="profile()" [brnMenuTriggerFor]="menu" />
+        }
 
         <ng-template #menu>
           <app-menu class="w-56">

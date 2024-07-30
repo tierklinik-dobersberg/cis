@@ -1,5 +1,15 @@
 <hlm-dialog-header>
-  <h3 hlmDialogTitle>Termin Details</h3>
+  <h3 hlmDialogTitle>
+    @if (isNew()) {
+      Neuen Termin erstellen
+    } @else {
+      @if (edit()) {
+        Termin bearbeiten
+      } @else {
+        Termin Details
+      }
+    }
+  </h3>
   <p hlmDialogDescription></p>
 </hlm-dialog-header>
 

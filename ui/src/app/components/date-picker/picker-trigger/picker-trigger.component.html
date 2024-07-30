@@ -1,0 +1,43 @@
+<button
+  hlmBtn
+  variant="secondary"
+  [size]="_computedButtonSize()"
+  (click)="addDays(-1, $event)"
+  tabindex="-1"
+  class="rounded-r-none border {{ _computedBorderClasses() }}">
+  <hlm-icon name="lucideArrowLeft" [size]="_computedIconSize()" />
+</button>
+
+@if (variant() === 'date') {
+  <button
+    hlmBtn
+    variant="secondary"
+    [size]="_computedButtonSize()"
+    tabindex="-1"
+    class="w-32 rounded-none border-b border-t {{
+      _computedBorderClasses()
+    }} text-center">
+    {{ calendarDate() | date: 'mediumDate' }}
+  </button>
+} @else {
+  <button
+    hlmBtn
+    variant="secondary"
+    [size]="_computedButtonSize()"
+    tabindex="-1"
+    class="rounded-none border-b border-t {{
+      _computedBorderClasses()
+    }} text-center">
+    <hlm-icon name="lucideCalendarDays" [size]="_computedIconSize()" />
+  </button>
+}
+
+<button
+  hlmBtn
+  variant="secondary"
+  class="rounded-l-none border {{ _computedBorderClasses() }}"
+  [size]="_computedButtonSize()"
+  tabindex="-1"
+  (click)="addDays(1, $event)">
+  <hlm-icon name="lucideArrowRight" [size]="_computedIconSize()" />
+</button>

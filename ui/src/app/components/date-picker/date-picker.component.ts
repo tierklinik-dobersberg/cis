@@ -6,6 +6,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  ContentChild,
   DestroyRef,
   effect,
   ElementRef,
@@ -73,6 +74,7 @@ import {
   AppPopoverTriggerDirective,
   AppSheetTriggerDirective,
 } from '../triggers';
+import { TkdDatePickerInputDirective } from './picker-input.directive';
 
 export type DatePickerVariant = 'default' | 'inline';
 export type DatePickerMode = 'single' | 'range';
@@ -123,6 +125,9 @@ export class TkdDatePickerComponent
 {
   private readonly destroyRef = inject(DestroyRef);
   protected readonly layout = inject(LayoutService);
+
+  @ContentChild(TkdDatePickerInputDirective)
+  inputDirective?: TkdDatePickerInputDirective;
 
   /** The display mode to render */
   public readonly variant = input<DatePickerVariant>('default');
@@ -481,7 +486,7 @@ export class TkdDatePickerComponent
     return this.mode() === 'range';
   }
 
-  protected apply() {
+  public apply() {
     const value = [...this.value()];
 
     if (this.isRangeSelect()) {

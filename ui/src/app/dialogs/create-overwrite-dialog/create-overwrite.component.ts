@@ -1,0 +1,245 @@
+import { DatePipe } from "@angular/common";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, model, signal } from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { Timestamp } from "@bufbuild/protobuf";
+import { Code, ConnectError } from "@connectrpc/connect";
+import { BrnDialogRef } from "@spartan-ng/ui-dialog-brain";
+import { BrnSelectModule } from "@spartan-ng/ui-select-brain";
+import { BrnSeparatorComponent } from "@spartan-ng/ui-separator-brain";
+import { BrnSheetModule } from "@spartan-ng/ui-sheet-brain";
+import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
+import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
+import { injectCallService, injectRosterService } from "@tierklinik-dobersberg/angular/connect";
+import { HlmDialogModule } from "@tierklinik-dobersberg/angular/dialog";
+import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
+import { HlmLabelDirective } from "@tierklinik-dobersberg/angular/label";
+import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
+import { DisplayNamePipe, ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
+import { HlmSelectModule } from "@tierklinik-dobersberg/angular/select";
+import { HlmSeparatorDirective } from "@tierklinik-dobersberg/angular/separator";
+import { HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
+import { CreateOverwriteRequest, CustomOverwrite, GetWorkingStaffResponse, InboundNumber, ListInboundNumberResponse, PlannedShift, Profile } from "@tierklinik-dobersberg/apis";
+import { TimeRange } from "@tierklinik-dobersberg/apis/gen/es/tkd/common/v1/time_range_pb";
+import { endOfDay, startOfDay } from "date-fns";
+import { toast } from "ngx-sonner";
+import { injectCurrentConfig, QuickRosterOverwrite } from "src/app/api";
+import { AppAvatarComponent } from "src/app/components/avatar";
+import { TkdDatePickerComponent } from "src/app/components/date-picker";
+import { EmergencyTargetService } from "src/app/layout/redirect-emergency-button/emergency-target.service";
+import { injectLocalPlannedShifts } from "src/app/utils/shifts";
+import { WorkShiftPipe } from "../../pipes/workshift-name.pipe";
+
+@Component({
+    selector: 'app-overwrite-create',
+    standalone: true,
+    templateUrl: './create-overwrite.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        HlmButtonDirective,
+        HlmInputDirective,
+        AppAvatarComponent,
+        HlmSelectModule,
+        BrnSelectModule,
+        TkdDatePickerComponent,
+        FormsModule,
+        HlmDialogModule,
+        BrnSeparatorComponent,
+        HlmSeparatorDirective,
+        HlmLabelDirective,
+        DisplayNamePipe,
+        WorkShiftPipe,
+        BrnSheetModule,
+        HlmSheetModule,
+        ToDatePipe,
+        DatePipe
+    ]
+})
+export class CreateOverwriteComponent {
+    private readonly dialogRef = inject(BrnDialogRef);
+    private readonly callService = injectCallService();
+    private readonly rosterService = injectRosterService();
+    private readonly emergencyTargetService = inject(EmergencyTargetService);
+    private readonly config = injectCurrentConfig();
+    protected readonly layout = inject(LayoutService);
+
+    protected readonly profiles = injectUserProfiles();
+
+    protected readonly _computedValidProfiles = computed(() => {
+        const profiles = this.profiles()
+
+        return profiles.filter(p => {
+            if (p.phoneNumbers?.length > 0) {
+                return true
+            }
+
+            if (p.user.extra) {
+                const phoneExtension = p.user.extra.fields['phoneExtension'];
+                if (phoneExtension && phoneExtension.kind.case === 'stringValue' && phoneExtension.kind.value) {
+                    return true
+                }
+
+                const emergencyExtension = p.user.extra.fields['emergencyExtension'];
+                if (emergencyExtension && emergencyExtension.kind.case === 'stringValue' && emergencyExtension.kind.value) {
+                    return true
+                }
+            }
+
+            return false
+        })
+    })
+
+    protected readonly shifts = signal<PlannedShift[]>([])
+    protected readonly localPlannedShifts = injectLocalPlannedShifts(this.shifts);
+    protected readonly inboundNumbers = signal<InboundNumber[]>([]);
+
+    protected readonly dateRange = model<[Date, Date] | null>(null)
+    protected readonly selectedProfile = model<Profile | string | null>(null);
+    protected readonly customTarget = model<string>('');
+    protected readonly shiftDate = model<Date>(new Date());
+    protected readonly quickSettings = model<QuickRosterOverwrite[]>([]);
+    protected readonly numberToRedirect = model<InboundNumber | null>(null);
+
+    protected close() {
+        this.dialogRef.close();
+    }
+
+    protected create() {
+        const [from, to] = this.dateRange();
+        const number = this.numberToRedirect();
+        const req = new CreateOverwriteRequest({
+            from: Timestamp.fromDate(from),
+            to: Timestamp.fromDate(to),
+            inboundNumber: number ? number.number : ''
+        })
+
+        const profile = this.selectedProfile();
+        let custom = this.customTarget();
+
+        if (custom || typeof profile === 'string') {
+            req.transferTarget = {
+                case: 'custom',
+                value: new CustomOverwrite({
+                    displayName: custom,
+                    transferTarget: custom,
+                })
+            }
+        } else {
+            req.transferTarget = {
+                case: 'userId',
+                value: profile.user.id
+            }
+        }
+
+        this.callService
+            .createOverwrite(req)
+            .then(() => {
+                this.emergencyTargetService.load();
+                this.dialogRef.close();
+            })
+            .catch(err => {
+                toast.error('Umleitung konnte nicht erstellt werden', {
+                    description: ConnectError.from(err).message
+                })
+            })
+    }
+
+    constructor() {
+        this.callService
+            .listInboundNumber({})
+            .catch(err => {
+                toast.error('Failed to load inbound-numbers', {
+                    description: ConnectError.from(err).message
+                })
+
+                return new ListInboundNumberResponse();
+            })
+            .then(response => {
+                this.inboundNumbers.set(response.inboundNumbers || [])
+
+                // TODO(ppacher): should we make this configurable?
+                if (response.inboundNumbers.length > 0) {
+                    this.numberToRedirect.set(response.inboundNumbers[0]);
+                }
+            });
+
+        effect(() => {
+            const config = this.config();
+            const date = this.shiftDate();
+            const numberToRedirect = this.numberToRedirect();
+
+            if (!config || !config.UI?.OnCallRosterType)  {
+                return;
+            }
+
+            this.shifts.set([])
+            this.quickSettings.set(config.QuickRosterOverwrite || []);
+
+            this.rosterService
+                .getWorkingStaff2({
+                    rosterTypeName: config.UI.OnCallRosterType,
+                    query: {
+                        case: 'timeRange',
+                        value: new TimeRange({
+                            from: Timestamp.fromDate(startOfDay(date)),
+                            to: Timestamp.fromDate(endOfDay(date))
+                        })
+                    },
+                    shiftTags: numberToRedirect ? numberToRedirect.rosterShiftTags : undefined
+                })
+                .catch(err => {
+                    const cErr = ConnectError.from(err);
+                    if (cErr.code !== Code.NotFound) {
+                        toast.error('Arbeitsschichten konnten nicht geladen werden', {
+                            description: cErr.message
+                        })
+                    }
+
+                    return new GetWorkingStaffResponse()
+                })
+                .then(response => {
+                    this.shifts.set(response.currentShifts) 
+
+                    let range = 
+                    response.currentShifts
+                        .reduce((prev, cur) => {
+                            let [min, max] = prev;
+
+                            if (cur.from.toDate().getTime() < min) {
+                                min = cur.from.toDate().getTime();
+                            }
+
+                            if (cur.to.toDate().getTime() > max) {
+                                max = cur.to.toDate().getTime();
+                            }
+
+                            return [min, max]
+                        }, [Infinity, -Infinity])
+
+                    const [min, max] = range;
+
+                    if (min !== Infinity && max !== -Infinity) {
+                        this.dateRange.set([
+                            new Date(min),
+                            new Date(max),
+                        ])
+                    }
+                })
+        }, { allowSignalWrites: true })
+
+        effect(() => {
+            const selectedUser = this.selectedProfile();
+
+            if (selectedUser) {
+                this.customTarget.set('')
+            }
+        }, { allowSignalWrites: true })
+
+        effect(() => {
+            const customTarget = this.customTarget();
+
+            if (customTarget) {
+                this.selectedProfile.set(null)
+            }
+        }, { allowSignalWrites: true })
+    }
+}

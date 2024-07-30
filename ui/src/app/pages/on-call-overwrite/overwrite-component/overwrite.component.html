@@ -4,15 +4,9 @@
       <div class="flex flex-row items-start">
         <div class="w-14">
           @if (currentOverwrite.target.case === 'userId') {
-            <nz-avatar
-              nzIcon="user"
-              nzShape="circle"
-              [nzSize]="56"
-              class="tkd-avatar"
-              [nzSrc]="
-                (currentOverwrite.target.value | toUser: allUsers())?.user
-                  .avatar || null
-              "></nz-avatar>
+            <app-avatar
+              [user]="currentOverwrite.target.value"
+              showName="false" />
           }
         </div>
         <div class="ml-4 flex flex-grow flex-col justify-start">
@@ -64,14 +58,7 @@
   } @else {
     @if (currentRoster?.userIds) {
       <div class="flex flex-row items-start">
-        <nz-avatar
-          nzIcon="user"
-          nzShape="circle"
-          [nzSize]="56"
-          class="rounded-full shadow"
-          [nzSrc]="
-            (currentRoster.userIds[0] | toUser: allUsers())?.user.avatar
-          "></nz-avatar>
+        <app-avatar [user]="currentRoster.userIds[0]" />
         <div class="ml-4 flex flex-grow flex-col justify-start">
           <span class="font-semibold text-gray-800">{{
             currentRoster.userIds[0] | toUser: allUsers() | displayName

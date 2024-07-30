@@ -1,0 +1,179 @@
+<hlm-dialog-header>
+  <h3 hlmDialogTitle>Umleitung erstellen</h3>
+  <p hlmDialogDescription>
+    Erstelle eine neue Umleitung um Notrufe außerhalb der Öffnungszeiten an eine
+    andere Nummer zu leiten.
+  </p>
+</hlm-dialog-header>
+
+<div class="flex flex-col gap-8 px-2 py-8">
+  <brn-separator decorative hlm />
+
+  @if (inboundNumbers().length) {
+    <div>
+      <label hlmLabel for="kind"> Was möchtest du umleiten? </label>
+      <brn-select name="kind" [(ngModel)]="numberToRedirect">
+        <hlm-select-trigger class="w-full">
+          <hlm-select-value class="w-full" />
+        </hlm-select-trigger>
+
+        <hlm-select-content class="max-w-94 max-h-56">
+          <hlm-option [value]="''">Alle Nummern</hlm-option>
+
+          @for (number of inboundNumbers(); track number.number) {
+            <hlm-option [value]="number">
+              {{ number.displayName || number.number }}
+            </hlm-option>
+          }
+        </hlm-select-content>
+      </brn-select>
+    </div>
+  }
+
+  <div>
+    <label hlmLabel for="dateRange">
+      Bitte wähle den Zeitraum für die Umleitung
+    </label>
+
+    <tkd-date-picker
+      [(ngModel)]="dateRange"
+      withTime="true"
+      name="dateRange"
+      mode="range" />
+
+    <hlm-sheet>
+      <div class="flex w-full flex-row justify-end">
+        <button
+          hlmBtn
+          class="mt-2 justify-end"
+          variant="secondary"
+          size="sm"
+          brnSheetTrigger
+          [side]="layout.md() ? 'right' : 'bottom'">
+          Schicht auswählen
+        </button>
+      </div>
+
+      <hlm-sheet-content
+        *brnSheetContent="let ctx"
+        class="flex h-[100dvh] max-w-[unset] flex-col gap-8 overflow-hidden md:max-w-[500px]">
+        <hlm-sheet-header>
+          <h3 hlmSheetTitle>Arbeitsschicht auswählen</h3>
+          <p hlmSheetDescription>
+            Wähle die Arbeitsschicht die du überschreiben möchtest.
+          </p>
+        </hlm-sheet-header>
+
+        <div>
+          <label hlmLabel for="date"> Datum </label>
+
+          <tkd-date-picker
+            class="w-full"
+            name="date"
+            [(ngModel)]="shiftDate"
+            variant="inline"
+            withTime="false"
+            mode="single" />
+        </div>
+
+        <brn-separator hlm decorative />
+
+        <div class="flex flex-grow flex-col gap-1 overflow-hidden">
+          <label hlmLabel> Wähle die Schicht die du umleiten möchtest: </label>
+
+          <div
+            class="flex flex-grow flex-col items-stretch justify-start gap-4 overflow-auto pr-2">
+            @for (shift of localPlannedShifts(); track shift) {
+              <button
+                hlmBtn
+                variant="outline"
+                class="flex h-[unset] flex-col items-start justify-start px-4 py-2"
+                (click)="
+                  dateRange.set([shift.from.toDate(), shift.to.toDate()]);
+                  ctx.close()
+                ">
+                <span>
+                  @if (shift.definition; as def) {
+                    {{ def.name || def.displayName || def.description }}
+                  } @else {
+                    N/A
+                  }
+                </span>
+
+                <span class="block font-normal text-secondary-foreground/70">
+                  (
+                  {{ shift.from | toDate | date: 'short' }}
+                  -
+                  {{ shift.to | toDate | date: 'short' }}
+                  )
+                </span>
+              </button>
+            }
+          </div>
+        </div>
+      </hlm-sheet-content>
+    </hlm-sheet>
+  </div>
+
+  <brn-separator decorative hlm />
+
+  <div>
+    <label hlmLabel for="dateRange">
+      Bitte wähle das Ziel für die Umleitung
+    </label>
+    <brn-select
+      [(ngModel)]="selectedProfile"
+      (click)="!!customTarget() && customTarget.set('')">
+      <hlm-select-trigger class="w-full">
+        <hlm-select-value class="w-full" />
+      </hlm-select-trigger>
+
+      <hlm-select-content class="max-w-94 max-h-56">
+        <hlm-select-group> Schnellauswahl </hlm-select-group>
+
+        @for (set of quickSettings(); track set) {
+          <hlm-option [value]="set.TargetNumber">
+            {{ set.DisplayName }}
+          </hlm-option>
+        }
+        <hlm-select-group> Mitarbeiter </hlm-select-group>
+
+        @for (profile of _computedValidProfiles(); track profile.user.id) {
+          <hlm-option [value]="profile">
+            {{ profile | displayName }}
+          </hlm-option>
+        }
+      </hlm-select-content>
+    </brn-select>
+  </div>
+
+  <div class="flex flex-row flex-nowrap items-center gap-2">
+    <brn-separator class="w-[unset] flex-1" hlm decorative />
+    oder
+    <brn-separator class="w-[unset] flex-1" hlm decorative />
+  </div>
+
+  <label for="phone" hlmLabel>
+    Telefonnnummer
+    <input
+      hlmInput
+      [readonly]="!!selectedProfile()"
+      type="tel"
+      name="phone"
+      class="w-full"
+      (click)="!!selectedProfile() && selectedProfile.set(null)"
+      [(ngModel)]="customTarget" />
+  </label>
+</div>
+
+<hlm-dialog-footer class="flex flex-row flex-wrap gap-2">
+  <button hlmBtn variant="secondary" (click)="close()">Abbrechen</button>
+
+  <button
+    hlmBtn
+    variant="default"
+    [disabled]="!dateRange() || !(customTarget() || selectedProfile())"
+    (click)="create()">
+    Umleiten
+  </button>
+</hlm-dialog-footer>

@@ -17,10 +17,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import {
-  lucideArrowLeft,
-  lucideArrowRight,
   lucideZoomIn,
-  lucideZoomOut,
+  lucideZoomOut
 } from '@ng-icons/lucide';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
@@ -48,14 +46,13 @@ import {
   WorkShift,
 } from '@tierklinik-dobersberg/apis';
 import {
-  addDays,
   endOfDay,
   getMinutes,
   isBefore,
   isSameDay,
   setMinutes,
   setSeconds,
-  startOfDay,
+  startOfDay
 } from 'date-fns';
 import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
@@ -63,13 +60,15 @@ import {
   filter,
   map
 } from 'rxjs';
-import { TkdDatePickerComponent } from 'src/app/components/date-picker';
+import { TkdDatePickerComponent, TkdDatePickerInputDirective } from 'src/app/components/date-picker';
+import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
 import { UserColorVarsDirective } from 'src/app/components/user-color-vars';
 import { ByCalendarIdPipe } from 'src/app/pipes/by-calendar-id.pipe';
 import { getCalendarId } from 'src/app/services';
 import { TkdDateInputModule } from 'src/app/shared/date-input';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { toDateString } from 'src/app/utils';
+import { AppEventDetailsDialogComponent } from '../../../dialogs/event-details-dialog';
 import {
   Calendar,
   CalendarMouseEvent,
@@ -81,7 +80,6 @@ import {
   TkdDayViewComponent,
 } from '../day-view';
 import { getSeconds } from '../day-view/sort.pipe';
-import { AppEventDialogComponent } from '../event-dialog';
 
 type CalEvent = Timed &
   PlainMessage<CalendarEvent> & {
@@ -112,14 +110,14 @@ type CalEvent = Timed &
     UserColorVarsDirective,
     HlmIconModule,
     TkdDatePickerComponent,
+    TkdDatePickerInputDirective,
+    TkdDatePickerTriggerComponent,
     BrnSelectModule,
     HlmSelectModule,
     ByCalendarIdPipe,
   ],
   providers: [
     ...provideIcons({
-      lucideArrowLeft,
-      lucideArrowRight,
       lucideZoomIn,
       lucideZoomOut,
     }),
@@ -277,7 +275,7 @@ export class TkdCalendarViewComponent implements OnInit {
 
   handleCalendarClick(event: CalendarMouseEvent<CalEvent, Calendar>) {
     const contentClass =
-      'w-screen overflow-auto max-w-[unset] sm:w-[750px] md:w-[750px] max-h-full sm:h-[unset] ';
+      'w-screen overflow-auto max-w-[unset] sm:w-[750px] md:w-[750px] h-[100dvh] sm:h-[unset] ';
 
     let ctx: any = {
       calendar: event.calendar,
@@ -295,17 +293,9 @@ export class TkdCalendarViewComponent implements OnInit {
       return;
     }
 
-    this.dialog
-      .open(AppEventDialogComponent, {
-        context: ctx,
-        contentClass,
-      })
+    AppEventDetailsDialogComponent.open(this.dialog, ctx)
       .closed$.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.loadEvents(this.currentDate()));
-  }
-
-  switchDate(offsetInDays: number) {
-    this.setDate(addDays(this.currentDate(), offsetInDays));
   }
 
   loadToday() {
@@ -409,7 +399,7 @@ export class TkdCalendarViewComponent implements OnInit {
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         map(paramMap => paramMap.get('d')),
-        filter(dateString => {
+        filter((dateString) => {
           if (dateString) {
             return true;
           }
@@ -424,8 +414,8 @@ export class TkdCalendarViewComponent implements OnInit {
           return false;
         })
       )
-      .subscribe(result => {
-        this.currentDate.set(new Date(result));
+      .subscribe((date) => {
+        this.currentDate.set(new Date(date));
       });
   }
 }

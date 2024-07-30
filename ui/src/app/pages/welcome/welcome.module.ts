@@ -2,8 +2,11 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { lucidePhoneCall } from '@ng-icons/lucide';
 import { BrnSeparatorModule } from '@spartan-ng/ui-separator-brain';
+import { HlmAlertModule } from '@tierklinik-dobersberg/angular/alert';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
+import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { HlmLabelModule } from '@tierklinik-dobersberg/angular/label';
 import { HlmSeparatorModule } from '@tierklinik-dobersberg/angular/separator';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
@@ -32,10 +35,8 @@ import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { AppAvatarComponent } from 'src/app/components/avatar';
 import { UserColorVarsDirective } from 'src/app/components/user-color-vars';
-import { ByCalendarIdPipe } from 'src/app/pipes/by-calendar-id.pipe';
+import { ByCalendarIdPipe, CalendarIdPipe } from 'src/app/pipes/by-calendar-id.pipe';
 import { SharedModule } from 'src/app/shared/shared.module';
-import { ClockCardComponent } from './clock-card';
-import { DoorCardComponent } from './door-card';
 import { EmergencyCardComponent } from './emergency-card';
 import { VoiceMailCardComponent } from './mail-card';
 import { MobileWelcomeCardComponent } from './mobile-welcome-card';
@@ -82,17 +83,21 @@ import { WelcomeComponent } from './welcome.component';
     HlmLabelModule,
     AppAvatarComponent,
     BrnSeparatorModule,
-    HlmSeparatorModule
+    HlmSeparatorModule,
+    HlmIconModule,
+    HlmAlertModule,
+    EmergencyCardComponent,
+    UpcomingEventsCardComponent,
+    CalendarIdPipe,
   ],
   declarations: [
     WelcomeComponent,
-    DoorCardComponent,
-    ClockCardComponent,
-    EmergencyCardComponent,
     VoiceMailCardComponent,
-    UpcomingEventsCardComponent,
     MobileWelcomeCardComponent,
   ],
-  exports: [WelcomeComponent]
+  exports: [WelcomeComponent],
+  providers: [
+    ...provideIcons({lucidePhoneCall})
+  ]
 })
 export class WelcomeModule {}

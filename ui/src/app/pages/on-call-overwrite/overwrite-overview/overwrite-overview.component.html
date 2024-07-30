@@ -1,0 +1,151 @@
+<header class="flex flex-col items-center justify-between sm:flex-row">
+  <h3 class="text-lg font-medium">Umleitungen</h3>
+
+  <div class="flex flex-row items-center gap-2">
+    <tkd-date-picker
+      class="min-w-96"
+      mode="range"
+      [(ngModel)]="dateRange"
+      withTime="false" />
+
+    <button hlmBtn variant="default" (click)="createOverwrite()">
+      Umleitung erstellen
+    </button>
+  </div>
+</header>
+
+<brn-table
+  hlm
+  class="mt-4 min-h-[335px] overflow-auto rounded-md border @container"
+  stickyHeader="true"
+  [trackBy]="trackRecord"
+  [dataSource]="_computedFilteredAndSortedRecords()"
+  [displayedColumns]="_computedDisplayedColumns()">
+  <brn-column-def
+    [name]="columns.Creator"
+    class="w-0 flex-[0_0_7rem] @[850px]:flex-[0_0_10rem] @[950px]:flex-[0_0_16rem]">
+    <hlm-th *brnHeaderDef>
+      <tkd-sort-th [(current)]="sortDirection"> Erstellt von </tkd-sort-th>
+    </hlm-th>
+    <hlm-td *brnCellDef="let row" class="overflow-hidden text-ellipsis">
+      @if (layout.lg()) {
+        <app-avatar [user]="row.creator" showName="true" />
+      } @else {
+        {{ row.creator | displayName }}
+      }
+    </hlm-td>
+  </brn-column-def>
+
+  <brn-column-def
+    [name]="columns.InboundNumber"
+    class="w-0 flex-[0_0_10rem] overflow-hidden text-ellipsis">
+    <hlm-th *brnHeaderDef>
+      <tkd-sort-th [(current)]="sortDirection"> Was </tkd-sort-th>
+    </hlm-th>
+    <hlm-td *brnCellDef="let row">
+      @if (!row.inboundNumber || row.inboundNumber.number === '') {
+        Alle
+      } @else {
+        {{ row.inboundNumber?.displayName || row.inboundNumber.number }}
+      }
+    </hlm-td>
+  </brn-column-def>
+
+  <brn-column-def
+    [name]="columns.CreatedAt"
+    class="w-0 flex-[0_0_10rem] overflow-hidden text-ellipsis">
+    <hlm-th *brnHeaderDef>
+      <tkd-sort-th [(current)]="sortDirection"> Erstellt am </tkd-sort-th>
+    </hlm-th>
+    <hlm-td *brnCellDef="let row">
+      {{ row.createdAt | toDate | date: 'short' }}
+    </hlm-td>
+  </brn-column-def>
+
+  <brn-column-def
+    [name]="columns.DateRange"
+    class="w-0 flex-[1_0_12rem] overflow-hidden text-ellipsis">
+    <hlm-th *brnHeaderDef>
+      <tkd-sort-th [(current)]="sortDirection"> Zeitraum </tkd-sort-th>
+    </hlm-th>
+    <hlm-td *brnCellDef="let row">
+      <span
+        hlmBadge
+        [variant]="row.isOver ? 'outline' : 'default'"
+        class="flex items-center gap-1 overflow-hidden text-ellipsis">
+        {{ row.from | toDate | date: 'short' }}
+        <hlm-icon name="lucideArrowRight" size="xs" />
+        {{ row.to | toDate | date: 'short' }}
+      </span>
+    </hlm-td>
+  </brn-column-def>
+
+  <brn-column-def
+    [name]="columns.TransferTarget"
+    class="w-0 flex-[0_0_6rem] @[390px]:flex-[1_0_6rem]">
+    <hlm-th *brnHeaderDef>
+      <tkd-sort-th [(current)]="sortDirection"> Ziel </tkd-sort-th>
+    </hlm-th>
+    <hlm-td
+      *brnCellDef="let row"
+      class="flex flex-row items-center gap-2 overflow-hidden text-ellipsis">
+      @switch (row.target.case) {
+        @case ('userId') {
+          <app-avatar [user]="row.target.value" showName="true" />
+        }
+        @case ('custom') {
+          <span class="text-ellipsis">
+            {{
+              row.target.value.displayName || row.target.value.transferTarget
+            }}
+          </span>
+          @if (
+            row.target.value.displayName &&
+            row.target.value.displayName !== row.target.value.transferTarget
+          ) {
+            <span class="text-ellipsis text-secondary-foreground/50">
+              ({{ row.target.value.transferTarget }})
+            </span>
+          }
+        }
+      }
+    </hlm-td>
+  </brn-column-def>
+
+  <brn-column-def [name]="columns.Actions" class="w-0 flex-[0_0_4rem]">
+    <hlm-th *brnHeaderDef> </hlm-th>
+    <hlm-td *brnCellDef="let row">
+      @if (!row.isOver || isAdmin()) {
+        <button
+          hlmBtn
+          size="icon"
+          variant="ghost"
+          [brnAlertDialogTriggerFor]="alertDialog"
+          (click)="entryToDelete.set(row.id)">
+          <hlm-icon name="lucideTrash" size="sm" />
+        </button>
+      }
+    </hlm-td>
+  </brn-column-def>
+</brn-table>
+
+<hlm-alert-dialog #alertDialog>
+  <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+    <hlm-alert-dialog-header>
+      <h3 hlmAlertDialogTitle>Umleitung löschen?</h3>
+      <p hlmAlertDialogDescription>
+        Möchtest du die Umleitung wirklich löschen?
+      </p>
+
+      <hlm-alert-dialog-footer>
+        <button hlmBtn variant="secondary" (click)="ctx.close()">Nein</button>
+        <button
+          hlmBtn
+          variant="destructive"
+          (click)="deleteOverwrite(); ctx.close()">
+          Ja, Löschen
+        </button>
+      </hlm-alert-dialog-footer>
+    </hlm-alert-dialog-header>
+  </hlm-alert-dialog-content>
+</hlm-alert-dialog>

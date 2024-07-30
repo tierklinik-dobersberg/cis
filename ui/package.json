@@ -46,7 +46,7 @@
     "@swimlane/ngx-charts": "^20.1.0",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tierklinik-dobersberg/angular": "^0.1.9",
-    "@tierklinik-dobersberg/apis": "^0.0.24",
+    "@tierklinik-dobersberg/apis": "^0.0.30",
     "@webcomponents/custom-elements": "^1.5.1",
     "chart.js": "^3.9.1",
     "chartjs-adapter-moment": "^1.0.0",

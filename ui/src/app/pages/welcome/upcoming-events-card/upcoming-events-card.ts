@@ -1,172 +1,265 @@
-import { ChangeDetectionStrategy, Component, TrackByFunction, effect, input, signal } from '@angular/core';
-import { injectCurrentProfile, injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
-import { Calendar, CalendarEvent, CalendarEventList } from '@tierklinik-dobersberg/apis';
-import { BehaviorSubject, combineLatest, from, interval, of } from 'rxjs';
-import { catchError, filter, map, mergeMap, startWith } from 'rxjs/operators';
-import { injectCalendarService } from 'src/app/api/connect_clients';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  input,
+  model,
+  signal,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Timestamp } from '@bufbuild/protobuf';
+import { ConnectError } from '@connectrpc/connect';
+import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
+import { injectUserProfiles, sortProtoTimestamps } from '@tierklinik-dobersberg/angular/behaviors';
+import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
+import { HlmCardModule } from '@tierklinik-dobersberg/angular/card';
+import { HlmCheckboxModule } from '@tierklinik-dobersberg/angular/checkbox';
+import {
+  injectCalendarService,
+  injectRosterService,
+} from '@tierklinik-dobersberg/angular/connect';
+import {
+  HlmIconModule,
+  provideIcons,
+} from '@tierklinik-dobersberg/angular/icon';
+import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
+import { DisplayNamePipe, DurationPipe } from '@tierklinik-dobersberg/angular/pipes';
+import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
+import {
+  Calendar,
+  CalendarEvent,
+  GetWorkingStaffResponse,
+  ListEventsResponse,
+  PlannedShift,
+} from '@tierklinik-dobersberg/apis';
+import { TimeRange } from '@tierklinik-dobersberg/apis/gen/es/tkd/common/v1/time_range_pb';
+import { endOfDay, startOfDay } from 'date-fns';
+import { toast } from 'ngx-sonner';
+import {
+  TkdDatePickerComponent,
+  TkdDatePickerInputDirective,
+} from 'src/app/components/date-picker';
+import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
+import { AppEventListComponent } from 'src/app/components/event-list';
 import { getCalendarId } from 'src/app/services';
-import { formatDate } from 'src/utils/duration';
-import { getSeconds } from '../../calendar2/day-view/sort.pipe';
+import { findCalendarHoles, mergePlannedShifts } from 'src/app/utils/calendar';
+import { injectLocalPlannedShifts } from 'src/app/utils/shifts';
+import { SharedModule } from '../../../shared/shared.module';
 
-interface DisplayEvent {
-  event: CalendarEvent;
-  past: boolean;
-  duration?: number;
-}
-
-interface LocalCalendar {
-  calendar: Calendar;
-  displayed: boolean;
+class EventModel extends CalendarEvent {
+  constructor(
+    event: CalendarEvent,
+    public readonly isBreak = false,
+    public readonly classes = ''
+  ) {
+    super(event);
+  }
 }
 
 @Component({
   selector: 'app-upcoming-events-card',
   templateUrl: './upcoming-events-card.html',
-  styleUrls: ['./upcoming-events-card.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    HlmCardModule,
+    HlmButtonDirective,
+    TkdDatePickerComponent,
+    TkdDatePickerInputDirective,
+    TkdDatePickerTriggerComponent,
+    HlmIconModule,
+    AppEventListComponent,
+    BrnSelectModule,
+    HlmSelectModule,
+    FormsModule,
+    HlmCheckboxModule,
+    HlmLabelDirective,
+    SharedModule,
+    BrnSelectModule,
+    HlmSelectModule, 
+  ],
+  standalone: true,
+  host: {
+    class: 'flex flex-grow overflow-hidden',
+  },
+  providers: [...provideIcons({})],
 })
 export class UpcomingEventsCardComponent {
-  private readonly calendarapi = injectCalendarService()
-  private readonly profile= injectCurrentProfile()
+  protected readonly calendarService = injectCalendarService();
+  protected readonly rosterService = injectRosterService();
 
-
-  /** A list of upcoming calendar events */
-  protected readonly events = signal<DisplayEvent[]>([]);
-
-  /** The current display mode */
-  protected readonly mode = signal<'currentUser' | 'selected'>('currentUser')
-
-  /** Whether or not only future events will be shown */
-  protected readonly showAll = signal(false);
-
-  /** A lookup map for all calendars */
-  protected readonly allCalendars = signal<Map<string, LocalCalendar>>(new Map);
-
-  /** The currently hightlighted user, if any */
-  public readonly highlightUser = input('');
-
+  protected readonly events = signal<CalendarEvent[]>([]);
+  protected readonly calendars = signal<Calendar[]>([]);
+  protected readonly loading = signal(true);
+  protected readonly calendarDate = signal(new Date());
+  protected readonly shifts = signal<PlannedShift[]>([]);
   protected readonly profiles = injectUserProfiles();
 
-  /** Triggers a reload of all calendar events */
-  private reload = new BehaviorSubject<void>(undefined);
+  protected readonly eventsToShow = model<'all' | 'upcoming' | 'breaks'>('upcoming');
 
-  /** Track-By function */
-  trackEvent: TrackByFunction<DisplayEvent> = (_: number, event: DisplayEvent) => event.event.id;
+  public readonly displayedCalendars = input<string[]>([]);
 
-  selectOnly(id: string) {
-    this.mode.set('selected');
+  protected readonly plannedShifts = injectLocalPlannedShifts(this.shifts);
 
-    const all = Array.from(this.allCalendars().values());
-    // if all all calendars are hidden an we handle a double
-    // click than display all again
-    if (!all.filter(cal => cal.calendar.id !== id).some(cal => cal.displayed)) {
-      all.forEach(cal => cal.displayed = true);
-      return;
+  protected readonly _computedBreaks = computed(() => {
+    const shifts = this.plannedShifts();
+    const profiles = this.profiles();
+    const events = this.events();
+
+
+    // Get a list of unique user ids that are working today.
+    const workingUsers = new Set<string>();
+    shifts
+      .filter(shift => !shift.definition.tags.includes("oncall")) // FIXME(ppacher): make this configurable
+      .forEach(shift => shift.assignedUserIds.forEach(userId => workingUsers.add(userId)))
+
+    const breaks: EventModel[] = [];
+
+    for(let userId of workingUsers.values()) {
+      const profile = profiles.find(p => p.user.id === userId);
+      const calendarId = getCalendarId(profile);
+
+      if (!calendarId) {
+        continue
+      }
+
+      const userShifts = shifts.filter(shift => shift.assignedUserIds.includes(userId) && !shift.definition.tags.includes("oncall")); // FIXME
+      const merged = mergePlannedShifts(userShifts);
+      const userEvents = events.filter(e => e.calendarId === calendarId)
+
+      merged.forEach(range => {
+        const userBreaks = findCalendarHoles(range.from.toDate(), range.to.toDate(), userEvents);
+        let i = 0;
+
+        userBreaks.forEach(b => {
+          breaks.push(new EventModel(
+            new CalendarEvent({
+              startTime: Timestamp.fromDate(b.from),
+              endTime: Timestamp.fromDate(b.to),
+              calendarId: calendarId,
+              summary: 'Freier Slot für ' + ( (new DisplayNamePipe()).transform(profile)) + ' (' + new DurationPipe().transform(b.duration, 'default-hours') + ')',
+              id: `break-${userId}-${i++}`,
+            }),
+            true,
+            'bg-blue-50 opacity-75'
+          ))
+        })
+      })
     }
 
-    all.forEach(val => {
-      val.displayed = val.calendar.id === id;
-    });
-  }
-  
-  constructor() {
-    const ref = effect(() => {
-      const profile = this.profile();
-      if (!profile) {
-        return
-      }
-      
-      if (getCalendarId(profile) === null) {
-        this.mode.set('selected');
-      }
-      
-      ref.destroy();
-    }, { allowSignalWrites: true })
-  }
+    return breaks;
+  })
 
-  ngOnInit() {
-    const events = combineLatest([
-      interval(10000).pipe(startWith(-1)),
-      this.reload,
-    ])
-      .pipe(
-        mergeMap(() => from(this.calendarapi.listEvents({
-          searchTime: {
-            case: 'date',
-            value: formatDate(new Date(), '/'),
-          },
-          source: {
-            case: 'allCalendars',
-            value: true
+  protected readonly _computedEvents = computed(() => {
+    const events = this.events();
+    const breaks = this._computedBreaks();
+    const display = this.displayedCalendars();
+    const eventsToShow = this.eventsToShow();
+
+    const all = [...breaks, ...events];
+
+    return all
+      .filter(e => {
+        if (eventsToShow === 'breaks') {
+          if (!(e instanceof EventModel) || !e.isBreak) {
+            return false;
           }
-        }))),
-        map(response => response.results),
-        catchError(err => of(null as CalendarEventList[])),
-        filter(events => events !== null),
-      )
-      .subscribe(eventList => {
-        const now = new Date().getTime();
-        const threshold = new Date().getTime() - 20 * 60 * 1000;
+        }
 
-        let allCalendars = new Map<string, LocalCalendar>();
+        if (!display || display.length === 0) {
+          return true
+        }
 
-        const events = [];
-
-        const calendarIdOfActiveUser = getCalendarId(this.profile())
-
-        eventList.forEach(calendarEvents => {
-          let isDisplayed = this.allCalendars().get(calendarEvents.calendar.id)?.displayed;
-
-          if (isDisplayed === undefined) {
-            if (this.mode() === 'currentUser') {
-              isDisplayed = calendarEvents.calendar.id === calendarIdOfActiveUser;
-            } else {
-              isDisplayed = true
-            }
-          }
-
-          allCalendars.set(
-            calendarEvents.calendar.id,
-            {
-              calendar: calendarEvents.calendar!,
-              displayed: isDisplayed,
-            }
-          )
-
-          calendarEvents.events
-            .filter(evt => !evt.fullDay)
-            .filter(evt => evt.startTime.toDate().getTime() >= threshold || this.showAll())
-            .map(event => ({
-              event: event,
-              past: event.startTime.toDate().getTime() < now,
-              duration: !!event.endTime ?  getSeconds(event.endTime) - getSeconds(event.startTime) : null
-            }))
-            .forEach(event => events.push(event));
-        })
-
-        events
-          .sort((a, b) => {
-            const diff = Number(a.event.startTime.seconds - b.event.startTime.seconds);
-            if (diff !== 0) {
-              return diff;
-            }
-
-            if (a.event.id > b.event.id) {
-              return 1;
-            }
-
-            return -1;
-          })
-
-        this.events.set(events)
-        
-
-        this.allCalendars.set(allCalendars);
+        return display.includes(e.calendarId);
       });
+  });
+
+  constructor() {
+    effect(
+      () => {
+        // trigger on each calendar date change
+        this.calendarDate();
+
+        this.loading.set(true);
+        this.load();
+      },
+      { allowSignalWrites: true }
+    );
+
+    const interval = setInterval(() => this.load(), 10000)
+    inject(DestroyRef)
+      .onDestroy(() => clearInterval(interval))
   }
 
-  toggle() {
-    this.showAll.set(!this.showAll());
-    this.reload.next();
+  protected load() {
+    const date = this.calendarDate();
+
+    const range = new TimeRange({
+      from: Timestamp.fromDate(startOfDay(date)),
+      to: Timestamp.fromDate(endOfDay(date)),
+    });
+
+    this.rosterService
+      .getWorkingStaff2({
+        query: {
+          case: 'timeRange',
+          value: range,
+        },
+      })
+      .catch(err => {
+        toast.error('Dienst konnte nicht geladen werden', {
+          description: ConnectError.from(err).message,
+        });
+
+        return new GetWorkingStaffResponse();
+      })
+      .then(response => this.shifts.set(response.currentShifts));
+
+    this.calendarService
+      .listEvents({
+        searchTime: {
+          case: 'timeRange',
+          value: range,
+        },
+        source: {
+          case: 'allCalendars',
+          value: true,
+        },
+      })
+      .catch(err => {
+        toast.error('Termine konnten nicht geladen werden', {
+          description: ConnectError.from(err).message,
+        });
+
+        return new ListEventsResponse();
+      })
+      .then(response => {
+        const events: CalendarEvent[] = [];
+        const calendars: Calendar[] = [];
+
+        response.results.forEach(list => {
+          calendars.push(list.calendar);
+          list.events.forEach(e => events.push(e));
+        });
+
+        events.sort((a, b) => {
+          let result = sortProtoTimestamps(a.startTime, b.startTime);
+          if (result === 0) {
+            result = sortProtoTimestamps(a.endTime, b.endTime);
+          }
+
+          if (result === 0) {
+            return a.summary.localeCompare(b.summary);
+          }
+
+          return result;
+        });
+
+        this.events.set(events);
+        this.calendars.set(calendars);
+        this.loading.set(false);
+      });
   }
 }

@@ -11,7 +11,8 @@ const canActivate: Type<{
 const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: '/welcome' },
   { canActivate, path: 'welcome', loadChildren: () => import('./pages/welcome/welcome.module').then(m => m.WelcomeModule) },
-  { canActivate, path: 'on-call', loadChildren: () => import('./pages/on-call-overwrite/on-call-overwrite.module').then(m => m.OnCallOverwriteModule) },
+  { canActivate, path: 'on-call', loadChildren: () => import('./pages/on-call-overwrite/on-call-overwrite-routing.module').then(m => m.routes) },
+  { path: 'test', loadComponent: () => import("./pages/on-call-overwrite/overwrite-overview").then(m => m.OverwriteOverviewComponent )},
   { canActivate, path: 'calllogs', loadComponent: () => import('./pages/calllogs/calllog').then(m => m.CallLogComponent) },
   { canActivate, path: 'customer', loadChildren: () => import('./pages/customer/customer.module').then(m => m.CustomerModule) },
   { canActivate, path: 'admin', loadChildren: () => import('./pages/admin/admin.module').then(m => m.AdminModule) },

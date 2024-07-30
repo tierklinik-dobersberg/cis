@@ -1,18 +1,12 @@
 <header class="flex flex-row items-center gap-2">
   <!-- Date controls -->
   <div class="flex flex-row flex-nowrap gap-1">
-    <button hlmBtn variant="secondary" size="sm" (click)="switchDate(-1)">
-      <hlm-icon name="lucideArrowLeft" size="sm" />
-    </button>
-
     <tkd-date-picker
       [ngModel]="currentDate()"
       (ngModelChange)="setDate($event)"
-      withTime="false" />
-
-    <button hlmBtn variant="secondary" size="sm" (click)="switchDate(1)">
-      <hlm-icon name="lucideArrowRight" size="sm" />
-    </button>
+      withTime="false">
+      <tkd-picker-trigger *tdkDatePickerTrigger />
+    </tkd-date-picker>
 
     @if (layout.md()) {
       <button hlmBtn variant="outline" size="sm" (click)="loadToday()">

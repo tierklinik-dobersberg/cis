@@ -1,29 +1,87 @@
-<nz-card>
-  <nz-card-meta nzTitle="Heute im Dienst"></nz-card-meta>
-  <div class="grid grid-cols-2 gap-4 pt-4">
-    @for (shift of shifts; track shift) {
-      <div class="flex flex-col gap-2 rounded-md border border-border p-2">
-        <label hlmLabel>{{ shift.definition?.name }}</label>
-        <ng-container
-          *ngTemplateOutlet="
-            userGroupTemplate;
-            context: { $implicit: shift.assignedUserIds }
-          "></ng-container>
+<div hlmCardHeader>
+  <div class="w-full flex-row items-center justify-between">
+    <h3 hlmCardTitle>
+      @switch (_computedDateKind()) {
+        @case ('yesterday') {
+          Gestern im Dienst
+        }
+        @case ('today') {
+          Heute im Dienst
+        }
+        @case ('tomorrow') {
+          Morgen im Dienst
+        }
+        @default {
+          Im Dienst an {{ calendarDate() | date: 'shortDate' }}
+        }
+      }
+    </h3>
+
+    <div class="flex flex-row items-center overflow-visible p-1">
+      <tkd-date-picker [(ngModel)]="calendarDate" mode="single">
+        <tkd-picker-trigger *tdkDatePickerTrigger variant="icon" size="small" />
+      </tkd-date-picker>
+    </div>
+  </div>
+</div>
+
+<div hlmCardContent class="grid grid-cols-2 gap-4">
+  @if (!rosterLoading()) {
+    @for (shift of _computedShifts(); track shift) {
+      <div
+        class="flex flex-col gap-2 rounded-md border border-border px-2 pb-2 pt-1">
+        <label hlmLabel class="text-sm text-sky-700">
+          {{ shift.definition.name }}
+        </label>
+
+        <ol class="flex flex-row gap-1">
+          @for (user of shift.assignedUserIds; track user) {
+            @if (user | toUser: profiles(); as profile) {
+              <app-avatar
+                (mouseenter)="userHover.emit(profile)"
+                (mouseleave)="userHover.emit(null)"
+                (click)="openUserEvents(user)"
+                class="cursor-pointer"
+                [user]="profile"
+                showName="false"
+                role="listitem" />
+            }
+          }
+        </ol>
       </div>
     }
-  </div>
-</nz-card>
-
-<ng-template #userGroupTemplate let-data>
-  <div class="flex flex-row items-center gap-1">
-    @for (user of data; track user) {
-      <app-avatar
-        [nz-tooltip]="user | toUser: profiles() | displayName"
-        [user]="user"
-        showName="false"
-        (mouseenter)="userHover.next(user)"
-        (mouseleave)="userHover.next('')"
-        (click)="userClicked(user)" />
-    }
-  </div>
-</ng-template>
+  } @else {
+    <div class="flex flex-col gap-2 rounded-md border border-border p-2">
+      <hlm-skeleton class="h-4 w-36" />
+      <ol class="flex flex-row gap-1">
+        <hlm-skeleton class="h-8 w-8 rounded-full" />
+        <hlm-skeleton class="h-8 w-8 rounded-full" />
+        <hlm-skeleton class="h-8 w-8 rounded-full" />
+      </ol>
+    </div>
+    <div class="flex flex-col gap-2 rounded-md border border-border p-2">
+      <hlm-skeleton class="h-4 w-40" />
+      <ol class="flex flex-row gap-1">
+        <hlm-skeleton class="h-8 w-8 rounded-full" />
+        <hlm-skeleton class="h-8 w-8 rounded-full" />
+        <hlm-skeleton class="h-8 w-8 rounded-full" />
+      </ol>
+    </div>
+    <div class="flex flex-col gap-2 rounded-md border border-border p-2">
+      <hlm-skeleton class="h-4 w-36" />
+      <ol class="flex flex-row gap-1">
+        <hlm-skeleton class="h-8 w-8 rounded-full" />
+        <hlm-skeleton class="h-8 w-8 rounded-full" />
+        <hlm-skeleton class="h-8 w-8 rounded-full" />
+      </ol>
+    </div>
+    <div class="flex flex-col gap-2 rounded-md border border-border p-2">
+      <hlm-skeleton class="h-4 w-40" />
+      <ol class="flex flex-row gap-1">
+        <hlm-skeleton class="h-8 w-8 rounded-full" />
+        <hlm-skeleton class="h-8 w-8 rounded-full" />
+        <hlm-skeleton class="h-8 w-8 rounded-full" />
+      </ol>
+    </div>
+  }
+</div>

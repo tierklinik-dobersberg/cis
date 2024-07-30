@@ -1,64 +1,116 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction, inject } from '@angular/core';
-import { Code, ConnectError } from '@connectrpc/connect';
+import { DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ConnectError } from '@connectrpc/connect';
+import { lucidePhone, lucidePhoneCall } from '@ng-icons/lucide';
+import { BrnSeparatorComponent } from '@spartan-ng/ui-separator-brain';
+import { HlmAlertModule } from '@tierklinik-dobersberg/angular/alert';
 import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
-import { GetOnCallResponse, OnCall } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
-import { Subscription, interval } from 'rxjs';
-import { mergeMap, retry, startWith } from 'rxjs/operators';
+import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
+import { HlmCardModule } from '@tierklinik-dobersberg/angular/card';
+import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
+import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
+import { DisplayNamePipe, ToDatePipe, ToUserPipe } from '@tierklinik-dobersberg/angular/pipes';
+import { HlmSeparatorDirective } from '@tierklinik-dobersberg/angular/separator';
+import { GetOnCallResponse, InboundNumber, ListInboundNumberResponse } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { toast } from 'ngx-sonner';
 import { CALL_SERVICE } from 'src/app/api/connect_clients';
+import { AppAvatarComponent } from 'src/app/components/avatar';
+import { EmergencyTargetService } from 'src/app/layout/redirect-emergency-button/emergency-target.service';
+
+class OnCallResponse extends GetOnCallResponse {
+  constructor(res: GetOnCallResponse, public readonly number?: InboundNumber) {
+    super(res)
+  }
+}
 
 @Component({
   selector: 'app-emergency-card',
   templateUrl: './emergency-card.html',
-  styleUrls: ['./emergency-card.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    HlmIconModule,
+    HlmCardModule,
+    AppAvatarComponent,
+    BrnSeparatorComponent,
+    HlmSeparatorDirective,
+    ToUserPipe,
+    DisplayNamePipe,
+    HlmAlertModule,
+    HlmButtonDirective,
+    HlmLabelDirective,
+    NzToolTipModule,
+    ToDatePipe,
+    DatePipe,
+  ],
+  providers: [
+    ...provideIcons({
+      lucidePhoneCall,
+      lucidePhone
+    })
+  ]
 })
-export class EmergencyCardComponent implements OnInit, OnDestroy {
+export class EmergencyCardComponent {
   private readonly callService = inject(CALL_SERVICE);
-  private readonly changeDetector  = inject(ChangeDetectorRef);
+  private readonly emergencyService = inject(EmergencyTargetService);
+
   protected readonly profiles = injectUserProfiles();
-  private subscriptions = Subscription.EMPTY;
 
-  onDuty: GetOnCallResponse | null = null;
+  protected readonly inboundNumbers = signal<InboundNumber[]>([]);
+  protected readonly onCall = signal<OnCallResponse[]>([]);
+  protected readonly tick = signal<number>(new Date().getTime());
+  protected readonly firstLoad = signal(false);
 
-  firstLoad = true;
+  constructor() {
+    this.callService
+      .listInboundNumber({})
+      .catch(err => {
+        toast.error('Failed to load inbound numbers', {
+          description: ConnectError.from(err).message
+        })
 
-  trackBy: TrackByFunction<OnCall> = (_: number, item: OnCall) => item.transferTarget;
+        return new ListInboundNumberResponse()
+      })
+      .then(response => this.inboundNumbers.set(response.inboundNumbers))
 
+      // Trigger a reload if the emergecy service reloaded
+      effect(() => {
+        this.emergencyService.target();
+        this.tick.set((new Date()).getTime())
+      }, {allowSignalWrites: true })
+
+      effect(() => {
+        this.tick();
+        const numbers = this.inboundNumbers();
+
+        Promise.all(
+          numbers
+            .map(n => this.callService
+                .getOnCall({inboundNumber: n.number})
+                .catch(err => {
+                  toast.error('Failed to get on call for inbound number: ' + n.number, {
+                    description: ConnectError.from(err).message
+                  })
+
+                  return new GetOnCallResponse()
+                })
+                .then(response => new OnCallResponse(response, n))
+            )
+        ).then(responses => {
+          this.onCall.set(responses);
+          this.firstLoad.set(true);
+        });
+      })
+
+      effect(() => {
+        const oncall = this.onCall();
+        console.log("got on call", oncall);
+      })
+  }
 
   get canSetOverwrite(): boolean {
     return true;
-  }
-
-  ngOnInit(): void {
-    this.subscriptions =
-      interval(20000)
-      .pipe(
-        startWith(0),
-        mergeMap(() =>
-          this.callService.getOnCall({})
-            .catch(err => {
-              if (ConnectError.from(err).code === Code.NotFound) {
-                return new GetOnCallResponse()
-              }
-
-              throw err
-            })
-        ),
-        retry({delay: 5000}),
-      )
-      .subscribe({
-        next: result => {
-          this.firstLoad = false;
-          this.onDuty = result;
-          console.log("onCall", result)
-
-          this.changeDetector.markForCheck();
-        },
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
   }
 }
 

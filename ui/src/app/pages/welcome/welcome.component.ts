@@ -1,6 +1,7 @@
-import { Component, effect, isDevMode, OnDestroy, OnInit } from '@angular/core';
+import { Component, effect, isDevMode, OnDestroy, OnInit, signal } from '@angular/core';
 import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { DisplayNamePipe } from '@tierklinik-dobersberg/angular/pipes';
+import { Profile } from '@tierklinik-dobersberg/apis';
 import { Subscription } from 'rxjs';
 import { retry } from 'rxjs/operators';
 import { VoiceMailAPI } from 'src/app/api';
@@ -16,6 +17,8 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   mailboxes: string[] = [];
   
   protected readonly currentUser = injectCurrentProfile();
+
+  protected readonly hoveredUser = signal<Profile | null>(null);
 
   get hasDoorAccess(): boolean {
     return true;

@@ -13,7 +13,7 @@ import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
 import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { injectCalendarService } from "@tierklinik-dobersberg/angular/connect";
-import { HlmDialogDescriptionDirective, HlmDialogFooterComponent, HlmDialogHeaderComponent, HlmDialogTitleDirective } from '@tierklinik-dobersberg/angular/dialog';
+import { HlmDialogDescriptionDirective, HlmDialogFooterComponent, HlmDialogHeaderComponent, HlmDialogService, HlmDialogTitleDirective } from '@tierklinik-dobersberg/angular/dialog';
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
 import { DurationPipe, ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
@@ -30,7 +30,16 @@ import { config, MyEditor } from "src/app/ckeditor";
 import { AppAvatarComponent } from "src/app/components/avatar";
 import { TkdDatePickerComponent } from "src/app/components/date-picker";
 import { getCalendarId } from "src/app/services";
-import { getSeconds } from "../day-view/sort.pipe";
+import { getSeconds } from "../../pages/calendar2/day-view/sort.pipe";
+
+export interface EventDetailsDialogContext {
+        event?: CalendarEvent,
+        calendar: Calendar,
+        startTime?: Date,
+}
+
+    const contentClass =
+      'w-screen overflow-auto max-w-[unset] sm:w-[750px] md:w-[750px] h-[100dvh] sm:h-[unset] ';
 
 @Component({
     standalone: true,
@@ -64,7 +73,7 @@ import { getSeconds } from "../day-view/sort.pipe";
     providers: [
         ...provideIcons({lucideCalendar, lucideClock})
     ],
-    templateUrl: './event-dialog.component.html',
+    templateUrl: './event-details-dialog.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
     styles: [
         `
@@ -74,15 +83,11 @@ import { getSeconds } from "../day-view/sort.pipe";
         `
     ]
 })
-export class AppEventDialogComponent implements OnInit {
+export class AppEventDetailsDialogComponent implements OnInit {
     private readonly profiles = injectUserProfiles();
     private readonly _calendarService = injectCalendarService();
     private readonly _dialogRef = inject<BrnDialogRef<unknown>>(BrnDialogRef);
-    private readonly _dialogContext = injectBrnDialogContext<{
-        event?: CalendarEvent,
-        calendar: Calendar,
-        startTime?: Date,
-    }>();
+    private readonly _dialogContext = injectBrnDialogContext<EventDetailsDialogContext>();
 
     protected readonly editor = MyEditor;
     protected readonly config = (() => {
@@ -111,20 +116,34 @@ export class AppEventDialogComponent implements OnInit {
     protected startTime = model<Date>();
     protected duration = model<string>();
 
+    static open(service: HlmDialogService, ctx: EventDetailsDialogContext): BrnDialogRef<AppEventDetailsDialogComponent> {
+        return service.open(AppEventDetailsDialogComponent, {
+            context: ctx,
+            contentClass,
+        })
+    }
+
     ngOnInit() {
-        if (this.event) {
+        if (this.event && !this.event.id.startsWith("break-")) {
             this.calendarId.set(this.event.calendarId);
             this.summary.set(this.event.summary);
             this.description.set(this.event.description)
             this.startTime.set(this.event.startTime.toDate());
             this.duration.set(Duration.seconds(getSeconds(this.event.endTime) - getSeconds(this.event.startTime)).toString());
         } else {
-            this.startTime.set(this._dialogContext.startTime)
-            this.edit.set(true);
-            this.event = new CalendarEvent({});
-            this.isNew.set(true);
             this.duration.set("15m")
-            this.calendarId.set(this.calendar.id)
+            this.edit.set(true);
+            this.isNew.set(true);
+
+            if (!this.event) {
+                this.startTime.set(this._dialogContext.startTime)
+                this.event = new CalendarEvent({});
+                this.calendarId.set(this.calendar.id)
+
+            } else {
+                this.calendarId.set(this.event.calendarId);
+                this.startTime.set(this.event.startTime.toDate());
+            }
         }
 
         let errorMessageShown = false;
