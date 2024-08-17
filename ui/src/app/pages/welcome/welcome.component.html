@@ -1,31 +1,21 @@
-<div class="grid overflow-x-hidden">
-  @if (layout.isPhone) {
+<div
+  class="large-grid flex h-full flex-col items-stretch gap-2 overflow-x-hidden py-8 sm:grid sm:gap-3 md:gap-6 lg:gap-8">
+  @if (!layout.sm()) {
     @defer {
-      <app-mobile-welcome-card></app-mobile-welcome-card>
-    }
-  }
-  @if (hasDoctorOnDutyAccess) {
-    @defer {
-      <app-emergency-card class="dash-card"></app-emergency-card>
-    }
-  }
-  @if (hasRosterAccess) {
-    @defer {
-      <app-roster-card (userHover)="hoveredUser.set($event)"> </app-roster-card>
+      <app-mobile-welcome-card class="grid-start-1"></app-mobile-welcome-card>
     }
   }
 
   @defer {
-    @for (name of mailboxes; track name) {
-      <app-voicemail-card
-        class="dash-card"
-        [mailboxName]="name"></app-voicemail-card>
-    }
+    <app-emergency-card></app-emergency-card>
+  }
+
+  @defer {
+    <app-roster-card (userHover)="hoveredUser.set($event)"> </app-roster-card>
   }
 
   @defer {
     <app-upcoming-events-card
-      #upcomingEvents
       [displayedCalendars]="
         hoveredUser() ? [hoveredUser() | calendarId] : null
       " />

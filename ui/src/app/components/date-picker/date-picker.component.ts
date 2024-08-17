@@ -65,7 +65,7 @@ import {
   setMinutes,
   setMonth,
   setYear,
-  startOfDay
+  startOfDay,
 } from 'date-fns';
 import { combineLatest, debounceTime, startWith } from 'rxjs';
 import { AppDateTableModule, CalendarRange } from '../date-table';
@@ -138,14 +138,22 @@ export class TkdDatePickerComponent
   /** Whether or not the user should be able to set the time as well */
   public readonly withTime = input(false, { transform: booleanAttribute });
 
-  /** The current value */
-  public readonly value = model<[Date | null, Date | null] | null>([
-    null,
-    null,
-  ]);
+  /** The currently selected start date */
+  public readonly startDate = model<Date | null>(null);
+
+  /** The currently selected end date */
+  public readonly endDate = model<Date | null>(null);
+
+  protected readonly startHour = model(0);
+  protected readonly startMinute = model(0);
+  protected readonly endHour = model(0);
+  protected readonly endMinute = model(0);
 
   /** Whether or not the input can be null */
   public readonly allowClear = input(false, { transform: booleanAttribute });
+
+  /** Whether or not an open range is allowed. That is, only a start date is set in range mode. */
+  public readonly allowOpenRange = input(true, { transform: booleanAttribute });
 
   /** Whether or not the input is disabled */
   public readonly disabled = model(false);
@@ -195,25 +203,27 @@ export class TkdDatePickerComponent
 
   protected readonly _computedRanges = computed(() => {
     const userRanges = [...this.ranges()];
-    const value = this.value();
+
+    const start = this.startDate();
+    const end = this.endDate();
 
     let range: Partial<CalendarRange> = {
       id: '__selected',
     };
 
     if (this.isRangeSelect()) {
-      range.from = value[0];
-      range.to = value[1] || value[0];
+      range.from = start;
+      range.to = end || start;
     } else {
-      range.from = value[0];
-      range.to = value[0];
+      range.from = start;
+      range.to = start;
     }
 
     if (range.from && range.to) {
       userRanges.splice(0, 0, range as CalendarRange);
     }
 
-    if (this.isRangeSelect() && range.from && !value[1]) {
+    if (this.isRangeSelect() && range.from && !end) {
       if (this.hoveredDate() && isAfter(this.hoveredDate(), range.from)) {
         userRanges.splice(1, 0, {
           id: '__hovered',
@@ -226,58 +236,24 @@ export class TkdDatePickerComponent
     return userRanges;
   });
 
-  protected readonly _computedStartDate = computed(() => {
-    const value = this.value();
-    return value[0];
-  });
-
   protected readonly _computedEndDate = computed(() => {
-    const value = this.value();
-    return value[1];
-  });
+    const start = this.startDate();
+    const end = this.endDate();
+    const allowOpenRange = this.allowOpenRange();
 
-  /** The currently selected hour */
-  protected readonly _computedCurrentStartHour = computed(() => {
-    const value = this._computedStartDate();
-    if (value) {
-      const date = coerceDate(value);
-      return getHours(date);
+    if (!this.isRangeSelect()) {
+      return null;
     }
 
-    return 0;
-  });
-
-  /** THe currently selected minute */
-  protected readonly _computedCurrentStartMinute = computed(() => {
-    const value = this._computedStartDate();
-    if (value) {
-      const date = coerceDate(value);
-      return getMinutes(date);
+    if (end) {
+      return end;
     }
 
-    return 0;
-  });
-
-  /** The currently selected hour */
-  protected readonly _computedCurrentEndHour = computed(() => {
-    const value = this._computedEndDate();
-    if (value) {
-      const date = coerceDate(value);
-      return getHours(date);
+    if (!allowOpenRange) {
+      return start
     }
 
-    return 0;
-  });
-
-  /** THe currently selected minute */
-  protected readonly _computedCurrentEndMinute = computed(() => {
-    const value = this._computedEndDate();
-    if (value) {
-      const date = coerceDate(value);
-      return getMinutes(date);
-    }
-
-    return 0;
+    return null
   });
 
   @ViewChildren('hourBtn', { read: ElementRef })
@@ -296,34 +272,34 @@ export class TkdDatePickerComponent
         //this.scrollTimeIntoView();
       });
   }
-  
+
   constructor() {
-    effect(() => {
-      this.value(); 
+    effect(
+      () => {
+        // We immediately apply the value in "inline" mode
+        // every time one of the following signal changes
+        this.startDate();
+        this.endDate();
 
-      if (this.variant() === 'inline') {
-        untracked(() => this.apply())
-      }
-    }, { allowSignalWrites: true })
-    
-    
-    effect(() => {
-      const withTime = this.withTime();
+        if (this.variant() === 'inline') {
+          untracked(() => this.apply());
+        }
+      },
+      { allowSignalWrites: true }
+    );
+  }
 
-      if (!withTime) {
-        untracked(() => {
-          const value = this.value();
-          this.value.set([
-            value[0] ? startOfDay(value[0]) : null,
-            value[1] ? endOfDay(value[1]) :null,
-          ]);
-        })
-      }
-    }, { allowSignalWrites: true })
+  protected clear() {
+    if (!this.allowClear()) {
+      return;
+    }
+
+    this.startDate.set(null);
+    this.endDate.set(null);
   }
 
   private scrollTimeIntoView() {
-    const value = this._computedStartDate();
+    const value = this.startDate();
     if (!value) {
       return;
     }
@@ -348,7 +324,7 @@ export class TkdDatePickerComponent
         );
       } else {
         if (!obj[0]) {
-          value = [null, null]
+          value = [null, null];
         } else {
           value = [coerceDate(obj[0]), obj[1] ? coerceDate(obj[1]) : null];
         }
@@ -365,8 +341,19 @@ export class TkdDatePickerComponent
       }
     }
 
-    this.value.set(value);
-    this.calendarDate.set(coerceDate(value[0] || new Date()));
+    if (value[0]) {
+      this.applyDate(value[0], 'start');
+    } else {
+      this.startDate.set(null);
+    }
+
+    if (value[1]) {
+      this.applyDate(value[1], 'end');
+    } else {
+      this.endDate.set(null);
+    }
+
+    this.calendarDate.set(value[0] || new Date());
 
     // this.scrollTimeIntoView();
   }
@@ -384,59 +371,54 @@ export class TkdDatePickerComponent
   }
 
   protected updateDate(val: Date | string) {
-
     if (typeof val === 'string') {
       val = new Date(val);
     }
 
+    const start = this.startDate();
+    const end = this.endDate();
+
     let what: 'start' | 'end' = 'start';
-    if (this.mode() === 'range' && this._computedStartDate()) {
-      if (!this._computedEndDate()) {
+    if (this.mode() === 'range' && start) {
+      if (!end) {
         what = 'end';
       }
 
-      if (what === 'end' && isBefore(val, this._computedStartDate())) {
+      if (what === 'end' && isBefore(val, start)) {
         what = 'start';
       }
     }
-    
 
-    let current = this.value();
-
-    let date =
-      !this.isRangeSelect() || what === 'start' ? current[0] : current[1];
+    let date = what === 'start' ? start : end;
     if (!date) {
+      const withTime = this.withTime();
+
       date = new Date();
+
+      if (what === 'start') {
+        if (withTime) {
+          date = setHours(date, this.startHour())
+          date = setMinutes(date, this.startMinute())
+        } else {
+          date = startOfDay(date);
+        }
+      } else {
+        if (withTime) {
+          date = setHours(date, this.endHour())
+          date = setMinutes(date, this.endMinute());
+        } else {
+          date = endOfDay(date);
+        }
+      }
     }
 
     date = setDate(date, getDate(val));
     date = setMonth(date, getMonth(val));
-    date = setYear(date, getYear(date));
-    
-    if (!this.withTime()) {
-      switch (what) {
-        case 'start':
-          date = startOfDay(date)
-          break;
-          
-        case 'end':
-          date = endOfDay(date);
-          break
-      }
-    }
+    date = setYear(date, getYear(val));
 
-    if (this.isRangeSelect()) {
-      switch (what) {
-        case 'start':
-          this.value.set([date, null]);
-          break;
-
-        case 'end':
-          this.value.set([current[0], date]);
-          break;
-      }
-    } else {
-      this.value.set([date, null]);
+    this.applyDate(date, what);
+    if (what === 'start') {
+      this.endDate.set(null);
     }
   }
 
@@ -453,33 +435,46 @@ export class TkdDatePickerComponent
   }
 
   protected today() {
-    this.value.set([new Date(), null]);
+    const now = new Date();
+    this.applyDate(startOfDay(now), 'start');
+    this.applyDate(endOfDay(now), 'end');
   }
 
-  protected setHour(h: number, what: 'start' | 'end' = 'start') {
-    const current = this.value();
-    if (this.isRangeSelect()) {
-      if (what === 'start') {
-        this.value.set([setHours(current[0], h), current[1]]);
-      } else {
-        this.value.set([current[0], setHours(current[1], h)]);
-      }
+  private applyDate(date: Date, what: 'start' | 'end') {
+    const hours = getHours(date);
+    const minutes = getMinutes(date);
+
+    if (what === 'start') {
+      this.startDate.set(date);
+      this.startHour.set(hours);
+      this.startMinute.set(minutes);
     } else {
-      this.value.set([setHours(current[0], h), null]);
+      this.endDate.set(date);
+      this.endHour.set(hours);
+      this.endMinute.set(minutes);
     }
   }
 
-  protected setMinute(m: number, what: 'start' | 'end' = 'start') {
-    const current = this.value();
-    if (this.isRangeSelect()) {
-      if (what === 'start') {
-        this.value.set([setMinutes(current[0], m), current[1]]);
-      } else {
-        this.value.set([current[0], setMinutes(current[1], m)]);
-      }
-    } else {
-      this.value.set([setMinutes(current[0], m), null]);
+  protected setHour(h: number, what: 'start' | 'end') {
+    let date = what === 'start' ? this.startDate() : this.endDate();
+
+    if (!date) {
+      date = new Date();
     }
+
+    date = setHours(date, h);
+    this.applyDate(date, what);
+  }
+
+  protected setMinute(m: number, what: 'start' | 'end') {
+    let date = what === 'start' ? this.startDate() : this.endDate();
+
+    if (!date) {
+      date = new Date();
+    }
+
+    date = setMinutes(date, m);
+    this.applyDate(date, what);
   }
 
   private isRangeSelect(): boolean {
@@ -487,22 +482,28 @@ export class TkdDatePickerComponent
   }
 
   public apply() {
-    const value = [...this.value()];
+    const start = this.startDate();
+    let end = this.endDate();
 
-    if (this.isRangeSelect()) {
-      if (!value[1]) {
-        value[1] = endOfDay(value[0])
-      }
-      
-      this._onChange(value);
-    } else {
-      this._onChange(value[0]);
+    if (!this.allowClear() && !start) {
+      return;
     }
 
     this._onTouched();
-
     if (this.variant() !== 'inline') {
-      this.calendarDate.set(coerceDate(this._computedStartDate()));
+      this.calendarDate.set(start);
     }
+
+    if (this.isRangeSelect()) {
+      if (!end && !this.allowOpenRange()) {
+        end = endOfDay(start);
+      }
+
+      this._onChange([start, end]);
+
+      return;
+    }
+
+    this._onChange(start);
   }
 }

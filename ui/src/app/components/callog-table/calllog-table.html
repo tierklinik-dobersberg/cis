@@ -1,128 +1,246 @@
-<nz-table #basicTable [nzData]="logs()" class="p-0">
-  <thead>
-    <tr>
-      <th></th>
-      <th>Zeit</th>
-      <th>Kunde / Anrufer</th>
-      @if (layout.sm()) {
-        <th>Dauer</th>
-        <th>Agent</th>
-        <th>Type</th>
-      }
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    @for (data of basicTable.data; track data.entry.id) {
-      <tr
-        [class.error]="!!data.entry.error"
-        [class.outbound]="data.outbound"
-        [class.self-call]="data.isSelf"
-        [class.inbound]="!data.outbound"
-        [class.lost]="data.isLostOrUnanswared">
-        <td class="direction">
-          @if (!data.outbound && !data.isLostOrUnanswared) {
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              viewBox="0 0 20 20"
-              fill="currentColor">
-              <path
-                d="M14.414 7l3.293-3.293a1 1 0 00-1.414-1.414L13 5.586V4a1 1 0 10-2 0v4.003a.996.996 0 00.617.921A.997.997 0 0012 9h4a1 1 0 100-2h-1.586z" />
-              <path
-                d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-            </svg>
-          }
-          @if (!data.outbound && data.isLostOrUnanswared) {
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              viewBox="0 0 20 20"
-              fill="currentColor">
-              <path
-                d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-              <path
-                d="M16.707 3.293a1 1 0 010 1.414L15.414 6l1.293 1.293a1 1 0 01-1.414 1.414L14 7.414l-1.293 1.293a1 1 0 11-1.414-1.414L12.586 6l-1.293-1.293a1 1 0 011.414-1.414L14 4.586l1.293-1.293a1 1 0 011.414 0z" />
-            </svg>
-          }
-          @if (data.outbound) {
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              viewBox="0 0 20 20"
-              fill="currentColor">
-              <path
-                d="M17.924 2.617a.997.997 0 00-.215-.322l-.004-.004A.997.997 0 0017 2h-4a1 1 0 100 2h1.586l-3.293 3.293a1 1 0 001.414 1.414L16 5.414V7a1 1 0 102 0V3a.997.997 0 00-.076-.383z" />
-              <path
-                d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-            </svg>
-          }
-        </td>
-        <td class="date-time">
-          @if (!data.isToday || !layout.sm()) {
-            <span> {{ data.localDate }}, </span>
-          }
-          <span>
-            {{ data.localTime }}
-          </span>
-        </td>
-        <td>
-          @if (!!data.customer) {
-            <a
-              class="customer-link"
-              [routerLink]="[
-                '/customer/view',
-                data.customer.source,
-                data.customer.cid,
-              ]"
-              nz-tooltip
-              [nzTooltipTitle]="data.entry.caller">
-              {{ data.customer.name }}&nbsp;{{ data.customer.firstname }}
-            </a>
-          } @else {
-            <a href="tel:{{ data.entry.caller }}">{{ data.entry.caller }}</a>
-          }
-          <ng-template #caller>
-            <a href="tel:{{ data.entry.caller }}">{{ data.entry.caller }}</a>
-          </ng-template>
-        </td>
-        @if (layout.sm()) {
-          <td>{{ data.entry.duration | duration }}</td>
-          <td>
-            @if (!!data.entry.agentUserId || data.entry.acceptedAgent) {
-              <span nz-tooltip [nzTooltipTitle]="data.entry.transferTarget">
-                {{ data.entry.agentUserId | toUser: profiles() | displayName }}
-                <span class="italic text-gray-500"
-                  >({{ data.entry.acceptedAgent }})</span
-                >
-              </span>
-            }
-            @if (data.entry.transferTarget) {
-              <span class="transfer-target">
-                (via
-                {{ data.entry.transferTarget }}
-                )
-              </span>
-            }
-          </td>
-          <td>{{ data.entry.callType || 'Lost' }}</td>
-        }
-        <td>
-          <a
-            class="text-gray-800flex pointer flex-row items-center space-x-3 p-2 text-base text-sky-800 text-opacity-50 outline-none hover:bg-sky-600 hover:bg-opacity-25 hover:text-sky-800 hover:text-opacity-100 md:p-4"
-            href="tel:{{ data.entry.caller }}">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              class="h-6 w-6">
-              <path
-                d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-            </svg>
-          </a>
-        </td>
-      </tr>
+<brn-table
+  hlm
+  [dataSource]="loading() ? [] : paginator.data()"
+  customTemplateDataRows="true"
+  [trackBy]="trackRecord"
+  [displayedColumns]="_computedDisplayedColumns()">
+  <!-- Loading skeleton rows -->
+  <ng-container brnNoDataRow>
+    @if (loading()) {
+      <hlm-trow class="flex flex-row">
+        <hlm-td class="w-0 flex-[0_0_4rem] sm:flex-[0_0_9rem]">
+          <hlm-skeleton class="h-8 w-8 rounded-full sm:w-32" />
+        </hlm-td>
+
+        <hlm-td class="w-0 flex-[0_0_8rem] sm:flex-[0_0_12rem]">
+          <hlm-skeleton class="h-5 w-16" />
+        </hlm-td>
+
+        <hlm-td class="w-0 flex-[1_1_9rem]">
+          <hlm-skeleton class="h-5 w-20 sm:w-64" />
+        </hlm-td>
+
+        <hlm-td class="w-0 flex-[0_0_4rem] p-0"> </hlm-td>
+      </hlm-trow>
+
+      <hlm-trow class="flex flex-row">
+        <hlm-td class="w-0 flex-[0_0_4rem] sm:flex-[0_0_9rem]">
+          <hlm-skeleton class="h-8 w-8 rounded-full sm:w-32" />
+        </hlm-td>
+
+        <hlm-td class="w-0 flex-[0_0_8rem] sm:flex-[0_0_12rem]">
+          <hlm-skeleton class="h-5 w-20" />
+        </hlm-td>
+
+        <hlm-td class="w-0 flex-[1_1_9rem]">
+          <hlm-skeleton class="h-5 w-24 sm:w-32" />
+        </hlm-td>
+
+        <hlm-td class="w-0 flex-[0_0_4rem] p-0"> </hlm-td>
+      </hlm-trow>
+
+      <hlm-trow class="flex flex-row">
+        <hlm-td class="w-0 flex-[0_0_4rem] sm:flex-[0_0_9rem]">
+          <hlm-skeleton class="h-8 w-8 rounded-full sm:w-32" />
+        </hlm-td>
+
+        <hlm-td class="w-0 flex-[0_0_8rem] sm:flex-[0_0_12rem]">
+          <hlm-skeleton class="h-5 w-16" />
+        </hlm-td>
+
+        <hlm-td class="w-0 flex-[1_1_9rem]">
+          <hlm-skeleton class="h-5 w-20 sm:w-64" />
+        </hlm-td>
+
+        <hlm-td class="w-0 flex-[0_0_4rem] p-0"> </hlm-td>
+      </hlm-trow>
+    } @else {
+      <tkd-empty-table [totalCount]="0" [filteredCount]="0" />
     }
-  </tbody>
-</nz-table>
+  </ng-container>
+
+  <cdk-row
+    (click)="openDetails(row)"
+    *cdkRowDef="let row; columns: _computedDisplayedColumns()"
+    class="flex w-fit min-w-[100%] cursor-pointer border-b border-border transition-[background-color] hover:bg-muted/50 [&:has([role=checkbox][aria-checked=true])]:bg-muted" />
+
+  <brn-column-def
+    [name]="cols.Icon"
+    class="w-0 flex-[0_0_4rem] sm:flex-[0_0_9rem]">
+    <hlm-th *brnHeaderDef>Typ</hlm-th>
+    <hlm-td *brnCellDef="let row">
+      <div
+        hlmBadge
+        class="flex w-fit flex-row items-center justify-center py-2 sm:w-32 sm:justify-start"
+        [variant]="
+          row.isLostOrUnanswared
+            ? 'destructive'
+            : row.outbound
+              ? 'outline'
+              : 'default'
+        ">
+        <hlm-icon [name]="row.iconName" size="sm" class="sm:mr-2" />
+        <span
+          class="hidden flex-grow items-center justify-center sm:inline-flex">
+          @if (row.outbound) {
+            Ausgehend
+          } @else {
+            Eingehend
+          }
+        </span>
+      </div>
+    </hlm-td>
+  </brn-column-def>
+
+  <brn-column-def
+    [name]="cols.Time"
+    class="w-0 flex-[0_0_8rem] sm:flex-[0_0_12rem]">
+    <hlm-th *brnHeaderDef> Zeit </hlm-th>
+    <hlm-td *brnCellDef="let row">
+      <div class="flex flex-col gap-1">
+        <span>{{ row.entry.receivedAt | toDate | date: 'short' }} </span>
+        <span>{{ row.entry.duration | duration }}</span>
+      </div>
+    </hlm-td>
+  </brn-column-def>
+
+  <brn-column-def [name]="cols.Participants" class="w-0 flex-[1_1_9rem]">
+    <hlm-th *brnHeaderDef>
+      <span class="hidden sm:inline">Anrufer und Ziel</span>
+      <span class="sm:hidden">Kunde</span>
+    </hlm-th>
+    <hlm-td *brnCellDef="let row">
+      <div class="sm:hidden">
+        <ng-container
+          *ngTemplateOutlet="
+            customerTemplate;
+            context: {
+              $implicit: row,
+            }
+          " />
+      </div>
+
+      <div class="hidden w-full max-w-[350px] grid-cols-[1fr_3rem_1fr] sm:grid">
+        @if (!row.outbound) {
+          <ng-container
+            *ngTemplateOutlet="
+              customerTemplate;
+              context: {
+                $implicit: row,
+              }
+            " />
+        } @else {
+          <ng-container
+            *ngTemplateOutlet="
+              agentTemplate;
+              context: {
+                $implicit: row,
+              }
+            " />
+        }
+
+        <hlm-icon name="lucideArrowRight" size="sm" />
+
+        @if (row.outbound) {
+          <ng-container
+            *ngTemplateOutlet="
+              customerTemplate;
+              context: {
+                $implicit: row,
+              }
+            " />
+        } @else {
+          <ng-container
+            *ngTemplateOutlet="
+              agentTemplate;
+              context: {
+                $implicit: row,
+              }
+            " />
+        }
+      </div>
+    </hlm-td>
+  </brn-column-def>
+
+  <brn-column-def [name]="cols.Actions" class="w-0 flex-[0_0_4rem] p-0">
+    <hlm-th *brnHeaderDef></hlm-th>
+    <hlm-td *brnCellDef="let row">
+      <a
+        hlmBtn
+        variant="ghost"
+        size="icon"
+        class="h-full w-full"
+        (click)="$event.stopPropagation()"
+        [attr.href]="'tel:' + row.entry.caller">
+        <hlm-icon name="lucidePhoneCall" />
+      </a>
+    </hlm-td>
+  </brn-column-def>
+</brn-table>
+
+<ng-template #customerTemplate let-data [callLog]>
+  @if (!!data.customer) {
+    @if (data.customer.source === '__identities') {
+      <span class="overflow-hidden text-ellipsis whitespace-normal">
+        <span>{{ data.customer.id | toUser: profiles() | displayName }}</span>
+        <br />
+        <span class="italic text-gray-500"> ({{ data.entry.caller }}) </span>
+      </span>
+    } @else {
+      <span class="overflow-hidden text-ellipsis whitespace-normal">
+        <span>
+          {{ data.customer.lastName }}&nbsp;{{ data.customer.firstName }}
+        </span>
+        <br />
+        <span class="italic text-gray-500"> ({{ data.entry.caller }}) </span>
+      </span>
+    }
+  } @else {
+    <span>{{ data.entry.caller }}</span>
+  }
+</ng-template>
+
+<ng-template #agentTemplate let-data [callLog]>
+  @if (!!data.entry.agentUserId || data.entry.acceptedAgent) {
+    @if (data.entry.agentUserId | toUser: profiles(); as profile) {
+      <span class="overflow-hidden text-ellipsis whitespace-normal">
+        <span>
+          {{ profile | displayName }}
+        </span>
+        <br />
+        <span class="italic text-gray-500">
+          ({{ data.entry.acceptedAgent }})
+        </span>
+      </span>
+    } @else {
+      <span class="overflow-hidden text-ellipsis whitespace-normal">
+        <span>
+          {{
+            (data.entry.acceptedAgent | knownPhoneExtension: config()) ||
+              'Unbekannt'
+          }}
+        </span>
+        <br />
+        <span class="italic text-gray-500">
+          ({{ data.entry.acceptedAgent }})
+        </span>
+      </span>
+    }
+  } @else {
+    N/A
+  }
+
+  @if (data.entry.transferTarget) {
+    <span class="transfer-target">
+      (via
+      {{ data.entry.transferTarget }}
+      )
+    </span>
+  }
+</ng-template>
+
+<div class="flex justify-end">
+  <tkd-pagination
+    class="mt-4 block w-full p-4 sm:w-fit"
+    [paginator]="paginator" />
+</div>

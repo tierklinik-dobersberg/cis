@@ -14,6 +14,7 @@ import { HlmSeparatorModule } from "@tierklinik-dobersberg/angular/separator";
 import { HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
 import { OffTimeEntry } from "@tierklinik-dobersberg/apis";
 import { AppAvatarComponent } from "src/app/components/avatar";
+import { TkdDatePickerComponent } from "src/app/components/date-picker";
 import { SelectUserValueComponent } from "src/app/components/select-user-value";
 
 export type StateFilter = 'all' | 'new' | 'approved' | 'rejected';
@@ -108,6 +109,7 @@ export function filterOffTimeEntries(entries: OffTimeEntry[], filter: OffTimeFil
         BrnSeparatorModule,
         HlmSeparatorModule,
         SelectUserValueComponent,
+        TkdDatePickerComponent,
     ],
     templateUrl: './offtime-filter.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -121,17 +123,17 @@ export class AppOffTimeFilterSheetComponent implements Filter {
     
     protected readonly userIds = model<string[]>([]);
     protected readonly state = model<StateFilter>('all');
-    protected readonly from = model<string|null>(null)
-    protected readonly to = model<string|null>(null);
+
+    protected readonly dateRange = model<[Date | null, Date | null]>([null, null])
+
     protected readonly sheetSide = injectComputedFilterSheetSide();
     protected readonly _computedFilterButtonVariant = computed(() => {
         const userIds = this.userIds();
         const state = this.state();
-        const from = this.from();
-        const to = this.to();
+        const range = this.dateRange();
         const current = this.currentUser();
 
-        if (from || to || state !== 'all') {
+        if (range[0] || range[1] || state !== 'all') {
             return 'secondary'
         }
         
@@ -170,8 +172,7 @@ export class AppOffTimeFilterSheetComponent implements Filter {
     protected apply() {
         const userIds = this.userIds();
         const state = this.state();
-        const from = this.from();
-        const to = this.to();
+        const [from, to] = this.dateRange();
 
         const filter: OffTimeFilter = {
             state: state,
@@ -195,8 +196,7 @@ export class AppOffTimeFilterSheetComponent implements Filter {
     
     public reset() {
         this.userIds.set([this.currentUser().user.id])
-        this.from.set(null)
-        this.to.set(null);
+        this.dateRange.set([null, null])
         this.state.set('all')
         
         this.apply();

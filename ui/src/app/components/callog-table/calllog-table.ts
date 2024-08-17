@@ -1,39 +1,77 @@
+import { CdkTableModule } from '@angular/cdk/table';
+import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import {
+  booleanAttribute,
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
+  Directive,
   inject,
-  input,
-  signal,
+  input
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { ConnectError } from '@connectrpc/connect';
+import { PartialMessage } from '@bufbuild/protobuf';
+import { lucideArrowLeft, lucideArrowRight, lucidePhoneCall, lucidePhoneForwarded, lucidePhoneIncoming, lucidePhoneMissed, lucidePhoneOff, lucidePhoneOutgoing } from '@ng-icons/lucide';
+import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
+import { BrnTableModule } from '@spartan-ng/ui-table-brain';
+import { HlmBadgeDirective } from '@tierklinik-dobersberg/angular/badge';
 import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
+import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
+import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
+import { TkdEmptyTableComponent } from '@tierklinik-dobersberg/angular/empty-table';
+import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import {
   DisplayNamePipe,
   DurationPipe,
+  ToDatePipe,
   ToUserPipe,
 } from '@tierklinik-dobersberg/angular/pipes';
+import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
+import { HlmSkeletonComponent } from '@tierklinik-dobersberg/angular/skeleton';
+import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
+import { Profile } from '@tierklinik-dobersberg/apis';
+import { Customer } from '@tierklinik-dobersberg/apis/gen/es/tkd/customer/v1/customer_pb';
 import { CallEntry } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
-import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
-import { toast } from 'ngx-sonner';
-import { forkJoin, of } from 'rxjs';
-import { Customer, CustomerAPI, CustomerRef } from 'src/app/api/customer.api';
+import { injectCurrentConfig } from 'src/app/api';
+import { KnownPhoneExtensionPipe } from 'src/app/pipes/known-phone-extension.pipe';
+import { getUserEmergencyExtension, getUserPhoneExtension } from 'src/app/services';
+import { usePaginationManager } from 'src/app/utils/pagination-manager';
+import { TkdPaginationComponent } from '../pagination';
 
 interface LocalCallLog {
   entry: CallEntry;
 
-  localDate: string;
-  localTime: string;
-  customer?: Customer;
-  isToday: boolean;
+  customer?: LocalCustomer;
+
   outbound: boolean;
   isLostOrUnanswared: boolean;
   isSelf: boolean;
+
+  iconName: string;
 }
+
+type LocalCustomer = PartialMessage<Customer> & {source?: string}
+
+@Directive({
+  selector: '[brnCellDef], [callLog]',
+  standalone: true,
+}
+)
+export class TemplateGuardDirective {
+  static ngTemplateContextGuard(d: TemplateGuardDirective, ctx: unknown): ctx is {$implicit: LocalCallLog} {
+    return true
+  }
+}
+
+export enum Columns {
+  Icon = "icon",
+  Time = "time",
+  Participants = "participants",
+  Actions = "actions"
+};
 
 @Component({
   selector: 'app-calllog-table',
@@ -42,31 +80,105 @@ interface LocalCallLog {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    NzTableModule,
     RouterLink,
     NzToolTipModule,
     ToUserPipe,
     DisplayNamePipe,
     DurationPipe,
+    HlmIconModule,
+    HlmBadgeDirective,
+    BrnTableModule,
+    HlmTableModule,
+    NgTemplateOutlet,
+    TemplateGuardDirective,
+    DatePipe,
+    ToDatePipe,
+    HlmButtonDirective,
+    CdkTableModule,
+    HlmSkeletonComponent,
+    TkdEmptyTableComponent,
+    BrnSelectModule,
+    HlmSelectModule,
+    HlmButtonDirective,
+    FormsModule,
+    TkdPaginationComponent,
+    KnownPhoneExtensionPipe,
   ],
+  providers: [
+    ...provideIcons({
+      lucidePhoneForwarded,
+      lucidePhoneIncoming,
+      lucidePhoneMissed,
+      lucidePhoneOutgoing,
+      lucidePhoneOff,
+      lucideArrowRight,
+      lucidePhoneCall,
+      lucideArrowLeft
+    })
+  ]
 })
 export class CallLogTableComponent {
+  private readonly dialogService = inject(HlmDialogService)
+
+  /** All records */
   public readonly records = input.required<CallEntry[]>();
 
-  protected readonly customers = signal<Customer[]>([]);
+  /** All customers for the list of call records */
+  public readonly customers = input.required<Customer[]>();
+
+  /** Whether or not the parent component is loading data */
+  public readonly loading = input(false, {transform: booleanAttribute})
+  
+  /** Whether successfully internal forwarded calls from the 3CX should be shown or hidden */
+  public readonly hide3CXForwardedCalls = input(true);
+
+  /** All user profiles, used to map by registered phone number */
+  protected readonly profiles = injectUserProfiles();
+
+  /** The current configuration */
+  protected readonly config = injectCurrentConfig();
+
+  /** The currently displayed columns */
+  protected readonly _computedDisplayedColumns = computed(() => {
+    return [
+      Columns.Icon,
+      Columns.Time,
+      Columns.Participants,
+      Columns.Actions
+    ]
+  })
+
+  /** All available columns */
+  protected readonly cols = Columns;
+
   protected readonly logs = computed<LocalCallLog[]>(() => {
     const records = this.records();
     const customers = this.customers();
+    const profiles = this.profiles();
 
     const byId = new Map<string, Customer>();
     const byNumber = new Map<string, Customer>();
+    const userByNumber = new Map<string, Profile>();
 
-    customers.forEach(c => {
-      byId.set(`${c.source}/${c.cid}`, c);
-      c.distinctPhoneNumbers?.forEach(number => {
-        byNumber.set(normalizePhone(number), c);
-      });
-    });
+    customers.forEach(c => byId.set(c.id, c))
+
+    profiles.forEach(p => {
+      p.phoneNumbers
+        .forEach(nbr => {
+          userByNumber.set(normalizePhone(nbr.number), p)
+        })
+
+      const phoneExtension = getUserPhoneExtension(p)
+      const emergencyExtension = getUserEmergencyExtension(p)
+
+      if (phoneExtension) {
+        userByNumber.set(normalizePhone(phoneExtension), p)
+      }
+
+      if (emergencyExtension) {
+        userByNumber.set(normalizePhone(emergencyExtension), p)
+      }
+    })
 
     return records.map(l => {
       // TODO(ppacher): this is very specific to 3CX
@@ -74,108 +186,95 @@ export class CallLogTableComponent {
       const callType = l.callType?.toLocaleLowerCase() || '';
       const isOutbound = callType === 'notanswered' || callType === 'outbound';
 
-      let cust: Customer | null = null;
+      let cust: LocalCustomer | null = null;
 
-      if (l.customerSource && l.customerId) {
-        cust = byId.get(`${l.customerSource}/${l.customerId}`);
+      if (l.customerId) {
+        cust = byId.get(l.customerId);
       }
 
       if (!cust && l.caller !== 'anonymous') {
-        cust = byNumber.get(normalizePhone(l.caller));
+        const p = normalizePhone(l.caller)
+        let userCustomer = userByNumber.get(p);
+
+        if (userCustomer) {
+          cust = {
+            id: userCustomer.user.id,
+            source: '__identities',
+            firstName: userCustomer.user.firstName,
+            lastName: userCustomer.user.lastName,
+          }
+        } else {
+          cust = byNumber.get(p)
+        }
       }
 
       let isSelf = false;
       if (
         !!l.agentUserId &&
         !!cust &&
-        l.agentUserId === cust._id &&
+        l.agentUserId === cust.id &&
         cust.source === '__identities'
       ) {
         isSelf = true;
+      }
+
+      let iconName = 'lucidePhoneIncoming'
+
+      switch (callType) {
+        case 'notanswered':
+          iconName = 'lucidePhoneOff'
+          break;
+        
+        case 'outbound':
+          iconName = 'lucidePhoneOutgoing'
+          break;
+
+        case '':
+          iconName= 'lucidePhoneMissed'
       }
 
       const d = l.receivedAt.toDate();
       return {
         entry: l,
         outbound: isOutbound,
-        localDate: d.toLocaleDateString(),
-        localTime: d.toLocaleTimeString(),
-        isToday: d.toLocaleDateString() == new Date().toLocaleDateString(),
         customer: cust,
         isLostOrUnanswared: callType === 'notanswered' || callType === '',
         isSelf: isSelf,
+        iconName,
       };
     });
   });
 
-  protected readonly profiles = injectUserProfiles();
+  protected readonly _computedFilteredCalls = computed(() => {
+    const logs = this.logs();
+    const hideSelf = this.hide3CXForwardedCalls();
+
+    return logs.filter(l => {
+      if (hideSelf && l.isSelf && !l.isLostOrUnanswared) {
+        return false
+      }
+
+      return true;
+    })
+  })
+
+  public readonly paginator = usePaginationManager(this._computedFilteredCalls);
+
   protected readonly layout = inject(LayoutService);
-  private readonly customerapi = inject(CustomerAPI);
 
-  constructor() {
-    effect(() => {
-      const logs = this.records();
+  protected trackRecord(_: number, r: LocalCallLog) {
+    return r.entry.id;
+  }
 
-      const distinctNumbers = new Set<string>();
-      const set = new Map<string, CustomerRef>();
-      logs.forEach(log => {
-        if (log.customerId && log.customerSource) {
-          set.set(`${log.customerSource}/${log.customerId}`, {
-            cid: log.customerId,
-            source: log.customerSource,
-          });
-        } else if (log.caller !== 'anonymous') {
-          let number = normalizePhone(log.caller);
-
-          // Workaround for https://github.com/angular/angular/issues/11058
-          // here. thats pretty nasty angular ....
-          if (number.startsWith('+')) {
-            number = '00' + number.slice(1);
-          }
-
-          distinctNumbers.add(number);
+  protected openDetails(record: LocalCallLog) {
+    import("../../dialogs/call-details-dialog")
+      .then(m => m.CallDetailsDialogComponent.open(
+        this.dialogService,
+        {
+          record: record.entry,
+          customer: record.customer
         }
-      });
-
-      const query = {
-        cid: {
-          $in: [],
-        },
-      };
-
-      for (let ref of set.values()) {
-        query.cid.$in.push(ref.cid);
-      }
-
-      let numberStream = of([] as Customer[]);
-      if (distinctNumbers.size > 0) {
-        numberStream = this.customerapi.search({
-          phone: Array.from(distinctNumbers.values()),
-          includeUsers: 'yes',
-        });
-      }
-
-      forkJoin({
-        byId: this.customerapi.extendedSearch(query),
-        byNumber: numberStream,
-      }).subscribe({
-        next: response => {
-          const distinct = new Map<string, Customer>();
-          response.byId.forEach(c => distinct.set(`${c.source}/${c.cid}`, c));
-          response.byNumber.forEach(c =>
-            distinct.set(`${c.source}/${c.cid}`, c)
-          );
-
-          this.customers.set(Array.from(distinct.values()));
-        },
-        error: err => {
-          console.error(err);
-          toast.error('Kunden konnten nicht geladen werden', {
-            description: ConnectError.from(err).message,
-          });
-        },
-      });
-    });
+      ))
   }
 }
 

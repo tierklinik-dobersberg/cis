@@ -17,14 +17,14 @@ import { AppNavigationComponent } from './navigation.component';
   template:`
     <hlm-sheet side="left">
       <button hlmBtn variant="ghost" size="icon" brnSheetTrigger>
-        <hlm-icon name="lucideMenu" size="sm" />
+        <hlm-icon name="lucideMenu" />
       </button>
 
-      <hlm-sheet-content *brnSheetContent="let ctx" class="w-64 p-0">
+      <hlm-sheet-content *brnSheetContent="let ctx" class="w-96 p-0 flex flex-col">
         <hlm-sheet-header>
           <app-logo class="ml-1 h-14 px-4 py-4" />
         </hlm-sheet-header>
-        <app-navigation sheet="true" />
+        <app-navigation class="flex-grow" sheet="true" />
       </hlm-sheet-content>
     </hlm-sheet>
   `,

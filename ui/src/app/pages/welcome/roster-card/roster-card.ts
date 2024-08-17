@@ -12,7 +12,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Timestamp } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
-import { lucideArrowLeft, lucideArrowRight, lucideCalendarDays } from '@ng-icons/lucide';
+import { lucideArrowLeft, lucideArrowRight, lucideCalendarDays, lucideInfo } from '@ng-icons/lucide';
 import { BrnTooltipModule } from '@spartan-ng/ui-tooltip-brain';
 import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
@@ -45,6 +45,7 @@ import {
 import { AppAvatarComponent } from 'src/app/components/avatar';
 import { TkdDatePickerComponent, TkdDatePickerInputDirective } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
+import { getCalendarId } from 'src/app/services';
 import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shifts';
 
 @Component({
@@ -76,8 +77,11 @@ import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shift
   ],
   hostDirectives: [HlmCardDirective],
   providers: [
-    ...provideIcons({lucideArrowLeft, lucideArrowRight, lucideCalendarDays})
-  ]
+    ...provideIcons({lucideArrowLeft, lucideArrowRight, lucideCalendarDays, lucideInfo})
+  ],
+  host: {
+    'class': '@container flex flex-col'
+  }
 })
 export class RosterCardComponent {
   private readonly rosterService = injectRosterService();
@@ -100,7 +104,7 @@ export class RosterCardComponent {
     return current
       .filter(shift => shift.assignedUserIds?.length > 0)
       .sort((a, b) => {
-        return Number((b.definition?.order || BigInt(0)) - (a.definition?.order || BigInt(0)))
+        return Number((a.definition?.order || BigInt(0)) - (b.definition?.order || BigInt(0)))
       })
   });
 
@@ -126,11 +130,21 @@ export class RosterCardComponent {
   })
 
   protected openUserEvents(userId: string) {
+    const profile = this.profiles().find(p => p.user.id === userId);
+    if (!profile) {
+      return;
+    }
+
+    if (!getCalendarId(profile)) {
+      toast.error('Diesen Mitarbeiter ist kein Kalender zugewiesen')
+      return;
+    }
+
     import("../../../dialogs/event-list-dialog")
       .then(m => {
         m.EventListDialogComponent.open(this.dialogService, {
           userId: userId,
-          date: new Date()
+          date: this.calendarDate(),
         })
       })
   }

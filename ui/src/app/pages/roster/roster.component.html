@@ -1,205 +1,284 @@
 <div class="flex flex-row items-center space-x-4">
-  <div class="block p-2.5 w-12 h-12 bg-white rounded-full shadow text-sky-800">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+  <div class="block h-12 w-12 rounded-full bg-white p-2.5 text-sky-800 shadow">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   </div>
-  <div class="flex flex-col flex-grow">
-    <span class="text-base font-semibold  text-gray-800"> Dienstplan </span><span
-    class="text-gray-500 ng-star-inserted">
-    Deine Arbeitszeiten von {{ from | date:'shortDate'}} bis {{ to | date:'shortDate' }}
-  </span>
-</div>
-<div class="flex flex-col items-center">
-  <a hlmBtn variant="outline" [attr.href]="rosterServiceURL" target="_blank" >Alle anzeigen</a>
-</div>
+  <div class="flex flex-grow flex-col">
+    <span class="text-base font-semibold text-gray-800"> Dienstplan </span
+    ><span class="ng-star-inserted text-gray-500">
+      Deine Arbeitszeiten von {{ from | date: 'shortDate' }} bis
+      {{ to | date: 'shortDate' }}
+    </span>
+  </div>
+  <div class="flex flex-col items-center">
+    <a hlmBtn variant="outline" [attr.href]="rosterServiceURL" target="_blank"
+      >Dienstplan-App öffnen</a
+    >
+  </div>
 </div>
 
 @if (!layout.isTabletPortraitUp) {
-  <div class="flex flex-row sm:gap-2 gap-4 justify-evenly py-2 bg-white rounded border border-gray-400">
+  <div
+    class="flex flex-row justify-evenly gap-4 rounded border border-gray-400 bg-white py-2 sm:gap-2">
     <ng-container *ngTemplateOutlet="vacationStats"></ng-container>
   </div>
 }
 
-<div class="bg-white rounded shadow">
+<div class="rounded bg-white shadow">
   @if (layout.isTabletPortraitUp) {
-    <div class="flex flex-row justify-between items-center p-4 border-b sm:p-6 md:p-8 border-gray-400"
-      >
+    <div
+      class="flex flex-row items-center justify-between border-b border-gray-400 p-4 sm:p-6 md:p-8">
       <div>
-        <h1 class="text-lg text-lato text-sky-800">Arbeitszeiten</h1>
+        <h1 class="text-lato text-lg text-sky-800">Arbeitszeiten</h1>
         <span class="text-gray-500">
-          In diesem Zeitraum arbeitest du <span class="text-green-700">{{ workTime?.plannedTime |
-        duration:'default-hours'}}</span> (Soll-Zeit: {{ workTime?.expectedTime | duration:'default-hours' }}).
-      </span>
+          In diesem Zeitraum arbeitest du
+          <span class="text-green-700">{{
+            workTime?.plannedTime | duration: 'default-hours'
+          }}</span>
+          (Soll-Zeit: {{ workTime?.expectedTime | duration: 'default-hours' }}).
+        </span>
+      </div>
+      <ng-container *ngTemplateOutlet="vacationStats"></ng-container>
     </div>
-    <ng-container *ngTemplateOutlet="vacationStats"></ng-container>
-  </div>
-}
+  }
 
-<!-- Mobile View -->
-@if (!layout.isDesktopUp) {
-  <nz-table class="p-0" [nzData]="userShifts" #mobileTable [nzFrontPagination]="false"
-    [nzPageSize]="200">
-    <tbody>
-      @for (entry of mobileTable.data; track entry; let index = $index) {
-        @if (index === 0 || mobileTable.data[index-1].dateStr !== entry.dateStr) {
-            <tr class="bg-opacity-25" [ngClass]="{
+  <!-- Mobile View -->
+  @if (!layout.isDesktopUp) {
+    <nz-table
+      class="p-0"
+      [nzData]="userShifts"
+      #mobileTable
+      [nzFrontPagination]="false"
+      [nzPageSize]="200">
+      <tbody>
+        @for (entry of mobileTable.data; track entry; let index = $index) {
+          @if (
+            index === 0 || mobileTable.data[index - 1].dateStr !== entry.dateStr
+          ) {
+            <tr
+              class="bg-opacity-25"
+              [ngClass]="{
                 'bg-sky-600': entry.today,
-                'opacity-50': !!entry.offtime
+                'opacity-50': !!entry.offtime,
               }">
-            <td class="font-medium" colspan="3">
-                <ng-container *ngTemplateOutlet="nameColumn; context: {
-                  $implicit: entry,
-                  index: index,
-                  data: mobileTable.data,
-                  }">
-              </ng-container>
-            </td>
-          </tr>
-            <tr class="bg-opacity-25" [ngClass]="{
+              <td class="font-medium" colspan="3">
+                <ng-container
+                  *ngTemplateOutlet="
+                    nameColumn;
+                    context: {
+                      $implicit: entry,
+                      index: index,
+                      data: mobileTable.data,
+                    }
+                  ">
+                </ng-container>
+              </td>
+            </tr>
+            <tr
+              class="bg-opacity-25"
+              [ngClass]="{
                 'bg-sky-600': entry.today,
-                'opacity-50': !!entry.offtime
+                'opacity-50': !!entry.offtime,
               }">
+              <td>
+                <div class="flex flex-row items-center gap-2">
+                  <span
+                    class="block h-5 w-5 rounded"
+                    [style.backgroundColor]="
+                      entry.definition?.color || 'transparent'
+                    "></span>
+                  @if (entry.definition) {
+                    <span
+                      class="flex flex-grow flex-row items-center justify-between">
+                      {{ entry.definition.displayName }}
+                    </span>
+                  }
+                  @if (entry.offtime) {
+                    <span> Urlaub ({{ entry.offtime.description }}) </span>
+                  }
+                </div>
+              </td>
+              <td class="whitespace-nowrap">
+                {{ entry.from | date: 'shortTime' }}
+                <span class="text-gray-500">-</span>
+                {{ entry.to | date: 'shortTime' }}
+              </td>
+              <td>
+                <div
+                  class="flex flex-row items-center gap-1 text-xs text-gray-500"
+                  nz-tooltip="{{ entry.events?.length || 0 }} Termine">
+                  <span>{{ entry.events?.length || '0' }}</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="h-4 w-4">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                  </svg>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </nz-table>
+  }
+
+  <!-- Desktop View -->
+  @if (layout.isDesktopUp) {
+    <nz-table class="p-0" [nzData]="userShifts" #desktopTable>
+      <thead>
+        <tr>
+          <th class="text-left" width="30%">Datum</th>
+          <th class="text-left">Schicht</th>
+          <th class="text-left" width="30%">Von / Bis</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (entry of desktopTable.data; track entry; let index = $index) {
+          <tr
+            class="bg-opacity-25"
+            [ngClass]="{
+              'bg-sky-600': entry.today,
+              'opacity-50': !!entry.offtime,
+            }">
             <td>
-              <div class="flex flex-row gap-2 items-center">
-                <span class="rounded block h-5 w-5"
-                [style.backgroundColor]="entry.definition?.color || 'transparent'"></span>
+              @if (
+                index === 0 ||
+                desktopTable.data[index - 1].dateStr !== entry.dateStr
+              ) {
+                <ng-container
+                  *ngTemplateOutlet="
+                    nameColumn;
+                    context: {
+                      $implicit: entry,
+                      index: index,
+                      data: desktopTable.data,
+                    }
+                  ">
+                </ng-container>
+              }
+            </td>
+            <td>
+              <div class="flex flex-row items-center gap-2">
+                <span
+                  class="block h-5 w-5 rounded"
+                  [style.backgroundColor]="
+                    entry.definition?.color || 'transparent'
+                  "></span>
                 @if (entry.definition) {
-                  <span class="flex flex-row justify-between items-center flex-grow">
-                    {{ entry.definition.displayName }}
+                  <span
+                    class="flex flex-grow flex-row items-center justify-between">
+                    <span>
+                      {{ entry.definition.displayName }} ({{
+                        entry.definition.name
+                      }})
+                    </span>
+                    <div
+                      class="flex flex-row items-center gap-1 text-xs text-gray-500"
+                      nz-tooltip="{{ entry.events?.length || 0 }} Termine">
+                      <span>{{ entry.events?.length || '0' }}</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="h-4 w-4">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                      </svg>
+                    </div>
                   </span>
                 }
                 @if (entry.offtime) {
-                  <span>
-                    Urlaub ({{ entry.offtime.description }})
-                  </span>
+                  <span> Urlaub ({{ entry.offtime.description }}) </span>
                 }
               </div>
             </td>
-            <td class="whitespace-nowrap">
-              {{ entry.from | date:'shortTime' }} <span class="text-gray-500">-</span> {{ entry.to |
-              date:'shortTime' }}
-            </td>
             <td>
-              <div class="text-gray-500 flex flex-row gap-1 items-center text-xs"
-                nz-tooltip="{{ entry.events?.length || 0}} Termine">
-                <span>{{ entry.events?.length || '0' }}</span>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                  stroke="currentColor" class="w-4 h-4">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                </svg>
-              </div>
+              {{ entry.from | date: 'shortTime' }}
+              <span class="text-gray-500">-</span>
+              {{
+                entry.to | date: (entry.spansNextDay ? 'medium' : 'shortTime')
+              }}
             </td>
           </tr>
         }
-      }
-    </tbody>
-  </nz-table>
-}
-
-<!-- Desktop View -->
-@if (layout.isDesktopUp) {
-  <nz-table class="p-0" [nzData]="userShifts" #desktopTable>
-    <thead>
-      <tr>
-        <th class="text-left" width="30%">Datum</th>
-        <th class="text-left">Schicht</th>
-        <th class="text-left" width="30%">Von / Bis</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (entry of desktopTable.data; track entry; let index = $index) {
-<tr class="bg-opacity-25" [ngClass]="{
-            'bg-sky-600': entry.today,
-            'opacity-50': !!entry.offtime
-          }">
-          <td>
-            @if (index === 0 || desktopTable.data[index-1].dateStr !== entry.dateStr) {
-              <ng-container *ngTemplateOutlet="nameColumn; context: {
-                  $implicit: entry,
-                  index: index,
-                  data: desktopTable.data,
-                }">
-              </ng-container>
-            }
-          </td>
-          <td>
-            <div class="flex flex-row gap-2 items-center">
-              <span class="rounded block h-5 w-5"
-              [style.backgroundColor]="entry.definition?.color || 'transparent'"></span>
-              @if (entry.definition) {
-                <span class="flex flex-row justify-between items-center flex-grow">
-                  <span>
-                    {{ entry.definition.displayName }} ({{ entry.definition.name }})
-                  </span>
-                  <div class="text-gray-500 flex flex-row gap-1 items-center text-xs"
-                    nz-tooltip="{{ entry.events?.length || 0}} Termine">
-                    <span>{{ entry.events?.length || '0' }}</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                      stroke="currentColor" class="w-4 h-4">
-                      <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                    </svg>
-                  </div>
-                </span>
-              }
-              @if (entry.offtime) {
-                <span>
-                  Urlaub ({{ entry.offtime.description }})
-                </span>
-              }
-            </div>
-          </td>
-          <td>{{ entry.from | date:'shortTime' }} <span class="text-gray-500">-</span> {{ entry.to | date:
-        (entry.spansNextDay ? 'medium' : 'shortTime')}}</td>
-      </tr>
-    }
-  </tbody>
-</nz-table>
-}
+      </tbody>
+    </nz-table>
+  }
 </div>
 
-
 <ng-template #nameColumn let-entry let-index="index" let-data="data">
-  <div class="flex flex-row gap-2 justify-between items-center">
-    <div class="flex flex-row gap-2 items-center">
-      {{ entry.from | date:'fullDate' }}
+  <div class="flex flex-row items-center justify-between gap-2">
+    <div class="flex flex-row items-center gap-2">
+      {{ entry.from | date: 'fullDate' }}
       @if (entry.holiday) {
-        <span class="text-gray-500 italic">
+        <span class="italic text-gray-500">
           - {{ entry.holiday.localName }}
         </span>
       }
 
       @if (entry.today) {
         <div
-          class="block px-1 py-0.5 text-xs scale-[0.85] border border-sky-900  border-opacity-60 transform bg-sky-600 rounded-sm text-white bg-opacity-80 uppercase">
-        Heute</div>
+          class="block scale-[0.85] transform rounded-sm border border-sky-900 border-opacity-60 bg-sky-600 bg-opacity-80 px-1 py-0.5 text-xs uppercase text-white">
+          Heute
+        </div>
       }
     </div>
   </div>
 </ng-template>
 
 <ng-template #vacationStats>
-
   @if (vacation) {
     <div class="flex flex-row items-center gap-4 sm:gap-6 md:gap-8">
       <div
-        class="p-4 border items-center bg-gray-400 bg-opacity-50 border-gray-400 rounded-md flex flex-col justify-center">
-        <label class=" uppercase leading-3 text-xs text-sky-800">ZA Guthaben</label>
-      <h1 class=" text-lg m-0" [ngClass]="{
-          'text-green-700': vacation.timeOffCredits.seconds > 0,
-          'text-red-700': vacation.timeOffCredits.seconds < 0
-        }">{{ vacation.timeOffCredits | duration:'default-hours'}}</h1>
+        class="flex flex-col items-center justify-center rounded-md border border-gray-400 bg-gray-400 bg-opacity-50 p-4">
+        <label class="text-xs uppercase leading-3 text-sky-800"
+          >ZA Guthaben</label
+        >
+        <h1
+          class="m-0 text-lg"
+          [ngClass]="{
+            'text-green-700': vacation.timeOffCredits.seconds > 0,
+            'text-red-700': vacation.timeOffCredits.seconds < 0,
+          }">
+          {{ vacation.timeOffCredits | duration: 'default-hours' }}
+        </h1>
       </div>
       <div
-        class="p-4 border items-center bg-gray-400 bg-opacity-50 border-gray-400 rounded-md flex flex-col justify-center">
-        <label class=" uppercase leading-3 text-xs text-sky-800">Resturlaub</label>
-      <h1 class="text-lg m-0 " [ngClass]="{
-          'text-green-700': vacation.vacationCreditsLeft.seconds > 0,
-          'text-red-700': vacation.vacationCreditsLeft.seconds < 0
-        }">{{ vacation.vacationCreditsLeft | duration:'default-hours':undefined:true}}</h1>
+        class="flex flex-col items-center justify-center rounded-md border border-gray-400 bg-gray-400 bg-opacity-50 p-4">
+        <label class="text-xs uppercase leading-3 text-sky-800"
+          >Resturlaub</label
+        >
+        <h1
+          class="m-0 text-lg"
+          [ngClass]="{
+            'text-green-700': vacation.vacationCreditsLeft.seconds > 0,
+            'text-red-700': vacation.vacationCreditsLeft.seconds < 0,
+          }">
+          {{
+            vacation.vacationCreditsLeft
+              | duration: 'default-hours' : undefined : true
+          }}
+        </h1>
       </div>
     </div>
   }

@@ -1,16 +1,18 @@
-import { CdkMenu } from '@angular/cdk/menu';
 import { NgClass } from '@angular/common';
-import { booleanAttribute, ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, OnInit, signal, untracked, ViewChild, ViewEncapsulation } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { booleanAttribute, ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal, untracked, ViewEncapsulation } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { lucideCalendar, lucideCircuitBoard, lucideCopyright, lucideFileAudio, lucideFilm, lucideHome, lucideLayers, lucidePhoneCall, lucidePlus, lucideTimer, lucideUserCircle } from '@ng-icons/lucide';
 import { BrnMenuModule } from '@spartan-ng/ui-menu-brain';
+import { BrnSheetComponent } from '@spartan-ng/ui-sheet-brain';
 import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { HlmMenuModule } from '@tierklinik-dobersberg/angular/menu';
-import { HlmSheetHeaderComponent } from '@tierklinik-dobersberg/angular/sheet';
+import { filter } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { injectCurrentConfig, UIConfig, VoiceMailAPI } from '../../api';
 import { AppLogo } from './logo.component';
+import { MenuFixDirective } from './menu-fix.directive';
 
 interface MenuEntry {
   Icon: string;
@@ -35,12 +37,12 @@ interface SubMenu {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterModule,
-    HlmSheetHeaderComponent,
     AppLogo,
     NgClass,
     HlmIconModule,
     HlmMenuModule,
-    BrnMenuModule
+    BrnMenuModule,
+    MenuFixDirective
   ],
   providers: [
     ...provideIcons({
@@ -58,11 +60,13 @@ interface SubMenu {
     })
   ]
 })
-export class AppNavigationComponent implements OnInit {
+export class AppNavigationComponent { 
   protected readonly layout = inject(LayoutService);
   protected readonly voiceService = inject(VoiceMailAPI);
   protected readonly config = injectCurrentConfig()
   protected readonly destroyRef = inject(DestroyRef);
+  protected readonly sheetRef = inject(BrnSheetComponent, {optional: true})
+  protected readonly router = inject(Router);
   
   protected readonly rootLinks = signal<MenuEntry[]>([]);
   protected readonly subMenus = signal<SubMenu[]>([]);
@@ -75,24 +79,21 @@ export class AppNavigationComponent implements OnInit {
     window.location.replace(`${environment.accountService}/login?force=true&redirect=${redirectUrl}`)
   }
   
-  @ViewChild(CdkMenu, {static: true})
-  protected readonly menu: CdkMenu;
-
-  ngOnInit(): void {
-    // Fix for hlm-menu not expected to be rendered inline.
-    (this.menu as any)._parentTrigger = {
-      _spartanLastPosition: {
-        originX: "start"
-      }
-    }
-  }
-  
   constructor() {
     effect(() => {
       const config = this.config();
       
       untracked(() => this.applyConfig(config))
     }, { allowSignalWrites: true })
+
+    this.router.events
+      .pipe(
+        takeUntilDestroyed(),
+        filter(event => event instanceof NavigationEnd && !!this.sheetRef)
+      )
+      .subscribe(() => {
+        this.sheetRef.close(undefined, 100)
+      })
   }
 
   private applyConfig(cfg: UIConfig | null): void {

@@ -20,7 +20,7 @@ import { HlmSeparatorDirective } from "@tierklinik-dobersberg/angular/separator"
 import { HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
 import { CreateOverwriteRequest, CustomOverwrite, GetWorkingStaffResponse, InboundNumber, ListInboundNumberResponse, PlannedShift, Profile } from "@tierklinik-dobersberg/apis";
 import { TimeRange } from "@tierklinik-dobersberg/apis/gen/es/tkd/common/v1/time_range_pb";
-import { endOfDay, startOfDay } from "date-fns";
+import { endOfDay, isSameDay, startOfDay } from "date-fns";
 import { toast } from "ngx-sonner";
 import { injectCurrentConfig, QuickRosterOverwrite } from "src/app/api";
 import { AppAvatarComponent } from "src/app/components/avatar";
@@ -174,13 +174,22 @@ export class CreateOverwriteComponent {
             this.shifts.set([])
             this.quickSettings.set(config.QuickRosterOverwrite || []);
 
+            const now = new Date();
+            let from = startOfDay(date);
+
+            if (isSameDay(date, now)) {
+                // there's no need to redirect work-shifts from
+                // the past.
+                from = now;
+            }
+
             this.rosterService
                 .getWorkingStaff2({
                     rosterTypeName: config.UI.OnCallRosterType,
                     query: {
                         case: 'timeRange',
                         value: new TimeRange({
-                            from: Timestamp.fromDate(startOfDay(date)),
+                            from: Timestamp.fromDate(from),
                             to: Timestamp.fromDate(endOfDay(date))
                         })
                     },

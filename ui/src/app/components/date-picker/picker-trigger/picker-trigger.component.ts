@@ -78,13 +78,7 @@ export class TkdDatePickerTriggerComponent {
     })
 
     protected readonly calendarDate = computed(() => {
-        const value = this.picker.value();
-
-        if (!value) {
-            return null;
-        }
-
-        return value[0];
+        return this.picker.startDate();
     })
 
     protected addDays(days: number, event: MouseEvent) {
@@ -94,7 +88,7 @@ export class TkdDatePickerTriggerComponent {
             throw new Error('Unsupported tkd-date-picker mode')
         }
 
-        const value = this.picker.value();
+        const value = this.picker.startDate();
         if (!value) {
             return;
         }

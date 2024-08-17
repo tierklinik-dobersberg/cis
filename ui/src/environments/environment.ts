@@ -11,6 +11,7 @@ export const environment = {
   rosterService: '',
   commentService: '',
   callService: '',
+  customerService: '',
 };
 
 /*

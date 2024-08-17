@@ -1,12 +1,35 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  signal
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { BehaviorSubject, combineLatest, forkJoin, Observable, of, Subscription } from 'rxjs';
+import { provideIcons } from '@ng-icons/core';
+import { lucideFileAudio, lucidePlayCircle } from '@ng-icons/lucide';
+import { HlmCardModule } from '@tierklinik-dobersberg/angular/card';
+import { HlmCheckboxModule } from '@tierklinik-dobersberg/angular/checkbox';
+import { HlmIconModule } from '@tierklinik-dobersberg/angular/icon';
+import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
+import { toast } from 'ngx-sonner';
+import {
+  forkJoin,
+  Observable,
+  of
+} from 'rxjs';
 import { catchError, mergeMap } from 'rxjs/operators';
 import { SearchParams, VoiceMailAPI, VoiceMailRecording } from 'src/app/api';
 import { Customer, CustomerAPI } from 'src/app/api/customer.api';
+import {
+  TkdDatePickerComponent,
+  TkdDatePickerInputDirective,
+} from 'src/app/components/date-picker';
+import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
 import { HeaderTitleService } from 'src/app/layout/header-title';
-import { LayoutService } from 'src/app/services';
 import { extractErrorMessage } from 'src/app/utils';
 
 interface VoiceMailWithCustomer extends VoiceMailRecording {
@@ -16,111 +39,115 @@ interface VoiceMailWithCustomer extends VoiceMailRecording {
 
 @Component({
   templateUrl: './voicemail.component.html',
-  styleUrls: ['./voicemail.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    HlmIconModule,
+    HlmCardModule,
+    TkdDatePickerComponent,
+    TkdDatePickerTriggerComponent,
+    TkdDatePickerInputDirective,
+    HlmTableModule,
+    HlmCheckboxModule,
+    FormsModule,
+    DatePipe
+  ],
+  providers: [...provideIcons({ lucideFileAudio, lucidePlayCircle })],
 })
-export class VoiceMailComponent implements OnInit, OnDestroy {
-  private subscriptions = Subscription.EMPTY;
-  private date$ = new BehaviorSubject<Date | null>(null);
-  private onlyUnseen$ = new BehaviorSubject<boolean>(true);
-  loading = false;
+export class VoiceMailComponent {
+  private readonly header = inject(HeaderTitleService);
+  private readonly voicemailsapi = inject(VoiceMailAPI);
+  private readonly customersapi = inject(CustomerAPI);
+  private readonly route = inject(ActivatedRoute);
 
-  get onlyUnseen(): boolean {
-    return this.onlyUnseen$.getValue();
-  }
+  protected readonly recordings = signal<VoiceMailWithCustomer[]>([]);
+  protected readonly onlyUnseen = signal(false);
+  protected readonly date = signal<Date | null>(null);
+  protected readonly loading = signal(true);
+  protected readonly mailbox = signal('');
 
-  get date(): Date | null {
-    return this.date$.getValue();
-  }
+  constructor() {
+    this.route.paramMap.pipe(takeUntilDestroyed()).subscribe(params => {
+      const name = params.get('name');
+      if (!name) {
+        return;
+      }
 
-  recordings: VoiceMailWithCustomer[] = [];
+      this.mailbox.set(name);
+    });
 
-  constructor(
-    private header: HeaderTitleService,
-    private voicemailsapi: VoiceMailAPI,
-    private customersapi: CustomerAPI,
-    private route: ActivatedRoute,
-    private nzMessage: NzMessageService,
-    public layout: LayoutService,
-  ) { }
+    effect(
+      () => {
+        const name = this.mailbox();
+        const date = this.date();
+        const onlyUnseen = this.onlyUnseen();
 
-  onChange(date?: Date, unseen?: boolean): void {
-    if (date !== undefined) {
-      this.date$.next(date);
-    }
+        this.loading.set(true);
+        this.header.set(name);
 
-    if (unseen !== undefined) {
-      this.onlyUnseen$.next(unseen);
-    }
-  }
+        const opts: SearchParams = {
+          name,
+        };
+        if (date !== null) {
+          opts.date = date;
+        }
 
-  ngOnInit(): void {
-    this.subscriptions = new Subscription();
+        if (onlyUnseen) {
+          opts.seen = false;
+        }
 
-    const paramSub =
-      combineLatest([
-        this.route.paramMap,
-        this.date$,
-        this.onlyUnseen$,
-      ])
-        .pipe(
-          mergeMap(([params, date, onlyUnseen]) => {
-            this.loading = true;
-            const name = params.get('name');
-            this.header.set(name);
+        this.voicemailsapi
+          .search(opts)
+          .pipe(
+            mergeMap(recordings => {
+              const m = new Map<string, [string, number]>();
+              recordings.forEach(rec => {
+                if (!rec.customerSource) {
+                  return;
+                }
+                m.set(`${rec.customerSource}/${rec.customerID}`, [
+                  rec.customerSource,
+                  rec.customerID,
+                ]);
+              });
 
-            const opts: SearchParams = {
-              name,
-            };
-            if (date !== null) {
-              opts.date = date;
-            }
+              const observables: {
+                recordings: Observable<VoiceMailRecording[]>;
+                [key: string]: Observable<any>;
+              } = {
+                recordings: of(recordings),
+              };
 
-            if (onlyUnseen) {
-              opts.seen = false;
-            }
+              Array.from(m.entries()).forEach(([key, [source, id]]) => {
+                observables[key] = this.customersapi
+                  .byId(source, id)
+                  .pipe(catchError(() => of(null as Customer)));
+              });
 
-            return this.voicemailsapi.search(opts);
-          }),
-          mergeMap(recordings => {
-            const m = new Map<string, [string, number]>();
-            recordings.forEach(rec => {
-              if (!rec.customerSource) {
-                return;
-              }
-              m.set(`${rec.customerSource}/${rec.customerID}`, [rec.customerSource, rec.customerID]);
+              return forkJoin(observables);
+            })
+          )
+          .subscribe((result: { [key: string]: any }) => {
+            const records = result.recordings.map(record => {
+              return {
+                ...record,
+                customer:
+                  result[`${record.customerSource}/${record.customerID}`],
+              };
             });
 
-            const observables: {
-              recordings: Observable<VoiceMailRecording[]>;
-              [key: string]: Observable<any>;
-            } = {
-              recordings: of(recordings),
-            };
-
-            Array.from(m.entries()).forEach(([key, [source, id]]) => {
-              observables[key] = this.customersapi.byId(source, id)
-                .pipe(catchError(() => of(null as Customer)));
-            });
-
-            return forkJoin(observables);
-          })
-        )
-        .subscribe((result: { [key: string]: any }) => {
-          this.recordings = result.recordings.map(record => {
-            return {
-              ...record,
-              customer: result[`${record.customerSource}/${record.customerID}`],
-            };
+            this.recordings.set(records);
+            this.loading.set(false);
           });
-          setTimeout(() => {
-            this.loading = false;
-          }, 1000);
-        });
-
-    this.subscriptions.add(paramSub);
+      },
+      { allowSignalWrites: true }
+    );
   }
 
-  playRecording(rec: VoiceMailWithCustomer, player?: HTMLAudioElement): void {
+  protected playRecording(
+    rec: VoiceMailWithCustomer,
+    player?: HTMLAudioElement
+  ): void {
     player = new Audio(rec.url);
     player.autoplay = false;
     player.muted = false;
@@ -131,30 +158,24 @@ export class VoiceMailComponent implements OnInit, OnDestroy {
       rec.playing = false;
     };
 
-    player.play()
+    player
+      .play()
       .then(() => {
         rec.playing = true;
       })
       .catch(err => {
-        this.nzMessage.error(extractErrorMessage(err, 'Datei konnte nicht abgespielt werden'));
+        toast.error(
+          extractErrorMessage(err, 'Datei konnte nicht abgespielt werden')
+        );
       });
   }
 
-  changeSeen(rec: VoiceMailRecording, seen: boolean): void {
-    this.voicemailsapi.updateSeen(rec._id, seen)
-      .subscribe(
-        () => rec.read = seen,
-        err => this.nzMessage.error(
-          extractErrorMessage(err, `Aufnahmen konnte nicht als ${seen ? 'gelesen' : 'ungelesen'} markiert werden`)
-        )
-      );
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
-  }
-
-  trackRecording(_: number, r: VoiceMailWithCustomer): string | null {
-    return r._id || null;
+  protected changeSeen(rec: VoiceMailRecording, seen: boolean): void {
+    this.voicemailsapi.updateSeen(rec._id, seen).subscribe({
+      next: () => (rec.read = seen),
+      error: err => {
+        toast.error('Aufnahme konnte nicht als gesehen markiert werden');
+      },
+    });
   }
 }

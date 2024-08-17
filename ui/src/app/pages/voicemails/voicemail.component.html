@@ -1,76 +1,37 @@
-<div class="content-section selection-container">
-  <div class="date-selection">
-    <label>Aufnahmen anzeigen für:</label>
-    <nz-date-picker [nzAllowClear]="true" [ngModel]="date" (ngModelChange)="onChange($event, undefined)">
-    </nz-date-picker>
-  </div>
-  <div class="date-selection">
-    <label nz-checkbox [ngModel]="onlyUnseen" (ngModelChange)="onChange(undefined, $event)">Nur neue
-    anzeigen</label>
-  </div>
-  <div class="date-selection">
-    <button nz-button nzType="primary" (click)="onChange(date, undefined)" [nzLoading]="loading">
-      <i nz-icon nzType="search" nzTheme="outline"></i>
-      Suchen
-    </button>
-  </div>
-</div>
+<section hlmCard>
+  <div hlmCardHeader class="flex-col justify-between sm:flex-row">
+    <div class="space-y-1.5">
+      <h3 hlmCardTitle>
+        {{ mailbox() }}
+      </h3>
+      <p hlmCardDescription>Aufnahmen in der Voice-Mail "{{ mailbox() }}"</p>
+    </div>
 
-<nz-table #basicTable [nzData]="recordings" class="content-section data-container">
-  <thead>
-    <tr>
-      <th>Zeit</th>
-      <th>Kunde / Anrufer</th>
-      <th>
-        @if (layout.isTabletPortraitUp) {
-          Aufnahme
-        }
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    @for (data of basicTable.data; track trackRecording($index, data)) {
-      <tr>
-        <td>
-          @if (layout.isTabletPortraitUp) {
-            {{data.localDate.toLocaleString()}}
-          } @else {
-            {{data.localDate.toLocaleDateString()}}<br />
-            {{data.localDate.toLocaleTimeString()}}
-          }
-        </td>
-        <td>
-          @if (!!data.customer) {
-            <a class="customer-link"
-              [routerLink]="['/customer/view', data.customer.source, data.customer.cid]">
-              {{ data.customer.name }}&nbsp;{{ data.customer.firstname }}
-            </a>
-          }
-          <span>
-            {{data.from}}
-          </span>
-        </td>
-        <td>
-          <nz-button-group>
-            <button nz-button [nzType]="data.read ? 'default' : 'primary'" (click)="playRecording(data)"
-              [nzLoading]="data.playing">
-              <i nz-icon nzType="play-circle" nzTheme="outline"></i>
-              @if (!layout.isPhone) {
-                <span>Abspielen</span>
-              }
-            </button>
-            <button nz-button nz-dropdown [nzDropdownMenu]="menu" nzPlacement="bottomRight">
-              <i nz-icon nzType="ellipsis"></i>
-            </button>
-            <nz-dropdown-menu #menu="nzDropdownMenu">
-              <ul nz-menu>
-                <li nz-menu-item (click)="changeSeen(data, false)">Als <b>ungelesen</b> markieren</li>
-                <li nz-menu-item (click)="changeSeen(data, true)">Als <b>gelesen</b> markieren</li>
-              </ul>
-            </nz-dropdown-menu>
-          </nz-button-group>
-        </td>
-      </tr>
-    }
-  </tbody>
-</nz-table>
+    <div class="">
+      <tkd-date-picker mode="single" [(ngModel)]="date" allowClear="true">
+        <tkd-picker-trigger *datePickerInput />
+      </tkd-date-picker>
+    </div>
+  </div>
+
+  <div hlmCardHeader>
+    <hlm-table>
+      <hlm-trow>
+        <hlm-th class="w-16"> Zeit </hlm-th>
+        <hlm-th class="w-96"> Kunde / Anrufer </hlm-th>
+      </hlm-trow>
+
+      @for (data of recordings(); track data._id) {
+        <hlm-trow>
+          <hlm-td class="w-16">
+            {{ data.localDate | date: 'short' }}
+          </hlm-td>
+
+          <hlm-td class="w-96">
+            {{ data.from }}
+          </hlm-td>
+        </hlm-trow>
+      }
+    </hlm-table>
+  </div>
+</section>

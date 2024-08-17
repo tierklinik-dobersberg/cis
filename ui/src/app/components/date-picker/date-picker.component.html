@@ -68,8 +68,8 @@
       class="h-full w-16 min-w-16 flex-1 bg-transparent text-center outline-none focus:outline-none"
       readonly
       [value]="
-        _computedStartDate()
-          ? (_computedStartDate()
+        startDate()
+          ? (startDate()
             | toDate
             | date: (withTime() ? 'medium' : 'mediumDate'))
           : ''
@@ -165,11 +165,7 @@
         Heute
       </button>
       @if (allowClear()) {
-        <button
-          hlmBtn
-          variant="ghost"
-          size="sm"
-          (click)="value.set(null); ctx.close()">
+        <button hlmBtn variant="ghost" size="sm" (click)="clear(); ctx.close()">
           Löschen
         </button>
       }
@@ -218,10 +214,7 @@
             class="w-full min-w-10 flex-shrink-0 flex-grow self-stretch"
             (click)="setHour(h, what)"
             [variant]="
-              h ===
-              (what === 'start'
-                ? _computedCurrentStartHour()
-                : _computedCurrentEndHour())
+              h === (what === 'start' ? startHour() : endHour())
                 ? 'default'
                 : 'ghost'
             "
@@ -242,10 +235,7 @@
             class="w-full min-w-10 flex-shrink-0 flex-grow self-stretch"
             (click)="setMinute(m, what)"
             [variant]="
-              m ===
-              (what === 'start'
-                ? _computedCurrentStartMinute()
-                : _computedCurrentEndMinute())
+              m === (what === 'start' ? startMinute() : endMinute())
                 ? 'default'
                 : 'ghost'
             "

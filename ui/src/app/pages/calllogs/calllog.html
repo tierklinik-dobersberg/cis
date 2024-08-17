@@ -1,62 +1,110 @@
-<div class="flex items-center space-x-3">
-  <tkd-date-picker withTime="true" [(ngModel)]="dateRange" mode="range" />
+<div class="flex flex-row flex-wrap items-start gap-8">
+  <div
+    class="hidden flex-grow grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-4 sm:grid">
+    <div hlmCard>
+      <div hlmCardHeader class="pb-0">
+        <span hlmCardTitle class="text-base">Telefonate</span>
+      </div>
+
+      <div hlmCardContent>
+        <span class="space-x-1 leading-3">
+          <h1 class="font-roboto text-3xl font-bold text-sky-800">
+            {{ logs().length }}
+          </h1>
+        </span>
+      </div>
+    </div>
+
+    <div hlmCard>
+      <div hlmCardHeader class="pb-0">
+        <span hlmCardTitle class="text-base">Anrufer</span>
+      </div>
+
+      <div hlmCardContent>
+        <span class="space-x-1 leading-3">
+          <h1 class="font-roboto text-3xl font-bold text-emerald-500">
+            {{ distinctCallers() }}
+          </h1>
+        </span>
+      </div>
+    </div>
+
+    <div hlmCard>
+      <div hlmCardHeader class="pb-0">
+        <span hlmCardTitle class="text-base">Gesamte Dauer</span>
+      </div>
+
+      <div hlmCardContent>
+        <span class="space-x-1 leading-3">
+          <h1 class="font-roboto text-3xl font-bold text-sky-600">
+            {{ totalCallTime() | duration: undefined : 's' }}
+          </h1>
+        </span>
+      </div>
+    </div>
+
+    <div hlmCard>
+      <div hlmCardHeader class="pb-0">
+        <span hlmCardTitle class="text-base">Verpassste Anrufe</span>
+      </div>
+
+      <div hlmCardContent>
+        <span class="space-x-1 leading-3">
+          <h1 class="font-roboto text-3xl font-bold text-rose-800">
+            {{ missedCalls() }}
+          </h1>
+        </span>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="flex flex-row space-x-4">
-  <div class="rounded bg-white p-2 shadow sm:p-4">
-    <div class="flex items-center space-x-5">
-      <span class="space-x-1 leading-3">
-        <h1 class="font-roboto text-3xl font-bold text-sky-800">
-          {{ logs().length }}
-        </h1>
-        <span class="text-gray-500">Telefonate</span>
-      </span>
-      <span class="space-x-1 leading-3">
-        <h1 class="font-roboto text-3xl font-bold text-emerald-500">
-          {{ distinctCallers() }}
-        </h1>
-        <span class="text-gray-500">Anrufer</span>
-      </span>
+<div hlmCard>
+  <div hlmCardHeader class="flex flex-col items-start gap-8 md:flex-row">
+    <div class="space-y-1.5">
+      <h1 hlmCardTitle>Journal</h1>
+      <p hlmCardDescription>
+        Im folgenden findest du eine Liste an eingehenden und ausgehenden
+        Telefongesprächen im gewünschten Zeitraum.
+      </p>
+    </div>
+
+    <div
+      class="flex flex-col items-start justify-center gap-4 self-stretch sm:flex-grow sm:flex-row sm:justify-end">
+      <div class="flex flex-col gap-2">
+        <brn-select [(ngModel)]="typeFilter" class="w-full sm:w-80">
+          <hlm-select-trigger class="w-full">
+            <hlm-select-value />
+          </hlm-select-trigger>
+
+          <hlm-select-content class="w-56 sm:w-80">
+            <hlm-option value="all">Alle anzeigen</hlm-option>
+            <hlm-option value="inbound">Nur Eingehende anzeigen</hlm-option>
+            <hlm-option value="outbound">Nur Ausgehende anzeigen</hlm-option>
+            <hlm-option value="missed">Nur Verpasste anzeigen</hlm-option>
+          </hlm-select-content>
+        </brn-select>
+
+        <label hlmLabel class="flex items-center">
+          <hlm-checkbox [(ngModel)]="hideForwardedCalls" class="mr-2" />
+          Interne Weiterleitungen ausblenden
+        </label>
+      </div>
+
+      <tkd-date-picker
+        withTime="false"
+        [(ngModel)]="dateRange"
+        allowClear="false"
+        allowOpenRange="true"
+        mode="range"
+        class="w-full min-w-80 sm:w-80" />
     </div>
   </div>
 
-  <div class="rounded bg-white p-2 shadow sm:p-4">
-    <div class="flex items-center space-x-5">
-      <span class="space-x-1 leading-3">
-        <h1 class="font-roboto text-3xl font-bold text-sky-600">
-          {{ totalCallTime() | duration: undefined : 's' }}
-        </h1>
-        <span class="text-gray-500">Gesamte Dauer</span>
-      </span>
-    </div>
-  </div>
-
-  <div class="rounded bg-white p-2 shadow sm:p-4">
-    <div class="flex items-center space-x-5">
-      <span class="space-x-1 leading-3">
-        <h1 class="font-roboto text-3xl font-bold text-rose-800">
-          {{
-            (logs.length > 0 ? (100 / logs().length) * missedCalls() : 0)
-              | number: '1.2-2'
-          }}%
-        </h1>
-        <span class="text-gray-500"
-          ><span class="font-semibold text-gray-700">{{ missedCalls() }}</span>
-          Verpasste Anrufe</span
-        >
-      </span>
-    </div>
-  </div>
-</div>
-
-<div class="rounded bg-white shadow">
-  <div class="border-b border-gray-400 p-4 sm:p-6 md:p-8">
-    <h1 class="text-lato text-lg text-sky-800">Journal</h1>
-    <span class="text-gray-500"
-      >Im folgenden findest du eine Liste an eingehenden und ausgehenden
-      Telefongesprächen im gewünschten Zeitraum.</span
-    >
-  </div>
-
-  <app-calllog-table [records]="logs()"></app-calllog-table>
+  <app-calllog-table
+    hlmCardContent
+    [hide3CXForwardedCalls]="hideForwardedCalls()"
+    [loading]="loading()"
+    [customers]="customers()"
+    [records]="_computedFilteredLogs()"></app-calllog-table>
 </div>

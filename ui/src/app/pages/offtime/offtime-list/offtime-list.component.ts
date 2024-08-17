@@ -18,9 +18,11 @@ import { HlmAlertDialogModule } from "@tierklinik-dobersberg/angular/alertdialog
 import { HlmBadgeModule } from "@tierklinik-dobersberg/angular/badge";
 import { injectCurrentProfile, injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
+import { HlmCardModule } from "@tierklinik-dobersberg/angular/card";
 import { TkdEmptyTableComponent } from "@tierklinik-dobersberg/angular/empty-table";
 import { HlmHoverCardModule } from '@tierklinik-dobersberg/angular/hovercard';
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
+import { HlmLabelDirective } from "@tierklinik-dobersberg/angular/label";
 import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
 import { DisplayNamePipe, DurationPipe, ToDatePipe, ToUserPipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmSelectModule } from "@tierklinik-dobersberg/angular/select";
@@ -39,11 +41,13 @@ import { COMMENT_SERVICE, OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/
 import { MyEditor } from 'src/app/ckeditor';
 import { AppAvatarComponent } from "src/app/components/avatar";
 import { AppDateTableModule } from "src/app/components/date-table";
+import { TkdPaginationComponent } from "src/app/components/pagination";
 import { AppSheetTriggerDirective } from "src/app/components/triggers";
 import { UserColorVarsDirective } from "src/app/components/user-color-vars";
 import { HeaderTitleService } from "src/app/layout/header-title";
 import { CommentComponent } from "src/app/shared/comment";
 import { TextInputComponent } from "src/app/shared/text-input";
+import { usePaginationManager } from "src/app/utils/pagination-manager";
 import { OffTimeCalendarOverviewComponent } from "../offtime-calendar-overview/calendar-overview";
 import { MatchingOfftimePipe } from "../pipes/matching-offtime.pipe";
 import { AppOffTimeFilterSheetComponent, filterOffTimeEntries, OffTimeFilter } from "./offtime-filter";
@@ -104,7 +108,10 @@ import { AppOffTimeFilterSheetComponent, filterOffTimeEntries, OffTimeFilter } f
     HlmHoverCardModule,
     MarkdownModule,
     BrnSeparatorModule,
-    HlmSeparatorModule
+    HlmSeparatorModule,
+    TkdPaginationComponent,
+    HlmCardModule,
+    HlmLabelDirective,
   ],
   providers: [
     ...provideIcons({lucideMessageCircle, lucideArrowLeft, lucideArrowRight, lucideCheckCircle, lucideCalendar, lucideXCircle}),
@@ -186,6 +193,8 @@ export class OffTimeListComponent implements OnInit {
         }
       })
   })
+
+  protected readonly paginator = usePaginationManager(this._computedFilteredEntries)
   
   protected readonly _computedCalendarRanges = computed(() => {
     const entries = this._computedFilteredEntries();

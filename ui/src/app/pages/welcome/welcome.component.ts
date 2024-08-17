@@ -1,64 +1,55 @@
-import { Component, effect, isDevMode, OnDestroy, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  signal
+} from '@angular/core';
 import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
+import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { DisplayNamePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { Profile } from '@tierklinik-dobersberg/apis';
-import { Subscription } from 'rxjs';
-import { retry } from 'rxjs/operators';
-import { VoiceMailAPI } from 'src/app/api';
 import { HeaderTitleService } from 'src/app/layout/header-title';
-import { LayoutService } from 'src/app/services';
+import { CalendarIdPipe } from 'src/app/pipes/by-calendar-id.pipe';
+import { EmergencyCardComponent } from './emergency-card';
+import { MobileWelcomeCardComponent } from './mobile-welcome-card';
+import { RosterCardComponent } from './roster-card';
+import { UpcomingEventsCardComponent } from './upcoming-events-card';
 
 @Component({
   selector: 'app-welcome',
   templateUrl: './welcome.component.html',
-  styleUrls: ['./welcome.component.scss']
+  styleUrls: ['./welcome.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    MobileWelcomeCardComponent,
+    EmergencyCardComponent,
+    UpcomingEventsCardComponent,
+    RosterCardComponent,
+    CalendarIdPipe,
+  ],
+  host: {
+    'class': '@container'
+  }
 })
-export class WelcomeComponent implements OnInit, OnDestroy {
-  mailboxes: string[] = [];
-  
-  protected readonly currentUser = injectCurrentProfile();
+export class WelcomeComponent {
+  private readonly header = inject(HeaderTitleService);
 
+  public readonly layout = inject(LayoutService);
+
+  protected readonly currentUser = injectCurrentProfile();
   protected readonly hoveredUser = signal<Profile | null>(null);
 
-  get hasDoorAccess(): boolean {
-    return true;
-  }
-
-  get hasDoctorOnDutyAccess(): boolean {
-    return true;
-  }
-
-  get hasRosterAccess(): boolean {
-    return true;
-  }
-
-  constructor(
-    private header: HeaderTitleService,
-    private voicemailapi: VoiceMailAPI,
-    public layout: LayoutService,
-  ) {
+  constructor() {
     effect(() => {
       const profile = this.currentUser();
       const name = new DisplayNamePipe().transform(profile);
 
-      this.header.set(`Hallo ${name},`, 'Hier findest du eine Übersicht der wichtigsten Informationen.');
-    })
-  }
-
-  readonly isDevMode = isDevMode();
-
-  private allSub = new Subscription();
-
-  ngOnInit(): void {
-
-    this.voicemailapi.listMailboxes()
-      .pipe(retry({delay: 10000}))
-      .subscribe(mailboxes => {
-        this.mailboxes = mailboxes;
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.allSub.unsubscribe();
+      this.header.set(
+        `Hallo ${name},`,
+        'Hier findest du eine Übersicht der wichtigsten Informationen.'
+      );
+    });
   }
 }

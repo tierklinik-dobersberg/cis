@@ -6,12 +6,14 @@
 
   @defer {
     <hlm-menu
+      #menu
       variant="menubar"
       class="mt-4 w-full flex-grow rounded-none border-none shadow-none [&_button]:py-4 [&_button]:md:px-4 [&_button]:md:py-2">
       <hlm-menu-group class="space-y-1">
         <button
           hlmMenuItem
-          routerLink="/welcome"
+          routerLink="/"
+          [routerLinkActiveOptions]="{ exact: true }"
           routerLinkActive="bg-gray-100"
           class="px-4 py-2">
           <hlm-icon name="lucideHome" hlmMenuIcon />
@@ -43,14 +45,16 @@
           #trigger="cdkMenuTriggerFor"
           routerLink="/offtime"
           routerLinkActive="bg-gray-100"
-          (mouseenter)="trigger.isOpen() || trigger.open()">
+          (mouseenter)="(!!sheetRef && !trigger.isOpen()) || trigger.open()">
           <hlm-icon name="lucideLayers" hlmMenuIcon />
           Urlaubsanträge
           <hlm-menu-item-sub-indicator />
         </button>
 
         <ng-template #offtimeMenu>
-          <hlm-sub-menu (mouseleave)="trigger.close()">
+          <hlm-sub-menu
+            (mouseleave)="trigger.close()"
+            class="w-64 [&_button]:py-4 [&_button]:md:px-4 [&_button]:md:py-2">
             <hlm-menu-label>Urlaubsanträge</hlm-menu-label>
             <hlm-menu-separator />
 
@@ -120,7 +124,9 @@
           </button>
 
           <ng-template #voiceMailsTemplate>
-            <hlm-sub-menu class="w-56" (mouseleave)="trigger.close()">
+            <hlm-sub-menu
+              (mouseleave)="trigger.close()"
+              class="w-64 [&_button]:py-4 [&_button]:md:px-4 [&_button]:md:py-2">
               <hlm-menu-label>Voice-Mails</hlm-menu-label>
               <hlm-menu-separator />
               <hlm-menu-group class="space-y-1">
@@ -167,7 +173,9 @@
           </button>
 
           <ng-template #subMenu>
-            <hlm-sub-menu class="w-56" (mouseleave)="trigger.close()">
+            <hlm-sub-menu
+              (mouseleave)="trigger.close()"
+              class="w-64 [&_a]:py-4 [&_a]:md:px-4 [&_a]:md:py-2">
               <hlm-menu-label>{{ menu.Text }}</hlm-menu-label>
               <hlm-menu-separator />
               <hlm-menu-group class="space-y-1">

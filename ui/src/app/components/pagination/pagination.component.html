@@ -1,0 +1,58 @@
+@if (paginator(); as paginator) {
+  <div
+    class="{{ _computedClasses() }}"
+    *brnPaginator="
+      let ctx;
+      totalElements: paginator.totalElements();
+      pageSize: paginator.pageSize();
+      onStateChange: paginator.onStateChange;
+      currentPage: paginator.currentPage()
+    ">
+    <brn-select
+      class="inline-block"
+      placeholder="{{ paginator.availablePageSizes[0] }}"
+      [(ngModel)]="paginator.pageSize">
+      <hlm-select-trigger class="w-15 mr-1 inline-flex h-9">
+        <hlm-select-value />
+      </hlm-select-trigger>
+
+      <hlm-select-content class="w-15">
+        @for (size of paginator.availablePageSizes; track size) {
+          <hlm-option [value]="size">
+            {{ size }}
+          </hlm-option>
+        }
+      </hlm-select-content>
+    </brn-select>
+
+    <div class="flex space-x-1">
+      <button
+        size="sm"
+        variant="outline"
+        hlmBtn
+        [disabled]="!ctx.decrementable()"
+        (click)="ctx.decrement()">
+        <hlm-icon name="lucideArrowLeft" size="sm" />
+      </button>
+
+      @for (page of paginator.pageButtons(); track $index) {
+        <button
+          hlmBtn
+          size="sm"
+          [variant]="page === ctx.state().currentPage ? 'secondary' : 'outline'"
+          (click)="paginator.openPage(page)">
+          {{ page + 1 }}
+        </button>
+      }
+
+      <button
+        size="sm"
+        variant="outline"
+        hlmBtn
+        [disabled]="!ctx.incrementable()"
+        (click)="ctx.increment()">
+        <hlm-icon name="lucideArrowRight" size="sm" />
+      </button>
+    </div>
+  </div>
+}

@@ -62,9 +62,10 @@
         }"
         name="test"
         required
-        [minutes]="[0, 15, 30, 45, 60]"
+        [minutes]="[0, 15, 30, 45]"
         [variant]="layout.md() ? 'inline' : 'default'"
         [(ngModel)]="dateRange"
+        allowOpenRange="false"
         [withTime]="showTime()"
         mode="range" />
     </div>
@@ -191,21 +192,21 @@
             </p>
           </hlm-alert-dialog-header>
 
-          <hlm-table class="[&_hlm-th]:h-8 [&_hlm-trow]:flex-col">
+          <hlm-table>
             <hlm-trow>
-              <hlm-th> Von </hlm-th>
+              <hlm-th class="w-16"> Von </hlm-th>
               <hlm-td>
                 {{ dateRange()[0] | date: 'medium' }}
               </hlm-td>
             </hlm-trow>
             <hlm-trow>
-              <hlm-th> Bis </hlm-th>
+              <hlm-th class="w-16"> Bis </hlm-th>
               <hlm-td>
                 {{ dateRange()[1] | date: 'medium' }}
               </hlm-td>
             </hlm-trow>
             <hlm-trow>
-              <hlm-th>Antrags-Art</hlm-th>
+              <hlm-th class="w-16">Antrags-Art</hlm-th>
               <hlm-td>
                 @switch (offTimeType()) {
                   @case ('auto') {
@@ -221,7 +222,7 @@
               </hlm-td>
             </hlm-trow>
             <hlm-trow>
-              <hlm-th>Beschreibung</hlm-th>
+              <hlm-th class="w-16">Beschreibung</hlm-th>
               <hlm-td>
                 <markdown class="prose prose-sm">
                   {{ description() }}

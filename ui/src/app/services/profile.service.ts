@@ -7,6 +7,8 @@ export enum UserExtraKey {
   CalendarID = 'calendarID',
   CalendarID2 = 'calendarId',
   Color = 'color',
+  PhoneExtension = 'phoneExtension',
+  EmergencyExtension = 'emergencyExtension'
 }
 
 export interface UserProfile extends Profile {
@@ -20,6 +22,18 @@ export interface UserProfile extends Profile {
           };
         };
         [UserExtraKey.Color]?: {
+          kind: {
+            case: 'stringValue';
+            value: string;
+          };
+        };
+        [UserExtraKey.PhoneExtension]?: {
+          kind: {
+            case: 'stringValue';
+            value: string;
+          };
+        };
+        [UserExtraKey.EmergencyExtension]?: {
           kind: {
             case: 'stringValue';
             value: string;
@@ -41,6 +55,26 @@ export function getCalendarId(
       return getCalendarId(user, UserExtraKey.CalendarID2);
     }
 
+    return null;
+  }
+
+  return prop.kind.value;
+}
+
+export function getUserPhoneExtension(profile: UserProfile | Profile): string | null {
+  const prop = profile?.user?.extra?.fields[UserExtraKey.PhoneExtension];
+
+  if (!prop || prop.kind.case !== 'stringValue') {
+    return null;
+  }
+
+  return prop.kind.value;
+}
+
+export function getUserEmergencyExtension(profile: UserProfile | Profile): string | null {
+  const prop = profile?.user?.extra?.fields[UserExtraKey.EmergencyExtension];
+
+  if (!prop || prop.kind.case !== 'stringValue') {
     return null;
   }
 

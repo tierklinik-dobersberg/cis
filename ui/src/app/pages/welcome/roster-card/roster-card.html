@@ -1,87 +1,98 @@
-<div hlmCardHeader>
-  <div class="w-full flex-row items-center justify-between">
-    <h3 hlmCardTitle>
-      @switch (_computedDateKind()) {
-        @case ('yesterday') {
-          Gestern im Dienst
-        }
-        @case ('today') {
-          Heute im Dienst
-        }
-        @case ('tomorrow') {
-          Morgen im Dienst
-        }
-        @default {
-          Im Dienst an {{ calendarDate() | date: 'shortDate' }}
-        }
+<div
+  hlmCardHeader
+  class="flex w-full flex-col items-center justify-center gap-2 @xs:flex-row @xs:justify-between">
+  <h3 hlmCardTitle>
+    @switch (_computedDateKind()) {
+      @case ('yesterday') {
+        Gestern im Dienst
       }
-    </h3>
+      @case ('today') {
+        Heute im Dienst
+      }
+      @case ('tomorrow') {
+        Morgen im Dienst
+      }
+      @default {
+        Im Dienst am {{ calendarDate() | date: 'shortDate' }}
+      }
+    }
+  </h3>
 
-    <div class="flex flex-row items-center overflow-visible p-1">
-      <tkd-date-picker [(ngModel)]="calendarDate" mode="single">
-        <tkd-picker-trigger *tdkDatePickerTrigger variant="icon" size="small" />
-      </tkd-date-picker>
-    </div>
-  </div>
+  <tkd-date-picker [(ngModel)]="calendarDate" mode="single">
+    <tkd-picker-trigger *tdkDatePickerTrigger variant="icon" size="small" />
+  </tkd-date-picker>
 </div>
 
-<div hlmCardContent class="grid grid-cols-2 gap-4">
-  @if (!rosterLoading()) {
-    @for (shift of _computedShifts(); track shift) {
-      <div
-        class="flex flex-col gap-2 rounded-md border border-border px-2 pb-2 pt-1">
-        <label hlmLabel class="text-sm text-sky-700">
-          {{ shift.definition.name }}
-        </label>
+<div
+  hlmCardContent
+  class="flex flex-grow flex-col justify-between p-2 !pt-0 md:p-4 lg:p-6">
+  <div
+    class="grid grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-2 xl:gap-4">
+    @if (!rosterLoading()) {
+      @for (shift of _computedShifts(); track shift) {
+        <div
+          class="flex flex-col gap-2 rounded-md border border-border px-2 pb-2 pt-1">
+          <label
+            hlmLabel
+            class="overflow-hidden text-ellipsis text-sm text-sky-700">
+            {{ shift.definition.name }}
+          </label>
 
-        <ol class="flex flex-row gap-1">
-          @for (user of shift.assignedUserIds; track user) {
-            @if (user | toUser: profiles(); as profile) {
-              <app-avatar
-                (mouseenter)="userHover.emit(profile)"
-                (mouseleave)="userHover.emit(null)"
-                (click)="openUserEvents(user)"
-                class="cursor-pointer"
-                [user]="profile"
-                showName="false"
-                role="listitem" />
+          <ol class="flex flex-row gap-1">
+            @for (user of shift.assignedUserIds; track user) {
+              @if (user | toUser: profiles(); as profile) {
+                <app-avatar
+                  (mouseenter)="userHover.emit(profile)"
+                  (mouseleave)="userHover.emit(null)"
+                  (click)="openUserEvents(user)"
+                  class="cursor-pointer"
+                  [user]="profile"
+                  showName="false"
+                  role="listitem" />
+              }
             }
-          }
+          </ol>
+        </div>
+      }
+    } @else {
+      <div class="flex flex-col gap-2 rounded-md border border-border p-2">
+        <hlm-skeleton class="h-4 w-36" />
+        <ol class="flex flex-row gap-1">
+          <hlm-skeleton class="h-8 w-8 rounded-full" />
+          <hlm-skeleton class="h-8 w-8 rounded-full" />
+          <hlm-skeleton class="h-8 w-8 rounded-full" />
+        </ol>
+      </div>
+      <div class="flex flex-col gap-2 rounded-md border border-border p-2">
+        <hlm-skeleton class="h-4 w-40" />
+        <ol class="flex flex-row gap-1">
+          <hlm-skeleton class="h-8 w-8 rounded-full" />
+          <hlm-skeleton class="h-8 w-8 rounded-full" />
+          <hlm-skeleton class="h-8 w-8 rounded-full" />
+        </ol>
+      </div>
+      <div class="flex flex-col gap-2 rounded-md border border-border p-2">
+        <hlm-skeleton class="h-4 w-36" />
+        <ol class="flex flex-row gap-1">
+          <hlm-skeleton class="h-8 w-8 rounded-full" />
+          <hlm-skeleton class="h-8 w-8 rounded-full" />
+          <hlm-skeleton class="h-8 w-8 rounded-full" />
+        </ol>
+      </div>
+      <div class="flex flex-col gap-2 rounded-md border border-border p-2">
+        <hlm-skeleton class="h-4 w-40" />
+        <ol class="flex flex-row gap-1">
+          <hlm-skeleton class="h-8 w-8 rounded-full" />
+          <hlm-skeleton class="h-8 w-8 rounded-full" />
+          <hlm-skeleton class="h-8 w-8 rounded-full" />
         </ol>
       </div>
     }
-  } @else {
-    <div class="flex flex-col gap-2 rounded-md border border-border p-2">
-      <hlm-skeleton class="h-4 w-36" />
-      <ol class="flex flex-row gap-1">
-        <hlm-skeleton class="h-8 w-8 rounded-full" />
-        <hlm-skeleton class="h-8 w-8 rounded-full" />
-        <hlm-skeleton class="h-8 w-8 rounded-full" />
-      </ol>
-    </div>
-    <div class="flex flex-col gap-2 rounded-md border border-border p-2">
-      <hlm-skeleton class="h-4 w-40" />
-      <ol class="flex flex-row gap-1">
-        <hlm-skeleton class="h-8 w-8 rounded-full" />
-        <hlm-skeleton class="h-8 w-8 rounded-full" />
-        <hlm-skeleton class="h-8 w-8 rounded-full" />
-      </ol>
-    </div>
-    <div class="flex flex-col gap-2 rounded-md border border-border p-2">
-      <hlm-skeleton class="h-4 w-36" />
-      <ol class="flex flex-row gap-1">
-        <hlm-skeleton class="h-8 w-8 rounded-full" />
-        <hlm-skeleton class="h-8 w-8 rounded-full" />
-        <hlm-skeleton class="h-8 w-8 rounded-full" />
-      </ol>
-    </div>
-    <div class="flex flex-col gap-2 rounded-md border border-border p-2">
-      <hlm-skeleton class="h-4 w-40" />
-      <ol class="flex flex-row gap-1">
-        <hlm-skeleton class="h-8 w-8 rounded-full" />
-        <hlm-skeleton class="h-8 w-8 rounded-full" />
-        <hlm-skeleton class="h-8 w-8 rounded-full" />
-      </ol>
-    </div>
-  }
+  </div>
+
+  <div
+    class="mt-2 flex flex-row items-center justify-center gap-2 text-xs text-gray-600">
+    <hlm-icon name="lucideInfo" size="xs" />
+    Klicke auf ein Benutzerbild für eine Terminübersicht
+  </div>
 </div>

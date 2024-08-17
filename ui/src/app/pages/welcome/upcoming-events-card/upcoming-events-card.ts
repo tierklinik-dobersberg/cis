@@ -82,7 +82,7 @@ class EventModel extends CalendarEvent {
   ],
   standalone: true,
   host: {
-    class: 'flex flex-grow overflow-hidden',
+    class: '@container flex flex-grow overflow-hidden flex-shrink-0 max-h-[calc(100dvh-80px)]',
   },
   providers: [...provideIcons({})],
 })

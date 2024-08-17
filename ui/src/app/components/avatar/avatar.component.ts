@@ -9,7 +9,7 @@ import type { VariantProps } from 'class-variance-authority';
 import { type ClassArray, type ClassValue, clsx } from 'clsx';
 import { UserColorVarsDirective } from "../user-color-vars";
 
-type AvatarVariants = VariantProps<typeof avatarVariants>;
+export type AvatarVariants = VariantProps<typeof avatarVariants>;
 
 export const defaultClasses = "border border-[var(--user-color,var(--border))] [--user-color-opacity:0.4]";
 

@@ -9,7 +9,8 @@ export const environment = {
   accountService: 'https://account.dobersberg.dev',
   calendarService: 'https://calendar.dobersberg.dev',
   callService: 'https://3cx-support.dobersberg.dev',
-  commentService: 'https://comments.dobersberg.dev'
+  commentService: 'https://comments.dobersberg.dev',
+  customerService: 'https://customer.dobersberg.dev'
 };
 
 /*

@@ -27,7 +27,7 @@ export class NotAllowedComponent implements OnInit {
         this.reason = map.get("reason");
 
         if (!this.reason) {
-          this.router.navigate(['/welcome'])
+          this.router.navigate(['/'])
           return;
         }
 

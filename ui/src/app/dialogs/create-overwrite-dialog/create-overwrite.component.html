@@ -35,18 +35,21 @@
       Bitte wähle den Zeitraum für die Umleitung
     </label>
 
-    <tkd-date-picker
-      [(ngModel)]="dateRange"
-      withTime="true"
-      name="dateRange"
-      mode="range" />
-
     <hlm-sheet>
-      <div class="flex w-full flex-row justify-end">
+      <div class="flex w-full flex-col items-center gap-2 sm:flex-row">
+        <tkd-date-picker
+          [(ngModel)]="dateRange"
+          class="flex-grow"
+          withTime="true"
+          allowClear="false"
+          allowOpenRange="false"
+          [minutes]="[0, 15, 30, 45]"
+          name="dateRange"
+          mode="range" />
+
         <button
           hlmBtn
-          class="mt-2 justify-end"
-          variant="secondary"
+          class="justify-end"
           size="sm"
           brnSheetTrigger
           [side]="layout.md() ? 'right' : 'bottom'">

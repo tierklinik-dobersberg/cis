@@ -1,5 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { toDateString } from '@tierklinik-dobersberg/angular/utils/date';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -40,7 +41,7 @@ export class VoiceMailAPI {
         let params = new HttpParams();
 
         if (opts.date !== undefined) {
-            params = params.set('date', `${opts.date.getFullYear()}-${opts.date.getMonth() + 1}-${opts.date.getDate()}`);
+            params = params.set('date', toDateString(opts.date))
         }
 
         if (opts.name !== undefined) {
