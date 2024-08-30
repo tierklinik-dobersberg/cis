@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject }
 import { Timestamp } from '@bufbuild/protobuf';
 import { Code, ConnectError } from '@connectrpc/connect';
 import { injectCurrentProfile } from "@tierklinik-dobersberg/angular/behaviors";
-import { AnalyzeWorkTimeResponse, CalendarEvent, FindOffTimeRequestsResponse, GetHolidayResponse, GetOffTimeCostsResponse, GetUserShiftsResponse, GetVacationCreditsLeftResponse, GetWorkTimeResponse, ListEventsResponse, OffTimeCostSummary, OffTimeEntry, PlannedShift, PublicHoliday, UserVacationSum, WorkShift, WorkTime, WorkTimeAnalysis } from '@tierklinik-dobersberg/apis';
+import { CalendarEvent, GetHolidayResponse, ListEventsResponse, PublicHoliday } from "@tierklinik-dobersberg/apis/calendar/v1";
+import { AnalyzeWorkTimeResponse, FindOffTimeRequestsResponse, GetOffTimeCostsResponse, GetUserShiftsResponse, GetVacationCreditsLeftResponse, GetWorkTimeResponse, OffTimeCostSummary, OffTimeEntry, PlannedShift, UserVacationSum, WorkShift, WorkTime, WorkTimeAnalysis } from "@tierklinik-dobersberg/apis/roster/v1";
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { CALENDAR_SERVICE, HOLIDAY_SERVICE, OFFTIME_SERVICE, ROSTER_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { HeaderTitleService } from 'src/app/layout/header-title';

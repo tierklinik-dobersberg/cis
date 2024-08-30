@@ -1,6 +1,6 @@
 import { effect, inject, Injectable } from '@angular/core';
 import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
-import { Profile } from '@tierklinik-dobersberg/apis';
+import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
 import {
   Observable,
   OperatorFunction

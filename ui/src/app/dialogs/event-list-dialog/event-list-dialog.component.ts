@@ -1,72 +1,65 @@
 import { DatePipe } from '@angular/common';
 import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    effect,
-    inject,
-    model,
-    signal,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  model,
+  signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Timestamp } from '@bufbuild/protobuf';
 import { Code, ConnectError } from '@connectrpc/connect';
 import {
-    lucideArrowLeft,
-    lucideArrowRight,
-    lucideCalendar,
+  lucideArrowLeft,
+  lucideArrowRight,
+  lucideCalendar,
 } from '@ng-icons/lucide';
 import {
-    BrnDialogRef,
-    injectBrnDialogContext,
+  BrnDialogRef,
+  injectBrnDialogContext,
 } from '@spartan-ng/ui-dialog-brain';
 import {
-    injectUserProfiles
+  injectUserProfiles
 } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { HlmCheckboxModule } from '@tierklinik-dobersberg/angular/checkbox';
 import {
-    injectCalendarService,
-    injectRosterService
+  injectCalendarService,
+  injectRosterService
 } from '@tierklinik-dobersberg/angular/connect';
 import {
-    HlmDialogDescriptionDirective,
-    HlmDialogFooterComponent,
-    HlmDialogHeaderComponent,
-    HlmDialogService,
-    HlmDialogTitleDirective,
+  HlmDialogDescriptionDirective,
+  HlmDialogFooterComponent,
+  HlmDialogHeaderComponent,
+  HlmDialogService,
+  HlmDialogTitleDirective,
 } from '@tierklinik-dobersberg/angular/dialog';
 import {
-    HlmIconModule,
-    provideIcons,
+  HlmIconModule,
+  provideIcons,
 } from '@tierklinik-dobersberg/angular/icon';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import {
-    DisplayNamePipe,
-    DurationPipe,
+  DisplayNamePipe,
+  DurationPipe,
 } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
-import {
-    Calendar,
-    CalendarEvent,
-    EventSource,
-    GetUserShiftsResponse,
-    ListEventsRequest,
-    ListEventsResponse,
-    PlannedShift
-} from '@tierklinik-dobersberg/apis';
-import { TimeRange } from '@tierklinik-dobersberg/apis/gen/es/tkd/common/v1/time_range_pb';
+import { Calendar, CalendarEvent, EventSource, ListEventsRequest, ListEventsResponse } from '@tierklinik-dobersberg/apis/calendar/v1';
+import { GetUserShiftsResponse, PlannedShift } from '@tierklinik-dobersberg/apis/roster/v1';
 import { endOfDay, startOfDay } from 'date-fns';
 import { toast } from 'ngx-sonner';
 import { AppAvatarComponent } from 'src/app/components/avatar';
 import {
-    TkdDatePickerComponent,
-    TkdDatePickerInputDirective,
+  TkdDatePickerComponent,
+  TkdDatePickerInputDirective,
 } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
 import { AppEventListComponent } from 'src/app/components/event-list';
 import { getSeconds } from 'src/app/pages/calendar2/day-view/sort.pipe';
 import { getCalendarId } from 'src/app/services';
+import { toDateString } from 'src/app/utils';
 import { findCalendarHoles, mergePlannedShifts } from 'src/app/utils/calendar';
 import { sortCalendarEvents } from 'src/app/utils/calendar/sorting';
 import { injectLocalPlannedShifts } from 'src/app/utils/shifts';
@@ -161,6 +154,10 @@ export class EventListDialogComponent {
 
   protected readonly _computedEvents = computed<EventModel[]>(() => {
     const calendar = this.calendar();
+    // abort now if we still don't have any calendars
+    if (calendar === null) {
+      return [];
+    }
 
     const events = [...this.events()]
       .sort(sortCalendarEvents)
@@ -224,11 +221,8 @@ export class EventListDialogComponent {
 
     const req = new ListEventsRequest({
       searchTime: {
-        case: 'timeRange',
-        value: new TimeRange({
-          from: Timestamp.fromDate(startOfDay(date)),
-          to: Timestamp.fromDate(endOfDay(date)),
-        }),
+        case: 'date',
+        value: toDateString(date)
       },
     });
 

@@ -5,12 +5,14 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { lucideCalendar, lucideCircuitBoard, lucideCopyright, lucideFileAudio, lucideFilm, lucideHome, lucideLayers, lucidePhoneCall, lucidePlus, lucideTimer, lucideUserCircle } from '@ng-icons/lucide';
 import { BrnMenuModule } from '@spartan-ng/ui-menu-brain';
 import { BrnSheetComponent } from '@spartan-ng/ui-sheet-brain';
+import { injectVoiceMailService } from '@tierklinik-dobersberg/angular/connect';
 import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { HlmMenuModule } from '@tierklinik-dobersberg/angular/menu';
+import { Mailbox } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { filter } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { injectCurrentConfig, UIConfig, VoiceMailAPI } from '../../api';
+import { injectCurrentConfig, UIConfig } from '../../api';
 import { AppLogo } from './logo.component';
 import { MenuFixDirective } from './menu-fix.directive';
 
@@ -62,7 +64,7 @@ interface SubMenu {
 })
 export class AppNavigationComponent { 
   protected readonly layout = inject(LayoutService);
-  protected readonly voiceService = inject(VoiceMailAPI);
+  protected readonly voiceService = injectVoiceMailService();
   protected readonly config = injectCurrentConfig()
   protected readonly destroyRef = inject(DestroyRef);
   protected readonly sheetRef = inject(BrnSheetComponent, {optional: true})
@@ -70,7 +72,7 @@ export class AppNavigationComponent {
   
   protected readonly rootLinks = signal<MenuEntry[]>([]);
   protected readonly subMenus = signal<SubMenu[]>([]);
-  protected readonly mailboxes = signal<string[]>([]);
+  protected readonly mailboxes = signal<Mailbox[]>([]);
 
   public readonly sheet = input(false, { transform: booleanAttribute });
 
@@ -120,9 +122,7 @@ export class AppNavigationComponent {
 
     this.subMenus.set(Array.from(menus.values()));
 
-    this.voiceService.listMailboxes()
-      .subscribe((mailboxes) => {
-        this.mailboxes.set(mailboxes);
-      });
+    this.voiceService.listMailboxes({})
+      .then(response => this.mailboxes.set(response.mailboxes))
   }
 }

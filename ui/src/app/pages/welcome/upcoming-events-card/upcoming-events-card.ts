@@ -9,6 +9,7 @@ import {
   model,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Timestamp } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
@@ -28,16 +29,12 @@ import {
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { DisplayNamePipe, DurationPipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
-import {
-  Calendar,
-  CalendarEvent,
-  GetWorkingStaffResponse,
-  ListEventsResponse,
-  PlannedShift,
-} from '@tierklinik-dobersberg/apis';
-import { TimeRange } from '@tierklinik-dobersberg/apis/gen/es/tkd/common/v1/time_range_pb';
+import { Calendar, CalendarChangeEvent, CalendarEvent, ListEventsResponse } from '@tierklinik-dobersberg/apis/calendar/v1';
+import { TimeRange } from '@tierklinik-dobersberg/apis/common/v1';
+import { GetWorkingStaffResponse, PlannedShift } from '@tierklinik-dobersberg/apis/roster/v1';
 import { endOfDay, startOfDay } from 'date-fns';
 import { toast } from 'ngx-sonner';
+import { debounceTime } from 'rxjs';
 import {
   TkdDatePickerComponent,
   TkdDatePickerInputDirective,
@@ -45,6 +42,8 @@ import {
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
 import { AppEventListComponent } from 'src/app/components/event-list';
 import { getCalendarId } from 'src/app/services';
+import { EventService } from 'src/app/services/event.service';
+import { toDateString } from 'src/app/utils';
 import { findCalendarHoles, mergePlannedShifts } from 'src/app/utils/calendar';
 import { injectLocalPlannedShifts } from 'src/app/utils/shifts';
 import { SharedModule } from '../../../shared/shared.module';
@@ -129,9 +128,9 @@ export class UpcomingEventsCardComponent {
       const merged = mergePlannedShifts(userShifts);
       const userEvents = events.filter(e => e.calendarId === calendarId)
 
+      let i = 0;
       merged.forEach(range => {
         const userBreaks = findCalendarHoles(range.from.toDate(), range.to.toDate(), userEvents);
-        let i = 0;
 
         userBreaks.forEach(b => {
           breaks.push(new EventModel(
@@ -188,10 +187,17 @@ export class UpcomingEventsCardComponent {
       { allowSignalWrites: true }
     );
 
-    const interval = setInterval(() => this.load(), 10000)
+    inject(EventService)
+      .listen([new CalendarChangeEvent])
+      .pipe(takeUntilDestroyed(), debounceTime(1000))
+      .subscribe(() => this.load())
+
+    const interval = setInterval(() => this.load(), 1000 * 60 * 10) // reload every 10 minutes
     inject(DestroyRef)
       .onDestroy(() => clearInterval(interval))
   }
+
+  private _lastListEventsResponse: ListEventsResponse | null;
 
   protected load() {
     const date = this.calendarDate();
@@ -215,13 +221,23 @@ export class UpcomingEventsCardComponent {
 
         return new GetWorkingStaffResponse();
       })
-      .then(response => this.shifts.set(response.currentShifts));
+      .then(response => {
+        const newResponse = new GetWorkingStaffResponse({currentShifts: response.currentShifts});
+        const oldResponse = new GetWorkingStaffResponse({currentShifts: this.shifts()})
+
+        if (newResponse.equals(oldResponse)) {
+          console.log("not updating shifts, responses are equal")
+          return
+        }
+
+        this.shifts.set(response.currentShifts)
+      });
 
     this.calendarService
       .listEvents({
         searchTime: {
-          case: 'timeRange',
-          value: range,
+          case: 'date',
+          value: toDateString(date),
         },
         source: {
           case: 'allCalendars',
@@ -236,6 +252,15 @@ export class UpcomingEventsCardComponent {
         return new ListEventsResponse();
       })
       .then(response => {
+
+        if (response.equals(this._lastListEventsResponse)) {
+          console.log("list event response unchanged")
+          return
+        }
+        console.log("changed calendar list response", response, this._lastListEventsResponse)
+        
+        this._lastListEventsResponse = response;
+
         const events: CalendarEvent[] = [];
         const calendars: Calendar[] = [];
 

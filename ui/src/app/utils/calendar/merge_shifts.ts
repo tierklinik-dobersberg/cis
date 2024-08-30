@@ -1,6 +1,6 @@
 import { sortProtoTimestamps } from '@tierklinik-dobersberg/angular/behaviors';
-import { PlannedShift } from '@tierklinik-dobersberg/apis';
-import { TimeRange } from '@tierklinik-dobersberg/apis/gen/es/tkd/common/v1/time_range_pb';
+import { TimeRange } from '@tierklinik-dobersberg/apis/common/v1';
+import { PlannedShift } from '@tierklinik-dobersberg/apis/roster/v1';
 import { isAfter, isBefore } from 'date-fns';
 import { isBetween } from '../date';
 

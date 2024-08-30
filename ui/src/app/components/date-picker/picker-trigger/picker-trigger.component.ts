@@ -93,7 +93,7 @@ export class TkdDatePickerTriggerComponent {
             return;
         }
 
-        const newDate = addDays(value[0], days)
+        const newDate = addDays(value, days)
         this.picker.writeValue(newDate)
         this.picker.apply();
     }

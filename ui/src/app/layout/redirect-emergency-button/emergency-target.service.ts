@@ -1,25 +1,40 @@
-import { inject, Injectable, signal } from "@angular/core";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { effect, inject, Injectable, signal } from "@angular/core";
 import { Timestamp } from "@bufbuild/protobuf";
 import { Code, ConnectError } from "@connectrpc/connect";
 import { BrnDialogRef } from "@spartan-ng/ui-dialog-brain";
 import { injectCallService } from "@tierklinik-dobersberg/angular/connect";
 import { HlmDialogService } from "@tierklinik-dobersberg/angular/dialog";
-import { GetOverwriteResponse, Overwrite } from "@tierklinik-dobersberg/apis";
+import { GetOverwriteResponse, OnCallChangeEvent, Overwrite } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
 import { toast } from "ngx-sonner";
-import { interval, startWith } from "rxjs";
+import { EventService } from "src/app/services/event.service";
 
 @Injectable({providedIn: 'root'})
 export class EmergencyTargetService {
   private readonly callService = injectCallService();
   private readonly dialogService = inject(HlmDialogService)
   private readonly _target = signal<Overwrite | null>(null)
+
   public readonly target = this._target.asReadonly();
+
+  private readonly _update = signal<Date>(new Date());
+  public readonly shouldUpdate = this._update.asReadonly();
+
+  private eventService = inject(EventService);
   
   constructor() {
-    interval(10000)
-      .pipe(startWith(0), takeUntilDestroyed())
-      .subscribe(() => this.load())
+    // only ever load the current overwrite if we got a
+    // OnCallChangeEvent
+    this.eventService
+      .listen([new OnCallChangeEvent])
+      .subscribe(event => {
+        console.log("recieved OnCallChangeEvent, fetching active overwrite")
+        this._update.set(new Date())
+      })
+
+    effect(() => {
+      this._update();
+      this.load();
+    })
   }
 
   createRedirect(): Promise<BrnDialogRef> {

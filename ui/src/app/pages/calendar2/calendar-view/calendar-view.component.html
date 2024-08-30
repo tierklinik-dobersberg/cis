@@ -86,7 +86,7 @@
     let-calendar="calendar">
     @if (!event.isShiftType) {
       <div
-        class="event-container h-full w-full transform overflow-hidden rounded-md drop-shadow hover:rounded-none hover:shadow-lg hover:outline-dotted hover:outline-4 hover:-outline-offset-[3px] hover:outline-white">
+        class="event-container h-full w-full transform overflow-hidden drop-shadow hover:bg-blend-difference hover:shadow-lg">
         <div
           [userColorVars]="calendar.id | byCalendarId: profiles()"
           class="event-details h-full w-full cursor-pointer overflow-hidden border border-[var(--user-contrast)] bg-[var(--user-color,white)] p-2 text-xs text-[var(--user-contrast)]">

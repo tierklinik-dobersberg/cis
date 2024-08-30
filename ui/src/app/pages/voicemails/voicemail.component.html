@@ -2,33 +2,79 @@
   <div hlmCardHeader class="flex-col justify-between sm:flex-row">
     <div class="space-y-1.5">
       <h3 hlmCardTitle>
-        {{ mailbox() }}
+        {{ mailbox()?.displayName }}
       </h3>
-      <p hlmCardDescription>Aufnahmen in der Voice-Mail "{{ mailbox() }}"</p>
+      <p hlmCardDescription>
+        Aufnahmen in der Voice-Mail "{{ mailbox()?.displayName }}"
+      </p>
     </div>
 
     <div class="">
-      <tkd-date-picker mode="single" [(ngModel)]="date" allowClear="true">
-        <tkd-picker-trigger *datePickerInput />
+      <tkd-date-picker
+        mode="range"
+        allowOpenRange="true"
+        [(ngModel)]="dateRange"
+        class="block w-80"
+        allowClear="true">
       </tkd-date-picker>
     </div>
   </div>
 
+  <audio #audioElement class="hidden"></audio>
+
   <div hlmCardHeader>
     <hlm-table>
       <hlm-trow>
-        <hlm-th class="w-16"> Zeit </hlm-th>
-        <hlm-th class="w-96"> Kunde / Anrufer </hlm-th>
+        <hlm-th class="w-16"></hlm-th>
+        <hlm-th class="w-32 items-center justify-center"> Status </hlm-th>
+        <hlm-th class="w-36"> Zeit </hlm-th>
+        <hlm-th class="flex-1"> Kunde / Anrufer </hlm-th>
       </hlm-trow>
 
-      @for (data of recordings(); track data._id) {
+      @for (data of recordings(); track data.id) {
         <hlm-trow>
           <hlm-td class="w-16">
-            {{ data.localDate | date: 'short' }}
+            <button
+              hlmBtn
+              variant="ghost"
+              size="icon"
+              (click)="playRecording(data, audioElement)">
+              <hlm-icon name="lucidePlayCircle" />
+            </button>
           </hlm-td>
 
-          <hlm-td class="w-96">
-            {{ data.from }}
+          <hlm-td class="w-32 items-center justify-center">
+            @if (!data.seenTime) {
+              <label hlmBadge variant="default"> Neu </label>
+            } @else {
+              <hlm-tooltip>
+                <label hlmBadge variant="outline" hlmTooltipTrigger>
+                  Gesehen
+                </label>
+                <span *brnTooltipContent hlm>
+                  {{ data.seenTime | toDate | date: 'short' }}
+                </span>
+              </hlm-tooltip>
+            }
+          </hlm-td>
+
+          <hlm-td class="w-36">
+            {{ data.receiveTime | toDate | date: 'short' }}
+          </hlm-td>
+
+          <hlm-td class="flex-1">
+            @switch (data.caller.case) {
+              @case ('customer') {
+                {{ data.caller.value.lastName }}
+                {{ data.caller.value.firstName }}
+              }
+              @case ('number') {
+                {{ data.caller.value }}
+              }
+              @default {
+                N/A
+              }
+            }
           </hlm-td>
         </hlm-trow>
       }

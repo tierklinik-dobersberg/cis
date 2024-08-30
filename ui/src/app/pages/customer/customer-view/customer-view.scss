@@ -4,14 +4,6 @@
   @apply block;
 }
 
-.chart-container {
-  height    : 20vh;
-  min-height: 100px;
-
-  @include for-phone-only {
-    display: none;
-  }
-}
 
 fieldset {
   min-width: 150px;

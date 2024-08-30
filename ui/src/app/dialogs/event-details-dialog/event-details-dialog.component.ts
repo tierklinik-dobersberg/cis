@@ -21,7 +21,7 @@ import { HlmSelectModule } from "@tierklinik-dobersberg/angular/select";
 import { HlmTableComponent, HlmTdComponent, HlmThComponent, HlmTrowComponent } from '@tierklinik-dobersberg/angular/table';
 import { Duration } from "@tierklinik-dobersberg/angular/utils/date";
 import { DurationValidatorDirective } from "@tierklinik-dobersberg/angular/validators";
-import { Calendar, CalendarEvent, CreateEventRequest, MoveEventRequest, UpdateEventRequest, UpdateEventResponse } from "@tierklinik-dobersberg/apis";
+import { Calendar, CalendarEvent, CreateEventRequest, MoveEventRequest, UpdateEventRequest, UpdateEventResponse } from "@tierklinik-dobersberg/apis/calendar/v1";
 import { Markdown } from "ckeditor5";
 import { addSeconds } from "date-fns";
 import { toast } from "ngx-sonner";
@@ -219,20 +219,22 @@ export class AppEventDetailsDialogComponent implements OnInit {
             req.end = Timestamp.fromDate( addSeconds(this.startTime(), duration ) )
             req.updateMask.paths.push('end')
         }
-        
-        const response = await this._calendarService
-            .updateEvent(req)
-            .catch(err => {
-                toast.error('Termin konnte nicht gespeichert werden', {
-                    description: ConnectError.from(err).message,
+
+        if (req.updateMask.paths.length > 0) {
+            const response = await this._calendarService
+                .updateEvent(req)
+                .catch(err => {
+                    toast.error('Termin konnte nicht gespeichert werden', {
+                        description: ConnectError.from(err).message,
+                    })
+                    
+                    return new UpdateEventResponse({
+                        event: this.event,
+                    })
                 })
                 
-                return new UpdateEventResponse({
-                    event: this.event,
-                })
-            })
-            
-        this.event = response.event;
+            this.event = response.event;
+        }
         
         if (this.event.calendarId !== this.calendarId()) {
             const response = await this._calendarService

@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { OffTimeEntry } from '@tierklinik-dobersberg/apis';
+import { OffTimeEntry } from '@tierklinik-dobersberg/apis/roster/v1';
 
 @Pipe({
   name: 'matchingOfftime',

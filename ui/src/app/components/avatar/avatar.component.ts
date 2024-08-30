@@ -4,7 +4,7 @@ import { hlm } from '@spartan-ng/ui-core';
 import { avatarVariants, HlmAvatarModule } from '@tierklinik-dobersberg/angular/avatar';
 import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
 import { DisplayNamePipe, ToUserPipe, UserAvatarPipe, UserLetterPipe } from "@tierklinik-dobersberg/angular/pipes";
-import { Profile } from "@tierklinik-dobersberg/apis";
+import { Profile } from "@tierklinik-dobersberg/apis/idm/v1";
 import type { VariantProps } from 'class-variance-authority';
 import { type ClassArray, type ClassValue, clsx } from 'clsx';
 import { UserColorVarsDirective } from "../user-color-vars";

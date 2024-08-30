@@ -9,10 +9,8 @@ import (
 var globalConfigFile = conf.FileSpec{
 	"Global": confutil.MultiOptionRegistry{
 		cfgspec.ConfigSpec,
-		cfgspec.DatabaseSpec,
 	},
-	"InfoScreen": cfgspec.InfoScreenConfigSpec,
-	"CORS":       CORSSpec,
+	"CORS": CORSSpec,
 }
 
 // CORSSpec defines the specification for parsing into CORS.

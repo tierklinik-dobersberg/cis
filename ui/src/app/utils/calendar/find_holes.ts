@@ -1,5 +1,5 @@
 import { Duration } from '@bufbuild/protobuf';
-import { CalendarEvent } from '@tierklinik-dobersberg/apis';
+import { CalendarEvent } from '@tierklinik-dobersberg/apis/calendar/v1';
 import { getSeconds } from 'src/app/pages/calendar2/day-view/sort.pipe';
 import { isBetween } from '../date';
 

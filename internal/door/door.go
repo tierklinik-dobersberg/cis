@@ -14,7 +14,6 @@ import (
 	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/cis/runtime"
-	"github.com/tierklinik-dobersberg/cis/runtime/mqtt"
 	"github.com/tierklinik-dobersberg/cis/runtime/session"
 	"go.opentelemetry.io/otel"
 )
@@ -85,8 +84,6 @@ type Controller struct {
 	// Whether or not a door reset is currently in progress.
 	resetInProgress *abool.AtomicBool
 
-	mqttConnectionManager *mqtt.ConnectionManager
-
 	// wg is used to wait for door controller operations to finish.
 	wg sync.WaitGroup
 
@@ -98,14 +95,13 @@ type Controller struct {
 }
 
 // NewDoorController returns a new door controller.
-func NewDoorController(ctx context.Context, ohCtrl *openinghours.Controller, cs *runtime.ConfigSchema, mqttConnectionManager *mqtt.ConnectionManager) (*Controller, error) {
+func NewDoorController(ctx context.Context, ohCtrl *openinghours.Controller, cs *runtime.ConfigSchema) (*Controller, error) {
 	dc := &Controller{
-		Controller:            ohCtrl,
-		stop:                  make(chan struct{}),
-		reset:                 make(chan *struct{}),
-		resetInProgress:       abool.NewBool(false),
-		mqttConnectionManager: mqttConnectionManager,
-		door:                  NoOp{},
+		Controller:      ohCtrl,
+		stop:            make(chan struct{}),
+		reset:           make(chan *struct{}),
+		resetInProgress: abool.NewBool(false),
+		door:            NoOp{},
 	}
 
 	cs.AddNotifier(dc, "Door")
@@ -141,15 +137,6 @@ func (dc *Controller) Validate(ctx context.Context, sec runtime.Section) error {
 	}
 
 	switch cfg.Type {
-	case "mqtt":
-		cli, err := dc.mqttConnectionManager.Client(ctx, cfg.ConnectionName)
-		if err != nil {
-			return err
-		}
-		defer cli.Release()
-
-		return nil
-
 	case "shelly-script":
 		if cfg.ShellyScriptURL == "" {
 			return fmt.Errorf("ShellScriptURL must be configured")
@@ -183,18 +170,6 @@ func (dc *Controller) NotifyChange(ctx context.Context, changeType, id string, s
 		}
 
 		switch cfg.Type {
-		case "mqtt":
-			cli, err := dc.mqttConnectionManager.Client(ctx, cfg.ConnectionName)
-			if err != nil {
-				return err
-			}
-
-			interfacer, err := NewMqttDoor(cli, cfg)
-			if err != nil {
-				return err
-			}
-			dc.door = interfacer
-
 		case "shelly-script":
 			dc.door = &ShellyScriptDoor{
 				url: cfg.ShellyScriptURL,
@@ -249,8 +224,6 @@ func (dc *Controller) Lock(ctx context.Context) error {
 	ctx, sp := otel.Tracer("").Start(ctx, "door.Controller.Lock")
 	defer sp.End()
 
-	eventDoorLock.Fire(ctx, nil)
-
 	dc.wg.Add(1)
 	defer dc.wg.Done()
 
@@ -269,8 +242,6 @@ func (dc *Controller) Unlock(ctx context.Context) error {
 	ctx, sp := otel.Tracer("").Start(ctx, "door.Controller.Unlock")
 	defer sp.End()
 
-	eventDoorUnlock.Fire(ctx, nil)
-
 	dc.wg.Add(1)
 	defer dc.wg.Done()
 
@@ -288,8 +259,6 @@ func (dc *Controller) Unlock(ctx context.Context) error {
 func (dc *Controller) Open(ctx context.Context) error {
 	ctx, sp := otel.Tracer("").Start(ctx, "door.Controller.Open")
 	defer sp.End()
-
-	eventDoorOpen.Fire(ctx, nil)
 
 	dc.wg.Add(1)
 	defer dc.wg.Done()

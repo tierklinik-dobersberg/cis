@@ -2,7 +2,6 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
@@ -35,7 +34,6 @@ import { CustomerViewComponent } from './customer-view';
     NzGridModule,
     NzPopoverModule,
     NzSwitchModule,
-    NgxChartsModule,
     ScrollingModule,
     CustomerRoutingModule,
     SharedModule,

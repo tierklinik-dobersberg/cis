@@ -59,6 +59,14 @@
           {{ event.summary }}
         </span>
 
+        @if (layout.md()) {
+          @if (event.profile) {
+            <app-avatar [user]="event.profile" />
+          } @else {
+            <span>{{ event.calendar.name }} </span>
+          }
+        }
+
         <span
           class="absolute bottom-0 right-0 top-0 block h-full w-[4px] bg-[var(--user-color,transparent)]"></span>
       </li>

@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from "@angular/core";
-import { WorkShift } from "@tierklinik-dobersberg/apis";
+import { WorkShift } from "@tierklinik-dobersberg/apis/roster/v1";
 
 @Pipe({
     name: 'workshift',

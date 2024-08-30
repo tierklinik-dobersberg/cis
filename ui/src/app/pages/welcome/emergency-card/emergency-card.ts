@@ -27,11 +27,7 @@ import {
 } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSeparatorDirective } from '@tierklinik-dobersberg/angular/separator';
 import { HlmSkeletonComponent } from '@tierklinik-dobersberg/angular/skeleton';
-import {
-  GetOnCallResponse,
-  InboundNumber,
-  ListInboundNumberResponse,
-} from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
+import { GetOnCallResponse, InboundNumber, ListInboundNumberResponse } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { toast } from 'ngx-sonner';
 import { CALL_SERVICE } from 'src/app/api/connect_clients';
@@ -118,7 +114,9 @@ export class EmergencyCardComponent {
     // Trigger a reload if the emergecy service reloaded
     effect(
       () => {
-        this.emergencyService.target();
+        this.emergencyService.shouldUpdate();
+
+        console.log("on-call-change event occured, reloading on-call")
         this.tick.set(new Date().getTime());
       },
       { allowSignalWrites: true }

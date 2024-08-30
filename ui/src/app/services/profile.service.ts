@@ -1,6 +1,6 @@
 import { computed } from '@angular/core';
 import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
-import { Profile, User } from '@tierklinik-dobersberg/apis';
+import { Profile, User } from '@tierklinik-dobersberg/apis/idm/v1';
 import { environment } from 'src/environments/environment';
 
 export enum UserExtraKey {

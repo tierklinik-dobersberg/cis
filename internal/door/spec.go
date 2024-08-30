@@ -3,11 +3,9 @@ package door
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/runtime"
-	"github.com/tierklinik-dobersberg/cis/runtime/mqtt"
 )
 
 var (
@@ -18,11 +16,6 @@ var (
 type DoorConfig struct {
 	Type            string
 	ShellyScriptURL string
-	ConnectionName  string
-	CommandTopic    string
-	CommandPayload  string
-	ResponseTopic   string
-	Timeout         time.Duration
 }
 
 var Spec = conf.SectionSpec{
@@ -34,10 +27,6 @@ var Spec = conf.SectionSpec{
 		Type:        conf.StringType,
 		Annotations: new(conf.Annotation).With(
 			runtime.OneOf(
-				runtime.PossibleValue{
-					Display: "MQTT",
-					Value:   "mqtt",
-				},
 				runtime.PossibleValue{
 					Display: "Shelly Pro 2 (provided script)",
 					Value:   "shelly-script",
@@ -54,41 +43,6 @@ var Spec = conf.SectionSpec{
 		Type:        conf.StringType,
 		Description: "The URL to start the provided shelly script. Used only if Type is set to Shelly Pro 2",
 		Default:     "http://localhost/scripts/1/door",
-	},
-	{
-		Name:        "ConnectionName",
-		Type:        conf.StringType,
-		Description: "The name of the MQTT connection.",
-		Annotations: new(conf.Annotation).With(
-			runtime.OneOfRef("MQTT", "Name", "Name"),
-		),
-	},
-	{
-		Name:        "CommandTopic",
-		Type:        conf.StringType,
-		Description: "The MQTT topic to publish the command to.",
-		Default:     "cliny/rpc/service/door/${command}",
-	},
-	{
-		Name:        "CommandPayload",
-		Type:        conf.StringType,
-		Description: "The payload to publish to the command topic",
-		Default:     `{"replyTo": "${responseTopic}", "command": "${command}"}`,
-		Annotations: new(conf.Annotation).With(
-			runtime.StringFormat("text/plain"),
-		),
-	},
-	{
-		Name:        "ResponseTopic",
-		Type:        conf.StringType,
-		Description: "If a response is expected, this should be set to the topic which receives the response",
-		Default:     "cliny/rpc/response/${uuid}",
-	},
-	{
-		Name:        "Timeout",
-		Type:        conf.DurationType,
-		Description: "The maximum amount of time to wait for a response.",
-		Default:     "2s",
 	},
 }
 
@@ -163,8 +117,6 @@ func addDoorSchema(runtimeConfig *runtime.ConfigSchema) error {
 }
 
 func getTestDoor(ctx context.Context, cs *runtime.ConfigSchema, config []conf.Option) (Interfacer, error) {
-	connectionManager := mqtt.NewConnectionManager(cs)
-
 	var cfg DoorConfig
 	if err := conf.DecodeSections(
 		conf.Sections{
@@ -180,18 +132,6 @@ func getTestDoor(ctx context.Context, cs *runtime.ConfigSchema, config []conf.Op
 	}
 
 	switch cfg.Type {
-	case "mqtt":
-		cli, err := connectionManager.ClientWithRandomID(ctx, cfg.ConnectionName)
-		if err != nil {
-			return nil, err
-		}
-
-		door, err := NewMqttDoor(cli, cfg)
-		if err != nil {
-			return nil, err
-		}
-
-		return door, nil
 
 	case "shelly-script":
 		door := &ShellyScriptDoor{

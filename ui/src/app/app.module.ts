@@ -13,7 +13,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { Code, ConnectError } from '@connectrpc/connect';
 import {
-    TkdConnectModule
+  TkdConnectModule
 } from '@tierklinik-dobersberg/angular/connect';
 import { Breakpoints } from '@tierklinik-dobersberg/tailwind/breakpoints';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
@@ -26,7 +26,6 @@ import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { NgChartsModule } from 'ng2-charts';
 import { MarkdownModule } from 'ngx-markdown';
 import { TimeagoModule } from 'ngx-timeago';
 import { environment } from '../environments/environment';
@@ -43,8 +42,8 @@ import { provideBreakpoints } from '@tierklinik-dobersberg/angular/layout';
 import { HlmToasterModule } from '@tierklinik-dobersberg/angular/sonner';
 import { AppHeaderComponent } from './layout';
 import {
-    AppNavigationComponent,
-    AppSheetNavigationComponent,
+  AppNavigationComponent,
+  AppSheetNavigationComponent,
 } from './layout/navigation';
 
 registerLocaleData(de);
@@ -73,7 +72,6 @@ registerLocaleData(de);
     RouterModule,
     LayoutModule,
     TimeagoModule.forRoot(),
-    NgChartsModule,
     CKEditorModule,
     PlatformModule,
     HlmToasterModule,

@@ -1,4 +1,4 @@
-import { DatePipe } from "@angular/common";
+import { DatePipe, JsonPipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from "@angular/core";
 import { PartialMessage } from "@bufbuild/protobuf";
 import { lucidePhone, lucidePhoneCall, lucidePhoneForwarded, lucidePhoneIncoming, lucidePhoneMissed, lucidePhoneOutgoing } from "@ng-icons/lucide";
@@ -14,8 +14,8 @@ import { DurationPipe, ToDatePipe, ToUserPipe } from "@tierklinik-dobersberg/ang
 import { HlmSeparatorDirective } from "@tierklinik-dobersberg/angular/separator";
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
 import { HlmTabsModule } from "@tierklinik-dobersberg/angular/tabs";
-import { CallEntry } from "@tierklinik-dobersberg/apis";
-import { Customer } from "@tierklinik-dobersberg/apis/gen/es/tkd/customer/v1/customer_pb";
+import { Customer } from "@tierklinik-dobersberg/apis/customer/v1";
+import { CallEntry } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
 import { injectCurrentConfig } from "src/app/api";
 import { AppAvatarComponent } from "src/app/components/avatar";
 
@@ -48,7 +48,9 @@ const contentClass =
         DatePipe,
         DurationPipe,
         ToUserPipe,
-        AppAvatarComponent
+        AppAvatarComponent,
+        HlmTabsModule,
+        JsonPipe,
     ],
     providers: [
         ...provideIcons({
@@ -84,6 +86,8 @@ export class CallDetailsDialogComponent implements OnInit {
         return (config.KnownPhoneExtension || [])
             .find(e => e.ExtensionNumber === this.record.transferTarget);
     })
+
+    protected readonly details = this.record.toJson();
 
     protected phoneIcon = (() => {
         const type = this.record.callType;

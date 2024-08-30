@@ -12,7 +12,7 @@ import { HlmLabelModule } from "@tierklinik-dobersberg/angular/label";
 import { HlmSelectModule } from "@tierklinik-dobersberg/angular/select";
 import { HlmSeparatorModule } from "@tierklinik-dobersberg/angular/separator";
 import { HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
-import { OffTimeEntry } from "@tierklinik-dobersberg/apis";
+import { OffTimeEntry } from "@tierklinik-dobersberg/apis/roster/v1";
 import { AppAvatarComponent } from "src/app/components/avatar";
 import { TkdDatePickerComponent } from "src/app/components/date-picker";
 import { SelectUserValueComponent } from "src/app/components/select-user-value";

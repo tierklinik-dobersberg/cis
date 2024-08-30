@@ -2,9 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ConnectError } from '@connectrpc/connect';
-import { ScaleType } from '@swimlane/ngx-charts';
-import { Color } from '@swimlane/ngx-charts/lib/utils/color-sets';
-import { CallEntry, GetLogsForCustomerResponse } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
+import { CallEntry, GetLogsForCustomerResponse } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BehaviorSubject, combineLatest, forkJoin, of, Subscription } from 'rxjs';
 import { catchError, mergeMap } from 'rxjs/operators';
@@ -54,20 +52,6 @@ export class CustomerViewComponent implements OnInit, OnDestroy {
   // options
   xAxisLabel = 'Tag';
   yAxisLabel = 'Anrufe';
-
-  lineScheme: Color = {
-    name: 'group',
-    group: ScaleType.Linear,
-    selectable: false,
-    domain: ['#5AA454', '#E44D25', '#CFC0BB', '#7aa3e5', '#a8385d', '#aae3f5']
-  };
-
-  areaScheme: Color = {
-    name: 'group',
-    group: ScaleType.Linear,
-    selectable: false,
-    domain: ['#5AA45410', '#A10A2850']
-  }
 
   ngOnInit(): void {
     this.subscriptions = new Subscription();

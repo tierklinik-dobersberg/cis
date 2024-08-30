@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
-import { ComputerAccountGuard } from './guards';
 import { NotAllowedComponent } from './pages/not-allowed';
 
 const routes: Routes = [
@@ -13,7 +12,7 @@ const routes: Routes = [
   { path: 'voicemail/:name', loadComponent: () => import('./pages/voicemails/voicemail.component').then(m => m.VoiceMailComponent) },
   { path: 'calendar', loadComponent: () => import('./pages/calendar2/calendar-view/calendar-view.component').then(m => m.TkdCalendarViewComponent) },
   { path: 'roster', loadChildren: () => import('./pages/roster/roster.module').then(m => m.RosterModule) },
-  { canActivate: [ComputerAccountGuard], path: 'offtime', loadChildren: () => import('./pages/offtime/offtime-routes').then(m => m.OFFTIME_ROUTES) },
+  { path: 'offtime', loadChildren: () => import('./pages/offtime/offtime-routes').then(m => m.OFFTIME_ROUTES) },
   { path: 'not-allowed', component: NotAllowedComponent },
   { path: '**', redirectTo: '/' },
 ];

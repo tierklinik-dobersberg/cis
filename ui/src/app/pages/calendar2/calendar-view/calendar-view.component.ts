@@ -38,13 +38,9 @@ import {
   UserContrastColorPipe,
 } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
-import {
-  CalendarEvent,
-  Calendar as PbCalendar,
-  PlannedShift,
-  Profile,
-  WorkShift,
-} from '@tierklinik-dobersberg/apis';
+import { CalendarChangeEvent, CalendarEvent, ListEventsResponse, Calendar as PbCalendar } from '@tierklinik-dobersberg/apis/calendar/v1';
+import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
+import { PlannedShift, WorkShift } from '@tierklinik-dobersberg/apis/roster/v1';
 import {
   endOfDay,
   getMinutes,
@@ -57,6 +53,7 @@ import {
 import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import {
+  debounceTime,
   filter,
   map
 } from 'rxjs';
@@ -65,6 +62,7 @@ import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/pi
 import { UserColorVarsDirective } from 'src/app/components/user-color-vars';
 import { ByCalendarIdPipe } from 'src/app/pipes/by-calendar-id.pipe';
 import { getCalendarId } from 'src/app/services';
+import { EventService } from 'src/app/services/event.service';
 import { TkdDateInputModule } from 'src/app/shared/date-input';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { toDateString } from 'src/app/utils';
@@ -314,6 +312,11 @@ export class TkdCalendarViewComponent implements OnInit {
   private isFirstLoad = true;
 
   constructor() {
+    inject(EventService)
+      .listen([new CalendarChangeEvent])
+      .pipe(takeUntilDestroyed(), debounceTime(1000))
+      .subscribe(() => this.loadEvents(this.currentDate()))
+
     effect(() => {
       const date = this.currentDate();
 
@@ -342,6 +345,7 @@ export class TkdCalendarViewComponent implements OnInit {
     });
   }
 
+  private _lastLoadEventsResponse: ListEventsResponse | null = null;
   private loadEvents(date: Date) {
     this.calendarAPI
       .listEvents({
@@ -355,6 +359,12 @@ export class TkdCalendarViewComponent implements OnInit {
         },
       })
       .then(response => {
+        if (response.equals(this._lastLoadEventsResponse)) {
+          console.log("skipping update, nothing changed")
+          return
+        }
+        this._lastLoadEventsResponse = response;
+
         let events: CalEvent[] = [];
         response.results.forEach(eventList => {
           eventList.events.forEach(evt => {

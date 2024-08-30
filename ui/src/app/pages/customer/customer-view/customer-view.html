@@ -231,47 +231,6 @@
     </div>
   </nz-tab>
 
-  <nz-tab nzTitle="Anruf Journal">
-    <ng-template nz-tab>
-      <div class="mb-8 rounded bg-white p-12 shadow md:mb-12">
-        <div class="chart-container">
-          <ngx-charts-line-chart
-            [scheme]="lineScheme"
-            [legend]="true"
-            [showXAxisLabel]="true"
-            [showYAxisLabel]="true"
-            [xAxis]="true"
-            [yAxis]="true"
-            [xAxisLabel]="xAxisLabel"
-            [yAxisLabel]="yAxisLabel"
-            [timeline]="false"
-            [results]="callLogSeries">
-          </ngx-charts-line-chart>
-        </div>
-
-        <div class="chart-container">
-          <ngx-charts-heat-map
-            [results]="heatMapSeries"
-            [legend]="false"
-            xAxisLabel="Wochentag"
-            yAxisLabel="Uhrzeit"
-            [scheme]="areaScheme"
-            [showXAxisLabel]="true"
-            [showYAxisLabel]="true"
-            [xAxis]="true"
-            [yAxis]="true">
-          </ngx-charts-heat-map>
-        </div>
-      </div>
-
-      <!--
-      <app-calllog-table
-        [records]="callrecords"
-        class="block bg-white rounded shadow"></app-calllog-table>
-    -->
-    </ng-template>
-  </nz-tab>
-
   <nz-tab nzTitle="Erweitert">
     <ng-template nz-tab>
       <pre class="mb-8 rounded bg-white p-12 shadow md:mb-12">{{

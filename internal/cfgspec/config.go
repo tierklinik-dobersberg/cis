@@ -18,14 +18,6 @@ type Config struct {
 	TimeZone string
 	LogLevel string
 
-	// ConfigProvider defines the type of configuration provider
-	// that should be used by CIS.
-	ConfigProvider string
-
-	// IdentityBackend configures the backend type that should be
-	// used for user configuration.
-	IdentityBackend string
-
 	// Service is the name of the service. It's used when reporting
 	// metrics and traces.
 	Service string
@@ -46,10 +38,6 @@ type Config struct {
 	TrustedProxy              []string
 	PrometheusMetricsListener string
 	SameSite                  string
-
-	UnknownContactName   string
-	UnknownContactSource string
-	UnknownContactID     string
 
 	DefaultOpenBefore time.Duration
 	DefaultCloseAfter time.Duration
@@ -103,23 +91,6 @@ var ConfigSpec = conf.SectionSpec{
 		Default:     "UTC",
 	},
 	{
-		Name:        "UnknownContactName",
-		Description: "The name of the 'unknown' contact or the special value ${caller}",
-		Type:        conf.StringType,
-	},
-	{
-		Name:        "UnknownContactSource",
-		Description: "The 'customer-source' of the unknown contact",
-		Type:        conf.StringType,
-		Default:     "unknown",
-	},
-	{
-		Name:        "UnknownContactID",
-		Description: "The ID of the unknown contact",
-		Type:        conf.StringType,
-		Default:     "1",
-	},
-	{
 		Name:        "LogLevel",
 		Description: "The maximum log level that should be printed to console. Should either be a number or the special values 'trace' (7), 'debug' (6), 'info' (5), 'warn' (3) or 'error' (0)",
 		Type:        conf.StringType,
@@ -166,18 +137,6 @@ var ConfigSpec = conf.SectionSpec{
 		Description: "URL of the Jaeger server to which traces should be reported",
 		Type:        conf.StringType,
 		Default:     "",
-	},
-	{
-		Name:        "IdentityBackend",
-		Description: "The type of identity backend that should be used",
-		Default:     "file",
-		Type:        conf.StringType,
-	},
-	{
-		Name:        "ConfigProvider",
-		Description: "The type of configuration provider to use. Currently 'file' and 'mongo' are supported.",
-		Type:        conf.StringType,
-		Default:     "file",
 	},
 	{
 		Name:        "SameSite",

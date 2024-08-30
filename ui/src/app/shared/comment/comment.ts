@@ -6,7 +6,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { DisplayNamePipe, ToDatePipe, ToUserPipe } from '@tierklinik-dobersberg/angular/pipes';
-import { CommentTree } from '@tierklinik-dobersberg/apis';
+import { CommentTree } from '@tierklinik-dobersberg/apis/comment/v1';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { MarkdownModule } from 'ngx-markdown';
 import { COMMENT_SERVICE } from 'src/app/api/connect_clients';

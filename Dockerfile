@@ -1,20 +1,20 @@
 
 # Build the frontend
-FROM node:16 as builder
+FROM node:18 as builder
 ARG CONFIGURATION="production"
 ARG GITHUB_TOKEN
 
 WORKDIR /app/ui
 
-COPY ui/.npmrc ui/package.json ui/package-lock.json ./
+COPY ui/.npmrc ui/package.json ui/pnpm-lock.yaml ./
 RUN --mount=type=secret,id=github_token \
-  export GITHUB_TOKEN="$(cat /run/secrets/github_token)" && npm install
+  export GITHUB_TOKEN="$(cat /run/secrets/github_token)" && npx pnpm install && npx pnpm install pnpm
 
 RUN npx browserslist@latest --update-db
 
 COPY ./ui .
 RUN echo "Building frontend in configuration $CONFIGURATION"
-RUN npm run build-limited -- --configuration $CONFIGURATION && rm -r .angular/cache node_modules
+RUN npx ng build --configuration $CONFIGURATION && rm -r .angular/cache node_modules
 
 # Build cisd
 FROM golang:1.20 as build

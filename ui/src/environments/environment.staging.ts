@@ -1,6 +1,10 @@
 // This file can be replaced during build by using the `fileReplacements` array.
 // `ng build --prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
+import { createRegistry } from '@bufbuild/protobuf';
+import { CalendarChangeEvent } from '@tierklinik-dobersberg/apis/calendar/v1';
+import { OnCallChangeEvent, OverwriteCreatedEvent, OverwriteDeletedEvent, CallRecordReceived, VoiceMailReceivedEvent } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
+import { RosterChangedEvent } from '@tierklinik-dobersberg/apis/roster/v1';
 
 export const environment = {
   production: false,
@@ -10,7 +14,17 @@ export const environment = {
   calendarService: 'https://calendar.dobersberg.dev',
   callService: 'https://3cx-support.dobersberg.dev',
   commentService: 'https://comments.dobersberg.dev',
-  customerService: 'https://customer.dobersberg.dev'
+  customerService: 'https://customer.dobersberg.dev',
+  eventService: 'https://events.dobersberg.dev',
+  registry: createRegistry(
+    RosterChangedEvent,
+    OnCallChangeEvent,
+    OverwriteCreatedEvent,
+    OverwriteDeletedEvent,
+    CallRecordReceived,
+    VoiceMailReceivedEvent,
+    CalendarChangeEvent
+  )
 };
 
 /*

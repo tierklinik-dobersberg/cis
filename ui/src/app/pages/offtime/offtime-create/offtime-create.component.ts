@@ -19,7 +19,7 @@ import { DurationPipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
-import { GetVacationCreditsLeftResponse, OffTimeType, UserVacationSum } from "@tierklinik-dobersberg/apis";
+import { GetVacationCreditsLeftResponse, OffTimeType, UserVacationSum } from "@tierklinik-dobersberg/apis/roster/v1";
 import { CandyDate } from 'ng-zorro-antd/core/time';
 import { NzDatePickerModule } from "ng-zorro-antd/date-picker";
 import { NzSelectModule } from "ng-zorro-antd/select";

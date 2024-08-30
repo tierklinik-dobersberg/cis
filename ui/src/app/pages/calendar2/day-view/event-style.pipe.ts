@@ -73,10 +73,10 @@ export class EventStylePipe implements PipeTransform {
 
           // calculate style
           const style: any = {
-            top: this.secondsToPixel(event.from, factor) + 'px',
+            top: (round * 5 + this.secondsToPixel(event.from, factor)) + 'px',
             height: this.secondsToPixel(event.duration, factor) + 'px',
             right: '0px',
-            left: round * 10 + '%',
+            left: round * 25 + '%',
             zIndex: event.ignoreOverlapping ? 'unset' : (round + 1) * 5,
           };
           

@@ -18,8 +18,10 @@ import { DisplayNamePipe, ToDatePipe } from "@tierklinik-dobersberg/angular/pipe
 import { HlmSelectModule } from "@tierklinik-dobersberg/angular/select";
 import { HlmSeparatorDirective } from "@tierklinik-dobersberg/angular/separator";
 import { HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
-import { CreateOverwriteRequest, CustomOverwrite, GetWorkingStaffResponse, InboundNumber, ListInboundNumberResponse, PlannedShift, Profile } from "@tierklinik-dobersberg/apis";
-import { TimeRange } from "@tierklinik-dobersberg/apis/gen/es/tkd/common/v1/time_range_pb";
+import { TimeRange } from "@tierklinik-dobersberg/apis/common/v1";
+import { Profile } from "@tierklinik-dobersberg/apis/idm/v1";
+import { CreateOverwriteRequest, CustomOverwrite, InboundNumber, ListInboundNumberResponse } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
+import { GetWorkingStaffResponse, PlannedShift } from "@tierklinik-dobersberg/apis/roster/v1";
 import { endOfDay, isSameDay, startOfDay } from "date-fns";
 import { toast } from "ngx-sonner";
 import { injectCurrentConfig, QuickRosterOverwrite } from "src/app/api";

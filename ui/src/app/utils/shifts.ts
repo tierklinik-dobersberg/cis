@@ -1,7 +1,7 @@
 import { computed, signal, Signal } from "@angular/core";
 import { PartialMessage } from "@bufbuild/protobuf";
 import { injectWorkShiftService } from "@tierklinik-dobersberg/angular/connect";
-import { PlannedShift, WorkShift } from "@tierklinik-dobersberg/apis";
+import { PlannedShift, WorkShift } from "@tierklinik-dobersberg/apis/roster/v1";
 
 export class LocalPlannedShift extends PlannedShift {
     public readonly definition: WorkShift;

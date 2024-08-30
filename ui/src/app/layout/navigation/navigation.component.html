@@ -135,9 +135,9 @@
                     hlmMenuItem
                     inset
                     routerLinkActive="bg-gray-100"
-                    [routerLink]="['/voicemail', mailbox]"
+                    [routerLink]="['/voicemail', mailbox.id]"
                     class="px-4 py-2">
-                    {{ mailbox }}
+                    {{ mailbox.displayName }}
                   </button>
                 }
               </hlm-menu-group>

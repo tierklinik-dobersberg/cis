@@ -18,7 +18,7 @@ import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
 import { DisplayNamePipe, InListPipe, ToDatePipe, ToUserPipe, UserColorPipe, UserContrastColorPipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { HlmTooltipModule } from "@tierklinik-dobersberg/angular/tooltip";
-import { FindOffTimeRequestsResponse, OffTimeEntry } from "@tierklinik-dobersberg/apis";
+import { FindOffTimeRequestsResponse, OffTimeEntry } from "@tierklinik-dobersberg/apis/roster/v1";
 import { NzCalendarModule } from "ng-zorro-antd/calendar";
 import { CandyDate } from "ng-zorro-antd/core/time";
 import { LibPackerModule } from "ng-zorro-antd/date-picker";

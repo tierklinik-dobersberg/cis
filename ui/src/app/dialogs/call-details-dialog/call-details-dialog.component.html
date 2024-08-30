@@ -2,110 +2,122 @@
   <h3 hlmDialogTitle>Anruf Details</h3>
 </hlm-dialog-header>
 
-<hlm-table class="py-8">
-  @if (customer) {
-    <hlm-trow>
-      <hlm-th class="w-0 flex-[0_0_8rem]"> Kunde </hlm-th>
-      <hlm-td class="flex flex-col items-start justify-start gap-2">
-        <span> {{ customer.lastName }} {{ customer.firstName }} </span>
-      </hlm-td>
-    </hlm-trow>
-  }
-
-  <hlm-trow class="items-center">
-    <hlm-th class="w-0 flex-[0_0_8rem]"> Nummer </hlm-th>
-    <hlm-td class="flex flex-grow flex-row items-center justify-between">
-      <span>{{ record.caller }}</span>
-
-      <a
-        [attr.href]="'tel:' + record.caller"
-        hlmBtn
-        class="flex flex-row items-center gap-2"
-        variant="secondary">
-        <hlm-icon name="lucidePhoneCall" size="sm" />
-
-        Anrufen
-      </a>
-    </hlm-td>
-  </hlm-trow>
-
-  <hlm-trow>
-    <hlm-th class="w-0 flex-[0_0_8rem]"> Zeit </hlm-th>
-    <hlm-td>
-      {{ record.receivedAt | toDate | date: 'mediumDate' }}
-    </hlm-td>
-  </hlm-trow>
-
-  <hlm-trow>
-    <hlm-th class="w-0 flex-[0_0_8rem]"> Dauer </hlm-th>
-    <hlm-td>
-      {{ record.duration | duration }}
-    </hlm-td>
-  </hlm-trow>
-
-  <hlm-trow class="items-center">
-    <hlm-th class="w-0 flex-[0_0_8rem]"> Mitarbeiter </hlm-th>
-    <hlm-td>
-      @if (record.agentUserId) {
-        <app-avatar [user]="record.agentUserId" showName="true" />
-      } @else {
-        @if (_computedAgent(); as agent) {
-          {{ agent.DisplayName }} ({{ agent.ExtensionNumber }})
-        } @else {
-          {{ record.acceptedAgent }}
-        }
+<hlm-tabs class="w-full" tab="overview">
+  <div hlmTabsContent="overview" tabindex="-1">
+    <hlm-table class="py-8">
+      @if (customer) {
+        <hlm-trow>
+          <hlm-th class="w-0 flex-[0_0_8rem]"> Kunde </hlm-th>
+          <hlm-td class="flex flex-col items-start justify-start gap-2">
+            <span> {{ customer.lastName }} {{ customer.firstName }} </span>
+          </hlm-td>
+        </hlm-trow>
       }
-    </hlm-td>
-  </hlm-trow>
 
-  <hlm-trow class="items-center">
-    <hlm-th class="w-0 flex-[0_0_8rem]"> Art </hlm-th>
-    <hlm-td class="flex flex-row gap-4">
-      <span
-        class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border">
-        <hlm-icon [name]="phoneIcon" size="sm" />
-      </span>
+      <hlm-trow class="items-center">
+        <hlm-th class="w-0 flex-[0_0_8rem]"> Nummer </hlm-th>
+        <hlm-td class="flex flex-grow flex-row items-center justify-between">
+          <span>{{ record.caller }}</span>
 
-      @switch (record.callType) {
-        @case ('') {
-          Eingehend - Nicht Angenommen
-        }
-        @case ('Outbound') {
-          Ausgehend
-        }
-        @case ('Inbound') {
-          Eingehend
-        }
-        @case ('Notanswered') {
-          Ausgehend - Nicht Angenommen
-        }
-        @default {
-          {{ record.callType }}
-        }
+          <a
+            [attr.href]="'tel:' + record.caller"
+            hlmBtn
+            class="flex flex-row items-center gap-2"
+            variant="secondary">
+            <hlm-icon name="lucidePhoneCall" size="sm" />
+
+            Anrufen
+          </a>
+        </hlm-td>
+      </hlm-trow>
+
+      <hlm-trow>
+        <hlm-th class="w-0 flex-[0_0_8rem]"> Zeit </hlm-th>
+        <hlm-td>
+          {{ record.receivedAt | toDate | date: 'medium' }}
+        </hlm-td>
+      </hlm-trow>
+
+      <hlm-trow>
+        <hlm-th class="w-0 flex-[0_0_8rem]"> Dauer </hlm-th>
+        <hlm-td>
+          {{ record.duration | duration }}
+        </hlm-td>
+      </hlm-trow>
+
+      <hlm-trow class="items-center">
+        <hlm-th class="w-0 flex-[0_0_8rem]"> Mitarbeiter </hlm-th>
+        <hlm-td>
+          @if (record.agentUserId) {
+            <app-avatar [user]="record.agentUserId" showName="true" />
+          } @else {
+            @if (_computedAgent(); as agent) {
+              {{ agent.DisplayName }} ({{ agent.ExtensionNumber }})
+            } @else {
+              {{ record.acceptedAgent }}
+            }
+          }
+        </hlm-td>
+      </hlm-trow>
+
+      <hlm-trow class="items-center">
+        <hlm-th class="w-0 flex-[0_0_8rem]"> Art </hlm-th>
+        <hlm-td class="flex flex-row gap-4">
+          <span
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border">
+            <hlm-icon [name]="phoneIcon" size="sm" />
+          </span>
+
+          @switch (record.callType) {
+            @case ('') {
+              Eingehend - Nicht Angenommen
+            }
+            @case ('Outbound') {
+              Ausgehend
+            }
+            @case ('Inbound') {
+              Eingehend
+            }
+            @case ('Notanswered') {
+              Ausgehend - Nicht Angenommen
+            }
+            @default {
+              {{ record.callType }}
+            }
+          }
+        </hlm-td>
+      </hlm-trow>
+
+      @if (record.transferTarget) {
+        <hlm-trow>
+          <hlm-th class="w-0 flex-[0_0_8rem]"> Transfer von </hlm-th>
+          <hlm-td>
+            @if (_computedTransfer(); as transfer) {
+              {{ transfer.DisplayName }} ( {{ transfer.ExtensionNumber }})
+            } @else {
+              {{ record.transferTarget }}
+            }
+          </hlm-td>
+        </hlm-trow>
       }
-    </hlm-td>
-  </hlm-trow>
 
-  @if (record.transferTarget) {
-    <hlm-trow>
-      <hlm-th class="w-0 flex-[0_0_8rem]"> Transfer von </hlm-th>
-      <hlm-td>
-        @if (_computedTransfer(); as transfer) {
-          {{ transfer.DisplayName }} ( {{ transfer.ExtensionNumber }})
-        } @else {
-          {{ record.transferTarget }}
-        }
-      </hlm-td>
-    </hlm-trow>
-  }
+      @if (record.error) {
+        <hlm-trow>
+          <hlm-th class="w-0 flex-[0_0_8rem]"> Fehler </hlm-th>
+          <hlm-td> Ja </hlm-td>
+        </hlm-trow>
+      }
+    </hlm-table>
+  </div>
+  <div hlmTabsContent="details">
+    <pre>{{ details | json }}</pre>
+  </div>
 
-  @if (record.error) {
-    <hlm-trow>
-      <hlm-th class="w-0 flex-[0_0_8rem]"> Fehler </hlm-th>
-      <hlm-td> Ja </hlm-td>
-    </hlm-trow>
-  }
-</hlm-table>
+  <hlm-tabs-list class="my-4 grid w-full grid-cols-2">
+    <button hlmTabsTrigger="overview">Übersicht</button>
+    <button hlmTabsTrigger="details">Details</button>
+  </hlm-tabs-list>
+</hlm-tabs>
 
 <hlm-dialog-footer>
   <button hlmBtn variant="default" (click)="close()">Schließen</button>

@@ -26,10 +26,8 @@ type CORS struct {
 
 // Config holds the complete cisd configuration.
 type Config struct {
-	cfgspec.Config           `section:"Global"`
-	cfgspec.DatabaseConfig   `section:"Global"`
-	cfgspec.InfoScreenConfig `section:"InfoScreen"`
-	CORS                     `section:"CORS"`
+	cfgspec.Config `section:"Global"`
+	CORS           `section:"CORS"`
 
 	// FIXME(ppacher): unexported members should actually be ingored
 	loadLocationOnce sync.Once      `section:"-"`

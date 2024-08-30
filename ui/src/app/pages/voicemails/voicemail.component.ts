@@ -9,33 +9,32 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { PartialMessage, Timestamp } from '@bufbuild/protobuf';
+import { ConnectError } from '@connectrpc/connect';
 import { provideIcons } from '@ng-icons/core';
 import { lucideFileAudio, lucidePlayCircle } from '@ng-icons/lucide';
+import { BrnTooltipModule } from '@spartan-ng/ui-tooltip-brain';
+import { HlmBadgeDirective } from '@tierklinik-dobersberg/angular/badge';
+import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { HlmCardModule } from '@tierklinik-dobersberg/angular/card';
 import { HlmCheckboxModule } from '@tierklinik-dobersberg/angular/checkbox';
+import { injectVoiceMailService } from '@tierklinik-dobersberg/angular/connect';
 import { HlmIconModule } from '@tierklinik-dobersberg/angular/icon';
+import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
+import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
+import { ListMailboxesResponse, ListVoiceMailsRequest, ListVoiceMailsResponse, Mailbox, VoiceMail, VoiceMailReceivedEvent } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
+import { isAfter, isBefore } from 'date-fns';
 import { toast } from 'ngx-sonner';
-import {
-  forkJoin,
-  Observable,
-  of
-} from 'rxjs';
-import { catchError, mergeMap } from 'rxjs/operators';
-import { SearchParams, VoiceMailAPI, VoiceMailRecording } from 'src/app/api';
-import { Customer, CustomerAPI } from 'src/app/api/customer.api';
 import {
   TkdDatePickerComponent,
   TkdDatePickerInputDirective,
 } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
 import { HeaderTitleService } from 'src/app/layout/header-title';
+import { EventService } from 'src/app/services/event.service';
 import { extractErrorMessage } from 'src/app/utils';
-
-interface VoiceMailWithCustomer extends VoiceMailRecording {
-  customer?: Customer;
-  playing: boolean;
-}
+import { environment } from 'src/environments/environment';
 
 @Component({
   templateUrl: './voicemail.component.html',
@@ -50,119 +49,136 @@ interface VoiceMailWithCustomer extends VoiceMailRecording {
     HlmTableModule,
     HlmCheckboxModule,
     FormsModule,
-    DatePipe
+    ToDatePipe,
+    HlmButtonDirective,
+    HlmBadgeDirective,
+    DatePipe,
+    HlmTooltipModule,
+    BrnTooltipModule
   ],
   providers: [...provideIcons({ lucideFileAudio, lucidePlayCircle })],
 })
 export class VoiceMailComponent {
   private readonly header = inject(HeaderTitleService);
-  private readonly voicemailsapi = inject(VoiceMailAPI);
-  private readonly customersapi = inject(CustomerAPI);
   private readonly route = inject(ActivatedRoute);
 
-  protected readonly recordings = signal<VoiceMailWithCustomer[]>([]);
+  private voiceMailService  = injectVoiceMailService();
+
+  protected readonly recordings = signal<VoiceMail[]>([]);
   protected readonly onlyUnseen = signal(false);
-  protected readonly date = signal<Date | null>(null);
+  protected readonly dateRange = signal<[Date, Date | null] | null>(null);
   protected readonly loading = signal(true);
-  protected readonly mailbox = signal('');
+  protected readonly mailbox = signal<Mailbox | null>(null)
 
   constructor() {
     this.route.paramMap.pipe(takeUntilDestroyed()).subscribe(params => {
       const name = params.get('name');
       if (!name) {
+        this.mailbox.set(null);
         return;
       }
 
-      this.mailbox.set(name);
+      this.voiceMailService
+        .listMailboxes({})
+        .catch(err => {
+          toast.error('Failed to load mailboxes', {
+            description: ConnectError.from(err).message
+          })
+
+          return new ListMailboxesResponse()
+        })
+        .then(response => {
+          this.mailbox.set(response.mailboxes?.find(m => m.id === name) || null)
+        })
     });
+
+    inject(EventService)
+      .listen([new VoiceMailReceivedEvent])
+      .pipe(takeUntilDestroyed())
+      .subscribe(event => {
+        const range = this.dateRange();
+
+        if (range !== null && (range[0] || range[1]) ) {
+          if (range[0] && isBefore(range[0], event.voicemail.receiveTime.toDate())) {
+            return
+          }
+
+          if (range[1] && isAfter(range[1], event.voicemail.receiveTime.toDate())) {
+            return
+          }
+        }
+
+        const values = this.recordings();
+        [...values].splice(0, 0, event.voicemail)
+        this.recordings.set(values);
+      })
 
     effect(
       () => {
-        const name = this.mailbox();
-        const date = this.date();
+        const mb = this.mailbox();
+        const range = this.dateRange();
         const onlyUnseen = this.onlyUnseen();
 
-        this.loading.set(true);
-        this.header.set(name);
+        if (!mb) {
+          return
+        }
 
-        const opts: SearchParams = {
-          name,
-        };
-        if (date !== null) {
-          opts.date = date;
+        this.loading.set(true);
+        this.header.set(mb.displayName);
+
+        const req: PartialMessage<ListVoiceMailsRequest> = {
+          mailbox: mb.id,
+          filter: {}
+        }
+
+        if (range !== null && (range[0] || range[1])) {
+          req.filter.timeRange = {
+            from: range[0] ? Timestamp.fromDate(range[0]) : undefined,
+            to: range[1] ? Timestamp.fromDate(range[1]) : undefined,
+          }
         }
 
         if (onlyUnseen) {
-          opts.seen = false;
+          req.filter.unseen = true
         }
 
-        this.voicemailsapi
-          .search(opts)
-          .pipe(
-            mergeMap(recordings => {
-              const m = new Map<string, [string, number]>();
-              recordings.forEach(rec => {
-                if (!rec.customerSource) {
-                  return;
-                }
-                m.set(`${rec.customerSource}/${rec.customerID}`, [
-                  rec.customerSource,
-                  rec.customerID,
-                ]);
-              });
+        if (Object.keys(req.filter).length === 0) {
+          req.filter = undefined;
+        }
 
-              const observables: {
-                recordings: Observable<VoiceMailRecording[]>;
-                [key: string]: Observable<any>;
-              } = {
-                recordings: of(recordings),
-              };
-
-              Array.from(m.entries()).forEach(([key, [source, id]]) => {
-                observables[key] = this.customersapi
-                  .byId(source, id)
-                  .pipe(catchError(() => of(null as Customer)));
-              });
-
-              return forkJoin(observables);
+        this.voiceMailService
+          .listVoiceMails(req)
+          .catch(err => {
+            toast.error('Voice-Mails konnten nicht geladen werden', {
+              description: ConnectError.from(err).message
             })
-          )
-          .subscribe((result: { [key: string]: any }) => {
-            const records = result.recordings.map(record => {
-              return {
-                ...record,
-                customer:
-                  result[`${record.customerSource}/${record.customerID}`],
-              };
-            });
 
-            this.recordings.set(records);
+            return new ListVoiceMailsResponse()
+          })
+          .then(response => {
+            this.recordings.set(response.voicemails || []);
             this.loading.set(false);
-          });
+          })
       },
       { allowSignalWrites: true }
     );
   }
 
   protected playRecording(
-    rec: VoiceMailWithCustomer,
+    rec: VoiceMail,
     player?: HTMLAudioElement
   ): void {
-    player = new Audio(rec.url);
+    player = new Audio(`${environment.callService}/voicemails/?id=${rec.id}`)
     player.autoplay = false;
     player.muted = false;
     player.volume = 1;
 
     player.onended = () => {
       this.changeSeen(rec, true);
-      rec.playing = false;
     };
 
     player
       .play()
-      .then(() => {
-        rec.playing = true;
-      })
       .catch(err => {
         toast.error(
           extractErrorMessage(err, 'Datei konnte nicht abgespielt werden')
@@ -170,12 +186,19 @@ export class VoiceMailComponent {
       });
   }
 
-  protected changeSeen(rec: VoiceMailRecording, seen: boolean): void {
-    this.voicemailsapi.updateSeen(rec._id, seen).subscribe({
-      next: () => (rec.read = seen),
-      error: err => {
-        toast.error('Aufnahme konnte nicht als gesehen markiert werden');
-      },
-    });
+  protected changeSeen(rec: VoiceMail, seen: boolean): void {
+    this.voiceMailService
+      .markVoiceMails({
+        seen: seen,
+        voicemailIds: [rec.id],
+      })
+      .catch(err => {
+        toast.error('Voice-Mail konnte nicht als gelesen markiert werden', {
+          description: ConnectError.from(err).message,
+        })
+      })
+      .then(() => {
+        this.mailbox.set(new Mailbox(this.mailbox()))
+      })
   }
 }

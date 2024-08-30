@@ -9,6 +9,7 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Timestamp } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
@@ -29,15 +30,13 @@ import {
 } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSkeletonComponent } from '@tierklinik-dobersberg/angular/skeleton';
 import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
-import {
-  GetWorkingStaffResponse,
-  PlannedShift,
-  Profile
-} from '@tierklinik-dobersberg/apis';
-import { TimeRange } from '@tierklinik-dobersberg/apis/gen/es/tkd/common/v1/time_range_pb';
-import { differenceInDays, endOfDay, startOfDay } from 'date-fns';
+import { TimeRange } from '@tierklinik-dobersberg/apis/common/v1';
+import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
+import { GetWorkingStaffResponse, PlannedShift } from '@tierklinik-dobersberg/apis/roster/v1';
+import { differenceInDays, endOfDay, isSameDay, startOfDay } from 'date-fns';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { toast } from 'ngx-sonner';
+import { interval } from 'rxjs';
 import { injectCurrentConfig } from 'src/app/api';
 import {
   injectRosterService
@@ -150,6 +149,15 @@ export class RosterCardComponent {
   }
 
   constructor() {
+
+    interval(10 * 60 * 1000)
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        if (!isSameDay(new Date(), this.calendarDate())) {
+          this.calendarDate.set(new Date())
+        }
+      })
+
     effect(() => {
       const config = this.config();
       const date = this.calendarDate();

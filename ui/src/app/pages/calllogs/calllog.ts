@@ -1,5 +1,6 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, effect, inject, model, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, model, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Timestamp } from '@bufbuild/protobuf';
 import { Code, ConnectError } from '@connectrpc/connect';
@@ -11,8 +12,8 @@ import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { DurationPipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { HlmSeparatorModule } from '@tierklinik-dobersberg/angular/separator';
-import { Customer } from '@tierklinik-dobersberg/apis/gen/es/tkd/customer/v1/customer_pb';
-import { CallEntry, SearchCallLogsResponse } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
+import { Customer } from '@tierklinik-dobersberg/apis/customer/v1';
+import { CallDirection, CallEntry, CallRecordReceived, CallStatus, SearchCallLogsResponse } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { startOfDay } from 'date-fns';
 import { toast } from 'ngx-sonner';
 import { injectCallService } from 'src/app/api/connect_clients';
@@ -20,6 +21,7 @@ import { CallLogTableComponent } from 'src/app/components/callog-table';
 import { TkdDatePickerComponent } from 'src/app/components/date-picker';
 import { TkdPaginationComponent } from 'src/app/components/pagination';
 import { HeaderTitleService } from 'src/app/layout/header-title';
+import { EventService } from 'src/app/services/event.service';
 
 type CallTypeFilter = 'all' | 'inbound' | 'outbound' | 'missed';
 
@@ -112,15 +114,34 @@ export class CallLogComponent implements OnInit {
     }
 
     return logs.filter(r => {
+        const callType = r.callType?.toLocaleLowerCase() || 'inbound';
+        let isOutbound = false;
+        if (r.direction !== CallDirection.UNSPECIFIED) {
+          isOutbound = r.direction == CallDirection.OUTBOUND
+        } else {
+          isOutbound = callType === 'notanswered' || callType === 'outbound';
+        }
+
+        let lost = false;
+        if (r.status !== CallStatus.UNSPECIFIED) {
+          lost = r.status == CallStatus.MISSED || r.status == CallStatus.NOTANSWERED
+        } else {
+          lost = callType === 'notanswered' || callType === 'missed';
+        }
+
+        if (r.queueExtension === r.acceptedAgent) {
+          lost = true
+        }
+
       if (filter === 'inbound') {
-        return r.callType === '' || r.callType === 'Inbound'
+        return !isOutbound;
       }
 
       if (filter === 'outbound') {
-        return r.callType === 'Notanswered' || r.callType === 'Outbound'
+        return isOutbound
       }
 
-      return !['Inbound', 'Outbound', 'Notanswered'].includes(r.callType)
+      return lost
     })
   })
 
@@ -175,14 +196,13 @@ export class CallLogComponent implements OnInit {
       
     }, { allowSignalWrites: true })
 
-    // trigger a reload every 10 seconds by re-applying the date range signal
-    const interval = setInterval(() => {
-      this.tick.set(this.tick() + 1)
-    }, 10000)
-
-    // clear the interval on destroy.
-    inject(DestroyRef)
-      .onDestroy(() => clearInterval(interval))
+    inject(EventService)
+      .listen([new CallRecordReceived])
+      .pipe(takeUntilDestroyed())
+      .subscribe(event => {
+        console.log("received call-record-received event, reloading call-logs")
+        this.tick.set(new Date().getTime())
+      })
   }
 
   ngOnInit(): void {

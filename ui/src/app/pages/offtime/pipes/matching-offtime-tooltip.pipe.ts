@@ -1,7 +1,8 @@
 import { Pipe, PipeTransform, inject } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { DisplayNamePipe } from '@tierklinik-dobersberg/angular/pipes';
-import { OffTimeEntry, Profile } from '@tierklinik-dobersberg/apis';
+import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
+import { OffTimeEntry } from '@tierklinik-dobersberg/apis/roster/v1';
 
 @Pipe({
   name: 'matchingOfftimeTooltip',

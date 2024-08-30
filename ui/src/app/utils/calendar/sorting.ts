@@ -1,5 +1,5 @@
 import { sortProtoTimestamps } from '@tierklinik-dobersberg/angular/behaviors';
-import { CalendarEvent } from '@tierklinik-dobersberg/apis';
+import { CalendarEvent } from '@tierklinik-dobersberg/apis/calendar/v1';
 
 export function sortCalendarEvents(a: CalendarEvent, b: CalendarEvent): number {
   let result = sortProtoTimestamps(a.startTime, b.startTime);

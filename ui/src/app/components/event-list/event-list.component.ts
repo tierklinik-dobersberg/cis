@@ -8,16 +8,19 @@ import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { injectCalendarService } from "@tierklinik-dobersberg/angular/connect";
 import { HlmDialogService } from "@tierklinik-dobersberg/angular/dialog";
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
+import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
 import { DurationPipe, ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmSkeletonComponent } from "@tierklinik-dobersberg/angular/skeleton";
 import { HlmTooltipModule } from "@tierklinik-dobersberg/angular/tooltip";
 import { Duration as TkdDuration } from '@tierklinik-dobersberg/angular/utils/date';
-import { Calendar, CalendarEvent, ListCalendarsResponse, Profile } from "@tierklinik-dobersberg/apis";
+import { Calendar, CalendarEvent, ListCalendarsResponse } from "@tierklinik-dobersberg/apis/calendar/v1";
+import { Profile } from "@tierklinik-dobersberg/apis/idm/v1";
 import { isAfter, isBefore } from "date-fns";
 import { toast } from "ngx-sonner";
 import { getSeconds } from "src/app/pages/calendar2/day-view/sort.pipe";
 import { getCalendarId } from "src/app/services";
 import { sortCalendarEvents } from "src/app/utils/calendar/sorting";
+import { AppAvatarComponent } from "../avatar";
 import { UserColorVarsDirective } from "../user-color-vars";
 
 class EventListModel extends CalendarEvent {
@@ -56,6 +59,7 @@ export type EventModel = CalendarEvent & {
         HlmTooltipModule,
         BrnTooltipModule,
         HlmSkeletonComponent,
+        AppAvatarComponent
     ],
     host: {
         'class': 'block',
@@ -68,6 +72,7 @@ export class AppEventListComponent {
     private readonly calendarService = injectCalendarService();
     private readonly profiles = injectUserProfiles();
     private readonly dialogService = inject(HlmDialogService);
+    protected readonly layout = inject(LayoutService)
     
     /** Emits whenever a details dialog of a calendar event has been closed */
     public readonly detailsClosed = output<EventListModel>();

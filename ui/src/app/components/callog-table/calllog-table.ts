@@ -16,7 +16,7 @@ import { lucideArrowLeft, lucideArrowRight, lucidePhoneCall, lucidePhoneForwarde
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import { BrnTableModule } from '@spartan-ng/ui-table-brain';
 import { HlmBadgeDirective } from '@tierklinik-dobersberg/angular/badge';
-import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
+import { injectUserProfiles, sortProtoTimestamps } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { TkdEmptyTableComponent } from '@tierklinik-dobersberg/angular/empty-table';
@@ -31,9 +31,9 @@ import {
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { HlmSkeletonComponent } from '@tierklinik-dobersberg/angular/skeleton';
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
-import { Profile } from '@tierklinik-dobersberg/apis';
-import { Customer } from '@tierklinik-dobersberg/apis/gen/es/tkd/customer/v1/customer_pb';
-import { CallEntry } from '@tierklinik-dobersberg/apis/gen/es/tkd/pbx3cx/v1/calllog_pb';
+import { Customer } from '@tierklinik-dobersberg/apis/customer/v1';
+import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
+import { CallDirection, CallEntry, CallStatus } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { injectCurrentConfig } from 'src/app/api';
 import { KnownPhoneExtensionPipe } from 'src/app/pipes/known-phone-extension.pipe';
@@ -180,69 +180,84 @@ export class CallLogTableComponent {
       }
     })
 
-    return records.map(l => {
-      // TODO(ppacher): this is very specific to 3CX
-      // maybe this should be configurable?
-      const callType = l.callType?.toLocaleLowerCase() || '';
-      const isOutbound = callType === 'notanswered' || callType === 'outbound';
-
-      let cust: LocalCustomer | null = null;
-
-      if (l.customerId) {
-        cust = byId.get(l.customerId);
-      }
-
-      if (!cust && l.caller !== 'anonymous') {
-        const p = normalizePhone(l.caller)
-        let userCustomer = userByNumber.get(p);
-
-        if (userCustomer) {
-          cust = {
-            id: userCustomer.user.id,
-            source: '__identities',
-            firstName: userCustomer.user.firstName,
-            lastName: userCustomer.user.lastName,
-          }
+    return records
+      .map(l => {
+        // TODO(ppacher): this is very specific to 3CX
+        // maybe this should be configurable?
+        const callType = l.callType?.toLocaleLowerCase() || 'inbound';
+        let isOutbound = false;
+        if (l.direction !== CallDirection.UNSPECIFIED) {
+          isOutbound = l.direction == CallDirection.OUTBOUND
         } else {
-          cust = byNumber.get(p)
+          isOutbound = callType === 'notanswered' || callType === 'outbound';
         }
-      }
 
-      let isSelf = false;
-      if (
-        !!l.agentUserId &&
-        !!cust &&
-        l.agentUserId === cust.id &&
-        cust.source === '__identities'
-      ) {
-        isSelf = true;
-      }
+        let lost = false;
+        if (l.status !== CallStatus.UNSPECIFIED) {
+          lost = l.status == CallStatus.MISSED || l.status == CallStatus.NOTANSWERED
+        } else {
+          lost = callType === 'notanswered' || callType === 'missed';
+        }
 
-      let iconName = 'lucidePhoneIncoming'
+        if (l.queueExtension === l.acceptedAgent) {
+          lost = true
+        }
 
-      switch (callType) {
-        case 'notanswered':
-          iconName = 'lucidePhoneOff'
-          break;
-        
-        case 'outbound':
-          iconName = 'lucidePhoneOutgoing'
-          break;
+        let cust: LocalCustomer | null = null;
 
-        case '':
-          iconName= 'lucidePhoneMissed'
-      }
+        if (l.customerId) {
+          cust = byId.get(l.customerId);
+        }
 
-      const d = l.receivedAt.toDate();
-      return {
-        entry: l,
-        outbound: isOutbound,
-        customer: cust,
-        isLostOrUnanswared: callType === 'notanswered' || callType === '',
-        isSelf: isSelf,
-        iconName,
-      };
-    });
+        if (!cust && l.caller !== 'anonymous') {
+          const p = normalizePhone(l.caller)
+          let userCustomer = userByNumber.get(p);
+
+          if (userCustomer) {
+            cust = {
+              id: userCustomer.user.id,
+              source: '__identities',
+              firstName: userCustomer.user.firstName,
+              lastName: userCustomer.user.lastName,
+            }
+          } else {
+            cust = byNumber.get(p)
+          }
+        }
+
+        let isSelf = false;
+        if (
+          !!l.agentUserId &&
+          !!cust &&
+          l.agentUserId === cust.id &&
+          cust.source === '__identities'
+        ) {
+          isSelf = true;
+        }
+
+        let iconName = 'lucidePhoneIncoming'
+
+        if (isOutbound && lost) {
+            iconName = 'lucidePhoneOff'
+        } else if (isOutbound) {
+            iconName = 'lucidePhoneOutgoing'
+        } else if (lost) {
+            iconName= 'lucidePhoneMissed'
+        }
+
+        const d = l.receivedAt.toDate();
+        return {
+          entry: l,
+          outbound: isOutbound,
+          customer: cust,
+          isLostOrUnanswared: lost,
+          isSelf: isSelf,
+          iconName,
+        };
+      })
+      .sort((a, b) => {
+        return sortProtoTimestamps(b.entry.receivedAt, a.entry.receivedAt)
+      });
   });
 
   protected readonly _computedFilteredCalls = computed(() => {
