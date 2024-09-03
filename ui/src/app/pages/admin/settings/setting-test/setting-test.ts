@@ -6,10 +6,10 @@ import {
   inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { BrnDialogRef, injectBrnDialogContext } from '@spartan-ng/ui-dialog-brain';
+import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
-import { NzSelectModule } from 'ng-zorro-antd/select';
+import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { Subject } from 'rxjs';
 import { ConfigAPI, ConfigTest, Schema, SchemaInstance } from 'src/app/api';
 import { extractErrorMessage } from 'src/app/utils';
@@ -22,22 +22,25 @@ import { TkdOptionSpecInputComponent } from '../../option-spec-input';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    NzSelectModule,
+    BrnSelectModule,
+    HlmSelectModule,
     TkdOptionSpecInputComponent,
     FormsModule,
-    NzIconModule,
     HlmButtonDirective
   ]
 })
 export class SettingTestComponent implements OnInit {
   private destroy$ = new Subject<void>();
+  private configapi = inject(ConfigAPI);
+  private dialogRef = inject(BrnDialogRef)
+  private cdr = inject(ChangeDetectorRef)
 
   selectedTest: ConfigTest | null = null;
   values: { [key: string]: any } = {};
 
   testState: 'running' | 'success' | string = '';
 
-  private data = inject(NZ_MODAL_DATA);
+  private data = injectBrnDialogContext();
 
   get schema(): Schema|null {
     return this.data.schema;
@@ -46,12 +49,6 @@ export class SettingTestComponent implements OnInit {
   get config(): SchemaInstance {
     return this.data.config
   }
-
-  constructor(
-    private configapi: ConfigAPI,
-    private modalRef: NzModalRef,
-    private cdr: ChangeDetectorRef,
-  ) {}
 
   ngOnInit(): void {
     this.destroy$.next();
@@ -87,6 +84,6 @@ export class SettingTestComponent implements OnInit {
   }
 
   cancel() {
-    this.modalRef.close();
+    this.dialogRef.close();
   }
 }

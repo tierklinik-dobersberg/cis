@@ -22,7 +22,6 @@ import { AppComponent } from './app.component';
 
 import { provideBreakpoints } from '@tierklinik-dobersberg/angular/layout';
 import { HlmToasterModule } from '@tierklinik-dobersberg/angular/sonner';
-import { NzModalModule } from 'ng-zorro-antd/modal';
 import { AppHeaderComponent } from './layout';
 import {
   AppNavigationComponent,
@@ -37,7 +36,6 @@ registerLocaleData(de);
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
-    NzModalModule,
     BrowserAnimationsModule,
     MarkdownModule.forRoot(),
     RouterModule,

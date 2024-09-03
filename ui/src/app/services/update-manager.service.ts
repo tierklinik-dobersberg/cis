@@ -1,13 +1,11 @@
 import { ApplicationRef, Injectable, inject } from "@angular/core";
 import { SwUpdate } from "@angular/service-worker";
-import { NzModalService } from "ng-zorro-antd/modal";
-import { toast } from 'ngx-sonner'
-import { first, interval, startWith, concat } from "rxjs";
+import { toast } from 'ngx-sonner';
+import { concat, first, interval, startWith } from "rxjs";
 
 @Injectable({ providedIn: 'root'})
 export class SwUpdateManager {
   private readonly updates = inject(SwUpdate);
-  private readonly modal = inject(NzModalService);
   private readonly appRef = inject(ApplicationRef);
 
   init() {
@@ -16,16 +14,18 @@ export class SwUpdateManager {
       this.updates.versionUpdates.subscribe(evt => {
         switch (evt.type) {
           case 'VERSION_READY':
-            this.modal
-              .confirm({
-                nzTitle: 'Neue Version verfügbar',
-                nzContent: 'Eine neue Version von CIS wurde installiert. Bitte lade die Applikation neu um auf die neue Version zu wechseln',
-                nzOkText: 'Jetzt verwenden',
-                nzOnOk: () => {
-                  window.location.reload();
-                },
-                nzCancelText: 'Später'
-              })
+            const ref = toast.info('Neue Version verfügbar', {
+              description: 'Eine neue Version von CIS wurde installiert. Bitte lade die Applikation neu um auf die neue Version zu wechseln',
+              action: {
+                label: 'Jetzt Verwenden!',
+                onClick: () => window.location.reload()
+              },
+              cancel: {
+                label: 'Später',
+                onClick: () => toast.dismiss(ref)
+              },
+              duration: 0,
+            })
 
             break;
 

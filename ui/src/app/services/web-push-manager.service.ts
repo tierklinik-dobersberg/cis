@@ -1,14 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { SwPush } from '@angular/service-worker';
 import { injectNotifyService } from '@tierklinik-dobersberg/angular/connect';
-import { NzModalService } from 'ng-zorro-antd/modal';
+import { toast } from 'ngx-sonner';
 import { distinctUntilChanged } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class WebPushSubscriptionManager {
   private notifyService = injectNotifyService();
   private swPush = inject(SwPush);
-  private modal = inject(NzModalService);
 
   private setupWebPush() {
     this.notifyService
@@ -50,15 +49,22 @@ export class WebPushSubscriptionManager {
                 return;
               }
 
-              this.modal.confirm({
-                nzTitle: 'Benachrichtigungen aktivieren',
-                nzContent:
+              const ref = toast.info('Benachrichtigungen aktivieren', {
+                description:
                   'CIS kann Benachrichtigungen an dein Gerät senden um dich über Änderungen am Dienstplan oder Urlaubsanträge zu informieren. Möchtest du diese Benachrichtigungen aktivieren?',
-                nzOkText: 'Aktivieren',
-                nzCancelText: 'Nein danke',
-                nzOnOk: () => {
-                  this.setupWebPush();
+                action: {
+                  label: 'Aktivieren',
+                  onClick: () => {
+                    this.setupWebPush()
+                    toast.dismiss(ref)
+                  }
                 },
+                cancel: {
+                  label: 'Nein danke',
+                  onClick: () => {
+                    toast.dismiss(ref)
+                  }
+                }
               });
             } else {
               this.notifyService.addWebPushSubscription({

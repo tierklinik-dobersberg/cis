@@ -8,8 +8,9 @@ import {
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
+import { BrnTooltipModule } from '@spartan-ng/ui-tooltip-brain';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ConfigAPI, Schema } from 'src/app/api';
@@ -25,7 +26,8 @@ interface Category {
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    NzToolTipModule,
+    BrnTooltipModule,
+    HlmTooltipModule,
     RouterLink,
     HlmButtonDirective
   ]

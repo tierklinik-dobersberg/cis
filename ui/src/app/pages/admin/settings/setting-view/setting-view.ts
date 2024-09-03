@@ -12,8 +12,8 @@ import { FormsModule, NgModel } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
+import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
-import { NzModalService } from 'ng-zorro-antd/modal';
 import { toast } from 'ngx-sonner';
 import {
   BehaviorSubject,
@@ -86,7 +86,7 @@ export class SettingViewComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private modal: NzModalService,
+    private modal: HlmDialogService,
     public domSanitizer: DomSanitizer
   ) {}
 
@@ -162,17 +162,12 @@ export class SettingViewComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.modal.create({
-      nzContent: SettingTestComponent,
-      nzData: {
+    this.modal.open(SettingTestComponent, {
+      context: {
         schema: this.schema,
         config: this.configs,
       },
-      nzCloseOnNavigation: true,
-      nzWidth: null,
-      nzClassName: 'w-1/2',
-      nzFooter: null,
-      nzTitle: "Test your Settings"
+      contentClass: 'w-1/2',
     });
   }
 
