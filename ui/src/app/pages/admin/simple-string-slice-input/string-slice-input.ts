@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { BrnTooltipModule } from '@spartan-ng/ui-tooltip-brain';
+import { HlmInputDirective } from '@tierklinik-dobersberg/angular/input';
 import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
 
 @Component({
@@ -32,7 +33,8 @@ import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
     FormsModule,
     NgClass,
     BrnTooltipModule,
-    HlmTooltipModule
+    HlmTooltipModule,
+    HlmInputDirective,
   ]
 })
 export class TkdStringSliceInputComponent implements ControlValueAccessor {

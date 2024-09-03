@@ -7,9 +7,10 @@
 ) {
   <div class="flex flex-row space-x-2">
     <input
+      hlmInput
       type="text"
       [attr.placeholder]="first ? placeholder : null"
-      class="self-center tkd-input h-fit"
+      class="self-center"
       [(ngModel)]="value[index]"
       (blur)="_onBlur()"
       (ngModelChange)="_onChanged(value)" />

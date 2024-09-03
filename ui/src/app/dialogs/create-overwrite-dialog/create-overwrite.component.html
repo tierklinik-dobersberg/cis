@@ -36,10 +36,10 @@
     </label>
 
     <hlm-sheet>
-      <div class="flex flex-col items-center w-full gap-2 sm:flex-row">
+      <div class="flex w-full flex-col items-center gap-2 sm:flex-row">
         <tkd-date-picker
           [(ngModel)]="dateRange"
-          class="self-stretch flex-grow"
+          class="flex-grow self-stretch"
           withTime="true"
           allowClear="false"
           allowOpenRange="false"
@@ -49,7 +49,7 @@
 
         <button
           hlmBtn
-          class="self-end justify-end sm:self-auto"
+          class="justify-end self-end sm:self-auto"
           size="sm"
           brnSheetTrigger
           [side]="layout.md() ? 'right' : 'bottom'">
@@ -81,11 +81,11 @@
 
         <brn-separator hlm decorative />
 
-        <div class="flex flex-col flex-grow gap-1 overflow-hidden">
+        <div class="flex flex-grow flex-col gap-1 overflow-hidden">
           <label hlmLabel> Wähle die Schicht die du umleiten möchtest: </label>
 
           <div
-            class="flex flex-col items-stretch justify-start flex-grow gap-4 pr-2 overflow-auto">
+            class="flex flex-grow flex-col items-stretch justify-start gap-4 overflow-auto pr-2">
             @for (shift of localPlannedShifts(); track shift) {
               <button
                 hlmBtn
@@ -125,7 +125,7 @@
       Bitte wähle das Ziel für die Umleitung
     </label>
 
-    <div class="flex flex-row items-center gap-2 mt-2">
+    <div class="mt-2 flex flex-row items-center gap-2">
       <app-sheet-selection
         class="block flex-[1_0_45%]"
         size="sm"
@@ -147,7 +147,9 @@
               class="text-sm"
               showName="true"></app-avatar>
           } @else {
-            <span class="text-sm">{{ item.DisplayName }}</span>
+            <div class="flex h-8 items-center text-sm">
+              {{ item.DisplayName }}
+            </div>
           }
         </ng-template>
       </app-sheet-selection>

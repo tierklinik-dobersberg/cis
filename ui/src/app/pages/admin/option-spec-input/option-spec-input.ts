@@ -1,25 +1,28 @@
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import {
-    ChangeDetectionStrategy,
-    ChangeDetectorRef,
-    Component,
-    EventEmitter,
-    forwardRef,
-    Input,
-    OnChanges,
-    Output,
-    SimpleChanges,
-    TemplateRef,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  forwardRef,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  TemplateRef,
 } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
-import { NzSelectModule } from 'ng-zorro-antd/select';
+import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
+import { HlmCheckboxModule } from '@tierklinik-dobersberg/angular/checkbox';
+import { HlmInputDirective } from '@tierklinik-dobersberg/angular/input';
+import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import {
-    ConfigAPI,
-    OptionSpec,
-    PossibleValue,
-    StringFormatAnnotation,
-    WellKnownAnnotations,
+  ConfigAPI,
+  OptionSpec,
+  PossibleValue,
+  StringFormatAnnotation,
+  WellKnownAnnotations,
 } from 'src/app/api';
 import { MyEditor } from 'src/app/ckeditor';
 import { TkdStringSliceInputComponent } from '../simple-string-slice-input';
@@ -41,7 +44,10 @@ export type NamedOptionSpec = OptionSpec & { displayName?: string };
   ],
   standalone: true,
   imports: [
-    NzSelectModule,
+    BrnSelectModule,
+    HlmSelectModule,
+    HlmInputDirective,
+    HlmCheckboxModule,
     FormsModule,
     CKEditorModule,
     TkdStringSliceInputComponent,

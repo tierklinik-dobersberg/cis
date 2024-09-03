@@ -1,23 +1,21 @@
 @if (index !== null) {
-  <span class="text-2xl text-sky-800 ">
-    {{index}}.
-  </span>
+  <span class="text-2xl text-sky-800"> {{ index }}. </span>
 }
 
-<div class="flex flex-col flex-grow">
+<div class="flex flex-grow flex-col">
   <div class="flex flex-col">
-    <span class="text-sm font-medium ">
+    <span class="text-sm font-medium">
       {{ spec.displayName || spec.name }}
       @if (spec.required) {
         <span class="text-sky-800">*</span>
       }
     </span>
-    <span class="text-sm text-gray-500 ">
+    <span class="text-sm text-gray-500">
       {{ spec.description }}
     </span>
   </div>
   <div>
-    <div class="flex items-center mt-3 space-x-2">
+    <div class="mt-3 flex items-center space-x-2">
       <!-- slot for custom content -->
       @if (!!inputHeadSlot) {
         <ng-container *ngTemplateOutlet="inputHeadSlot"></ng-container>
@@ -25,62 +23,69 @@
 
       <!-- Actual Input -->
       @if (possibleValues?.length > 0) {
-        <nz-select
-          class="flex-grow w-full"
-          [nzDisabled]="isReadonly"
-          [nzMode]="allowCustomValues ? 'tags' : isSliceType ? 'multiple' : 'default'"
-          nzPlaceHolder="Please select"
+        <brn-select
+          class="w-full flex-grow"
+          [disabled]="isReadonly"
           [(ngModel)]="value"
           (ngModelChange)="_onChanged($event)"
-          (nzBlur)="_onBlur()"
-          >
-          @for (item of possibleValues; track item) {
-            <nz-option
-              [nzLabel]="item.display"
-              [nzValue]="item.value"
-            ></nz-option>
-          }
-        </nz-select>
+          (blur)="_onBlur()">
+          <hlm-select-trigger class="w-full">
+            <hlm-select-value />
+          </hlm-select-trigger>
+
+          <hlm-select-content>
+            @for (item of possibleValues; track item) {
+              <hlm-option [value]="item.value">{{ item.display }}</hlm-option>
+            }
+          </hlm-select-content>
+        </brn-select>
       } @else {
         @switch (spec.type) {
           @case ('string') {
             @if (!isMarkdown && !isPlainText) {
               <input
+                hlmInput
                 [type]="isSecret ? 'password' : 'text'"
                 [attr.placeholder]="spec.default"
-                class="flex-grow tkd-input"
+                class="flex-grow"
                 [disabled]="isReadonly"
                 [(ngModel)]="value"
                 (ngModelChange)="_onChanged($event)"
-                (blur)="_onBlur()"
-                />
+                (blur)="_onBlur()" />
             } @else {
               @if (isMarkdown) {
                 <ckeditor
-                  class="flex-grow tkd-input"
+                  class="tkd-input flex-grow"
                   [disabled]="isReadonly"
                   [config]="{}"
                   [editor]="Editor"
                   [(ngModel)]="value"
                   (ngModelChange)="_onChanged($event)"
-                  (blur)="_onBlur()"
-                  >
+                  (blur)="_onBlur()">
                 </ckeditor>
               } @else {
-                <textarea [attr.placeholder]="spec.default" class="flex-grow tkd-input" [(ngModel)]="value" (ngModelChange)="_onChanged($event)" (blur)="_onBlur()" #input nz-input></textarea>
+                <textarea
+                  hlmInput
+                  [attr.placeholder]="spec.default"
+                  class="flex-grow"
+                  [(ngModel)]="value"
+                  (ngModelChange)="_onChanged($event)"
+                  (blur)="_onBlur()"
+                  #input
+                  nz-input></textarea>
               }
             }
           }
           @case ('duration') {
             <input
               type="text"
+              hlmInput
               [attr.placeholder]="spec.default"
-              class="flex-grow tkd-input"
+              class="flex-grow"
               [(ngModel)]="value"
               [disabled]="isReadonly"
               (ngModelChange)="_onChanged($event)"
-              (blur)="_onBlur()"
-              />
+              (blur)="_onBlur()" />
           }
           @case ('[]string') {
             <tkd-string-slice-input
@@ -89,49 +94,46 @@
               [(ngModel)]="value"
               [disabled]="isReadonly"
               (ngModelChange)="_onChanged($event)"
-              (blur)="_onBlur()"
-              >
+              (blur)="_onBlur()">
             </tkd-string-slice-input>
           }
           @case ('bool') {
-            <label
-              class="flex-grow"
-              nz-checkbox
-              [disabled]="isReadonly"
-              [(ngModel)]="value"
-              (ngModelChange)="_onChanged($event)"
-              (blur)="_onBlur()"
-              >Enabled</label
-              >
-            }
-            @case ('int') {
-              <input
-                type="number"
-                [attr.placeholder]="spec.default"
-                class="flex-grow tkd-input"
+            <hlm-checkbox class="flex flex-grow flex-row items-center gap-1">
+              <hlm-checkbox-checkicon />
+              <label
+                nz-checkbox
                 [disabled]="isReadonly"
                 [(ngModel)]="value"
                 (ngModelChange)="_onChanged($event)"
                 (blur)="_onBlur()"
-                />
-            }
-            @default {
-              <div
-                class="flex-grow p-3 border border-red-700 text-red-700 "
-                >
-                Option type
-                <span class="font-semibold underline">{{ spec.type }}</span> is not
-                yet supported
-              </div>
-            }
+                >Enabled</label
+              >
+            </hlm-checkbox>
+          }
+          @case ('int') {
+            <input
+              type="number"
+              [attr.placeholder]="spec.default"
+              class="tkd-input flex-grow"
+              [disabled]="isReadonly"
+              [(ngModel)]="value"
+              (ngModelChange)="_onChanged($event)"
+              (blur)="_onBlur()" />
+          }
+          @default {
+            <div class="flex-grow border border-red-700 p-3 text-red-700">
+              Option type
+              <span class="font-semibold underline">{{ spec.type }}</span> is
+              not yet supported
+            </div>
           }
         }
+      }
 
-        <!-- slot for custom content -->
-        @if (!!inputTailSlot) {
-          <ng-container *ngTemplateOutlet="inputTailSlot"></ng-container>
-        }
-
-      </div>
+      <!-- slot for custom content -->
+      @if (!!inputTailSlot) {
+        <ng-container *ngTemplateOutlet="inputTailSlot"></ng-container>
+      }
     </div>
   </div>
+</div>

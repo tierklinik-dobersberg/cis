@@ -11,8 +11,9 @@ import {
 import { FormsModule, NgModel } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
+import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { NzTableModule } from 'ng-zorro-antd/table';
 import { toast } from 'ngx-sonner';
 import {
   BehaviorSubject,
@@ -40,9 +41,10 @@ import { SettingTestComponent } from '../setting-test';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    NzTableModule,
+    HlmTableModule,
     KeyValuePipe,
     RouterLink,
+    HlmButtonDirective,
     SettingEditorComponent,
     FormsModule
   ]

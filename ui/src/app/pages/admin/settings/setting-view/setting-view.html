@@ -27,9 +27,7 @@
   <div class="flex flex-row space-x-3">
     @if (singleMode) {
       @if (schema.tests?.length > 0) {
-        <button
-          class="tkd-icon-btn tkd-primary tkd-small"
-          (click)="testSetting()">
+        <button hlmBtn (click)="testSetting()">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -44,7 +42,7 @@
         </button>
       }
       <button
-        class="tkd-icon-btn tkd-primary tkd-small"
+        hlmBtn
         (click)="saveSetting()"
         [disabled]="!singleValueModel?.dirty">
         <svg
@@ -59,9 +57,7 @@
             d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
         </svg>
       </button>
-      <button
-        class="tkd-icon-btn tkd-danger tkd-small"
-        (click)="deleteSetting()">
+      <button hlmBtn (click)="deleteSetting()">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -77,7 +73,7 @@
     }
 
     @if (!singleMode) {
-      <button class="tkd-icon-btn tkd-primary" [routerLink]="['new']">
+      <button hlmBtn [routerLink]="['new']">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -96,70 +92,64 @@
 
 @if (!!schema) {
   @if (!singleMode) {
-    <nz-table
-      #configTable
-      [nzData]="configs | keyvalue"
-      class="rounded bg-white shadow">
-      <thead>
-        <tr>
-          @for (spec of tableKeys; track spec) {
-            <th>
-              {{ spec.name }}
-            </th>
-          }
-          <th class="w-32"></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (data of configTable.data; track trackByKey($index, data)) {
-          <tr>
-            @for (spec of tableKeys; track spec) {
-              <td>
-                @if (data.value[spec.name] !== undefined) {
-                  <span>
-                    {{ data.value[spec.name] }}
-                  </span>
-                } @else {
-                  <span class="text-xs text-gray-400">N/A</span>
-                }
-              </td>
-            }
-            <td class="flex items-center justify-end space-x-2">
-              <button
-                class="tkd-icon-btn tkd-small tkd-primary no-shadow"
-                [routerLink]="[data.key]">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-              </button>
-              <button
-                class="tkd-icon-btn tkd-danger tkd-small no-shadow"
-                (click)="deleteSetting(data.key)">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </td>
-          </tr>
+    <hlm-table class="rounded bg-white shadow">
+      <hlm-trow>
+        @for (spec of tableKeys; track spec) {
+          <hlm-th class="flex-[1_1_10%]">
+            {{ spec.name }}
+          </hlm-th>
         }
-      </tbody>
-    </nz-table>
+        <hlm-th class="w-32"></hlm-th>
+      </hlm-trow>
+
+      @for (data of configs | keyvalue; track trackByKey($index, data)) {
+        <hlm-trow>
+          @for (spec of tableKeys; track spec) {
+            <hlm-td class="flex-[1_1_10%]">
+              @if (data.value[spec.name] !== undefined) {
+                <span>
+                  {{ data.value[spec.name] }}
+                </span>
+              } @else {
+                <span class="text-xs text-gray-400">N/A</span>
+              }
+            </hlm-td>
+          }
+          <hlm-td class="flex items-center justify-end space-x-2">
+            <button
+              class="tkd-icon-btn tkd-small tkd-primary no-shadow"
+              [routerLink]="[data.key]">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
+            <button
+              class="tkd-icon-btn tkd-danger tkd-small no-shadow"
+              (click)="deleteSetting(data.key)">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </hlm-td>
+        </hlm-trow>
+      }
+    </hlm-table>
   } @else {
     <app-setting-editor
       [schema]="schema"

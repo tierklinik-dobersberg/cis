@@ -2,7 +2,7 @@ import { NgClass } from '@angular/common';
 import { booleanAttribute, ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal, untracked, ViewEncapsulation } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
-import { lucideCalendar, lucideCircuitBoard, lucideCopyright, lucideFileAudio, lucideFilm, lucideHome, lucideLayers, lucidePhoneCall, lucidePlus, lucideTimer, lucideUserCircle } from '@ng-icons/lucide';
+import { lucideCalendar, lucideCircuitBoard, lucideCopyright, lucideFileAudio, lucideFilm, lucideHome, lucideLayers, lucidePhoneCall, lucidePhoneForwarded, lucidePlus, lucideTimer, lucideUserCircle } from '@ng-icons/lucide';
 import { BrnMenuModule } from '@spartan-ng/ui-menu-brain';
 import { BrnSheetComponent } from '@spartan-ng/ui-sheet-brain';
 import { injectVoiceMailService } from '@tierklinik-dobersberg/angular/connect';
@@ -58,7 +58,8 @@ interface SubMenu {
       lucideCopyright,
       lucidePlus,
       lucideCircuitBoard,
-      lucidePhoneCall
+      lucidePhoneCall,
+      lucidePhoneForwarded
     })
   ]
 })
