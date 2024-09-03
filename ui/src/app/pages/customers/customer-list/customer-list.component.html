@@ -19,6 +19,7 @@
           <hlm-th class="w-96">Name</hlm-th>
           <hlm-th class="w-48">Ursprung</hlm-th>
           <hlm-th class="flex-1">Telefonnummern</hlm-th>
+          <hlm-th class="w-16"></hlm-th>
         </hlm-trow>
 
         @for (r of customers(); track r.customer.id) {
@@ -51,6 +52,19 @@
                   href="tel:{{ number }}"
                   class="whitespace-nowrap">
                   {{ number }}
+                </a>
+              }
+            </hlm-td>
+
+            <hlm-td class="w-16">
+              @if (r.customer | customerRoute; as url) {
+                <a
+                  hlmBtn
+                  variant="outline"
+                  size="icon"
+                  [attr.href]="url"
+                  target="_blank">
+                  <hlm-icon name="lucideMapPin" />
                 </a>
               }
             </hlm-td>

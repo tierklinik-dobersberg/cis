@@ -1,0 +1,60 @@
+<div hlmCard>
+  <div hlmCardHeader class="flex flex-row items-center justify-between">
+    <div class="flex flex-col">
+      <h3 hlmCardTitle>Dienstplan</h3>
+      <p hlmCardDescription>Hier findest du deinen aktuellen Dienstplan</p>
+    </div>
+
+    <a hlmBtn variant="secondary" href="{{ rosterUrl }}" target="_blank">
+      Dienstplan-App öffnen
+    </a>
+  </div>
+
+  <div hlmCardContent>
+    @if (vacation()?.seconds > 0 || overtime()?.seconds > 0) {
+      <div class="mb-8 flex flex-row gap-4">
+        <label
+          class="flex flex-col items-center justify-center rounded-md border border-border p-4">
+          <span hlmLabel>Resturlaub:</span>
+          <span>{{ vacation() | duration: 'default-hours' }}</span>
+        </label>
+
+        <label
+          class="flex flex-col items-center justify-center rounded-md border border-border p-4">
+          <span hlmLabel>ZA-Guthaben:</span>
+          <span>{{ overtime() | duration: 'default-hours' }}</span>
+        </label>
+      </div>
+    }
+
+    <div
+      class="flex flex-row items-center justify-around gap-2 border-b border-border py-2">
+      <button hlmBtn variant="ghost" size="icon" (click)="addMonths(-1)">
+        <hlm-icon name="lucideArrowLeft" />
+      </button>
+
+      <span>
+        {{ calendarDate() | date: 'MMMM, YYYY' }}
+      </span>
+
+      <button hlmBtn variant="ghost" size="icon" (click)="addMonths(1)">
+        <hlm-icon name="lucideArrowRight" />
+      </button>
+    </div>
+
+    <hlm-tabs tab="usershifts">
+      <hlm-tabs-list class="grid w-full grid-cols-2">
+        <button hlmTabsTrigger="usershifts">Meine Dienste</button>
+        <button hlmTabsTrigger="overview">Kalendar</button>
+      </hlm-tabs-list>
+
+      <div hlmTabsContent="usershifts">
+        <app-user-shifts [calendarDate]="calendarDate()" />
+      </div>
+
+      <div hlmTabsContent="overview">
+        <app-roster-calendar [calendarDate]="calendarDate()" />
+      </div>
+    </hlm-tabs>
+  </div>
+</div>

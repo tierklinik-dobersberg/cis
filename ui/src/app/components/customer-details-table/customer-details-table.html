@@ -1,5 +1,5 @@
 @if (_customer(); as customer) {
-  <hlm-table>
+  <hlm-table class="w-full">
     <hlm-trow>
       <hlm-th class="w-40">Name</hlm-th>
       <hlm-td>{{ customer.firstName }} {{ customer.lastName }}</hlm-td>
@@ -7,16 +7,29 @@
 
     <hlm-trow>
       <hlm-th class="w-40">Addresse</hlm-th>
-      <hlm-td>
-        <ul>
+      <hlm-td class="flex-grow">
+        <ul class="w-full space-y-2">
           @for (addr of customer.addresses; track addr) {
             <li>
-              <div class="flex flex-col gap-1">
-                <span>{{ addr.street }}</span>
-                @if (addr.extra) {
-                  <span>{{ addr.extra }}</span>
+              <div class="flex w-full flex-row justify-between">
+                <div class="flex flex-col gap-1">
+                  <span>{{ addr.street }}</span>
+                  @if (addr.extra) {
+                    <span>{{ addr.extra }}</span>
+                  }
+                  <span>{{ addr.postalCode }} {{ addr.city }}</span>
+                </div>
+
+                @if (addr | customerRoute; as url) {
+                  <a
+                    hlmBtn
+                    variant="outline"
+                    [attr.href]="url"
+                    target="_blank"
+                    size="icon">
+                    <hlm-icon name="lucideMapPin" />
+                  </a>
                 }
-                <span>{{ addr.postalCode }} {{ addr.city }}</span>
               </div>
             </li>
           }
@@ -26,10 +39,12 @@
 
     <hlm-trow>
       <hlm-th class="w-40">Telefon-Nummern</hlm-th>
-      <hlm-td>
-        <ul>
+      <hlm-td class="flex-grow">
+        <ul class="w-full space-y-2">
           @for (number of customer.phoneNumbers; track number) {
-            <li>{{ number }}</li>
+            <li>
+              <a href="tel:{{ number }}">{{ number }}</a>
+            </li>
           }
         </ul>
       </hlm-td>

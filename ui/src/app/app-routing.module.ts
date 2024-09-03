@@ -11,6 +11,7 @@ const routes: Routes = [
   { path: 'offtime', loadChildren: () => import('./pages/offtime/offtime-routes').then(m => m.OFFTIME_ROUTES) },
   { path: 'not-allowed', loadComponent: () => import('./pages/not-allowed').then(m => m.NotAllowedComponent) },
   { path: 'customers', loadChildren: () => import('./pages/customers/customer-routes').then(m => m.CUSTOMER_ROUTES)},
+  { path: 'roster', loadComponent: () => import('./pages/roster/roster.component').then(m => m.RosterComponent)},
   { path: '**', redirectTo: '/' },
 ];
 

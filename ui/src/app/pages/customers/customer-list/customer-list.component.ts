@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, effect, inject, model, signal } fro
 import { FormsModule } from "@angular/forms";
 import { PartialMessage } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
+import { lucideMapPin } from "@ng-icons/lucide";
 import { BrnSeparatorComponent } from "@spartan-ng/ui-separator-brain";
 import { BrnTableModule } from "@spartan-ng/ui-table-brain";
 import { BrnTooltipModule } from "@spartan-ng/ui-tooltip-brain";
@@ -21,6 +22,7 @@ import { CustomerQuery, CustomerResponse, SearchCustomerResponse } from "@tierkl
 import { toast } from "ngx-sonner";
 import { TkdPaginationComponent } from "src/app/components/pagination";
 import { CustomerDetailsDialog } from "src/app/dialogs/customer-details-dialog";
+import { CustomerRoutePipe } from "src/app/pipes/customer-route.pipe";
 import { AsyncPaginationManager } from "src/app/utils/pagination-manager";
 
 @Component({
@@ -42,10 +44,11 @@ import { AsyncPaginationManager } from "src/app/utils/pagination-manager";
         JoinListPipe,
         HlmSeparatorDirective,
         HlmTooltipModule,
+        CustomerRoutePipe,
         BrnTooltipModule
     ],
     providers: [
-        ...provideIcons({})
+        ...provideIcons({lucideMapPin})
     ]
 })
 export class CustomerListComponent {

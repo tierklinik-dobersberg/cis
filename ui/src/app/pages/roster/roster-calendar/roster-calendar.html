@@ -1,0 +1,32 @@
+<app-date-table [calendarDate]="calendarDate()" changeable="false">
+  <div
+    *dateTableCell="let d"
+    class="borde-border flex flex-col gap-1 rounded-md border p-1">
+    @if (d.date | shifts: shifts(); as shifts) {
+      <span class="w-full text-center text-sm font-medium">
+        {{ d.date | date: 'dd.MM' }}
+      </span>
+
+      <ul class="flex flex-col gap-1 text-xs">
+        @for (shift of shifts; track shift) {
+          @if (shift.workShiftId | workshift: definitions(); as def) {
+            <li [style.backgroundColor]="def.color" class="rounded p-2">
+              <div class="flex flex-col gap-1">
+                <span class="font-medium"> {{ def.displayName }}: </span>
+                <span class="flex flex-row flex-wrap gap-2">
+                  @for (user of shift.assignedUserIds; track user) {
+                    <span
+                      class="rounded border border-border bg-[var(--user-color)] px-2 py-1 text-[var(--user-contrast)]"
+                      [userColorVars]="user">
+                      {{ user | toUser: profiles() | userLetter }}
+                    </span>
+                  }
+                </span>
+              </div>
+            </li>
+          }
+        }
+      </ul>
+    }
+  </div>
+</app-date-table>
