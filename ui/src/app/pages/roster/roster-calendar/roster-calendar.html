@@ -15,11 +15,18 @@
                 <span class="font-medium"> {{ def.displayName }}: </span>
                 <span class="flex flex-row flex-wrap gap-2">
                   @for (user of shift.assignedUserIds; track user) {
-                    <span
-                      class="rounded border border-border bg-[var(--user-color)] px-2 py-1 text-[var(--user-contrast)]"
-                      [userColorVars]="user">
-                      {{ user | toUser: profiles() | userLetter }}
-                    </span>
+                    <hlm-tooltip>
+                      <span
+                        hlmTooltipTrigger
+                        class="rounded border border-border bg-[var(--user-color)] px-2 py-1 font-medium text-[var(--user-contrast)]"
+                        [userColorVars]="user">
+                        {{ user | toUser: profiles() | userLetter }}
+                      </span>
+
+                      <span *brnTooltipContent hlm>
+                        <app-avatar showName="true" [user]="user" />
+                      </span>
+                    </hlm-tooltip>
                   }
                 </span>
               </div>

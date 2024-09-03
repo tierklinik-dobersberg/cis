@@ -2,12 +2,15 @@ import { DatePipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, effect, input, signal } from "@angular/core";
 import { Timestamp } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
+import { BrnTooltipModule } from "@spartan-ng/ui-tooltip-brain";
 import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { injectRosterService, injectWorkShiftService } from "@tierklinik-dobersberg/angular/connect";
 import { ToUserPipe, UserLetterPipe } from "@tierklinik-dobersberg/angular/pipes";
+import { HlmTooltipModule } from "@tierklinik-dobersberg/angular/tooltip";
 import { GetRosterResponse, ListWorkShiftsResponse, PlannedShift, WorkShift } from "@tierklinik-dobersberg/apis/roster/v1";
 import { toast } from "ngx-sonner";
 import { injectCurrentConfig } from "src/app/api";
+import { AppAvatarComponent } from "src/app/components/avatar";
 import { AppDateTableModule } from "src/app/components/date-table";
 import { UserColorVarsDirective } from "src/app/components/user-color-vars";
 import { WorkShiftPipe } from "src/app/pipes/workshift-name.pipe";
@@ -25,6 +28,9 @@ import { ShiftsPipe } from "./shifts.pipe";
         ToUserPipe,
         UserColorVarsDirective,
         UserLetterPipe,
+        HlmTooltipModule,
+        AppAvatarComponent,
+        BrnTooltipModule,
         DatePipe,
     ]
 })
@@ -55,7 +61,7 @@ export class RosterCalendarComponent {
             const config = this.config();
             const date = this.calendarDate();
 
-            if (!date || !config) {
+            if (!date || !config || !config.UI.OnCallRosterType) {
                 return
             }
 
