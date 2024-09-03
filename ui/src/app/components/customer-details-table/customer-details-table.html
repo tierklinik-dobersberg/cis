@@ -1,0 +1,49 @@
+@if (_customer(); as customer) {
+  <hlm-table>
+    <hlm-trow>
+      <hlm-th class="w-40">Name</hlm-th>
+      <hlm-td>{{ customer.firstName }} {{ customer.lastName }}</hlm-td>
+    </hlm-trow>
+
+    <hlm-trow>
+      <hlm-th class="w-40">Addresse</hlm-th>
+      <hlm-td>
+        <ul>
+          @for (addr of customer.addresses; track addr) {
+            <li>
+              <div class="flex flex-col gap-1">
+                <span>{{ addr.street }}</span>
+                @if (addr.extra) {
+                  <span>{{ addr.extra }}</span>
+                }
+                <span>{{ addr.postalCode }} {{ addr.city }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+      </hlm-td>
+    </hlm-trow>
+
+    <hlm-trow>
+      <hlm-th class="w-40">Telefon-Nummern</hlm-th>
+      <hlm-td>
+        <ul>
+          @for (number of customer.phoneNumbers; track number) {
+            <li>{{ number }}</li>
+          }
+        </ul>
+      </hlm-td>
+    </hlm-trow>
+
+    <hlm-trow>
+      <hlm-th class="w-40">E-Mail Addressen</hlm-th>
+      <hlm-td>
+        <ul>
+          @for (number of customer.emailAddresses; track number) {
+            <li>{{ number }}</li>
+          }
+        </ul>
+      </hlm-td>
+    </hlm-trow>
+  </hlm-table>
+}

@@ -1,0 +1,28 @@
+<hlm-dialog-header>
+  <h3 hlmDialogTitle>Kunden Details</h3>
+  <p hlmDialogDescription>
+    Übersicht der Kunden-Daten für "{{ customer.firstName }}
+    {{ customer.lastName }}
+  </p>
+</hlm-dialog-header>
+
+<hlm-tabs class="w-full" tab="overview">
+  <div hlmTabsContent="overview" tabindex="-1">
+    <app-customer-details [customer]="context.customer" />
+  </div>
+
+  <div hlmTabsContent="details">
+    <pre class="!max-h-[70dvh] max-h-[70vh] overflow-auto">{{
+      context.customer.toJson() | json
+    }}</pre>
+  </div>
+
+  <hlm-tabs-list class="my-4 grid w-full grid-cols-2">
+    <button hlmTabsTrigger="overview">Übersicht</button>
+    <button hlmTabsTrigger="details">Details</button>
+  </hlm-tabs-list>
+</hlm-tabs>
+
+<hlm-dialog-footer>
+  <button hlmBtn variant="default" (click)="context.close()">Schließen</button>
+</hlm-dialog-footer>

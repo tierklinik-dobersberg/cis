@@ -8,7 +8,7 @@ import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { HlmIconComponent, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { HlmSelectModule } from "@tierklinik-dobersberg/angular/select";
 import { ClassValue } from "clsx";
-import { PaginationManager } from "src/app/utils/pagination-manager";
+import { IPaginationManager } from "src/app/utils/pagination-manager";
 
 const defaultClass = "flex flex-row items-center w-full justify-between";
 
@@ -30,7 +30,7 @@ const defaultClass = "flex flex-row items-center w-full justify-between";
     ]
 })
 export class TkdPaginationComponent {
-    public readonly paginator = input.required<PaginationManager>();
+    public readonly paginator = input.required<IPaginationManager>();
 
     public readonly userClass = input<ClassValue>('', { alias: 'class' })
 

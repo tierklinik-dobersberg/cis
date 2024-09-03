@@ -18,6 +18,7 @@ import { Customer } from "@tierklinik-dobersberg/apis/customer/v1";
 import { CallEntry } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
 import { injectCurrentConfig } from "src/app/api";
 import { AppAvatarComponent } from "src/app/components/avatar";
+import { CustomerDetailsTableComponent } from "src/app/components/customer-details-table";
 
 export interface CallDetailsDialogContext {
     record: CallEntry,
@@ -50,6 +51,7 @@ const contentClass =
         ToUserPipe,
         AppAvatarComponent,
         HlmTabsModule,
+        CustomerDetailsTableComponent,
         JsonPipe,
     ],
     providers: [

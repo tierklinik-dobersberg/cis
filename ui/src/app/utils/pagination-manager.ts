@@ -1,11 +1,26 @@
 import { computed, signal, Signal } from '@angular/core';
 import { PaginatorState } from '@spartan-ng/ui-table-brain';
 
+export interface IPaginationManager {
+  currentPage: Signal<number>;
+  totalPages: Signal<number>;
+  pageSize: Signal<number>;
+  totalElements: Signal<number>;
+  pageButtons: Signal<number[]>;
+  availablePageSizes: number[];
+
+  onStateChange: (state: PaginatorState) => void;
+
+  openPage(idx: number);
+
+}
+
 export function usePaginationManager<T = any>(recordSignal: Signal<T[]>): PaginationManager<T> {
     return new PaginationManager(recordSignal);
 }
 
-export class PaginationManager<T = any> {
+
+export class PaginationManager<T = any> implements IPaginationManager {
   private readonly _range = signal({ from: 0, to: 10 });
   private readonly _currentPage = signal(0);
   private readonly _totalPages = signal(1);
@@ -54,7 +69,7 @@ export class PaginationManager<T = any> {
 
     console.log("current", current, "total", total);
 
-    const pages = [];
+    const pages: number[] = [];
 
     const start = current === total ? -2 : -1;
     const end = current === 0 ? 2 : 1;
@@ -76,4 +91,16 @@ export class PaginationManager<T = any> {
 
     return pages;
   });
+}
+
+export class AsyncPaginationManager<T> extends PaginationManager<T> {
+  public readonly data = computed(() => this.records())
+
+  private readonly _totalElements = signal(0);
+
+  public readonly totalElements = this._totalElements.asReadonly();
+
+  public setTotalCount(count: number) {
+    this._totalElements.set(count);
+  }
 }

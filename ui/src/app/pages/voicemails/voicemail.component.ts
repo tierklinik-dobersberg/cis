@@ -54,6 +54,8 @@ import { environment } from 'src/environments/environment';
     HlmBadgeDirective,
     DatePipe,
     HlmTooltipModule,
+    BrnTooltipModule,
+    HlmTooltipModule,
     BrnTooltipModule
   ],
   providers: [...provideIcons({ lucideFileAudio, lucidePlayCircle })],

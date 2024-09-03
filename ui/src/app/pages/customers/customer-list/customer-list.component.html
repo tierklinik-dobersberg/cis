@@ -4,18 +4,61 @@
       <h1 hlmCardTitle>Kunden</h1>
       <p hlmCardDescription>Suche nach Kundendaten</p>
     </div>
+  </div>
 
-    <div
-      class="flex flex-col items-start justify-center gap-4 self-stretch sm:flex-grow sm:flex-row sm:justify-end">
+  <div hlmCardContent>
+    <div class="flex flex-row items-center">
+      <input hlmInput [(ngModel)]="searchByName" placeholder="Suchen" />
+    </div>
+
+    <brn-separator hlm decorative />
+
+    <div class="flex flex-col gap-4">
       <hlm-table>
+        <hlm-trow>
+          <hlm-th class="w-96">Name</hlm-th>
+          <hlm-th class="w-48">Ursprung</hlm-th>
+          <hlm-th class="flex-1">Telefonnummern</hlm-th>
+        </hlm-trow>
+
         @for (r of customers(); track r.customer.id) {
-          <hlm-trow>
-            <hlm-td>
+          <hlm-trow (click)="showDetails(r)">
+            <hlm-td class="w-96">
               {{ r.customer.firstName }} {{ r.customer.lastName }}
+            </hlm-td>
+            <hlm-td class="flex w-48 flex-row flex-wrap gap-2">
+              @for (importer of r.states; track importer.importer) {
+                <hlm-tooltip>
+                  <label
+                    hlmBadge
+                    variant="outline"
+                    class="uppercase"
+                    hlmTooltipTrigger>
+                    {{ importer.importer }}
+                  </label>
+
+                  <span *brnTooltipContent hlm>{{
+                    importer.internalReference
+                  }}</span>
+                </hlm-tooltip>
+              }
+            </hlm-td>
+            <hlm-td class="flex-1">
+              @for (number of r.customer.phoneNumbers; track number) {
+                <a
+                  hlmBadge
+                  variant="secondary"
+                  href="tel:{{ number }}"
+                  class="whitespace-nowrap">
+                  {{ number }}
+                </a>
+              }
             </hlm-td>
           </hlm-trow>
         }
       </hlm-table>
+
+      <tkd-pagination class="self-end" [paginator]="paginator" />
     </div>
   </div>
 </div>
