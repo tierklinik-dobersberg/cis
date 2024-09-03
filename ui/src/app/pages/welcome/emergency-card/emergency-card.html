@@ -20,23 +20,72 @@
   } @else {
     @for (entry of onCall(); track entry.number.number) {
       <div class="flex flex-col gap-4">
-        <label hlmLabel class="text-sky-700">
-          {{ entry.number.displayName || entry.number }}
-        </label>
+        <div class="flex flex-row items-center justify-between">
+          <label hlmLabel class="text-sky-700">
+            {{ entry.number.displayName || entry.number.number }}
+          </label>
+
+          @if (entry.isOverwrite) {
+            <hlm-alert-dialog>
+              <button
+                brnAlertDialogTrigger
+                hlmBtn
+                variant="secondary"
+                size="sm">
+                Umleitung löschen
+              </button>
+
+              <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+                <hlm-alert-dialog-header>
+                  <label hlmAlertDialogTitle>Bestätigung erforderlich</label>
+                  <p hlmAlertDialogDescription>
+                    Möchtest du die Umleitung für "{{
+                      entry.number.displayName || entry.number.number
+                    }}" wirklich löschen?
+                  </p>
+                </hlm-alert-dialog-header>
+                <hlm-alert-dialog-footer class="gap-2">
+                  <button hlmBtn variant="secondary" (click)="ctx.close()">
+                    Nein, Abbrechen
+                  </button>
+
+                  <button
+                    hlmBtn
+                    variant="destructive"
+                    (click)="deleteRedirect(entry.number.number)">
+                    Ja, Löschen
+                  </button>
+                </hlm-alert-dialog-footer>
+              </hlm-alert-dialog-content>
+            </hlm-alert-dialog>
+          } @else {
+            <button
+              hlmBtn
+              variant="secondary"
+              size="sm"
+              (click)="createRedirect(entry.number.number)">
+              Umleiten
+            </button>
+          }
+        </div>
 
         <div class="grid grid-cols-1 gap-2">
           @for (onCall of entry.onCall; track onCall.transferTarget) {
             <div
-              class="flex flex-row items-center justify-start gap-2 rounded-md border border-border p-2 @md:gap-4">
+              [class.!border-red-300]="entry.isOverwrite"
+              class="flex flex-row items-center justify-start gap-2 overflow-hidden text-ellipsis rounded-md border border-border p-2 @md:gap-4">
               @if (onCall.profile) {
-                <app-avatar
-                  [user]="onCall.profile"
-                  class="ml-1 hidden @xs:block"
-                  [variant]="_computedAvatarSize()"
-                  [nzTooltipTitle]="
-                    'bis ' + (onCall.until | toDate | date: 'short')
-                  "
-                  nz-tooltip />
+                <hlm-tooltip>
+                  <app-avatar
+                    hlmTooltipTrigger
+                    [user]="onCall.profile"
+                    class="ml-1 hidden flex-shrink-0 @xs:block"
+                    [variant]="_computedAvatarSize()" />
+
+                  <span *brnTooltipContent hlm>
+                    bis {{ onCall.until | toDate | date: 'short' }}
+                  </span>
+                </hlm-tooltip>
 
                 <brn-separator
                   hlm
@@ -46,28 +95,20 @@
               }
               <div class="flex flex-col gap-0">
                 @if (onCall.profile) {
-                  <span hlmLabel class="text-lg">
+                  <span
+                    hlmLabel
+                    class="overflow-hidden text-ellipsis whitespace-nowrap text-lg">
                     {{ onCall.profile | toUser: profiles() | displayName }}
                   </span>
                 }
 
                 <a
-                  class="text-gray-600"
+                  class="text-xs text-gray-600"
                   [attr.href]="'tel:' + onCall.transferTarget">
                   <hlm-icon name="lucidePhone" size="xs" />
                   {{ onCall.transferTarget }}
                 </a>
               </div>
-
-              <div class="flex-grow"></div>
-
-              <a
-                hlmBtn
-                variant="ghost"
-                size="icon"
-                [attr.href]="'tel:' + onCall.transferTarget">
-                <hlm-icon name="lucidePhoneCall" />
-              </a>
             </div>
           } @empty {
             <div hlmAlert>

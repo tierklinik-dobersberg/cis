@@ -12,6 +12,7 @@ import { HlmAlertDialogModule } from "@tierklinik-dobersberg/angular/alertdialog
 import { injectCurrentProfile, injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { HlmCheckboxModule } from '@tierklinik-dobersberg/angular/checkbox';
+import { injectOfftimeService, injectWorktimeSerivce } from "@tierklinik-dobersberg/angular/connect";
 import { HlmInputModule } from '@tierklinik-dobersberg/angular/input';
 import { HlmLabelModule } from '@tierklinik-dobersberg/angular/label';
 import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
@@ -21,11 +22,8 @@ import { HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
 import { GetVacationCreditsLeftResponse, OffTimeType, UserVacationSum } from "@tierklinik-dobersberg/apis/roster/v1";
 import { CandyDate } from 'ng-zorro-antd/core/time';
-import { NzDatePickerModule } from "ng-zorro-antd/date-picker";
-import { NzSelectModule } from "ng-zorro-antd/select";
 import { MarkdownModule } from "ngx-markdown";
 import { toast } from "ngx-sonner";
-import { OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { MyEditor } from 'src/app/ckeditor';
 import { TkdDatePickerComponent } from "src/app/components/date-picker";
 import { OffTimeCalendarOverviewComponent } from "../offtime-calendar-overview/calendar-overview";
@@ -38,10 +36,8 @@ const dateForDateTimeInputValue = date => new Date(date.getTime() + date.getTime
   standalone: true,
   imports: [
     NgClass,
-    NzDatePickerModule,
     FormsModule,
     OffTimeCalendarOverviewComponent,
-    NzSelectModule,
     CKEditorModule,
     DurationPipe,
     HlmInputModule,
@@ -61,8 +57,8 @@ const dateForDateTimeInputValue = date => new Date(date.getTime() + date.getTime
   ]
 })
 export class OffTimeCreateComponent implements OnInit {
-  private readonly offTimeSerivce = inject(OFFTIME_SERVICE);
-  private readonly workTimeService = inject(WORKTIME_SERVICE);
+  private readonly offTimeSerivce = injectOfftimeService();
+  private readonly workTimeService = injectWorktimeSerivce();
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 

@@ -21,6 +21,7 @@ import {
   HlmCardDirective,
   HlmCardModule,
 } from '@tierklinik-dobersberg/angular/card';
+import { injectRosterService } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
@@ -34,17 +35,14 @@ import { TimeRange } from '@tierklinik-dobersberg/apis/common/v1';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
 import { GetWorkingStaffResponse, PlannedShift } from '@tierklinik-dobersberg/apis/roster/v1';
 import { differenceInDays, endOfDay, isSameDay, startOfDay } from 'date-fns';
-import { NzCardModule } from 'ng-zorro-antd/card';
 import { toast } from 'ngx-sonner';
 import { interval } from 'rxjs';
 import { injectCurrentConfig } from 'src/app/api';
-import {
-  injectRosterService
-} from 'src/app/api/connect_clients';
 import { AppAvatarComponent } from 'src/app/components/avatar';
 import { TkdDatePickerComponent, TkdDatePickerInputDirective } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
 import { getCalendarId } from 'src/app/services';
+import { isBetween } from 'src/app/utils/date';
 import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shifts';
 
 @Component({
@@ -53,7 +51,6 @@ import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shift
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    NzCardModule,
     NgTemplateOutlet,
     ToUserPipe,
     DisplayNamePipe,
@@ -72,7 +69,6 @@ import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shift
     HlmSkeletonComponent,
     HlmTooltipModule,
     BrnTooltipModule,
-
   ],
   hostDirectives: [HlmCardDirective],
   providers: [
@@ -184,7 +180,16 @@ export class RosterCardComponent {
           return new GetWorkingStaffResponse();
         })
         .then(response => {
-          this.currentShifts.set(response.currentShifts || []);
+          const now = new Date();
+          const filtered = (response.currentShifts || [])
+            .filter(shift => {
+              const start = shift.from.toDate();
+              const end = shift.to.toDate();
+
+              return isSameDay(start, now) || isBetween(now, [start, end]);
+            })
+
+          this.currentShifts.set(filtered)
           this.rosterLoading.set(false);
         });
     }, { allowSignalWrites: true });

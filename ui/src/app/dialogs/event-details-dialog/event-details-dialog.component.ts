@@ -109,12 +109,12 @@ export class AppEventDetailsDialogComponent implements OnInit {
     
     protected readonly availableCalendars = signal<Calendar[]>([]);
 
-    protected calendarId = model<string>();
-    protected summary = model<string>();
-    protected description = model<string>();
-    protected date = model<string>();
+    protected calendarId = model<string>('');
+    protected summary = model<string>('');
+    protected description = model<string>('');
+    protected date = model<string>('');
     protected startTime = model<Date>();
-    protected duration = model<string>();
+    protected duration = model<string>('');
 
     static open(service: HlmDialogService, ctx: EventDetailsDialogContext): BrnDialogRef<AppEventDetailsDialogComponent> {
         return service.open(AppEventDetailsDialogComponent, {

@@ -1,12 +1,15 @@
 import {
-    ChangeDetectionStrategy,
-    ChangeDetectorRef,
-    Component,
-    OnDestroy,
-    OnInit,
-    TrackByFunction,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  TrackByFunction,
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import { RouterLink } from '@angular/router';
+import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ConfigAPI, Schema } from 'src/app/api';
@@ -20,6 +23,12 @@ interface Category {
 @Component({
   templateUrl: './admin.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    NzToolTipModule,
+    RouterLink,
+    HlmButtonDirective
+  ]
 })
 export class AdminOverviewComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();

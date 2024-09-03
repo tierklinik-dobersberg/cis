@@ -2,7 +2,7 @@ import { CdkMenu } from '@angular/cdk/menu';
 import { Directive, inject } from '@angular/core';
 
 @Directive({
-  selector: 'hlm-menu',
+  selector: 'hlm-menu, hlm-sub-menu',
   standalone: true,
 })
 export class MenuFixDirective {

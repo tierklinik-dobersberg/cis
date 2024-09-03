@@ -2,11 +2,11 @@ import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest
 import { Injectable, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { createPromiseClient } from '@connectrpc/connect';
+import { UNAUTHENCIATED_HANDLER, transportFactory } from '@tierklinik-dobersberg/angular/connect';
 import { AuthService } from '@tierklinik-dobersberg/apis/idm/v1';
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
-import { UNAUTHENCIATED_HANDLER, transportFactory } from './connect_clients';
 
 @Injectable({
   providedIn: 'root'

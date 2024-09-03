@@ -1,6 +1,6 @@
 <header class="flex flex-row items-center gap-2">
   <!-- Date controls -->
-  <div class="flex flex-row flex-nowrap gap-1">
+  <div class="flex flex-row gap-1 flex-nowrap">
     <tkd-date-picker
       [ngModel]="currentDate()"
       (ngModelChange)="setDate($event)"
@@ -33,19 +33,17 @@
   </div>
 
   <!-- Zoom Controls -->
-  <div class="flex flex-row flex-nowrap items-center gap-0">
+  <div class="flex flex-row items-center gap-0 flex-nowrap">
     <button
-      nz-tooltip="Vergrößern (+)"
       hlmBtn
       variant="outline"
       size="sm"
-      class="rounded-r-none border-r-0"
+      class="border-r-0 rounded-r-none"
       (click)="dayView.zoomIn()">
       <hlm-icon name="lucideZoomIn" size="sm" />
     </button>
 
     <button
-      nz-tooltip="Verkleinern (-)"
       hlmBtn
       size="sm"
       variant="outline"
@@ -60,7 +58,7 @@
   [currentDate]="currentDate()"
   (calendarClick)="handleCalendarClick($event)"
   #dayView="tkdDayView"
-  class="w-full flex-grow cursor-not-allowed rounded-md border border-border bg-white shadow-md"
+  class="flex-grow w-full bg-white border rounded-md shadow-md cursor-not-allowed border-border"
   autoScroll="true"
   [showCurrentTime]="isToday()"
   [calendars]="calendars()"
@@ -86,16 +84,16 @@
     let-calendar="calendar">
     @if (!event.isShiftType) {
       <div
-        class="event-container h-full w-full transform overflow-hidden drop-shadow hover:bg-blend-difference hover:shadow-lg">
+        class="w-full h-full overflow-hidden transform event-container drop-shadow hover:bg-blend-difference hover:shadow-lg">
         <div
           [userColorVars]="calendar.id | byCalendarId: profiles()"
           class="event-details h-full w-full cursor-pointer overflow-hidden border border-[var(--user-contrast)] bg-[var(--user-color,white)] p-2 text-xs text-[var(--user-contrast)]">
           <div
-            class="event-summary flex w-full flex-row flex-nowrap gap-1 overflow-hidden whitespace-nowrap">
+            class="flex flex-row w-full gap-1 overflow-hidden event-summary flex-nowrap whitespace-nowrap">
             <span class="text-opacity-25">
               {{ event.startTime | toDate | date: 'HH:mm' }} -
             </span>
-            <span class="overflow-hidden text-ellipsis font-semibold">
+            <span class="overflow-hidden font-semibold text-ellipsis">
               {{ event.summary }}
             </span>
             <span class="flex-grow"></span>
@@ -111,7 +109,7 @@
       </div>
     } @else {
       <div
-        class="h-full w-full cursor-default bg-sky-600 bg-opacity-20 shadow-inner"></div>
+        class="w-full h-full shadow-inner cursor-default bg-sky-600 bg-opacity-20"></div>
     }
   </ng-template>
 </tkd-day-view>

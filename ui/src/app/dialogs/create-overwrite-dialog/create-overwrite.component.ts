@@ -1,9 +1,9 @@
-import { DatePipe } from "@angular/common";
+import { DatePipe, NgTemplateOutlet } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, effect, inject, model, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Timestamp } from "@bufbuild/protobuf";
 import { Code, ConnectError } from "@connectrpc/connect";
-import { BrnDialogRef } from "@spartan-ng/ui-dialog-brain";
+import { BrnDialogRef, injectBrnDialogContext } from "@spartan-ng/ui-dialog-brain";
 import { BrnSelectModule } from "@spartan-ng/ui-select-brain";
 import { BrnSeparatorComponent } from "@spartan-ng/ui-separator-brain";
 import { BrnSheetModule } from "@spartan-ng/ui-sheet-brain";
@@ -30,6 +30,12 @@ import { TkdDatePickerComponent } from "src/app/components/date-picker";
 import { EmergencyTargetService } from "src/app/layout/redirect-emergency-button/emergency-target.service";
 import { injectLocalPlannedShifts } from "src/app/utils/shifts";
 import { WorkShiftPipe } from "../../pipes/workshift-name.pipe";
+import { SelectionSheet, SelectionSheetItemDirective } from "../selection-sheet";
+import { SheetItemGroupDirective } from "../selection-sheet/selection-group.directive";
+
+export interface CreateOverwriteContext {
+    inboundNumber?: string;
+}
 
 @Component({
     selector: 'app-overwrite-create',
@@ -53,7 +59,11 @@ import { WorkShiftPipe } from "../../pipes/workshift-name.pipe";
         BrnSheetModule,
         HlmSheetModule,
         ToDatePipe,
-        DatePipe
+        DatePipe,
+        SelectionSheet,
+        SelectionSheetItemDirective,
+        NgTemplateOutlet,
+        SheetItemGroupDirective,
     ]
 })
 export class CreateOverwriteComponent {
@@ -62,6 +72,12 @@ export class CreateOverwriteComponent {
     private readonly rosterService = injectRosterService();
     private readonly emergencyTargetService = inject(EmergencyTargetService);
     private readonly config = injectCurrentConfig();
+
+    protected displayProfileGroup =  (item: Profile | QuickRosterOverwrite, prev?: Profile | QuickRosterOverwrite) => !prev;
+    protected displaySettingsGroup = (item: Profile | QuickRosterOverwrite, prev?: Profile | QuickRosterOverwrite) => prev instanceof Profile && !(item instanceof Profile);
+
+    protected readonly context = injectBrnDialogContext<CreateOverwriteContext>();
+
     protected readonly layout = inject(LayoutService);
 
     protected readonly profiles = injectUserProfiles();
@@ -90,12 +106,22 @@ export class CreateOverwriteComponent {
         })
     })
 
+    protected readonly _computedTargetItems = computed(() => {
+        const profiles = this._computedValidProfiles();
+        const settings = this.quickSettings();
+
+        return [
+            ...profiles,
+            ...settings,
+        ]
+    })
+
     protected readonly shifts = signal<PlannedShift[]>([])
     protected readonly localPlannedShifts = injectLocalPlannedShifts(this.shifts);
     protected readonly inboundNumbers = signal<InboundNumber[]>([]);
 
     protected readonly dateRange = model<[Date, Date] | null>(null)
-    protected readonly selectedProfile = model<Profile | string | null>(null);
+    protected readonly selectedProfile = model<Profile | QuickRosterOverwrite | null>(null);
     protected readonly customTarget = model<string>('');
     protected readonly shiftDate = model<Date>(new Date());
     protected readonly quickSettings = model<QuickRosterOverwrite[]>([]);
@@ -117,7 +143,7 @@ export class CreateOverwriteComponent {
         const profile = this.selectedProfile();
         let custom = this.customTarget();
 
-        if (custom || typeof profile === 'string') {
+        if (custom || !(profile instanceof Profile)) {
             req.transferTarget = {
                 case: 'custom',
                 value: new CustomOverwrite({
@@ -158,7 +184,9 @@ export class CreateOverwriteComponent {
             .then(response => {
                 this.inboundNumbers.set(response.inboundNumbers || [])
 
-                // TODO(ppacher): should we make this configurable?
+                if (this.context.inboundNumber) {
+                    this.numberToRedirect.set(response.inboundNumbers.find(n => n.number === this.context.inboundNumber))
+                } else 
                 if (response.inboundNumbers.length > 0) {
                     this.numberToRedirect.set(response.inboundNumbers[0]);
                 }

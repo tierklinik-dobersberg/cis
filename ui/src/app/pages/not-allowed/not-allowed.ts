@@ -1,12 +1,19 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { injectCurrentProfile } from "@tierklinik-dobersberg/angular/behaviors";
+import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
+import { DisplayNamePipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HeaderTitleService } from "src/app/layout/header-title";
 import { environment } from "src/environments/environment";
 
 @Component({
+  standalone: true,
   templateUrl: './not-allowed.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    DisplayNamePipe,
+    HlmButtonDirective
+  ]
 })
 export class NotAllowedComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

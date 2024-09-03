@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -46,7 +47,6 @@ import { EventService } from 'src/app/services/event.service';
 import { toDateString } from 'src/app/utils';
 import { findCalendarHoles, mergePlannedShifts } from 'src/app/utils/calendar';
 import { injectLocalPlannedShifts } from 'src/app/utils/shifts';
-import { SharedModule } from '../../../shared/shared.module';
 
 class EventModel extends CalendarEvent {
   constructor(
@@ -75,9 +75,9 @@ class EventModel extends CalendarEvent {
     FormsModule,
     HlmCheckboxModule,
     HlmLabelDirective,
-    SharedModule,
     BrnSelectModule,
     HlmSelectModule, 
+    DatePipe
   ],
   standalone: true,
   host: {

@@ -2,7 +2,7 @@ import { computed, Directive, effect, ElementRef, inject, input, Renderer2, Rend
 import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { UserColorPipe, UserContrastColorPipe } from "@tierklinik-dobersberg/angular/pipes";
 import { Profile } from "@tierklinik-dobersberg/apis/idm/v1";
-import { ToRGBAPipe } from "src/app/shared/pipes";
+import { ToRGBAPipe } from "src/app/pipes/to-rgba.pipe";
 
 @Directive({
     selector: '[userColorVars]',

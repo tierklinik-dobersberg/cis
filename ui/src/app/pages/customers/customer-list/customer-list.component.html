@@ -1,0 +1,21 @@
+<div hlmCard>
+  <div hlmCardHeader class="flex flex-col items-start gap-8 md:flex-row">
+    <div class="space-y-1.5">
+      <h1 hlmCardTitle>Kunden</h1>
+      <p hlmCardDescription>Suche nach Kundendaten</p>
+    </div>
+
+    <div
+      class="flex flex-col items-start justify-center gap-4 self-stretch sm:flex-grow sm:flex-row sm:justify-end">
+      <hlm-table>
+        @for (r of customers(); track r.customer.id) {
+          <hlm-trow>
+            <hlm-td>
+              {{ r.customer.firstName }} {{ r.customer.lastName }}
+            </hlm-td>
+          </hlm-trow>
+        }
+      </hlm-table>
+    </div>
+  </div>
+</div>

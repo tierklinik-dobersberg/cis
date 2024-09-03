@@ -36,10 +36,10 @@
     </label>
 
     <hlm-sheet>
-      <div class="flex w-full flex-col items-center gap-2 sm:flex-row">
+      <div class="flex flex-col items-center w-full gap-2 sm:flex-row">
         <tkd-date-picker
           [(ngModel)]="dateRange"
-          class="flex-grow"
+          class="self-stretch flex-grow"
           withTime="true"
           allowClear="false"
           allowOpenRange="false"
@@ -49,7 +49,7 @@
 
         <button
           hlmBtn
-          class="justify-end"
+          class="self-end justify-end sm:self-auto"
           size="sm"
           brnSheetTrigger
           [side]="layout.md() ? 'right' : 'bottom'">
@@ -81,11 +81,11 @@
 
         <brn-separator hlm decorative />
 
-        <div class="flex flex-grow flex-col gap-1 overflow-hidden">
+        <div class="flex flex-col flex-grow gap-1 overflow-hidden">
           <label hlmLabel> Wähle die Schicht die du umleiten möchtest: </label>
 
           <div
-            class="flex flex-grow flex-col items-stretch justify-start gap-4 overflow-auto pr-2">
+            class="flex flex-col items-stretch justify-start flex-grow gap-4 pr-2 overflow-auto">
             @for (shift of localPlannedShifts(); track shift) {
               <button
                 hlmBtn
@@ -120,53 +120,67 @@
 
   <brn-separator decorative hlm />
 
-  <div>
+  <div class="flex flex-col">
     <label hlmLabel for="dateRange">
       Bitte wähle das Ziel für die Umleitung
     </label>
-    <brn-select
-      [(ngModel)]="selectedProfile"
-      (click)="!!customTarget() && customTarget.set('')">
-      <hlm-select-trigger class="w-full">
-        <hlm-select-value class="w-full" />
-      </hlm-select-trigger>
 
-      <hlm-select-content class="max-w-94 max-h-56">
-        <hlm-select-group> Schnellauswahl </hlm-select-group>
+    <div class="flex flex-row items-center gap-2 mt-2">
+      <app-sheet-selection
+        class="block flex-[1_0_45%]"
+        size="sm"
+        [items]="_computedTargetItems()"
+        (selectedChange)="selectedProfile.set($event)">
+        Ziel auswählen
 
-        @for (set of quickSettings(); track set) {
-          <hlm-option [value]="set.TargetNumber">
-            {{ set.DisplayName }}
-          </hlm-option>
-        }
-        <hlm-select-group> Mitarbeiter </hlm-select-group>
+        <label hlmSheetTitle>Bitte wähle das Ziel aus</label>
 
-        @for (profile of _computedValidProfiles(); track profile.user.id) {
-          <hlm-option [value]="profile">
-            {{ profile | displayName }}
-          </hlm-option>
-        }
-      </hlm-select-content>
-    </brn-select>
+        <label hlmLabel *sheetGroup="displayProfileGroup"> Mitarbeiter </label>
+        <label hlmLabel *sheetGroup="displaySettingsGroup">
+          Schnellauswahl
+        </label>
+
+        <ng-template [sheetItem] let-item #sheetItem="appSheetItem">
+          @if (item.user) {
+            <app-avatar
+              [user]="item"
+              class="text-sm"
+              showName="true"></app-avatar>
+          } @else {
+            <span class="text-sm">{{ item.DisplayName }}</span>
+          }
+        </ng-template>
+      </app-sheet-selection>
+
+      <div class="flex flex-row items-center gap-1 text-sm">
+        <hr class="w-[10px] text-border" />
+
+        oder
+
+        <hr class="w-[10px] text-border" />
+      </div>
+
+      <input
+        class="flex-[1_0_45%]"
+        hlmInput
+        [readonly]="!!selectedProfile()"
+        type="tel"
+        name="phone"
+        placeholder="Telefonnummer"
+        (click)="!!selectedProfile() && selectedProfile.set(null)"
+        [(ngModel)]="customTarget" />
+    </div>
+
+    @if (selectedProfile(); as target) {
+      <ng-container
+        *ngTemplateOutlet="
+          sheetItem.templateRef;
+          context: {
+            $implicit: target,
+          }
+        " />
+    }
   </div>
-
-  <div class="flex flex-row flex-nowrap items-center gap-2">
-    <brn-separator class="w-[unset] flex-1" hlm decorative />
-    oder
-    <brn-separator class="w-[unset] flex-1" hlm decorative />
-  </div>
-
-  <label for="phone" hlmLabel>
-    Telefonnnummer
-    <input
-      hlmInput
-      [readonly]="!!selectedProfile()"
-      type="tel"
-      name="phone"
-      class="w-full"
-      (click)="!!selectedProfile() && selectedProfile.set(null)"
-      [(ngModel)]="customTarget" />
-  </label>
 </div>
 
 <hlm-dialog-footer class="flex flex-row flex-wrap gap-2">

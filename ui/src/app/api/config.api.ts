@@ -5,13 +5,12 @@ import {
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { ConnectError } from '@connectrpc/connect';
 import { injectCurrentProfile, injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
+import { injectRoleService } from '@tierklinik-dobersberg/angular/connect';
 import { toast } from 'ngx-sonner';
 import {
   Observable
 } from 'rxjs';
 import { map, retry } from 'rxjs/operators';
-import { TriggerAPI } from '.';
-import { injectRoleService } from './connect_clients';
 
 export interface ExternalLink {
   ParentMenu: string;
@@ -142,7 +141,6 @@ export class ConfigAPI {
 
   private roleService = injectRoleService()
   private profiles = injectUserProfiles();
-  private triggerapi = inject(TriggerAPI);
   private http = inject(HttpClient);
   
   private readonly _config = signal<UIConfig>({})
@@ -234,18 +232,6 @@ export class ConfigAPI {
         break;
       case 'identity:users':
         values = this.profiles();
-        break;
-      case 'trigger':
-        const triggers = await this.triggerapi.listInstances().toPromise()
-        values = triggers.map(instance => {
-          return {
-            ...instance.config,
-            _id: instance.id,
-          }
-        })
-        break;
-      case 'events':
-        values = await this.triggerapi.listEventTypes().toPromise()
         break;
       default:
         const instances = await this.getSettings(oneOf.schemaType).toPromise();

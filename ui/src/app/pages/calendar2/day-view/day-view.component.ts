@@ -20,7 +20,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, interval, map, share, startWith, take } from 'rxjs';
-import { TkdDebounceEventDirective } from 'src/app/shared/debounce-event.directive';
+import { TkdDebounceEventDirective } from 'src/app/components/debounce-event.directive';
 import { TkdCalendarEventCellTemplateDirective } from './event-cell.directive';
 import { EventStylePipe } from './event-style.pipe';
 import { TkdCalendarHeaderCellTemplateDirective } from './header-cell.directive';

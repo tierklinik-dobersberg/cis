@@ -7,13 +7,18 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { Timestamp } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
 import { lucidePhone, lucidePhoneCall } from '@ng-icons/lucide';
+import { BrnAlertDialogContentDirective, BrnAlertDialogTriggerDirective } from '@spartan-ng/ui-alertdialog-brain';
 import { BrnSeparatorComponent } from '@spartan-ng/ui-separator-brain';
+import { BrnTooltipModule } from '@spartan-ng/ui-tooltip-brain';
 import { HlmAlertModule } from '@tierklinik-dobersberg/angular/alert';
+import { HlmAlertDialogModule } from '@tierklinik-dobersberg/angular/alertdialog';
 import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { HlmCardDirective, HlmCardModule } from '@tierklinik-dobersberg/angular/card';
+import { injectCallService } from '@tierklinik-dobersberg/angular/connect';
 import {
   HlmIconModule,
   provideIcons,
@@ -27,10 +32,9 @@ import {
 } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSeparatorDirective } from '@tierklinik-dobersberg/angular/separator';
 import { HlmSkeletonComponent } from '@tierklinik-dobersberg/angular/skeleton';
+import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
 import { GetOnCallResponse, InboundNumber, ListInboundNumberResponse } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { toast } from 'ngx-sonner';
-import { CALL_SERVICE } from 'src/app/api/connect_clients';
 import { AppAvatarComponent, AvatarVariants } from 'src/app/components/avatar';
 import { EmergencyTargetService } from 'src/app/layout/redirect-emergency-button/emergency-target.service';
 
@@ -57,9 +61,13 @@ class OnCallResponse extends GetOnCallResponse {
     ToUserPipe,
     DisplayNamePipe,
     HlmAlertModule,
+    HlmAlertDialogModule,
+    BrnAlertDialogTriggerDirective,
+    BrnAlertDialogContentDirective,
     HlmButtonDirective,
     HlmLabelDirective,
-    NzToolTipModule,
+    HlmTooltipModule,
+    BrnTooltipModule,
     ToDatePipe,
     DatePipe,
     HlmSkeletonComponent,
@@ -78,7 +86,7 @@ class OnCallResponse extends GetOnCallResponse {
   ],
 })
 export class EmergencyCardComponent {
-  private readonly callService = inject(CALL_SERVICE);
+  private readonly callService = injectCallService();
   private readonly emergencyService = inject(EmergencyTargetService);
 
   protected readonly layout = inject(LayoutService)
@@ -152,5 +160,26 @@ export class EmergencyCardComponent {
 
   get canSetOverwrite(): boolean {
     return true;
+  }
+
+  protected createRedirect(inboundNumber: string) {
+    this.emergencyService.createRedirect(inboundNumber)
+  }
+
+  protected deleteRedirect(inboundNumber: string) {
+    this.callService.deleteOverwrite({
+      inboundNumbers: {
+        numbers: [inboundNumber]
+      },
+      selector: {
+        case: 'activeAt',
+        value: Timestamp.fromDate(new Date())
+      }
+    })
+    .catch(err => {
+      toast.error('Umleitung konnte nicht gelöscht werden', {
+        description: ConnectError.from(err).message
+      })
+    })
   }
 }

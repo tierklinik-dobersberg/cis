@@ -19,6 +19,7 @@ import { HlmBadgeModule } from "@tierklinik-dobersberg/angular/badge";
 import { injectCurrentProfile, injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { HlmCardModule } from "@tierklinik-dobersberg/angular/card";
+import { injectCommentService, injectOfftimeService, injectWorktimeSerivce } from "@tierklinik-dobersberg/angular/connect";
 import { TkdEmptyTableComponent } from "@tierklinik-dobersberg/angular/empty-table";
 import { HlmHoverCardModule } from '@tierklinik-dobersberg/angular/hovercard';
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
@@ -38,16 +39,15 @@ import { addMonths, isAfter, isBefore, isSameMonth } from "date-fns";
 import { MarkdownModule } from "ngx-markdown";
 import { toast } from "ngx-sonner";
 import { injectCurrentConfig } from 'src/app/api';
-import { COMMENT_SERVICE, OFFTIME_SERVICE, WORKTIME_SERVICE } from "src/app/api/connect_clients";
 import { MyEditor } from 'src/app/ckeditor';
 import { AppAvatarComponent } from "src/app/components/avatar";
+import { CommentComponent } from "src/app/components/comment";
 import { AppDateTableModule } from "src/app/components/date-table";
 import { TkdPaginationComponent } from "src/app/components/pagination";
+import { TextInputComponent } from "src/app/components/text-input";
 import { AppSheetTriggerDirective } from "src/app/components/triggers";
 import { UserColorVarsDirective } from "src/app/components/user-color-vars";
 import { HeaderTitleService } from "src/app/layout/header-title";
-import { CommentComponent } from "src/app/shared/comment";
-import { TextInputComponent } from "src/app/shared/text-input";
 import { usePaginationManager } from "src/app/utils/pagination-manager";
 import { OffTimeCalendarOverviewComponent } from "../offtime-calendar-overview/calendar-overview";
 import { MatchingOfftimePipe } from "../pipes/matching-offtime.pipe";
@@ -121,9 +121,9 @@ import { AppOffTimeFilterSheetComponent, filterOffTimeEntries, OffTimeFilter } f
 })
 export class OffTimeListComponent implements OnInit {
   private readonly headerTitle = inject(HeaderTitleService);
-  private readonly offTimeService = inject(OFFTIME_SERVICE);
-  private readonly worktimeService = inject(WORKTIME_SERVICE);
-  private readonly commentService = inject(COMMENT_SERVICE);
+  private readonly offTimeService = injectOfftimeService();
+  private readonly worktimeService = injectWorktimeSerivce();
+  private readonly commentService = injectCommentService();
   private readonly config = injectCurrentConfig();
   public readonly layout = inject(LayoutService);
 

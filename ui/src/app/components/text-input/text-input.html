@@ -1,0 +1,42 @@
+@switch (format) {
+  @case ('plain') {
+    @if (!!choices) {
+      <brn-select #input>
+        <hlm-select-trigger>
+          <hlm-select-value />
+        </hlm-select-trigger>
+
+        <hlm-select-content>
+          @for (choice of choices; track choice) {
+            <hlm-option [value]="choice">{{ choice }}</hlm-option>
+          }
+        </hlm-select-content>
+      </brn-select>
+    } @else {
+      @if (!multiline) {
+        <input ngDefaultControl #input hlmInput />
+      } @else {
+        <textarea ngDefaultControl #input hlmInput></textarea>
+      }
+    }
+  }
+  @case ('html') {
+    <ng-container *ngTemplateOutlet="ckeditorTemplate"></ng-container>
+  }
+  @case ('markdown') {
+    <ng-container *ngTemplateOutlet="ckeditorTemplate"></ng-container>
+  }
+  @default {
+    <p>Input type not yet supported</p>
+  }
+}
+
+<ng-template #ckeditorTemplate>
+  <ckeditor
+    #input
+    [config]="config()"
+    [editor]="Editor"
+    class="prose"
+    (onReady)="onReady()">
+  </ckeditor>
+</ng-template>

@@ -2,22 +2,32 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  Inject,
-  InjectionToken,
   OnInit,
-  Optional,
   inject,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { Subject } from 'rxjs';
 import { ConfigAPI, ConfigTest, Schema, SchemaInstance } from 'src/app/api';
 import { extractErrorMessage } from 'src/app/utils';
+import { TkdOptionSpecInputComponent } from '../../option-spec-input';
 
 
 @Component({
   templateUrl: './setting-test.html',
   styleUrls: ['./setting-test.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    NzSelectModule,
+    TkdOptionSpecInputComponent,
+    FormsModule,
+    NzIconModule,
+    HlmButtonDirective
+  ]
 })
 export class SettingTestComponent implements OnInit {
   private destroy$ = new Subject<void>();

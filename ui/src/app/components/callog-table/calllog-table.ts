@@ -34,7 +34,6 @@ import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { Customer } from '@tierklinik-dobersberg/apis/customer/v1';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
 import { CallDirection, CallEntry, CallStatus } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { injectCurrentConfig } from 'src/app/api';
 import { KnownPhoneExtensionPipe } from 'src/app/pipes/known-phone-extension.pipe';
 import { getUserEmergencyExtension, getUserPhoneExtension } from 'src/app/services';
@@ -81,7 +80,6 @@ export enum Columns {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
-    NzToolTipModule,
     ToUserPipe,
     DisplayNamePipe,
     DurationPipe,

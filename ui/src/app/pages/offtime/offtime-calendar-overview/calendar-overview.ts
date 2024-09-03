@@ -19,9 +19,7 @@ import { DisplayNamePipe, InListPipe, ToDatePipe, ToUserPipe, UserColorPipe, Use
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { HlmTooltipModule } from "@tierklinik-dobersberg/angular/tooltip";
 import { FindOffTimeRequestsResponse, OffTimeEntry } from "@tierklinik-dobersberg/apis/roster/v1";
-import { NzCalendarModule } from "ng-zorro-antd/calendar";
 import { CandyDate } from "ng-zorro-antd/core/time";
-import { LibPackerModule } from "ng-zorro-antd/date-picker";
 import { toast } from 'ngx-sonner';
 import { AppDateTableModule, CalendarRange } from "src/app/components/date-table";
 import { UserColorVarsDirective } from "src/app/components/user-color-vars";
@@ -65,8 +63,6 @@ import { MatchingOfftimePipe } from "../pipes/matching-offtime.pipe";
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    LibPackerModule,
-    NzCalendarModule,
     DatePipe,
     ToDatePipe,
     DisplayNamePipe,

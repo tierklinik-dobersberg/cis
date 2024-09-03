@@ -1,9 +1,5 @@
 export * from './authorization';
 export * from './config.api';
 export * from './door.api';
-export * from './import.api';
 export * from './openinghours.api';
-export * from './patient.api';
-export * from './trigger.api';
-export * from './user.service';
-export * from './voicemail.api';
+

@@ -1,12 +1,1 @@
 @import './_input';
-@import './_avatar';
-@import './_card';
-@import './_header';
-@import './_button';
-
-@layer components {
-  .page {
-    @apply  px-2 sm:px-4 md:px-8 lg:px-12 w-full relative overflow-auto space-y-8;
-  }
-}
-

@@ -58,7 +58,6 @@
     "ng-zorro-antd": "^17.4.1",
     "ngx-markdown": "^17.2.1",
     "ngx-sonner": "^0.3.4",
-    "ngx-timeago": "^3.0.0",
     "rxjs": "^7.5.7",
     "search-query-parser": "^1.6.0",
     "tslib": "^2.4.0",

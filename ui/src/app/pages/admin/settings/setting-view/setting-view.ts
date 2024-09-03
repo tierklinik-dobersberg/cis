@@ -1,41 +1,51 @@
-import { KeyValue } from '@angular/common';
+import { KeyValue, KeyValuePipe } from '@angular/common';
 import {
-    ChangeDetectionStrategy,
-    ChangeDetectorRef,
-    Component,
-    OnDestroy,
-    OnInit,
-    TrackByFunction,
-    ViewChild,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  TrackByFunction,
+  ViewChild,
 } from '@angular/core';
-import { NgModel } from '@angular/forms';
+import { FormsModule, NgModel } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
-import { ActivatedRoute, Router } from '@angular/router';
-import { NzMessageService } from 'ng-zorro-antd/message';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzTableModule } from 'ng-zorro-antd/table';
+import { toast } from 'ngx-sonner';
 import {
-    BehaviorSubject,
-    combineLatest,
-    forkJoin,
-    Observable,
-    of,
-    Subject,
+  BehaviorSubject,
+  combineLatest,
+  forkJoin,
+  Observable,
+  of,
+  Subject,
 } from 'rxjs';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 import {
-    ConfigAPI,
-    OptionSpec,
-    Schema,
-    SchemaInstance,
-    WellKnownAnnotations,
+  ConfigAPI,
+  OptionSpec,
+  Schema,
+  SchemaInstance,
+  WellKnownAnnotations,
 } from 'src/app/api';
 import { Breadcrump, HeaderTitleService } from 'src/app/layout/header-title';
 import { extractErrorMessage } from 'src/app/utils';
+import { SettingEditorComponent } from '../setting-editor';
 import { SettingTestComponent } from '../setting-test';
 
 @Component({
   templateUrl: './setting-view.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    NzTableModule,
+    KeyValuePipe,
+    RouterLink,
+    SettingEditorComponent,
+    FormsModule
+  ]
 })
 export class SettingViewComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -73,7 +83,6 @@ export class SettingViewComponent implements OnInit, OnDestroy {
     private headerTitleService: HeaderTitleService,
     private route: ActivatedRoute,
     private router: Router,
-    private nzMessageService: NzMessageService,
     private cdr: ChangeDetectorRef,
     private modal: NzModalService,
     public domSanitizer: DomSanitizer
@@ -99,9 +108,9 @@ export class SettingViewComponent implements OnInit, OnDestroy {
     stream.subscribe({
       next: (res) => {
         if (!!res.warning) {
-          this.nzMessageService.warning(res.warning);
+          toast.warning(res.warning);
         } else {
-          this.nzMessageService.success(
+          toast.success(
             'Einstellungen erfolgreich gespeichert'
           );
         }
@@ -114,7 +123,7 @@ export class SettingViewComponent implements OnInit, OnDestroy {
         }
       },
       error: (err) =>
-        this.nzMessageService.error(extractErrorMessage(err, 'Fehler')),
+        toast.error(extractErrorMessage(err, 'Fehler')),
     });
   }
 
@@ -129,9 +138,9 @@ export class SettingViewComponent implements OnInit, OnDestroy {
     this.configAPI.deleteSetting(this.schema!.name, id).subscribe({
       next: (res) => {
         if (!!res.warning) {
-          this.nzMessageService.warning(res.warning);
+          toast.warning(res.warning);
         } else {
-          this.nzMessageService.success('Einstellungen erfolgreich gelöscht.');
+          toast.success('Einstellungen erfolgreich gelöscht.');
         }
 
         this.configAPI.reload();
@@ -142,7 +151,7 @@ export class SettingViewComponent implements OnInit, OnDestroy {
         }
       },
       error: (err) =>
-        this.nzMessageService.error(extractErrorMessage(err, 'Fehler')),
+        toast.error(extractErrorMessage(err, 'Fehler')),
     });
   }
 

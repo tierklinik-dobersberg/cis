@@ -34,6 +34,8 @@ import {
 } from '@tierklinik-dobersberg/angular/icon';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import {
+  DurationPipe,
+  ToDatePipe,
   UserColorPipe,
   UserContrastColorPipe,
 } from '@tierklinik-dobersberg/angular/pipes';
@@ -50,8 +52,6 @@ import {
   setSeconds,
   startOfDay
 } from 'date-fns';
-import { NzMessageModule } from 'ng-zorro-antd/message';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import {
   debounceTime,
   filter,
@@ -63,8 +63,6 @@ import { UserColorVarsDirective } from 'src/app/components/user-color-vars';
 import { ByCalendarIdPipe } from 'src/app/pipes/by-calendar-id.pipe';
 import { getCalendarId } from 'src/app/services';
 import { EventService } from 'src/app/services/event.service';
-import { TkdDateInputModule } from 'src/app/shared/date-input';
-import { SharedModule } from 'src/app/shared/shared.module';
 import { toDateString } from 'src/app/utils';
 import { AppEventDetailsDialogComponent } from '../../../dialogs/event-details-dialog';
 import {
@@ -92,7 +90,6 @@ type CalEvent = Timed &
   standalone: true,
   imports: [
     CommonModule,
-    SharedModule,
     TkdDayViewComponent,
     TkdCalendarHeaderCellTemplateDirective,
     TkdCalendarEventCellTemplateDirective,
@@ -100,9 +97,6 @@ type CalEvent = Timed &
     UserContrastColorPipe,
     TimeFormatPipe,
     FormsModule,
-    TkdDateInputModule,
-    NzToolTipModule,
-    NzMessageModule,
     IsSameDayPipe,
     HlmButtonModule,
     UserColorVarsDirective,
@@ -113,6 +107,8 @@ type CalEvent = Timed &
     BrnSelectModule,
     HlmSelectModule,
     ByCalendarIdPipe,
+    DurationPipe,
+    ToDatePipe
   ],
   providers: [
     ...provideIcons({

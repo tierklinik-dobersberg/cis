@@ -7,15 +7,16 @@ import {
   forwardRef,
   Input,
   Output,
-  TrackByFunction,
 } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { OptionSpec, Schema, SchemaInstance } from 'src/app/api';
+import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Schema, SchemaInstance } from 'src/app/api';
+import { TkdOptionListInputComponent } from 'src/app/pages/admin/option-list-input';
 
 @Component({
   selector: 'app-setting-editor',
   templateUrl: './setting-editor.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -23,6 +24,10 @@ import { OptionSpec, Schema, SchemaInstance } from 'src/app/api';
       useExisting: forwardRef(() => SettingEditorComponent),
     },
   ],
+  imports: [
+    TkdOptionListInputComponent,
+    FormsModule
+  ]
 })
 export class SettingEditorComponent implements ControlValueAccessor {
   @Input()

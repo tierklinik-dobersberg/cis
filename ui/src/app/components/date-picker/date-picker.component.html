@@ -121,6 +121,7 @@
         'rounded-md border border-border': !layout.sm(),
       }"
       (dateHover)="hoveredDate.set($event?.date || null)"
+      (calendarDateChange)="calendarDate.set($event)"
       [calendarDate]="calendarDate()">
       <div
         class="flex h-full w-full items-center justify-center self-stretch rounded-md p-2 text-sm transition-colors duration-150 ease-in-out"
