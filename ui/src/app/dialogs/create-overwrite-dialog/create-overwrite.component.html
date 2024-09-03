@@ -59,7 +59,7 @@
 
       <hlm-sheet-content
         *brnSheetContent="let ctx"
-        class="flex h-[100dvh] max-w-[unset] flex-col gap-8 overflow-hidden md:max-w-[500px]">
+        class="flex h-[100dvh] max-w-[unset] flex-col gap-8 overflow-auto md:max-w-[500px]">
         <hlm-sheet-header>
           <h3 hlmSheetTitle>Arbeitsschicht auswählen</h3>
           <p hlmSheetDescription>
@@ -81,11 +81,11 @@
 
         <brn-separator hlm decorative />
 
-        <div class="flex flex-grow flex-col gap-1 overflow-hidden">
+        <div class="flex flex-grow flex-col gap-1">
           <label hlmLabel> Wähle die Schicht die du umleiten möchtest: </label>
 
           <div
-            class="flex flex-grow flex-col items-stretch justify-start gap-4 overflow-auto pr-2">
+            class="flex flex-grow flex-col items-stretch justify-start gap-4 pr-2">
             @for (shift of localPlannedShifts(); track shift) {
               <button
                 hlmBtn
