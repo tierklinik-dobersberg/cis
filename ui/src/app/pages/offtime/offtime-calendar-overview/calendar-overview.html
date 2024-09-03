@@ -15,7 +15,7 @@
 
         <span
           class="inline-block w-40 text-center text-sm md:text-base lg:text-lg">
-          {{ _computedNativeDate() | date: 'MMMM, YYYY' }}
+          {{ calendarDate() | date: 'MMMM, YYYY' }}
         </span>
 
         <button
@@ -29,7 +29,7 @@
       </div>
 
       <app-date-table
-        [calendarDate]="_computedNativeDate()"
+        [calendarDate]="calendarDate()"
         variant="small"
         [ranges]="calendarRanges()">
         <ng-container *dateTableCell="let date">
@@ -116,7 +116,7 @@
   </div>
 } @else {
   <div class="flex w-full flex-row flex-wrap items-start gap-2" id="calendar">
-    <app-date-table [calendarDate]="_computedNativeDate()">
+    <app-date-table [calendarDate]="calendarDate()">
       <div
         *dateTableCell="let ctx"
         class="mb-2 flex h-32 max-h-[8rem] flex-col items-stretch justify-start overflow-auto border-t-2 border-green-700 border-opacity-20 text-left"

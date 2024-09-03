@@ -21,7 +21,7 @@ import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
 import { GetVacationCreditsLeftResponse, OffTimeType, UserVacationSum } from "@tierklinik-dobersberg/apis/roster/v1";
-import { CandyDate } from 'ng-zorro-antd/core/time';
+import { endOfDay, startOfDay } from "date-fns";
 import { MarkdownModule } from "ngx-markdown";
 import { toast } from "ngx-sonner";
 import { MyEditor } from 'src/app/ckeditor';
@@ -110,8 +110,8 @@ export class OffTimeCreateComponent implements OnInit {
     if (this.route.snapshot.queryParamMap.has("d")) {
       const d = new Date(this.route.snapshot.queryParamMap.get("d"))
 
-      const from = new CandyDate(d).setHms(0, 0, 0).nativeDate
-      const to = new CandyDate(from).addDays(1).setHms(0, 0, -1).nativeDate
+      const from = startOfDay(d)
+      const to = endOfDay(d)
 
       this.dateRange.set([from, to])
     }

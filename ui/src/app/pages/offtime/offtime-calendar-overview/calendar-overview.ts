@@ -19,7 +19,7 @@ import { DisplayNamePipe, InListPipe, ToDatePipe, ToUserPipe, UserColorPipe, Use
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { HlmTooltipModule } from "@tierklinik-dobersberg/angular/tooltip";
 import { FindOffTimeRequestsResponse, OffTimeEntry } from "@tierklinik-dobersberg/apis/roster/v1";
-import { CandyDate } from "ng-zorro-antd/core/time";
+import { addMonths, endOfMonth, startOfMonth } from "date-fns";
 import { toast } from 'ngx-sonner';
 import { AppDateTableModule, CalendarRange } from "src/app/components/date-table";
 import { UserColorVarsDirective } from "src/app/components/user-color-vars";
@@ -103,7 +103,7 @@ export class OffTimeCalendarOverviewComponent {
 
   // Inputs & Outputs
   public readonly calendarRanges = input<CalendarRange[]>([]);
-  public readonly calendarDate = model<CandyDate>(new CandyDate());
+  public readonly calendarDate = model<Date>(new Date());
   public readonly mode = input<'list' | 'calendar'>('list')
 
   @ViewChild('dateCell', {read: TemplateRef, static: true})
@@ -112,9 +112,6 @@ export class OffTimeCalendarOverviewComponent {
   // Template Signals and Variables
   protected readonly entries = signal<OffTimeEntry[]>([]);
   protected readonly hoveredEntryId = signal<string | null>(null);
-  protected readonly _computedNativeDate = computed(() => {
-    return this.calendarDate().nativeDate;
-  })
   protected readonly _computedDisplayedColumns = computed(() => {
     const isMd = this.layout.md();
     
@@ -134,8 +131,8 @@ export class OffTimeCalendarOverviewComponent {
 
     effect(() => {
       const date = this.calendarDate();
-      const from = new Date(date.nativeDate.getFullYear(), date.getMonth(), 1)
-      const to = new Date(date.nativeDate.getFullYear(), date.getMonth() + 1, 0);
+      const from = startOfMonth(date);
+      const to = endOfMonth(date);
       
       if (lastAbrtCtrl !== null) {
         lastAbrtCtrl.abort();
@@ -179,17 +176,13 @@ export class OffTimeCalendarOverviewComponent {
     })
   }
 
-  protected switchDate(date: CandyDate | Date | null, offSetInMonths?: number) {
+  protected switchDate(date: Date | null, offSetInMonths?: number) {
     if (date === null) {
       date = this.calendarDate();
     }
 
-    if (date instanceof Date) {
-      date = new CandyDate(date)
-    }
-    
     if (offSetInMonths !== undefined) {
-      date = date.addMonths(offSetInMonths)
+      date = addMonths(date, offSetInMonths)
     }
     
     // avoid reloading if nothing changed.
