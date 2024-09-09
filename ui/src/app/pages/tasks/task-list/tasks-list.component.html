@@ -50,8 +50,7 @@
 
               @if (task.description) {
                 <markdown
-                  [inline]="true"
-                  class="overflow-hidden text-ellipsis text-sm [-webkit-box-orient:vertical] [-webkit-line-clamp:2] [display:-webkit-box]">
+                  class="prose-sm overflow-hidden text-ellipsis text-sm [-webkit-box-orient:vertical] [-webkit-line-clamp:2] ![display:-webkit-box]">
                   {{ task.description }}
                 </markdown>
               }

@@ -13,7 +13,7 @@
         <label hlmLabel>
             Beschreibung
         </label>
-        <div class="p-2">
+        <div class="p-2 prose max-h-[500px] overflow-auto">
             @if (task().description; as description) {
                 <markdown>{{ description }}</markdown>
             } @else {

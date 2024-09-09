@@ -161,6 +161,8 @@ export class RosterCardComponent {
       this.rosterLoading.set(true)
       this.currentShifts.set([]);
 
+      const now = new Date();
+
       this.rosterService
         .getWorkingStaff2({
           query: {
@@ -183,6 +185,10 @@ export class RosterCardComponent {
           const now = new Date();
           const filtered = (response.currentShifts || [])
             .filter(shift => {
+              if (!isSameDay(date, now)) {
+                return true
+              }
+
               const start = shift.from.toDate();
               const end = shift.to.toDate();
 

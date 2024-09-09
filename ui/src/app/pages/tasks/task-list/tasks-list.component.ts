@@ -1,5 +1,5 @@
 import { DatePipe } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, effect, inject, model, signal } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, effect, inject, model, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -71,6 +71,7 @@ export class TaskListComponent {
     private readonly dialogService = inject(HlmDialogService)
     private readonly eventsService = inject(EventService);
     private readonly router = inject(Router);
+    private readonly cdr = inject(ChangeDetectorRef)
 
     private readonly boardId = signal<string | null>(null);
 
@@ -202,8 +203,6 @@ export class TaskListComponent {
                 return
             }
 
-            console.log("loading tasks")
-
             this.taskService
                 .listTasks({
                     queries: [
@@ -228,10 +227,12 @@ export class TaskListComponent {
                     return new ListTasksResponse()
                 })
                 .then(responses => {
-                    console.log("got new tasks", responses.tasks)
-                    
                     this.tasks.set(responses.tasks);
                     this.paginator.setTotalCount(Number(responses.totalCount))
+
+                    // BUG(ppacher): MarkdownModule does not pickup a change in the task description
+                    // if we don't manully trigger a change detection run ....
+                    this.cdr.markForCheck();
                 })
         })
     }
