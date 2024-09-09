@@ -116,6 +116,48 @@
           Röntgen
         </button>
       </hlm-menu-group>
+      <hlm-menu-group>
+        <button
+          hlmMenuItem
+          [brnMenuTriggerFor]="tasksMenu"
+          class="px-4 py-2"
+          #tasksTrigger="cdkMenuTriggerFor"
+          (mouseenter)="
+            (!!sheetRef && !tasksTrigger.isOpen()) || tasksTrigger.open()
+          ">
+          <hlm-icon name="lucideLayers" hlmMenuIcon />
+          Todos & Tasks
+          <hlm-menu-item-sub-indicator />
+        </button>
+
+        <ng-template #tasksMenu>
+          <hlm-sub-menu
+            (mouseleave)="tasksTrigger.toggle()"
+            class="w-64 [&_button]:py-4 [&_button]:md:px-4 [&_button]:md:py-2">
+            <hlm-menu-label>Todos & Tasks</hlm-menu-label>
+
+            <hlm-menu-separator />
+
+            @for (board of boards(); track board.id) {
+              <button
+                hlmMenuItem
+                class="px-4 py-2"
+                [routerLink]="['/tasks/', board.id]"
+                routerLinkActive="bg-gray-100">
+                <hlm-icon name="lucideLayers" hlmMenuIcon />
+                {{ board.displayName }}
+              </button>
+            }
+
+            <hlm-menu-separator />
+
+            <button hlmMenuItem class="px-4 py-2" routerLink="/board">
+              <hlm-icon name="lucidePlus" hlmMenuIcon />
+              Neue Liste erstellen
+            </button>
+          </hlm-sub-menu>
+        </ng-template>
+      </hlm-menu-group>
 
       <hlm-menu-separator />
 

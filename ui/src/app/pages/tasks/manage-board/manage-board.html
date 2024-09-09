@@ -1,0 +1,186 @@
+<section hlmCard>
+  <div hlmCardHeader>
+    <h3 hlmCardTitle>Allgemein</h3>
+    <p hlmCardDescription>Allgemeine Task-Board Informationen</p>
+  </div>
+
+  <div hlmCardContent>
+    <div class="flex w-96 flex-col gap-8">
+      <label hlmLabel for="displayName">
+        Name
+        <input
+          type="text"
+          class="w-full"
+          required
+          [(ngModel)]="displayName"
+          name="displayName"
+          hlmInput />
+      </label>
+
+      <label hlmLabel for="description">
+        Beschreibung
+
+        <input
+          type="text"
+          class="w-full"
+          required
+          [(ngModel)]="description"
+          name="description"
+          hlmInput />
+      </label>
+    </div>
+  </div>
+</section>
+
+<section hlmCard>
+  <div hlmCardHeader>
+    <h3 hlmCardTitle>Berechtigungen</h3>
+    <p hlmCardDescription>
+      Verwalte Lese- und Schreibzugriff auf das Task-Board
+    </p>
+  </div>
+
+  <div hlmCardContent>
+    <div class="flex w-full flex-col gap-8">
+      <app-board-permission-editor
+        title="Lesezugriff"
+        [(permissions)]="readPermissions" />
+
+      <brn-separator decorative="true" hlm />
+
+      <app-board-permission-editor
+        title="Schreibzugriff"
+        [(permissions)]="writePermissions" />
+    </div>
+  </div>
+</section>
+
+<section hlmCard>
+  <div hlmCardHeader>
+    <h3 hlmCardTitle>Status-Werte</h3>
+    <p hlmCardDescription>Verwalte erlaubte Status Werte</p>
+  </div>
+
+  <div hlmCardContent>
+    <div class="flex w-full flex-col gap-8">
+      <hlm-table class="w-full">
+        <hlm-trow>
+          <hlm-th class="flex-[1_1_150px]">Status</hlm-th>
+          <hlm-th class="flex-[2_1_200px]">Beschreibung</hlm-th>
+          <hlm-th class="flex-[1_1_100px]">Farbe</hlm-th>
+          <hlm-th class="flex-[1_1_100px]"></hlm-th>
+        </hlm-trow>
+
+        @for (status of statuses(); track status.status) {
+          <hlm-trow>
+            <hlm-td class="flex-[1_1_150px]">
+              <input
+                type="text"
+                hlmInput
+                required
+                (ngModelChange)="update(statuses)"
+                [(ngModel)]="status.status"
+                class="w-full" />
+            </hlm-td>
+            <hlm-td class="flex-[2_1_200px]">
+              <input
+                type="text"
+                hlmInput
+                (ngModelChange)="update(statuses)"
+                [(ngModel)]="status.description"
+                class="w-full" />
+            </hlm-td>
+            <hlm-td class="flex-[1_1_100px]">
+              <ngx-colors
+                type="text"
+                ngx-colors-trigger
+                format="hex"
+                (ngModelChange)="update(statuses)"
+                [(ngModel)]="status.color" />
+            </hlm-td>
+            <hlm-td class="flex-[1_1_100px]">
+              <button
+                hlmBtn
+                variant="secondary"
+                size="icon"
+                (click)="deleteStatus(status.status)">
+                <hlm-icon name="lucideTrash" />
+              </button>
+            </hlm-td>
+          </hlm-trow>
+        }
+      </hlm-table>
+
+      <button hlmBtn (click)="addStatus()">Status hinzufügen</button>
+    </div>
+  </div>
+</section>
+
+<section hlmCard>
+  <div hlmCardHeader>
+    <h3 hlmCardTitle>Tags & Labels</h3>
+    <p hlmCardDescription>Verwalte erlaubte Tags & Labels</p>
+  </div>
+
+  <div hlmCardContent>
+    <div class="flex w-full flex-col gap-8">
+      <hlm-table class="w-full">
+        <hlm-trow>
+          <hlm-th class="flex-[1_1_150px]">Tag</hlm-th>
+          <hlm-th class="flex-[2_1_200px]">Beschreibung</hlm-th>
+          <hlm-th class="flex-[1_1_100px]">Farbe</hlm-th>
+          <hlm-th class="flex-[1_1_100px]"></hlm-th>
+        </hlm-trow>
+
+        @for (tag of tags(); track tag.tag) {
+          <hlm-trow>
+            <hlm-td class="flex-[1_1_150px]">
+              <input
+                type="text"
+                hlmInput
+                required
+                [(ngModel)]="tag.tag"
+                (ngModelChange)="update(tags)"
+                class="w-full" />
+            </hlm-td>
+            <hlm-td class="flex-[2_1_200px]">
+              <input
+                type="text"
+                hlmInput
+                [(ngModel)]="tag.description"
+                (ngModelChange)="update(tags)"
+                class="w-full" />
+            </hlm-td>
+            <hlm-td class="flex-[1_1_100px]">
+              <ngx-colors
+                type="text"
+                ngx-colors-trigger
+                format="hex"
+                (ngModelChange)="update(tags)"
+                [(ngModel)]="tag.color" />
+            </hlm-td>
+            <hlm-td class="flex-[1_1_100px]">
+              <button
+                hlmBtn
+                variant="secondary"
+                size="icon"
+                (click)="deleteTag(tag.tag)">
+                <hlm-icon name="lucideTrash" />
+              </button>
+            </hlm-td>
+          </hlm-trow>
+        }
+      </hlm-table>
+
+      <button hlmBtn (click)="addTag()">Label hinzufügen</button>
+    </div>
+  </div>
+</section>
+
+<div class="flex flex-row items-center justify-between gap-4 pb-8">
+  <button hlmBtn (click)="save()">Speichern</button>
+
+  @if (existingBoard()) {
+    <button hlmBtn variant="destructive">Löschen</button>
+  }
+</div>

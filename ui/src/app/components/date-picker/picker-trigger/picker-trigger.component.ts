@@ -53,6 +53,13 @@ export class TkdDatePickerTriggerComponent {
         return 'xs';
     })
 
+    protected readonly _computedDateFormat = computed(() => {
+        if (this.picker.withTime()) {
+            return 'short'
+        }
+        return 'mediumDate'
+    })
+
     protected readonly _computedButtonSize = computed<ButtonVariants['size']>(() => {
         const size = this.size();
 

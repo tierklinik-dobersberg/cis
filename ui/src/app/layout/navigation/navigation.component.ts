@@ -2,14 +2,17 @@ import { NgClass } from '@angular/common';
 import { booleanAttribute, ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal, untracked, ViewEncapsulation } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { ConnectError } from '@connectrpc/connect';
 import { lucideCalendar, lucideCircuitBoard, lucideCopyright, lucideFileAudio, lucideFilm, lucideHome, lucideLayers, lucidePhoneCall, lucidePhoneForwarded, lucidePlus, lucideTimer, lucideUserCircle } from '@ng-icons/lucide';
 import { BrnMenuModule } from '@spartan-ng/ui-menu-brain';
 import { BrnSheetComponent } from '@spartan-ng/ui-sheet-brain';
-import { injectVoiceMailService } from '@tierklinik-dobersberg/angular/connect';
+import { injectBoardService, injectVoiceMailService } from '@tierklinik-dobersberg/angular/connect';
 import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { HlmMenuModule } from '@tierklinik-dobersberg/angular/menu';
 import { Mailbox } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
+import { Board, ListBoardsResponse } from '@tierklinik-dobersberg/apis/tasks/v1';
+import { toast } from 'ngx-sonner';
 import { filter } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { injectCurrentConfig, UIConfig } from '../../api';
@@ -70,12 +73,15 @@ export class AppNavigationComponent {
   protected readonly destroyRef = inject(DestroyRef);
   protected readonly sheetRef = inject(BrnSheetComponent, {optional: true})
   protected readonly router = inject(Router);
+  protected readonly boardService = injectBoardService();
   
   protected readonly rootLinks = signal<MenuEntry[]>([]);
   protected readonly subMenus = signal<SubMenu[]>([]);
   protected readonly mailboxes = signal<Mailbox[]>([]);
+  protected readonly boards = signal<Board[]>([])
 
   public readonly sheet = input(false, { transform: booleanAttribute });
+
 
   protected changeProfile() {
     const redirectUrl = btoa(`${location.href}`);
@@ -83,6 +89,17 @@ export class AppNavigationComponent {
   }
   
   constructor() {
+    this.boardService
+      .listBoards({})
+      .catch(err => {
+        toast.error('Task Listen konnten nicht geladen werden', {
+          description: ConnectError.from(err).message
+        })
+
+        return new ListBoardsResponse()
+      })
+      .then(response => this.boards.set(response.boards))
+
     effect(() => {
       const config = this.config();
       

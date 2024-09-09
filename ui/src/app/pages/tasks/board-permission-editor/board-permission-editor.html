@@ -1,0 +1,186 @@
+<h3 class="pb-8 text-base font-medium">{{ title() }}</h3>
+
+<div class="flex flex-col gap-8">
+  <div class="flex flex-col gap-4 pl-8">
+    <h4 class="text-sm font-medium">Zugriff erlauben:</h4>
+    <div class="flex flex-col gap-2 pl-8">
+      <hlm-tabs tab="roles">
+        <hlm-tabs-list class="grid grid-cols-2">
+          <button hlmTabsTrigger="roles">Rollen</button>
+          <button hlmTabsTrigger="users">Benutzer</button>
+        </hlm-tabs-list>
+
+        <div hlmTabsContent="roles">
+          <hlm-table>
+            @for (
+              role of permissions().allowRoles;
+              track role;
+              let index = $index
+            ) {
+              <hlm-trow>
+                <hlm-td class="flex-1">
+                  <span>{{ (role | toRole: roles())?.name }}</span>
+                </hlm-td>
+
+                <hlm-td class="w-16">
+                  <button
+                    hlmBtn
+                    variant="destructive"
+                    size="icon"
+                    (click)="deleteListEntry(permissions().allowRoles, index)">
+                    <hlm-icon size="sm" name="lucideTrash2" />
+                  </button>
+                </hlm-td>
+              </hlm-trow>
+            }
+
+            <hlm-trow>
+              <hlm-td>
+                <app-sheet-selection
+                  [items]="roles()"
+                  (selectedChange)="allowRole($event)">
+                  <span>Rolle hinzufügen</span>
+
+                  <div *sheetItem="let item">
+                    {{ item.name }}
+                  </div>
+                </app-sheet-selection>
+              </hlm-td>
+            </hlm-trow>
+          </hlm-table>
+        </div>
+
+        <div hlmTabsContent="users">
+          <hlm-table>
+            @for (
+              user of permissions().allowUsers;
+              track user;
+              let index = $index
+            ) {
+              <hlm-trow>
+                <hlm-td class="flex-1">
+                  <app-avatar [user]="user" showName="true" />
+                </hlm-td>
+                <hlm-td class="w-16">
+                  <button
+                    hlmBtn
+                    variant="destructive"
+                    size="icon"
+                    (click)="deleteListEntry(permissions().allowUsers, index)">
+                    <hlm-icon size="sm" name="lucideTrash2" />
+                  </button>
+                </hlm-td>
+              </hlm-trow>
+            }
+
+            <hlm-trow>
+              <hlm-td>
+                <app-sheet-selection
+                  [items]="profiles()"
+                  (selectedChange)="allowUser($event)">
+                  <span>Benutzer hinzufügen</span>
+
+                  <div *sheetItem="let item">
+                    <app-avatar [user]="item" showName="true" />
+                  </div>
+                </app-sheet-selection>
+              </hlm-td>
+            </hlm-trow>
+          </hlm-table>
+        </div>
+      </hlm-tabs>
+    </div>
+  </div>
+
+  <brn-separator decorative="true" hlm />
+
+  <div class="flex flex-col gap-4 pl-8">
+    <h4 class="text-sm font-medium">Zugriff verbieten:</h4>
+    <div class="flex flex-col gap-2 pl-8">
+      <hlm-tabs tab="roles">
+        <hlm-tabs-list class="grid grid-cols-2">
+          <button hlmTabsTrigger="roles">Rollen</button>
+          <button hlmTabsTrigger="users">Benutzer</button>
+        </hlm-tabs-list>
+
+        <div hlmTabsContent="roles">
+          <hlm-table>
+            @for (
+              role of permissions().denyRoles;
+              track role;
+              let index = $index
+            ) {
+              <hlm-trow>
+                <hlm-td class="flex-1">
+                  <span>{{ (role | toRole: roles())?.name }}</span>
+                </hlm-td>
+                <hlm-td class="w-16">
+                  <button
+                    hlmBtn
+                    variant="destructive"
+                    size="icon"
+                    (click)="deleteListEntry(permissions().denyRoles, index)">
+                    <hlm-icon size="sm" name="lucideTrash2" />
+                  </button>
+                </hlm-td>
+              </hlm-trow>
+            }
+
+            <hlm-trow>
+              <hlm-td>
+                <app-sheet-selection
+                  [items]="roles()"
+                  (selectedChange)="denyRole($event)">
+                  <span>Rolle hinzufügen</span>
+
+                  <div *sheetItem="let item">
+                    {{ item.name }}
+                  </div>
+                </app-sheet-selection>
+              </hlm-td>
+            </hlm-trow>
+          </hlm-table>
+        </div>
+
+        <div hlmTabsContent="users">
+          <hlm-table>
+            @for (
+              user of permissions().denyUsers;
+              track user;
+              let index = $index
+            ) {
+              <hlm-trow>
+                <hlm-td class="flex-1">
+                  <app-avatar [user]="user" showName="true" />
+                </hlm-td>
+                <hlm-td class="w-16">
+                  <button
+                    hlmBtn
+                    variant="destructive"
+                    size="icon"
+                    (click)="deleteListEntry(permissions().denyUsers, index)">
+                    <hlm-icon size="sm" name="lucideTrash2" />
+                  </button>
+                </hlm-td>
+              </hlm-trow>
+            }
+
+            <hlm-trow>
+              <hlm-td>
+                <app-sheet-selection
+                  [items]="profiles()"
+                  (selectedChange)="denyUser($event)">
+                  <span>Benutzer hinzufügen</span>
+
+                  <div *sheetItem="let item">
+                    <app-avatar [user]="item" showName="true" />
+                  </div>
+                </app-sheet-selection>
+              </hlm-td>
+            </hlm-trow>
+          </hlm-table>
+        </div>
+      </hlm-tabs>
+    </div>
+  </div>
+</div>

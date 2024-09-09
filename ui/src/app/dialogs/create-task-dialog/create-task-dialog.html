@@ -1,0 +1,98 @@
+<hlm-dialog-header>
+  <h3 hlmDialogTitle>Task bearbeiten</h3>
+  <p hlmDialogDescription>
+    Bearbeite oder erstelle einen Task in "{{ board().displayName }}"
+  </p>
+</hlm-dialog-header>
+
+<div class="flex flex-col gap-4 py-4">
+  <label hlmLabel for="title">
+    Zusammenfassung
+    <input
+      name="title"
+      type="text"
+      hlmInput
+      [(ngModel)]="title"
+      class="w-full" />
+  </label>
+
+  <div>
+    <label hlmLabel for="description"> Beschreibung </label>
+    <ckeditor [editor]="editor" [(ngModel)]="description"></ckeditor>
+  </div>
+
+  <div>
+    <label hlmLabel for="dueTime"> Fertigstellungs-Datum </label>
+    <tkd-date-picker
+      mode="single"
+      allowClear="true"
+      withTime="true"
+      [(ngModel)]="dueTime"
+      class="w-full">
+      <tkd-picker-trigger *datePickerInput class="w-full" />
+    </tkd-date-picker>
+  </div>
+
+  <div>
+    <label hlmLabel for="tags"> Labels & Tags </label>
+    <div class="flex flex-row items-center justify-between">
+      <div class="flex flex-row flex-wrap gap-2">
+        @for (tag of tags(); track tag) {
+          <span
+            hlmBadge
+            variant="outline"
+            class="rounded-sm text-white"
+            [style.color]="tag | tagColor: board() | contrast"
+            [style.backgroundColor]="tag | tagColor: board()">
+            {{ tag }}
+
+            <hlm-icon
+              name="lucideX"
+              size="xs"
+              class="ml-2 cursor-pointer rounded-full hover:bg-gray-200/20"
+              (click)="deleteTag(tag)" />
+          </span>
+        } @empty {
+          <span class="text-sm text-gray-600">Keine Labels zugewiesen</span>
+        }
+      </div>
+
+      <brn-popover>
+        <button hlmBtn size="sm" variant="outline" brnPopoverTrigger>
+          Label hinzufügen
+        </button>
+
+        <brn-cmd
+          *brnPopoverContent="let ctx"
+          hlmPopoverContent
+          hlm
+          class="w-[200px] p-0">
+          <hlm-cmd-input-wrapper>
+            <hlm-icon name="lucideSearch" />
+            <input placeholder="Tags suchen ..." brnCmdInput hlm />
+          </hlm-cmd-input-wrapper>
+          <div *brnCmdEmpty hlmCmdEmpty>Keine Tags gefunden</div>
+          <brn-cmd-list hlm>
+            <brn-cmd-group hlm>
+              @for (tag of board().allowedTaskTags; track tag.tag) {
+                <button brnCmdItem (selected)="toggleTag(tag)" hlm>
+                  <hlm-icon
+                    [class.opacity-0]="!tags()?.includes(tag.tag)"
+                    name="lucideCheck"
+                    hlmCmdIcon />
+                  {{ tag.tag }}
+                </button>
+              }
+            </brn-cmd-group>
+          </brn-cmd-list>
+        </brn-cmd>
+      </brn-popover>
+    </div>
+  </div>
+</div>
+
+<hlm-dialog-footer class="gap-2">
+  <button hlmBtn variant="secondary" (click)="abort()">Abbrechen</button>
+
+  <button hlmBtn (click)="save()">Speichern</button>
+</hlm-dialog-footer>

@@ -51,6 +51,7 @@
           hlmBtn
           class="justify-end self-end sm:self-auto"
           size="sm"
+          (click)="shiftDate.set(dateRange()[0])"
           brnSheetTrigger
           [side]="layout.md() ? 'right' : 'bottom'">
           Schicht auswählen

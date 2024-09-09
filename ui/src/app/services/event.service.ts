@@ -1,9 +1,8 @@
 import { Injectable } from "@angular/core";
-import { createRegistry, IMessageTypeRegistry, Message } from '@bufbuild/protobuf';
+import { IMessageTypeRegistry, Message } from '@bufbuild/protobuf';
 import { injectEventService } from "@tierklinik-dobersberg/angular/connect";
-import { OnCallChangeEvent, OverwriteCreatedEvent } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
-import { RosterChangedEvent } from "@tierklinik-dobersberg/apis/roster/v1";
 import { Observable, retry } from "rxjs";
+import { environment } from "src/environments/environment";
 
 @Injectable({providedIn: 'root'})
 export class EventService {
@@ -11,11 +10,7 @@ export class EventService {
     private registry: IMessageTypeRegistry;
 
     constructor() {
-        this.registry = createRegistry(
-            RosterChangedEvent,
-            OnCallChangeEvent,
-            OverwriteCreatedEvent,
-        )
+        this.registry = environment.registry;
     }
 
     public listen<T extends Message>(msgs: T[]): Observable<T> {
@@ -28,8 +23,12 @@ export class EventService {
             const go = async () => {
                 try {
                     for await (const msg of iterator) {
+
                         try {
                             let e: any = msg.event.unpack(this.registry);
+
+                            console.log("got event message", msg, e)
+
                             sub.next(e);
                         } catch(err) {
                             console.error("failed to unpack message", err)

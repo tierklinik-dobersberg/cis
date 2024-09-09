@@ -69,9 +69,7 @@
       readonly
       [value]="
         startDate()
-          ? (startDate()
-            | toDate
-            | date: (withTime() ? 'medium' : 'mediumDate'))
+          ? (startDate() | toDate | date: (withTime() ? 'short' : 'mediumDate'))
           : ''
       " />
 
@@ -86,7 +84,7 @@
           _computedEndDate()
             ? (_computedEndDate()
               | toDate
-              | date: (withTime() ? 'medium' : 'mediumDate'))
+              | date: (withTime() ? 'short' : 'mediumDate'))
             : ''
         " />
     }

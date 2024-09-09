@@ -3,6 +3,7 @@ import { ConnectConfig } from '@tierklinik-dobersberg/angular/connect';
 import { CalendarChangeEvent } from '@tierklinik-dobersberg/apis/calendar/v1';
 import { CallRecordReceived, OnCallChangeEvent, OverwriteCreatedEvent, OverwriteDeletedEvent, VoiceMailReceivedEvent } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { RosterChangedEvent } from '@tierklinik-dobersberg/apis/roster/v1';
+import { BoardEvent, TaskEvent } from '@tierklinik-dobersberg/apis/tasks/v1';
 
 interface Env extends ConnectConfig {
   [key: string]: any
@@ -18,6 +19,8 @@ export const environment: Env = {
   commentService: 'https://comments.dobersberg.vet',
   customerService: 'https://customer.dobersberg.vet',
   eventService: 'https://events.dobersberg.vet',
+  taskService: 'https://tasks.dobersberg.vet',
+  
   registry: createRegistry(
     RosterChangedEvent,
     OnCallChangeEvent,
@@ -25,7 +28,9 @@ export const environment: Env = {
     OverwriteDeletedEvent,
     CallRecordReceived,
     VoiceMailReceivedEvent,
-    CalendarChangeEvent
+    CalendarChangeEvent,
+    TaskEvent,
+    BoardEvent,
   )
 };
 

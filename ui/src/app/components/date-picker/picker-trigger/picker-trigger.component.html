@@ -17,7 +17,7 @@
     class="w-32 rounded-none border-b border-t {{
       _computedBorderClasses()
     }} text-center">
-    {{ calendarDate() | date: 'mediumDate' }}
+    {{ calendarDate() | date: _computedDateFormat() }}
   </button>
 } @else {
   <button

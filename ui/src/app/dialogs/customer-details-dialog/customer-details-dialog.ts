@@ -10,7 +10,7 @@ import { HlmTooltipModule } from "@tierklinik-dobersberg/angular/tooltip";
 import { CustomerResponse } from "@tierklinik-dobersberg/apis/customer/v1";
 import { CustomerDetailsTableComponent } from "src/app/components/customer-details-table";
 
-    const contentClass =
+const contentClass =
       'w-screen overflow-hidden max-w-[unset] sm:w-[750px] md:w-[750px] h-[100dvh] sm:h-[unset] max-h-screen !max-h-[100dvh]';
 
 export interface CustomerDetailsDialogContext {

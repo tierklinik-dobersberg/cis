@@ -12,6 +12,9 @@ const routes: Routes = [
   { path: 'not-allowed', loadComponent: () => import('./pages/not-allowed').then(m => m.NotAllowedComponent) },
   { path: 'customers', loadChildren: () => import('./pages/customers/customer-routes').then(m => m.CUSTOMER_ROUTES)},
   { path: 'roster', loadComponent: () => import('./pages/roster/roster.component').then(m => m.RosterComponent)},
+  { path: 'tasks/:boardId', loadComponent: () => import('./pages/tasks/task-list/tasks-list.component').then(m => m.TaskListComponent) },
+  { path: 'board/:boardId', loadComponent: () => import('./pages/tasks/manage-board/manage-board').then(m => m.ManageBoardComponent)},
+  { path: 'board', loadComponent: () => import('./pages/tasks/manage-board/manage-board').then(m => m.ManageBoardComponent)},
   { path: '**', redirectTo: '/' },
 ];
 
