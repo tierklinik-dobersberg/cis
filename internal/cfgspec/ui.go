@@ -50,6 +50,11 @@ var UISpec = conf.SectionSpec{
 		Type:    conf.StringType,
 		Default: "computer-accounts",
 	},
+	{
+		Name:    "TaskCommentScope",
+		Type:    conf.StringType,
+		Default: "tasks",
+	},
 }
 
 var RosterUISpec = conf.SectionSpec{

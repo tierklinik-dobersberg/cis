@@ -1,0 +1,115 @@
+<hlm-icon name="lucideX" (click)="startClose()" class="absolute cursor-pointer top-4 right-4 hover:text-gray-500" size="sm"/>
+
+@if (task()?.id) {
+<div class="flex flex-col gap-4 p-4">
+    <div>
+        <label hlmLabel>
+            Zusammenfassung
+        </label>
+        <h3 class="text-lg font-medium">{{ task().title }}</h3>
+    </div>
+
+    <div>
+        <label hlmLabel>
+            Beschreibung
+        </label>
+        <div class="p-2">
+            @if (task().description; as description) {
+                <markdown>{{ description }}</markdown>
+            } @else {
+                <span class="text-gray-500">N/A</span>
+            }
+        </div>
+    </div>
+</div>
+
+<brn-separator hlm decorative />
+
+<div class="flex flex-col p-4">
+    <label hlmLabel>Details</label>
+
+    <hlm-table>
+        <hlm-trow>
+            <hlm-td class="items-center w-32 gap-2 pl-0">
+                <hlm-icon name="lucideCircleDot" size="sm" />
+                Status
+            </hlm-td>
+            <hlm-td class="flex-1">
+                @if (task().status; as status) {
+                    <span hlmBadge 
+                        [style.backgroundColor]="status | statusColor: board()"
+                        [style.color]="status | statusColor: board() | contrast">
+                        {{ status }}
+                    </span>
+                } @else {
+                    <span class="text-gray-500">N/A</span>
+                }
+            </hlm-td>
+        </hlm-trow>
+
+        <hlm-trow>
+            <hlm-td class="items-center w-32 gap-2 pl-0">
+                <hlm-icon name="lucideUser" size="sm" />
+                Zugewiesen
+            </hlm-td>
+            <hlm-td class="flex-1">
+                @if (task().assigneeId; as id) {
+                    <app-avatar [user]="id" showName="true" variant="small" />
+                } @else {
+                    <span class="text-gray-500">Nicht zugewiesen</span>
+                }
+            </hlm-td>
+        </hlm-trow>
+
+        <hlm-trow>
+            <hlm-td class="items-center w-32 gap-2 pl-0">
+                <hlm-icon name="lucideUser2" size="sm" />
+                Besitzer
+            </hlm-td>
+            <hlm-td class="flex-1">
+                <app-avatar [user]="task().creatorId" showName="true" variant="small" />
+            </hlm-td>
+        </hlm-trow>
+
+        <hlm-trow>
+            <hlm-td class="items-center w-32 gap-2 pl-0">
+                <hlm-icon name="lucideClock" size="sm" />
+                Erstellt am
+            </hlm-td>
+            <hlm-td class="flex-1">
+                <span>{{ task().createTime | toDate | date:'medium' }}</span>
+            </hlm-td>
+        </hlm-trow>
+
+        <hlm-trow>
+            <hlm-td class="items-center w-32 gap-2 pl-0">
+                <hlm-icon name="lucideCalendarCheck" size="sm" />
+                Fertig bis
+            </hlm-td>
+            <hlm-td class="flex-1">
+                @if (task().dueTime; as dueTime) {
+                        <span>{{ dueTime | toDate | date:'medium' }}</span>
+                } @else {
+                    <span class="text-gray-500">Nicht angegeben</span>
+                }
+            </hlm-td>
+        </hlm-trow>
+
+        <hlm-trow>
+            <hlm-td class="items-center w-32 gap-2 pl-0">
+                <hlm-icon name="lucideTags" size="sm" />
+                Labels
+            </hlm-td>
+            <hlm-td class="flex-1">
+                <div class="flex flex-row flex-wrap gap-2">
+                    @for (tag of task().tags; track tag) {
+                        <span hlmBadge variant="secondary" [style.backgroundColor]="tag | tagColor:board()" [style.color]="tag | tagColor:board() | contrast">
+                            {{ tag }}
+                        </span>
+                    }
+                </div>
+            </hlm-td>
+        </hlm-trow>
+    </hlm-table>
+</div>
+}

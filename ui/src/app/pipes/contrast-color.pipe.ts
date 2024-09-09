@@ -8,6 +8,10 @@ import { getContrastFontColor } from "@tierklinik-dobersberg/angular/pipes";
 })
 export class ContrastColorPipe implements PipeTransform {
     transform(color: string) {
+        if (!color) {
+            return 'inherit';
+        }
+
         return getContrastFontColor(color); 
     }
 }

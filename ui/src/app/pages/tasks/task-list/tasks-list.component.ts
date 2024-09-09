@@ -1,5 +1,5 @@
 import { DatePipe } from "@angular/common";
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, model, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -19,6 +19,7 @@ import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon
 import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
 import { HlmMenuModule } from "@tierklinik-dobersberg/angular/menu";
 import { DisplayNamePipe, ToDatePipe, ToUserPipe } from "@tierklinik-dobersberg/angular/pipes";
+import { Profile } from "@tierklinik-dobersberg/apis/idm/v1";
 import { Board, BoardEvent, GetBoardResponse, ListTasksResponse, Task, TaskEvent, UpdateTaskRequest } from "@tierklinik-dobersberg/apis/tasks/v1";
 import { MarkdownModule } from "ngx-markdown";
 import { toast } from "ngx-sonner";
@@ -29,6 +30,7 @@ import { ContrastColorPipe } from "src/app/pipes/contrast-color.pipe";
 import { EventService } from "src/app/services/event.service";
 import { AsyncPaginationManager } from "src/app/utils/pagination-manager";
 import { StatusColorPipe, TagColorPipe } from "../color.pipe";
+import { TaskDetailsComponent } from "../task-details/task-details";
 
 @Component({
     standalone: true,
@@ -56,6 +58,7 @@ import { StatusColorPipe, TagColorPipe } from "../color.pipe";
         FormsModule,
         HlmInputDirective,
         ContrastColorPipe,
+        TaskDetailsComponent,
     ],
     providers: [
         ...provideIcons({lucideCheck, lucideUser, lucideCircleDot, lucideTags, lucideCheckCheck, lucideTrash2, lucideClock, lucideMenu, lucideMoreVertical, lucidePencil})
@@ -76,9 +79,48 @@ export class TaskListComponent {
     protected readonly board = signal<Board>(new Board())
     protected readonly tasks = signal<Task[]>([]);
 
+    protected readonly selectedTaskId = model<string | null>(null);
+
+    protected readonly _computedSelectedTask = computed(() => {
+        const id = this.selectedTaskId()
+        const tasks = this.tasks();
+
+        if (!id) {
+            return
+        }
+
+        return tasks.find(t => t.id === id)
+    })
+
     protected readonly newTaskTitle = signal('');
 
     protected readonly paginator = new AsyncPaginationManager(this.tasks)
+    protected readonly _computedEligibleUsers = computed(() => {
+        const tasks = this.tasks();
+        const board = this.board();
+        const profiles = this.profiles();
+
+        const result: {
+            [taskId: string]: Profile[]
+        } = {}
+
+        tasks.forEach(task => {
+            if (!board.eligibleRoleIds?.length && !board.eligibleUserIds?.length) {
+                result[task.id] = profiles;
+                return
+            }
+
+            result[task.id] = profiles.filter(p => {
+                if (board.eligibleUserIds.includes(p.user.id)) {
+                    return true
+                }
+
+                return p.roles.find(r => board.eligibleRoleIds.includes(r.id)) !== undefined;
+            })
+        })
+
+        return result
+    })
 
     protected createOrEditTask(taskId?: string) {
         EditTaskDialog.open(this.dialogService, this.boardId(), taskId)
@@ -149,6 +191,7 @@ export class TaskListComponent {
                     this.board.set(response.board)
                 })
         })
+
 
         effect(() => {
             const board = this.board()

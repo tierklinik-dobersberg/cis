@@ -9,7 +9,7 @@ import { Board } from "@tierklinik-dobersberg/apis/tasks/v1";
 })
 export class TagColorPipe implements PipeTransform {
     transform(tag: string, board: PartialMessage<Board>) {
-        return board.allowedTaskTags?.find(t => t.tag === tag)?.color || '' 
+        return board.allowedTaskTags?.find(t => t.tag === tag)?.color || 'inherit' 
     }
 }
 
@@ -20,6 +20,6 @@ export class TagColorPipe implements PipeTransform {
 })
 export class StatusColorPipe implements PipeTransform {
     transform(status: string, board: PartialMessage<Board>) {
-        return board.allowedTaskStatus?.find(s => s.status === status)?.color || '' 
+        return board.allowedTaskStatus?.find(s => s.status === status)?.color || 'inherit' 
     }
 }

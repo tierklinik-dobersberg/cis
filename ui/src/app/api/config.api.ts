@@ -119,6 +119,7 @@ export interface UIConfig {
     OnCallRosterType?: string;
     OfftimeCommentScope?: string;
     ComputerAccountRole?: string;
+    TaskCommentScope?: string;
   };
   ExternalLink?: ExternalLink[];
   QuickRosterOverwrite?: QuickRosterOverwrite[];
