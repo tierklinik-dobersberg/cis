@@ -7,7 +7,9 @@
         <h3 hlmCardTitle>
           {{ board().displayName }}
         </h3>
-        <p>Verwalte Tasks und Aufgaben in diesem Task-Board</p>
+        @if (board().description) {
+          <p hlmCardDescription>{{ board().description }}</p>
+        }
       </div>
 
       <div class="flex flex-row flex-wrap gap-2">
