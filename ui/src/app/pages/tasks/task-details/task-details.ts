@@ -159,6 +159,10 @@ export class TaskDetailsComponent implements AfterViewInit {
         this.sheet.closed
             .subscribe(value => {
                 this.closed.emit(value);
+
+                this.editDescription.set(false);
+                this.editTitle.set(false)
+
                 this.router.navigate([], {
                     queryParams: {
                         taskPane: null,

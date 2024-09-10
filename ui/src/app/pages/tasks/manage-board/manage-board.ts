@@ -259,6 +259,11 @@ export class ManageBoardComponent {
                     })
                 })
         } else {
+            if (!req.updateMask || !req.updateMask.paths?.length) {
+                this.router.navigate(['/tasks', req.boardId])
+                return;
+            }
+
             this.boardService
                 .updateBoard(req)
                 .then(res => {

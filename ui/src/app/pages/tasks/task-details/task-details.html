@@ -42,7 +42,7 @@
         </p>
       </hlm-sheet-header>
 
-      <div class="flex w-full flex-grow flex-row">
+      <div class="flex w-full flex-grow flex-col md:flex-row">
         <div
           class="flex flex-grow flex-col overflow-auto border-r border-border p-6 pt-4">
           <label
@@ -71,7 +71,7 @@
                     variant="small"
                     showName="true" />
                 </header>
-                <div class="prose p-4">
+                <div class="prose px-4">
                   <markdown>{{ description }}</markdown>
                 </div>
               </div>
@@ -119,7 +119,7 @@
                       *brnPopoverContent="let ctx"
                       hlmPopoverContent
                       hlm
-                      class="w-[200px] p-0">
+                      class="min-w-[200px] p-0">
                       <hlm-cmd-input-wrapper>
                         <hlm-icon name="lucideSearch" />
                         <input
@@ -249,7 +249,7 @@
                       *brnPopoverContent="let ctx"
                       hlmPopoverContent
                       hlm
-                      class="w-[200px] p-0">
+                      class="min-w-[200px] p-0">
                       <hlm-cmd-input-wrapper>
                         <hlm-icon name="lucideSearch" />
                         <input
