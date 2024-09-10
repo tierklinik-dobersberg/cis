@@ -1,4 +1,4 @@
-<div class="flex w-screen h-screen print:h-auto">
+<div class="flex h-screen w-screen print:h-auto">
   <!--
   Menu on Desktop and up
   -->
@@ -11,11 +11,11 @@
   Next to the sidebar there's the main content container including the header
   -->
   <div
-    class="flex flex-col self-stretch flex-grow overflow-x-hidden bg-white print:overflow-visible">
+    class="flex flex-grow flex-col self-stretch overflow-x-hidden bg-white print:overflow-visible">
     <app-header />
 
     <content
-      class="flex items-stretch self-stretch flex-grow w-full overflow-auto bg-gray-100 bg-opacity-50 router-content justify-items-stretch"
+      class="router-content flex w-full flex-grow items-stretch justify-items-stretch self-stretch overflow-auto bg-gray-100 bg-opacity-50"
       cdkScrollable>
       <router-outlet></router-outlet>
     </content>
@@ -30,3 +30,7 @@
 }
 
 <hlm-toaster />
+
+@defer (on idle) {
+  <app-task-details />
+}

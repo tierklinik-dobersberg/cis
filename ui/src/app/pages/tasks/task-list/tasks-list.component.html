@@ -1,88 +1,91 @@
-<div class="flex flex-row w-full min-h-full gap-4">
+<div class="flex min-h-full w-full flex-row gap-4">
+  <section class="flex-grow" hlmCard>
+    <header
+      hlmCardHeader
+      class="flex w-full flex-grow flex-row items-center justify-between">
+      <div>
+        <h3 hlmCardTitle>
+          {{ board().displayName }}
+        </h3>
+        <p>Verwalte Tasks und Aufgaben in diesem Task-Board</p>
+      </div>
 
-<section class="flex-grow" hlmCard>
-  <header
-    hlmCardHeader
-    class="flex flex-row items-center justify-between flex-grow w-full">
-    <div>
-      <h3 hlmCardTitle>
-        {{ board().displayName }}
-      </h3>
-      <p>Verwalte Tasks und Aufgaben in diesem Task-Board</p>
-    </div>
+      <div class="flex flex-row flex-wrap gap-2">
+        <button hlmBtn (click)="createOrEditTask()">Task erstellen</button>
 
-    <div class="flex flex-row flex-wrap gap-2">
-      <button hlmBtn (click)="createOrEditTask()">Task erstellen</button>
+        @if (currentProfile()?.user?.id === board()?.ownerId) {
+          <button
+            hlmBtn
+            variant="secondary"
+            [routerLink]="['/board', board().id]">
+            Board verwalten
+          </button>
+        }
+      </div>
+    </header>
 
-      @if (currentProfile()?.user?.id === board()?.ownerId) {
-        <button
-          hlmBtn
-          variant="secondary"
-          [routerLink]="['/board', board().id]">
-          Board verwalten
-        </button>
-      }
-    </div>
-  </header>
+    <div hlmCardContent class="p-4">
+      <ol class="space-y-2">
+        @for (task of tasks(); track task.id) {
+          <li
+            hlmCard
+            class="cursor-pointer p-3 hover:bg-gray-100/70"
+            (click)="showDetails(task.id)">
+            <div
+              class="flex w-full flex-row items-center justify-between gap-4">
+              <div class="flex w-full flex-col">
+                <div
+                  class="flex w-full items-center justify-between font-medium">
+                  <span class="flex flex-row items-center gap-3">
+                    @if (task.completeTime) {
+                      <hlm-icon
+                        class="text-green-600"
+                        name="lucideCheckCheck"
+                        size="sm" />
+                    }
 
-  <div hlmCardContent class="p-4">
-    <ol class="space-y-2">
-      @for (task of tasks(); track task.id) {
-        <li
-          hlmCard
-          class="p-3 cursor-pointer hover:bg-gray-100/70"
-          (click)="selectedTaskId.set(task.id)">
-          <div class="flex flex-row items-center justify-between w-full gap-4">
-            <div class="flex flex-col w-full">
-              <div class="flex items-center justify-between w-full font-medium">
-                <span class="flex flex-row items-center gap-3">
-                  @if (task.completeTime) {
-                    <hlm-icon
-                      class="text-green-600"
-                      name="lucideCheckCheck"
-                      size="sm" />
-                  }
+                    {{ task.title }}
+                  </span>
+                </div>
 
-                  {{ task.title }}
-                </span>
+                @if (task.description) {
+                  <markdown
+                    class="prose-sm overflow-hidden text-ellipsis text-sm [-webkit-box-orient:vertical] [-webkit-line-clamp:2] ![display:-webkit-box]">
+                    {{ task.description }}
+                  </markdown>
+                }
 
+                @if (task.dueTime || task.tags?.length) {
+                  <div class="mt-2 flex flex-row gap-2">
+                    @if (task.dueTime) {
+                      <label hlmBadge variant="secondary">
+                        <hlm-icon name="lucideClock" size="xs" class="mr-2" />
+                        {{ task.dueTime | toDate | date: 'short' }}
+                      </label>
+                    }
+
+                    @for (tag of task.tags; track tag) {
+                      <label
+                        hlmBadge
+                        variant="secondary"
+                        class="rounded-sm text-white"
+                        [style.color]="tag | tagColor: board() | contrast"
+                        [style.backgroundColor]="tag | tagColor: board()">
+                        {{ tag }}
+                      </label>
+                    }
+                  </div>
+                }
               </div>
 
-              @if (task.description) {
-                <markdown
-                  class="prose-sm overflow-hidden text-ellipsis text-sm [-webkit-box-orient:vertical] [-webkit-line-clamp:2] ![display:-webkit-box]">
-                  {{ task.description }}
-                </markdown>
-              }
-
-              @if (task.dueTime || task.tags?.length) {
-                <div class="flex flex-row gap-2 mt-2">
-                  @if (task.dueTime) {
-                    <label hlmBadge variant="secondary">
-                      <hlm-icon name="lucideClock" size="xs" class="mr-2" />
-                      {{ task.dueTime | toDate | date: 'short' }}
-                    </label>
-                  }
-
-                  @for (tag of task.tags; track tag) {
-                    <label
-                      hlmBadge
-                      variant="secondary"
-                      class="text-white rounded-sm"
-                      [style.color]="tag | tagColor: board() | contrast"
-                      [style.backgroundColor]="tag | tagColor: board()">
-                      {{ tag }}
-                    </label>
-                  }
-                </div>
-              }
-            </div>
-
-            <div class="flex flex-row items-center justify-end gap-2">
+              <div class="flex flex-row items-center justify-end gap-2">
                 @if (task.status) {
                   <label
                     hlmBadge
                     class="whitespace-nowrap"
+                    [style.color]="
+                      task.status | statusColor: board() | contrast
+                    "
                     [style.backgroundColor]="
                       task.status | statusColor: board()
                     ">
@@ -90,199 +93,198 @@
                   </label>
                 }
 
-              @if (task.assigneeId) {
-                <app-avatar [user]="task.assigneeId" />
-              }
+                @if (task.assigneeId) {
+                  <app-avatar [user]="task.assigneeId" />
+                }
 
-              <div class="flex-grow"></div>
+                <div class="flex-grow"></div>
 
-              <button
-                hlmBtn
-                variant="ghost"
-                size="icon"
-                (click)="$event.stopPropagation()"
-                [brnMenuTriggerFor]="taskMenu">
-                <hlm-icon name="lucideMoreVertical" size="sm" />
-              </button>
-            </div>
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon"
+                  (click)="$event.stopPropagation()"
+                  [brnMenuTriggerFor]="taskMenu">
+                  <hlm-icon name="lucideMoreVertical" size="sm" />
+                </button>
+              </div>
 
-            <ng-template #taskMenu>
-              <hlm-menu class="min-w-56">
-                <hlm-menu-label>Task Aktionen</hlm-menu-label>
-                <hlm-menu-separator />
+              <ng-template #taskMenu>
+                <hlm-menu class="min-w-56">
+                  <hlm-menu-label>Task Aktionen</hlm-menu-label>
+                  <hlm-menu-separator />
 
-                <hlm-menu-group>
-                  <button hlmMenuItem (click)="createOrEditTask(task.id)">
-                    <hlm-icon name="lucidePencil" hlmMenuIcon />
-                    <span>Bearbeiten</span>
-                  </button>
-
-                  @if (!task.completeTime) {
-                    <button hlmMenuItem (click)="completeTask(task.id)">
-                      <hlm-icon name="lucideCheckCheck" hlmMenuIcon />
-                      <span>As Fertiggestellt markieren</span>
+                  <hlm-menu-group>
+                    <button hlmMenuItem (click)="createOrEditTask(task.id)">
+                      <hlm-icon name="lucidePencil" hlmMenuIcon />
+                      <span>Bearbeiten</span>
                     </button>
-                  }
 
-                  <button hlmMenuItem [brnMenuTriggerFor]="userMenu">
-                    <hlm-icon hlmMenuIcon name="lucideUser" />
-
-                    @if (task.assigneeId) {
-                      Zugewiesen:
-                      {{ task.assigneeId | toUser: profiles() | displayName }}
-                    } @else {
-                      Zuweisen
+                    @if (!task.completeTime) {
+                      <button hlmMenuItem (click)="completeTask(task.id)">
+                        <hlm-icon name="lucideCheckCheck" hlmMenuIcon />
+                        <span>As Fertiggestellt markieren</span>
+                      </button>
                     }
 
-                    <hlm-menu-item-sub-indicator />
-                  </button>
+                    <button hlmMenuItem [brnMenuTriggerFor]="userMenu">
+                      <hlm-icon hlmMenuIcon name="lucideUser" />
 
-                  <ng-template #userMenu>
-                    <hlm-sub-menu
-                      class="!max-h-[50dvh] max-h-[50hv] min-w-56 overflow-auto">
-                      <hlm-menu-label>Task zuwweisen</hlm-menu-label>
-                      <hlm-menu-separator />
+                      @if (task.assigneeId) {
+                        Zugewiesen:
+                        {{ task.assigneeId | toUser: profiles() | displayName }}
+                      } @else {
+                        Zuweisen
+                      }
 
-                      <hlm-menu-group>
+                      <hlm-menu-item-sub-indicator />
+                    </button>
+
+                    <ng-template #userMenu>
+                      <hlm-sub-menu
+                        class="!max-h-[50dvh] max-h-[50hv] min-w-56 overflow-auto">
+                        <hlm-menu-label>Task zuwweisen</hlm-menu-label>
+                        <hlm-menu-separator />
+
+                        <hlm-menu-group>
+                          @for (
+                            profile of _computedEligibleUsers()[task.id];
+                            track profile.user.id
+                          ) {
+                            <button
+                              hlmMenuItem
+                              (click)="assignTask(task.id, profile.user.id)">
+                              <app-avatar
+                                [user]="profile"
+                                variant="small"
+                                showName="true" />
+                            </button>
+                          }
+                        </hlm-menu-group>
+                      </hlm-sub-menu>
+                    </ng-template>
+
+                    <button hlmMenuItem [brnMenuTriggerFor]="statusMenu">
+                      <hlm-icon name="lucideCircleDot" hlmMenuIcon />
+                      Status: {{ task.status }}
+                      <hlm-menu-item-sub-indicator />
+                    </button>
+
+                    <ng-template #statusMenu>
+                      <hlm-sub-menu class="min-w-56">
                         @for (
-                          profile of _computedEligibleUsers()[task.id];
-                          track profile.user.id
+                          status of board().allowedTaskStatus;
+                          track status.status
                         ) {
                           <button
                             hlmMenuItem
-                            (click)="assignTask(task.id, profile.user.id)">
-                            <app-avatar
-                              [user]="profile"
-                              variant="small"
-                              showName="true" />
+                            (click)="setStatus(task.id, status.status)">
+                            <hlm-icon
+                              name="lucideCheck"
+                              hlmMenuIcon
+                              [class.opacity-0]="
+                                task.status !== status.status
+                              " />
+
+                            <span class="flex-grow text-left">{{
+                              status.status
+                            }}</span>
+
+                            <span
+                              class="block h-3 w-3 rounded-full"
+                              [style.backgroundColor]="status.color"></span>
                           </button>
                         }
-                      </hlm-menu-group>
-                    </hlm-sub-menu>
-                  </ng-template>
 
-                  <button hlmMenuItem [brnMenuTriggerFor]="statusMenu">
-                    <hlm-icon name="lucideCircleDot" hlmMenuIcon />
-                    Status: {{ task.status }}
-                    <hlm-menu-item-sub-indicator />
-                  </button>
+                        <hlm-menu-separator />
 
-                  <ng-template #statusMenu>
-                    <hlm-sub-menu class="min-w-56">
-                      @for (
-                        status of board().allowedTaskStatus;
-                        track status.status
-                      ) {
-                        <button
-                          hlmMenuItem
-                          (click)="setStatus(task.id, status.status)">
-                          <hlm-icon
-                            name="lucideCheck"
-                            hlmMenuIcon
-                            [class.opacity-0]="task.status !== status.status" />
-
-                          <span class="flex-grow text-left">{{
-                            status.status
-                          }}</span>
-
-                          <span
-                            class="block w-3 h-3 rounded-full"
-                            [style.backgroundColor]="status.color"></span>
+                        <button hlmMenuItem (click)="setStatus(task.id, '')">
+                          <hlm-icon name="lucideTrash2" hlmMenuIcon />
+                          Status löschen
                         </button>
-                      }
+                      </hlm-sub-menu>
+                    </ng-template>
 
-                      <hlm-menu-separator />
+                    <button hlmMenuItem [brnMenuTriggerFor]="tagsMenu">
+                      <hlm-icon name="lucideTags" hlmMenuIcon />
+                      Labels & Tags
+                      <hlm-menu-item-sub-indicator />
+                    </button>
 
-                      <button hlmMenuItem (click)="setStatus(task.id, '')">
-                        <hlm-icon name="lucideTrash2" hlmMenuIcon />
-                        Status löschen
-                      </button>
-                    </hlm-sub-menu>
-                  </ng-template>
+                    <ng-template #tagsMenu>
+                      <hlm-sub-menu class="min-w-56">
+                        @for (tag of board().allowedTaskTags; track tag.tag) {
+                          <button
+                            hlmMenuItem
+                            class="flex flex-row items-center gap-2"
+                            (click)="toggleTag(task.id, tag.tag)">
+                            <hlm-icon
+                              name="lucideCheck"
+                              hlmMenuIcon
+                              [class.opacity-0]="
+                                !task.tags.includes(tag.tag)
+                              " />
 
-                  <button hlmMenuItem [brnMenuTriggerFor]="tagsMenu">
-                    <hlm-icon name="lucideTags" hlmMenuIcon />
-                    Labels & Tags
-                    <hlm-menu-item-sub-indicator />
-                  </button>
+                            <span class="flex-grow text-left">{{
+                              tag.tag
+                            }}</span>
 
-                  <ng-template #tagsMenu>
-                    <hlm-sub-menu class="min-w-56">
-                      @for (tag of board().allowedTaskTags; track tag.tag) {
-                        <button
-                          hlmMenuItem
-                          class="flex flex-row items-center gap-2"
-                          (click)="toggleTag(task.id, tag.tag)">
-                          <hlm-icon
-                            name="lucideCheck"
-                            hlmMenuIcon
-                            [class.opacity-0]="!task.tags.includes(tag.tag)" />
+                            <span
+                              class="block h-3 w-3 rounded-full"
+                              [style.backgroundColor]="tag.color"></span>
+                          </button>
+                        }
+                      </hlm-sub-menu>
+                    </ng-template>
 
-                          <span class="flex-grow text-left">{{ tag.tag }}</span>
+                    <hlm-menu-separator />
 
-                          <span
-                            class="block w-3 h-3 rounded-full"
-                            [style.backgroundColor]="tag.color"></span>
-                        </button>
-                      }
-                    </hlm-sub-menu>
-                  </ng-template>
+                    <button
+                      hlmMenuItem
+                      class="text-red-500"
+                      [brnAlertDialogTriggerFor]="dialog">
+                      <hlm-icon name="lucideTrash2" hlmMenuIcon />
+                      <span>Löschen</span>
+                    </button>
+                  </hlm-menu-group>
+                </hlm-menu>
+              </ng-template>
 
-                  <hlm-menu-separator />
+              <hlm-alert-dialog #dialog>
+                <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+                  <hlm-alert-dialog-header>
+                    <h3 hlmAlertDialogTitle>Task wirklich löschen?</h3>
+                    <p hlmAlertDialogDescription>
+                      Möchtest du den Task wirklich löschen? Diese Aktion kann
+                      nicht rückgängig gemacht werden!
+                    </p>
+                  </hlm-alert-dialog-header>
 
-                  <button
-                    hlmMenuItem
-                    class="text-red-500"
-                    [brnAlertDialogTriggerFor]="dialog">
-                    <hlm-icon name="lucideTrash2" hlmMenuIcon />
-                    <span>Löschen</span>
-                  </button>
-                </hlm-menu-group>
-              </hlm-menu>
-            </ng-template>
+                  <hlm-alert-dialog-footer>
+                    <button hlmAlertDialogCancel (click)="ctx.close()">
+                      Nein
+                    </button>
 
-            <hlm-alert-dialog #dialog>
-              <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
-                <hlm-alert-dialog-header>
-                  <h3 hlmAlertDialogTitle>Task wirklich löschen?</h3>
-                  <p hlmAlertDialogDescription>
-                    Möchtest du den Task wirklich löschen? Diese Aktion kann
-                    nicht rückgängig gemacht werden!
-                  </p>
-                </hlm-alert-dialog-header>
+                    <button hlmAlertDialogAction (click)="deleteTask(task.id)">
+                      Ja, Löschen
+                    </button>
+                  </hlm-alert-dialog-footer>
+                </hlm-alert-dialog-content>
+              </hlm-alert-dialog>
+            </div>
+          </li>
+        }
+      </ol>
 
-                <hlm-alert-dialog-footer>
-                  <button hlmAlertDialogCancel (click)="ctx.close()">
-                    Nein
-                  </button>
-
-                  <button hlmAlertDialogAction (click)="deleteTask(task.id)">
-                    Ja, Löschen
-                  </button>
-                </hlm-alert-dialog-footer>
-              </hlm-alert-dialog-content>
-            </hlm-alert-dialog>
-          </div>
-        </li>
-      }
-    </ol>
-
-    <div class="pt-4 mt-4 border-t border-border">
-      <input
-        type="text"
-        [(ngModel)]="newTaskTitle"
-        (keyup.enter)="createNewTask()"
-        hlmInput
-        class="w-full"
-        placeholder="Neuen Task erstellen" />
+      <div class="mt-4 border-t border-border pt-4">
+        <input
+          type="text"
+          [(ngModel)]="newTaskTitle"
+          (keyup.enter)="createNewTask()"
+          hlmInput
+          class="w-full"
+          placeholder="Neuen Task erstellen" />
+      </div>
     </div>
-  </div>
-</section>
-
-@if (_computedSelectedTask(); as task) {
-  <div class="relative h-full shadow -right-12 drop-shadow-sm -top-4" >
-    <app-task-details [board]="board()" [task]="task" class="block sticky h-full bg-white w-[500px] top-0 overflow-auto border-l border-t border-border" (close)="selectedTaskId.set(null)"/>
-  </div>
-}
-
+  </section>
 </div>

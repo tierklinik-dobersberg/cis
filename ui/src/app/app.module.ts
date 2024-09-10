@@ -27,6 +27,7 @@ import {
   AppNavigationComponent,
   AppSheetNavigationComponent,
 } from './layout/navigation';
+import { TaskDetailsComponent } from './pages/tasks/task-details/task-details';
 
 registerLocaleData(de);
 
@@ -42,6 +43,7 @@ registerLocaleData(de);
     LayoutModule,
     PlatformModule,
     HlmToasterModule,
+    TaskDetailsComponent,
     TkdConnectModule.forRoot(environment, [
       (err) => {
         if (ConnectError.from(err).code === Code.Unauthenticated) {

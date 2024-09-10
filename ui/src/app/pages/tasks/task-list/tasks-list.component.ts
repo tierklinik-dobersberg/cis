@@ -1,5 +1,5 @@
 import { DatePipe } from "@angular/common";
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, effect, inject, model, signal } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, effect, inject, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -80,19 +80,6 @@ export class TaskListComponent {
     protected readonly board = signal<Board>(new Board())
     protected readonly tasks = signal<Task[]>([]);
 
-    protected readonly selectedTaskId = model<string | null>(null);
-
-    protected readonly _computedSelectedTask = computed(() => {
-        const id = this.selectedTaskId()
-        const tasks = this.tasks();
-
-        if (!id) {
-            return
-        }
-
-        return tasks.find(t => t.id === id)
-    })
-
     protected readonly newTaskTitle = signal('');
 
     protected readonly paginator = new AsyncPaginationManager(this.tasks)
@@ -127,9 +114,18 @@ export class TaskListComponent {
         EditTaskDialog.open(this.dialogService, this.boardId(), taskId)
     }
 
+    protected showDetails(taskId: string) {
+        this.router.navigate([], {
+            queryParams: {
+                taskPane: taskId,
+            },
+            queryParamsHandling: 'merge',
+        })
+    }
+
     constructor() {
-        this.activeRoute
-            .paramMap
+            this.activeRoute
+                .paramMap
             .pipe(takeUntilDestroyed())
             .subscribe(params => {
                 const boardId = params.get("boardId")
@@ -178,6 +174,10 @@ export class TaskListComponent {
 
         effect(() => {
             const id = this.boardId();
+
+            if (!id) {
+                return
+            }
 
             this.boardService
                 .getBoard({id})
