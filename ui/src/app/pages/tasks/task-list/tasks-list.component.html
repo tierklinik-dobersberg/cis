@@ -1,43 +1,67 @@
-<div class="flex min-h-full w-full flex-row gap-4">
-  <section class="flex-grow" hlmCard>
-    <header
-      hlmCardHeader
-      class="flex w-full flex-grow flex-row items-center justify-between">
-      <div>
-        <h3 hlmCardTitle>
-          {{ board().displayName }}
-        </h3>
-        @if (board().description) {
-          <p hlmCardDescription>{{ board().description }}</p>
-        }
-      </div>
+<section
+  class="flex flex-col flex-grow h-full overflow-hidden border-t border-b-0 border-l-0 border-r-0 rounded-none"
+  hlmCard>
+  <header
+    hlmCardHeader
+    class="flex flex-row items-center justify-between flex-shrink-0 w-full">
+    <div>
+      <h3 hlmCardTitle>
+        {{ board().displayName }}
+      </h3>
+      @if (board().description) {
+        <p hlmCardDescription>{{ board().description }}</p>
+      }
+    </div>
 
-      <div class="flex flex-row flex-wrap gap-2">
-        <button hlmBtn (click)="createOrEditTask()">Task erstellen</button>
+    <div class="flex flex-row flex-wrap gap-2">
+      <button hlmBtn (click)="createOrEditTask()">Task erstellen</button>
 
-        @if (currentProfile()?.user?.id === board()?.ownerId) {
-          <button
-            hlmBtn
-            variant="secondary"
-            [routerLink]="['/board', board().id]">
-            Board verwalten
-          </button>
-        }
-      </div>
-    </header>
+      @if (currentProfile()?.user?.id === board()?.ownerId) {
+        <button
+          hlmBtn
+          variant="secondary"
+          [routerLink]="['/board', board().id]">
+          Board verwalten
+        </button>
+      }
+    </div>
+  </header>
 
-    <div hlmCardContent class="p-4">
+  <div class="flex flex-row items-center gap-2 pr-4">
+    <input
+      type="text"
+      hlmInput
+      [(ngModel)]="filter"
+      [ngModelOptions]="{
+        updateOn: 'blur',
+      }"
+      placeholder="Suchen"
+      class="flex-grow ml-4 mr-6" />
+
+    <tkd-pagination [paginator]="paginator" />
+  </div>
+
+  <div hlmCardContent class="flex-grow p-4 overflow-auto">
+    @if (layout.md()) {
+      <app-task-table
+        [tasks]="tasks()"
+        [board]="board()"
+        (assigneeSwitch)="assignTask($event[0].id, $event[1])"
+        (statusSwitch)="setStatus($event[0].id, $event[1])"
+        (tagSwitch)="toggleTag($event[0].id, $event[1])"
+        (taskClick)="showDetails($event.id)" />
+    } @else {
       <ol class="space-y-2">
         @for (task of tasks(); track task.id) {
           <li
             hlmCard
-            class="cursor-pointer p-3 hover:bg-gray-100/70"
+            class="p-3 cursor-pointer hover:bg-gray-100/70"
             (click)="showDetails(task.id)">
             <div
-              class="flex w-full flex-row items-center justify-between gap-4">
-              <div class="flex w-full flex-col">
+              class="flex flex-row items-center justify-between w-full gap-4">
+              <div class="flex flex-col w-full">
                 <div
-                  class="flex w-full items-center justify-between font-medium">
+                  class="flex items-center justify-between w-full font-medium">
                   <span class="flex flex-row items-center gap-3">
                     @if (task.completeTime) {
                       <hlm-icon
@@ -52,13 +76,12 @@
 
                 @if (task.description) {
                   <markdown
-                    class="prose-sm overflow-hidden text-ellipsis text-sm [-webkit-box-orient:vertical] [-webkit-line-clamp:2] ![display:-webkit-box]">
-                    {{ task.description }}
-                  </markdown>
+                    class="prose-sm overflow-hidden text-ellipsis text-sm [-webkit-box-orient:vertical] [-webkit-line-clamp:2] ![display:-webkit-box]"
+                    [data]="task.description" />
                 }
 
                 @if (task.dueTime || task.tags?.length) {
-                  <div class="mt-2 flex flex-row gap-2">
+                  <div class="flex flex-row gap-2 mt-2">
                     @if (task.dueTime) {
                       <label hlmBadge variant="secondary">
                         <hlm-icon name="lucideClock" size="xs" class="mr-2" />
@@ -70,7 +93,7 @@
                       <label
                         hlmBadge
                         variant="secondary"
-                        class="rounded-sm text-white"
+                        class="text-white rounded-sm"
                         [style.color]="tag | tagColor: board() | contrast"
                         [style.backgroundColor]="tag | tagColor: board()">
                         {{ tag }}
@@ -193,7 +216,7 @@
                             }}</span>
 
                             <span
-                              class="block h-3 w-3 rounded-full"
+                              class="block w-3 h-3 rounded-full"
                               [style.backgroundColor]="status.color"></span>
                           </button>
                         }
@@ -232,7 +255,7 @@
                             }}</span>
 
                             <span
-                              class="block h-3 w-3 rounded-full"
+                              class="block w-3 h-3 rounded-full"
                               [style.backgroundColor]="tag.color"></span>
                           </button>
                         }
@@ -277,16 +300,16 @@
           </li>
         }
       </ol>
+    }
 
-      <div class="mt-4 border-t border-border pt-4">
-        <input
-          type="text"
-          [(ngModel)]="newTaskTitle"
-          (keyup.enter)="createNewTask()"
-          hlmInput
-          class="w-full"
-          placeholder="Neuen Task erstellen" />
-      </div>
+    <div class="pt-4 mt-4 border-t border-border">
+      <input
+        type="text"
+        [(ngModel)]="newTaskTitle"
+        (keyup.enter)="createNewTask()"
+        hlmInput
+        class="w-full"
+        placeholder="Neuen Task erstellen" />
     </div>
-  </section>
-</div>
+  </div>
+</section>

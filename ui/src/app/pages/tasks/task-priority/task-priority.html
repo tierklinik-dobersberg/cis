@@ -1,0 +1,44 @@
+<brn-popover>
+  <div>
+    @if (task().priority | taskPriotiy: board(); as p) {
+      <button
+        brnPopoverTrigger
+        hlmBadge
+        [style.backgroundColor]="p.color || 'inherit'"
+        [style.color]="p.color || '#ffffff' | contrast">
+        {{ p.name }}
+      </button>
+    } @else {
+      <button brnPopoverTrigger class="text-gray-500">N/A</button>
+    }
+  </div>
+
+  <brn-cmd
+    *brnPopoverContent="let ctx"
+    hlmPopoverContent
+    hlm
+    class="min-w-[200px] p-0">
+    <hlm-cmd-input-wrapper>
+      <hlm-icon name="lucideSearch" />
+      <input placeholder="Priorität suchen ..." brnCmdInput hlm />
+    </hlm-cmd-input-wrapper>
+    <div *brnCmdEmpty hlmCmdEmpty>Keine Priorität gefunden</div>
+    <brn-cmd-list hlm>
+      <brn-cmd-group hlm>
+        @for (p of board().allowedTaskPriorities; track p.priority) {
+          <button
+            brnCmdItem
+            (selected)="switch.emit(p.priority)"
+            hlm
+            class="flex flex-row items-center text-left">
+            <hlm-icon
+              [class.opacity-0]="task().priority !== p.priority"
+              name="lucideCheck"
+              hlmCmdIcon />
+            {{ p.name }}
+          </button>
+        }
+      </brn-cmd-group>
+    </brn-cmd-list>
+  </brn-cmd>
+</brn-popover>

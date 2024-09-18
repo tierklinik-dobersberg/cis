@@ -23,3 +23,14 @@ export class StatusColorPipe implements PipeTransform {
         return board.allowedTaskStatus?.find(s => s.status === status)?.color || 'inherit' 
     }
 }
+
+@Pipe({
+    standalone: true,
+    pure: true,
+    name: 'taskPriotiy'
+})
+export class TaskPriorityPipe implements PipeTransform {
+    transform(priority: number, board: PartialMessage<Board>) {
+        return board?.allowedTaskPriorities?.find(p => p.priority === priority) || null;
+    }
+}

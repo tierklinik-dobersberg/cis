@@ -3,7 +3,7 @@ import { PlatformModule } from '@angular/cdk/platform';
 import { registerLocaleData } from '@angular/common';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import de from '@angular/common/locales/de';
-import { LOCALE_ID, NgModule, isDevMode } from '@angular/core';
+import { isDevMode, LOCALE_ID, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
@@ -13,7 +13,7 @@ import {
   TkdConnectModule
 } from '@tierklinik-dobersberg/angular/connect';
 import { Breakpoints } from '@tierklinik-dobersberg/tailwind/breakpoints';
-import { MarkdownModule } from 'ngx-markdown';
+import { MarkdownModule, MARKED_EXTENSIONS, MarkedRenderer } from 'ngx-markdown';
 import { environment } from '../environments/environment';
 import { AuthorizationInterceptor } from './api';
 import { BaseURLInjector } from './api/base-url';
@@ -22,6 +22,7 @@ import { AppComponent } from './app.component';
 
 import { provideBreakpoints } from '@tierklinik-dobersberg/angular/layout';
 import { HlmToasterModule } from '@tierklinik-dobersberg/angular/sonner';
+import { createDirectives, presetDirectiveConfigs } from 'marked-directive';
 import { AppHeaderComponent } from './layout';
 import {
   AppNavigationComponent,
@@ -30,6 +31,14 @@ import {
 import { TaskDetailsComponent } from './pages/tasks/task-details/task-details';
 
 registerLocaleData(de);
+
+function getMarkedRenderer() {
+  const r = new MarkedRenderer();
+
+  r.link = (href, title, text) => `<a href="${href.replace('task:', '/?taskPane=')}" target="_blank">${text || title}</a>`
+
+  return r
+}
 
 @NgModule({
   declarations: [AppComponent],
@@ -73,6 +82,17 @@ registerLocaleData(de);
     },
     { provide: HTTP_INTERCEPTORS, useExisting: BaseURLInjector, multi: true },
     { provide: LOCALE_ID, useValue: 'de' },
+    {
+      provide: MARKED_EXTENSIONS,
+      useValue: [
+        createDirectives([
+          ...presetDirectiveConfigs,
+        ]),
+        {
+          renderer: getMarkedRenderer(),
+        }
+      ]
+    },
     provideBreakpoints(Breakpoints),
   ],
   bootstrap: [AppComponent],

@@ -12,6 +12,7 @@ import {
 import { Code, ConnectError } from '@connectrpc/connect';
 import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
+import { MarkdownService } from 'ngx-markdown';
 import {
   retry,
   tap
@@ -61,6 +62,7 @@ interface SubMenu {
 export class AppComponent implements OnInit {
   private readonly webPushManager = inject(WebPushSubscriptionManager);
   private readonly updateManager = inject(SwUpdateManager);
+  private readonly markdownService = inject(MarkdownService);
 
   protected readonly layout = inject(LayoutService);
 
@@ -71,6 +73,15 @@ export class AppComponent implements OnInit {
   private readonly currentUser = injectCurrentProfile();
 
   constructor() {
+
+    /*
+    this.markdownService.renderer
+      .link = (href, title, text) => {
+        return `<a href="${href.replace('task:', '/?taskPane=')}">${text || title}</a>`
+      }
+      */
+
+
     let ref = effect(() => {
       const profile = this.currentUser();
 

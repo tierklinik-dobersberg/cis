@@ -1,0 +1,105 @@
+  .cdk-header-cell,
+  .cdk-mdc-header-cell {
+    position: relative;
+  }
+
+  .cdk-resizable {
+    box-sizing: border-box;
+  }
+
+  .cdk-header-cell:not(.cdk-resizable)::after,
+  .cdk-mdc-header-cell:not(.cdk-resizable)::after,
+  .cdk-resizable-handle {
+    background: transparent;
+    bottom: 0;
+    position: absolute;
+    top: 0;
+    width: 1px;
+    display: inline-block;
+    cursor: col-resize;
+  }
+
+  .cdk-header-cell:not(.cdk-resizable)::after,
+  .cdk-mdc-header-cell:not(.cdk-resizable)::after {
+    content: '';
+  }
+
+  .cdk-header-cell:not(.cdk-resizable)::after,
+  .cdk-mdc-header-cell:not(.cdk-resizable)::after,
+  .cdk-resizable-handle {
+    right: 0;
+  }
+
+  .cdk-header-row.cdk-column-resize-hover-or-active,
+  .cdk-mdc-header-row.cdk-column-resize-hover-or-active {
+    .cdk-header-cell,
+    .cdk-mdc-header-cell {
+      border-right: none;
+    }
+
+    .cdk-header-cell:not(.cdk-resizable)::after,
+    .cdk-mdc-header-cell:not(.cdk-resizable)::after {
+      @apply bg-transparent;
+    }
+
+    .cdk-resizable-handle {
+      @apply bg-gray-200;
+    }
+  }
+
+  [dir='rtl'] {
+    .cdk-header-cell:not(.cdk-resizable)::after,
+    .cdk-mdc-header-cell:not(.cdk-resizable)::after,
+    .cdk-resizable-handle {
+      left: 0;
+      right: auto;
+    }
+
+    .cdk-header-row.cdk-column-resize-hover-or-active,
+    .cdk-mdc-header-row.cdk-column-resize-hover-or-active {
+      .cdk-header-cell,
+      .cdk-mdc-header-cell {
+        border-left: none;
+      }
+    }
+  }
+
+  .cdk-resizable.cdk-resizable-overlay-thumb-active > .cdk-resizable-handle {
+    opacity: 0;
+    transition: none;
+  }
+
+  .cdk-resizable-handle:focus,
+  .cdk-header-row.cdk-column-resize-hover-or-active .cdk-resizable-handle:focus,
+  .cdk-mdc-header-row.cdk-column-resize-hover-or-active .cdk-resizable-handle:focus {
+    background: lightgray;
+    outline: none;
+  }
+
+  .cdk-column-resize-overlay-thumb {
+    background: transparent;
+
+    cursor: col-resize;
+    height: 100%;
+    width: 100%;
+    user-select: none;
+
+    &:active {
+      background: linear-gradient(90deg,
+          transparent, transparent 7px,
+          lightgray 7px, lightgray 9px,
+          transparent 9px, transparent);
+      will-change: transform;
+
+      .mat-column-resize-overlay-thumb-top {
+        background: linear-gradient(90deg,
+            transparent, transparent 4px,
+            lightgray 4px, lightgray 12px,
+            transparent 12px, transparent);
+      }
+    }
+  }
+
+.mat-column-resize-overlay-thumb-top {
+    width: 100%;
+}

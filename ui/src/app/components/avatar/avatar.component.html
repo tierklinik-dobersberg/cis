@@ -15,7 +15,10 @@
   </hlm-avatar>
 
   @if (showName()) {
-    <span class="ml-2 inline-block overflow-hidden text-ellipsis">
+    <span
+      class="inline-block overflow-hidden text-ellipsis"
+      [class.ml-2]="variant() !== 'small'"
+      [class.ml-1]="variant() === 'small'">
       {{ profile | displayName }}
     </span>
   }

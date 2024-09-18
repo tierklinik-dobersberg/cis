@@ -4,8 +4,8 @@
   @if (task()?.id) {
     <hlm-sheet-content
       *brnSheetContent
-      class="flex w-screen !max-w-[unset] flex-col gap-0 rounded-l-3xl p-0 lg:w-[70vw] lg:!max-w-[1200px]">
-      <hlm-sheet-header class="border-b border-border p-6">
+      class="flex w-screen !max-w-[unset] flex-col gap-0 overflow-auto rounded-l-3xl p-0 lg:w-[70vw] lg:!max-w-[1200px]">
+      <hlm-sheet-header class="p-6 text-left border-b border-border">
         <label hlmLabel>Zusammenfassung</label>
         <h3 hlmSheetTitle class="flex flex-row items-center justify-between">
           <span class="flex flex-row gap-4">
@@ -16,12 +16,14 @@
             }
 
             @if (task().status; as status) {
-              <label
-                hlmBadge
-                [style.color]="status | statusColor: board() | contrast"
-                [style.backgroundColor]="status | statusColor: board()">
-                {{ status }}
-              </label>
+              <span class="inline-flex flex-row items-center">
+                <label
+                  hlmBadge
+                  [style.color]="status | statusColor: board() | contrast"
+                  [style.backgroundColor]="status | statusColor: board()">
+                  {{ status }}
+                </label>
+              </span>
             }
           </span>
 
@@ -38,16 +40,16 @@
           <span hlmBadge>{{
             task().creatorId | toUser: profiles() | displayName
           }}</span>
-          am {{ task().createTime | toDate | date: 'shortDate' }}
+          am {{ task().createTime | toDate | date: 'longDate' }}
         </p>
       </hlm-sheet-header>
 
-      <div class="flex w-full flex-grow flex-col md:flex-row">
+      <div class="flex flex-col flex-grow w-full md:flex-row">
         <div
-          class="flex flex-grow flex-col overflow-auto border-r border-border p-6 pt-4">
+          class="flex flex-col flex-grow p-6 pt-4 overflow-auto border-r border-border">
           <label
             hlmLabel
-            class="mb-4 flex flex-row items-center justify-between">
+            class="flex flex-row items-center justify-between mb-4">
             Beschreibung
             <button
               hlmBtn
@@ -59,124 +61,129 @@
           </label>
 
           @if (!editDescription()) {
-            @if (task().description; as description) {
-              <div class="w-full rounded-md border border-border">
-                <header
-                  [style.--user-color-opacity]="0.15"
-                  class="flex w-full flex-row items-center gap-2 rounded-t-md border-b border-border bg-[var(--user-color)] p-2 px-4"
-                  [userColorVars]="task().creatorId">
-                  <app-avatar
-                    class="text-sm font-medium"
-                    [user]="task().creatorId"
-                    variant="small"
-                    showName="true" />
-                </header>
-                <div class="prose px-4">
-                  <markdown>{{ description }}</markdown>
-                </div>
+            <div class="w-full border rounded-md border-border">
+              <header
+                [style.--user-color-opacity]="0.15"
+                class="flex w-full flex-row items-center gap-2 rounded-t-md border-b border-border bg-[var(--user-color)] p-2 px-4"
+                [userColorVars]="task().creatorId">
+                <app-avatar
+                  class="text-sm font-medium"
+                  [user]="task().creatorId"
+                  variant="small"
+                  showName="true" />
+              </header>
+              <div class="px-4 prose">
+                <markdown [data]="task().description || 'N/A'" />
               </div>
-            } @else {
-              <span class="text-gray-500">N/A</span>
-            }
+            </div>
           } @else {
             <ckeditor [editor]="editor" [(ngModel)]="description"></ckeditor>
           }
+
+          <ol class="relative pt-8 pr-8 ml-8 space-y-4 border-l border-border">
+            @for (tl of timeline(); track tl.id) {
+              <li
+                class="relative -left-6 top-2 flex flex-row items-center gap-4 p-1.5"
+                [ngClass]="{
+                  'rounded-md border border-border bg-gray-100/75':
+                    tl.kind.case === 'valueChange',
+                }">
+                <hlm-tooltip>
+                  <span
+                    [userColorVars]="tl.userId"
+                    hlmTooltipTrigger
+                    class="flex flex-row items-center justify-center rounded-full border border-border bg-white p-2 text-[var(--user-color)]">
+                    <hlm-icon name="lucideActivity" size="sm" />
+                  </span>
+                  <span *brnTooltipContent hlm>
+                    {{ tl.createTime | toDate | date: 'long' }}
+                  </span>
+                </hlm-tooltip>
+
+                <app-timeline-entry
+                  [entry]="tl"
+                  [board]="board()"
+                  class="block w-full" />
+              </li>
+            }
+
+            <li
+              class="relative flex flex-col items-stretch gap-4 bg-white -left-6 top-2">
+              <ckeditor
+                [editor]="editor"
+                [(ngModel)]="newCommentText"
+                class="w-full" />
+
+              <button hlmBtn (click)="createComment()">
+                Kommentar erstellen
+              </button>
+            </li>
+          </ol>
         </div>
 
-        <div class="flex flex-shrink-0 flex-col">
-          <div class="border-b border-border p-6">
+        <div class="flex flex-col flex-shrink-0">
+          <div class="p-6 border-b border-border">
             <label hlmLabel class="py-3">Details</label>
 
-            <hlm-table>
-              <hlm-trow>
-                <hlm-td class="w-32 items-center gap-2 pl-0">
-                  <hlm-icon name="lucideCircleDot" size="sm" />
-                  Status
-                </hlm-td>
-                <hlm-td class="flex-1">
-                  <brn-popover>
-                    <div>
-                      @if (task().status; as status) {
-                        <button
-                          brnPopoverTrigger
-                          hlmBadge
-                          [style.backgroundColor]="
-                            status | statusColor: board()
-                          "
-                          [style.color]="
-                            status | statusColor: board() | contrast
-                          ">
-                          {{ status }}
-                        </button>
-                      } @else {
-                        <button brnPopoverTrigger class="text-gray-500">
-                          N/A
-                        </button>
-                      }
-                    </div>
+            <hlm-table class="[&_hlm-td.flex-1>*]:w-full">
+              @if (board().allowedTaskPriorities?.length) {
+                <hlm-trow>
+                  <hlm-td class="items-center w-32 gap-2 pl-0">
+                    <hlm-icon name="lucideCircleDot" size="sm" />
+                    Priorität
+                  </hlm-td>
 
-                    <brn-cmd
-                      *brnPopoverContent="let ctx"
-                      hlmPopoverContent
-                      hlm
-                      class="min-w-[200px] p-0">
-                      <hlm-cmd-input-wrapper>
-                        <hlm-icon name="lucideSearch" />
-                        <input
-                          placeholder="Status suchen ..."
-                          brnCmdInput
-                          hlm />
-                      </hlm-cmd-input-wrapper>
-                      <div *brnCmdEmpty hlmCmdEmpty>Keine Status gefunden</div>
-                      <brn-cmd-list hlm>
-                        <brn-cmd-group hlm>
-                          @for (
-                            status of board().allowedTaskStatus;
-                            track status.status
-                          ) {
-                            <button
-                              brnCmdItem
-                              (selected)="setStatus(status.status)"
-                              hlm>
-                              <hlm-icon
-                                [class.opacity-0]="
-                                  task().status !== status.status
-                                "
-                                name="lucideCheck"
-                                hlmCmdIcon />
-                              {{ status.status }}
-                            </button>
-                          }
+                  <hlm-td class="flex-1">
+                    @defer {
+                      <app-task-priority
+                        [task]="task()"
+                        [board]="board()"
+                        (switch)="setPriority($event)" />
+                    } @placeholder {
+                      <hlm-skeleton class="w-32 h-5" />
+                    }
+                  </hlm-td>
+                </hlm-trow>
+              }
 
-                          <brn-cmd-separator hlm />
-
-                          <button brnCmdItem (selected)="setStatus('')" hlm>
-                            <hlm-icon name="lucideTrash2" hlmCmdIcon />
-                            Status löschen
-                          </button>
-                        </brn-cmd-group>
-                      </brn-cmd-list>
-                    </brn-cmd>
-                  </brn-popover>
-                </hlm-td>
-              </hlm-trow>
+              @if (board().allowedTaskStatus?.length) {
+                <hlm-trow>
+                  <hlm-td class="items-center w-32 gap-2 pl-0">
+                    <hlm-icon name="lucideCircleDot" size="sm" />
+                    Status
+                  </hlm-td>
+                  <hlm-td class="flex-1">
+                    @defer {
+                      <app-task-status
+                        [task]="task()"
+                        [board]="board()"
+                        (switch)="setStatus($event)" />
+                    } @placeholder {
+                      <hlm-skeleton class="w-16 h-5" />
+                    }
+                  </hlm-td>
+                </hlm-trow>
+              }
 
               <hlm-trow>
-                <hlm-td class="w-32 items-center gap-2 pl-0">
+                <hlm-td class="items-center w-32 gap-2 pl-0">
                   <hlm-icon name="lucideUser" size="sm" />
                   Zugewiesen
                 </hlm-td>
                 <hlm-td class="flex-1">
-                  @if (task().assigneeId; as id) {
-                    <app-avatar [user]="id" showName="true" variant="small" />
-                  } @else {
-                    <span class="text-gray-500">Nicht zugewiesen</span>
+                  @defer {
+                    <app-task-assignee
+                      [task]="task()"
+                      [board]="board()"
+                      (switch)="setAssignee($event)" />
+                  } @placeholder {
+                    <hlm-skeleton class="w-24 h-5" />
                   }
                 </hlm-td>
               </hlm-trow>
 
               <hlm-trow>
-                <hlm-td class="w-32 items-center gap-2 pl-0">
+                <hlm-td class="items-center w-32 gap-2 pl-0">
                   <hlm-icon name="lucideUser2" size="sm" />
                   Besitzer
                 </hlm-td>
@@ -189,97 +196,59 @@
               </hlm-trow>
 
               <hlm-trow>
-                <hlm-td class="w-32 items-center gap-2 pl-0">
+                <hlm-td class="items-center w-32 gap-2 pl-0">
                   <hlm-icon name="lucideClock" size="sm" />
                   Erstellt am
                 </hlm-td>
                 <hlm-td class="flex-1">
-                  <span>{{ task().createTime | toDate | date: 'medium' }}</span>
+                  <span>{{ task().createTime | toDate | date: 'short' }}</span>
                 </hlm-td>
               </hlm-trow>
 
               <hlm-trow>
-                <hlm-td class="w-32 items-center gap-2 pl-0">
+                <hlm-td class="items-center w-32 gap-2 pl-0">
                   <hlm-icon name="lucideCalendarCheck" size="sm" />
                   Fertig bis
                 </hlm-td>
                 <hlm-td class="flex-1">
-                  <tkd-date-picker
-                    [ngModel]="
-                      task().dueTime ? (task().dueTime | toDate) : null
-                    "
-                    (ngModelChange)="updateDueTime($event)"
-                    allowClear="true"
-                    mode="single">
-                    <div *datePickerInput>
-                      @if (task().dueTime; as dueTime) {
-                        {{ dueTime | toDate | date: 'medium' }}
-                      } @else {
-                        <span class="text-gray-500">Nicht angegeben</span>
-                      }
-                    </div>
-                  </tkd-date-picker>
+                  @defer {
+                    <tkd-date-picker
+                      [ngModel]="
+                        task().dueTime ? (task().dueTime | toDate) : null
+                      "
+                      (ngModelChange)="updateDueTime($event)"
+                      allowClear="true"
+                      mode="single">
+                      <div *datePickerInput class="cursor-pointer">
+                        @if (task().dueTime; as dueTime) {
+                          {{ dueTime | toDate | date: 'short' }}
+                        } @else {
+                          <span class="text-gray-500">Nicht angegeben</span>
+                        }
+                      </div>
+                    </tkd-date-picker>
+                  } @placeholder {
+                    <hlm-skeleton class="w-20 h-5" />
+                  }
                 </hlm-td>
               </hlm-trow>
 
-              <hlm-trow>
-                <hlm-td class="w-32 items-start gap-2 pl-0">
-                  <hlm-icon name="lucideTags" size="sm" />
-                  Labels
-                </hlm-td>
-                <hlm-td class="flex-1">
-                  <brn-popover>
-                    <button
-                      class="flex max-w-52 flex-row flex-wrap gap-2"
-                      brnPopoverTrigger>
-                      @for (tag of task().tags; track tag) {
-                        <span
-                          hlmBadge
-                          variant="secondary"
-                          [style.backgroundColor]="tag | tagColor: board()"
-                          [style.color]="tag | tagColor: board() | contrast">
-                          {{ tag }}
-                        </span>
-                      } @empty {
-                        <span class="text-gray-500">N/A</span>
-                      }
-                    </button>
-
-                    <brn-cmd
-                      *brnPopoverContent="let ctx"
-                      hlmPopoverContent
-                      hlm
-                      class="min-w-[200px] p-0">
-                      <hlm-cmd-input-wrapper>
-                        <hlm-icon name="lucideSearch" />
-                        <input
-                          placeholder="Labels / Tags suchen ..."
-                          brnCmdInput
-                          hlm />
-                      </hlm-cmd-input-wrapper>
-                      <div *brnCmdEmpty hlmCmdEmpty>Keine Tag gefunden</div>
-                      <brn-cmd-list hlm>
-                        <brn-cmd-group hlm>
-                          @for (tag of board().allowedTaskTags; track tag.tag) {
-                            <button
-                              brnCmdItem
-                              (selected)="toggleTag(tag.tag)"
-                              hlm>
-                              <hlm-icon
-                                [class.opacity-0]="
-                                  !task().tags.includes(tag.tag)
-                                "
-                                name="lucideCheck"
-                                hlmCmdIcon />
-                              {{ tag.tag }}
-                            </button>
-                          }
-                        </brn-cmd-group>
-                      </brn-cmd-list>
-                    </brn-cmd>
-                  </brn-popover>
-                </hlm-td>
-              </hlm-trow>
+              @if (board().allowedTaskTags?.length) {
+                <hlm-trow>
+                  <hlm-td class="items-start w-32 gap-2 pl-0">
+                    <hlm-icon name="lucideTags" size="sm" />
+                    Labels
+                  </hlm-td>
+                  <hlm-td class="flex-1">
+                    @defer (on idle) {
+                      <app-tag-list
+                        [task]="task()"
+                        [board]="board()"
+                        (toggleTag)="toggleTag($event)" />
+                    }
+                  </hlm-td>
+                </hlm-trow>
+              }
             </hlm-table>
           </div>
 
@@ -288,7 +257,7 @@
             <label hlmLabel class="py-3">Aktionen</label>
 
             @if (!task().completeTime) {
-              <button hlmBtn variant="ghost">
+              <button hlmBtn variant="ghost" (click)="completeTask()">
                 <hlm-icon name="lucideCheckCheck" class="mr-4" />
                 Als Fertig markieren
               </button>
@@ -307,13 +276,43 @@
               Board öffnen
             </button>
 
-            <button
-              hlmBtn
-              variant="ghost"
-              class="text-red-500 hover:text-red-500">
-              <hlm-icon name="lucideTrash2" class="mr-4" />
-              Task Löschen
-            </button>
+            <app-subscription-button
+              [id]="task().id"
+              [service]="taskService"
+              [subscription]="task().subscriptions" />
+
+            <hlm-alert-dialog>
+              <button
+                hlmBtn
+                brnAlertDialogTrigger
+                variant="ghost"
+                class="justify-start w-full text-red-500 hover:text-red-500">
+                <hlm-icon name="lucideTrash2" class="mr-4" />
+                Task Löschen
+              </button>
+
+              <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+                <hlm-alert-dialog-header>
+                  <h3 hlmAlertDialogTitle>Bestätigung erforderlich</h3>
+                  <p hlmAlertDialogDescription>
+                    Möchtest du diesen Task wirklich löschen? Diese Aktion kann
+                    nicht rückgängig gemacht werden!
+                  </p>
+                </hlm-alert-dialog-header>
+                <hlm-alert-dialog-footer>
+                  <button hlmAlertDialogCancel (click)="ctx.close()">
+                    Nein
+                  </button>
+
+                  <button
+                    hlmAlertDialogAction
+                    class="!bg-destructive !text-destructive-foreground"
+                    (click)="deleteTask(); ctx.close()">
+                    Ja, löschen
+                  </button>
+                </hlm-alert-dialog-footer>
+              </hlm-alert-dialog-content>
+            </hlm-alert-dialog>
           </div>
         </div>
       </div>

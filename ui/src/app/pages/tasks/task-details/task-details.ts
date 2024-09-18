@@ -1,30 +1,31 @@
-import { DatePipe } from "@angular/common";
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, effect, ElementRef, inject, Injector, output, signal, ViewChild } from "@angular/core";
+import { DatePipe, NgClass } from "@angular/common";
+import { AfterViewInit, ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, Injector, output, signal, ViewChild } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { PartialMessage, Timestamp } from "@bufbuild/protobuf";
 import { CKEditorModule } from "@ckeditor/ckeditor5-angular";
 import { ConnectError } from "@connectrpc/connect";
-import { lucideCalendarCheck, lucideCheck, lucideCheckCheck, lucideCircleDot, lucideClock, lucideLayers, lucideMoreVertical, lucideMove, lucideMoveHorizontal, lucideTags, lucideTrash2, lucideUser, lucideUser2, lucideX } from "@ng-icons/lucide";
-import { BrnCommandModule } from "@spartan-ng/ui-command-brain";
-import { BrnPopoverModule } from "@spartan-ng/ui-popover-brain";
+import { lucideActivity, lucideCalendarCheck, lucideCheck, lucideCheckCheck, lucideCircleDot, lucideClock, lucideLayers, lucideMoreVertical, lucideMove, lucideMoveHorizontal, lucideTags, lucideTrash2, lucideUser, lucideUser2, lucideX } from "@ng-icons/lucide";
+import { BrnAlertDialogModule } from "@spartan-ng/ui-alertdialog-brain";
 import { BrnSeparatorComponent } from "@spartan-ng/ui-separator-brain";
 import { BrnSheetContentDirective, BrnSheetTriggerDirective } from "@spartan-ng/ui-sheet-brain";
+import { BrnTooltipModule } from "@spartan-ng/ui-tooltip-brain";
+import { HlmAlertDialogModule } from "@tierklinik-dobersberg/angular/alertdialog";
 import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
 import { injectCurrentProfile, injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
-import { HlmCommandModule } from "@tierklinik-dobersberg/angular/command";
 import { injectBoardService, injectTaskService } from "@tierklinik-dobersberg/angular/connect";
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
 import { HlmLabelDirective } from "@tierklinik-dobersberg/angular/label";
 import { DisplayNamePipe, ToDatePipe, ToUserPipe } from "@tierklinik-dobersberg/angular/pipes";
-import { HlmPopoverModule } from "@tierklinik-dobersberg/angular/popover";
 import { HlmSeparatorDirective } from "@tierklinik-dobersberg/angular/separator";
 import { HlmSheetComponent, HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
+import { HlmSkeletonComponent } from "@tierklinik-dobersberg/angular/skeleton";
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
-import { Board, BoardEvent, Task, TaskEvent, UpdateTaskRequest } from '@tierklinik-dobersberg/apis/tasks/v1';
+import { HlmTooltipModule } from "@tierklinik-dobersberg/angular/tooltip";
+import { Board, BoardEvent, EventType, GetTimelineResponse, Task, TaskEvent, TaskTimelineEntry, UpdateTaskRequest } from '@tierklinik-dobersberg/apis/tasks/v1';
 import { MarkdownModule } from "ngx-markdown";
 import { toast } from "ngx-sonner";
 import { startWith } from "rxjs";
@@ -35,7 +36,13 @@ import { TkdDatePickerComponent, TkdDatePickerInputDirective } from "src/app/com
 import { UserColorVarsDirective } from "src/app/components/user-color-vars";
 import { ContrastColorPipe } from "src/app/pipes/contrast-color.pipe";
 import { EventService } from "src/app/services/event.service";
-import { StatusColorPipe, TagColorPipe } from "../color.pipe";
+import { StatusColorPipe } from "../color.pipe";
+import { SubscriptionButton } from "../subscription-button/subscription-button";
+import { TagListComponent } from "../tag-list/tag-list";
+import { TaskAssigneeComponent } from "../task-assignee/task-assignee";
+import { TaskPriorityComponent } from "../task-priority/task-priority";
+import { TaskStatusComponent } from "../task-status/task-status";
+import { TimelineEntryComponent } from '../timeline-entry/timeline-entry';
 
 @Component({
     selector: 'app-task-details',
@@ -58,23 +65,30 @@ import { StatusColorPipe, TagColorPipe } from "../color.pipe";
         HlmInputDirective,
         FormsModule,
         AppAvatarComponent,
-        TagColorPipe,
         HlmBadgeDirective,
-        StatusColorPipe,
-        ContrastColorPipe,
         CKEditorModule,
         HlmTableModule,
+        ContrastColorPipe,
+        StatusColorPipe,
         BrnSheetTriggerDirective,
         HlmSheetModule,
         BrnSheetContentDirective,
         UserColorVarsDirective,
         RouterLink,
-        BrnPopoverModule,
         TkdDatePickerComponent,
         TkdDatePickerInputDirective,
-        HlmPopoverModule,
-        BrnCommandModule,
-        HlmCommandModule,
+        HlmSkeletonComponent,
+        TagListComponent,
+        TaskStatusComponent,
+        TaskPriorityComponent,
+        TaskAssigneeComponent,
+        SubscriptionButton,
+        HlmAlertDialogModule,
+        TimelineEntryComponent,
+        BrnAlertDialogModule,
+        HlmTooltipModule,
+        BrnTooltipModule,
+        NgClass
     ],
     providers: [
         ...provideIcons({
@@ -88,6 +102,7 @@ import { StatusColorPipe, TagColorPipe } from "../color.pipe";
             lucideMoreVertical,
             lucideMoveHorizontal,
             lucideMove,
+            lucideActivity,
             lucideCalendarCheck,
             lucideCircleDot,
             lucideX,
@@ -104,6 +119,7 @@ export class TaskDetailsComponent implements AfterViewInit {
     protected readonly injector = inject(Injector);
     protected readonly availableBoards = signal<Board[]>([]);
     protected readonly eventsService = inject(EventService);
+    protected readonly timeline = signal<TaskTimelineEntry[]>([]);
 
     protected readonly board = computed(() => {
         const boards = this.availableBoards();
@@ -117,12 +133,12 @@ export class TaskDetailsComponent implements AfterViewInit {
 
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router)
-    private readonly taskService = injectTaskService();
+    protected readonly taskService = injectTaskService(); // needs to be passed to app-subscription-button
     private readonly boardService = injectBoardService();
-    private readonly cdr = inject(ChangeDetectorRef)
 
     protected readonly editTitle = signal(false);
     protected readonly editDescription = signal(false);
+    protected readonly newCommentText = signal('');
 
     protected readonly title = signal('');
     protected readonly description = signal('');
@@ -138,7 +154,7 @@ export class TaskDetailsComponent implements AfterViewInit {
     toggleEditTitle() {
         const edit = this.editTitle();
 
-        if (edit) {
+        if (edit && this.title() !== this.task().title ) {
             this.updateTask({title: this.title()})
         }
 
@@ -148,7 +164,7 @@ export class TaskDetailsComponent implements AfterViewInit {
     toggleEditDescription() {
         const edit = this.editDescription();
 
-        if (edit) {
+        if (edit && this.description() !== this.task().description ) {
             this.updateTask({description: this.description()})
         }
 
@@ -176,10 +192,31 @@ export class TaskDetailsComponent implements AfterViewInit {
         this.updateTask({status});
     }
 
+    protected setAssignee(user: string) {
+        this.updateTask({assigneeId: user}, ["assignee_id"]);
+    }
+
+    protected setPriority(p: number) {
+        this.updateTask({priority: p});
+    }
+
     protected updateDueTime(date?: Date) {
         this.updateTask({
             dueTime: date ? Timestamp.fromDate(date) : null,
         }, ['due_time'])
+    }
+
+    protected deleteTask() {
+        this.taskService
+            .deleteTask({taskId: this.task().id})
+            .then(() => {
+                this.sheet?.close(null);
+            })
+            .catch(err => {
+                toast.error('Task konnte nicht gelöscht werden', {
+                    description: ConnectError.from(err).message
+                })
+            })
     }
 
     protected toggleTag(tag: string) {
@@ -236,17 +273,6 @@ export class TaskDetailsComponent implements AfterViewInit {
             })
     }
 
-    protected deleteTask() {
-        this.taskService
-            .completeTask({taskId: this.task().id})
-            .then(() => this.sheet.close(null))
-            .catch(err => {
-                toast.error('Task konnten nicht gelöscht werden', {
-                    description: ConnectError.from(err).message
-                })
-            })
-    }
-
     protected completeTask() {
         this.taskService
             .completeTask({taskId: this.task().id})
@@ -255,6 +281,29 @@ export class TaskDetailsComponent implements AfterViewInit {
                     description: ConnectError.from(err).message
                 })
             })
+    }
+
+    protected createComment() {
+        const text = this.newCommentText();
+        if (!text) {
+            return
+        }
+
+        this.taskService
+            .createTaskComment({
+                taskId: this.task().id,
+                comment: text
+            })
+            .then(() => {
+                this.loadTimeline(this.task().id)
+            })
+            .catch(err => {
+                toast.error('Kommentar konnte nicht erstellt werden', {
+                    description: ConnectError.from(err).message
+                })
+            })
+
+        this.newCommentText.set('')
     }
 
     constructor() {
@@ -274,7 +323,13 @@ export class TaskDetailsComponent implements AfterViewInit {
 
                 if (msg instanceof TaskEvent) {
                     if (msg.task.id === this.task().id) {
+                        if (msg.eventType === EventType.DELETED) {
+                            this.task.set(new Task())
+                            return
+                        }
+
                         this.task.set(msg.task);
+                        this.loadTimeline(msg.task.id);
                     }
                 }
             })
@@ -291,7 +346,6 @@ export class TaskDetailsComponent implements AfterViewInit {
                             this.task.set(res.task);
                             this.title.set(res.task.title)
                             this.description.set(res.task.description);
-                            this.cdr.markForCheck();
                         })
                         .catch( err => {
                             toast.error('Task konnte nicht geladen werden', {
@@ -300,8 +354,12 @@ export class TaskDetailsComponent implements AfterViewInit {
 
                             this.sheet?.close(null);
                         })
+
+                    this.loadTimeline(id);
+
                 } else {
                     this.sheet?.close(null);
+                    this.task.set(new Task())
                 }
             })
 
@@ -312,7 +370,24 @@ export class TaskDetailsComponent implements AfterViewInit {
                 setTimeout(() => {
                     this.triggerButton.nativeElement.click();
                 }, 10)
+            } else {
+                this.sheet?.close(null);
             }
         }, { allowSignalWrites: true })
+    }
+                    
+    private loadTimeline(id: string) {
+        this.taskService
+            .getTimeline({taskIds: [id]})
+            .catch(err => {
+                toast.error('Task Aktivitäten konnten nicht geladen werden', {
+                    description: ConnectError.from(err).message
+                })
+
+                return new GetTimelineResponse()
+            })
+            .then(response => {
+                this.timeline.set(response.timeline)
+            })
     }
 }

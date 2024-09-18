@@ -1,0 +1,61 @@
+<brn-popover>
+  <button
+    brnPopoverTrigger
+    class="flex flex-row items-center justify-between w-full">
+    @if (task().assigneeId; as id) {
+      <app-avatar [user]="id" showName="true" variant="small" />
+    } @else {
+      <span class="text-gray-500"> N/A </span>
+    }
+    <hlm-icon name="lucideChevronDown" size="sm" class="text-gray-500" />
+  </button>
+
+  <brn-cmd
+    *brnPopoverContent="let ctx"
+    hlmPopoverContent
+    hlm
+    class="min-w-[200px] p-2">
+    <label hlmLabel class="flex flex-row gap-2 p-2">
+      <hlm-icon name="lucideUserCheck2" size="sm" />
+      Zuständigkeit auswählen
+    </label>
+
+    <hlm-cmd-input-wrapper
+      class="w-[var(--width)]"
+      [style.--width]="componentWidth()">
+      <hlm-icon name="lucideSearch" />
+      <input placeholder="Mitarbeiter suchen ..." brnCmdInput hlm />
+    </hlm-cmd-input-wrapper>
+
+    <div *brnCmdEmpty hlmCmdEmpty>Kein Mitarbeiter gefunden</div>
+    <brn-cmd-list hlm>
+      <brn-cmd-group hlm>
+        @for (user of eligibleProfiles(); track user.user.id) {
+          <button
+            brnCmdItem
+            (selected)="switch.emit(user.user.id)"
+            hlm
+            class="flex flex-row items-center text-left">
+            <hlm-icon
+              [class.opacity-0]="task().assigneeId !== user.user.id"
+              name="lucideCheck"
+              hlmCmdIcon />
+
+            <app-avatar [user]="user" showName="true" variant="small" />
+          </button>
+        }
+
+        <brn-cmd-separator hlm />
+
+        <button
+          brnCmdItem
+          (selected)="switch.emit(null)"
+          hlm
+          class="flex flex-row items-center text-left">
+          <hlm-icon name="lucideTrash2" hlmCmdIcon />
+          Zuweisung löschen
+        </button>
+      </brn-cmd-group>
+    </brn-cmd-list>
+  </brn-cmd>
+</brn-popover>

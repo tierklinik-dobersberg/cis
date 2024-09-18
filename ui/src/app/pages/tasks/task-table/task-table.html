@@ -1,0 +1,80 @@
+<table
+  cdk-table
+  columnResize
+  [dataSource]="tasks()"
+  [trackBy]="trackTask"
+  class="w-full border-collapse table-fixed">
+  <!-- title Column -->
+  <ng-container cdkColumnDef="title">
+    <th class="p-2" cdk-header-cell *cdkHeaderCellDef>Titel</th>
+    <td
+      class="p-2"
+      (click)="taskClick.emit(element)"
+      cdk-cell
+      *cdkCellDef="let element">
+      {{ element.title }}
+    </td>
+  </ng-container>
+
+  <!-- assignee Column -->
+  <ng-container cdkColumnDef="assignee">
+    <th class="p-2" cdk-header-cell *cdkHeaderCellDef>Zuständig</th>
+    <td class="p-2" cdk-cell *cdkCellDef="let element">
+      <app-task-assignee
+        [board]="board()"
+        [task]="element"
+        (switch)="assigneeSwitch.emit([element, $event])" />
+    </td>
+  </ng-container>
+
+  <!-- dueTime Column -->
+  <ng-container cdkColumnDef="dueTime">
+    <th class="p-2" cdk-header-cell *cdkHeaderCellDef>Fälligkeit</th>
+    <td class="p-2" cdk-cell *cdkCellDef="let element">
+      @if (element.dueTime) {
+        {{ element.dueTime | toDate | date: 'short' }}
+      } @else {
+        <span class="text-gray-500">N/A</span>
+      }
+    </td>
+  </ng-container>
+
+  <!-- tags Column -->
+  <ng-container cdkColumnDef="tags">
+    <th class="p-2" cdk-header-cell *cdkHeaderCellDef>Tags</th>
+    <td class="p-2" cdk-cell *cdkCellDef="let element">
+      <app-tag-list
+        [board]="board()"
+        [task]="element"
+        (toggleTag)="tagSwitch.emit([element, $event])" />
+    </td>
+  </ng-container>
+
+  <!-- status Column -->
+  <ng-container cdkColumnDef="status">
+    <th class="p-2" cdk-header-cell *cdkHeaderCellDef>Status</th>
+    <td class="p-2" cdk-cell *cdkCellDef="let element">
+      <app-task-status
+        [board]="board()"
+        [task]="element"
+        (switch)="statusSwitch.emit([element, $event])" />
+    </td>
+  </ng-container>
+
+  <!-- creator Column -->
+  <ng-container cdkColumnDef="creator">
+    <th class="p-2" cdk-header-cell *cdkHeaderCellDef>Besitzer</th>
+    <td class="p-2" cdk-cell *cdkCellDef="let element">
+      <app-avatar [user]="element.creatorId" showName="true" variant="small" />
+    </td>
+  </ng-container>
+
+  <tr
+    class="text-left text-sm [&>th]:border [&>th]:border-b-2 [&>th]:border-border [&>th]:bg-gray-50 [&>th]:font-bold"
+    cdk-header-row
+    *cdkHeaderRowDef="displayedColumns()"></tr>
+  <tr
+    class="cursor-pointer border border-border text-left hover:bg-gray-100 [&>td]:overflow-hidden [&>td]:text-ellipsis [&>td]:whitespace-nowrap [&>td]:border [&>td]:border-border [&>td]:text-sm"
+    cdk-row
+    *cdkRowDef="let row; columns: displayedColumns()"></tr>
+</table>

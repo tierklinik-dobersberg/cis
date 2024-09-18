@@ -3,10 +3,10 @@
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
-import { Autoformat, BlockQuote, Image, Bold, ClassicEditor, Heading, ImageStyle, ImageToolbar, ImageUpload, Indent, Italic, Link, List, Markdown, MediaEmbed, Mention, Paragraph, PasteFromOffice, Table, TableToolbar } from 'ckeditor5';
+import { Autoformat, BlockQuote, Bold, ClassicEditor, Heading, Image, ImageStyle, ImageToolbar, ImageUpload, Indent, Italic, Link, List, Markdown, MediaEmbed, Mention, Paragraph, PasteFromOffice, Table, TableToolbar } from 'ckeditor5';
 
 export class MyEditor extends ClassicEditor {
-  public static builtinPlugins = [
+  public static builtinPlugins: any[] = [
     Mention,
     Autoformat,
     BlockQuote,

@@ -1,0 +1,63 @@
+<brn-popover>
+  <button
+    class="flex flex-row items-center justify-between w-full"
+    brnPopoverTrigger>
+    @if (task().status; as status) {
+      <span
+        hlmBadge
+        [style.backgroundColor]="status | statusColor: board()"
+        [style.color]="status | statusColor: board() | contrast">
+        {{ status }}
+      </span>
+    } @else {
+      <span class="text-gray-500">N/A</span>
+    }
+
+    <hlm-icon class="text-gray-500" name="lucideChevronDown" size="sm" />
+  </button>
+
+  <brn-cmd
+    *brnPopoverContent="let ctx"
+    hlmPopoverContent
+    hlm
+    class="min-w-[200px] p-2">
+    <label hlmLabel class="flex flex-row gap-2 p-2"> Status ändern </label>
+
+    <hlm-cmd-input-wrapper
+      [style.--width]="componentWidth()"
+      class="w-[var(--width)]">
+      <hlm-icon name="lucideSearch" />
+      <input placeholder="Status suchen ..." brnCmdInput hlm />
+    </hlm-cmd-input-wrapper>
+
+    <div *brnCmdEmpty hlmCmdEmpty>Keine Status gefunden</div>
+    <brn-cmd-list hlm>
+      <brn-cmd-group hlm>
+        @for (status of board().allowedTaskStatus; track status.status) {
+          <button
+            brnCmdItem
+            (selected)="switch.emit(status.status)"
+            hlm
+            class="flex flex-row items-center text-left">
+            <hlm-icon
+              [class.opacity-0]="task().status !== status.status"
+              name="lucideCheck"
+              hlmCmdIcon />
+            {{ status.status }}
+          </button>
+        }
+
+        <brn-cmd-separator hlm />
+
+        <button
+          brnCmdItem
+          (selected)="switch.emit('')"
+          hlm
+          class="flex flex-row items-center text-left">
+          <hlm-icon name="lucideTrash2" hlmCmdIcon />
+          Status löschen
+        </button>
+      </brn-cmd-group>
+    </brn-cmd-list>
+  </brn-cmd>
+</brn-popover>

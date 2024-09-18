@@ -1,0 +1,76 @@
+@if (comment(); as c) {
+  <div class="w-full border rounded-md border-border">
+    <header
+      [style.--user-color-opacity]="0.15"
+      class="flex w-full flex-row items-center gap-2 rounded-t-md border-b border-border bg-[var(--user-color)] p-2 px-4"
+      [userColorVars]="entry().userId">
+      <app-avatar
+        class="text-sm font-medium"
+        [user]="entry().userId"
+        variant="small"
+        showName="true" />
+
+      <span class="flex-grow text-sm text-gray-500">
+        am {{ entry().createTime | toDate | date: 'medium' }}
+
+        @if (c.editTime) {
+          <hlm-tooltip>
+            <span class="italic text-gray-500" hlmTooltipTrigger>
+              (bearbeitet)
+            </span>
+            <span *brnTooltipContent hlm>
+              {{ c.editTime | toDate | date: 'long' }}
+            </span>
+          </hlm-tooltip>
+        }
+      </span>
+
+      <button hlmBtn [brnMenuTriggerFor]="menu" size="icon" variant="ghost">
+        <hlm-icon name="lucideMoreVertical" size="sm" />
+      </button>
+
+      <ng-template #menu>
+        <hlm-menu class="w-56">
+          <hlm-menu-label> Aktionen </hlm-menu-label>
+
+          <hlm-menu-separator />
+
+          <hlm-menu-group>
+            <button
+              hlmMenuItem
+              class="flex flex-row items-center text-left"
+              (click)="toggleEdit()">
+              <hlm-icon name="lucidePencil" hlmMenuIcon />
+
+              @if (editMode()) {
+                Speichern
+              } @else {
+                Bearbeiten
+              }
+            </button>
+
+            <button
+              hlmMenuItem
+              hlm
+              [disabled]="editMode()"
+              class="flex flex-row items-center text-left text-red-500">
+              <hlm-icon name="lucideTrash2" hlmMenuIcon />
+              Löschen
+            </button>
+          </hlm-menu-group>
+        </hlm-menu>
+      </ng-template>
+    </header>
+    @if (editMode()) {
+      <ckeditor
+        class="w-full"
+        [config]="config()"
+        [editor]="editor"
+        [(ngModel)]="commentText" />
+    } @else {
+      <div class="px-4 prose">
+        <markdown emoji [data]="c.comment" />
+      </div>
+    }
+  </div>
+}

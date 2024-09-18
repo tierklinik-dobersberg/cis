@@ -1,0 +1,51 @@
+<brn-popover>
+  <button
+    brnPopoverTrigger
+    hlmBtn
+    variant="ghost"
+    class="flex w-full flex-row items-center justify-start text-left">
+    <hlm-icon [name]="computedIcon()" class="mr-4" />
+    {{ computedText() }}
+  </button>
+
+  <brn-cmd
+    *brnPopoverContent="let ctx"
+    hlmPopoverContent
+    hlm
+    class="min-w-[200px] p-0">
+    <brn-cmd-list hlm>
+      <brn-cmd-group hlm>
+        @for (item of values | keyvalue; track item.key) {
+          <button
+            brnCmdItem
+            hlm
+            class="flex flex-row items-center text-left"
+            (click)="setSubscription($any(item.key))">
+            <hlm-icon
+              [class.opacity-0]="
+                !computedSubscription()?.notificationTypes?.includes(
+                  $any(+item.key)
+                )
+              "
+              name="lucideCheck"
+              hlmCmdIcon />
+            {{ item.value }}
+          </button>
+        }
+
+        @if (computedIsSubscriped()) {
+          <brn-cmd-separator hlm />
+
+          <button
+            brnCmdItem
+            hlm
+            class="flex flex-row items-center text-left"
+            (click)="setSubscription(-1)">
+            <hlm-icon hlmCmdIcon name="lucideBellOff" />
+            Keine Benachrichtigungen
+          </button>
+        }
+      </brn-cmd-group>
+    </brn-cmd-list>
+  </brn-cmd>
+</brn-popover>

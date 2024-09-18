@@ -1,0 +1,129 @@
+@if (entry(); as entry) {
+  @switch (entry.kind.case) {
+    @case ('comment') {
+      @if (entry.kind.value; as c) {
+        <app-task-comment [comment]="c" [entry]="entry" [board]="board()" />
+      }
+    }
+
+    @case ('valueChange') {
+      <span class="flex flex-row flex-wrap items-center gap-1 text-sm">
+        <app-avatar
+          [user]="entry.userId"
+          showName="true"
+          variant="small"
+          class="text-sm" />
+
+        @if (entry.kind.value; as c) {
+          @switch (c.fieldName) {
+            @case ('title') {
+              hat den Title von
+              <span hlmBadge variant="outline">{{ c.oldValue | toJson }}</span>
+              zu
+              <span hlmBadge variant="outline">{{ c.newValue | toJson }}</span>
+              geändert
+            }
+            @case ('description') {
+              hat die Beschreibung geändert
+            }
+            @case ('assignee_id') {
+              @if (c.newValue) {
+                hat
+                <app-avatar
+                  [user]="$any(c.newValue | toJson)"
+                  showName="true"
+                  variant="small" />
+                zugewiesen
+              } @else {
+                hat die Zuweisung zu hat
+                <app-avatar
+                  [user]="$any(c.oldValue | toJson)"
+                  showName="true"
+                  variant="small" />
+                zugewiesen gelöscht
+              }
+            }
+            @case ('priority') {
+              hat die Priorität
+              @if (c.newValue) {
+                auf
+                {{ ($any(c.newValue | toJson) | taskPriotiy: board())?.name }}
+                geändert
+              } @else {
+                gelöscht
+              }
+            }
+            @case ('status') {
+              hat den Status
+              @if (c.newValue) {
+                auf
+                <span
+                  hlmBadge
+                  variant="outline"
+                  [style.backgroundColor]="
+                    $any(c.newValue | toJson) | statusColor: board()
+                  "
+                  [style.color]="
+                    $any(c.newValue | toJson) | statusColor: board() | contrast
+                  ">
+                  {{ c.newValue | toJson }}
+                </span>
+                geändert
+              } @else {
+                gelöscht.
+              }
+            }
+            @case ('tags') {
+              hat die Kennzeichnung
+
+              @if (c.newValue && !c.oldValue) {
+                <span
+                  hlmBadge
+                  [style.backgroundColor]="
+                    $any(c.newValue | toJson) | tagColor: board()
+                  "
+                  [style.color]="
+                    $any(c.newValue | toJson) | tagColor: board() | contrast
+                  ">
+                  {{ c.newValue.toJson() }}
+                </span>
+
+                hinzugefügt
+              }
+
+              @if (!c.newValue && c.oldValue) {
+                <span
+                  hlmBadge
+                  [style.backgroundColor]="
+                    $any(c.oldValue | toJson) | tagColor: board()
+                  "
+                  [style.color]="
+                    $any(c.oldValue | toJson) | tagColor: board() | contrast
+                  ">
+                  {{ c.oldValue | toJson }}
+                </span>
+
+                gelöscht
+              }
+            }
+            @case ('due_time') {
+              hat das Fertigstellungs-Datum
+              @if (c.newValue) {
+                auf
+                {{ $any(c.newValue | toJson) | toDate | date: 'short' }}
+                geändert
+              } @else {
+                gelöscht
+              }
+            }
+            @case ('complete_time') {
+              @if (c.newValue) {
+                hat den Task als "fertig" markiert
+              }
+            }
+          }
+        }
+      </span>
+    }
+  }
+}

@@ -30,7 +30,7 @@ export const defaultClasses = "border border-[var(--user-color,var(--border))] [
     styles: [
         `
         :host {
-            @apply inline-flex items-center gap-1 flex-nowrap overflow-hidden text-ellipsis whitespace-nowrap;
+            @apply inline-flex items-center flex-nowrap overflow-hidden text-ellipsis whitespace-nowrap;
         }
         `,
     ]

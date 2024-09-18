@@ -17,6 +17,7 @@ import { injectBoardService, injectTaskService } from "@tierklinik-dobersberg/an
 import { HlmDialogService } from "@tierklinik-dobersberg/angular/dialog";
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
+import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
 import { HlmMenuModule } from "@tierklinik-dobersberg/angular/menu";
 import { DisplayNamePipe, ToDatePipe, ToUserPipe } from "@tierklinik-dobersberg/angular/pipes";
 import { Profile } from "@tierklinik-dobersberg/apis/idm/v1";
@@ -30,7 +31,9 @@ import { ContrastColorPipe } from "src/app/pipes/contrast-color.pipe";
 import { EventService } from "src/app/services/event.service";
 import { AsyncPaginationManager } from "src/app/utils/pagination-manager";
 import { StatusColorPipe, TagColorPipe } from "../color.pipe";
+import { TaskAssigneeComponent } from "../task-assignee/task-assignee";
 import { TaskDetailsComponent } from "../task-details/task-details";
+import { TaskTableComponent } from "../task-table/task-table";
 
 @Component({
     standalone: true,
@@ -57,9 +60,15 @@ import { TaskDetailsComponent } from "../task-details/task-details";
         AppAvatarComponent,
         FormsModule,
         HlmInputDirective,
+        FormsModule,
         ContrastColorPipe,
         TaskDetailsComponent,
+        TaskTableComponent,
+        TaskAssigneeComponent,
     ],
+    host: {
+        'class': '!p-0'
+    },
     providers: [
         ...provideIcons({lucideCheck, lucideUser, lucideCircleDot, lucideTags, lucideCheckCheck, lucideTrash2, lucideClock, lucideMenu, lucideMoreVertical, lucidePencil})
     ]
@@ -75,14 +84,17 @@ export class TaskListComponent {
 
     private readonly boardId = signal<string | null>(null);
 
+    protected readonly layout = inject(LayoutService)
     protected readonly profiles = injectUserProfiles();
     protected readonly currentProfile = injectCurrentProfile();
     protected readonly board = signal<Board>(new Board())
     protected readonly tasks = signal<Task[]>([]);
+    protected readonly filter = signal('');
 
     protected readonly newTaskTitle = signal('');
 
     protected readonly paginator = new AsyncPaginationManager(this.tasks)
+
     protected readonly _computedEligibleUsers = computed(() => {
         const tasks = this.tasks();
         const board = this.board();
@@ -198,19 +210,16 @@ export class TaskListComponent {
             const board = this.board()
             const pageSize = this.paginator.pageSize();
             const page = this.paginator.currentPage();
+            const filter = this.filter();
 
             if (!board.id){
                 return
             }
 
             this.taskService
-                .listTasks({
-                    queries: [
-                        {
-                            boardId: [board.id],
-                            completed: false,
-                        }
-                    ],
+                .filterTasks({
+                    boardId: board.id,
+                    query: filter,
                     pagination: {
                         pageSize: pageSize,
                         kind: {
