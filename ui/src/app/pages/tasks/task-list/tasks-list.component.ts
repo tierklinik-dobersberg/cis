@@ -33,6 +33,7 @@ import { AsyncPaginationManager } from "src/app/utils/pagination-manager";
 import { StatusColorPipe, TagColorPipe } from "../color.pipe";
 import { TaskAssigneeComponent } from "../task-assignee/task-assignee";
 import { TaskDetailsComponent } from "../task-details/task-details";
+import { TaskQueryFilterComponent } from "../task-query-filter/task-query-filter";
 import { TaskTableComponent } from "../task-table/task-table";
 
 @Component({
@@ -65,6 +66,7 @@ import { TaskTableComponent } from "../task-table/task-table";
         TaskDetailsComponent,
         TaskTableComponent,
         TaskAssigneeComponent,
+        TaskQueryFilterComponent,
     ],
     host: {
         'class': '!p-0'

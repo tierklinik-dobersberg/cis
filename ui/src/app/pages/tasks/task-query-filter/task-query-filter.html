@@ -1,0 +1,17 @@
+<input
+  class="w-full"
+  type="text"
+  [matAutocomplete]="auto"
+  [(ngModel)]="query"
+  (keyup.enter)="filter.emit(query()); trigger.closePanel()"
+  hlmInput />
+
+<mat-autocomplete
+  #auto="matAutocomplete"
+  (optionSelected)="handleOption($event)">
+  @for (option of data().values; track option) {
+    <mat-option class="!min-h-8 !text-sm" [value]="option">{{
+      option
+    }}</mat-option>
+  }
+</mat-autocomplete>

@@ -93,10 +93,6 @@ export class ManageBoardComponent {
             writePermission: this.writePermissions(),
             allowedTaskStatus: this.statuses().filter(s => s.status !== ''),
             allowedTaskTags: this.tags().filter(t => t.tag !== ''),
-            kind: {
-                case: 'list',
-                value: {}
-            }
         })
     })
 
