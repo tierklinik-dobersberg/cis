@@ -3,7 +3,6 @@ import { ChangeDetectionStrategy, Component, computed, inject, model, signal, Wr
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
-import { PartialMessage } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
 import { lucideTrash } from "@ng-icons/lucide";
 import { BrnSeparatorComponent } from "@spartan-ng/ui-separator-brain";
@@ -19,12 +18,13 @@ import { HlmSeparatorDirective } from "@tierklinik-dobersberg/angular/separator"
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
 import { HlmTabsModule } from "@tierklinik-dobersberg/angular/tabs";
 import { ListRolesResponse, Role } from "@tierklinik-dobersberg/apis/idm/v1";
-import { Board, BoardPermission, CreateBoardRequest, GetBoardResponse, TaskStatus, TaskTag, UpdateBoardRequest } from "@tierklinik-dobersberg/apis/tasks/v1";
+import { Board, BoardPermission, CreateBoardRequest, GetBoardResponse, TaskPriority, TaskStatus, TaskTag, UpdateBoardRequest } from "@tierklinik-dobersberg/apis/tasks/v1";
 import { NgxColorsModule } from 'ngx-colors';
 import { toast } from "ngx-sonner";
 import { SelectionSheet, SelectionSheetItemDirective } from "src/app/dialogs/selection-sheet";
 import { ToRolePipe } from "src/app/pipes/to-role.pipe";
 import { BoardPermissionEditorComponent } from "../board-permission-editor/board-permission-editor";
+import { FieldEditorComponent } from "./field-editor/field-editor";
 
 enum Permission {
     Allow = "allow",
@@ -54,6 +54,7 @@ enum Permission {
         BoardPermissionEditorComponent,
         JsonPipe,
         NgxColorsModule,
+        FieldEditorComponent,
     ],
     providers: [
         ...provideIcons({lucideTrash})
@@ -70,6 +71,10 @@ export class ManageBoardComponent {
     private readonly boardService = injectBoardService()
     private readonly roleService = injectRoleService();
 
+    protected readonly tag = new TaskTag();
+    protected readonly status = new TaskStatus();
+    protected readonly priority = new TaskPriority();
+
     // Signals for available values
 
     protected readonly profiles = injectUserProfiles();
@@ -82,8 +87,10 @@ export class ManageBoardComponent {
     protected readonly description = model('');
     protected readonly writePermissions = model<BoardPermission>(new BoardPermission())
     protected readonly readPermissions = model<BoardPermission>(new BoardPermission())
-    protected readonly tags = model<PartialMessage<TaskTag>[]>([]);
-    protected readonly statuses = model<PartialMessage<TaskStatus>[]>([]);
+
+    protected readonly tags = model<TaskTag[]>([]);
+    protected readonly statuses = model<TaskStatus[]>([]);
+    protected readonly priorities = model<TaskPriority[]>([]);
 
     protected readonly _computedBoardModel = computed(() => {
         return new Board({
@@ -93,6 +100,7 @@ export class ManageBoardComponent {
             writePermission: this.writePermissions(),
             allowedTaskStatus: this.statuses().filter(s => s.status !== ''),
             allowedTaskTags: this.tags().filter(t => t.tag !== ''),
+            allowedTaskPriorities: this.priorities().filter(t => t.name !== '')
         })
     })
 
@@ -123,6 +131,11 @@ export class ManageBoardComponent {
         if (JSON.stringify(board.allowedTaskTags) !== JSON.stringify(existing.allowedTaskTags)) {
             req.allowedTaskTags = board.allowedTaskTags;
             req.updateMask.paths.push("allowed_task_tags")
+        }
+
+        if (JSON.stringify(board.allowedTaskPriorities) !== JSON.stringify(existing.allowedTaskPriorities)) {
+            req.allowedTaskPriorities = board.allowedTaskPriorities;
+            req.updateMask.paths.push("allowed_task_priorities")
         }
 
         if (board.displayName !== existing.displayName) {
@@ -189,54 +202,14 @@ export class ManageBoardComponent {
 
     }
 
-    protected addStatus() {
-        const s = this.statuses()
-        this.statuses.set([
-            ...s,
-            {
-                status: '',
-                description: '',
-                color: ''
-            },
-        ])
-    }
-
     protected removeRoleFromList(list: string[], role: Role) {
         const l = list.filter(r => r !== role.id)
         
     }
 
-    protected deleteStatus(toDelete: string) {
-        const s = this.statuses();
-
-        let newS = s.filter(status => status.status !== toDelete)
-
-        this.statuses.set(newS)
-    }
-
-    protected addTag() {
-        const s = this.tags()
-        this.tags.set([
-            ...s,
-            {
-                tag: '',
-                description: '',
-                color: ''
-            },
-        ])
-    }
-
     protected update(signal: WritableSignal<any[]>) {
         console.log("updating values from ", signal())
         signal.set([...(signal() || [])]);
-    }
-
-    protected deleteTag(toDelete: string) {
-        const s = this.tags();
-
-        let newS = s.filter(tag => tag.tag !== toDelete)
-
-        this.tags.set(newS)
     }
 
     protected save() {
@@ -281,5 +254,6 @@ export class ManageBoardComponent {
         this.readPermissions.set(board.readPermission || new BoardPermission)
         this.tags.set(board.allowedTaskTags || [])
         this.statuses.set(board.allowedTaskStatus || [])
+        this.priorities.set(board.allowedTaskPriorities)
     }
 }

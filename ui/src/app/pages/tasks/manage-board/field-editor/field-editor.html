@@ -1,0 +1,62 @@
+<hlm-table class="w-full">
+  <hlm-trow>
+    @for (col of displayedColumns(); track col) {
+      <hlm-th
+        class="w-[var(--width)]"
+        [style.--width]="
+          col == 'name' || col === 'description' || col === 'value'
+            ? 'calc((100% - 8rem) / ' + (displayedColumns().length - 1) + ')'
+            : 'w-16'
+        ">
+        {{ computedColumnNames()[col] }}
+      </hlm-th>
+    }
+
+    <hlm-th class="w-16"></hlm-th>
+  </hlm-trow>
+
+  @for (entry of models(); track entry.name; let index = $index) {
+    <hlm-trow>
+      @for (col of displayedColumns(); track col) {
+        <hlm-td
+          class="w-[var(--width)]"
+          [style.--width]="
+            col == 'name' || col === 'description' || col === 'value'
+              ? 'calc((100% - 8rem) / ' + (displayedColumns().length - 1) + ')'
+              : 'w-16'
+          ">
+          @if (col === 'color') {
+            <ngx-colors
+              ngx-colors-trigger
+              format="hex"
+              (ngModelChange)="updateFieldValue(index, col, $event)"
+              [ngModel]="entry[col]" />
+          } @else {
+            <input
+              hlmInput
+              [attr.type]="col === 'value' ? 'number' : 'text'"
+              [ngModel]="entry[col]"
+              (ngModelChange)="updateFieldValue(index, col, $event)" />
+          }
+        </hlm-td>
+      }
+      <hlm-td class="w-16">
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          (click)="removeElement(index)">
+          <hlm-icon name="lucideTrash2" />
+        </button>
+      </hlm-td>
+    </hlm-trow>
+  }
+
+  <hlm-trow>
+    <hlm-td class="flex flex-row justify-end">
+      <button hlmBtn variant="secondary" (click)="addElement()">
+        {{ computedColumnNames()['name'] }} hinzufügen
+      </button>
+    </hlm-td>
+  </hlm-trow>
+</hlm-table>
