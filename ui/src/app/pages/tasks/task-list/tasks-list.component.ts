@@ -33,6 +33,7 @@ import { toast } from "ngx-sonner";
 import { AppAvatarComponent } from "src/app/components/avatar";
 import { TkdPaginationComponent } from "src/app/components/pagination";
 import { EditTaskDialog } from "src/app/dialogs/create-task-dialog";
+import { HeaderTitleService } from "src/app/layout/header-title";
 import { ContrastColorPipe } from "src/app/pipes/contrast-color.pipe";
 import { EventService } from "src/app/services/event.service";
 import { StatusColorPipe, TagColorPipe } from "../color.pipe";
@@ -169,6 +170,7 @@ export class TaskListComponent {
     private readonly dialogService = inject(HlmDialogService)
     private readonly eventsService = inject(EventService);
     private readonly router = inject(Router);
+    private header = inject(HeaderTitleService)
 
     private readonly boardId = signal<string | null>(null);
 
@@ -373,6 +375,8 @@ export class TaskListComponent {
                     // we need to re-set the old view since we have a new class instance now
                     this.currentView.set(oldView);
                 }
+
+                this.header.set(response.board.displayName, response.board.description)
             })
         }
 
