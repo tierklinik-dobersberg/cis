@@ -1,48 +1,64 @@
 import {
-    CdkColumnResizeDefaultEnabledModule,
-    ColumnResize,
-    ColumnResizeNotifierSource,
-    HeaderRowEventDispatcher,
-    Resizable,
-    ResizeOverlayHandle,
-    ResizeRef,
-    ResizeStrategy,
+  CdkColumnResizeDefaultEnabledModule,
+  ColumnResize,
+  ColumnResizeNotifierSource,
+  HeaderRowEventDispatcher,
+  Resizable,
+  ResizeOverlayHandle,
+  ResizeRef,
+  ResizeStrategy,
 } from '@angular/cdk-experimental/column-resize';
 import { Directionality } from '@angular/cdk/bidi';
 import { Overlay } from '@angular/cdk/overlay';
 import {
-    _COALESCED_STYLE_SCHEDULER,
-    _CoalescedStyleScheduler,
-    CdkColumnDef,
-    CdkTableModule,
+  _COALESCED_STYLE_SCHEDULER,
+  _CoalescedStyleScheduler,
+  CdkColumnDef,
+  CdkTableModule,
 } from '@angular/cdk/table';
 import { DatePipe, DOCUMENT } from '@angular/common';
 import {
-    ChangeDetectionStrategy,
-    ChangeDetectorRef,
-    Component,
-    computed,
-    Directive,
-    ElementRef,
-    inject,
-    Injector,
-    input,
-    NgZone,
-    output,
-    TrackByFunction,
-    Type,
-    ViewChild,
-    ViewContainerRef,
-    ViewEncapsulation
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  computed,
+  Directive,
+  ElementRef,
+  inject,
+  Injector,
+  input,
+  NgZone,
+  output,
+  Type,
+  ViewChild,
+  ViewContainerRef,
+  ViewEncapsulation
 } from '@angular/core';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { Board, Task } from '@tierklinik-dobersberg/apis/tasks/v1';
 import { AppAvatarComponent } from 'src/app/components/avatar';
+import { TaskGroupValueComponent } from '../group-value/group-value';
 import { TagListComponent } from '../tag-list/tag-list';
 import { TaskAssigneeComponent } from '../task-assignee/task-assignee';
+import { TaskPriorityComponent } from "../task-priority/task-priority";
 import { TaskStatusComponent } from '../task-status/task-status';
+import { TaskGroupWithBoard } from '../utils';
+
+class TaskWithGroupValue extends Task {
+  public readonly board: Board;
+  public readonly value: any;
+  public readonly field: string;
+
+  constructor(grp: TaskGroupWithBoard, task: Task, public readonly groupId: number) {
+    super(task);
+
+    this.board = grp.board;
+    this.value = grp.value;
+    this.field = grp.field;
+  }
+}
 
 @Directive({
   standalone: true,
@@ -52,7 +68,7 @@ export class CdkCellDefTemplateGuard {
   static ngTemplateContextGuard(
     dir: CdkCellDefTemplateGuard,
     ctx: unknown
-  ): ctx is { $implicit: Task } {
+  ): ctx is { $implicit: TaskWithGroupValue } {
     return true;
   }
 }
@@ -147,20 +163,54 @@ export class MyResizable extends Resizable<ColumnResizeOverlayHandle> {
     MyResizable,
     ColumnResizeOverlayHandle,
     ToDatePipe,
-    DatePipe
-  ],
+    DatePipe,
+    TaskPriorityComponent,
+    TaskGroupValueComponent,
+],
 })
 export class TaskTableComponent {
-  public readonly board = input.required<Board>();
-  public readonly tasks = input.required<Task[]>();
+  public readonly groups = input.required<TaskGroupWithBoard[]>();
+
   public readonly taskClick = output<Task>();
   public readonly tagSwitch = output<[Task, string]>();
   public readonly statusSwitch = output<[Task, string]>();
   public readonly assigneeSwitch = output<[Task, string]>();
+  public readonly prioritySwitch = output<[Task, number]>();
 
-  protected readonly trackTask: TrackByFunction<Task> = (_, t) => t.id;
+  public readonly hasGroups = computed(() => {
+    const grps = this.groups();
+    return grps?.length > 1 ;
+  })
+
+  protected readonly tasks = computed<TaskWithGroupValue[]>(() => {
+    const grps = this.groups();
+
+    const result = grps
+      .reduce((sum, current, index) => {
+        return [
+          ...sum,
+          ...current.tasks.map(t => new TaskWithGroupValue(current, t, index))
+        ]
+      }, [])
+
+      return result;
+  })
 
   protected readonly displayedColumns = computed(() => {
-    return ['title', 'status', 'assignee', 'dueTime', 'tags', 'creator'];
+    return ['title', 'status', 'assignee', 'dueTime', 'tags', 'priority', 'creator'];
   });
+
+  protected readonly shouldShowGroup = (index: number, element: TaskWithGroupValue) => {
+    const tasks = this.tasks();
+
+    if (!this.hasGroups()) {
+      return false;
+    }
+
+    if (index === 0) {
+      return true;
+    }
+
+    return tasks[index-1].groupId !== element.groupId;
+  }
 }

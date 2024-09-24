@@ -1,27 +1,33 @@
-import { DatePipe } from "@angular/common";
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, effect, inject, signal } from "@angular/core";
+import { DatePipe, KeyValuePipe } from "@angular/common";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { PartialMessage } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
-import { lucideCheck, lucideCheckCheck, lucideCircleDot, lucideClock, lucideMenu, lucideMoreVertical, lucidePencil, lucideTags, lucideTrash2, lucideUser } from "@ng-icons/lucide";
+import { lucideArrowUpDown, lucideCheck, lucideCheckCheck, lucideChevronDown, lucideCircleDot, lucideClock, lucideDot, lucideGroup, lucideMenu, lucideMoreVertical, lucidePencil, lucidePlus, lucideSave, lucideTags, lucideTrash2, lucideUser } from "@ng-icons/lucide";
 import { BrnAlertDialogModule } from "@spartan-ng/ui-alertdialog-brain";
+import { BrnCommandModule } from "@spartan-ng/ui-command-brain";
 import { BrnMenuTriggerDirective } from "@spartan-ng/ui-menu-brain";
+import { BrnPopoverModule } from "@spartan-ng/ui-popover-brain";
 import { HlmAlertDialogModule } from "@tierklinik-dobersberg/angular/alertdialog";
 import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
 import { injectCurrentProfile, injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { HlmCardModule } from "@tierklinik-dobersberg/angular/card";
-import { injectBoardService, injectTaskService } from "@tierklinik-dobersberg/angular/connect";
+import { HlmCommandModule } from "@tierklinik-dobersberg/angular/command";
+import { BoardServiceClient, injectBoardService, injectTaskService } from "@tierklinik-dobersberg/angular/connect";
 import { HlmDialogService } from "@tierklinik-dobersberg/angular/dialog";
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
+import { HlmLabelDirective } from "@tierklinik-dobersberg/angular/label";
 import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
-import { HlmMenuModule } from "@tierklinik-dobersberg/angular/menu";
+import { HlmMenuItemRadioComponent, HlmMenuModule } from "@tierklinik-dobersberg/angular/menu";
 import { DisplayNamePipe, ToDatePipe, ToUserPipe } from "@tierklinik-dobersberg/angular/pipes";
+import { HlmPopoverModule } from "@tierklinik-dobersberg/angular/popover";
+import { Sort } from "@tierklinik-dobersberg/apis/common/v1";
 import { Profile } from "@tierklinik-dobersberg/apis/idm/v1";
-import { Board, BoardEvent, GetBoardResponse, ListTasksResponse, Task, TaskEvent, UpdateTaskRequest } from "@tierklinik-dobersberg/apis/tasks/v1";
+import { Board, BoardEvent, GetBoardResponse, QueryViewResponse, TaskEvent, UpdateTaskRequest, View } from "@tierklinik-dobersberg/apis/tasks/v1";
 import { MarkdownModule } from "ngx-markdown";
 import { toast } from "ngx-sonner";
 import { AppAvatarComponent } from "src/app/components/avatar";
@@ -29,12 +35,85 @@ import { TkdPaginationComponent } from "src/app/components/pagination";
 import { EditTaskDialog } from "src/app/dialogs/create-task-dialog";
 import { ContrastColorPipe } from "src/app/pipes/contrast-color.pipe";
 import { EventService } from "src/app/services/event.service";
-import { AsyncPaginationManager } from "src/app/utils/pagination-manager";
 import { StatusColorPipe, TagColorPipe } from "../color.pipe";
+import { TaskGroupValueComponent } from "../group-value/group-value";
 import { TaskAssigneeComponent } from "../task-assignee/task-assignee";
 import { TaskDetailsComponent } from "../task-details/task-details";
 import { TaskQueryFilterComponent } from "../task-query-filter/task-query-filter";
 import { TaskTableComponent } from "../task-table/task-table";
+import { TaskGroupWithBoard } from "../utils";
+
+export class ViewModel extends View {
+    private readonly _changeIndex = signal(0);
+
+    public readonly changeIndex = this._changeIndex.asReadonly();
+    public readonly isDirty = computed(() => {
+        return this._changeIndex() > 0
+    })
+
+
+    constructor(
+        v: PartialMessage<View>,
+        private readonly boardId: string,
+        private readonly boardService: BoardServiceClient,
+        dirty = false) {
+        super(v);
+
+        if (dirty) {
+            this.markDirty()
+        }
+    }
+
+    markDirty() {
+        this._changeIndex.set(this._changeIndex() + 1)
+    }
+
+    setFilter(filter: string) {
+        this.filter = filter;
+
+        this.markDirty();
+    }
+
+    setGroupBy(field: string) {
+        this.groupByField = field;
+        this.markDirty();
+    }
+
+    setSort(field: string) {
+        this.sort = new Sort({
+            fieldName: field,
+        })
+
+        this.markDirty();
+    }
+
+    delete() {
+        this.boardService
+            .deleteView({
+                boardId: this.boardId,
+                viewName: this.name,
+            })
+            .catch(err => {
+                toast.error('Board konnte nicht gelöscht werden', {
+                    description: ConnectError.from(err).message,
+                })
+            })
+    }
+
+    save() {
+        this.boardService
+            .addView({
+                boardId: this.boardId,
+                view: this
+            })
+            .then(() => this._changeIndex.set(0))
+            .catch(err => {
+                toast.error('Board konnte nicht gespeichert werden', {
+                    description: ConnectError.from(err).message,
+                })
+            })
+    }
+}
 
 @Component({
     standalone: true,
@@ -52,6 +131,7 @@ import { TaskTableComponent } from "../task-table/task-table";
         RouterLink,
         TagColorPipe,
         StatusColorPipe,
+        HlmLabelDirective,
         HlmMenuModule,
         BrnMenuTriggerDirective,
         DisplayNamePipe,
@@ -67,12 +147,19 @@ import { TaskTableComponent } from "../task-table/task-table";
         TaskTableComponent,
         TaskAssigneeComponent,
         TaskQueryFilterComponent,
+        HlmPopoverModule,
+        BrnPopoverModule,
+        BrnCommandModule,
+        HlmCommandModule,
+        KeyValuePipe,
+        TaskGroupValueComponent,
+        HlmMenuItemRadioComponent
     ],
     host: {
         'class': '!p-0'
     },
     providers: [
-        ...provideIcons({lucideCheck, lucideUser, lucideCircleDot, lucideTags, lucideCheckCheck, lucideTrash2, lucideClock, lucideMenu, lucideMoreVertical, lucidePencil})
+        ...provideIcons({lucideDot, lucideSave ,lucideGroup, lucideArrowUpDown, lucideChevronDown ,lucidePlus ,lucideCheck, lucideUser, lucideCircleDot, lucideTags, lucideCheckCheck, lucideTrash2, lucideClock, lucideMenu, lucideMoreVertical, lucidePencil})
     ]
 })
 export class TaskListComponent {
@@ -82,7 +169,6 @@ export class TaskListComponent {
     private readonly dialogService = inject(HlmDialogService)
     private readonly eventsService = inject(EventService);
     private readonly router = inject(Router);
-    private readonly cdr = inject(ChangeDetectorRef)
 
     private readonly boardId = signal<string | null>(null);
 
@@ -90,15 +176,48 @@ export class TaskListComponent {
     protected readonly profiles = injectUserProfiles();
     protected readonly currentProfile = injectCurrentProfile();
     protected readonly board = signal<Board>(new Board())
-    protected readonly tasks = signal<Task[]>([]);
-    protected readonly filter = signal('');
+    protected readonly groups = signal<TaskGroupWithBoard[]>([]);
+
+    protected readonly tasks = computed(() => {
+        const result =  this.groups()
+            .reduce((sum, grp) => {
+                return [
+                    ...sum,
+                    ...grp.tasks
+                ]
+            }, [])
+
+        console.log("all tasks", result)
+
+        return result
+    })
+
+    protected readonly views = signal<ViewModel[]>([]);
 
     protected readonly newTaskTitle = signal('');
 
-    protected readonly paginator = new AsyncPaginationManager(this.tasks)
+    protected readonly groupByFields = {
+        'assignee_id': 'Zugewiesen',
+        'due_time': 'Fälligkeit',
+        'creator_id': 'Besitzer',
+        'status': 'Status',
+        'tags': 'Tags',
+        'priority': 'Priorität'
+    }
+
+    protected readonly sortByFields = {
+        'assignee_id': 'Zugewiesen',
+        'due_time': 'Fälligkeit',
+        'creator_id': 'Besitzer',
+        'status': 'Status',
+        'tags': 'Tags',
+        'priority': 'Priorität'
+    }
+
+    protected readonly currentView = signal<ViewModel | null>(null);
 
     protected readonly _computedEligibleUsers = computed(() => {
-        const tasks = this.tasks();
+        const groups = this.groups();
         const board = this.board();
         const profiles = this.profiles();
 
@@ -106,20 +225,24 @@ export class TaskListComponent {
             [taskId: string]: Profile[]
         } = {}
 
-        tasks.forEach(task => {
-            if (!board.eligibleRoleIds?.length && !board.eligibleUserIds?.length) {
-                result[task.id] = profiles;
-                return
-            }
+        groups
+            .forEach(grp => {
+                grp.tasks
+                    .forEach(task => {
+                    if (!board.eligibleRoleIds?.length && !board.eligibleUserIds?.length) {
+                        result[task.id] = profiles;
+                        return
+                    }
 
-            result[task.id] = profiles.filter(p => {
-                if (board.eligibleUserIds.includes(p.user.id)) {
-                    return true
-                }
+                    result[task.id] = profiles.filter(p => {
+                        if (board.eligibleUserIds.includes(p.user.id)) {
+                            return true
+                        }
 
-                return p.roles.find(r => board.eligibleRoleIds.includes(r.id)) !== undefined;
+                        return p.roles.find(r => board.eligibleRoleIds.includes(r.id)) !== undefined;
+                    })
+                })
             })
-        })
 
         return result
     })
@@ -170,19 +293,7 @@ export class TaskListComponent {
 
                     // refetch the board
                     const id = this.boardId();
-
-                    this.boardService
-                        .getBoard({id})
-                        .catch(err => {
-                            toast.error('Task-Board konnte nicht geladen werden', {
-                                description: ConnectError.from(err).message
-                            })
-
-                            return new GetBoardResponse()
-                        })
-                        .then(response => {
-                            this.board.set(response.board)
-                        })
+                    this.loadBoard(id);
                 }
             })
 
@@ -193,60 +304,77 @@ export class TaskListComponent {
                 return
             }
 
-            this.boardService
-                .getBoard({id})
-                .catch(err => {
-                    toast.error('Task-Board konnte nicht geladen werden', {
-                        description: ConnectError.from(err).message
-                    })
-
-                    return new GetBoardResponse()
-                })
-                .then(response => {
-                    this.board.set(response.board)
-                })
+            this.loadBoard(id);
         })
 
 
         effect(() => {
             const board = this.board()
-            const pageSize = this.paginator.pageSize();
-            const page = this.paginator.currentPage();
-            const filter = this.filter();
+            const view = this.currentView();
 
-            if (!board.id){
+            if (!view || !board.id) {
                 return
             }
 
+            // track the view
+            view.changeIndex();
+
             this.taskService
-                .filterTasks({
-                    boardId: board.id,
-                    query: filter,
-                    pagination: {
-                        pageSize: pageSize,
-                        kind: {
-                            case: 'page',
-                            value: page,
-                        }
-                    }
+                .queryView({
+                    boardIds: [board.id],
+                    view,
                 })
                 .catch(err => {
                     toast.error('Tasks konnte nicht geladen werden', {
                         description: ConnectError.from(err).message
                     })
 
-                    return new ListTasksResponse()
+                    return new QueryViewResponse()
                 })
-                .then(responses => {
-                    this.tasks.set(responses.tasks);
-                    this.paginator.setTotalCount(Number(responses.totalCount))
+                .then(response => {
+                    const m = new Map<string, Board>();
+                    response.boards
+                        .forEach(b => m.set(b.id, b))
 
-                    // BUG(ppacher): MarkdownModule does not pickup a change in the task description
-                    // if we don't manully trigger a change detection run ....
-                    this.cdr.markForCheck();
+                    this.groups
+                        .set(response.groups.map(g => new TaskGroupWithBoard(g, m.get(g.boardId), response.groupByField)));
                 })
         })
     }
+            
+    protected loadBoard(id: string) {
+        this.boardService
+            .getBoard({id})
+            .catch(err => {
+                toast.error('Task-Board konnte nicht geladen werden', {
+                    description: ConnectError.from(err).message
+                })
+
+                return new GetBoardResponse()
+            })
+            .then(response => {
+                this.board.set(response.board)
+                this.views.set(
+                    response.board.views?.length
+                    ? response.board.views
+                        .map(v => new ViewModel(v, response.board.id, this.boardService))
+                    : [
+                        new ViewModel({
+                            name: "Home",
+                            filter: "",
+                        }, response.board.id, this.boardService)
+                    ]
+                )
+
+                const oldView = this.views().find(v => v === this.currentView());
+                if (this.currentView() === null || oldView === undefined ) {
+                    this.currentView.set(this.views()[0])
+                } else {
+                    // we need to re-set the old view since we have a new class instance now
+                    this.currentView.set(oldView);
+                }
+            })
+        }
 
     protected completeTask(taskId: string) {
         this.taskService
@@ -283,6 +411,26 @@ export class TaskListComponent {
             status: status,
             updateMask: {
                 paths: ["status"]
+            }
+        })
+            .catch(err => {
+                toast.error('Tasks konnte nicht gespeichert werden', {
+                    description: ConnectError.from(err).message
+                })
+            })
+    }
+
+    protected setPriority(taskId: string, value: number) {
+        const task = this.tasks().find(t => t.id === taskId);
+        if (!task) {
+            return
+        }
+
+        this.taskService.updateTask({
+            taskId: taskId,
+            priority: value,
+            updateMask: {
+                paths: ["priority"]
             }
         })
             .catch(err => {
@@ -370,5 +518,15 @@ export class TaskListComponent {
                     description: ConnectError.from(err).message
                 })
             })
+    }
+
+    protected addView() {
+        const views = [...this.views()]
+
+        views.push(new ViewModel({
+            name: 'Neue Ansicht'
+        }, this.boardId(), this.boardService, true))
+
+        this.views.set(views);
     }
 }

@@ -1,9 +1,9 @@
 <table
   cdk-table
   columnResize
+  [multiTemplateDataRows]="true"
   [dataSource]="tasks()"
-  [trackBy]="trackTask"
-  class="w-full border-collapse table-fixed">
+  class="w-full table-fixed border-collapse">
   <!-- title Column -->
   <ng-container cdkColumnDef="title">
     <th class="p-2" cdk-header-cell *cdkHeaderCellDef>Titel</th>
@@ -21,7 +21,7 @@
     <th class="p-2" cdk-header-cell *cdkHeaderCellDef>Zuständig</th>
     <td class="p-2" cdk-cell *cdkCellDef="let element">
       <app-task-assignee
-        [board]="board()"
+        [board]="element.board"
         [task]="element"
         (switch)="assigneeSwitch.emit([element, $event])" />
     </td>
@@ -44,7 +44,7 @@
     <th class="p-2" cdk-header-cell *cdkHeaderCellDef>Tags</th>
     <td class="p-2" cdk-cell *cdkCellDef="let element">
       <app-tag-list
-        [board]="board()"
+        [board]="element.board"
         [task]="element"
         (toggleTag)="tagSwitch.emit([element, $event])" />
     </td>
@@ -55,9 +55,20 @@
     <th class="p-2" cdk-header-cell *cdkHeaderCellDef>Status</th>
     <td class="p-2" cdk-cell *cdkCellDef="let element">
       <app-task-status
-        [board]="board()"
+        [board]="element.board"
         [task]="element"
         (switch)="statusSwitch.emit([element, $event])" />
+    </td>
+  </ng-container>
+
+  <!-- priority Column -->
+  <ng-container cdkColumnDef="priority">
+    <th class="p-2" cdk-header-cell *cdkHeaderCellDef>Priorität</th>
+    <td class="p-2" cdk-cell *cdkCellDef="let element">
+      <app-task-priority
+        [board]="element.board"
+        [task]="element"
+        (switch)="prioritySwitch.emit([element, $event])" />
     </td>
   </ng-container>
 
@@ -69,10 +80,31 @@
     </td>
   </ng-container>
 
+  <ng-container cdkColumnDef="group">
+    <td
+      [attr.colspan]="displayedColumns().length"
+      class="p-4"
+      cdk-cell
+      *cdkCellDef="let element">
+      <span class="font-medium">
+        <app-task-group-value
+          [board]="element.board"
+          [field]="element.field"
+          [value]="element.value" />
+      </span>
+    </td>
+  </ng-container>
+
   <tr
     class="text-left text-sm [&>th]:border [&>th]:border-b-2 [&>th]:border-border [&>th]:bg-gray-50 [&>th]:font-bold"
     cdk-header-row
     *cdkHeaderRowDef="displayedColumns()"></tr>
+
+  <tr
+    class="border border-border bg-gray-100 text-left [&>td]:overflow-hidden [&>td]:text-ellipsis [&>td]:whitespace-nowrap [&>td]:border [&>td]:border-border [&>td]:text-sm"
+    cdk-row
+    *cdkRowDef="let row; columns: ['group']; when: shouldShowGroup"></tr>
+
   <tr
     class="cursor-pointer border border-border text-left hover:bg-gray-100 [&>td]:overflow-hidden [&>td]:text-ellipsis [&>td]:whitespace-nowrap [&>td]:border [&>td]:border-border [&>td]:text-sm"
     cdk-row

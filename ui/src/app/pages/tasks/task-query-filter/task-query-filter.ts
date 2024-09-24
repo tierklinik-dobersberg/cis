@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, input, model, output, signal, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, effect, input, model, signal, ViewChild } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from "@angular/material/autocomplete";
 import { ConnectError } from "@connectrpc/connect";
@@ -32,7 +32,7 @@ import { TkdCalendarEventCellTemplateDirective } from "../../calendar2/day-view/
 })
 export class TaskQueryFilterComponent {
     public readonly board = input.required<Board>();
-    public readonly filter = output<string>();
+    public readonly filter = model<string>();
 
     private readonly taskService = injectTaskService();
     protected readonly query = model('');
@@ -57,7 +57,13 @@ export class TaskQueryFilterComponent {
     constructor() {
         let first = true
         effect(() => {
-            const query = this.query().trim();
+            const filter = this.filter();
+
+            this.query.set(filter)
+        }, { allowSignalWrites: true })
+
+        effect(() => {
+            const query = (this.query() || '').trim();
             const board = this.board();
 
             if (!board || !board.id) {

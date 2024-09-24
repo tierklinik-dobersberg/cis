@@ -1,0 +1,60 @@
+@switch (field()) {
+  @case ('assignee_id') {
+    Zugewiesen:
+    <app-avatar [user]="value()" showName="true" />
+  }
+  @case ('creator_id') {
+    Besitzer:
+    <app-avatar [user]="value()" showName="true" />
+  }
+  @case ('due_time') {
+    Fällig am:
+    @if (value()) {
+      {{ value() | toDate | date: 'short' }}
+    } @else {
+      N/A
+    }
+  }
+  @case ('priority') {
+    Prioriät:
+    @if (value() | taskPriotiy: board(); as p) {
+      <label
+        hlmBadge
+        [style.backgroundColor]="p.color"
+        [style.color]="p.color | contrast">
+        {{ p.name }}
+      </label>
+    } @else {
+      N/A
+    }
+  }
+  @case ('status') {
+    Status:
+
+    @if (value()) {
+      <label
+        hlmBadge
+        [style.backgroundColor]="value() | statusColor: board()"
+        [style.color]="value() | statusColor: board() | contrast">
+        {{ value() }}
+      </label>
+    } @else {
+      <span>N/A</span>
+    }
+  }
+  @case ('tags') {
+    Tags:
+    @if (value()?.length) {
+      @for (tag of value(); track tag) {
+        <label
+          hlmBadge
+          [style.backgroundColor]="tag | tagColor: board()"
+          [style.color]="tag | tagColor: board() | contrast">
+          {{ tag }}
+        </label>
+      }
+    } @else {
+      <span>N/A</span>
+    }
+  }
+}

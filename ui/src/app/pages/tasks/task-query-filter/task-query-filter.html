@@ -3,7 +3,7 @@
   type="text"
   [matAutocomplete]="auto"
   [(ngModel)]="query"
-  (keyup.enter)="filter.emit(query()); trigger.closePanel()"
+  (keyup.enter)="filter.set(query()); trigger.closePanel()"
   hlmInput />
 
 <mat-autocomplete

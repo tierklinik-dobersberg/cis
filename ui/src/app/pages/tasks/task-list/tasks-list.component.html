@@ -27,272 +27,420 @@
     </div>
   </header>
 
-  <div class="flex flex-row items-center gap-2 pr-4">
-    <app-task-query-filter
-      (filter)="filter.set($event)"
-      [board]="board()"
-      class="ml-4 mr-6 flex-grow" />
-
-    <tkd-pagination [paginator]="paginator" />
-  </div>
-
   <div hlmCardContent class="flex-grow overflow-auto p-4">
+    <div class="flex flex-row justify-start gap-4 py-4">
+      @for (view of views(); track view) {
+        <button
+          hlmBtn
+          size="sm"
+          [variant]="currentView() == view ? 'secondary' : 'ghost'"
+          (click)="currentView.set(view)"
+          class="flex flex-row items-center gap-4">
+          {{ view.name }}
+
+          <button
+            [brnMenuTriggerFor]="viewMenu"
+            class="flex flex-row items-center"
+            (click)="$event.stopImmediatePropagation()">
+            @if (view.isDirty()) {
+              <hlm-icon name="lucideDot" class="text-green-400" />
+            }
+
+            <hlm-icon name="lucideChevronDown" size="sm" />
+          </button>
+
+          <ng-template #viewMenu>
+            <hlm-menu class="w-64">
+              <hlm-menu-label>Ansicht verwalten</hlm-menu-label>
+              <hlm-menu-separator />
+
+              <hlm-menu-group>
+                <input
+                  name="viewName"
+                  type="text"
+                  class="w-full"
+                  [(ngModel)]="view.name"
+                  (ngModelChange)="view.markDirty()"
+                  hlmInput />
+              </hlm-menu-group>
+
+              <hlm-menu-separator />
+              <hlm-menu-group>
+                <button hlmMenuItem [brnMenuTriggerFor]="groupBy">
+                  <hlm-icon hlmMenuIcon name="lucideGroup" />
+                  Gruppierung
+                  <hlm-menu-item-sub-indicator />
+                </button>
+
+                <ng-template #groupBy>
+                  <hlm-sub-menu class="w-64">
+                    <hlm-menu-label inset>Gruppierung</hlm-menu-label>
+                    <hlm-menu-separator />
+                    <hlm-menu-group>
+                      @for (item of groupByFields | keyvalue; track item.key) {
+                        <button
+                          [checked]="view.groupByField === item.key"
+                          (click)="view.setGroupBy(item.key)"
+                          hlmMenuItemRadio>
+                          <hlm-menu-item-radio />
+                          {{ item.value }}
+                        </button>
+                      }
+
+                      <hlm-menu-separator />
+
+                      <button
+                        [checked]="!view.groupByField"
+                        hlmMenuItemRadio
+                        (click)="view.setGroupBy('')">
+                        <hlm-menu-item-radio />
+                        Keine Gruppierung
+                      </button>
+                    </hlm-menu-group>
+                  </hlm-sub-menu>
+                </ng-template>
+
+                <button hlmMenuItem [brnMenuTriggerFor]="sortBy">
+                  <hlm-icon hlmMenuIcon name="lucideArrowUpDown" />
+
+                  Sortierung
+                  <hlm-menu-item-sub-indicator />
+                </button>
+
+                <ng-template #sortBy>
+                  <hlm-sub-menu class="w-64">
+                    <hlm-menu-label inset>Sortierung</hlm-menu-label>
+                    <hlm-menu-separator />
+                    <hlm-menu-group>
+                      @for (item of sortByFields | keyvalue; track item.key) {
+                        <button
+                          [checked]="view.sort?.fieldName === item.key"
+                          (click)="view.setSort(item.key)"
+                          hlmMenuItemRadio>
+                          <hlm-menu-item-radio />
+                          {{ item.value }}
+                        </button>
+                      }
+
+                      <hlm-menu-separator />
+
+                      <button
+                        [checked]="!view.sort || !view.sort.fieldName"
+                        (click)="view.setSort('')"
+                        hlmMenuItemRadio>
+                        <hlm-menu-item-radio />
+                        Keine Sortierung
+                      </button>
+                    </hlm-menu-group>
+                  </hlm-sub-menu>
+                </ng-template>
+
+                <hlm-menu-separator />
+
+                @if (view.isDirty()) {
+                  <button hlmMenuItem (click)="view.save()">
+                    <hlm-icon hlmMenuIcon name="lucideSave" />
+                    Speichern
+                  </button>
+                }
+
+                <hlm-menu-separator />
+
+                <button
+                  hlmMenuItem
+                  class="text-red-500"
+                  (click)="view.delete()">
+                  <hlm-icon hlmMenuIcon name="lucideTrash2" />
+                  Löschen
+                </button>
+              </hlm-menu-group>
+            </hlm-menu>
+          </ng-template>
+        </button>
+      }
+
+      <button hlmBtn variant="ghost" size="icon" (click)="addView()">
+        <hlm-icon name="lucidePlus" size="sm" />
+      </button>
+    </div>
+
+    <div class="mb-8 flex flex-row items-center gap-2 pr-4">
+      <app-task-query-filter
+        [filter]="currentView()?.filter"
+        (filterChange)="currentView()?.setFilter($event)"
+        [board]="board()"
+        class="ml-4 mr-6 flex-grow" />
+    </div>
+
     @if (layout.md()) {
       <app-task-table
-        [tasks]="tasks()"
-        [board]="board()"
+        [groups]="groups()"
         (assigneeSwitch)="assignTask($event[0].id, $event[1])"
         (statusSwitch)="setStatus($event[0].id, $event[1])"
         (tagSwitch)="toggleTag($event[0].id, $event[1])"
+        (prioritySwitch)="setPriority($event[0].id, $event[1])"
         (taskClick)="showDetails($event.id)" />
     } @else {
       <ol class="space-y-2">
-        @for (task of tasks(); track task.id) {
-          <li
-            hlmCard
-            class="cursor-pointer p-3 hover:bg-gray-100/70"
-            (click)="showDetails(task.id)">
-            <div
-              class="flex w-full flex-row items-center justify-between gap-4">
-              <div class="flex w-full flex-col">
-                <div
-                  class="flex w-full items-center justify-between font-medium">
-                  <span class="flex flex-row items-center gap-3">
-                    @if (task.completeTime) {
-                      <hlm-icon
-                        class="text-green-600"
-                        name="lucideCheckCheck"
-                        size="sm" />
-                    }
+        @for (grp of groups(); track grp) {
+          <li class="border-b border-border bg-gray-100/70 px-3 py-4">
+            <app-task-group-value
+              [field]="grp.field"
+              [value]="grp.value"
+              [board]="grp.board" />
+          </li>
 
-                    {{ task.title }}
-                  </span>
-                </div>
-
-                @if (task.description) {
-                  <markdown
-                    class="prose-sm overflow-hidden text-ellipsis text-sm [-webkit-box-orient:vertical] [-webkit-line-clamp:2] ![display:-webkit-box]"
-                    [data]="task.description" />
-                }
-
-                @if (task.dueTime || task.tags?.length) {
-                  <div class="mt-2 flex flex-row gap-2">
-                    @if (task.dueTime) {
-                      <label hlmBadge variant="secondary">
-                        <hlm-icon name="lucideClock" size="xs" class="mr-2" />
-                        {{ task.dueTime | toDate | date: 'short' }}
-                      </label>
-                    }
-
-                    @for (tag of task.tags; track tag) {
-                      <label
-                        hlmBadge
-                        variant="secondary"
-                        class="rounded-sm text-white"
-                        [style.color]="tag | tagColor: board() | contrast"
-                        [style.backgroundColor]="tag | tagColor: board()">
-                        {{ tag }}
-                      </label>
-                    }
-                  </div>
-                }
-              </div>
-
-              <div class="flex flex-row items-center justify-end gap-2">
-                @if (task.status) {
-                  <label
-                    hlmBadge
-                    class="whitespace-nowrap"
-                    [style.color]="
-                      task.status | statusColor: board() | contrast
-                    "
-                    [style.backgroundColor]="
-                      task.status | statusColor: board()
-                    ">
-                    {{ task.status }}
-                  </label>
-                }
-
-                @if (task.assigneeId) {
-                  <app-avatar [user]="task.assigneeId" />
-                }
-
-                <div class="flex-grow"></div>
-
-                <button
-                  hlmBtn
-                  variant="ghost"
-                  size="icon"
-                  (click)="$event.stopPropagation()"
-                  [brnMenuTriggerFor]="taskMenu">
-                  <hlm-icon name="lucideMoreVertical" size="sm" />
-                </button>
-              </div>
-
-              <ng-template #taskMenu>
-                <hlm-menu class="min-w-56">
-                  <hlm-menu-label>Task Aktionen</hlm-menu-label>
-                  <hlm-menu-separator />
-
-                  <hlm-menu-group>
-                    <button hlmMenuItem (click)="createOrEditTask(task.id)">
-                      <hlm-icon name="lucidePencil" hlmMenuIcon />
-                      <span>Bearbeiten</span>
-                    </button>
-
-                    @if (!task.completeTime) {
-                      <button hlmMenuItem (click)="completeTask(task.id)">
-                        <hlm-icon name="lucideCheckCheck" hlmMenuIcon />
-                        <span>As Fertiggestellt markieren</span>
-                      </button>
-                    }
-
-                    <button hlmMenuItem [brnMenuTriggerFor]="userMenu">
-                      <hlm-icon hlmMenuIcon name="lucideUser" />
-
-                      @if (task.assigneeId) {
-                        Zugewiesen:
-                        {{ task.assigneeId | toUser: profiles() | displayName }}
-                      } @else {
-                        Zuweisen
+          @for (task of grp.tasks; track task.id) {
+            <li
+              hlmCard
+              class="cursor-pointer p-3 hover:bg-gray-100/70"
+              (click)="showDetails(task.id)">
+              <div
+                class="flex w-full flex-row items-center justify-between gap-4">
+                <div class="flex w-full flex-col">
+                  <div
+                    class="flex w-full items-center justify-between font-medium">
+                    <span class="flex flex-row items-center gap-3">
+                      @if (task.completeTime) {
+                        <hlm-icon
+                          class="text-green-600"
+                          name="lucideCheckCheck"
+                          size="sm" />
                       }
 
-                      <hlm-menu-item-sub-indicator />
-                    </button>
+                      {{ task.title }}
+                    </span>
+                  </div>
 
-                    <ng-template #userMenu>
-                      <hlm-sub-menu
-                        class="!max-h-[50dvh] max-h-[50hv] min-w-56 overflow-auto">
-                        <hlm-menu-label>Task zuwweisen</hlm-menu-label>
-                        <hlm-menu-separator />
+                  @if (task.description) {
+                    <markdown
+                      class="prose-sm overflow-hidden text-ellipsis text-sm [-webkit-box-orient:vertical] [-webkit-line-clamp:2] ![display:-webkit-box]"
+                      [data]="task.description" />
+                  }
 
-                        <hlm-menu-group>
+                  @if (task.dueTime || task.tags?.length) {
+                    <div class="mt-2 flex flex-row gap-2">
+                      @if (task.dueTime) {
+                        <label hlmBadge variant="secondary">
+                          <hlm-icon name="lucideClock" size="xs" class="mr-2" />
+                          {{ task.dueTime | toDate | date: 'short' }}
+                        </label>
+                      }
+
+                      @for (tag of task.tags; track tag) {
+                        <label
+                          hlmBadge
+                          variant="secondary"
+                          class="rounded-sm text-white"
+                          [style.color]="tag | tagColor: board() | contrast"
+                          [style.backgroundColor]="tag | tagColor: board()">
+                          {{ tag }}
+                        </label>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <div class="flex flex-row items-center justify-end gap-2">
+                  @if (task.status) {
+                    <label
+                      hlmBadge
+                      class="whitespace-nowrap"
+                      [style.color]="
+                        task.status | statusColor: board() | contrast
+                      "
+                      [style.backgroundColor]="
+                        task.status | statusColor: board()
+                      ">
+                      {{ task.status }}
+                    </label>
+                  }
+
+                  @if (task.assigneeId) {
+                    <app-avatar [user]="task.assigneeId" />
+                  }
+
+                  <div class="flex-grow"></div>
+
+                  <button
+                    hlmBtn
+                    variant="ghost"
+                    size="icon"
+                    (click)="$event.stopPropagation()"
+                    [brnMenuTriggerFor]="taskMenu">
+                    <hlm-icon name="lucideMoreVertical" size="sm" />
+                  </button>
+                </div>
+
+                <ng-template #taskMenu>
+                  <hlm-menu class="min-w-56">
+                    <hlm-menu-label>Task Aktionen</hlm-menu-label>
+                    <hlm-menu-separator />
+
+                    <hlm-menu-group>
+                      <button hlmMenuItem (click)="createOrEditTask(task.id)">
+                        <hlm-icon name="lucidePencil" hlmMenuIcon />
+                        <span>Bearbeiten</span>
+                      </button>
+
+                      @if (!task.completeTime) {
+                        <button hlmMenuItem (click)="completeTask(task.id)">
+                          <hlm-icon name="lucideCheckCheck" hlmMenuIcon />
+                          <span>As Fertiggestellt markieren</span>
+                        </button>
+                      }
+
+                      <button hlmMenuItem [brnMenuTriggerFor]="userMenu">
+                        <hlm-icon hlmMenuIcon name="lucideUser" />
+
+                        @if (task.assigneeId) {
+                          Zugewiesen:
+                          {{
+                            task.assigneeId | toUser: profiles() | displayName
+                          }}
+                        } @else {
+                          Zuweisen
+                        }
+
+                        <hlm-menu-item-sub-indicator />
+                      </button>
+
+                      <ng-template #userMenu>
+                        <hlm-sub-menu
+                          class="!max-h-[50dvh] max-h-[50hv] min-w-56 overflow-auto">
+                          <hlm-menu-label>Task zuwweisen</hlm-menu-label>
+                          <hlm-menu-separator />
+
+                          <hlm-menu-group>
+                            @for (
+                              profile of _computedEligibleUsers()[task.id];
+                              track profile.user.id
+                            ) {
+                              <button
+                                hlmMenuItem
+                                (click)="assignTask(task.id, profile.user.id)">
+                                <app-avatar
+                                  [user]="profile"
+                                  variant="small"
+                                  showName="true" />
+                              </button>
+                            }
+                          </hlm-menu-group>
+                        </hlm-sub-menu>
+                      </ng-template>
+
+                      <button hlmMenuItem [brnMenuTriggerFor]="statusMenu">
+                        <hlm-icon name="lucideCircleDot" hlmMenuIcon />
+                        Status: {{ task.status }}
+                        <hlm-menu-item-sub-indicator />
+                      </button>
+
+                      <ng-template #statusMenu>
+                        <hlm-sub-menu class="min-w-56">
                           @for (
-                            profile of _computedEligibleUsers()[task.id];
-                            track profile.user.id
+                            status of board().allowedTaskStatus;
+                            track status.status
                           ) {
                             <button
                               hlmMenuItem
-                              (click)="assignTask(task.id, profile.user.id)">
-                              <app-avatar
-                                [user]="profile"
-                                variant="small"
-                                showName="true" />
+                              (click)="setStatus(task.id, status.status)">
+                              <hlm-icon
+                                name="lucideCheck"
+                                hlmMenuIcon
+                                [class.opacity-0]="
+                                  task.status !== status.status
+                                " />
+
+                              <span class="flex-grow text-left">{{
+                                status.status
+                              }}</span>
+
+                              <span
+                                class="block h-3 w-3 rounded-full"
+                                [style.backgroundColor]="status.color"></span>
                             </button>
                           }
-                        </hlm-menu-group>
-                      </hlm-sub-menu>
-                    </ng-template>
 
-                    <button hlmMenuItem [brnMenuTriggerFor]="statusMenu">
-                      <hlm-icon name="lucideCircleDot" hlmMenuIcon />
-                      Status: {{ task.status }}
-                      <hlm-menu-item-sub-indicator />
-                    </button>
+                          <hlm-menu-separator />
 
-                    <ng-template #statusMenu>
-                      <hlm-sub-menu class="min-w-56">
-                        @for (
-                          status of board().allowedTaskStatus;
-                          track status.status
-                        ) {
-                          <button
-                            hlmMenuItem
-                            (click)="setStatus(task.id, status.status)">
-                            <hlm-icon
-                              name="lucideCheck"
-                              hlmMenuIcon
-                              [class.opacity-0]="
-                                task.status !== status.status
-                              " />
-
-                            <span class="flex-grow text-left">{{
-                              status.status
-                            }}</span>
-
-                            <span
-                              class="block h-3 w-3 rounded-full"
-                              [style.backgroundColor]="status.color"></span>
+                          <button hlmMenuItem (click)="setStatus(task.id, '')">
+                            <hlm-icon name="lucideTrash2" hlmMenuIcon />
+                            Status löschen
                           </button>
-                        }
+                        </hlm-sub-menu>
+                      </ng-template>
 
-                        <hlm-menu-separator />
+                      <button hlmMenuItem [brnMenuTriggerFor]="tagsMenu">
+                        <hlm-icon name="lucideTags" hlmMenuIcon />
+                        Labels & Tags
+                        <hlm-menu-item-sub-indicator />
+                      </button>
 
-                        <button hlmMenuItem (click)="setStatus(task.id, '')">
-                          <hlm-icon name="lucideTrash2" hlmMenuIcon />
-                          Status löschen
-                        </button>
-                      </hlm-sub-menu>
-                    </ng-template>
+                      <ng-template #tagsMenu>
+                        <hlm-sub-menu class="min-w-56">
+                          @for (tag of board().allowedTaskTags; track tag.tag) {
+                            <button
+                              hlmMenuItem
+                              class="flex flex-row items-center gap-2"
+                              (click)="toggleTag(task.id, tag.tag)">
+                              <hlm-icon
+                                name="lucideCheck"
+                                hlmMenuIcon
+                                [class.opacity-0]="
+                                  !task.tags.includes(tag.tag)
+                                " />
 
-                    <button hlmMenuItem [brnMenuTriggerFor]="tagsMenu">
-                      <hlm-icon name="lucideTags" hlmMenuIcon />
-                      Labels & Tags
-                      <hlm-menu-item-sub-indicator />
-                    </button>
+                              <span class="flex-grow text-left">{{
+                                tag.tag
+                              }}</span>
 
-                    <ng-template #tagsMenu>
-                      <hlm-sub-menu class="min-w-56">
-                        @for (tag of board().allowedTaskTags; track tag.tag) {
-                          <button
-                            hlmMenuItem
-                            class="flex flex-row items-center gap-2"
-                            (click)="toggleTag(task.id, tag.tag)">
-                            <hlm-icon
-                              name="lucideCheck"
-                              hlmMenuIcon
-                              [class.opacity-0]="
-                                !task.tags.includes(tag.tag)
-                              " />
+                              <span
+                                class="block h-3 w-3 rounded-full"
+                                [style.backgroundColor]="tag.color"></span>
+                            </button>
+                          }
+                        </hlm-sub-menu>
+                      </ng-template>
 
-                            <span class="flex-grow text-left">{{
-                              tag.tag
-                            }}</span>
+                      <hlm-menu-separator />
 
-                            <span
-                              class="block h-3 w-3 rounded-full"
-                              [style.backgroundColor]="tag.color"></span>
-                          </button>
-                        }
-                      </hlm-sub-menu>
-                    </ng-template>
+                      <button
+                        hlmMenuItem
+                        class="text-red-500"
+                        [brnAlertDialogTriggerFor]="dialog">
+                        <hlm-icon name="lucideTrash2" hlmMenuIcon />
+                        <span>Löschen</span>
+                      </button>
+                    </hlm-menu-group>
+                  </hlm-menu>
+                </ng-template>
 
-                    <hlm-menu-separator />
+                <hlm-alert-dialog #dialog>
+                  <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+                    <hlm-alert-dialog-header>
+                      <h3 hlmAlertDialogTitle>Task wirklich löschen?</h3>
+                      <p hlmAlertDialogDescription>
+                        Möchtest du den Task wirklich löschen? Diese Aktion kann
+                        nicht rückgängig gemacht werden!
+                      </p>
+                    </hlm-alert-dialog-header>
 
-                    <button
-                      hlmMenuItem
-                      class="text-red-500"
-                      [brnAlertDialogTriggerFor]="dialog">
-                      <hlm-icon name="lucideTrash2" hlmMenuIcon />
-                      <span>Löschen</span>
-                    </button>
-                  </hlm-menu-group>
-                </hlm-menu>
-              </ng-template>
+                    <hlm-alert-dialog-footer>
+                      <button hlmAlertDialogCancel (click)="ctx.close()">
+                        Nein
+                      </button>
 
-              <hlm-alert-dialog #dialog>
-                <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
-                  <hlm-alert-dialog-header>
-                    <h3 hlmAlertDialogTitle>Task wirklich löschen?</h3>
-                    <p hlmAlertDialogDescription>
-                      Möchtest du den Task wirklich löschen? Diese Aktion kann
-                      nicht rückgängig gemacht werden!
-                    </p>
-                  </hlm-alert-dialog-header>
-
-                  <hlm-alert-dialog-footer>
-                    <button hlmAlertDialogCancel (click)="ctx.close()">
-                      Nein
-                    </button>
-
-                    <button hlmAlertDialogAction (click)="deleteTask(task.id)">
-                      Ja, Löschen
-                    </button>
-                  </hlm-alert-dialog-footer>
-                </hlm-alert-dialog-content>
-              </hlm-alert-dialog>
-            </div>
-          </li>
+                      <button
+                        hlmAlertDialogAction
+                        (click)="deleteTask(task.id)">
+                        Ja, Löschen
+                      </button>
+                    </hlm-alert-dialog-footer>
+                  </hlm-alert-dialog-content>
+                </hlm-alert-dialog>
+              </div>
+            </li>
+          }
         }
       </ol>
     }
