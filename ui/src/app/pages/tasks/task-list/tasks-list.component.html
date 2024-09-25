@@ -5,12 +5,11 @@
       @for (view of views(); track view; let index = $index; let last = $last) {
         <button
           hlmBtn
-          size="sm"
           [variant]="currentView() == view ? 'ghost' : 'secondary'"
           (click)="currentView.set(view)"
           [class.border-b-0]="currentView() == view"
           [ngClass]="{ 'hover:bg-white': currentView() == view }"
-          class="relative top-[5px] flex flex-row items-center gap-4 rounded-b-none border border-border">
+          class="relative top-[1px] flex flex-row items-center gap-4 rounded-b-none border border-border">
           {{ view.name }}
 
           <button
