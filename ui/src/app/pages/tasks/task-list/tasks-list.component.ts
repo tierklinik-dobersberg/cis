@@ -1,4 +1,4 @@
-import { DatePipe, KeyValuePipe } from "@angular/common";
+import { DatePipe, KeyValuePipe, NgClass } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormsModule } from "@angular/forms";
@@ -196,6 +196,7 @@ export class ViewModel extends View {
         TaskTableComponent,
         TaskAssigneeComponent,
         TaskQueryFilterComponent,
+        NgClass,
         HlmPopoverModule,
         BrnPopoverModule,
         BrnCommandModule,
