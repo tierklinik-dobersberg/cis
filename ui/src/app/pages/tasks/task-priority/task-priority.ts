@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
-import { lucideSearch, lucideTrash2 } from "@ng-icons/lucide";
+import { lucideChevronDown, lucideSearch, lucideTrash2 } from "@ng-icons/lucide";
 import { BrnCommandModule } from "@spartan-ng/ui-command-brain";
 import { BrnPopoverModule } from "@spartan-ng/ui-popover-brain";
 import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
@@ -28,7 +28,7 @@ import { TaskPriorityPipe } from "../color.pipe";
         HlmIconComponent
     ],
     providers: [
-        ...provideIcons({lucideSearch, lucideTrash2})
+        ...provideIcons({lucideSearch, lucideTrash2, lucideChevronDown})
     ]
 })
 export class TaskPriorityComponent {

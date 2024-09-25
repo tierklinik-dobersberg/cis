@@ -12,7 +12,14 @@
       (click)="taskClick.emit(element)"
       cdk-cell
       *cdkCellDef="let element">
-      {{ element.title }}
+      <span class="flex flex-row items-center gap-2">
+        <hlm-icon
+          name="lucideCheckCheck"
+          size="sm"
+          class="text-green-500"
+          [class.opacity-0]="!element.completeTime" />
+        {{ element.title }}
+      </span>
     </td>
   </ng-container>
 
@@ -31,11 +38,23 @@
   <ng-container cdkColumnDef="dueTime">
     <th class="p-2" cdk-header-cell *cdkHeaderCellDef>Fälligkeit</th>
     <td class="p-2" cdk-cell *cdkCellDef="let element">
-      @if (element.dueTime) {
-        {{ element.dueTime | toDate | date: 'short' }}
-      } @else {
-        <span class="text-gray-500">N/A</span>
-      }
+      <tkd-date-picker
+        allowClear="true"
+        (ngModelChange)="dueTimeSwitch.emit([element, $event])"
+        [ngModel]="element.dueTime ? (element.dueTime | toDate) : null"
+        mode="single">
+        <div
+          *tdkDatePickerTrigger
+          class="flex flex-row items-center justify-between">
+          @if (element.dueTime) {
+            {{ element.dueTime | toDate | date: 'short' }}
+          } @else {
+            <span class="text-gray-500">N/A</span>
+          }
+
+          <hlm-icon name="lucideChevronDown" size="sm" />
+        </div>
+      </tkd-date-picker>
     </td>
   </ng-container>
 

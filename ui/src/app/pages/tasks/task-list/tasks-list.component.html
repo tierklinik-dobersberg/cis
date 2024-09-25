@@ -51,11 +51,14 @@
                     <hlm-menu-separator />
                     <hlm-menu-group>
                       @for (item of groupByFields | keyvalue; track item.key) {
-                        <button
-                          [checked]="view.groupByField === item.key"
-                          (click)="view.setGroupBy(item.key)"
-                          hlmMenuItemRadio>
-                          <hlm-menu-item-radio />
+                        <button (click)="view.setGroupBy(item.key)" hlmMenuItem>
+                          <hlm-icon
+                            [name]="view.groupByIcon()"
+                            size="sm"
+                            class="mr-2"
+                            [class.opacity-0]="
+                              view.groupByField !== item.key
+                            " />
                           {{ item.value }}
                         </button>
                       }
@@ -86,11 +89,14 @@
                     <hlm-menu-separator />
                     <hlm-menu-group>
                       @for (item of sortByFields | keyvalue; track item.key) {
-                        <button
-                          [checked]="view.sort?.fieldName === item.key"
-                          (click)="view.setSort(item.key)"
-                          hlmMenuItemRadio>
-                          <hlm-menu-item-radio />
+                        <button (click)="view.setSort(item.key)" hlmMenuItem>
+                          <hlm-icon
+                            [name]="view.sortByIcon()"
+                            size="sm"
+                            [class.opacity-0]="
+                              view.sort?.fieldName !== item.key
+                            "
+                            class="mr-2" />
                           {{ item.value }}
                         </button>
                       }
@@ -163,6 +169,7 @@
         (statusSwitch)="setStatus($event[0].id, $event[1])"
         (tagSwitch)="toggleTag($event[0].id, $event[1])"
         (prioritySwitch)="setPriority($event[0].id, $event[1])"
+        (dueTimeSwitch)="setDueTime($event[0].id, $event[1])"
         (taskClick)="showDetails($event.id)" />
     } @else {
       <ol class="space-y-2">

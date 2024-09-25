@@ -34,11 +34,15 @@ import {
   ViewContainerRef,
   ViewEncapsulation
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { lucideCheckCheck, lucideChevronDown } from '@ng-icons/lucide';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
+import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { Board, Task } from '@tierklinik-dobersberg/apis/tasks/v1';
 import { AppAvatarComponent } from 'src/app/components/avatar';
+import { TkdDatePickerComponent, TkdDatePickerInputDirective } from 'src/app/components/date-picker';
 import { TaskGroupValueComponent } from '../group-value/group-value';
 import { TagListComponent } from '../tag-list/tag-list';
 import { TaskAssigneeComponent } from '../task-assignee/task-assignee';
@@ -166,7 +170,14 @@ export class MyResizable extends Resizable<ColumnResizeOverlayHandle> {
     DatePipe,
     TaskPriorityComponent,
     TaskGroupValueComponent,
-],
+    TkdDatePickerComponent,
+    TkdDatePickerInputDirective,
+    FormsModule,
+    HlmIconModule,
+  ],
+  providers: [
+    ...provideIcons({lucideChevronDown, lucideCheckCheck})
+  ]
 })
 export class TaskTableComponent {
   public readonly groups = input.required<TaskGroupWithBoard[]>();
@@ -176,6 +187,7 @@ export class TaskTableComponent {
   public readonly statusSwitch = output<[Task, string]>();
   public readonly assigneeSwitch = output<[Task, string]>();
   public readonly prioritySwitch = output<[Task, number]>();
+  public readonly dueTimeSwitch = output<[Task, Date|null]>();
 
   public readonly hasGroups = computed(() => {
     const grps = this.groups();

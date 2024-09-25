@@ -3,9 +3,9 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { PartialMessage } from "@bufbuild/protobuf";
+import { PartialMessage, Timestamp } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
-import { lucideArrowUpDown, lucideCheck, lucideCheckCheck, lucideChevronDown, lucideCircleDot, lucideClock, lucideDot, lucideGroup, lucideMenu, lucideMoreVertical, lucidePencil, lucidePlus, lucideSave, lucideTags, lucideTrash2, lucideUser } from "@ng-icons/lucide";
+import { lucideArrowDown, lucideArrowUp, lucideArrowUpDown, lucideCheck, lucideCheckCheck, lucideChevronDown, lucideCircleDot, lucideClock, lucideDot, lucideGroup, lucideMenu, lucideMoreVertical, lucidePencil, lucidePlus, lucideSave, lucideTags, lucideTrash2, lucideUser } from "@ng-icons/lucide";
 import { BrnAlertDialogModule } from "@spartan-ng/ui-alertdialog-brain";
 import { BrnCommandModule } from "@spartan-ng/ui-command-brain";
 import { BrnMenuTriggerDirective } from "@spartan-ng/ui-menu-brain";
@@ -25,7 +25,7 @@ import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
 import { HlmMenuItemRadioComponent, HlmMenuModule } from "@tierklinik-dobersberg/angular/menu";
 import { DisplayNamePipe, ToDatePipe, ToUserPipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmPopoverModule } from "@tierklinik-dobersberg/angular/popover";
-import { Sort } from "@tierklinik-dobersberg/apis/common/v1";
+import { Sort, SortDirection } from "@tierklinik-dobersberg/apis/common/v1";
 import { Profile } from "@tierklinik-dobersberg/apis/idm/v1";
 import { Board, BoardEvent, GetBoardResponse, QueryViewResponse, TaskEvent, UpdateTaskRequest, View } from "@tierklinik-dobersberg/apis/tasks/v1";
 import { MarkdownModule } from "ngx-markdown";
@@ -52,6 +52,25 @@ export class ViewModel extends View {
         return this._changeIndex() > 0
     })
 
+    public readonly groupByIcon = computed(() => {
+        this.changeIndex();
+
+        if (this.groupSortDirection === SortDirection.DESC) {
+            return 'lucideArrowDown'
+        }
+
+        return 'lucideArrowUp'
+    })
+
+    public readonly sortByIcon = computed(() => {
+        this.changeIndex();
+        
+        if (!!this.sort && this.sort.direction === SortDirection.DESC) {
+            return 'lucideArrowDown'
+        }
+
+        return 'lucideArrowUp'
+    })
 
     constructor(
         v: PartialMessage<View>,
@@ -76,14 +95,38 @@ export class ViewModel extends View {
     }
 
     setGroupBy(field: string) {
-        this.groupByField = field;
+        if (this.groupByField === field) {
+            switch (this.groupSortDirection) {
+                case SortDirection.DESC:
+                    this.groupSortDirection = SortDirection.ASC
+                    break; 
+                default:
+                    this.groupSortDirection = SortDirection.DESC
+            }
+        } else {
+            this.groupByField = field;
+            this.groupSortDirection = SortDirection.ASC
+        }
+
         this.markDirty();
     }
 
     setSort(field: string) {
-        this.sort = new Sort({
-            fieldName: field,
-        })
+        if (!!this.sort && this.sort.fieldName === field) {
+            switch (this.sort.direction) {
+                case SortDirection.DESC:
+                    this.sort.direction = SortDirection.ASC
+                    break; 
+                default:
+                    this.sort.direction = SortDirection.DESC
+            }
+        } else {
+            this.sort = new Sort({
+                fieldName: field,
+                direction: SortDirection.ASC,
+            })
+        }
+
 
         this.markDirty();
     }
@@ -160,7 +203,7 @@ export class ViewModel extends View {
         'class': '!p-0'
     },
     providers: [
-        ...provideIcons({lucideDot, lucideSave ,lucideGroup, lucideArrowUpDown, lucideChevronDown ,lucidePlus ,lucideCheck, lucideUser, lucideCircleDot, lucideTags, lucideCheckCheck, lucideTrash2, lucideClock, lucideMenu, lucideMoreVertical, lucidePencil})
+        ...provideIcons({lucideArrowUp, lucideArrowDown, lucideDot, lucideSave ,lucideGroup, lucideArrowUpDown, lucideChevronDown ,lucidePlus ,lucideCheck, lucideUser, lucideCircleDot, lucideTags, lucideCheckCheck, lucideTrash2, lucideClock, lucideMenu, lucideMoreVertical, lucidePencil})
     ]
 })
 export class TaskListComponent {
@@ -352,7 +395,9 @@ export class TaskListComponent {
                     description: ConnectError.from(err).message
                 })
 
-                return new GetBoardResponse()
+                return new GetBoardResponse({
+                    board: new Board(),
+                })
             })
             .then(response => {
                 this.board.set(response.board)
@@ -424,6 +469,31 @@ export class TaskListComponent {
             })
     }
 
+    protected setDueTime(taskId: string, date: Date | null) {
+        const task = this.tasks().find(t => t.id === taskId);
+        if (!task) {
+            return
+        }
+
+        let dueTime: Timestamp | undefined = undefined;
+
+        if (date) {
+            dueTime = Timestamp.fromDate(date)
+        }
+
+        this.taskService.updateTask({
+            taskId: taskId,
+            dueTime,
+            updateMask: {
+                paths: ["due_time"]
+            }
+        })
+            .catch(err => {
+                toast.error('Tasks konnte nicht gespeichert werden', {
+                    description: ConnectError.from(err).message
+                })
+            })
+    }
     protected setPriority(taskId: string, value: number) {
         const task = this.tasks().find(t => t.id === taskId);
         if (!task) {
