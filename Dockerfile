@@ -35,7 +35,7 @@ COPY --from=builder /app/cmds/cisd/ui /go/src/app/cmds/cisd/ui
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /go/bin/cisd ./cmds/cisd
 
-FROM gcr.io/distroless/static
+FROM gcr.io/distroless/base
 
 COPY --from=build /go/bin/cisd /go/bin/cisd
 EXPOSE 3000
