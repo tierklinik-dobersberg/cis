@@ -5,7 +5,7 @@ import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { PartialMessage, Timestamp } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
-import { lucideArrowDown, lucideArrowUp, lucideArrowUpDown, lucideCheck, lucideCheckCheck, lucideChevronDown, lucideCircleDot, lucideClock, lucideDot, lucideGroup, lucideMenu, lucideMoreVertical, lucidePencil, lucidePlus, lucideSave, lucideTags, lucideTrash2, lucideUser } from "@ng-icons/lucide";
+import { lucideArrowDown, lucideArrowLeft, lucideArrowRight, lucideArrowUp, lucideArrowUpDown, lucideCheck, lucideCheckCheck, lucideChevronDown, lucideCircleDot, lucideClock, lucideDot, lucideGroup, lucideMenu, lucideMoreVertical, lucidePencil, lucidePlus, lucideSave, lucideTags, lucideTrash2, lucideUser } from "@ng-icons/lucide";
 import { BrnAlertDialogModule } from "@spartan-ng/ui-alertdialog-brain";
 import { BrnCommandModule } from "@spartan-ng/ui-command-brain";
 import { BrnMenuTriggerDirective } from "@spartan-ng/ui-menu-brain";
@@ -72,12 +72,17 @@ export class ViewModel extends View {
         return 'lucideArrowUp'
     })
 
+    public readonly original: View;
+
     constructor(
         v: PartialMessage<View>,
         private readonly boardId: string,
         private readonly boardService: BoardServiceClient,
         dirty = false) {
+
         super(v);
+
+        this.original = new View(v);
 
         if (dirty) {
             this.markDirty()
@@ -203,7 +208,7 @@ export class ViewModel extends View {
         'class': '!p-0'
     },
     providers: [
-        ...provideIcons({lucideArrowUp, lucideArrowDown, lucideDot, lucideSave ,lucideGroup, lucideArrowUpDown, lucideChevronDown ,lucidePlus ,lucideCheck, lucideUser, lucideCircleDot, lucideTags, lucideCheckCheck, lucideTrash2, lucideClock, lucideMenu, lucideMoreVertical, lucidePencil})
+        ...provideIcons({lucideArrowLeft, lucideArrowRight, lucideArrowUp, lucideArrowDown, lucideDot, lucideSave ,lucideGroup, lucideArrowUpDown, lucideChevronDown ,lucidePlus ,lucideCheck, lucideUser, lucideCircleDot, lucideTags, lucideCheckCheck, lucideTrash2, lucideClock, lucideMenu, lucideMoreVertical, lucidePencil})
     ]
 })
 export class TaskListComponent {
@@ -303,6 +308,31 @@ export class TaskListComponent {
             },
             queryParamsHandling: 'merge',
         })
+    }
+
+    protected moveView(idx: number, offset: 1 | -1) {
+        const old = this.views();
+        const views = [...this.views()];
+
+        [views[idx], views[idx+offset]] = [views[idx+offset], views[idx]]
+
+        this.views.set(views);
+
+        this
+            .boardService
+            .updateBoard({
+                boardId: this.boardId(),
+                views: this.views().map(v => v.original),
+                updateMask: {
+                    paths: ['views']
+                }
+            })
+            .catch(err => {
+                toast.error('Board konnte nicht gespeichert werden', {
+                    description: ConnectError.from(err).message,
+                })
+            })
+
     }
 
     constructor() {

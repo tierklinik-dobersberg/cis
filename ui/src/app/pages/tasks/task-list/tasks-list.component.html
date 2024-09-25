@@ -2,7 +2,7 @@
   class="flex h-full flex-grow flex-col overflow-hidden rounded-none border-b-0 border-l-0 border-r-0 border-t bg-white">
   <div hlmCardContent class="flex-grow overflow-auto p-4">
     <div class="flex flex-row justify-start gap-4 py-4">
-      @for (view of views(); track view) {
+      @for (view of views(); track view; let index = $index; let last = $last) {
         <button
           hlmBtn
           size="sm"
@@ -116,14 +116,27 @@
 
                 <hlm-menu-separator />
 
+                @if (!last) {
+                  <button hlmMenuItem (click)="moveView(index, 1)">
+                    <hlm-icon hlmMenuIcon name="lucideArrowRight" />
+                    Nach rechts verschieben
+                  </button>
+                }
+                @if (index > 0) {
+                  <button hlmMenuItem (click)="moveView(index, -1)">
+                    <hlm-icon hlmMenuIcon name="lucideArrowLeft" />
+                    Nach links verschieben
+                  </button>
+                }
+
                 @if (view.isDirty()) {
                   <button hlmMenuItem (click)="view.save()">
                     <hlm-icon hlmMenuIcon name="lucideSave" />
                     Speichern
                   </button>
-                }
 
-                <hlm-menu-separator />
+                  <hlm-menu-separator />
+                }
 
                 <button
                   hlmMenuItem
