@@ -6,6 +6,7 @@ import { ConnectError } from '@connectrpc/connect';
 import { lucideCalendar, lucideCircuitBoard, lucideCopyright, lucideFileAudio, lucideFilm, lucideHome, lucideLayers, lucidePhoneCall, lucidePhoneForwarded, lucidePlus, lucideTimer, lucideUserCircle } from '@ng-icons/lucide';
 import { BrnMenuModule } from '@spartan-ng/ui-menu-brain';
 import { BrnSheetComponent } from '@spartan-ng/ui-sheet-brain';
+import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { injectBoardService, injectVoiceMailService } from '@tierklinik-dobersberg/angular/connect';
 import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
@@ -74,6 +75,7 @@ export class AppNavigationComponent {
   protected readonly sheetRef = inject(BrnSheetComponent, {optional: true})
   protected readonly router = inject(Router);
   protected readonly boardService = injectBoardService();
+  protected readonly profile = injectCurrentProfile()
   
   protected readonly rootLinks = signal<MenuEntry[]>([]);
   protected readonly subMenus = signal<SubMenu[]>([]);
@@ -89,19 +91,33 @@ export class AppNavigationComponent {
   }
   
   constructor() {
-    this.boardService
-      .listBoards({})
-      .catch(err => {
-        toast.error('Task Listen konnten nicht geladen werden', {
-          description: ConnectError.from(err).message
-        })
+    effect(() => {
+      const profile = this.profile();
 
-        return new ListBoardsResponse()
-      })
-      .then(response => this.boards.set(response.boards))
+      if (!profile) {
+        return
+      }
+
+      this.boardService
+        .listBoards({})
+        .catch(err => {
+          toast.error('Task Listen konnten nicht geladen werden', {
+            description: ConnectError.from(err).message
+          })
+
+          return new ListBoardsResponse()
+        })
+        .then(response => this.boards.set(response.boards))
+
+    })
 
     effect(() => {
       const config = this.config();
+      const profile = this.profile();
+
+      if (!profile) {
+        return
+      }
       
       untracked(() => this.applyConfig(config))
     }, { allowSignalWrites: true })
