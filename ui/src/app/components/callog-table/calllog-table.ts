@@ -197,9 +197,13 @@ export class CallLogTableComponent {
           lost = callType === 'notanswered' || callType === 'missed';
         }
 
+        /*
+        BUG: causes a lot of false-negatives, better check again
+
         if (l.queueExtension === l.acceptedAgent) {
           lost = true
         }
+        */
 
         let cust: LocalCustomer | null = null;
 

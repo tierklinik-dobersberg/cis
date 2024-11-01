@@ -35,7 +35,7 @@ import { HlmTooltipModule } from "@tierklinik-dobersberg/angular/tooltip";
 import { coerceDate } from "@tierklinik-dobersberg/angular/utils/date";
 import { CommentTree, ListCommentsResponse } from "@tierklinik-dobersberg/apis/comment/v1";
 import { FindOffTimeRequestsResponse, GetVacationCreditsLeftResponse, GetWorkTimeResponse, OffTimeEntry, OffTimeType, UserVacationSum, WorkTime } from "@tierklinik-dobersberg/apis/roster/v1";
-import { addMonths, isAfter, isBefore, isSameMonth } from "date-fns";
+import { addMonths, endOfMonth, isAfter, isBefore, isSameMonth, startOfMonth } from "date-fns";
 import { MarkdownModule } from "ngx-markdown";
 import { toast } from "ngx-sonner";
 import { injectCurrentConfig } from 'src/app/api';
@@ -185,13 +185,19 @@ export class OffTimeListComponent implements OnInit {
         const from = coerceDate(entry.from);
         const to = coerceDate(entry.to);
 
+        const monthStart = startOfMonth(month)
+        const monthEnd = endOfMonth(month)
+
         if (isSameMonth(from, month) || isSameMonth(to, month)) {
           return true;
         }
         
-        if (isAfter(month, from) && isBefore(month, to) ) {
+        // show entries that span the complete month.
+        if (isBefore(from, monthStart) && isAfter(to, monthEnd)) {
           return true ;
         }
+
+        return false
       })
   })
 
