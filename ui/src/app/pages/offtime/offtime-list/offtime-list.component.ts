@@ -387,8 +387,8 @@ export class OffTimeListComponent implements OnInit {
         return new FindOffTimeRequestsResponse()
       })
       .then(response => {
+        console.log("successfully loaded off-time entries for month", date.getMonth()+1, response)
         this.entries.set(response.results || [])
-          
       })
       .finally(() => {
         toast.dismiss(messageRef)
