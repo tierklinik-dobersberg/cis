@@ -234,6 +234,7 @@ export class OffTimeListComponent implements OnInit {
   
   protected readonly _loadEntriesEffect = effect(() => {
     const user = this.currentUser()
+    const date = this._selectedMonth();
 
     if (!user) {
       return
@@ -241,7 +242,7 @@ export class OffTimeListComponent implements OnInit {
 
     untracked(() => {
       console.log("loading offitme entries")
-      this.load(user.user.id)
+      this.load(user.user.id, date)
     })
   }, { allowSignalWrites: true })
 
@@ -317,7 +318,7 @@ export class OffTimeListComponent implements OnInit {
         id: [req.id],
       })
       .then(() => {
-        this.load(this.currentUser()?.user.id)
+        this.load(this.currentUser()?.user.id, this._selectedMonth())
         toast.success('Antrag wurde erfolgreich gelöscht')
       })
       .catch(err => {
@@ -329,7 +330,7 @@ export class OffTimeListComponent implements OnInit {
     this.selectedEntry.set({...this.selectedEntry()});
   }
 
-  load(userId: string) {
+  load(userId: string, date: Date) {
     const messageRef = toast.loading('Urlaubsanträge werden geladen', {
       dismissable: false,
       duration: 200000
@@ -369,7 +370,10 @@ export class OffTimeListComponent implements OnInit {
       })
 
     this.offTimeService
-      .findOffTimeRequests({})
+      .findOffTimeRequests({
+        from: Timestamp.fromDate(startOfMonth(date)),
+        to: Timestamp.fromDate(endOfMonth(date)),
+      })
       .catch(err => {
         console.error('Failed to load off-time entries', err)
 
