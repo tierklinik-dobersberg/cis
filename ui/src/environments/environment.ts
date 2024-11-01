@@ -12,6 +12,10 @@ export const environment = {
   commentService: '',
   callService: '',
   customerService: '',
+  eventService: '',
+  orthancBridge: '',
+  taskService: '',
+  officeHourService: ''
 };
 
 /*

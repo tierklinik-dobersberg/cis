@@ -2,11 +2,16 @@
 // `ng build --prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 import { createRegistry } from '@bufbuild/protobuf';
+import { ConnectConfig } from '@tierklinik-dobersberg/angular/connect';
 import { CalendarChangeEvent } from '@tierklinik-dobersberg/apis/calendar/v1';
-import { OnCallChangeEvent, OverwriteCreatedEvent, OverwriteDeletedEvent, CallRecordReceived, VoiceMailReceivedEvent } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
+import { CallRecordReceived, OnCallChangeEvent, OverwriteCreatedEvent, OverwriteDeletedEvent, VoiceMailReceivedEvent } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { RosterChangedEvent } from '@tierklinik-dobersberg/apis/roster/v1';
 
-export const environment = {
+interface Env extends ConnectConfig {
+  [key: string]: any
+}
+
+export const environment: Env = {
   production: false,
   baseURL: "https://cis.dobersberg.dev",
   rosterService: "https://roster.dobersberg.dev",
@@ -16,6 +21,10 @@ export const environment = {
   commentService: 'https://comments.dobersberg.dev',
   customerService: 'https://customer.dobersberg.dev',
   eventService: 'https://events.dobersberg.dev',
+  orthancBridge: 'https://dicom.dobersberg.dev',
+  taskService: 'https://tasks.dobersberg.dev',
+  officeHourService: 'https://officehours.dobersberg.dev',
+
   registry: createRegistry(
     RosterChangedEvent,
     OnCallChangeEvent,

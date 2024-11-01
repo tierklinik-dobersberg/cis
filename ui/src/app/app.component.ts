@@ -12,13 +12,16 @@ import {
 import { Code, ConnectError } from '@connectrpc/connect';
 import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
+import { InstanceReceivedEvent } from '@tierklinik-dobersberg/apis/orthanc_bridge/v1';
 import { MarkdownService } from 'ngx-markdown';
+import { toast } from 'ngx-sonner';
 import {
   retry,
   tap
 } from 'rxjs/operators';
 import { SwUpdateManager, WebPushSubscriptionManager } from 'src/app/services';
 import { environment } from 'src/environments/environment';
+import { EventService } from './services/event.service';
 
 interface MenuEntry {
   Icon: string;
@@ -63,6 +66,7 @@ export class AppComponent implements OnInit {
   private readonly webPushManager = inject(WebPushSubscriptionManager);
   private readonly updateManager = inject(SwUpdateManager);
   private readonly markdownService = inject(MarkdownService);
+  private readonly eventsService = inject(EventService);
 
   protected readonly layout = inject(LayoutService);
 
@@ -73,14 +77,29 @@ export class AppComponent implements OnInit {
   private readonly currentUser = injectCurrentProfile();
 
   constructor() {
+    let seenStudies = new Set<string>();
 
-    /*
-    this.markdownService.renderer
-      .link = (href, title, text) => {
-        return `<a href="${href.replace('task:', '/?taskPane=')}">${text || title}</a>`
-      }
-      */
+    this.eventsService
+      .listen([new InstanceReceivedEvent])
+      .subscribe(msg => {
+        // avoid multiple notifications for the same study with multiple instances.
+        if (seenStudies.has(msg.studyUid)) {
+          return
+        }
+        seenStudies.add(msg.studyUid)
 
+        toast.info(
+          `Neue Röntgenaufnahme von ${msg.ownerName}, ${msg.patientName}`,
+          {
+            action: {
+              label: 'Öffnen',
+              onClick: () => {
+                window.open(`${environment.orthancBridge}/viewer?StudyInstanceUIDs=${msg.studyUid}`, '_blank')
+              }
+            }
+          }
+        )
+      })
 
     let ref = effect(() => {
       const profile = this.currentUser();
