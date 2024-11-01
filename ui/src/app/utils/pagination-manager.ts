@@ -21,13 +21,13 @@ export function usePaginationManager<T = any>(recordSignal: Signal<T[]>): Pagina
 
 
 export class PaginationManager<T = any> implements IPaginationManager {
-  private readonly _range = signal({ from: 0, to: 10 });
+  private readonly _range = signal({ from: 0, to: 20 });
   private readonly _currentPage = signal(0);
   private readonly _totalPages = signal(1);
 
   public readonly currentPage = this._currentPage.asReadonly();
   public readonly totalPages = this._totalPages.asReadonly();
-  public readonly pageSize = signal(this.availablePageSizes[0]);
+  public readonly pageSize = signal(this.availablePageSizes[1]);
   public readonly totalElements = computed(() => this.records().length);
 
   constructor(
@@ -39,8 +39,6 @@ export class PaginationManager<T = any> implements IPaginationManager {
     this._range.set({ from: state.startIndex, to: state.endIndex });
     this._currentPage.set(state.currentPage);
     this._totalPages.set(state.totalPages);
-
-    console.log("state", state)
   }
 
   public readonly data = computed(() => {
@@ -66,8 +64,6 @@ export class PaginationManager<T = any> implements IPaginationManager {
   public readonly pageButtons = computed(() => {
     const current = this.currentPage();
     const total = this.totalPages();
-
-    console.log("current", current, "total", total);
 
     const pages: number[] = [];
 
