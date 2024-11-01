@@ -240,6 +240,7 @@ export class OffTimeListComponent implements OnInit {
     }
 
     untracked(() => {
+      console.log("loading offitme entries")
       this.load(user.user.id)
     })
   }, { allowSignalWrites: true })
@@ -370,6 +371,8 @@ export class OffTimeListComponent implements OnInit {
     this.offTimeService
       .findOffTimeRequests({})
       .catch(err => {
+        console.error('Failed to load off-time entries', err)
+
         const cerr = ConnectError.from(err);
         if (cerr.code !== Code.NotFound) {
           toast.error('Urlaubsanträge konnte nicht geladen werden', {
@@ -380,9 +383,10 @@ export class OffTimeListComponent implements OnInit {
         return new FindOffTimeRequestsResponse()
       })
       .then(response => {
-
-        this.entries.set(response.results)
+        this.entries.set(response.results || [])
           
+      })
+      .finally(() => {
         toast.dismiss(messageRef)
       })
   }
