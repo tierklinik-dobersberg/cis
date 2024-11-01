@@ -1,6 +1,6 @@
 import { CdkTableModule } from "@angular/cdk/table";
 import { DatePipe, KeyValuePipe, NgClass } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, effect, inject, model, OnInit, signal, TrackByFunction } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, model, OnInit, signal, TrackByFunction, untracked } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { RouterLink } from "@angular/router";
 import { PartialMessage, Timestamp } from '@bufbuild/protobuf';
@@ -239,7 +239,9 @@ export class OffTimeListComponent implements OnInit {
       return
     }
 
-    this.load(user.user.id)
+    untracked(() => {
+      this.load(user.user.id)
+    })
   }, { allowSignalWrites: true })
 
   protected readonly _loadCommentsEffect = effect(() => {
