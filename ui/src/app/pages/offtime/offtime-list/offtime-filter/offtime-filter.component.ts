@@ -14,7 +14,6 @@ import { HlmSeparatorModule } from "@tierklinik-dobersberg/angular/separator";
 import { HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
 import { OffTimeEntry } from "@tierklinik-dobersberg/apis/roster/v1";
 import { AppAvatarComponent } from "src/app/components/avatar";
-import { TkdDatePickerComponent } from "src/app/components/date-picker";
 import { SelectUserValueComponent } from "src/app/components/select-user-value";
 
 export type StateFilter = 'all' | 'new' | 'approved' | 'rejected';
@@ -25,12 +24,6 @@ export interface OffTimeFilter {
     
     // Filter off-time entries by state.
     state: StateFilter;
-    
-    // Filter off-time entries that start or end after a given date
-    from?: Date;
-    
-    // Filter off-time entries that start or end before a given date.
-    to?: Date;
 }
 
 export function filterOffTimeEntries(entries: OffTimeEntry[], filter: OffTimeFilter): OffTimeEntry[] {
@@ -73,21 +66,6 @@ export function filterOffTimeEntries(entries: OffTimeEntry[], filter: OffTimeFil
                     break;
             }
 
-            const from = e.from.toDate().getTime();
-            const to = e.to.toDate().getTime();
-
-            if (filter.from) {
-                if (to < filter.from.getTime()) {
-                    return false;
-                }
-            }
-            
-            if (filter.to) {
-                if (from > filter.to.getTime()) {
-                    return false;
-                }
-            }
-
             return true;
         })
 }
@@ -109,7 +87,6 @@ export function filterOffTimeEntries(entries: OffTimeEntry[], filter: OffTimeFil
         BrnSeparatorModule,
         HlmSeparatorModule,
         SelectUserValueComponent,
-        TkdDatePickerComponent,
     ],
     templateUrl: './offtime-filter.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -124,16 +101,14 @@ export class AppOffTimeFilterSheetComponent implements Filter {
     protected readonly userIds = model<string[]>([]);
     protected readonly state = model<StateFilter>('all');
 
-    protected readonly dateRange = model<[Date | null, Date | null]>([null, null])
 
     protected readonly sheetSide = injectComputedFilterSheetSide();
     protected readonly _computedFilterButtonVariant = computed(() => {
         const userIds = this.userIds();
         const state = this.state();
-        const range = this.dateRange();
         const current = this.currentUser();
 
-        if (range[0] || range[1] || state !== 'all') {
+        if (state !== 'all') {
             return 'secondary'
         }
         
@@ -172,19 +147,10 @@ export class AppOffTimeFilterSheetComponent implements Filter {
     protected apply() {
         const userIds = this.userIds();
         const state = this.state();
-        const [from, to] = this.dateRange();
 
         const filter: OffTimeFilter = {
             state: state,
             userIds: userIds,
-        }
-        
-        if (from) {
-            filter.from = new Date(from);
-        }
-        
-        if (to) {
-            filter.to = new Date(to);
         }
         
         this.filter.emit(filter);
@@ -196,7 +162,6 @@ export class AppOffTimeFilterSheetComponent implements Filter {
     
     public reset() {
         this.userIds.set([this.currentUser().user.id])
-        this.dateRange.set([null, null])
         this.state.set('all')
         
         this.apply();
