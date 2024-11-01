@@ -89,10 +89,13 @@ export class AppComponent implements OnInit {
         seenStudies.add(msg.studyUid)
 
         toast.info(
-          `Neue Röntgenaufnahme von ${msg.ownerName}, ${msg.patientName}`,
+          "Neue Röntgenaufnahme",
+
           {
+            description: `${msg.ownerName}, ${msg.patientName}`,
+            duration: 20*1000,
             action: {
-              label: 'Öffnen',
+              label: 'ÖFFNEN',
               onClick: () => {
                 window.open(`${environment.orthancBridge}/viewer?StudyInstanceUIDs=${msg.studyUid}`, '_blank')
               }
