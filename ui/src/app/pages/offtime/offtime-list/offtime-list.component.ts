@@ -234,13 +234,12 @@ export class OffTimeListComponent implements OnInit {
   
   protected readonly _loadEntriesEffect = effect(() => {
     const user = this.currentUser()
-    const date = this._selectedMonth();
 
     if (!user) {
       return
     }
 
-    this.load(date)
+    this.load()
   }, { allowSignalWrites: true })
 
   protected readonly _loadCommentsEffect = effect(() => {
@@ -315,7 +314,7 @@ export class OffTimeListComponent implements OnInit {
         id: [req.id],
       })
       .then(() => {
-        this.load(this._selectedMonth())
+        this.load()
         toast.success('Antrag wurde erfolgreich gelöscht')
       })
       .catch(err => {
@@ -327,7 +326,7 @@ export class OffTimeListComponent implements OnInit {
     this.selectedEntry.set({...this.selectedEntry()});
   }
 
-  load(date: Date) {
+  load() {
     const userId = this.currentUser()?.user?.id; 
     
     if (!userId) {
@@ -373,10 +372,7 @@ export class OffTimeListComponent implements OnInit {
       })
 
     this.offTimeService
-      .findOffTimeRequests({
-        from: Timestamp.fromDate(startOfMonth(date)),
-        to: Timestamp.fromDate(endOfMonth(date))
-      })
+      .findOffTimeRequests({})
       .catch(err => {
         const cerr = ConnectError.from(err);
         if (cerr.code !== Code.NotFound) {
