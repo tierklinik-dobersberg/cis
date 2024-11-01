@@ -239,7 +239,7 @@ export class OffTimeListComponent implements OnInit {
       return
     }
 
-    this.load()
+    this.load(user.user.id)
   }, { allowSignalWrites: true })
 
   protected readonly _loadCommentsEffect = effect(() => {
@@ -314,7 +314,7 @@ export class OffTimeListComponent implements OnInit {
         id: [req.id],
       })
       .then(() => {
-        this.load()
+        this.load(this.currentUser()?.user.id)
         toast.success('Antrag wurde erfolgreich gelöscht')
       })
       .catch(err => {
@@ -326,13 +326,7 @@ export class OffTimeListComponent implements OnInit {
     this.selectedEntry.set({...this.selectedEntry()});
   }
 
-  load() {
-    const userId = this.currentUser()?.user?.id; 
-    
-    if (!userId) {
-      return;
-    }
-
+  load(userId: string) {
     const messageRef = toast.loading('Urlaubsanträge werden geladen', {
       dismissable: false,
       duration: 200000
