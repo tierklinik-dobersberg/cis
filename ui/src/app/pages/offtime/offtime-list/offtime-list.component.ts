@@ -232,6 +232,16 @@ export class OffTimeListComponent implements OnInit {
     this._selectedMonth.set(date);
   }
   
+  protected readonly _loadEntriesEffect = effect(() => {
+    const user = this.currentUser()
+    const date = this._selectedMonth();
+
+    if (!user) {
+      return
+    }
+
+    this.load(date)
+  }, { allowSignalWrites: true })
 
   protected readonly _loadCommentsEffect = effect(() => {
     const entry = this.selectedEntry();
@@ -295,8 +305,6 @@ export class OffTimeListComponent implements OnInit {
   ngOnInit(): void {
     this.headerTitle
       .set('Urlaubsanträge', 'Hier findest du eine Übersicht über deine Urlaubsanträge')
-
-    this.load();
   }
 
   deleteRequest(req: OffTimeEntry) {
@@ -307,7 +315,7 @@ export class OffTimeListComponent implements OnInit {
         id: [req.id],
       })
       .then(() => {
-        this.load()
+        this.load(this._selectedMonth())
         toast.success('Antrag wurde erfolgreich gelöscht')
       })
       .catch(err => {
@@ -319,16 +327,17 @@ export class OffTimeListComponent implements OnInit {
     this.selectedEntry.set({...this.selectedEntry()});
   }
 
-  load() {
-    const messageRef = toast.loading('Urlaubsanträge werden geladen', {
-      dismissable: false,
-      duration: 200000
-    });
+  load(date: Date) {
     const userId = this.currentUser()?.user?.id; 
     
     if (!userId) {
       return;
     }
+
+    const messageRef = toast.loading('Urlaubsanträge werden geladen', {
+      dismissable: false,
+      duration: 200000
+    });
 
     const endOfYear = new Date(new Date().getFullYear()+1, 0, 1, 0, 0, 0, -1)
 
@@ -364,7 +373,10 @@ export class OffTimeListComponent implements OnInit {
       })
 
     this.offTimeService
-      .findOffTimeRequests({})
+      .findOffTimeRequests({
+        from: Timestamp.fromDate(startOfMonth(date)),
+        to: Timestamp.fromDate(endOfMonth(date))
+      })
       .catch(err => {
         const cerr = ConnectError.from(err);
         if (cerr.code !== Code.NotFound) {
