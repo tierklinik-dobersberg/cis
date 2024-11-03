@@ -73,7 +73,7 @@ class StudyModel extends Study {
     templateUrl: './study-card.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
     host: {
-        class: '@container',
+        class: '@container min-h-[500px]',
     },
     hostDirectives: [HlmCardDirective],
     imports: [
