@@ -7,8 +7,10 @@
   class="flex max-h-[200px] flex-grow flex-col overflow-auto p-2 !pt-0 md:p-4 lg:p-6">
   <hlm-table>
     @for (study of studies(); track study.studyUid) {
-      <hlm-trow>
-        <hlm-td class="flex-row flex-1 gap-2" (click)="openStudyDialog(study)">
+      <hlm-trow class="hover:bg-border">
+        <hlm-td
+          class="flex-row flex-1 gap-2 cursor-pointer"
+          (click)="openStudyDialog(study)">
           <span class="flex flex-col items-start justify-start text-gray-400">
             @if (study.time | toDate; as date) {
               <span>
