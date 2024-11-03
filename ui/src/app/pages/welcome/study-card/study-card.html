@@ -32,15 +32,25 @@
           @if (study.previewUrls?.length) {
             @if (!layout.md()) {
               <img
-                [attr.src]="study.previewUrls[0].url"
+                [attr.src]="study.previewUrls[0].url + '?viewport=70,70'"
                 (click)="openStudy(study)"
                 class="aspect-square min-h-12 w-12 cursor-pointer" />
             } @else {
               @for (url of study.previewUrls; track url.uid) {
-                <img
-                  [attr.src]="url.url"
-                  (click)="openStudy(study, url.uid)"
-                  class="aspect-square min-h-12 w-12 cursor-pointer" />
+                <brn-hover-card>
+                  <img
+                    brnHoverCardTrigger
+                    [attr.src]="url.url + '?viewport=70,70'"
+                    (click)="openStudy(study, url.uid)"
+                    class="aspect-square min-h-12 w-12 cursor-pointer" />
+
+                  <hlm-hover-card-content *brnHoverCardContent class="w-96">
+                    <img
+                      brnHoverCardTrigger
+                      [attr.src]="url.url + '?viewport=400,400'"
+                      class="aspect-square min-h-12 w-12 cursor-pointer" />
+                  </hlm-hover-card-content>
+                </brn-hover-card>
               }
             }
           }

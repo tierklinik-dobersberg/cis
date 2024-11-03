@@ -3,8 +3,10 @@ import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/cor
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { PartialMessage } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
+import { BrnHoverCardModule } from "@spartan-ng/ui-hovercard-brain";
 import { HlmCardDirective, HlmCardModule } from "@tierklinik-dobersberg/angular/card";
 import { injectOrthancClient } from "@tierklinik-dobersberg/angular/connect";
+import { HlmHoverCardModule } from "@tierklinik-dobersberg/angular/hovercard";
 import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
 import { ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
@@ -53,7 +55,7 @@ class StudyModel extends Study {
                             if(url?.value?.length) {
                                 const first = url.value[0].toJson();
                                 this.previewUrls.push({
-                                    url: first+'/rendered?viewport=70,70',
+                                    url: first+'/rendered',
                                     uid: instance.instanceUid,
                                 })
                             }
@@ -77,6 +79,8 @@ class StudyModel extends Study {
         HlmTableModule,
         ToDatePipe,
         DatePipe,
+        BrnHoverCardModule,
+        HlmHoverCardModule
     ]
 })
 export class StudyCardComponent {
