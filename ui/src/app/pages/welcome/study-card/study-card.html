@@ -21,8 +21,10 @@
           </span>
 
           <span class="flex flex-col items-start justify-start">
-            <span class="font-medium">{{ study.ownerName }}</span>
-            {{ study.patientName }}
+            <span class="font-medium">{{ study.ownerName || 'N/A' }}</span>
+            <span>
+              {{ study.patientName || 'N/A' }}
+            </span>
           </span>
         </hlm-td>
 
