@@ -44,10 +44,12 @@
                     (click)="openStudy(study, url.uid)"
                     class="aspect-square min-h-12 w-12 cursor-pointer" />
 
-                  <hlm-hover-card-content *brnHoverCardContent>
+                  <hlm-hover-card-content
+                    *brnHoverCardContent
+                    class="w-[700px] max-w-[unset]">
                     <img
                       [attr.src]="url.url + '?viewport=700,700'"
-                      class="aspect-square w-[700px] cursor-pointer" />
+                      class="aspect-square w-[700px] max-w-[700px] cursor-pointer" />
                   </hlm-hover-card-content>
                 </brn-hover-card>
               }
