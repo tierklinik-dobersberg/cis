@@ -3,7 +3,9 @@ import { InstanceReceivedEvent } from "@tierklinik-dobersberg/apis/orthanc_bridg
 import { Subject } from "rxjs";
 import { EventService } from "src/app/services/event.service";
 
-@Injectable()
+@Injectable({
+    providedIn: 'root',
+})
 export class StudyService {
     protected readonly eventsService = inject(EventService);
 
