@@ -11,7 +11,7 @@ import { CustomerResponse } from "@tierklinik-dobersberg/apis/customer/v1";
 import { CustomerDetailsTableComponent } from "src/app/components/customer-details-table";
 
 const contentClass =
-      'w-screen !w-[100dvw] overflow-hidden h-[100dvh] max-h-screen !max-h-[100dvh]';
+      'w-screen overflow-hidden max-w-[unset] sm:w-[750px] md:w-[750px] h-[100dvh] sm:h-[unset] max-h-screen !max-h-[100dvh]';
 
 export interface CustomerDetailsDialogContext {
     customer: CustomerResponse,
