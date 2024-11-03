@@ -5,10 +5,10 @@
 .large-grid {
     grid-template-columns: 2.5fr 5fr;
     grid-template-areas: 
-        "emergency study"
-        "roster calendar"
-        "roster calendar"
-        "roster calendar"
+        "emergency roster"
+        "study calendar"
+        "study calendar"
+        "study calendar"
 }
 
 app-emergency-card {
