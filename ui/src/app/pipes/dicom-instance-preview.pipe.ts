@@ -24,11 +24,13 @@ export class DicomImageUrlPipe implements PipeTransform {
                 frameIdx = opt.frame
             }
 
-            first += `/frame/${frameIdx}/rendered`
+            first += `/frames/${frameIdx}/rendered`
 
             if (opt) {
                 const {width, height} = opt;
-                first += `?viewport=${width},${height}`
+                if (width && height) {
+                    first += `?viewport=${width},${height}`
+                }
             }
 
             return this.sanitizier.bypassSecurityTrustResourceUrl(first)
