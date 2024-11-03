@@ -14,24 +14,26 @@ import { interval, startWith } from "rxjs";
 class StudyModel extends Study {
     public readonly previewUrls: string[];
 
-    constructor(study: PartialMessage<Study>) {
+    constructor(study: PartialMessage<Study>, previewUrls?: string[]) {
         super(study)
 
-        this.previewUrls = [];
+        this.previewUrls = previewUrls || [];
 
-        this.series
-            ?.forEach(series => series.instances
-                    ?.forEach(instance => {
-                        if (instance.thumbnail) {
-                            const blob = new Blob([instance.thumbnail.data], {
-                                type: instance.thumbnail.mime,
-                            })
+        if (!previewUrls) {
+            this.series
+                ?.forEach(series => series.instances
+                        ?.forEach(instance => {
+                            if (instance.thumbnail) {
+                                const blob = new Blob([instance.thumbnail.data], {
+                                    type: instance.thumbnail.mime,
+                                })
 
-                            const url = URL.createObjectURL(blob)
-                            this.previewUrls.push(url)
-                        }
-                    })
-            )
+                                const url = URL.createObjectURL(blob)
+                                this.previewUrls.push(url)
+                            }
+                        })
+                )
+        }
     }
 }
 
@@ -90,7 +92,25 @@ export class StudyCardComponent {
                         return new ListStudiesResponse()
                     })
                     .then(response => {
-                        this.studies.set(response.studies?.map(study => new StudyModel(study)) || []);
+                        const studies = this.studies() || [];
+                        this.studies.set(
+                            (response.studies || [])
+                                .map(study => {
+                                    const existing = studies.findIndex(s => s.studyUid === study.studyUid)
+                                    if (existing >= 0) {
+                                        studies.splice(existing, 1)
+                                        return new StudyModel(study, studies[existing].previewUrls)
+                                    }
+
+                                    return new StudyModel(study)
+                                })
+                        );
+
+                        // revoke object URLs for preview images that are not part of the
+                        // new response to avoid memory leaks
+                        studies.forEach(study => {
+                            study.previewUrls?.forEach(url => URL.revokeObjectURL(url))
+                        })
                     })
             })
     }
