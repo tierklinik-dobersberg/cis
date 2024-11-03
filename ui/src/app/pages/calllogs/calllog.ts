@@ -197,7 +197,7 @@ export class CallLogComponent implements OnInit {
     }, { allowSignalWrites: true })
 
     inject(EventService)
-      .listen([new CallRecordReceived])
+      .subscribe(new CallRecordReceived)
       .pipe(takeUntilDestroyed())
       .subscribe(event => {
         console.log("received call-record-received event, reloading call-logs")

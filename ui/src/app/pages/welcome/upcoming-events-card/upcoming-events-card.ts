@@ -188,7 +188,7 @@ export class UpcomingEventsCardComponent {
     );
 
     inject(EventService)
-      .listen([new CalendarChangeEvent])
+      .subscribe(new CalendarChangeEvent)
       .pipe(takeUntilDestroyed(), debounceTime(1000))
       .subscribe(() => this.load())
 

@@ -308,7 +308,7 @@ export class TaskDetailsComponent implements AfterViewInit {
 
     constructor() {
         this.eventsService
-            .listen([new BoardEvent, new TaskEvent])
+            .subscribe([new BoardEvent, new TaskEvent])
             .pipe(takeUntilDestroyed(), startWith(new BoardEvent))
             .subscribe((msg) => {
                 if (msg instanceof BoardEvent) {

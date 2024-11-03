@@ -309,7 +309,7 @@ export class TkdCalendarViewComponent implements OnInit {
 
   constructor() {
     inject(EventService)
-      .listen([new CalendarChangeEvent])
+      .subscribe(new CalendarChangeEvent)
       .pipe(takeUntilDestroyed(), debounceTime(1000))
       .subscribe(() => this.loadEvents(this.currentDate()))
 

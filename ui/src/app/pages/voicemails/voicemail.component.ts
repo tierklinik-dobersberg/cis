@@ -95,7 +95,7 @@ export class VoiceMailComponent {
     });
 
     inject(EventService)
-      .listen([new VoiceMailReceivedEvent])
+      .subscribe([new VoiceMailReceivedEvent])
       .pipe(takeUntilDestroyed())
       .subscribe(event => {
         const range = this.dateRange();

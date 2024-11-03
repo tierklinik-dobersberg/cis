@@ -346,7 +346,7 @@ export class TaskListComponent {
             })
 
         this.eventsService
-            .listen([new TaskEvent, new BoardEvent])
+            .subscribe([new TaskEvent, new BoardEvent])
             .pipe(takeUntilDestroyed())
             .subscribe(msg => {
                 if (msg instanceof TaskEvent && msg.task?.boardId === this.boardId()) {

@@ -25,7 +25,7 @@ export class EmergencyTargetService {
     // only ever load the current overwrite if we got a
     // OnCallChangeEvent
     this.eventService
-      .listen([new OnCallChangeEvent])
+      .subscribe(new OnCallChangeEvent)
       .subscribe(event => {
         console.log("recieved OnCallChangeEvent, fetching active overwrite")
         this._update.set(new Date())

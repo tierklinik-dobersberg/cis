@@ -16,7 +16,7 @@ export class StudyService {
 
     constructor() {
         this.eventsService
-            .listen([new InstanceReceivedEvent])
+            .subscribe(new InstanceReceivedEvent)
             .subscribe(event => {
                 if (!this.seenStudies.has(event.studyUid)) {
                     this.instanceReceived$.next(event);
