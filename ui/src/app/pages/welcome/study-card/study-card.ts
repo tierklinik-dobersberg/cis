@@ -16,10 +16,15 @@ import { filter, interval, merge, startWith } from "rxjs";
 import { environment } from "src/environments/environment";
 import { StudyService } from "./study.service";
 
-class StudyModel extends Study {
-    public readonly previewUrls: string[];
+interface PreviewURL {
+    url: string;
+    uid: string;
+}
 
-    constructor(study: PartialMessage<Study>, previewUrls?: string[]) {
+class StudyModel extends Study {
+    public readonly previewUrls: PreviewURL[];
+
+    constructor(study: PartialMessage<Study>, previewUrls?: PreviewURL[]) {
         super(study)
 
         this.previewUrls = previewUrls || [];
@@ -47,9 +52,10 @@ class StudyModel extends Study {
 
                             if(url?.value?.length) {
                                 const first = url.value[0].toJson();
-                                this.previewUrls.push(
-                                    first+'/rendered?viewport=70,70'
-                                )
+                                this.previewUrls.push({
+                                    url: first+'/rendered?viewport=70,70',
+                                    uid: instance.instanceUid,
+                                })
                             }
                         })
                 )
@@ -79,9 +85,13 @@ export class StudyCardComponent {
     protected readonly studies = signal<StudyModel[]>([])
     protected readonly layout = inject(LayoutService);
 
-    protected openStudy(study: StudyModel) {
+    protected openStudy(study: StudyModel, instance?: string) {
+        let url = `${environment.orthancBridge}/viewer?StudyInstanceUIDs=${study.studyUid}`
+        if (instance) {
+            url += '&initialSopInstanceUid=' + instance
+        }
         window.open(
-            `${environment.orthancBridge}/viewer?StudyInstanceUIDs=${study.studyUid}`,
+            url,
             '_blank'
         )
     }
@@ -144,12 +154,6 @@ export class StudyCardComponent {
                                     return new StudyModel(study)
                                 })
                         );
-
-                        // revoke object URLs for preview images that are not part of the
-                        // new response to avoid memory leaks
-                        studies.forEach(study => {
-                            study.previewUrls?.forEach(url => URL.revokeObjectURL(url))
-                        })
                     })
                     .finally(() => inProgress = false)
             })

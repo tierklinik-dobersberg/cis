@@ -26,15 +26,19 @@
           </span>
         </hlm-td>
 
-        <hlm-td (click)="openStudy(study)" class="flex flex-row gap-2">
+        <hlm-td class="flex flex-row gap-2">
           @if (study.previewUrls?.length) {
             @if (!layout.md()) {
               <img
-                [attr.src]="study.previewUrls[0]"
-                class="aspect-square min-h-12 w-12" />
+                [attr.src]="study.previewUrls[0].url"
+                (click)="openStudy(study)"
+                class="aspect-square min-h-12 w-12 cursor-pointer" />
             } @else {
-              @for (url of study.previewUrls; track url) {
-                <img [attr.src]="url" class="aspect-square min-h-12 w-12" />
+              @for (url of study.previewUrls; track url.uid) {
+                <img
+                  [attr.src]="url.url"
+                  (click)="openStudy(study, url.uid)"
+                  class="aspect-square min-h-12 w-12 cursor-pointer" />
               }
             }
           }
