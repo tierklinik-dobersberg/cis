@@ -12,7 +12,6 @@ import {
 import { Code, ConnectError } from '@connectrpc/connect';
 import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
-import { InstanceReceivedEvent } from '@tierklinik-dobersberg/apis/orthanc_bridge/v1';
 import { MarkdownService } from 'ngx-markdown';
 import { toast } from 'ngx-sonner';
 import {
@@ -21,7 +20,7 @@ import {
 } from 'rxjs/operators';
 import { SwUpdateManager, WebPushSubscriptionManager } from 'src/app/services';
 import { environment } from 'src/environments/environment';
-import { EventService } from './services/event.service';
+import { StudyService } from './pages/welcome/study-card/study.service';
 
 interface MenuEntry {
   Icon: string;
@@ -66,7 +65,7 @@ export class AppComponent implements OnInit {
   private readonly webPushManager = inject(WebPushSubscriptionManager);
   private readonly updateManager = inject(SwUpdateManager);
   private readonly markdownService = inject(MarkdownService);
-  private readonly eventsService = inject(EventService);
+  private readonly studyService = inject(StudyService);
 
   protected readonly layout = inject(LayoutService);
 
@@ -77,17 +76,9 @@ export class AppComponent implements OnInit {
   private readonly currentUser = injectCurrentProfile();
 
   constructor() {
-    let seenStudies = new Set<string>();
-
-    this.eventsService
-      .listen([new InstanceReceivedEvent])
+    this.studyService
+      .instanceReceived
       .subscribe(msg => {
-        // avoid multiple notifications for the same study with multiple instances.
-        if (seenStudies.has(msg.studyUid)) {
-          return
-        }
-        seenStudies.add(msg.studyUid)
-
         toast.info(
           "Neue Röntgenaufnahme",
 

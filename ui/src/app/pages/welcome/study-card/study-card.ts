@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { PartialMessage } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
@@ -9,8 +9,9 @@ import { Month } from "@tierklinik-dobersberg/apis/common/v1";
 import { ListStudiesResponse, Study } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
 import { addDays } from "date-fns";
 import { toast } from 'ngx-sonner';
-import { filter, interval, startWith } from "rxjs";
+import { filter, interval, merge, startWith } from "rxjs";
 import { environment } from "src/environments/environment";
+import { StudyService } from "./study.service";
 
 class StudyModel extends Study {
     public readonly previewUrls: string[];
@@ -68,6 +69,7 @@ class StudyModel extends Study {
 })
 export class StudyCardComponent {
     private readonly client = injectOrthancClient();
+    private readonly studyService = inject(StudyService);
     protected readonly studies = signal<StudyModel[]>([])
 
     protected openStudy(study: StudyModel) {
@@ -80,7 +82,7 @@ export class StudyCardComponent {
     constructor() {
         let inProgress = false;
 
-        interval(10 * 1000)
+        merge(interval(5* 60 * 1000), this.studyService.instanceReceived)
             .pipe(
                 startWith(0),
                 takeUntilDestroyed(),
