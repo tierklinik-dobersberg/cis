@@ -5,6 +5,7 @@ import { PartialMessage } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
 import { HlmCardDirective, HlmCardModule } from "@tierklinik-dobersberg/angular/card";
 import { injectOrthancClient } from "@tierklinik-dobersberg/angular/connect";
+import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
 import { ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
 import { Month } from "@tierklinik-dobersberg/apis/common/v1";
@@ -76,6 +77,7 @@ export class StudyCardComponent {
     private readonly client = injectOrthancClient();
     private readonly studyService = inject(StudyService);
     protected readonly studies = signal<StudyModel[]>([])
+    protected readonly layout = inject(LayoutService);
 
     protected openStudy(study: StudyModel) {
         window.open(
