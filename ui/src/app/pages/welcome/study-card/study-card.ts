@@ -20,6 +20,7 @@ class StudyModel extends Study {
         super(study)
 
         this.previewUrls = previewUrls || [];
+        this.ownerName = this.ownerName.replaceAll(', ERROR', '')
 
         if (!previewUrls) {
             this.series
