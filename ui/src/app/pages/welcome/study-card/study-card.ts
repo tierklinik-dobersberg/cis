@@ -36,13 +36,14 @@ class StudyModel extends Study {
                             */
 
                             let url = instance.tags.find(t => t.name === 'RetrieveURL');
-                            if (!url) {
+                            if (!url?.value?.length) {
                                 url = instance.tags.find(t => t.name === 'RetrieveURI');
                             }
 
-                            if(url) {
+                            if(url?.value?.length) {
+                                const first = url.value[0].toJson();
                                 this.previewUrls.push(
-                                    url+'/rendered'
+                                    first+'/rendered'
                                 )
                             }
                         })
@@ -57,7 +58,7 @@ class StudyModel extends Study {
     templateUrl: './study-card.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
     host: {
-        class: '@container flex flex-grow overflow-hidden flex-shrink-0 max-h-[calc(100dvh-80px)]',
+        class: '@container',
     },
     imports: [
         HlmCardModule,
