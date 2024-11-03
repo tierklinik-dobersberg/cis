@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { PartialMessage } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
-import { HlmCardModule } from "@tierklinik-dobersberg/angular/card";
+import { HlmCardDirective, HlmCardModule } from "@tierklinik-dobersberg/angular/card";
 import { injectOrthancClient } from "@tierklinik-dobersberg/angular/connect";
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
 import { Month } from "@tierklinik-dobersberg/apis/common/v1";
@@ -60,6 +60,7 @@ class StudyModel extends Study {
     host: {
         class: '@container',
     },
+    hostDirectives: [HlmCardDirective],
     imports: [
         HlmCardModule,
         HlmTableModule,
