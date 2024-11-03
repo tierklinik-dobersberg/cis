@@ -23,9 +23,9 @@ export class DicomImageUrlPipe implements PipeTransform {
             if (opt) {
                 const {width, height} = opt;
                 first += `?viewport=${width},${height}`
-
-                return this.sanitizier.bypassSecurityTrustResourceUrl(first)
             }
+
+            return this.sanitizier.bypassSecurityTrustResourceUrl(first)
         }
 
         return '';
