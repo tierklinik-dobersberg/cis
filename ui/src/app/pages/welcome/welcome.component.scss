@@ -1,12 +1,10 @@
     .large-grid {
         grid-template-columns: 2.5fr 5fr;
         grid-template-areas: 
-            "emergency calendar"
+            "emergency study"
             "roster calendar"
             "roster calendar"
             "roster calendar"
-            "study calendar"
-            "study calendar";
     }
 
 app-emergency-card {
