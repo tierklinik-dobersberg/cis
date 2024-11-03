@@ -38,7 +38,7 @@
       class="flex-grow w-full p-2 overflow-auto bg-slate-700">
       @if (selectedInstance(); as instance) {
         <img
-          [attr.src]="instance | dicomImageUrl"
+          [attr.src]="instance | dicomImageUrl: { frame: selectedFrame() }"
           class="!h-full max-h-full !w-full max-w-full flex-grow object-contain" />
       } @else {
         <span class="flex flex-row items-center justify-center h-32">
