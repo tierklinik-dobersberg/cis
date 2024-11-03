@@ -11,9 +11,11 @@ import { DisplayNamePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
 import { HeaderTitleService } from 'src/app/layout/header-title';
 import { CalendarIdPipe } from 'src/app/pipes/by-calendar-id.pipe';
+import { injectCurrentUserIsAdmin } from 'src/app/services';
 import { EmergencyCardComponent } from './emergency-card';
 import { MobileWelcomeCardComponent } from './mobile-welcome-card';
 import { RosterCardComponent } from './roster-card';
+import { StudyCardComponent } from './study-card';
 import { UpcomingEventsCardComponent } from './upcoming-events-card';
 
 @Component({
@@ -28,6 +30,7 @@ import { UpcomingEventsCardComponent } from './upcoming-events-card';
     UpcomingEventsCardComponent,
     RosterCardComponent,
     CalendarIdPipe,
+    StudyCardComponent,
   ],
   host: {
     'class': '@container'
@@ -40,6 +43,7 @@ export class WelcomeComponent {
 
   protected readonly currentUser = injectCurrentProfile();
   protected readonly hoveredUser = signal<Profile | null>(null);
+  protected readonly showStudyCard = injectCurrentUserIsAdmin();
 
   constructor() {
     effect(() => {

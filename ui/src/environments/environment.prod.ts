@@ -18,7 +18,7 @@ export const environment: Env = {
   taskService: 'https://tasks.dobersberg.vet',
   officeHourService: 'https://officehours.dobersberg.vet',
   orthancBridge: 'https://dicom.dobersberg.vet',
-  
+
   registry: registry,
 };
 

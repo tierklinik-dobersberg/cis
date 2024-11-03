@@ -20,4 +20,8 @@
         hoveredUser() ? [hoveredUser() | calendarId] : null
       " />
   }
+
+  @if (showStudyCard()) {
+    <app-study-card />
+  }
 </div>

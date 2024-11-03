@@ -4,7 +4,9 @@
             "emergency calendar"
             "roster calendar"
             "roster calendar"
-            "roster calendar";
+            "roster calendar"
+            "study calendar"
+            "study calendar";
     }
 
 app-emergency-card {
@@ -17,4 +19,8 @@ app-roster-card {
 
 app-upcoming-events-card {
     grid-area: calendar;
+}
+
+app-study-card {
+    grid-area: study;
 }
