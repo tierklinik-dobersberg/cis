@@ -9,8 +9,15 @@
     @for (study of studies(); track study.studyUid) {
       <hlm-trow>
         <hlm-td class="flex-1 flex-row gap-2">
-          <span class="text-gray-400">
-            {{ study.time | toDate | date: 'short' }}
+          <span class="flex flex-col items-start justify-start text-gray-400">
+            @if (study.time | toDate; as date) {
+              <span>
+                {{ date | date: 'shortDate' }}
+              </span>
+              <span>
+                {{ date | date: 'shortTime' }}
+              </span>
+            }
           </span>
 
           <span class="flex flex-col items-start justify-start">
