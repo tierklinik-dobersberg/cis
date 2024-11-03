@@ -4,12 +4,12 @@
 
 <div
   hlmCardContent
-  class="flex max-h-[200px] flex-grow flex-col overflow-auto p-2 !pt-0 md:p-4 lg:p-6">
-  <hlm-table class="flex-grow h-full">
+  class="flex h-full flex-grow flex-col overflow-auto p-2 !pt-0 md:p-4 lg:p-6">
+  <hlm-table class="h-full flex-grow">
     @for (study of studies(); track study.studyUid) {
       <hlm-trow class="hover:bg-gray-100">
         <hlm-td
-          class="flex-row flex-1 gap-2 p-2 cursor-pointer"
+          class="flex-1 cursor-pointer flex-row gap-2 p-2"
           (click)="openStudyDialog(study)">
           <span class="flex flex-col items-end justify-start text-gray-700">
             @if (study.time | toDate; as date) {
@@ -36,13 +36,13 @@
               <img
                 [attr.src]="study.previewUrls[0].url + '?viewport=70,70'"
                 (click)="openInViewer(study)"
-                class="w-12 cursor-pointer aspect-square min-h-12" />
+                class="aspect-square min-h-12 w-12 cursor-pointer" />
             } @else {
               @for (url of study.previewUrls; track url.uid) {
                 <img
                   [attr.src]="url.url + '?viewport=70,70'"
                   (click)="openInViewer(study, url.uid)"
-                  class="w-12 cursor-pointer aspect-square min-h-12" />
+                  class="aspect-square min-h-12 w-12 cursor-pointer" />
               }
             }
           }

@@ -10,8 +10,9 @@
   </p>
 </hlm-dialog-header>
 
-<div class="flex flex-row items-start justify-start w-full gap-0 p-4">
-  <div class="flex flex-col w-32 gap-2 p-2 overflow-auto">
+<div class="flex flex-row items-start justify-start w-full gap-2 p-4">
+  <div
+    class="flex flex-col w-32 gap-2 p-2 overflow-auto border-r border-border">
     @for (series of study.series; track series.seriesUid) {
       @for (instance of series.instances; track instance.instanceUid) {
         <img
@@ -64,7 +65,7 @@
 
     <hlm-tabs-list class="grid w-full grid-cols-2">
       <button hlmTabsTrigger="viewer">Viewer</button>
-      <button hlmTabsTrigger="viewer">Tag List</button>
+      <button hlmTabsTrigger="tags">Tag List</button>
     </hlm-tabs-list>
   </hlm-tabs>
 </div>
