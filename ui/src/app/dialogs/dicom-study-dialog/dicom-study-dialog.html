@@ -10,7 +10,8 @@
   </p>
 </hlm-dialog-header>
 
-<div class="flex flex-row items-start justify-start w-full max-h-full gap-2 p-4">
+<div
+  class="flex flex-row items-start justify-start w-full max-h-full gap-4 p-4">
   <div
     class="flex flex-col flex-grow-0 flex-shrink-0 w-32 gap-2 p-2 overflow-auto border-r border-border">
     @for (series of study.series; track series.seriesUid) {
@@ -32,7 +33,9 @@
       <button hlmTabsTrigger="tags">Tag List</button>
     </hlm-tabs-list>
 
-    <div hlmTabsContent="viewer" class="flex-grow w-full overflow-auto">
+    <div
+      hlmTabsContent="viewer"
+      class="flex-grow w-full p-2 overflow-auto bg-slate-700">
       @if (selectedInstance(); as instance) {
         <img
           [attr.src]="instance | dicomImageUrl"
@@ -55,7 +58,7 @@
               <hlm-td class="w-32">
                 {{ tag.tag }}
               </hlm-td>
-              <hlm-td class="flex-1">
+              <hlm-td class="flex-1 break-all">
                 @for (value of tag.value; track value) {
                   {{ value.toJson() }}
                 }
