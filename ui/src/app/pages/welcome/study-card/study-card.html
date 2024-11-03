@@ -8,15 +8,16 @@
   <hlm-table>
     @for (study of studies(); track study.studyUid) {
       <hlm-trow (click)="openStudy(study)">
-        <hlm-td class="flex-1">
+        <hlm-td class="flex-1 flex-col items-start justify-start">
           <span class="font-medium">{{ study.ownerName }}</span>
-          <br />
           {{ study.patientName }}
         </hlm-td>
 
-        <hlm-td class="w-12 min-h-12">
+        <hlm-td class="min-h-12 w-12">
           @if (study.previewUrls?.length) {
-            <img [attr.src]="study.previewUrls[0]" class="w-12 min-h-12 aspect-square" />
+            <img
+              [attr.src]="study.previewUrls[0]"
+              class="aspect-square min-h-12 w-12" />
           }
         </hlm-td>
       </hlm-trow>
