@@ -24,12 +24,19 @@
     }
   </div>
 
-  <hlm-tabs tab="viewer" class="h-full min-h-[500px] w-full flex-grow">
-    <div hlmTabsContent="viewer" class="w-full">
+  <hlm-tabs
+    tab="viewer"
+    class="flex h-full min-h-[500px] w-full flex-grow flex-col gap-2">
+    <hlm-tabs-list class="grid w-full grid-cols-2">
+      <button hlmTabsTrigger="viewer">Viewer</button>
+      <button hlmTabsTrigger="tags">Tag List</button>
+    </hlm-tabs-list>
+
+    <div hlmTabsContent="viewer" class="flex flex-grow w-full overflow-auto">
       @if (selectedInstance(); as instance) {
         <img
           [attr.src]="instance | dicomImageUrl"
-          class="h-auto max-w-screen aspect-auto" />
+          class="flex-grow aspect-auto" />
       } @else {
         <span class="flex flex-row items-center justify-center h-32">
           Kein Bild ausgewählt
@@ -37,7 +44,7 @@
       }
     </div>
 
-    <div hlmTabsContent="tags" class="w-full h-full">
+    <div hlmTabsContent="tags" class="flex-grow w-full overflow-auto">
       @if (selectedInstance(); as instance) {
         <hlm-table>
           @for (tag of instance.tags; track tag.tag) {
@@ -62,11 +69,6 @@
         </span>
       }
     </div>
-
-    <hlm-tabs-list class="grid w-full grid-cols-2">
-      <button hlmTabsTrigger="viewer">Viewer</button>
-      <button hlmTabsTrigger="tags">Tag List</button>
-    </hlm-tabs-list>
   </hlm-tabs>
 </div>
 
