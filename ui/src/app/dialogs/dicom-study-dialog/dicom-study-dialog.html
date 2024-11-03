@@ -32,7 +32,7 @@
       <button hlmTabsTrigger="tags">Tag List</button>
     </hlm-tabs-list>
 
-    <div hlmTabsContent="viewer" class="flex flex-grow w-full overflow-auto">
+    <div hlmTabsContent="viewer" class="flex-grow w-full overflow-auto">
       @if (selectedInstance(); as instance) {
         <img
           [attr.src]="instance | dicomImageUrl"
