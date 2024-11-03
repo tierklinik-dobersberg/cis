@@ -18,7 +18,7 @@ export class DicomImageUrlPipe implements PipeTransform {
 
         if(url?.value?.length) {
             let first = url.value[0].toJson() as string;
-            first+'/rendered'
+            first += '/rendered'
 
             if (opt) {
                 const {width, height} = opt;

@@ -10,7 +10,7 @@
   </p>
 </hlm-dialog-header>
 
-<div class="flex flex-row items-start justify-start gap-0">
+<div class="flex flex-row items-start justify-start w-full gap-0 p-4">
   <div class="flex flex-col w-32 gap-2 p-2">
     @for (series of study.series; track series.seriesUid) {
       @for (instance of series.instances; track instance.instanceUid) {
@@ -23,16 +23,20 @@
     }
   </div>
 
-  <hlm-tabs tab="viewer">
-    <div hlmTabsContent="viewer">
+  <hlm-tabs tab="viewer" class="w-full">
+    <div hlmTabsContent="viewer" class="w-full">
       @if (selectedInstance(); as instance) {
         <img
           [attr.src]="instance | dicomImageUrl"
           class="h-auto max-w-screen aspect-auto" />
+      } @else {
+        <span class="flex flex-row items-center justify-center h-32">
+          Kein Bild ausgewählt
+        </span>
       }
     </div>
 
-    <div hlmTabsContent="tags">
+    <div hlmTabsContent="tags" class="w-full">
       @if (selectedInstance(); as instance) {
         <hlm-table>
           @for (tag of instance.tags; track tag.tag) {
@@ -51,10 +55,14 @@
             </hlm-trow>
           }
         </hlm-table>
+      } @else {
+        <span class="flex flex-row items-center justify-center h-32">
+          Kein Bild ausgewählt
+        </span>
       }
     </div>
 
-    <hlm-tabs-list>
+    <hlm-tabs-list class="grid w-full grid-cols-2">
       <button hlmTabsTrigger="viewer">Viewer</button>
       <button hlmTabsTrigger="viewer">Tag List</button>
     </hlm-tabs-list>
