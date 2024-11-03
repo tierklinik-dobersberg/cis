@@ -7,9 +7,9 @@
   class="flex max-h-[200px] flex-grow flex-col overflow-auto p-2 !pt-0 md:p-4 lg:p-6">
   <hlm-table class="flex-grow h-full">
     @for (study of studies(); track study.studyUid) {
-      <hlm-trow class="hover:bg-border">
+      <hlm-trow class="hover:bg-gray-100">
         <hlm-td
-          class="flex-row flex-1 gap-2 p-1 cursor-pointer"
+          class="flex-row flex-1 gap-2 p-2 cursor-pointer"
           (click)="openStudyDialog(study)">
           <span class="flex flex-col items-end justify-start text-gray-700">
             @if (study.time | toDate; as date) {
@@ -30,7 +30,7 @@
           </span>
         </hlm-td>
 
-        <hlm-td class="flex flex-row gap-2 p-1">
+        <hlm-td class="flex flex-row gap-2 p-2">
           @if (study.previewUrls?.length) {
             @if (!layout.md()) {
               <img
