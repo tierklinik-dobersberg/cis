@@ -7,7 +7,7 @@
   class="flex max-h-[200px] flex-grow flex-col overflow-auto p-2 !pt-0 md:p-4 lg:p-6">
   <hlm-table>
     @for (study of studies(); track study.studyUid) {
-      <hlm-trow>
+      <hlm-trow (click)="openStudy(study)">
         <hlm-td class="flex-1">
           {{ study.ownerName }}, {{ study.patientName }}
         </hlm-td>

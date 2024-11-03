@@ -10,6 +10,7 @@ import { ListStudiesResponse, Study } from "@tierklinik-dobersberg/apis/orthanc_
 import { addDays } from "date-fns";
 import { toast } from 'ngx-sonner';
 import { interval, startWith } from "rxjs";
+import { environment } from "src/environments/environment";
 
 class StudyModel extends Study {
     public readonly previewUrls: string[];
@@ -50,6 +51,13 @@ class StudyModel extends Study {
 export class StudyCardComponent {
     private readonly client = injectOrthancClient();
     protected readonly studies = signal<StudyModel[]>([])
+
+    protected openStudy(study: StudyModel) {
+        window.open(
+            `${environment.orthancBridge}/viewer?StudyInstanceUIDs=${study.studyUid}`,
+            '_blank'
+        )
+    }
 
     constructor() {
         interval(10 * 1000)
