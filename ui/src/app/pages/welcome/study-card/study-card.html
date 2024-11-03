@@ -8,7 +8,7 @@
   <hlm-table>
     @for (study of studies(); track study.studyUid) {
       <hlm-trow>
-        <hlm-td class="flex-1 flex-row gap-2">
+        <hlm-td class="flex-row flex-1 gap-2" (click)="openStudyDialog(study)">
           <span class="flex flex-col items-start justify-start text-gray-400">
             @if (study.time | toDate; as date) {
               <span>
@@ -33,25 +33,14 @@
             @if (!layout.md()) {
               <img
                 [attr.src]="study.previewUrls[0].url + '?viewport=70,70'"
-                (click)="openStudy(study)"
-                class="aspect-square min-h-12 w-12 cursor-pointer" />
+                (click)="openInViewer(study)"
+                class="w-12 cursor-pointer aspect-square min-h-12" />
             } @else {
               @for (url of study.previewUrls; track url.uid) {
-                <brn-hover-card>
-                  <img
-                    brnHoverCardTrigger
-                    [attr.src]="url.url + '?viewport=70,70'"
-                    (click)="openStudy(study, url.uid)"
-                    class="aspect-square min-h-12 w-12 cursor-pointer" />
-
-                  <hlm-hover-card-content
-                    *brnHoverCardContent
-                    class="w-[700px] max-w-[unset]">
-                    <img
-                      [attr.src]="url.url + '?viewport=700,700'"
-                      class="aspect-square w-[700px] max-w-[700px] cursor-pointer" />
-                  </hlm-hover-card-content>
-                </brn-hover-card>
+                <img
+                  [attr.src]="url.url + '?viewport=70,70'"
+                  (click)="openInViewer(study, url.uid)"
+                  class="w-12 cursor-pointer aspect-square min-h-12" />
               }
             }
           }

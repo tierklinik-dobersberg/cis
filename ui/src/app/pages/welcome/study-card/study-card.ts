@@ -6,6 +6,7 @@ import { ConnectError } from "@connectrpc/connect";
 import { BrnHoverCardModule } from "@spartan-ng/ui-hovercard-brain";
 import { HlmCardDirective, HlmCardModule } from "@tierklinik-dobersberg/angular/card";
 import { injectOrthancClient } from "@tierklinik-dobersberg/angular/connect";
+import { HlmDialogService } from "@tierklinik-dobersberg/angular/dialog";
 import { HlmHoverCardModule } from "@tierklinik-dobersberg/angular/hovercard";
 import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
 import { ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
@@ -15,6 +16,7 @@ import { ListStudiesResponse, Study } from "@tierklinik-dobersberg/apis/orthanc_
 import { addDays } from "date-fns";
 import { toast } from 'ngx-sonner';
 import { filter, interval, merge, startWith } from "rxjs";
+import { AppDicomStudyDialog } from "src/app/dialogs/dicom-study-dialog";
 import { environment } from "src/environments/environment";
 import { StudyService } from "./study.service";
 
@@ -88,8 +90,9 @@ export class StudyCardComponent {
     private readonly studyService = inject(StudyService);
     protected readonly studies = signal<StudyModel[]>([])
     protected readonly layout = inject(LayoutService);
+    protected readonly dialogService = inject(HlmDialogService);
 
-    protected openStudy(study: StudyModel, instance?: string) {
+    protected openInViewer(study: StudyModel, instance?: string) {
         let url = `${environment.orthancBridge}/viewer?StudyInstanceUIDs=${study.studyUid}`
         if (instance) {
             url += '&initialSopInstanceUid=' + instance
@@ -98,6 +101,12 @@ export class StudyCardComponent {
             url,
             '_blank'
         )
+    }
+
+    protected openStudyDialog(study: StudyModel, instance?: string) {
+        AppDicomStudyDialog.open(this.dialogService, {
+            study,
+        })
     }
 
     constructor() {

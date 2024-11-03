@@ -1,0 +1,67 @@
+<hlm-dialog-header>
+  <h3 hlmDialogTitle>
+    DICOM Studie vom {{ study.time | toDate | date: 'short' }}
+  </h3>
+  <p hlmDialogDescription class="flex flex-row gap-2">
+    <span>Besitzer: </span>
+    <span class="font-medium">{{ study.ownerName || 'N/A' }}</span>
+    <span>Pateint: </span>
+    <span class="font-medium">{{ study.patientName || 'N/A' }}</span>
+  </p>
+</hlm-dialog-header>
+
+<div class="flex flex-row items-start justify-start gap-0">
+  <div class="flex flex-col w-32 gap-2 p-2">
+    @for (series of study.series; track series.seriesUid) {
+      @for (instance of series.instances; track instance.instanceUid) {
+        <img
+          (click)="selectedInstance.set(instance)"
+          [attr.src]="instance | dicomImageUrl: { width: 100, height: 1000 }"
+          [class.outline]="selectedInstance() === instance"
+          class="aspect-auto h-auto w-[100px] cursor-pointer hover:outline" />
+      }
+    }
+  </div>
+
+  <hlm-tabs tab="viewer">
+    <div hlmTabsContent="viewer">
+      @if (selectedInstance(); as instance) {
+        <img
+          [attr.src]="instance | dicomImageUrl"
+          class="h-auto max-w-screen aspect-auto" />
+      }
+    </div>
+
+    <div hlmTabsContent="tags">
+      @if (selectedInstance(); as instance) {
+        <hlm-table>
+          @for (tag of instance.tags; track tag.tag) {
+            <hlm-trow>
+              <hlm-td class="w-32">
+                {{ tag.name }}
+              </hlm-td>
+              <hlm-td class="w-16">
+                {{ tag.tag }}
+              </hlm-td>
+              <hlm-td class="flex-1">
+                @for (value of tag.value; track value) {
+                  {{ value.toJson() }}
+                }
+              </hlm-td>
+            </hlm-trow>
+          }
+        </hlm-table>
+      }
+    </div>
+
+    <hlm-tabs-list>
+      <button hlmTabsTrigger="viewer">Viewer</button>
+      <button hlmTabsTrigger="viewer">Tag List</button>
+    </hlm-tabs-list>
+  </hlm-tabs>
+</div>
+
+<hlm-dialog-footer
+  class="flex flex-row flex-wrap items-center justify-between gap-2 p-1 mt-4">
+  <button hlmBtn variant="secondary" (click)="close()">Schließen</button>
+</hlm-dialog-footer>

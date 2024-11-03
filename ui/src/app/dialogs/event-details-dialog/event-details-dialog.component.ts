@@ -31,15 +31,13 @@ import { AppAvatarComponent } from "src/app/components/avatar";
 import { TkdDatePickerComponent } from "src/app/components/date-picker";
 import { getCalendarId } from "src/app/services";
 import { getSeconds } from "../../pages/calendar2/day-view/sort.pipe";
+import { DIALOG_CONTENT_CLASS } from "../constants";
 
 export interface EventDetailsDialogContext {
         event?: CalendarEvent,
         calendar: Calendar,
         startTime?: Date,
 }
-
-    const contentClass =
-      'w-screen overflow-auto max-w-[unset] sm:w-[750px] md:w-[750px] h-[100dvh] sm:h-[unset] ';
 
 @Component({
     standalone: true,
@@ -119,7 +117,7 @@ export class AppEventDetailsDialogComponent implements OnInit {
     static open(service: HlmDialogService, ctx: EventDetailsDialogContext): BrnDialogRef<AppEventDetailsDialogComponent> {
         return service.open(AppEventDetailsDialogComponent, {
             context: ctx,
-            contentClass,
+            contentClass: DIALOG_CONTENT_CLASS,
         })
     }
 
