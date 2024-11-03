@@ -59,7 +59,7 @@ export class AppDicomStudyDialog implements OnInit {
     static open(service: HlmDialogService, ctx: DicomStudyDialogContext): BrnDialogRef<AppDicomStudyDialog> {
         return service.open(AppDicomStudyDialog, {
             context: ctx,
-            contentClass: 'w-screen !w-[100dvw] overflow-hidden h-[100dvh] max-h-screen !max-h-[100dvh] max-h-screen'
+            contentClass: 'w-screen !w-[100dvw] overflow-hidden h-[100dvh] max-w-screen !max-h-[100dvh] max-h-screen'
         })
     }
 
