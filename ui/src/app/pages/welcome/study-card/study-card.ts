@@ -9,7 +9,7 @@ import { Month } from "@tierklinik-dobersberg/apis/common/v1";
 import { ListStudiesResponse, Study } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
 import { addDays } from "date-fns";
 import { toast } from 'ngx-sonner';
-import { interval, startWith } from "rxjs";
+import { filter, interval, startWith } from "rxjs";
 import { environment } from "src/environments/environment";
 
 class StudyModel extends Study {
@@ -43,6 +43,9 @@ class StudyModel extends Study {
     standalone: true,
     templateUrl: './study-card.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: {
+        class: '@container flex flex-grow overflow-hidden flex-shrink-0 max-h-[calc(100dvh-80px)]',
+    },
     imports: [
         HlmCardModule,
         HlmTableModule,
@@ -60,15 +63,19 @@ export class StudyCardComponent {
     }
 
     constructor() {
+        let inProgress = false;
+
         interval(10 * 1000)
             .pipe(
                 startWith(0),
-                takeUntilDestroyed()
+                takeUntilDestroyed(),
+                filter(() => !inProgress)
             )
             .subscribe(() => {
                 const now = new Date();
                 const from = addDays(now, -7)
 
+                inProgress = true;
                 this.client
                     .listStudies({
                         dateRange: {
@@ -120,6 +127,7 @@ export class StudyCardComponent {
                             study.previewUrls?.forEach(url => URL.revokeObjectURL(url))
                         })
                     })
+                    .finally(() => inProgress = false)
             })
     }
 }
