@@ -1,5 +1,6 @@
 import { DatePipe } from "@angular/common";
-import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, OnInit, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { BrnDialogRef, injectBrnDialogContext } from "@spartan-ng/ui-dialog-brain";
 import { BrnTabsModule } from "@spartan-ng/ui-tabs-brain";
 import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
@@ -10,6 +11,7 @@ import { ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmTableComponent, HlmTdComponent, HlmThComponent, HlmTrowComponent } from '@tierklinik-dobersberg/angular/table';
 import { HlmTabsModule } from "@tierklinik-dobersberg/angular/tabs";
 import { Instance, Study } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
+import { interval, Subscription } from "rxjs";
 import { DicomImageUrlPipe } from "src/app/pipes/dicom-instance-preview.pipe";
 
 export interface DicomStudyDialogContext {
@@ -54,6 +56,21 @@ export class AppDicomStudyDialog implements OnInit {
     private readonly _dialogContext = injectBrnDialogContext<DicomStudyDialogContext>();
 
     protected selectedInstance = signal<Instance | null>(null)
+    protected selectedFrame = signal(1);
+
+    protected frameCount = computed(() => {
+        const instance = this.selectedInstance();
+        if (!instance) {
+            return 1
+        }        
+
+        const frameCount = instance.tags.find(tag => tag.name === 'NumberOfFrames')?.value[0].toJson() as number;
+
+        return frameCount || 1;
+    })
+
+    protected fps = signal<number>(24);
+
     protected study = this._dialogContext.study;
 
     static open(service: HlmDialogService, ctx: DicomStudyDialogContext): BrnDialogRef<AppDicomStudyDialog> {
@@ -64,14 +81,30 @@ export class AppDicomStudyDialog implements OnInit {
     }
 
     constructor() {
+        const destroyRef = inject(DestroyRef);
+
+        let sub = Subscription.EMPTY;
         effect(() => {
             const instance = this.selectedInstance();
+            this.selectedFrame.set(1);
+        }, { allowSignalWrites: true })
 
-            if (instance) {
-                console.log("selected instance", instance)
-            } else {
-                console.log("no instance selected")
+        effect(() => {
+            const frameCount = this.frameCount();
+            const fps = this.fps();
+
+            sub.unsubscribe();
+
+            if (frameCount === 1) {
+                return
             }
+
+            sub = interval(fps / 60 * 1000)
+                .pipe(takeUntilDestroyed(destroyRef))
+                .subscribe(() => {
+                    let next = ((this.selectedFrame() + 1) % frameCount) + 1;
+                    this.selectedFrame.set(next);
+                })
         })
     }
     ngOnInit() {
