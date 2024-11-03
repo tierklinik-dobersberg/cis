@@ -1,9 +1,11 @@
+import { DatePipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { PartialMessage } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
 import { HlmCardDirective, HlmCardModule } from "@tierklinik-dobersberg/angular/card";
 import { injectOrthancClient } from "@tierklinik-dobersberg/angular/connect";
+import { ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
 import { Month } from "@tierklinik-dobersberg/apis/common/v1";
 import { ListStudiesResponse, Study } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
@@ -66,6 +68,8 @@ class StudyModel extends Study {
     imports: [
         HlmCardModule,
         HlmTableModule,
+        ToDatePipe,
+        DatePipe,
     ]
 })
 export class StudyCardComponent {
