@@ -1,5 +1,5 @@
 import { DatePipe } from "@angular/common";
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal } from "@angular/core";
 import { BrnDialogRef, injectBrnDialogContext } from "@spartan-ng/ui-dialog-brain";
 import { BrnTabsModule } from "@spartan-ng/ui-tabs-brain";
 import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
@@ -64,6 +64,17 @@ export class AppDicomStudyDialog implements OnInit {
         })
     }
 
+    constructor() {
+        effect(() => {
+            const instance = this.selectedInstance();
+
+            if (instance) {
+                console.log("selected instance", instance)
+            } else {
+                console.log("no instance selected")
+            }
+        })
+    }
     ngOnInit() {
         if (this.study.series?.length && this.study.series[0].instances?.length) {
             this.selectedInstance.set(this.study.series[0].instances[0])

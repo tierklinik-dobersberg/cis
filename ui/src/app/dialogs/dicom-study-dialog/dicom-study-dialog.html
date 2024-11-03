@@ -10,15 +10,15 @@
   </p>
 </hlm-dialog-header>
 
-<div class="flex flex-row items-start justify-start w-full gap-0 p-4">
-  <div class="flex flex-col w-32 gap-2 p-2">
+<div class="flex w-full flex-row items-start justify-start gap-0 p-4">
+  <div class="flex w-32 flex-col gap-2 overflow-auto p-2">
     @for (series of study.series; track series.seriesUid) {
       @for (instance of series.instances; track instance.instanceUid) {
         <img
           (click)="selectedInstance.set(instance)"
           [attr.src]="instance | dicomImageUrl: { width: 100, height: 1000 }"
           [class.outline]="selectedInstance() === instance"
-          class="aspect-auto h-auto w-[100px] cursor-pointer hover:outline" />
+          class="aspect-auto h-auto w-[100px] flex-shrink-0 flex-grow-0 cursor-pointer hover:outline" />
       }
     }
   </div>
@@ -28,9 +28,9 @@
       @if (selectedInstance(); as instance) {
         <img
           [attr.src]="instance | dicomImageUrl"
-          class="h-auto max-w-screen aspect-auto" />
+          class="max-w-screen aspect-auto h-auto" />
       } @else {
-        <span class="flex flex-row items-center justify-center h-32">
+        <span class="flex h-32 flex-row items-center justify-center">
           Kein Bild ausgewählt
         </span>
       }
@@ -56,7 +56,7 @@
           }
         </hlm-table>
       } @else {
-        <span class="flex flex-row items-center justify-center h-32">
+        <span class="flex h-32 flex-row items-center justify-center">
           Kein Bild ausgewählt
         </span>
       }
@@ -70,6 +70,6 @@
 </div>
 
 <hlm-dialog-footer
-  class="flex flex-row flex-wrap items-center justify-between gap-2 p-1 mt-4">
+  class="mt-4 flex flex-row flex-wrap items-center justify-between gap-2 p-1">
   <button hlmBtn variant="secondary" (click)="close()">Schließen</button>
 </hlm-dialog-footer>
