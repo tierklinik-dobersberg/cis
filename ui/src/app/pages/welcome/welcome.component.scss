@@ -1,11 +1,15 @@
-    .large-grid {
-        grid-template-columns: 2.5fr 5fr;
-        grid-template-areas: 
-            "emergency study"
-            "roster calendar"
-            "roster calendar"
-            "roster calendar"
-    }
+:host {
+    padding-right: 0px !important;
+}
+
+.large-grid {
+    grid-template-columns: 2.5fr 5fr;
+    grid-template-areas: 
+        "emergency study"
+        "roster calendar"
+        "roster calendar"
+        "roster calendar"
+}
 
 app-emergency-card {
     grid-area: emergency;
