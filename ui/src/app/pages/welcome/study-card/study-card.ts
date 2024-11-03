@@ -47,7 +47,7 @@ class StudyModel extends Study {
                             if(url?.value?.length) {
                                 const first = url.value[0].toJson();
                                 this.previewUrls.push(
-                                    first+'/rendered'
+                                    first+'/rendered?viewport=70,70'
                                 )
                             }
                         })
