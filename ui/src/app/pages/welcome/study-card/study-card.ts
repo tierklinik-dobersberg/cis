@@ -24,6 +24,7 @@ class StudyModel extends Study {
             this.series
                 ?.forEach(series => series.instances
                         ?.forEach(instance => {
+                            /*
                             if (instance.thumbnail) {
                                 const blob = new Blob([instance.thumbnail.data], {
                                     type: instance.thumbnail.mime,
@@ -31,6 +32,18 @@ class StudyModel extends Study {
 
                                 const url = URL.createObjectURL(blob)
                                 this.previewUrls.push(url)
+                            }
+                            */
+
+                            let url = instance.tags.find(t => t.name === 'RetrieveURL');
+                            if (!url) {
+                                url = instance.tags.find(t => t.name === 'RetrieveURI');
+                            }
+
+                            if(url) {
+                                this.previewUrls.push(
+                                    url+'/rendered'
+                                )
                             }
                         })
                 )
