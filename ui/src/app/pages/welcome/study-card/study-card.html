@@ -9,7 +9,7 @@
     @for (study of studies(); track study.studyUid) {
       <hlm-trow class="hover:bg-border">
         <hlm-td
-          class="flex-row flex-1 gap-2 cursor-pointer"
+          class="flex-row flex-1 gap-2 p-1 cursor-pointer"
           (click)="openStudyDialog(study)">
           <span class="flex flex-col items-end justify-start text-gray-700">
             @if (study.time | toDate; as date) {
@@ -30,7 +30,7 @@
           </span>
         </hlm-td>
 
-        <hlm-td class="flex flex-row gap-2">
+        <hlm-td class="flex flex-row gap-2 p-1">
           @if (study.previewUrls?.length) {
             @if (!layout.md()) {
               <img
