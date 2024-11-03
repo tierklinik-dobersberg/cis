@@ -9,11 +9,14 @@
     @for (study of studies(); track study.studyUid) {
       <hlm-trow (click)="openStudy(study)">
         <hlm-td class="flex-1">
-          {{ study.ownerName }}, {{ study.patientName }}
+          <span class="font-medium">{{ study.ownerName }}</span>
+          <br />
+          {{ study.patientName }}
         </hlm-td>
-        <hlm-td class="h-8 w-8 p-0">
+
+        <hlm-td class="w-12 min-h-12">
           @if (study.previewUrls?.length) {
-            <img [attr.src]="study.previewUrls[0]" class="h-8 w-8" />
+            <img [attr.src]="study.previewUrls[0]" class="w-12 min-h-12 aspect-square" />
           }
         </hlm-td>
       </hlm-trow>
