@@ -13,6 +13,7 @@ import { HlmTabsModule } from "@tierklinik-dobersberg/angular/tabs";
 import { Instance, Study } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
 import { interval, Subscription } from "rxjs";
 import { DicomImageUrlPipe } from "src/app/pipes/dicom-instance-preview.pipe";
+import { SortDicomTagsPipe } from "src/app/pipes/sort-dicom-tags.pipe";
 
 export interface DicomStudyDialogContext {
     study: Study;
@@ -37,6 +38,7 @@ export interface DicomStudyDialogContext {
         DatePipe,
         HlmIconModule,
         DicomImageUrlPipe,
+        SortDicomTagsPipe,
     ],
     providers: [
         ...provideIcons({})
