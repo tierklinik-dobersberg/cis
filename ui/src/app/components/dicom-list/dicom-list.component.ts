@@ -1,42 +1,50 @@
-import { DatePipe } from "@angular/common";
-import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
-import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { PartialMessage } from "@bufbuild/protobuf";
-import { ConnectError } from "@connectrpc/connect";
-import { injectCurrentProfile } from "@tierklinik-dobersberg/angular/behaviors";
-import { injectOrthancClient } from "@tierklinik-dobersberg/angular/connect";
-import { HlmDialogService } from "@tierklinik-dobersberg/angular/dialog";
-import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
-import { ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
-import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
-import { Month } from "@tierklinik-dobersberg/apis/common/v1";
-import { ListStudiesResponse, Study } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
-import { addDays } from "date-fns";
+import { DatePipe } from '@angular/common';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    inject,
+    input,
+    signal,
+} from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { PartialMessage } from '@bufbuild/protobuf';
+import { ConnectError } from '@connectrpc/connect';
+import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
+import { injectOrthancClient } from '@tierklinik-dobersberg/angular/connect';
+import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
+import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
+import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
+import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
+import { Month } from '@tierklinik-dobersberg/apis/common/v1';
+import {
+    ListStudiesRequest,
+    ListStudiesResponse,
+    Study,
+} from '@tierklinik-dobersberg/apis/orthanc_bridge/v1';
 import { toast } from 'ngx-sonner';
-import { filter, interval, merge, startWith } from "rxjs";
-import { AppDicomStudyDialog } from "src/app/dialogs/dicom-study-dialog";
-import { StudyService } from "src/app/pages/welcome/study-card/study.service";
-import { environment } from "src/environments/environment";
+import { filter, interval, merge, startWith } from 'rxjs';
+import { AppDicomStudyDialog } from 'src/app/dialogs/dicom-study-dialog';
+import { StudyService } from 'src/app/pages/welcome/study-card/study.service';
+import { environment } from 'src/environments/environment';
 
 interface PreviewURL {
-    url: string;
-    uid: string;
+  url: string;
+  uid: string;
 }
 
 class StudyModel extends Study {
-    public readonly previewUrls: PreviewURL[];
+  public readonly previewUrls: PreviewURL[];
 
-    constructor(study: PartialMessage<Study>, previewUrls?: PreviewURL[]) {
-        super(study)
+  constructor(study: PartialMessage<Study>, previewUrls?: PreviewURL[]) {
+    super(study);
 
-        this.previewUrls = previewUrls || [];
-        this.ownerName = this.ownerName.replaceAll(', ERROR', '')
+    this.previewUrls = previewUrls || [];
+    this.ownerName = this.ownerName.replaceAll(', ERROR', '');
 
-        if (!previewUrls) {
-            this.series
-                ?.forEach(series => series.instances
-                        ?.forEach(instance => {
-                            /*
+    if (!previewUrls) {
+      this.series?.forEach(series =>
+        series.instances?.forEach(instance => {
+          /*
                             if (instance.thumbnail) {
                                 const blob = new Blob([instance.thumbnail.data], {
                                     type: instance.thumbnail.mime,
@@ -47,127 +55,151 @@ class StudyModel extends Study {
                             }
                             */
 
-                            let url = instance.tags.find(t => t.name === 'RetrieveURL');
-                            if (!url?.value?.length) {
-                                url = instance.tags.find(t => t.name === 'RetrieveURI');
-                            }
+          let url = instance.tags.find(t => t.name === 'RetrieveURL');
+          if (!url?.value?.length) {
+            url = instance.tags.find(t => t.name === 'RetrieveURI');
+          }
 
-                            if(url?.value?.length) {
-                                const first = url.value[0].toJson();
-                                this.previewUrls.push({
-                                    url: first+'/rendered',
-                                    uid: instance.instanceUid,
-                                })
-                            }
-                        })
-                )
-        }
+          if (url?.value?.length) {
+            const first = url.value[0].toJson();
+            this.previewUrls.push({
+              url: first + '/rendered',
+              uid: instance.instanceUid,
+            });
+          }
+        })
+      );
     }
+  }
 }
 
 @Component({
-    selector: 'app-study-card',
-    standalone: true,
-    templateUrl: './dicom-list.component.html',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    host: {
-        class: '@container flex flex-col',
-    },
-    imports: [
-        HlmTableModule,
-        ToDatePipe,
-        DatePipe,
-    ]
+  selector: 'app-dicom-list',
+  standalone: true,
+  templateUrl: './dicom-list.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: '@container flex flex-col',
+  },
+  imports: [HlmTableModule, ToDatePipe, DatePipe],
 })
-export class StudyCardComponent {
-    private readonly client = injectOrthancClient();
-    private readonly studyService = inject(StudyService);
-    protected readonly studies = signal<StudyModel[]>([])
-    protected readonly layout = inject(LayoutService);
-    protected readonly dialogService = inject(HlmDialogService);
+export class DicomListComponent {
+  public readonly dateRange = input<[Date, Date] | null>(null);
+  public readonly patientName = input<string | null>(null);
+  public readonly ownerName = input<string | null>(null);
+  public readonly pagination = input<{ page: number; size: number } | null>(
+    null
+  );
 
-    protected openInViewer(study: StudyModel, instance?: string) {
-        let url = `${environment.orthancBridge}/viewer?StudyInstanceUIDs=${study.studyUid}`
-        if (instance) {
-            url += '&initialSopInstanceUid=' + instance
+  private readonly client = injectOrthancClient();
+  private readonly studyService = inject(StudyService);
+  protected readonly studies = signal<StudyModel[]>([]);
+  protected readonly layout = inject(LayoutService);
+  protected readonly dialogService = inject(HlmDialogService);
+
+  protected openInViewer(study: StudyModel, instance?: string) {
+    let url = `${environment.orthancBridge}/viewer?StudyInstanceUIDs=${study.studyUid}`;
+    if (instance) {
+      url += '&initialSopInstanceUid=' + instance;
+    }
+    window.open(url, '_blank');
+  }
+
+  protected openStudyDialog(study: StudyModel, instance?: string) {
+    AppDicomStudyDialog.open(this.dialogService, {
+      study,
+    });
+  }
+
+  constructor() {
+    let inProgress = false;
+    const currentUser = injectCurrentProfile();
+
+    merge(
+      interval(5 * 60 * 1000),
+      this.studyService.instanceReceived,
+      toObservable(currentUser),
+      toObservable(this.dateRange),
+      toObservable(this.patientName),
+      toObservable(this.ownerName)
+    )
+      .pipe(
+        startWith(0),
+        takeUntilDestroyed(),
+        filter(() => !inProgress || !currentUser())
+      )
+      .subscribe(() => {
+        const req: PartialMessage<ListStudiesRequest> = {
+          enableFuzzyMatching: true,
+        };
+
+        const range = this.dateRange();
+        if (range) {
+          const [from, to] = range;
+
+          req.dateRange = {
+            from: {
+              day: from.getDate(),
+              month: (from.getMonth() + 1) as Month,
+              year: BigInt(from.getFullYear()),
+            },
+            to: {
+              day: to.getDate(),
+              month: (to.getMonth() + 1) as Month,
+              year: BigInt(to.getFullYear()),
+            },
+          };
         }
-        window.open(
-            url,
-            '_blank'
-        )
-    }
 
-    protected openStudyDialog(study: StudyModel, instance?: string) {
-        AppDicomStudyDialog.open(this.dialogService, {
-            study,
-        })
-    }
+        const patientName = this.patientName();
+        if (patientName) {
+          req.patientName = `*${patientName}*`;
+        }
 
-    constructor() {
-        let inProgress = false;
-        const currentUser = injectCurrentProfile();
+        const ownerName = this.ownerName;
+        if (ownerName) {
+          req.ownerName = `*${ownerName}*`;
+        }
 
-        merge(
-            interval(5* 60 * 1000),
-            this.studyService.instanceReceived,
-            toObservable(currentUser)
-        )
-            .pipe(
-                startWith(0),
-                takeUntilDestroyed(),
-                filter(() => !inProgress || !currentUser())
-            )
-            .subscribe(() => {
-                const now = new Date();
-                const from = addDays(now, -7)
+        const pagination = this.pagination();
+        if (pagination) {
+          req.pagination = {
+            kind: {
+              case: 'page',
+              value: pagination.page,
+            },
+            pageSize: pagination.size,
+          };
+        }
 
-                inProgress = true;
-                this.client
-                    .listStudies({
-                        dateRange: {
-                            from: {
-                                day: from.getDate(),
-                                month: from.getMonth()+1 as Month,
-                                year: BigInt(from.getFullYear()),
-                            },
-                            to: {
-                                day: now.getDate(),
-                                month: now.getMonth()+1 as Month,
-                                year: BigInt(now.getFullYear()),
-                            }
-                        },
-                        pagination: {
-                            pageSize: 10,
-                            kind: {
-                                case: 'page',
-                                value: 0,
-                            },
-                        },
-                    })
-                    .catch(err => {
-                        const cerr = ConnectError.from(err)
-                        toast.error('DICOM Studies failed to load', {
-                            description: cerr.message,
-                        })
+        inProgress = true;
+        this.client
+          .listStudies(req)
+          .catch(err => {
+            const cerr = ConnectError.from(err);
+            toast.error('DICOM Studies failed to load', {
+              description: cerr.message,
+            });
 
-                        return new ListStudiesResponse()
-                    })
-                    .then(response => {
-                        const studies = this.studies() || [];
-                        this.studies.set(
-                            (response.studies || [])
-                                .map(study => {
-                                    const existing = studies.findIndex(s => s.studyUid === study.studyUid)
-                                    if (existing >= 0) {
-                                        studies.splice(existing, 1)
-                                        return new StudyModel(study, studies[existing].previewUrls)
-                                    }
+            return new ListStudiesResponse();
+          })
+          .then(response => {
+            const studies = this.studies() || [];
+            this.studies.set(
+              (response.studies || []).map(study => {
+                const existing = studies.findIndex(
+                  s => s.studyUid === study.studyUid
+                );
+                if (existing >= 0) {
+                  studies.splice(existing, 1);
+                  return new StudyModel(study, studies[existing].previewUrls);
+                }
 
-                                    return new StudyModel(study)
-                                })
-                        );
-                    })
-                    .finally(() => inProgress = false)
-            })
-    }
+                return new StudyModel(study);
+              })
+            );
+          })
+          .finally(() => (inProgress = false));
+      });
+  }
 }

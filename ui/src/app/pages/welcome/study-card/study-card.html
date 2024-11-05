@@ -5,49 +5,5 @@
 <div
   hlmCardContent
   class="flex h-full flex-grow flex-col overflow-auto p-2 !pt-0 md:p-4 lg:p-6">
-  <hlm-table class="h-full flex-grow">
-    @for (study of studies(); track study.studyUid) {
-      <hlm-trow class="hover:bg-gray-100">
-        <hlm-td
-          class="flex-1 cursor-pointer flex-row gap-2 p-2"
-          (click)="openStudyDialog(study)">
-          <span class="flex flex-col items-end justify-start text-gray-700">
-            @if (study.time | toDate; as date) {
-              <span>
-                {{ date | date: 'shortDate' }}
-              </span>
-              <span>
-                {{ date | date: 'shortTime' }}
-              </span>
-            }
-          </span>
-
-          <span class="flex flex-col items-start justify-start">
-            <span class="font-medium">{{ study.ownerName || 'N/A' }}</span>
-            <span>
-              {{ study.patientName || 'N/A' }}
-            </span>
-          </span>
-        </hlm-td>
-
-        <hlm-td class="flex flex-row gap-2 p-2">
-          @if (study.previewUrls?.length) {
-            @if (!layout.md()) {
-              <img
-                [attr.src]="study.previewUrls[0].url + '?viewport=70,70'"
-                (click)="openInViewer(study)"
-                class="aspect-square min-h-12 w-12 cursor-pointer" />
-            } @else {
-              @for (url of study.previewUrls; track url.uid) {
-                <img
-                  [attr.src]="url.url + '?viewport=70,70'"
-                  (click)="openInViewer(study, url.uid)"
-                  class="aspect-square min-h-12 w-12 cursor-pointer" />
-              }
-            }
-          }
-        </hlm-td>
-      </hlm-trow>
-    }
-  </hlm-table>
+  <app-dicom-list [dateRange]="range" />
 </div>
