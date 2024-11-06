@@ -196,7 +196,7 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 		}))
 
 	default:
-		grp.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		grp.Use(middleware.Gzip(), middleware.StaticWithConfig(middleware.StaticConfig{
 			Root:  staticPath,
 			Index: "index.html",
 			HTML5: true,
