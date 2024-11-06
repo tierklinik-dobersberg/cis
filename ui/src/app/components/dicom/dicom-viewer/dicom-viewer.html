@@ -1,0 +1,17 @@
+@if (instance(); as instance) {
+  <img
+    (loadstart)="loading.set(true)"
+    (load)="loading.set(false)"
+    [attr.src]="instance | dicomImageUrl: { frame: selectedFrame() }"
+    class="!h-full max-h-full !w-full max-w-full flex-grow object-contain" />
+
+  @if (loading()) {
+    <span class="flex items-center justify-center w-full font-medium text-white"
+      >Bild wird geladen ...</span
+    >
+  }
+} @else {
+  <span class="flex flex-row items-center justify-center h-32">
+    Kein Bild ausgewählt
+  </span>
+}

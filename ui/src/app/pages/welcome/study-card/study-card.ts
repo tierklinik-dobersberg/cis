@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/cor
 import { HlmCardDirective, HlmCardModule } from "@tierklinik-dobersberg/angular/card";
 import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
 import { addDays } from "date-fns";
-import { DicomListComponent } from "src/app/components/dicom-list";
+import { DicomListComponent } from "src/app/components/dicom/dicom-list";
 
 @Component({
     selector: 'app-study-card',

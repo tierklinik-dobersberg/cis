@@ -12,6 +12,7 @@ import { HlmTableComponent, HlmTdComponent, HlmThComponent, HlmTrowComponent } f
 import { HlmTabsModule } from "@tierklinik-dobersberg/angular/tabs";
 import { Instance, Study } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
 import { interval, Subscription } from "rxjs";
+import { DicomViewer } from "src/app/components/dicom/dicom-viewer";
 import { DicomImageUrlPipe } from "src/app/pipes/dicom-instance-preview.pipe";
 import { SortDicomTagsPipe } from "src/app/pipes/sort-dicom-tags.pipe";
 
@@ -39,6 +40,7 @@ export interface DicomStudyDialogContext {
         HlmIconModule,
         DicomImageUrlPipe,
         SortDicomTagsPipe,
+        DicomViewer
     ],
     providers: [
         ...provideIcons({})
@@ -58,21 +60,6 @@ export class AppDicomStudyDialog implements OnInit {
     private readonly _dialogContext = injectBrnDialogContext<DicomStudyDialogContext>();
 
     protected readonly selectedInstance = signal<Instance | null>(null)
-    protected readonly selectedFrame = signal(1);
-    protected readonly loading = signal(true);
-
-    protected frameCount = computed(() => {
-        const instance = this.selectedInstance();
-        if (!instance) {
-            return 1
-        }        
-
-        const frameCount = instance.tags.find(tag => tag.name === 'NumberOfFrames')?.value[0].toJson() as number;
-
-        return frameCount || 1;
-    })
-
-    protected fps = signal<number>(24);
 
     protected study = this._dialogContext.study;
 
@@ -83,34 +70,6 @@ export class AppDicomStudyDialog implements OnInit {
         })
     }
 
-    constructor() {
-        const destroyRef = inject(DestroyRef);
-
-        let sub = Subscription.EMPTY;
-        effect(() => {
-            this.selectedInstance();
-            this.selectedFrame.set(1);
-            this.loading.set(true);
-        }, { allowSignalWrites: true })
-
-        effect(() => {
-            const frameCount = this.frameCount();
-            const fps = this.fps();
-
-            sub.unsubscribe();
-
-            if (frameCount === 1) {
-                return
-            }
-
-            sub = interval(fps / 60 * 1000)
-                .pipe(takeUntilDestroyed(destroyRef))
-                .subscribe(() => {
-                    let next = ((this.selectedFrame() + 1) % frameCount) + 1;
-                    this.selectedFrame.set(next);
-                })
-        })
-    }
     ngOnInit() {
         if (this.study.series?.length && this.study.series[0].instances?.length) {
             this.selectedInstance.set(this.study.series[0].instances[0])
