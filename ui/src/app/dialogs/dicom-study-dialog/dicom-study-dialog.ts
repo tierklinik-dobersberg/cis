@@ -1,12 +1,15 @@
 import { DatePipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, OnInit, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { lucideDownload, lucideExternalLink, lucideMail, lucideMoreVertical, lucideShare } from "@ng-icons/lucide";
 import { BrnDialogRef, injectBrnDialogContext } from "@spartan-ng/ui-dialog-brain";
+import { BrnMenuModule } from "@spartan-ng/ui-menu-brain";
 import { BrnTabsModule } from "@spartan-ng/ui-tabs-brain";
 import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { HlmDialogDescriptionDirective, HlmDialogFooterComponent, HlmDialogHeaderComponent, HlmDialogService, HlmDialogTitleDirective } from '@tierklinik-dobersberg/angular/dialog';
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
+import { HlmMenuModule } from "@tierklinik-dobersberg/angular/menu";
 import { ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmTableComponent, HlmTdComponent, HlmThComponent, HlmTrowComponent } from '@tierklinik-dobersberg/angular/table';
 import { HlmTabsModule } from "@tierklinik-dobersberg/angular/tabs";
@@ -40,10 +43,18 @@ export interface DicomStudyDialogContext {
         HlmIconModule,
         DicomImageUrlPipe,
         SortDicomTagsPipe,
-        DicomViewer
+        DicomViewer,
+        HlmMenuModule,
+        BrnMenuModule,
     ],
     providers: [
-        ...provideIcons({})
+        ...provideIcons({
+            lucideExternalLink,
+            lucideMoreVertical,
+            lucideShare,
+            lucideDownload,
+            lucideMail,
+        })
     ],
     templateUrl: './dicom-study-dialog.html',
     changeDetection: ChangeDetectionStrategy.OnPush,

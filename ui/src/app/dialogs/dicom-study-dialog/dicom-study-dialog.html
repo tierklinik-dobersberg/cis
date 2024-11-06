@@ -33,6 +33,74 @@
         <button hlmTabsTrigger="viewer">Viewer</button>
         <button hlmTabsTrigger="tags">Tag List</button>
       </hlm-tabs-list>
+
+      <button hlmBtn variant="secondary" size="icon" [brnMenuTriggerFor]="menu">
+        <hlm-icon name="lucideMoreVertical" />
+      </button>
+
+      <ng-template #menu>
+        <hlm-menu>
+          <hlm-menu-label>
+            Aktionen
+          </hlm-menu-label>
+          <hlm-menu-separator />
+
+          <hlm-menu-group>
+            <button hlmMenuItem>
+              <hlm-icon name="lucideExternalLink" hlmMenuIcon /> 
+              Im Viewer öffnen
+            </button>
+
+            <button hlmMenuItem [brnMenuTriggerFor]="downloadMenu">
+              <hlm-icon name="lucideDownload" hlmMenuIcon /> 
+              Download
+            </button>
+
+            <button hlmMenuItem [brnMenuTriggerFor]="shareMenu">
+              <hlm-icon name="lucideShare" hlmMenuIcon /> 
+              Teilen
+            </button>
+
+            <ng-template #downloadMenu>
+              <hlm-sub-menu>
+                <hlm-menu-label>
+                  Downloaden als ..
+                </hlm-menu-label>
+                <hlm-menu-separator />
+
+                <button hlmMenuItem>
+                  Bild
+                </button>
+
+                <button hlmMenuItem>
+                  DICOM Datei
+                </button>
+              </hlm-sub-menu>
+            </ng-template>
+
+            <ng-template #shareMenu>
+              <hlm-sub-menu>
+                <hlm-menu-label>
+                  Teilen als ..
+                </hlm-menu-label>
+                <hlm-menu-separator />
+
+                <button hlmMenuItem>
+                  <hlm-icon name="lucideMail" hlmMenuIcon />
+                  E-Mail
+                </button>
+
+                <button hlmMenuItem>
+                  <hlm-icon name="lucideExernalLink" hlmMenuIcon />
+                  Link
+                </button>
+              </hlm-sub-menu>
+            </ng-template>
+            
+          </hlm-menu-group>
+        </hlm-menu>
+
+      </ng-template>
     </div>
 
     <div
