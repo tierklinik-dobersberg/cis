@@ -17,7 +17,7 @@ RUN echo "Building frontend in configuration $CONFIGURATION"
 RUN npx ng build --configuration $CONFIGURATION && rm -r .angular/cache node_modules
 
 # Build cisd
-FROM golang:1.20 as build
+FROM golang:1.23 as build
 
 RUN update-ca-certificates
 
