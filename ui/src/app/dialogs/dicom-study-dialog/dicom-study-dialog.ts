@@ -57,8 +57,9 @@ export class AppDicomStudyDialog implements OnInit {
     private readonly _dialogRef = inject<BrnDialogRef<unknown>>(BrnDialogRef);
     private readonly _dialogContext = injectBrnDialogContext<DicomStudyDialogContext>();
 
-    protected selectedInstance = signal<Instance | null>(null)
-    protected selectedFrame = signal(1);
+    protected readonly selectedInstance = signal<Instance | null>(null)
+    protected readonly selectedFrame = signal(1);
+    protected readonly loading = signal(true);
 
     protected frameCount = computed(() => {
         const instance = this.selectedInstance();
@@ -87,8 +88,9 @@ export class AppDicomStudyDialog implements OnInit {
 
         let sub = Subscription.EMPTY;
         effect(() => {
-            const instance = this.selectedInstance();
+            this.selectedInstance();
             this.selectedFrame.set(1);
+            this.loading.set(true);
         }, { allowSignalWrites: true })
 
         effect(() => {
