@@ -25,6 +25,7 @@ import { toast } from 'ngx-sonner';
 import { filter, interval, merge, startWith, tap } from 'rxjs';
 import { AppDicomStudyDialog } from 'src/app/dialogs/dicom-study-dialog';
 import { StudyService } from 'src/app/pages/welcome/study-card/study.service';
+import { DicomImageUrlPipe } from 'src/app/pipes/dicom-instance-preview.pipe';
 import { environment } from 'src/environments/environment';
 
 interface PreviewURL {
@@ -33,43 +34,10 @@ interface PreviewURL {
 }
 
 class StudyModel extends Study {
-  public readonly previewUrls: PreviewURL[];
-
-  constructor(study: PartialMessage<Study>, previewUrls?: PreviewURL[]) {
+  constructor(study: PartialMessage<Study>) {
     super(study);
 
-    this.previewUrls = previewUrls || [];
     this.ownerName = this.ownerName.replaceAll(', ERROR', '');
-
-    if (!previewUrls) {
-      this.series?.forEach(series =>
-        series.instances?.forEach(instance => {
-          /*
-                            if (instance.thumbnail) {
-                                const blob = new Blob([instance.thumbnail.data], {
-                                    type: instance.thumbnail.mime,
-                                })
-
-                                const url = URL.createObjectURL(blob)
-                                this.previewUrls.push(url)
-                            }
-                            */
-
-          let url = instance.tags.find(t => t.name === 'RetrieveURL');
-          if (!url?.value?.length) {
-            url = instance.tags.find(t => t.name === 'RetrieveURI');
-          }
-
-          if (url?.value?.length) {
-            const first = url.value[0].toJson();
-            this.previewUrls.push({
-              url: first + '/rendered',
-              uid: instance.instanceUid,
-            });
-          }
-        })
-      );
-    }
   }
 }
 
@@ -78,7 +46,10 @@ class StudyModel extends Study {
   standalone: true,
   templateUrl: './dicom-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [HlmTableModule, ToDatePipe, DatePipe],
+  host: {
+    'class': 'block h-full'
+  },
+  imports: [HlmTableModule, ToDatePipe, DatePipe, DicomImageUrlPipe],
 })
 export class DicomListComponent {
   public readonly dateRange = input<[Date, Date] | null>(null);
@@ -187,14 +158,6 @@ export class DicomListComponent {
             const studies = this.studies() || [];
             this.studies.set(
               (response.studies || []).map(study => {
-                const existing = studies.findIndex(
-                  s => s.studyUid === study.studyUid
-                );
-                if (existing >= 0) {
-                  studies.splice(existing, 1);
-                  return new StudyModel(study, studies[existing].previewUrls);
-                }
-
                 return new StudyModel(study);
               })
             );

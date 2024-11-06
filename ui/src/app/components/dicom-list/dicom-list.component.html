@@ -24,17 +24,22 @@
       </hlm-td>
 
       <hlm-td class="flex flex-row gap-2 p-2">
-        @if (study.previewUrls?.length) {
-          @if (!layout.md()) {
+        @if (!layout.md()) {
+          @if (study.series?.[0].instances?.[0]) {
             <img
-              [attr.src]="study.previewUrls[0].url + '?viewport=70,70'"
+              [attr.src]="
+                study.series[0].instances[0]
+                  | dicomImageUrl: { width: 70, height: 70 }
+              "
               (click)="openInViewer(study)"
               class="aspect-square min-h-12 w-12 cursor-pointer" />
-          } @else {
-            @for (url of study.previewUrls; track url.uid) {
+          }
+        } @else {
+          @for (series of study.series; track series.seriesUid) {
+            @for (instance of series.instances; track instance.instanceUid) {
               <img
-                [attr.src]="url.url + '?viewport=70,70'"
-                (click)="openInViewer(study, url.uid)"
+                [attr.src]="instance | dicomImageUrl: { width: 70, height: 70 }"
+                (click)="openInViewer(study, instance.instanceUid)"
                 class="aspect-square min-h-12 w-12 cursor-pointer" />
             }
           }

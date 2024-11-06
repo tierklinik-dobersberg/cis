@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
 import { HlmCardDirective, HlmCardModule } from "@tierklinik-dobersberg/angular/card";
 import { addDays } from "date-fns";
 import { DicomListComponent } from "src/app/components/dicom-list";
@@ -18,10 +18,5 @@ import { DicomListComponent } from "src/app/components/dicom-list";
     ]
 })
 export class StudyCardComponent {
-    protected readonly range: [Date, Date] = (() => {
-        const now = new Date();
-        const from = addDays(now, -7)
-
-        return [from, now]
-    })()
+    protected readonly range = signal<[Date, Date]>([addDays(new Date, -7), new Date])
 }
