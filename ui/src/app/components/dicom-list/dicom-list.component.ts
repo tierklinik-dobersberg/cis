@@ -126,7 +126,7 @@ export class DicomListComponent {
           req.patientName = `*${patientName}*`;
         }
 
-        const ownerName = this.ownerName;
+        const ownerName = this.ownerName();
         if (ownerName) {
           req.ownerName = `*${ownerName}*`;
         }
