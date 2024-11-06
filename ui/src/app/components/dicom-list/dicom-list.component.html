@@ -41,7 +41,7 @@
             let index = $index;
             let last = $last
           ) {
-            @if ($index < 3) {
+            @if (index <= 3) {
               <img
                 [attr.src]="instance | dicomImageUrl: { width: 70, height: 70 }"
                 (click)="openInViewer(study, instance.instanceUid)"
