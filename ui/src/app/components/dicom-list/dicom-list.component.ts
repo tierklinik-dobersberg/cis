@@ -59,6 +59,7 @@ export class DicomListComponent {
   public readonly pagination = input<{ page: number; size: number } | null>(
     null
   );
+  public readonly limit = input<number>(3);
 
   private readonly client = injectOrthancClient();
   private readonly studyService = inject(StudyService);
