@@ -35,12 +35,19 @@
               class="aspect-square min-h-12 w-12 cursor-pointer" />
           }
         } @else {
-          @for (series of study.series; track series.seriesUid) {
-            @for (instance of series.instances; track instance.instanceUid) {
+          @for (
+            instance of study | dicomInstances;
+            track instance.instanceUid;
+            let index = $index;
+            let last = $last
+          ) {
+            @if ($index < 3) {
               <img
                 [attr.src]="instance | dicomImageUrl: { width: 70, height: 70 }"
                 (click)="openInViewer(study, instance.instanceUid)"
                 class="aspect-square min-h-12 w-12 cursor-pointer" />
+            } @else if (last) {
+              <span class="text-xs text-gray-700"> {{ index - 3 }} mehr </span>
             }
           }
         }

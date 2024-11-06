@@ -26,6 +26,7 @@ import { filter, interval, merge, startWith, tap } from 'rxjs';
 import { AppDicomStudyDialog } from 'src/app/dialogs/dicom-study-dialog';
 import { StudyService } from 'src/app/pages/welcome/study-card/study.service';
 import { DicomImageUrlPipe } from 'src/app/pipes/dicom-instance-preview.pipe';
+import { DicomInstancesPipe } from 'src/app/pipes/dicom-instances.pipe';
 import { environment } from 'src/environments/environment';
 
 interface PreviewURL {
@@ -49,7 +50,7 @@ class StudyModel extends Study {
   host: {
     'class': 'block h-full'
   },
-  imports: [HlmTableModule, ToDatePipe, DatePipe, DicomImageUrlPipe],
+  imports: [HlmTableModule, ToDatePipe, DatePipe, DicomImageUrlPipe, DicomInstancesPipe],
 })
 export class DicomListComponent {
   public readonly dateRange = input<[Date, Date] | null>(null);
