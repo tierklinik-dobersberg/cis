@@ -97,7 +97,7 @@ export class DicomListComponent {
         startWith(0),
         takeUntilDestroyed(),
         debounceTime(10),
-        filter(() => !currentUser()),
+        filter(() => !!currentUser()),
       )
       .subscribe((event) => {
         const req: PartialMessage<ListStudiesRequest> = {
