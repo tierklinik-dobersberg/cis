@@ -1,9 +1,9 @@
 @if (instance(); as instance) {
   <img
-    [attr.hidden]="loading()"
     (loadstart)="loading.set(true)"
     (load)="loading.set(false)"
     [attr.src]="instance | dicomImageUrl: { frame: selectedFrame() }"
+    [class.hidden]="loading()"
     class="!h-full max-h-full !w-full max-w-full flex-grow object-contain" />
 
   @if (loading()) {
