@@ -1,10 +1,10 @@
 import { DatePipe } from '@angular/common';
 import {
-    ChangeDetectionStrategy,
-    Component,
-    inject,
-    input,
-    signal,
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  input,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { PartialMessage } from '@bufbuild/protobuf';
@@ -17,12 +17,12 @@ import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { Month } from '@tierklinik-dobersberg/apis/common/v1';
 import {
-    ListStudiesRequest,
-    ListStudiesResponse,
-    Study,
+  ListStudiesRequest,
+  ListStudiesResponse,
+  Study,
 } from '@tierklinik-dobersberg/apis/orthanc_bridge/v1';
 import { toast } from 'ngx-sonner';
-import { filter, interval, merge, startWith } from 'rxjs';
+import { filter, interval, merge, startWith, tap } from 'rxjs';
 import { AppDicomStudyDialog } from 'src/app/dialogs/dicom-study-dialog';
 import { StudyService } from 'src/app/pages/welcome/study-card/study.service';
 import { environment } from 'src/environments/environment';
@@ -78,9 +78,6 @@ class StudyModel extends Study {
   standalone: true,
   templateUrl: './dicom-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: {
-    class: '@container flex flex-col',
-  },
   imports: [HlmTableModule, ToDatePipe, DatePipe],
 })
 export class DicomListComponent {
@@ -124,11 +121,12 @@ export class DicomListComponent {
       toObservable(this.ownerName)
     )
       .pipe(
+        tap(() => console.log("study reload triggered")),
         startWith(0),
         takeUntilDestroyed(),
         filter(() => !inProgress || !currentUser())
       )
-      .subscribe(() => {
+      .subscribe((event) => {
         const req: PartialMessage<ListStudiesRequest> = {
           enableFuzzyMatching: true,
         };
@@ -171,6 +169,8 @@ export class DicomListComponent {
             pageSize: pagination.size,
           };
         }
+
+        console.log("loading dicom studies", req, "trigger", event)
 
         inProgress = true;
         this.client
