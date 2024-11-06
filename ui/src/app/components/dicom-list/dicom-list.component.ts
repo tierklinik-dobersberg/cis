@@ -22,7 +22,7 @@ import {
   Study,
 } from '@tierklinik-dobersberg/apis/orthanc_bridge/v1';
 import { toast } from 'ngx-sonner';
-import { filter, interval, merge, startWith, tap } from 'rxjs';
+import { debounceTime, filter, interval, merge, startWith, tap } from 'rxjs';
 import { AppDicomStudyDialog } from 'src/app/dialogs/dicom-study-dialog';
 import { StudyService } from 'src/app/pages/welcome/study-card/study.service';
 import { DicomImageUrlPipe } from 'src/app/pipes/dicom-instance-preview.pipe';
@@ -81,8 +81,8 @@ export class DicomListComponent {
   }
 
   constructor() {
-    let inProgress = false;
     const currentUser = injectCurrentProfile();
+    let abrt: AbortController | null = null;
 
     merge(
       interval(5 * 60 * 1000),
@@ -96,7 +96,8 @@ export class DicomListComponent {
         tap(() => console.log("study reload triggered")),
         startWith(0),
         takeUntilDestroyed(),
-        filter(() => !inProgress || !currentUser())
+        debounceTime(10),
+        filter(() => !currentUser()),
       )
       .subscribe((event) => {
         const req: PartialMessage<ListStudiesRequest> = {
@@ -131,6 +132,11 @@ export class DicomListComponent {
           req.ownerName = `*${ownerName}*`;
         }
 
+        if (Object.keys(req).length === 1) {
+          return;
+        }
+
+
         const pagination = this.pagination();
         if (pagination) {
           req.pagination = {
@@ -144,9 +150,14 @@ export class DicomListComponent {
 
         console.log("loading dicom studies", req, "trigger", event)
 
-        inProgress = true;
+        if (abrt) {
+          abrt.abort()
+        }
+
+        abrt = new AbortController();
+
         this.client
-          .listStudies(req)
+          .listStudies(req, {signal: abrt.signal})
           .catch(err => {
             const cerr = ConnectError.from(err);
             toast.error('DICOM Studies failed to load', {
@@ -163,7 +174,7 @@ export class DicomListComponent {
               })
             );
           })
-          .finally(() => (inProgress = false));
+          .finally(() => abrt = null);
       });
   }
 }
