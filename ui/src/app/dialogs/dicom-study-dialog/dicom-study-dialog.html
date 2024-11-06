@@ -54,11 +54,13 @@
             <button hlmMenuItem [brnMenuTriggerFor]="downloadMenu">
               <hlm-icon name="lucideDownload" hlmMenuIcon /> 
               Download
+              <hlm-menu-item-sub-indicator />
             </button>
 
             <button hlmMenuItem [brnMenuTriggerFor]="shareMenu">
               <hlm-icon name="lucideShare" hlmMenuIcon /> 
               Teilen
+              <hlm-menu-item-sub-indicator />
             </button>
 
             <ng-template #downloadMenu>
@@ -68,11 +70,11 @@
                 </hlm-menu-label>
                 <hlm-menu-separator />
 
-                <button hlmMenuItem>
+                <button hlmMenuItem inset disabled>
                   Bild
                 </button>
 
-                <button hlmMenuItem>
+                <button hlmMenuItem inset disabled>
                   DICOM Datei
                 </button>
               </hlm-sub-menu>
@@ -85,13 +87,13 @@
                 </hlm-menu-label>
                 <hlm-menu-separator />
 
-                <button hlmMenuItem>
+                <button hlmMenuItem disabled>
                   <hlm-icon name="lucideMail" hlmMenuIcon />
                   E-Mail
                 </button>
 
-                <button hlmMenuItem>
-                  <hlm-icon name="lucideExernalLink" hlmMenuIcon />
+                <button hlmMenuItem disabled>
+                  <hlm-icon name="lucideExternalLink" hlmMenuIcon />
                   Link
                 </button>
               </hlm-sub-menu>
