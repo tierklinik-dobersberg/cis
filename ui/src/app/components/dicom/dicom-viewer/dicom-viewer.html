@@ -1,5 +1,6 @@
 @if (instance(); as instance) {
   <img
+    [attr.hidden]="loading()"
     (loadstart)="loading.set(true)"
     (load)="loading.set(false)"
     [attr.src]="instance | dicomImageUrl: { frame: selectedFrame() }"

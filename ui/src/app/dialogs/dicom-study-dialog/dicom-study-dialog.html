@@ -28,14 +28,16 @@
   <hlm-tabs
     tab="viewer"
     class="flex h-full min-h-[500px] w-full flex-grow flex-col gap-2">
-    <hlm-tabs-list class="grid w-full grid-cols-2">
-      <button hlmTabsTrigger="viewer">Viewer</button>
-      <button hlmTabsTrigger="tags">Tag List</button>
-    </hlm-tabs-list>
+    <div class="flex flex-row justify-between">
+      <hlm-tabs-list class="grid grid-cols-2">
+        <button hlmTabsTrigger="viewer">Viewer</button>
+        <button hlmTabsTrigger="tags">Tag List</button>
+      </hlm-tabs-list>
+    </div>
 
     <div
       hlmTabsContent="viewer"
-      class="flex-grow w-full h-full p-2 overflow-auto bg-slate-700">
+      class="flex-grow w-full h-full p-2 overflow-auto">
       <dicom-viewer [study]="study" [instance]="selectedInstance()" />
     </div>
 

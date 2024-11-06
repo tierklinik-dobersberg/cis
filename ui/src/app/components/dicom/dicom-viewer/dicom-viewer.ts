@@ -10,7 +10,7 @@ import { DicomImageUrlPipe } from "src/app/pipes/dicom-instance-preview.pipe";
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './dicom-viewer.html',
     host: {
-        'class': 'block w-full h-full'
+        'class': 'block w-full h-full bg-black'
     },
     imports: [
         DicomImageUrlPipe
