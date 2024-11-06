@@ -188,7 +188,7 @@ func setupAPI(app *app.App, grp *echo.Echo) {
 			logger.Fatalf(context.Background(), err.Error())
 		}
 
-		grp.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		grp.Use(middleware.Gzip(), middleware.StaticWithConfig(middleware.StaticConfig{
 			Root:       "/",
 			Index:      "index.html",
 			HTML5:      true,
