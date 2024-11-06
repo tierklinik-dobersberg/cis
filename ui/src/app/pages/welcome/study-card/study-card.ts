@@ -9,7 +9,7 @@ import { DicomListComponent } from "src/app/components/dicom-list";
     templateUrl: './study-card.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
     host: {
-        class: '@container flex flex-col',
+        class: '@container flex flex-col max-h-[calc(100dvh-80px)]',
     },
     hostDirectives: [HlmCardDirective],
     imports: [
