@@ -72,6 +72,7 @@ export class AppDicomExportStudyDialog implements OnInit {
     protected exportDicom = model(true);
     protected exportPNG = model(true)
     protected exportJPEG = model(false);
+    protected exportAVI = model(true);
 
     protected readonly invalid = computed(() => {
         const instances = this.instances()
@@ -82,12 +83,27 @@ export class AppDicomExportStudyDialog implements OnInit {
         return !(instances.length > 0 && (dicom || png || jpeg))
     })
 
+    protected exporting = signal(false);
+
+    protected showAvi = computed(() => {
+        const instances = this.instances();
+
+        return instances.some(instance => {
+            const tag = instance.tags.find(t => t.name === 'NumberOfFrames')
+            if (!!tag) {
+                return true
+            }
+
+            return false
+        })
+    })
+
     ngOnInit(): void {
         const instances = [];
         this.study
-            .series?.forEach(series => series.instances?.forEach(instance => 
+            .series?.forEach(series => series.instances?.forEach(instance =>  {
                 instances.push(new InstanceModel(instance))
-            ));
+            }));
 
         this.instances.set(instances);
     }
@@ -100,7 +116,9 @@ export class AppDicomExportStudyDialog implements OnInit {
     }
 
     protected export() {
-        const kinds: ('png' | 'dicom' | 'jpeg')[] = [];
+        this.exporting.set(true);
+
+        const kinds: ('png' | 'dicom' | 'jpeg' | 'avi')[] = [];
 
         if (this.exportDicom()) {
             kinds.push('dicom')
@@ -112,6 +130,10 @@ export class AppDicomExportStudyDialog implements OnInit {
 
         if (this.exportPNG()) {
             kinds.push('png')
+        }
+
+        if (this.exportAVI() && this.showAvi())  {
+            kinds.push('avi')
         }
 
         this.studyService
@@ -126,6 +148,7 @@ export class AppDicomExportStudyDialog implements OnInit {
                     description: cerr.message
                 })
             })
+            .finally(() => this.exporting.set(false))
     }
 
     protected close() {

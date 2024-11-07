@@ -49,8 +49,12 @@
 </div>
 
 <hlm-dialog-footer>
-  <button hlmBtn variant="default" [disabled]="invalid()" (click)="export()">
-    Exportieren
+  <button
+    hlmBtn
+    variant="default"
+    [disabled]="invalid() || exporting()"
+    (click)="export()">
+    {{ exporting() ? 'Export wird erstellt' : 'Exportieren' }}
   </button>
 
   <button hlmBtn variant="secondary" (click)="close()">Schließen</button>
