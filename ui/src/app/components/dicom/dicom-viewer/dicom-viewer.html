@@ -7,12 +7,21 @@
     class="!h-full max-h-full !w-full max-w-full flex-grow object-contain" />
 
   @if (loading()) {
-    <span class="flex items-center justify-center w-full font-medium text-white"
+    <span class="flex w-full items-center justify-center font-medium text-white"
       >Bild wird geladen ...</span
     >
   }
 } @else {
-  <span class="flex flex-row items-center justify-center h-32">
+  <span class="flex h-32 flex-row items-center justify-center">
     Kein Bild ausgewählt
   </span>
+}
+
+@if (frameCount() > 1) {
+  <button hlmBtn variant="secondary" size="icon">
+    <hlm-icon
+      (click)="playing.set(!playing())"
+      [name]="playing() ? 'lucidePause' : 'lucidePlay'"
+      class="absolute bottom-2 right-2" />
+  </button>
 }

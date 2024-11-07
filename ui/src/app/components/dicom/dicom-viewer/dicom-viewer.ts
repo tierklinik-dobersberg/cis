@@ -1,7 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, input, model, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { provideIcons } from "@ng-icons/core";
+import { lucidePause, lucidePlay } from "@ng-icons/lucide";
+import { HlmButtonModule } from "@tierklinik-dobersberg/angular/button";
+import { HlmIconModule } from "@tierklinik-dobersberg/angular/icon";
 import { Instance, Study } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
-import { Subscription, interval } from "rxjs";
+import { filter, interval, Subscription } from "rxjs";
 import { DicomImageUrlPipe } from "src/app/pipes/dicom-instance-preview.pipe";
 
 @Component({
@@ -10,17 +14,26 @@ import { DicomImageUrlPipe } from "src/app/pipes/dicom-instance-preview.pipe";
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './dicom-viewer.html',
     host: {
-        'class': 'block w-full h-full bg-black'
+        'class': 'block w-full h-full bg-black relative'
     },
     imports: [
-        DicomImageUrlPipe
+        DicomImageUrlPipe,
+        HlmButtonModule,
+        HlmIconModule,
     ],
+    providers: [
+        provideIcons({
+            lucidePlay,
+            lucidePause
+        })
+    ]
 })
 export class DicomViewer {
     public readonly study = input.required<Study>();
     public readonly instance = input.required<Instance | null>();
 
     public readonly loading = model(false);
+    public readonly playing = signal(true);
 
     protected frameCount = computed(() => {
         const instance = this.instance();
@@ -57,7 +70,10 @@ export class DicomViewer {
             }
 
             sub = interval(fps / 60 * 1000)
-                .pipe(takeUntilDestroyed(destroyRef))
+                .pipe(
+                    takeUntilDestroyed(destroyRef),
+                    filter(() => this.playing())
+                )
                 .subscribe(() => {
                     let next = ((this.selectedFrame() + 1) % frameCount) + 1;
                     this.selectedFrame.set(next);
