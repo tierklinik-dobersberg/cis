@@ -20,7 +20,7 @@ export interface DicomExportStudyDialogContext {
 }
 
 export class InstanceModel extends Instance {
-    public readonly selected = signal(false);
+    public readonly selected = signal(true);
 }
 
 @Component({
@@ -86,6 +86,8 @@ export class AppDicomExportStudyDialog implements OnInit {
             .series?.forEach(series => series.instances?.forEach(instance => 
                 instances.push(new InstanceModel(instance))
             ));
+
+        this.instances.set(instances);
     }
 
     static open(service: HlmDialogService, ctx: DicomExportStudyDialogContext): BrnDialogRef<AppDicomExportStudyDialog> {
