@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { inject, Injectable } from '@angular/core';
 import { injectOrthancClient } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
@@ -19,6 +20,7 @@ export class StudyService {
   protected readonly dialogService = inject(HlmDialogService)
   protected readonly orthancBridgeClient = injectOrthancClient();
 
+  private readonly document = inject(DOCUMENT);
   private readonly instanceReceived$ = new Subject<InstanceReceivedEvent>();
   private readonly seenStudies = new Set<string>();
 
@@ -62,12 +64,19 @@ export class StudyService {
         types
       })
       .then(response => {
-        console.log("download link: ", response.downloadLink)
-
-        window.open(response.downloadLink, "_blank", "popup,noopener")
-
+        this.downloadLink(response.downloadLink)
         return response
       })
+  }
+
+  private downloadLink(link: string) {
+    const a = this.document.createElement('a')
+    a.href = link
+
+    this.document.appendChild(a)
+    a.click()
+
+    this.document.removeChild(a)
   }
 
   constructor() {
