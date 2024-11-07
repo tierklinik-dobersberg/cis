@@ -1,3 +1,4 @@
+import { NgClass } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, model, OnInit, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ConnectError } from "@connectrpc/connect";
@@ -36,7 +37,8 @@ export class InstanceModel extends Instance {
         HlmCheckboxModule,
         HlmLabelDirective,
         SortDicomTagsPipe,
-        FormsModule
+        FormsModule,
+        NgClass
     ],
     providers: [
         ...provideIcons({
