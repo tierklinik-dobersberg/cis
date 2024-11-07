@@ -35,7 +35,12 @@
       </hlm-tabs-list>
 
       <div class="flex flex-row items-center">
-        <button hlmBtn variant="default" size="icon" class="rounded-r-none">
+        <button
+          hlmBtn
+          variant="secondary"
+          size="icon"
+          class="rounded-r-none border-r border-gray-300"
+          (click)="studyService.exportStudy(study)">
           <hlm-icon name="lucideDownload" />
         </button>
         <button
@@ -43,8 +48,7 @@
           variant="secondary"
           size="icon"
           class="rounded-l-none"
-          [brnMenuTriggerFor]="menu"
-          (click)="studyService.exportStudy(study)">
+          [brnMenuTriggerFor]="menu">
           <hlm-icon name="lucideMoreVertical" />
         </button>
       </div>

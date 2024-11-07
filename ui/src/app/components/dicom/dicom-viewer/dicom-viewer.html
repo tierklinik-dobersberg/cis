@@ -18,11 +18,7 @@
 }
 
 @if (frameCount() > 1) {
-  <button
-    hlmBtn
-    variant="ghost"
-    size="icon"
-    class="text-white transition-colors hover:bg-white hover:text-black">
+  <button hlmBtn variant="ghost" size="icon" class="text-white">
     <hlm-icon
       (click)="playing.set(!playing())"
       [name]="playing() ? 'lucidePause' : 'lucidePlay'"
