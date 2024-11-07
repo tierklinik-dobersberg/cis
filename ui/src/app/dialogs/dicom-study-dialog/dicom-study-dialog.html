@@ -34,9 +34,20 @@
         <button hlmTabsTrigger="tags">Tag List</button>
       </hlm-tabs-list>
 
-      <button hlmBtn variant="secondary" size="icon" [brnMenuTriggerFor]="menu">
-        <hlm-icon name="lucideMoreVertical" />
-      </button>
+      <div class="flex flex-row items-center">
+        <button hlmBtn variant="default" size="icon" class="rounded-r-none">
+          <hlm-icon name="lucideDownload" />
+        </button>
+        <button
+          hlmBtn
+          variant="secondary"
+          size="icon"
+          class="rounded-l-none"
+          [brnMenuTriggerFor]="menu"
+          (click)="studyService.exportStudy(study)">
+          <hlm-icon name="lucideMoreVertical" />
+        </button>
+      </div>
 
       <ng-template #menu>
         <hlm-menu class="min-w-56">
