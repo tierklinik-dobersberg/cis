@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { injectOrthancClient } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import {
+  DownloadType,
   InstanceReceivedEvent,
   Study,
 } from '@tierklinik-dobersberg/apis/orthanc_bridge/v1';
@@ -37,11 +38,28 @@ export class StudyService {
     });
   }
 
-  public downloadStudy(studyUid: string, instanceUids: string[] | null = null, renderType: 'png' | 'jpeg' | 'dicom' = 'png') {
+  public downloadStudy(studyUid: string, instanceUids: string[] | null = null, renderType: ('png' | 'jpeg' | 'dicom')[] = ['png']) {
+    const types: DownloadType[] = renderType.map(k => {
+      if (k === 'png') {
+        return DownloadType.PNG
+      }
+
+      if (k === 'jpeg') {
+        return DownloadType.JPEG
+      }
+
+      if (k === 'dicom') {
+        return DownloadType.DICOM
+      }
+
+      return DownloadType.DOWNLOAD_TYPE_UNSPECIFIED
+    })
+
     return this.orthancBridgeClient
       .downloadStudy({
         studyUid,
         instanceUids,
+        types
       })
       .then(response => {
         console.log("download link: ", response.downloadLink)

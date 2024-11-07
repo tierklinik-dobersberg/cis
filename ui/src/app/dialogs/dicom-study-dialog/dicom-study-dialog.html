@@ -56,9 +56,18 @@
               Im Viewer öffnen
             </button>
 
+            <button
+              hlmMenuItem
+              (click)="
+                studyService.downloadStudy(study.studyUid, [], ['png', 'dicom'])
+              ">
+              <hlm-icon name="lucideDownload" hlmMenuIcon />
+              Gesamte Studie herunterladen
+            </button>
+
             <button hlmMenuItem [brnMenuTriggerFor]="downloadMenu">
               <hlm-icon name="lucideDownload" hlmMenuIcon />
-              Download
+              Bild herunterladen
               <hlm-menu-item-sub-indicator />
             </button>
 
@@ -76,11 +85,44 @@
                 <button
                   hlmMenuItem
                   inset
-                  (click)="studyService.downloadStudy(study.studyUid)">
+                  [disabled]="!selectedInstance()"
+                  (click)="
+                    studyService.downloadStudy(
+                      study.studyUid,
+                      [selectedInstance().instanceUid],
+                      ['png']
+                    )
+                  ">
                   PNG
                 </button>
 
-                <button hlmMenuItem inset disabled>DICOM Datei</button>
+                <button
+                  hlmMenuItem
+                  inset
+                  [disabled]="!selectedInstance()"
+                  (click)="
+                    studyService.downloadStudy(
+                      study.studyUid,
+                      [selectedInstance().instanceUid],
+                      ['jpeg']
+                    )
+                  ">
+                  JPEG
+                </button>
+
+                <button
+                  hlmMenuItem
+                  inset
+                  [disabled]="!selectedInstance()"
+                  (click)="
+                    studyService.downloadStudy(
+                      study.studyUid,
+                      [selectedInstance().instanceUid],
+                      ['dicom']
+                    )
+                  ">
+                  DICOM
+                </button>
               </hlm-sub-menu>
             </ng-template>
 
