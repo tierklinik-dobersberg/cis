@@ -73,10 +73,10 @@ export class StudyService {
     const a = this.document.createElement('a')
     a.href = link
 
-    this.document.appendChild(a)
+    this.document.body.appendChild(a)
     a.click()
 
-    this.document.removeChild(a)
+    this.document.body.removeChild(a)
   }
 
   constructor() {
