@@ -39,7 +39,7 @@
       </button>
 
       <ng-template #menu>
-        <hlm-menu class="w-56">
+        <hlm-menu class="min-w-56">
           <hlm-menu-label> Aktionen </hlm-menu-label>
           <hlm-menu-separator />
 
@@ -62,7 +62,7 @@
                 studyService.downloadStudy(study.studyUid, [], ['png', 'dicom'])
               ">
               <hlm-icon name="lucideDownload" hlmMenuIcon />
-              Gesamte Studie herunterladen
+              Studie herunterladen
             </button>
 
             <button hlmMenuItem [brnMenuTriggerFor]="downloadMenu">
