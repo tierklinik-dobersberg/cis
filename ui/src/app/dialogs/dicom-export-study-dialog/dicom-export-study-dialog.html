@@ -1,0 +1,47 @@
+<hlm-dialog-header>
+  <h3 hlmDialogTitle>DICOM Studie exportieren</h3>
+</hlm-dialog-header>
+
+<div class="flex flex-col gap-4 p-2">
+  <div class="flex flex-col gap-2">
+    <label hlmLabel> Welche Bilder sollen exportiert werden? </label>
+
+    <ol class="flex w-full flex-row gap-2 overflow-auto">
+      @for (instance of instances(); track instance.instanceUid) {
+        <img
+          role="button"
+          [attr.src]="instance | dicomImageUrl: { width: 70, height: 70 }"
+          (click)="instance.selected.set(!instance.selected())"
+          class="aspect-auto h-16 w-16 cursor-pointer border border-transparent object-contain hover:border-sky-600"
+          [class.border-sky-800]="instance.selected()" />
+      }
+    </ol>
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <label hlmLabel> Was möchtest du exportieren? </label>
+
+    <label hlmLabel class="flex items-center">
+      <hlm-checkbox [(ngModel)]="exportDicom" class="mr-2" />
+      DICOM
+    </label>
+
+    <label hlmLabel class="flex items-center">
+      <hlm-checkbox [(ngModel)]="exportPNG" class="mr-2" />
+      PNG
+    </label>
+
+    <label hlmLabel class="flex items-center">
+      <hlm-checkbox [(ngModel)]="exportJPEG" class="mr-2" />
+      JPEG
+    </label>
+  </div>
+</div>
+
+<hlm-dialog-footer>
+  <button hlmBtn variant="default" [disabled]="invalid()" (click)="export()">
+    Exportieren
+  </button>
+
+  <button hlmBtn variant="secondary" (click)="close()">Schließen</button>
+</hlm-dialog-footer>

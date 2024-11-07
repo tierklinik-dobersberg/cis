@@ -58,11 +58,7 @@
 
             <hlm-menu-separator />
 
-            <button
-              hlmMenuItem
-              (click)="
-                studyService.downloadStudy(study.studyUid, [], ['png', 'dicom'])
-              ">
+            <button hlmMenuItem (click)="studyService.exportStudy(study)">
               <hlm-icon name="lucideDownload" hlmMenuIcon />
               Studie herunterladen
             </button>

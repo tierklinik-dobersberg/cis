@@ -8,6 +8,7 @@ import {
   Study,
 } from '@tierklinik-dobersberg/apis/orthanc_bridge/v1';
 import { Subject } from 'rxjs';
+import { AppDicomExportStudyDialog } from 'src/app/dialogs/dicom-export-study-dialog';
 import { AppDicomStudyDialog } from 'src/app/dialogs/dicom-study-dialog';
 import { EventService } from 'src/app/services/event.service';
 import { environment } from 'src/environments/environment';
@@ -38,6 +39,10 @@ export class StudyService {
     AppDicomStudyDialog.open(this.dialogService, {
       study,
     });
+  }
+
+  public exportStudy(study: Study) {
+    AppDicomExportStudyDialog.open(this.dialogService, {study})
   }
 
   public downloadStudy(studyUid: string, instanceUids: string[] | null = null, renderType: ('png' | 'jpeg' | 'dicom')[] = ['png']) {
