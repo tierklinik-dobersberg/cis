@@ -11,9 +11,9 @@
 </hlm-dialog-header>
 
 <div
-  class="flex flex-row items-start justify-start w-full h-full max-h-full gap-4 p-4 overflow-hidden">
+  class="flex h-full max-h-full w-full flex-row items-start justify-start gap-4 overflow-hidden p-4">
   <div
-    class="flex flex-col flex-grow-0 flex-shrink-0 w-32 h-full gap-2 p-2 overflow-auto border-r border-border">
+    class="flex h-full w-32 flex-shrink-0 flex-grow-0 flex-col gap-2 overflow-auto border-r border-border p-2">
     @for (series of study.series; track series.seriesUid) {
       @for (instance of series.instances; track instance.instanceUid) {
         <img
@@ -40,51 +40,48 @@
 
       <ng-template #menu>
         <hlm-menu class="w-56">
-          <hlm-menu-label>
-            Aktionen
-          </hlm-menu-label>
+          <hlm-menu-label> Aktionen </hlm-menu-label>
           <hlm-menu-separator />
 
           <hlm-menu-group>
-            <button hlmMenuItem>
-              <hlm-icon name="lucideExternalLink" hlmMenuIcon /> 
+            <button
+              hlmMenuItem
+              (click)="
+                studyService.openInViewer(
+                  study,
+                  selectedInstance()?.instanceUid
+                )
+              ">
+              <hlm-icon name="lucideExternalLink" hlmMenuIcon />
               Im Viewer öffnen
             </button>
 
             <button hlmMenuItem [brnMenuTriggerFor]="downloadMenu">
-              <hlm-icon name="lucideDownload" hlmMenuIcon /> 
+              <hlm-icon name="lucideDownload" hlmMenuIcon />
               Download
               <hlm-menu-item-sub-indicator />
             </button>
 
             <button hlmMenuItem [brnMenuTriggerFor]="shareMenu">
-              <hlm-icon name="lucideShare" hlmMenuIcon /> 
+              <hlm-icon name="lucideShare" hlmMenuIcon />
               Teilen
               <hlm-menu-item-sub-indicator />
             </button>
 
             <ng-template #downloadMenu>
               <hlm-sub-menu class="w-56">
-                <hlm-menu-label>
-                  Downloaden als ..
-                </hlm-menu-label>
+                <hlm-menu-label> Downloaden als .. </hlm-menu-label>
                 <hlm-menu-separator />
 
-                <button hlmMenuItem inset disabled>
-                  Bild
-                </button>
+                <button hlmMenuItem inset disabled>Bild</button>
 
-                <button hlmMenuItem inset disabled>
-                  DICOM Datei
-                </button>
+                <button hlmMenuItem inset disabled>DICOM Datei</button>
               </hlm-sub-menu>
             </ng-template>
 
             <ng-template #shareMenu>
               <hlm-sub-menu class="w-56">
-                <hlm-menu-label>
-                  Teilen als ..
-                </hlm-menu-label>
+                <hlm-menu-label> Teilen als .. </hlm-menu-label>
                 <hlm-menu-separator />
 
                 <button hlmMenuItem disabled>
@@ -98,20 +95,16 @@
                 </button>
               </hlm-sub-menu>
             </ng-template>
-            
           </hlm-menu-group>
         </hlm-menu>
-
       </ng-template>
     </div>
 
-    <div
-      hlmTabsContent="viewer"
-      class="flex-grow w-full h-full overflow-auto">
+    <div hlmTabsContent="viewer" class="h-full w-full flex-grow overflow-auto">
       <dicom-viewer [study]="study" [instance]="selectedInstance()" />
     </div>
 
-    <div hlmTabsContent="tags" class="flex-grow w-full overflow-auto">
+    <div hlmTabsContent="tags" class="w-full flex-grow overflow-auto">
       @if (selectedInstance(); as instance) {
         <hlm-table>
           @for (tag of instance.tags | sortDicomTags; track tag.tag) {
@@ -131,7 +124,7 @@
           }
         </hlm-table>
       } @else {
-        <span class="flex flex-row items-center justify-center h-32">
+        <span class="flex h-32 flex-row items-center justify-center">
           Kein Bild ausgewählt
         </span>
       }

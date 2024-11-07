@@ -1,6 +1,5 @@
 import { DatePipe } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, OnInit, signal } from "@angular/core";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from "@angular/core";
 import { lucideDownload, lucideExternalLink, lucideMail, lucideMoreVertical, lucideShare } from "@ng-icons/lucide";
 import { BrnDialogRef, injectBrnDialogContext } from "@spartan-ng/ui-dialog-brain";
 import { BrnMenuModule } from "@spartan-ng/ui-menu-brain";
@@ -14,8 +13,8 @@ import { ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmTableComponent, HlmTdComponent, HlmThComponent, HlmTrowComponent } from '@tierklinik-dobersberg/angular/table';
 import { HlmTabsModule } from "@tierklinik-dobersberg/angular/tabs";
 import { Instance, Study } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
-import { interval, Subscription } from "rxjs";
 import { DicomViewer } from "src/app/components/dicom/dicom-viewer";
+import { StudyService } from "src/app/components/dicom/study.service";
 import { DicomImageUrlPipe } from "src/app/pipes/dicom-instance-preview.pipe";
 import { SortDicomTagsPipe } from "src/app/pipes/sort-dicom-tags.pipe";
 
@@ -70,6 +69,7 @@ export class AppDicomStudyDialog implements OnInit {
     private readonly _dialogRef = inject<BrnDialogRef<unknown>>(BrnDialogRef);
     private readonly _dialogContext = injectBrnDialogContext<DicomStudyDialogContext>();
 
+    protected readonly studyService = inject(StudyService)
     protected readonly selectedInstance = signal<Instance | null>(null)
 
     protected study = this._dialogContext.study;

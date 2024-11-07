@@ -11,7 +11,6 @@ import { PartialMessage } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
 import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { injectOrthancClient } from '@tierklinik-dobersberg/angular/connect';
-import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
@@ -23,11 +22,9 @@ import {
 } from '@tierklinik-dobersberg/apis/orthanc_bridge/v1';
 import { toast } from 'ngx-sonner';
 import { debounceTime, filter, interval, merge, startWith, tap } from 'rxjs';
-import { AppDicomStudyDialog } from 'src/app/dialogs/dicom-study-dialog';
-import { StudyService } from 'src/app/pages/welcome/study-card/study.service';
+import { StudyService } from 'src/app/components/dicom/study.service';
 import { DicomImageUrlPipe } from 'src/app/pipes/dicom-instance-preview.pipe';
 import { DicomInstancesPipe } from 'src/app/pipes/dicom-instances.pipe';
-import { environment } from 'src/environments/environment';
 
 interface PreviewURL {
   url: string;
@@ -62,24 +59,9 @@ export class DicomListComponent {
   public readonly limit = input<number>(3);
 
   private readonly client = injectOrthancClient();
-  private readonly studyService = inject(StudyService);
+  protected readonly studyService = inject(StudyService);
   protected readonly studies = signal<StudyModel[]>([]);
   protected readonly layout = inject(LayoutService);
-  protected readonly dialogService = inject(HlmDialogService);
-
-  protected openInViewer(study: StudyModel, instance?: string) {
-    let url = `${environment.orthancBridge}/viewer?StudyInstanceUIDs=${study.studyUid}`;
-    if (instance) {
-      url += '&initialSopInstanceUid=' + instance;
-    }
-    window.open(url, '_blank');
-  }
-
-  protected openStudyDialog(study: StudyModel, instance?: string) {
-    AppDicomStudyDialog.open(this.dialogService, {
-      study,
-    });
-  }
 
   constructor() {
     const currentUser = injectCurrentProfile();

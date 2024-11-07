@@ -20,7 +20,7 @@ import {
 } from 'rxjs/operators';
 import { SwUpdateManager, WebPushSubscriptionManager } from 'src/app/services';
 import { environment } from 'src/environments/environment';
-import { StudyService } from './pages/welcome/study-card/study.service';
+import { StudyService } from './components/dicom/study.service';
 
 interface MenuEntry {
   Icon: string;

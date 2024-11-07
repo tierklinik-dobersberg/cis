@@ -1,9 +1,9 @@
-<hlm-table class="flex-grow h-full">
+<hlm-table class="h-full flex-grow">
   @for (study of studies(); track study.studyUid) {
     <hlm-trow class="hover:bg-gray-100">
       <hlm-td
-        class="flex-row flex-1 gap-2 p-2 cursor-pointer"
-        (click)="openStudyDialog(study)">
+        class="flex-1 cursor-pointer flex-row gap-2 p-2"
+        (click)="studyService.openStudyDialog(study)">
         <span class="flex flex-col items-end justify-start text-gray-700">
           @if (study.time | toDate; as date) {
             <span>
@@ -31,8 +31,8 @@
                 study.series[0].instances[0]
                   | dicomImageUrl: { width: 70, height: 70 }
               "
-              (click)="openInViewer(study)"
-              class="w-12 cursor-pointer aspect-square min-h-12" />
+              (click)="studyService.openInViewer(study)"
+              class="aspect-square min-h-12 w-12 cursor-pointer" />
           }
         } @else {
           @for (
@@ -42,12 +42,14 @@
             let last = $last
           ) {
             @if (index >= limit() && last) {
-              <span class="text-xs text-gray-700"> + {{ index - limit() }} </span>
+              <span class="text-xs text-gray-700">
+                + {{ index - limit() }}
+              </span>
             } @else if (last) {
               <img
                 [attr.src]="instance | dicomImageUrl: { width: 70, height: 70 }"
-                (click)="openInViewer(study, instance.instanceUid)"
-                class="w-12 cursor-pointer aspect-square min-h-12" />
+                (click)="studyService.openInViewer(study, instance.instanceUid)"
+                class="aspect-square min-h-12 w-12 cursor-pointer" />
             }
           }
         }
