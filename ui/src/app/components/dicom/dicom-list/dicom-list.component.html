@@ -41,11 +41,11 @@
             let index = $index;
             let last = $last
           ) {
-            @if (index >= limit() && last) {
+            @if (index > limit() && last) {
               <span class="text-xs text-gray-700">
                 + {{ index - limit() }}
               </span>
-            } @else if (last) {
+            } @else {
               <img
                 [attr.src]="instance | dicomImageUrl: { width: 70, height: 70 }"
                 (click)="studyService.openInViewer(study, instance.instanceUid)"
