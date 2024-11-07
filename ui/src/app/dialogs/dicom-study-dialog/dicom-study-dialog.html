@@ -73,7 +73,12 @@
                 <hlm-menu-label> Downloaden als .. </hlm-menu-label>
                 <hlm-menu-separator />
 
-                <button hlmMenuItem inset disabled>Bild</button>
+                <button
+                  hlmMenuItem
+                  inset
+                  (click)="studyService.downloadStudy(study.studyUid)">
+                  PNG
+                </button>
 
                 <button hlmMenuItem inset disabled>DICOM Datei</button>
               </hlm-sub-menu>

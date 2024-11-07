@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { injectOrthancClient } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import {
   InstanceReceivedEvent,
@@ -15,6 +16,7 @@ import { environment } from 'src/environments/environment';
 export class StudyService {
   protected readonly eventsService = inject(EventService);
   protected readonly dialogService = inject(HlmDialogService)
+  protected readonly orthancBridgeClient = injectOrthancClient();
 
   private readonly instanceReceived$ = new Subject<InstanceReceivedEvent>();
   private readonly seenStudies = new Set<string>();
@@ -35,6 +37,20 @@ export class StudyService {
     });
   }
 
+  public downloadStudy(studyUid: string, instanceUids: string[] | null = null, renderType: 'png' | 'jpeg' | 'dicom' = 'png') {
+    return this.orthancBridgeClient
+      .downloadStudy({
+        studyUid,
+        instanceUids,
+      })
+      .then(response => {
+        console.log("download link: ", response.downloadLink)
+
+        window.open(response.downloadLink, "_blank", "popup,noopener")
+
+        return response
+      })
+  }
 
   constructor() {
     this.eventsService
