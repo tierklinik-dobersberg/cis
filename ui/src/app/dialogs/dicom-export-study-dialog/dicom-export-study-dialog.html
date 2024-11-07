@@ -13,8 +13,8 @@
             role="button"
             [attr.src]="instance | dicomImageUrl: { width: 70, height: 70 }"
             (click)="instance.selected.set(!instance.selected())"
-            class="aspect-auto h-16 w-16 cursor-pointer object-contain outline-2 outline-offset-1 outline-transparent"
-            [ngClass]="{ '!outline-sky-600': instance.selected() }" />
+            class="aspect-auto h-16 w-16 cursor-pointer object-contain ring-1 ring-transparent ring-offset-2"
+            [ngClass]="{ '!ring-sky-600': instance.selected() }" />
         }
       </ol>
     </div>
