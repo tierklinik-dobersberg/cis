@@ -45,7 +45,7 @@
               <span class="text-xs text-gray-700">
                 + {{ index - limit() }}
               </span>
-            } @else {
+            } @else if (index < limit()) {
               <img
                 [attr.src]="instance | dicomImageUrl: { width: 70, height: 70 }"
                 (click)="studyService.openInViewer(study, instance.instanceUid)"
