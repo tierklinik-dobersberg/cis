@@ -79,8 +79,10 @@ export class AppDicomExportStudyDialog implements OnInit {
         const dicom = this.exportDicom();
         const png = this.exportPNG();
         const jpeg = this.exportJPEG();
+        const avi = this.exportAVI();
+        const canAvi = this.showAvi();
 
-        return !(instances.length > 0 && (dicom || png || jpeg))
+        return !(instances.length > 0 && (dicom || png || jpeg || (avi && canAvi)))
     })
 
     protected exporting = signal(false);
