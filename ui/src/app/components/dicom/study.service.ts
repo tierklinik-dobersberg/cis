@@ -45,7 +45,7 @@ export class StudyService {
     AppDicomExportStudyDialog.open(this.dialogService, {study})
   }
 
-  public downloadStudy(studyUid: string, instanceUids: string[] | null = null, renderType: ('png' | 'jpeg' | 'dicom')[] = ['png']) {
+  public downloadStudy(studyUid: string, instanceUids: string[] | null = null, renderType: ('avi' | 'png' | 'jpeg' | 'dicom')[] = ['png']) {
     const types: DownloadType[] = renderType.map(k => {
       if (k === 'png') {
         return DownloadType.PNG
@@ -57,6 +57,10 @@ export class StudyService {
 
       if (k === 'dicom') {
         return DownloadType.DICOM
+      }
+
+      if (k === 'avi') {
+        return DownloadType.AVI
       }
 
       return DownloadType.DOWNLOAD_TYPE_UNSPECIFIED

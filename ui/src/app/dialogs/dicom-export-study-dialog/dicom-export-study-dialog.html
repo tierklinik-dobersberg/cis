@@ -35,6 +35,16 @@
       <hlm-checkbox [(ngModel)]="exportJPEG" class="mr-2" />
       JPEG
     </label>
+
+    @if (showAvi()) {
+      <label hlmLabel class="flex items-center">
+        <hlm-checkbox [(ngModel)]="exportAVI" class="mr-2" />
+        AVI
+        <span class="text-xs text-gray-700"
+          >(nur für multi-frame Aufnahmen)</span
+        >
+      </label>
+    }
   </div>
 </div>
 
