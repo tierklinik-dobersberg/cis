@@ -10,6 +10,7 @@ import {
   InstanceReceivedEvent,
   Study,
 } from '@tierklinik-dobersberg/apis/orthanc_bridge/v1';
+import { toast } from 'ngx-sonner';
 import { Subject } from 'rxjs';
 import { AppDicomExportStudyDialog } from 'src/app/dialogs/dicom-export-study-dialog';
 import { AppDicomStudyDialog } from 'src/app/dialogs/dicom-study-dialog';
@@ -85,6 +86,18 @@ export class StudyService {
       .then(response => {
         if (autoDownload) {
           this.downloadLink(response.downloadLink)
+        } else {
+          if ('clipboard' in navigator) {
+            toast.success("Studien Export erfolgreich erstellt", {
+              description: response.downloadLink,
+              action: {
+                label: 'Kopieren',
+                onClick: () => {
+                  navigator.clipboard.writeText(response.downloadLink)
+                }
+              }
+            })
+          }
         }
 
         return response

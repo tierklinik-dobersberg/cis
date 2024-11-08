@@ -149,7 +149,9 @@
                   E-Mail
                 </button>
 
-                <button hlmMenuItem disabled>
+                <button
+                  hlmMenuItem
+                  (click)="studyService.exportStudy(study, '720h', false)">
                   <hlm-icon name="lucideExternalLink" hlmMenuIcon />
                   Link
                 </button>

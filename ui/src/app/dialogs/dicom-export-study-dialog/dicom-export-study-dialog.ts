@@ -18,6 +18,8 @@ import { DIALOG_CONTENT_CLASS } from "../constants";
 
 export interface DicomExportStudyDialogContext {
     study: Study;
+    ttl?: string;
+    autoDownload?: boolean
 }
 
 export class InstanceModel extends Instance {
@@ -139,7 +141,7 @@ export class AppDicomExportStudyDialog implements OnInit {
         }
 
         this.studyService
-            .downloadStudy(this.study.studyUid, this.instances().map(i => i.instanceUid), kinds)
+            .downloadStudy(this.study.studyUid, this.instances().map(i => i.instanceUid), kinds, this._dialogContext.autoDownload, this._dialogContext.ttl)
             .then(() => {
                 this.close();
             })
