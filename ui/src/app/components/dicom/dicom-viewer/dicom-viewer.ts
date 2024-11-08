@@ -32,7 +32,7 @@ export class DicomViewer {
     public readonly study = input.required<Study>();
     public readonly instance = input.required<Instance | null>();
 
-    public readonly loading = model(false);
+    public readonly loading = model(true);
     public readonly playing = signal(true);
 
     protected frameCount = computed(() => {
