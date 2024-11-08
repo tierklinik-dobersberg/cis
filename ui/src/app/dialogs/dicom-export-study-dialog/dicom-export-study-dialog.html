@@ -50,7 +50,9 @@
   </div>
 </div>
 
-<hlm-dialog-footer>
+<hlm-dialog-footer class="gap-2">
+  <button hlmBtn variant="secondary" (click)="close()">Schließen</button>
+
   <button
     hlmBtn
     variant="default"
@@ -58,6 +60,4 @@
     (click)="export()">
     {{ exporting() ? 'Export wird erstellt' : 'Exportieren' }}
   </button>
-
-  <button hlmBtn variant="secondary" (click)="close()">Schließen</button>
 </hlm-dialog-footer>
