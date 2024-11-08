@@ -1,7 +1,10 @@
+
 import { DOCUMENT } from '@angular/common';
 import { inject, Injectable } from '@angular/core';
+import { Duration as DurationPb, PartialMessage } from '@bufbuild/protobuf';
 import { injectOrthancClient } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
+import { Duration } from '@tierklinik-dobersberg/angular/utils/date';
 import {
   DownloadType,
   InstanceReceivedEvent,
@@ -45,7 +48,7 @@ export class StudyService {
     AppDicomExportStudyDialog.open(this.dialogService, {study})
   }
 
-  public downloadStudy(studyUid: string, instanceUids: string[] | null = null, renderType: ('avi' | 'png' | 'jpeg' | 'dicom')[] = ['png']) {
+  public downloadStudy(studyUid: string, instanceUids: string[] | null = null, renderType: ('avi' | 'png' | 'jpeg' | 'dicom')[] = ['png'], autoDownload = true, ttl?: string) {
     const types: DownloadType[] = renderType.map(k => {
       if (k === 'png') {
         return DownloadType.PNG
@@ -66,14 +69,24 @@ export class StudyService {
       return DownloadType.DOWNLOAD_TYPE_UNSPECIFIED
     })
 
+    let ttlPb: PartialMessage<DurationPb> | undefined = undefined;
+
+    if (ttl) {
+      ttlPb = Duration.parseString(ttl).toProto()
+    }
+
     return this.orthancBridgeClient
       .downloadStudy({
         studyUid,
         instanceUids,
-        types
+        types,
+        timeToLive: ttlPb,
       })
       .then(response => {
-        this.downloadLink(response.downloadLink)
+        if (autoDownload) {
+          this.downloadLink(response.downloadLink)
+        }
+
         return response
       })
   }
