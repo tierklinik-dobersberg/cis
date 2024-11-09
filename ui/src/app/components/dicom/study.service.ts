@@ -45,8 +45,8 @@ export class StudyService {
     });
   }
 
-  public exportStudy(study: Study) {
-    AppDicomExportStudyDialog.open(this.dialogService, {study})
+  public exportStudy(study: Study, ttl?: string, autoDownload = false) {
+    AppDicomExportStudyDialog.open(this.dialogService, {study, ttl, autoDownload})
   }
 
   public downloadStudy(studyUid: string, instanceUids: string[] | null = null, renderType: ('avi' | 'png' | 'jpeg' | 'dicom')[] = ['png'], autoDownload = true, ttl?: string) {
