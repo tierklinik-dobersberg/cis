@@ -17,6 +17,27 @@
             [ngClass]="{ '!ring-sky-600': instance.selected() }" />
         }
       </ol>
+
+      <div class="flex flex-row items-center justify-end gap-2">
+        <button
+          hlmBtn
+          size="sm"
+          variant="secondary"
+          class="flex flex-row items-center"
+          (click)="deselectAll()">
+          <hlm-icon name="lucideSquare" size="sm" class="mr-2" />
+          Alle abwählen
+        </button>
+        <button
+          hlmBtn
+          variant="secondary"
+          size="sm"
+          class="flex flex-row items-center"
+          (click)="selectAll()">
+          <hlm-icon name="lucideCheckSquare" size="sm" class="mr-2" />
+          Alle auswählen
+        </button>
+      </div>
     </div>
   }
 

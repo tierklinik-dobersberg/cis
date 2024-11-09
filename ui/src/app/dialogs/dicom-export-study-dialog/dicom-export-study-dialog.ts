@@ -2,18 +2,17 @@ import { NgClass } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, model, OnInit, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ConnectError } from "@connectrpc/connect";
-import { lucideDownload, lucideExternalLink, lucideMail, lucideMoreVertical, lucideShare } from "@ng-icons/lucide";
+import { lucideCheckSquare, lucideSquare } from "@ng-icons/lucide";
 import { BrnDialogRef, injectBrnDialogContext } from "@spartan-ng/ui-dialog-brain";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { HlmCheckboxModule } from "@tierklinik-dobersberg/angular/checkbox";
-import { HlmDialogDescriptionDirective, HlmDialogFooterComponent, HlmDialogHeaderComponent, HlmDialogService, HlmDialogTitleDirective } from '@tierklinik-dobersberg/angular/dialog';
+import { HlmDialogFooterComponent, HlmDialogHeaderComponent, HlmDialogService, HlmDialogTitleDirective } from '@tierklinik-dobersberg/angular/dialog';
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { HlmLabelDirective } from "@tierklinik-dobersberg/angular/label";
 import { Instance, Study } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
 import { toast } from "ngx-sonner";
 import { StudyService } from "src/app/components/dicom/study.service";
 import { DicomImageUrlPipe } from "src/app/pipes/dicom-instance-preview.pipe";
-import { SortDicomTagsPipe } from "src/app/pipes/sort-dicom-tags.pipe";
 import { DIALOG_CONTENT_CLASS } from "../constants";
 
 export interface DicomExportStudyDialogContext {
@@ -30,7 +29,6 @@ export class InstanceModel extends Instance {
     standalone: true,
     imports:[
         HlmDialogHeaderComponent,
-        HlmDialogDescriptionDirective,
         HlmDialogTitleDirective,
         HlmDialogFooterComponent,
         HlmButtonDirective,
@@ -38,17 +36,13 @@ export class InstanceModel extends Instance {
         DicomImageUrlPipe,
         HlmCheckboxModule,
         HlmLabelDirective,
-        SortDicomTagsPipe,
         FormsModule,
         NgClass
     ],
     providers: [
         ...provideIcons({
-            lucideExternalLink,
-            lucideMoreVertical,
-            lucideShare,
-            lucideDownload,
-            lucideMail,
+            lucideCheckSquare,
+            lucideSquare
         })
     ],
     templateUrl: './dicom-export-study-dialog.html',
@@ -101,6 +95,14 @@ export class AppDicomExportStudyDialog implements OnInit {
             return false
         })
     })
+
+    protected selectAll() {
+        this.instances().forEach(i => i.selected.set(true))
+    }
+
+    protected deselectAll() {
+        this.instances().forEach(i => i.selected.set(false))
+    }
 
     ngOnInit(): void {
         const instances = [];
