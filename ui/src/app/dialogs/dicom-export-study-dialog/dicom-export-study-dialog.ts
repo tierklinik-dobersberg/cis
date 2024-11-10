@@ -18,7 +18,7 @@ import { DIALOG_CONTENT_CLASS } from "../constants";
 export interface DicomExportStudyDialogContext {
     study: Study;
     ttl?: string;
-    autoDownload?: boolean
+    mode: 'download' | 'link' | 'share';
 }
 
 export class InstanceModel extends Instance {
@@ -63,6 +63,7 @@ export class AppDicomExportStudyDialog implements OnInit {
     protected readonly selectedInstance = signal<Instance | null>(null)
 
     protected study = this._dialogContext.study;
+    protected mode = this._dialogContext.mode;
 
     protected instances = signal<InstanceModel[]>([]);
     protected exportDicom = model(true);
@@ -122,6 +123,14 @@ export class AppDicomExportStudyDialog implements OnInit {
     }
 
     protected export() {
+        const instances = this.instances()
+            .filter(i => i.selected())
+            .map(i => i.instanceUid)
+
+        if (this.mode === 'share') {
+            this.studyService.shareStudy(this.study.studyUid, instances)
+        }
+
         this.exporting.set(true);
 
         const kinds: ('png' | 'dicom' | 'jpeg' | 'avi')[] = [];
@@ -143,7 +152,7 @@ export class AppDicomExportStudyDialog implements OnInit {
         }
 
         this.studyService
-            .downloadStudy(this.study.studyUid, this.instances().map(i => i.instanceUid), kinds, this._dialogContext.autoDownload, this._dialogContext.ttl)
+            .downloadStudy(this.study.studyUid, instances, kinds, this.mode === 'download', this._dialogContext.ttl)
             .then(() => {
                 this.close();
             })

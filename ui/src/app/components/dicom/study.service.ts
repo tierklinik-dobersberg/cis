@@ -46,10 +46,10 @@ export class StudyService {
   }
 
   public exportStudy(study: Study, ttl?: string, autoDownload = false) {
-    AppDicomExportStudyDialog.open(this.dialogService, {study, ttl, autoDownload})
+    AppDicomExportStudyDialog.open(this.dialogService, {study, ttl, mode: autoDownload ? 'download' : 'link'})
   }
 
-  public shareStudy(studyUid: string, instanceUid: string, ttl?: string) {
+  public shareStudy(studyUid: string, instanceUids: string[], ttl?: string) {
     let duration: DurationPb | undefined = undefined;
 
     if (ttl) {
@@ -59,7 +59,7 @@ export class StudyService {
     return this.orthancBridgeClient
       .shareStudy({
         studyUid,
-        instanceUids: [instanceUid],
+        instanceUids: instanceUids,
         validDuration: duration,
       })
       .then(response => {
