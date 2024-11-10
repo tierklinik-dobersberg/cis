@@ -1,5 +1,7 @@
 <hlm-dialog-header>
-  <h3 hlmDialogTitle>DICOM Studie exportieren</h3>
+  <h3 hlmDialogTitle>
+    DICOM Studie {{ mode === 'share' ? 'teilen' : 'exportieren' }}
+  </h3>
 </hlm-dialog-header>
 
 <div class="flex flex-col gap-4 py-2">
@@ -81,6 +83,12 @@
     variant="default"
     [disabled]="invalid() || exporting()"
     (click)="export()">
-    {{ exporting() ? 'Export wird erstellt' : 'Exportieren' }}
+    {{
+      exporting()
+        ? 'Export wird erstellt'
+        : mode === 'share'
+          ? 'Teilen'
+          : 'Exportieren'
+    }}
   </button>
 </hlm-dialog-footer>
