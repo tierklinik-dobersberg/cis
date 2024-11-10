@@ -151,6 +151,18 @@
 
                 <button
                   hlmMenuItem
+                  (click)="
+                    studyService.shareStudy(
+                      study.studyUid,
+                      selectedInstance()?.instanceUid
+                    )
+                  ">
+                  <hlm-icon name="lucideEye" hlmMenuIcon />
+                  Viewer-Link
+                </button>
+
+                <button
+                  hlmMenuItem
                   (click)="studyService.exportStudy(study, '720h', false)">
                   <hlm-icon name="lucideExternalLink" hlmMenuIcon />
                   Link

@@ -49,6 +49,34 @@ export class StudyService {
     AppDicomExportStudyDialog.open(this.dialogService, {study, ttl, autoDownload})
   }
 
+  public shareStudy(studyUid: string, instanceUid: string, ttl?: string) {
+    let duration: DurationPb | undefined = undefined;
+
+    if (ttl) {
+      duration = Duration.parseString(ttl).toProto()
+    }
+
+    return this.orthancBridgeClient
+      .shareStudy({
+        studyUid,
+        instanceUids: [instanceUid],
+        validDuration: duration,
+      })
+      .then(response => {
+          if ('clipboard' in navigator) {
+            toast.success("Studien Export erfolgreich erstellt", {
+              description: response.viewerUrl,
+              action: {
+                label: 'Kopieren',
+                onClick: () => {
+                  navigator.clipboard.writeText(response.viewerUrl)
+                }
+              }
+            })
+          }
+      })
+  }
+
   public downloadStudy(studyUid: string, instanceUids: string[] | null = null, renderType: ('avi' | 'png' | 'jpeg' | 'dicom')[] = ['png'], autoDownload = true, ttl?: string) {
     const types: DownloadType[] = renderType.map(k => {
       if (k === 'png') {
