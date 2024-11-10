@@ -41,34 +41,36 @@
     </div>
   }
 
-  <div class="flex flex-col gap-2">
-    <label hlmLabel> Was möchtest du exportieren? </label>
+  @if (mode !== 'share') {
+    <div class="flex flex-col gap-2">
+      <label hlmLabel> Was möchtest du exportieren? </label>
 
-    <label hlmLabel class="flex items-center">
-      <hlm-checkbox [(ngModel)]="exportDicom" class="mr-2" />
-      DICOM
-    </label>
-
-    <label hlmLabel class="flex items-center">
-      <hlm-checkbox [(ngModel)]="exportPNG" class="mr-2" />
-      PNG
-    </label>
-
-    <label hlmLabel class="flex items-center">
-      <hlm-checkbox [(ngModel)]="exportJPEG" class="mr-2" />
-      JPEG
-    </label>
-
-    @if (showAvi()) {
       <label hlmLabel class="flex items-center">
-        <hlm-checkbox [(ngModel)]="exportAVI" class="mr-2" />
-        AVI
-        <span class="ml-1 text-xs text-gray-700"
-          >(nur für multi-frame Aufnahmen, z.B. Ultraschall)</span
-        >
+        <hlm-checkbox [(ngModel)]="exportDicom" class="mr-2" />
+        DICOM
       </label>
-    }
-  </div>
+
+      <label hlmLabel class="flex items-center">
+        <hlm-checkbox [(ngModel)]="exportPNG" class="mr-2" />
+        PNG
+      </label>
+
+      <label hlmLabel class="flex items-center">
+        <hlm-checkbox [(ngModel)]="exportJPEG" class="mr-2" />
+        JPEG
+      </label>
+
+      @if (showAvi()) {
+        <label hlmLabel class="flex items-center">
+          <hlm-checkbox [(ngModel)]="exportAVI" class="mr-2" />
+          AVI
+          <span class="ml-1 text-xs text-gray-700"
+            >(nur für multi-frame Aufnahmen, z.B. Ultraschall)</span
+          >
+        </label>
+      }
+    </div>
+  }
 </div>
 
 <hlm-dialog-footer class="gap-2">
