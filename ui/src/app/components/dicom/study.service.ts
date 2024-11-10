@@ -45,8 +45,8 @@ export class StudyService {
     });
   }
 
-  public exportStudy(study: Study, ttl?: string, autoDownload = false) {
-    AppDicomExportStudyDialog.open(this.dialogService, {study, ttl, mode: autoDownload ? 'download' : 'link'})
+  public exportStudy(study: Study, ttl?: string, mode: 'download' | 'link' | 'share' = 'download') {
+    AppDicomExportStudyDialog.open(this.dialogService, {study, ttl, mode})
   }
 
   public shareStudy(studyUid: string, instanceUids: string[], ttl?: string) {
