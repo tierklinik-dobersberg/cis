@@ -1,4 +1,3 @@
-import { JsonPipe, NgTemplateOutlet } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, model, signal, WritableSignal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormsModule } from "@angular/forms";
@@ -21,8 +20,6 @@ import { ListRolesResponse, Role } from "@tierklinik-dobersberg/apis/idm/v1";
 import { Board, BoardPermission, CreateBoardRequest, GetBoardResponse, TaskPriority, TaskStatus, TaskTag, UpdateBoardRequest } from "@tierklinik-dobersberg/apis/tasks/v1";
 import { NgxColorsModule } from 'ngx-colors';
 import { toast } from "ngx-sonner";
-import { SelectionSheet, SelectionSheetItemDirective } from "src/app/dialogs/selection-sheet";
-import { ToRolePipe } from "src/app/pipes/to-role.pipe";
 import { BoardPermissionEditorComponent } from "../board-permission-editor/board-permission-editor";
 import { FieldEditorComponent } from "./field-editor/field-editor";
 
@@ -44,15 +41,10 @@ enum Permission {
         HlmInputDirective,
         FormsModule,
         HlmButtonDirective,
-        SelectionSheet,
-        SelectionSheetItemDirective,
         BrnSeparatorComponent,
         HlmSeparatorDirective,
-        NgTemplateOutlet,
-        ToRolePipe,
         HlmIconModule,
         BoardPermissionEditorComponent,
-        JsonPipe,
         NgxColorsModule,
         FieldEditorComponent,
     ],
@@ -91,6 +83,9 @@ export class ManageBoardComponent {
     protected readonly tags = model<TaskTag[]>([]);
     protected readonly statuses = model<TaskStatus[]>([]);
     protected readonly priorities = model<TaskPriority[]>([]);
+    
+    protected readonly initialStatus = model<TaskStatus | null>(null);
+    protected readonly doneStatus = model<TaskStatus | null>(null);
 
     protected readonly _computedBoardModel = computed(() => {
         return new Board({
@@ -100,7 +95,9 @@ export class ManageBoardComponent {
             writePermission: this.writePermissions(),
             allowedTaskStatus: this.statuses().filter(s => s.status !== ''),
             allowedTaskTags: this.tags().filter(t => t.tag !== ''),
-            allowedTaskPriorities: this.priorities().filter(t => t.name !== '')
+            allowedTaskPriorities: this.priorities().filter(t => t.name !== ''),
+            doneStatus: this.doneStatus()?.status,
+            initialStatus: this.initialStatus()?.status,
         })
     })
 
@@ -136,6 +133,16 @@ export class ManageBoardComponent {
         if (JSON.stringify(board.allowedTaskPriorities) !== JSON.stringify(existing.allowedTaskPriorities)) {
             req.allowedTaskPriorities = board.allowedTaskPriorities;
             req.updateMask.paths.push("allowed_task_priorities")
+        }
+        
+        if (board.initialStatus !== existing.initialStatus) {
+            req.initialStatus = board.initialStatus;
+            req.updateMask.paths.push('initial_status')
+        }
+        
+        if (board.doneStatus !== existing.doneStatus) {
+            req.doneStatus = board.doneStatus
+            req.updateMask.paths.push('done_status')
         }
 
         if (board.displayName !== existing.displayName) {

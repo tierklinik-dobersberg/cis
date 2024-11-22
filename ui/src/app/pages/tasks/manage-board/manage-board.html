@@ -37,6 +37,40 @@
             name="description"
             hlmInput />
         </label>
+
+        <label hlmLabel for="initialStatus">
+          Initialer Status
+
+          <brn-select name="initialStatus" [(ngModel)]="initialStatus">
+            <hlm-select-trigger>
+              <hlm-select-value />
+            </hlm-select-trigger>
+
+            <hlm-select-content>
+              @for (status of statuses(); track status.status) {
+                <hlm-option [value]="status">{{ status.status }}</hlm-option>
+              }
+              <hlm-option [value]="null">Keiner</hlm-option>
+            </hlm-select-content>
+          </brn-select>
+        </label>
+
+        <label hlmLabel for="doneStatus">
+          Finaler Status
+
+          <brn-select name="doneStatus" [(ngModel)]="doneStatus">
+            <hlm-select-trigger>
+              <hlm-select-value />
+            </hlm-select-trigger>
+
+            <hlm-select-content>
+              @for (status of statuses(); track status.status) {
+                <hlm-option [value]="status">{{ status.status }}</hlm-option>
+              }
+              <hlm-option [value]="null">Keiner</hlm-option>
+            </hlm-select-content>
+          </brn-select>
+        </label>
       </div>
     </div>
   </section>
