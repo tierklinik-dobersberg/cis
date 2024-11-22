@@ -1,6 +1,6 @@
 import { NgClass } from '@angular/common';
 import { booleanAttribute, ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal, untracked, ViewEncapsulation } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { ConnectError } from '@connectrpc/connect';
 import { lucideCalendar, lucideCircuitBoard, lucideCopyright, lucideFileAudio, lucideFilm, lucideHome, lucideLayers, lucidePhoneCall, lucidePhoneForwarded, lucidePlus, lucideTimer, lucideUserCircle } from '@ng-icons/lucide';
@@ -12,9 +12,10 @@ import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { HlmMenuModule } from '@tierklinik-dobersberg/angular/menu';
 import { Mailbox } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
-import { Board, ListBoardsResponse } from '@tierklinik-dobersberg/apis/tasks/v1';
+import { Board, BoardEvent, ListBoardsResponse } from '@tierklinik-dobersberg/apis/tasks/v1';
 import { toast } from 'ngx-sonner';
-import { filter } from 'rxjs';
+import { catchError, debounceTime, filter, finalize, from, interval, merge, of, switchMap } from 'rxjs';
+import { EventService } from 'src/app/services/event.service';
 import { environment } from 'src/environments/environment';
 import { injectCurrentConfig, UIConfig } from '../../api';
 import { AppLogo } from './logo.component';
@@ -76,6 +77,7 @@ export class AppNavigationComponent {
   protected readonly router = inject(Router);
   protected readonly boardService = injectBoardService();
   protected readonly profile = injectCurrentProfile()
+  protected readonly eventsService = inject(EventService);
   
   protected readonly rootLinks = signal<MenuEntry[]>([]);
   protected readonly subMenus = signal<SubMenu[]>([]);
@@ -91,24 +93,33 @@ export class AppNavigationComponent {
   }
   
   constructor() {
-    effect(() => {
-      const profile = this.profile();
+    merge(
+      this.eventsService.subscribe(new BoardEvent),
+      toObservable(this.profile),
+      interval(60 * 1000 * 5) 
+    )
+    .pipe(
+      debounceTime(10),
+      switchMap(() => {
+        const ctrl = new AbortController();
+        const loadBoards = this.boardService
+          .listBoards({}, {signal: ctrl.signal});
 
-      if (!profile) {
-        return
-      }
-
-      this.boardService
-        .listBoards({})
-        .catch(err => {
-          toast.error('Task Listen konnten nicht geladen werden', {
-            description: ConnectError.from(err).message
-          })
-
-          return new ListBoardsResponse()
+        return from(loadBoards)
+          .pipe(
+            finalize(() => ctrl.abort()),
+          )
+      }),
+      catchError(err => {
+        toast.error('Task-Boards konnten nicht geladen werden', {
+          description: ConnectError.from(err).message
         })
-        .then(response => this.boards.set(response.boards))
 
+        return of(new ListBoardsResponse())
+      })
+    )
+    .subscribe(res => {
+      this.boards.set(res.boards || [])
     })
 
     effect(() => {
