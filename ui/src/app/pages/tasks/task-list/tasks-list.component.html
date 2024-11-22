@@ -130,7 +130,7 @@
                   </button>
                 }
 
-                @if (view.isDirty()) {
+                @if (view.isDirty() && isBoardOwner()) {
                   <button hlmMenuItem (click)="view.save()">
                     <hlm-icon hlmMenuIcon name="lucideSave" />
                     Speichern
@@ -408,15 +408,20 @@
                         </hlm-sub-menu>
                       </ng-template>
 
-                      <hlm-menu-separator />
+                      @if (
+                        isBoardOwner() ||
+                        currentProfile()?.user?.id === task.creatorId
+                      ) {
+                        <hlm-menu-separator />
 
-                      <button
-                        hlmMenuItem
-                        class="text-red-500"
-                        [brnAlertDialogTriggerFor]="dialog">
-                        <hlm-icon name="lucideTrash2" hlmMenuIcon />
-                        <span>Löschen</span>
-                      </button>
+                        <button
+                          hlmMenuItem
+                          class="text-red-500"
+                          [brnAlertDialogTriggerFor]="dialog">
+                          <hlm-icon name="lucideTrash2" hlmMenuIcon />
+                          <span>Löschen</span>
+                        </button>
+                      }
                     </hlm-menu-group>
                   </hlm-menu>
                 </ng-template>

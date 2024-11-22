@@ -20,7 +20,6 @@ import { BoardServiceClient, injectBoardService, injectTaskService } from "@tier
 import { HlmDialogService } from "@tierklinik-dobersberg/angular/dialog";
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
-import { HlmLabelDirective } from "@tierklinik-dobersberg/angular/label";
 import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
 import { HlmMenuItemRadioComponent, HlmMenuModule } from "@tierklinik-dobersberg/angular/menu";
 import { DisplayNamePipe, ToDatePipe, ToUserPipe } from "@tierklinik-dobersberg/angular/pipes";
@@ -31,15 +30,12 @@ import { Board, BoardEvent, GetBoardResponse, QueryViewResponse, TaskEvent, Upda
 import { MarkdownModule } from "ngx-markdown";
 import { toast } from "ngx-sonner";
 import { AppAvatarComponent } from "src/app/components/avatar";
-import { TkdPaginationComponent } from "src/app/components/pagination";
 import { EditTaskDialog } from "src/app/dialogs/create-task-dialog";
 import { HeaderTitleService } from "src/app/layout/header-title";
 import { ContrastColorPipe } from "src/app/pipes/contrast-color.pipe";
 import { EventService } from "src/app/services/event.service";
 import { StatusColorPipe, TagColorPipe } from "../color.pipe";
 import { TaskGroupValueComponent } from "../group-value/group-value";
-import { TaskAssigneeComponent } from "../task-assignee/task-assignee";
-import { TaskDetailsComponent } from "../task-details/task-details";
 import { TaskQueryFilterComponent } from "../task-query-filter/task-query-filter";
 import { TaskTableComponent } from "../task-table/task-table";
 import { TaskGroupWithBoard } from "../utils";
@@ -176,11 +172,9 @@ export class ViewModel extends View {
         HlmIconModule,
         ToDatePipe,
         DatePipe,
-        TkdPaginationComponent,
         RouterLink,
         TagColorPipe,
         StatusColorPipe,
-        HlmLabelDirective,
         HlmMenuModule,
         BrnMenuTriggerDirective,
         DisplayNamePipe,
@@ -192,9 +186,7 @@ export class ViewModel extends View {
         HlmInputDirective,
         FormsModule,
         ContrastColorPipe,
-        TaskDetailsComponent,
         TaskTableComponent,
-        TaskAssigneeComponent,
         TaskQueryFilterComponent,
         NgClass,
         HlmPopoverModule,
@@ -219,7 +211,7 @@ export class TaskListComponent {
     private readonly dialogService = inject(HlmDialogService)
     private readonly eventsService = inject(EventService);
     private readonly router = inject(Router);
-    private header = inject(HeaderTitleService)
+    private readonly header = inject(HeaderTitleService)
 
     private readonly boardId = signal<string | null>(null);
 
@@ -228,6 +220,16 @@ export class TaskListComponent {
     protected readonly currentProfile = injectCurrentProfile();
     protected readonly board = signal<Board>(new Board())
     protected readonly groups = signal<TaskGroupWithBoard[]>([]);
+    protected readonly isBoardOwner = computed(() => {
+        const board = this.board();
+        const profile = this.currentProfile();
+
+        if (!board || !profile) {
+            return false
+        }
+        
+        return board.ownerId === profile.user?.id;
+    })
 
     protected readonly tasks = computed(() => {
         const result =  this.groups()
