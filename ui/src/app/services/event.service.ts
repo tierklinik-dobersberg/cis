@@ -8,7 +8,7 @@ import { InstanceReceivedEvent } from "@tierklinik-dobersberg/apis/orthanc_bridg
 import { CallRecordReceived, OnCallChangeEvent, OverwriteCreatedEvent, OverwriteDeletedEvent, VoiceMailReceivedEvent } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
 import { RosterChangedEvent } from "@tierklinik-dobersberg/apis/roster/v1";
 import { BoardEvent, TaskEvent } from "@tierklinik-dobersberg/apis/tasks/v1";
-import { filter, Observable, retry, Subject } from "rxjs";
+import { filter, Observable, PartialObserver, retry, Subject, Subscription } from "rxjs";
 import { environment } from "src/environments/environment";
 
 @Injectable({providedIn: 'root'})
@@ -49,11 +49,20 @@ export class EventService {
 
     }
 
-    public subscribe<T extends Message>(f: T | T[]): Observable<T> {
-        return this.events$
+    public subscribe<T extends Message>(f: T | T[]): Observable<T>;
+    public subscribe<T extends Message>(f: T | T[], observer: PartialObserver<T>): Subscription;
+
+    public subscribe<T extends Message>(f: T | T[], observer?: PartialObserver<T>): Observable<T> | Subscription {
+        const stream = this.events$
             .pipe(
                 filter(msg => Array.isArray(f) ? f.some(t => msg instanceof t.getType()) : msg instanceof f.getType())
             ) as unknown as Observable<T>
+            
+        if (!observer) {
+            return stream;
+        }
+        
+        return stream.subscribe(observer);
     }
 
     public listen<T extends Message>(msgs: T[]): Observable<T> {
