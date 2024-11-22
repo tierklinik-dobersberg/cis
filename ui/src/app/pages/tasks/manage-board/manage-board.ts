@@ -1,22 +1,24 @@
-import { ChangeDetectionStrategy, Component, computed, inject, model, signal, WritableSignal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, model, signal, untracked, WritableSignal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { ConnectError } from "@connectrpc/connect";
 import { lucideTrash } from "@ng-icons/lucide";
+import { BrnSelectModule } from "@spartan-ng/ui-select-brain";
 import { BrnSeparatorComponent } from "@spartan-ng/ui-separator-brain";
 import { BrnTabsModule } from "@spartan-ng/ui-tabs-brain";
 import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { HlmCardModule } from "@tierklinik-dobersberg/angular/card";
-import { injectBoardService, injectRoleService } from "@tierklinik-dobersberg/angular/connect";
+import { injectBoardService } from "@tierklinik-dobersberg/angular/connect";
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
 import { HlmLabelDirective } from "@tierklinik-dobersberg/angular/label";
+import { HlmSelectModule } from "@tierklinik-dobersberg/angular/select";
 import { HlmSeparatorDirective } from "@tierklinik-dobersberg/angular/separator";
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
 import { HlmTabsModule } from "@tierklinik-dobersberg/angular/tabs";
-import { ListRolesResponse, Role } from "@tierklinik-dobersberg/apis/idm/v1";
+import { Role } from "@tierklinik-dobersberg/apis/idm/v1";
 import { Board, BoardPermission, CreateBoardRequest, GetBoardResponse, TaskPriority, TaskStatus, TaskTag, UpdateBoardRequest } from "@tierklinik-dobersberg/apis/tasks/v1";
 import { NgxColorsModule } from 'ngx-colors';
 import { toast } from "ngx-sonner";
@@ -47,6 +49,8 @@ enum Permission {
         BoardPermissionEditorComponent,
         NgxColorsModule,
         FieldEditorComponent,
+        BrnSelectModule,
+        HlmSelectModule,
     ],
     providers: [
         ...provideIcons({lucideTrash})
@@ -61,7 +65,6 @@ export class ManageBoardComponent {
     // Connect services
 
     private readonly boardService = injectBoardService()
-    private readonly roleService = injectRoleService();
 
     protected readonly tag = new TaskTag();
     protected readonly status = new TaskStatus();
@@ -70,7 +73,6 @@ export class ManageBoardComponent {
     // Signals for available values
 
     protected readonly profiles = injectUserProfiles();
-    protected readonly roles = signal<Role[]>([]);
     protected readonly existingBoard = signal<Board | null>(null);
 
     // Models
@@ -169,16 +171,23 @@ export class ManageBoardComponent {
     })
 
     constructor() {
-        this.roleService
-            .listRoles({})
-            .catch(err => {
-                toast.error('Rollen konnten nicht geladen werden', {
-                    description: ConnectError.from(err).message
-                })
+        // clear out initialStatus and doneStatus if the selected values has been removed.
+        effect(() => {
+            const statuses = this.statuses();
+            
+            untracked(() => {
+                const initial = this.initialStatus();
+                const done = this.doneStatus();
 
-                return new ListRolesResponse
+                if (initial && !statuses.some(s => s.status === initial.status)) {
+                    this.initialStatus.set(null)
+                }
+                
+                if (done && !statuses.some(s => s.status === done.status)) {
+                    this.doneStatus.set(null)
+                }
             })
-            .then(response => this.roles.set(response.roles))
+        }, { allowSignalWrites: true })
 
         this.route
             .paramMap
