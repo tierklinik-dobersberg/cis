@@ -1,3 +1,4 @@
+import { CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 import { DatePipe, KeyValuePipe, NgClass } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
@@ -75,7 +76,9 @@ import { ViewModel } from "./task-view.model";
         HlmCommandModule,
         KeyValuePipe,
         TaskGroupValueComponent,
-        HlmMenuItemRadioComponent
+        HlmMenuItemRadioComponent,
+        CdkDrag,
+        CdkDropList,
     ],
     host: {
         'class': '!p-0'
@@ -192,15 +195,16 @@ export class TaskListComponent {
             queryParamsHandling: 'merge',
         })
     }
+    
+    protected onViewDropped(event: Partial<CdkDragDrop<ViewModel>>) {
+        if (!this.isBoardOwner()) {
+            return
+        }
 
-    protected moveView(idx: number, offset: 1 | -1) {
-        const old = this.views();
-        const views = [...this.views()];
-
-        [views[idx], views[idx+offset]] = [views[idx+offset], views[idx]]
-
-        this.views.set(views);
-
+        const views = [...this.views()]
+        
+        moveItemInArray(views, event.previousIndex, event.currentIndex)
+        
         this
             .boardService
             .updateBoard({
@@ -215,7 +219,13 @@ export class TaskListComponent {
                     description: ConnectError.from(err).message,
                 })
             })
+    }
 
+    protected moveView(idx: number, offset: 1 | -1) {
+        this.onViewDropped({
+           previousIndex: idx,
+           currentIndex: idx + offset, 
+        })
     }
 
     constructor() {
