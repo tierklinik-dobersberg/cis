@@ -56,6 +56,8 @@ export class DicomViewer {
         let sub = Subscription.EMPTY;
         effect(() => {
             this.instance();
+
+            this.loading.set(true);
             this.selectedFrame.set(1);
         }, { allowSignalWrites: true })
 
