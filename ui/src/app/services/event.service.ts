@@ -1,5 +1,6 @@
-import { Injectable } from "@angular/core";
+import { effect, Injectable } from "@angular/core";
 import { IMessageTypeRegistry, Message } from '@bufbuild/protobuf';
+import { injectCurrentProfile } from "@tierklinik-dobersberg/angular/behaviors";
 import { injectEventService } from "@tierklinik-dobersberg/angular/connect";
 import { CalendarChangeEvent } from "@tierklinik-dobersberg/apis/calendar/v1";
 import { OpenChangeEvent } from "@tierklinik-dobersberg/apis/office_hours/v1";
@@ -14,26 +15,38 @@ import { environment } from "src/environments/environment";
 export class EventService {
     private readonly client = injectEventService();
     private registry: IMessageTypeRegistry;
+    private readonly profile = injectCurrentProfile();
 
     private events$ = new Subject<Message<any>>();
 
     constructor() {
         this.registry = environment.registry;
+        
+        const effectRef = effect(() => {
+            const profile = this.profile(); 
+            
+            if (!profile) {
+                return
+            }
+            
+            effectRef.destroy();
+            
+            this.listen([
+                new RosterChangedEvent,
+                new OnCallChangeEvent,
+                new OverwriteCreatedEvent,
+                new OverwriteDeletedEvent,
+                new CallRecordReceived,
+                new VoiceMailReceivedEvent,
+                new CalendarChangeEvent,
+                new TaskEvent,
+                new BoardEvent,
+                new InstanceReceivedEvent,
+                new OpenChangeEvent
+            ])
+            .subscribe(event => this.events$.next(event))
+        })
 
-        this.listen([
-            new RosterChangedEvent,
-            new OnCallChangeEvent,
-            new OverwriteCreatedEvent,
-            new OverwriteDeletedEvent,
-            new CallRecordReceived,
-            new VoiceMailReceivedEvent,
-            new CalendarChangeEvent,
-            new TaskEvent,
-            new BoardEvent,
-            new InstanceReceivedEvent,
-            new OpenChangeEvent
-        ])
-        .subscribe(event => this.events$.next(event))
     }
 
     public subscribe<T extends Message>(f: T | T[]): Observable<T> {
@@ -53,12 +66,8 @@ export class EventService {
             const go = async () => {
                 try {
                     for await (const msg of iterator) {
-
                         try {
                             let e: any = msg.event.unpack(this.registry);
-
-                            console.log("got event message", msg, e)
-
                             sub.next(e);
                         } catch(err) {
                             console.error("failed to unpack message", err)
