@@ -199,16 +199,17 @@ export class TaskListComponent {
     }
     
     protected onViewDropped(event: Partial<CdkDragDrop<ViewModel>>) {
-        console.log("onViewDropped", event)
-
         if (!this.isBoardOwner()) {
             console.log("user is not the board owner, ignoring re-ordering")
             return
         }
 
         const views = [...this.views()]
+        const original = this.views();
         
         moveItemInArray(views, event.previousIndex, event.currentIndex)
+
+        this.views.set(views);
         
         this
             .boardService
@@ -220,6 +221,8 @@ export class TaskListComponent {
                 }
             })
             .catch(err => {
+                this.views.set(original);
+
                 toast.error('Board konnte nicht gespeichert werden', {
                     description: ConnectError.from(err).message,
                 })
