@@ -4,6 +4,7 @@
     <div
       class="flex flex-row justify-start py-4"
       cdkDropList
+      cdkDropListLockAxis="x"
       (cdkDropListDropped)="onViewDropped($event)">
       @for (view of views(); track view; let index = $index; let last = $last) {
         <button

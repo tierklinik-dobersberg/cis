@@ -1,4 +1,4 @@
-import { CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 import { DatePipe, KeyValuePipe, NgClass } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
@@ -79,6 +79,7 @@ import { ViewModel } from "./task-view.model";
         HlmMenuItemRadioComponent,
         CdkDrag,
         CdkDropList,
+        CdkDragHandle
     ],
     host: {
         'class': '!p-0'
@@ -197,6 +198,8 @@ export class TaskListComponent {
     }
     
     protected onViewDropped(event: Partial<CdkDragDrop<ViewModel>>) {
+        console.log("onViewDropped", event)
+        
         if (!this.isBoardOwner()) {
             return
         }
