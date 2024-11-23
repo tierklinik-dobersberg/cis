@@ -199,8 +199,9 @@ export class TaskListComponent {
     
     protected onViewDropped(event: Partial<CdkDragDrop<ViewModel>>) {
         console.log("onViewDropped", event)
-        
+
         if (!this.isBoardOwner()) {
+            console.log("user is not the board owner, ignoring re-ordering")
             return
         }
 
@@ -212,7 +213,7 @@ export class TaskListComponent {
             .boardService
             .updateBoard({
                 boardId: this.boardId(),
-                views: this.views().map(v => v.original),
+                views: views.map(v => v.original),
                 updateMask: {
                     paths: ['views']
                 }
