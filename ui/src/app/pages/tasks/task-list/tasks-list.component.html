@@ -2,7 +2,7 @@
   class="flex h-full flex-grow flex-col overflow-hidden rounded-none border-b-0 border-l-0 border-r-0 border-t bg-white">
   <div hlmCardContent class="flex-grow overflow-auto p-4">
     <div
-      class="flex flex-row justify-start py-4"
+      class="view-list flex flex-row justify-start py-4"
       cdkDropList
       cdkDropListLockAxis="x"
       (cdkDropListDropped)="onViewDropped($event)">
@@ -14,7 +14,7 @@
           [class.border-b-0]="currentView() == view"
           [ngClass]="{ 'hover:bg-white': currentView() == view }"
           cdkDrag
-          class="relative top-[1px] flex flex-row items-center gap-4 rounded-b-none border border-border">
+          class="view relative top-[1px] flex flex-row items-center gap-4 rounded-b-none border border-border">
           {{ view.name }}
 
           <button

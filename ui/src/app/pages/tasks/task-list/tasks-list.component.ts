@@ -81,6 +81,7 @@ import { ViewModel } from "./task-view.model";
         CdkDropList,
         CdkDragHandle
     ],
+    styleUrl: './tasks-list.component.css',
     host: {
         'class': '!p-0'
     },
