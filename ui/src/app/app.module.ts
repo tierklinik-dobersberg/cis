@@ -13,7 +13,8 @@ import {
   TkdConnectModule
 } from '@tierklinik-dobersberg/angular/connect';
 import { Breakpoints } from '@tierklinik-dobersberg/tailwind/breakpoints';
-import { MarkdownModule, MARKED_EXTENSIONS, MarkedRenderer } from 'ngx-markdown';
+import markedAlert from 'marked-alert';
+import { MarkdownModule, MARKED_EXTENSIONS, MARKED_OPTIONS, MarkedRenderer } from 'ngx-markdown';
 import { environment } from '../environments/environment';
 import { AuthorizationInterceptor } from './api';
 import { BaseURLInjector } from './api/base-url';
@@ -47,7 +48,17 @@ function getMarkedRenderer() {
     AppRoutingModule,
     HttpClientModule,
     BrowserAnimationsModule,
-    MarkdownModule.forRoot(),
+    MarkdownModule.forRoot({
+      markedOptions: {
+        provide: MARKED_OPTIONS,
+        useValue: {
+          gfm: true,
+        }
+      },
+      markedExtensions: [
+        markedAlert(), 
+      ]
+    }),
     RouterModule,
     LayoutModule,
     PlatformModule,
