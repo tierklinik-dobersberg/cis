@@ -3,7 +3,7 @@
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
-import { Autoformat, BlockQuote, Bold, ClassicEditor, Heading, Image, ImageStyle, ImageToolbar, ImageUpload, Indent, Italic, Link, List, Markdown, MediaEmbed, Mention, Paragraph, PasteFromOffice, Table, TableToolbar, TodoList } from 'ckeditor5';
+import { Autoformat, BlockQuote, Bold, ClassicEditor, Heading, Image, ImageStyle, ImageToolbar, ImageUpload, Indent, Italic, Link, List, Markdown, MediaEmbed, Mention, Paragraph, PasteFromOffice, SourceEditing, Table, TableToolbar, TodoList } from 'ckeditor5';
 
 export class MyEditor extends ClassicEditor {
   public static builtinPlugins: any[] = [
@@ -26,7 +26,8 @@ export class MyEditor extends ClassicEditor {
     PasteFromOffice,
     Table,
     TableToolbar,
-    TodoList
+    TodoList,
+    SourceEditing,
   ];
 
   public static defaultConfig = {
@@ -36,7 +37,8 @@ export class MyEditor extends ClassicEditor {
         '|', 'heading',
         '|', 'bold', 'italic',
         '|', 'link', 'uploadImage', 'insertTable', 'mediaEmbed',
-        '|', 'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent'
+        '|', 'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent',
+        '|', 'sourceEditing'
       ]
     },
     language: 'de',
@@ -82,7 +84,8 @@ export const config = {
     PasteFromOffice,
     Table,
     TableToolbar,
-    TodoList
+    TodoList,
+    SourceEditing,
   ],
   toolbar: {
     items: [
@@ -90,7 +93,8 @@ export const config = {
       '|', 'heading',
       '|', 'bold', 'italic',
       '|', 'link', 'uploadImage', 'insertTable', 'mediaEmbed',
-      '|', 'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent'
+      '|', 'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent',
+      '|', 'sourceEditing'
     ]
   },
   language: 'de',
