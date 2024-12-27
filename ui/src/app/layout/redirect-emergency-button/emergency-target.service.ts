@@ -41,7 +41,7 @@ export class EmergencyTargetService {
     return import("../../dialogs/create-overwrite-dialog")
       .then(m => {
         const ref = this.dialogService.open(m.CreateOverwriteComponent, {
-            contentClass: 'w-full h-[100dvh] sm:h-[unset] max-w-[unset] md:max-w-[unset]',
+            contentClass: 'max-w-full w-full h-[100dvh] sm:h-[unset] max-w-[unset] md:max-w-[unset]',
             context: {
               inboundNumber
             }

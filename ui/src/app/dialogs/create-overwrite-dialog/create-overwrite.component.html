@@ -17,7 +17,7 @@
           <hlm-select-value class="w-full" />
         </hlm-select-trigger>
 
-        <hlm-select-content class="max-w-94 max-h-56">
+        <hlm-select-content class="sm:max-w-94 max-h-56 max-w-full">
           <hlm-option [value]="''">Alle Nummern</hlm-option>
 
           @for (number of inboundNumbers(); track number.number) {
@@ -49,8 +49,8 @@
 
         <button
           hlmBtn
-          class="justify-end self-end sm:self-auto"
           size="sm"
+          class="justify-start self-start"
           (click)="shiftDate.set(dateRange()[0])"
           brnSheetTrigger
           [side]="layout.md() ? 'right' : 'bottom'">
@@ -60,7 +60,7 @@
 
       <hlm-sheet-content
         *brnSheetContent="let ctx"
-        class="flex h-[100dvh] max-w-[unset] flex-col gap-8 overflow-auto md:max-w-[500px]">
+        class="flex !h-[100dvh] h-full !max-h-[100dvh] max-h-full max-w-full flex-col gap-2 overflow-auto sm:max-w-[unset] sm:gap-8 md:max-w-[500px]">
         <hlm-sheet-header>
           <h3 hlmSheetTitle>Arbeitsschicht auswählen</h3>
           <p hlmSheetDescription>
@@ -126,7 +126,8 @@
       Bitte wähle das Ziel für die Umleitung
     </label>
 
-    <div class="mt-2 flex flex-row items-center gap-2">
+    <div
+      class="mt-2 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
       <app-sheet-selection
         class="block flex-[1_0_45%]"
         size="sm"
@@ -155,7 +156,7 @@
         </ng-template>
       </app-sheet-selection>
 
-      <div class="flex flex-row items-center gap-1 text-sm">
+      <div class="flex flex-row items-center justify-center gap-1 text-sm">
         <hr class="w-[10px] text-border" />
 
         oder
@@ -186,7 +187,8 @@
   </div>
 </div>
 
-<hlm-dialog-footer class="flex flex-row flex-wrap gap-2">
+<hlm-dialog-footer
+  class="flex flex-row flex-wrap items-stretch gap-2 sm:items-end">
   <button hlmBtn variant="secondary" (click)="close()">Abbrechen</button>
 
   <button

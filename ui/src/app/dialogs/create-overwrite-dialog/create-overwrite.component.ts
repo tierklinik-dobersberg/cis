@@ -14,7 +14,7 @@ import { HlmDialogModule } from "@tierklinik-dobersberg/angular/dialog";
 import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
 import { HlmLabelDirective } from "@tierklinik-dobersberg/angular/label";
 import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
-import { DisplayNamePipe, ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
+import { ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmSelectModule } from "@tierklinik-dobersberg/angular/select";
 import { HlmSeparatorDirective } from "@tierklinik-dobersberg/angular/separator";
 import { HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
@@ -29,7 +29,6 @@ import { AppAvatarComponent } from "src/app/components/avatar";
 import { TkdDatePickerComponent } from "src/app/components/date-picker";
 import { EmergencyTargetService } from "src/app/layout/redirect-emergency-button/emergency-target.service";
 import { injectLocalPlannedShifts } from "src/app/utils/shifts";
-import { WorkShiftPipe } from "../../pipes/workshift-name.pipe";
 import { SelectionSheet, SelectionSheetItemDirective } from "../selection-sheet";
 import { SheetItemGroupDirective } from "../selection-sheet/selection-group.directive";
 
@@ -42,6 +41,9 @@ export interface CreateOverwriteContext {
     standalone: true,
     templateUrl: './create-overwrite.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: {
+        'class': 'overflow-auto'
+    },
     imports: [
         HlmButtonDirective,
         HlmInputDirective,
@@ -54,8 +56,6 @@ export interface CreateOverwriteContext {
         BrnSeparatorComponent,
         HlmSeparatorDirective,
         HlmLabelDirective,
-        DisplayNamePipe,
-        WorkShiftPipe,
         BrnSheetModule,
         HlmSheetModule,
         ToDatePipe,
