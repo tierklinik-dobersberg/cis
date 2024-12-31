@@ -11,6 +11,7 @@ import {
   inject,
   model,
   signal,
+  untracked
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -337,7 +338,7 @@ export class TkdCalendarViewComponent implements OnInit {
           this.shifts.set(response.shifts);
         });
 
-      this.loadEvents(date);
+      untracked(() => this.loadEvents(date));
     }, {
       allowSignalWrites: true
     });
