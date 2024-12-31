@@ -338,7 +338,7 @@ export class TkdCalendarViewComponent implements OnInit {
           this.shifts.set(response.shifts);
         });
 
-      untracked(() => this.loadEvents(date));
+      this.loadEvents(date);
     }, {
       allowSignalWrites: true
     });
@@ -346,7 +346,7 @@ export class TkdCalendarViewComponent implements OnInit {
 
   private _lastLoadEventsResponse: ListEventsResponse | null = null;
   private loadEvents(date: Date) {
-    const eventsBefore = this.events();
+    const eventsBefore = untracked(() => this.events());
     this.events.set([]);
 
     this.calendarAPI
