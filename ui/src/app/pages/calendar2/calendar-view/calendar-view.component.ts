@@ -338,11 +338,16 @@ export class TkdCalendarViewComponent implements OnInit {
         });
 
       this.loadEvents(date);
+    }, {
+      allowSignalWrites: true
     });
   }
 
   private _lastLoadEventsResponse: ListEventsResponse | null = null;
   private loadEvents(date: Date) {
+    const eventsBefore = this.events();
+    this.events.set([]);
+
     this.calendarAPI
       .listEvents({
         searchTime: {
@@ -357,8 +362,11 @@ export class TkdCalendarViewComponent implements OnInit {
       .then(response => {
         if (response.equals(this._lastLoadEventsResponse)) {
           console.log("skipping update, nothing changed")
+          this.events.set(eventsBefore);
+
           return
         }
+
         this._lastLoadEventsResponse = response;
 
         let events: CalEvent[] = [];
