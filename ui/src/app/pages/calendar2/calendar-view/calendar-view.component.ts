@@ -323,6 +323,9 @@ export class TkdCalendarViewComponent implements OnInit {
 
       this.isFirstLoad = true;
 
+      // clear out the shifts so we don't display anything until we got the new response.
+      this.shifts.set([]);
+
       this.rosterAPI
         .getUserShifts({
           timerange: {
