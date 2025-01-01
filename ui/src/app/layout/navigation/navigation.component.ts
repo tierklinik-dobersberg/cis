@@ -99,6 +99,7 @@ export class AppNavigationComponent {
       interval(60 * 1000 * 5) 
     )
     .pipe(
+      filter(() => !this.profile()),
       debounceTime(10),
       switchMap(() => {
         const ctrl = new AbortController();
