@@ -7,7 +7,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bufbuild/connect-go"
 	"github.com/ppacher/system-conf/conf"
+	calendarv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/calendar/v1"
+	"github.com/tierklinik-dobersberg/apis/gen/go/tkd/calendar/v1/calendarv1connect"
+	commonv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/common/v1"
+	"github.com/tierklinik-dobersberg/apis/pkg/discovery/consuldiscover"
+	"github.com/tierklinik-dobersberg/apis/pkg/discovery/wellknown"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
 	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
@@ -29,21 +35,31 @@ type (
 
 		location *time.Location
 
-		holidays HolidayGetter
-
 		// country is the country we are operating in and is required
 		// to retrieve the correct list of public holidays.
 		country string
+
+		holidays calendarv1connect.HolidayServiceClient
 
 		state *state
 	}
 )
 
 // New returns a new opening hour controller.
-func New(ctx context.Context, cfg cfgspec.Config, globalSchema *runtime.ConfigSchema, holidays HolidayGetter) (*Controller, error) {
+func New(ctx context.Context, cfg cfgspec.Config, globalSchema *runtime.ConfigSchema) (*Controller, error) {
 	loc, err := time.LoadLocation(cfg.TimeZone)
 	if err != nil {
 		return nil, fmt.Errorf("option Location: %w", err)
+	}
+
+	disc, err := consuldiscover.NewFromEnv()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get consul service catalog: %w", err)
+	}
+
+	holidays, err := wellknown.HolidayService.Create(ctx, disc)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get holiday service client: %w", err)
 	}
 
 	ctrl := &Controller{
@@ -243,12 +259,17 @@ func (ctrl *Controller) forDate(ctx context.Context, date time.Time) []OpeningHo
 	}
 
 	// Check if we need to use holiday ranges ...
-	isHoliday, err := ctrl.holidays.IsHoliday(ctx, ctrl.country, date)
+	isHoliday, err := ctrl.holidays.IsHoliday(ctx, connect.NewRequest(&calendarv1.IsHolidayRequest{
+		Date: &commonv1.Date{
+			Year:  int64(date.Year()),
+			Month: commonv1.Month(date.Month()),
+			Day:   int32(date.Day()),
+		},
+	}))
+
 	if err != nil {
-		isHoliday = false
 		log.Errorf("failed to load holidays: %s", err.Error())
-	}
-	if isHoliday {
+	} else if isHoliday.Msg.IsHoliday {
 		return ctrl.state.Holiday
 	}
 

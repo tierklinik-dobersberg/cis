@@ -12,7 +12,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tierklinik-dobersberg/cis/internal/door"
 	"github.com/tierklinik-dobersberg/cis/internal/idm"
-	"github.com/tierklinik-dobersberg/cis/internal/openinghours"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
 	"github.com/tierklinik-dobersberg/logger"
 )
@@ -23,10 +22,9 @@ const appContextKey = contextKey("app:context")
 
 // App holds dependencies for cis API request handlers.
 type App struct {
-	Config   *Config
-	IDM      *idm.Provider
-	Door     *door.Controller
-	Holidays openinghours.HolidayGetter
+	Config *Config
+	IDM    *idm.Provider
+	Door   *door.Controller
 
 	RosterdServer string
 }
@@ -39,14 +37,12 @@ func (app *App) String() string {
 func NewApp(
 	cfg *Config,
 	door *door.Controller,
-	holidays openinghours.HolidayGetter,
 	RosterdServer string,
 	idmProvider *idm.Provider,
 ) *App {
 	return &App{
 		Config:        cfg,
 		Door:          door,
-		Holidays:      holidays,
 		RosterdServer: RosterdServer,
 		IDM:           idmProvider,
 	}

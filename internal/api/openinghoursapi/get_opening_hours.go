@@ -2,10 +2,16 @@ package openinghoursapi
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/bufbuild/connect-go"
 	"github.com/labstack/echo/v4"
+	calendarv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/calendar/v1"
+	commonv1 "github.com/tierklinik-dobersberg/apis/gen/go/tkd/common/v1"
+	"github.com/tierklinik-dobersberg/apis/pkg/discovery/consuldiscover"
+	"github.com/tierklinik-dobersberg/apis/pkg/discovery/wellknown"
 	"github.com/tierklinik-dobersberg/cis/internal/app"
 	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
@@ -64,7 +70,7 @@ func getSingleDayOpeningHours(ctx context.Context, app *app.App, at string, date
 	}
 
 	frames := app.Door.ForDate(ctx, date)
-	holiday, err := app.Holidays.IsHoliday(ctx, app.Config.Country, date)
+	holiday, err := isHoliday(ctx, date)
 	if err != nil {
 		return nil, err
 	}
@@ -80,6 +86,31 @@ func getSingleDayOpeningHours(ctx context.Context, app *app.App, at string, date
 		Frames:    timeRanges,
 		IsHoliday: holiday,
 	}, nil
+}
+
+func isHoliday(ctx context.Context, date time.Time) (bool, error) {
+	disc, err := consuldiscover.NewFromEnv()
+	if err != nil {
+		return false, fmt.Errorf("failed to get consul service catalog: %w", err)
+	}
+
+	cli, err := wellknown.HolidayService.Create(ctx, disc)
+	if err != nil {
+		return false, fmt.Errorf("failed to get holiday service client: %w", err)
+	}
+
+	res, err := cli.IsHoliday(ctx, connect.NewRequest(&calendarv1.IsHolidayRequest{
+		Date: &commonv1.Date{
+			Year:  int64(date.Year()),
+			Month: commonv1.Month(date.Month()),
+			Day:   int32(date.Day()),
+		},
+	}))
+	if err != nil {
+		return false, fmt.Errorf("failed to query holiday service: %w", err)
+	}
+
+	return res.Msg.IsHoliday, nil
 }
 
 func getOpeningHoursRangeResponse(ctx context.Context, app *app.App, from, to string) (*GetOpeningHoursRangeResponse, error) {
