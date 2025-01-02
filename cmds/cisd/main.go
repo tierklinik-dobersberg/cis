@@ -119,8 +119,7 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	//
 	// prepare opeing hours controller
 	//
-	holidayCache := openinghours.NewHolidayCache()
-	openingHoursCtrl, err := openinghours.New(ctx, cfg.Config, runtime.GlobalSchema, holidayCache)
+	openingHoursCtrl, err := openinghours.New(ctx, cfg.Config, runtime.GlobalSchema)
 	if err != nil {
 		logger.Fatalf(ctx, "opening-hours-controler: %s", err.Error())
 	}
@@ -140,7 +139,6 @@ func getApp(baseCtx context.Context) (*app.App, *tracesdk.TracerProvider, contex
 	appCtx := app.NewApp(
 		cfg,
 		doorController,
-		holidayCache,
 		os.Getenv("ROSTERD_SERVER"),
 		idm.New(os.Getenv("IDM_URL"), http.DefaultClient),
 	)
