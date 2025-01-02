@@ -1,4 +1,4 @@
-import { DatePipe } from "@angular/common";
+import { DatePipe, NgClass } from "@angular/common";
 import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from "@angular/core";
 import { Duration } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
@@ -27,23 +27,18 @@ class EventListModel extends CalendarEvent {
     public readonly isOver: boolean;
     public readonly duration: Duration;
     public readonly isNow: boolean;
-    public readonly classes: string;
+    public readonly uniqueId: string;
 
-    constructor(ev: EventModel, public readonly calendar: Calendar, public readonly profile?: Profile) {
+    constructor(ev: CalendarEvent, public readonly calendar: Calendar, public readonly profile?: Profile) {
         super(ev);
 
         const now = new Date();
         this.isOver = isBefore(ev.endTime.toDate(), now);
         this.isNow = isBefore(ev.startTime.toDate(), now) && isAfter(ev.endTime?.toDate(), now);
         this.duration = TkdDuration.seconds(getSeconds(ev.endTime) - getSeconds(ev.startTime)).toProto();
-        this.classes = ev.classes || '';
+        this.uniqueId = calendar.id + ':' + ev.id;
     }
 }
-
-export type EventModel = CalendarEvent & {
-    classes?: string;
-}
-
 
 @Component({
     selector: 'app-event-list',
@@ -59,7 +54,8 @@ export type EventModel = CalendarEvent & {
         HlmTooltipModule,
         BrnTooltipModule,
         HlmSkeletonComponent,
-        AppAvatarComponent
+        AppAvatarComponent,
+        NgClass
     ],
     host: {
         'class': 'block',
@@ -78,7 +74,7 @@ export class AppEventListComponent {
     public readonly detailsClosed = output<EventListModel>();
 
     /** The events to display */
-    public readonly events = input.required<EventModel[]>()
+    public readonly events = input.required<CalendarEvent[]>()
 
     /** Whether or not the parent component is still loading events */
     public readonly loading = input(false, {transform: booleanAttribute});
@@ -96,14 +92,14 @@ export class AppEventListComponent {
         const profiles = this.profiles();
         const upcoming = this.onlyUpcoming();
 
-        return events
-            .sort(sortCalendarEvents)
+        const result = events
             .map(event => {
                 const profile = profiles.find(p => getCalendarId(p) === event.calendarId)
                 const calendar = calendars.find(cal => cal.id === event.calendarId)
 
                 return new EventListModel(event, calendar, profile)
             })
+            .sort(sortCalendarEvents)
             .filter(event => {
                 if (upcoming && event.isOver) {
                     return false;
@@ -111,6 +107,8 @@ export class AppEventListComponent {
 
                 return true;
             })
+        
+        return result
     })
 
     protected openEvent(event: EventListModel) {

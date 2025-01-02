@@ -227,6 +227,7 @@ export class TkdCalendarViewComponent implements OnInit {
             from: from,
             duration: duration,
             fullDay: false,
+            isFree: false,
             id:
               'shift:' +
               profile.user.id +

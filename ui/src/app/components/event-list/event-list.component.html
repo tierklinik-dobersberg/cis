@@ -28,14 +28,15 @@
       <hlm-skeleton class="h-3 w-40" />
     </li>
   } @else {
-    @for (event of _computedEvents(); track event.id) {
+    @for (event of _computedEvents(); track event.uniqueId) {
       <li
         [userColorVars]="event.profile"
-        class="relative flex flex-shrink-0 cursor-pointer flex-row items-center gap-2 overflow-hidden border-b border-border p-2 text-gray-900 hover:bg-gray-50 {{
-          event.classes
-        }}"
-        [class.bg-yellow-50]="event.isNow && !event.fullDay"
-        [class.text-opacity-70]="event.isOver"
+        class="relative flex flex-shrink-0 cursor-pointer flex-row items-center gap-2 overflow-hidden border-b border-border p-2 text-gray-900 hover:bg-gray-50"
+        [ngClass]="{
+          'bg-blue-50 opacity-75': event.isFree,
+          'bg-yellow-50': event.isNow && !event.fullDay,
+          'text-opacity-70': event.isOver,
+        }"
         (click)="openEvent(event)">
         <hlm-tooltip>
           <div

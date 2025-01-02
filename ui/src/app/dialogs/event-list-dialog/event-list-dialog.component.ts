@@ -9,7 +9,6 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Timestamp } from '@bufbuild/protobuf';
 import { Code, ConnectError } from '@connectrpc/connect';
 import {
   lucideArrowLeft,
@@ -26,8 +25,7 @@ import {
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { HlmCheckboxModule } from '@tierklinik-dobersberg/angular/checkbox';
 import {
-  injectCalendarService,
-  injectRosterService
+  injectCalendarService
 } from '@tierklinik-dobersberg/angular/connect';
 import {
   HlmDialogDescriptionDirective,
@@ -42,27 +40,19 @@ import {
 } from '@tierklinik-dobersberg/angular/icon';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import {
-  DisplayNamePipe,
-  DurationPipe,
+  DisplayNamePipe
 } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
-import { Calendar, CalendarEvent, EventSource, ListEventsRequest, ListEventsResponse } from '@tierklinik-dobersberg/apis/calendar/v1';
-import { GetUserShiftsResponse, PlannedShift } from '@tierklinik-dobersberg/apis/roster/v1';
-import { endOfDay, startOfDay } from 'date-fns';
+import { CalenarEventRequestKind, Calendar, CalendarEvent, EventSource, ListEventsRequest, ListEventsResponse } from '@tierklinik-dobersberg/apis/calendar/v1';
 import { toast } from 'ngx-sonner';
-import { AppAvatarComponent } from 'src/app/components/avatar';
 import {
   TkdDatePickerComponent,
   TkdDatePickerInputDirective,
 } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
 import { AppEventListComponent } from 'src/app/components/event-list';
-import { getSeconds } from 'src/app/pages/calendar2/day-view/sort.pipe';
 import { getCalendarId } from 'src/app/services';
 import { toDateString } from 'src/app/utils';
-import { findCalendarHoles, mergePlannedShifts } from 'src/app/utils/calendar';
-import { sortCalendarEvents } from 'src/app/utils/calendar/sorting';
-import { injectLocalPlannedShifts } from 'src/app/utils/shifts';
 
 export type EventListDialogContext = {
   date: Date;
@@ -74,7 +64,6 @@ const contentClass =
 class EventModel extends CalendarEvent {
   constructor(
     event: CalendarEvent,
-    public readonly isBreak = false,
     public readonly classes = ''
   ) {
     super(event);
@@ -92,7 +81,6 @@ class EventModel extends CalendarEvent {
     HlmDialogTitleDirective,
     HlmDialogDescriptionDirective,
     HlmDialogFooterComponent,
-    AppAvatarComponent,
     AppEventListComponent,
     DatePipe,
     HlmCheckboxModule,
@@ -124,7 +112,6 @@ export class EventListDialogComponent {
   private readonly dialogRef = inject(BrnDialogRef);
   private readonly dialogService = inject(HlmDialogService);
   private readonly calendarService = injectCalendarService();
-  private readonly rosterService = injectRosterService();
 
   protected readonly dialogContext =
     injectBrnDialogContext<EventListDialogContext>();
@@ -133,10 +120,6 @@ export class EventListDialogComponent {
   protected readonly calendar = signal<Calendar | null>(null);
   protected readonly calendarDate = model<Date>(new Date());
   protected readonly loading = signal(true);
-
-  protected readonly userShifts = signal<PlannedShift[]>([]);
-
-  protected readonly localPlannedShifts = injectLocalPlannedShifts(this.userShifts);
 
   protected readonly profiles = injectUserProfiles();
 
@@ -150,57 +133,6 @@ export class EventListDialogComponent {
 
     const id = this.dialogContext.calendarId;
     return profiles.find(p => getCalendarId(p) === id) || null;
-  });
-
-  protected readonly _computedEvents = computed<EventModel[]>(() => {
-    const calendar = this.calendar();
-    // abort now if we still don't have any calendars
-    if (calendar === null) {
-      return [];
-    }
-
-    const events = [...this.events()]
-      .sort(sortCalendarEvents)
-      .map(e => new EventModel(e));
-
-    const shifts = this.localPlannedShifts().filter(shift => {
-      // FIXME(ppacher): make the on-call tag configurable
-      return !shift.definition.tags.includes('oncall');
-    });
-
-    const mergedShifts = mergePlannedShifts(shifts);
-
-    mergedShifts.forEach(shift => {
-      const breaks = findCalendarHoles(
-        shift.from.toDate(),
-        shift.to.toDate(),
-        events
-      );
-
-      let id = 0;
-      breaks.forEach(b => {
-        const duration = getSeconds(b.to) - getSeconds(b.from);
-        if (duration > 5 * 60) {
-          events.push(
-            new EventModel(
-              new CalendarEvent({
-                id: `break-${id++}`,
-                calendarId: calendar.id,
-                startTime: Timestamp.fromDate(b.from),
-                endTime: Timestamp.fromDate(b.to),
-                summary:
-                  'Freier Slot für ' +
-                  new DurationPipe().transform(duration),
-              }),
-              true,
-              'bg-green-50 opacity-75 !font-normal'
-            )
-          );
-        }
-      });
-    });
-
-    return events;
   });
 
   protected close() {
@@ -224,6 +156,10 @@ export class EventListDialogComponent {
         case: 'date',
         value: toDateString(date)
       },
+      requestKinds: [
+        CalenarEventRequestKind.CALENDAR_EVENT_REQUEST_KIND_EVENTS,
+        CalenarEventRequestKind.CALENDAR_EVENT_REQUEST_KIND_FREE_SLOTS
+      ]
     });
 
     if ('userId' in this.dialogContext) {
@@ -273,38 +209,6 @@ export class EventListDialogComponent {
       },
       { allowSignalWrites: true }
     );
-
-    effect(() => {
-      const user = this.user();
-      const date = this.calendarDate();
-
-      if (user) {
-        this.rosterService
-          .getUserShifts({
-            timerange: {
-              from: Timestamp.fromDate(startOfDay(date)),
-              to: Timestamp.fromDate(endOfDay(date)),
-            },
-            users: {
-              userIds: [user.user.id],
-            },
-          })
-          .catch(err => {
-            const cerr = ConnectError.from(err);
-
-            if (cerr.code !== Code.NotFound) {
-              toast.error('Dienste konnte nicht geladen werden', {
-                description: cerr.message,
-              });
-            }
-
-            return new GetUserShiftsResponse();
-          })
-          .then(response => {
-            this.userShifts.set(response.shifts);
-          });
-      }
-    });
   }
 
   static open(

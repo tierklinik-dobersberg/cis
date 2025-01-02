@@ -122,7 +122,7 @@ export class AppEventDetailsDialogComponent implements OnInit {
     }
 
     ngOnInit() {
-        if (this.event && !this.event.id.startsWith("break-")) {
+        if (this.event && !this.event.isFree) {
             this.calendarId.set(this.event.calendarId);
             this.summary.set(this.event.summary);
             this.description.set(this.event.description)

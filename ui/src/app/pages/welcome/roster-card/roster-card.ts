@@ -1,4 +1,4 @@
-import { DatePipe, NgTemplateOutlet } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -16,7 +16,6 @@ import { ConnectError } from '@connectrpc/connect';
 import { lucideArrowLeft, lucideArrowRight, lucideCalendarDays, lucideInfo } from '@ng-icons/lucide';
 import { BrnTooltipModule } from '@spartan-ng/ui-tooltip-brain';
 import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
-import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import {
   HlmCardDirective,
   HlmCardModule,
@@ -26,8 +25,7 @@ import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import {
-  DisplayNamePipe,
-  ToUserPipe,
+  ToUserPipe
 } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSkeletonComponent } from '@tierklinik-dobersberg/angular/skeleton';
 import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
@@ -51,9 +49,7 @@ import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shift
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    NgTemplateOutlet,
     ToUserPipe,
-    DisplayNamePipe,
     AppAvatarComponent,
     HlmLabelDirective,
     HlmTooltipModule,
@@ -64,7 +60,6 @@ import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shift
     TkdDatePickerInputDirective,
     TkdDatePickerTriggerComponent,
     FormsModule,
-    HlmButtonDirective,
     DatePipe,
     HlmSkeletonComponent,
     HlmTooltipModule,
