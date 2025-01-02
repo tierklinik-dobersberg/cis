@@ -93,10 +93,16 @@ export class UpcomingEventsCardComponent {
 
     const result =  events
       .filter(e => {
-        if (eventsToShow === 'breaks') {
-          if (!(e instanceof EventModel) || !e.isFree) {
-            return false;
-          }
+        switch (eventsToShow) {
+          case 'all':
+            break;
+
+          case 'breaks':
+            if (e.isFree) {
+              break
+            }
+
+            return false
         }
 
         if (!display || display.length === 0) {
