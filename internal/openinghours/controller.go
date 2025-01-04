@@ -2,6 +2,7 @@ package openinghours
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"sync"
@@ -16,7 +17,6 @@ import (
 	"github.com/tierklinik-dobersberg/apis/pkg/discovery/wellknown"
 	"github.com/tierklinik-dobersberg/cis/internal/cfgspec"
 	"github.com/tierklinik-dobersberg/cis/pkg/daytime"
-	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
 	"github.com/tierklinik-dobersberg/cis/pkg/pkglog"
 	"github.com/tierklinik-dobersberg/cis/runtime"
 )
@@ -140,25 +140,25 @@ func (ctrl *Controller) NotifyChange(ctx context.Context, changeType string, id 
 	ctrl.rw.Lock()
 	defer ctrl.rw.Unlock()
 
-	var errs = new(multierr.Error)
+	var errs []error
 
 	newState := ctrl.state.clone()
 
 	// we delete for "delete" and "update".
 	if changeType != "create" {
 		if err := newState.deleteOpeningHour(ctx, openingHour.id); err != nil {
-			errs.Addf("failed to delete: %w", err)
+			errs = append(errs, fmt.Errorf("failed to delete: %w", err))
 		}
 	}
 
 	// we "create" for "create" and "update".
 	if changeType != "delete" {
 		if err := newState.addOpeningHours(ctx, openingHour); err != nil {
-			errs.Addf("failed to create: %w", err)
+			errs = append(errs, fmt.Errorf("failed to create: %w", err))
 		}
 	}
 
-	if err := errs.ToError(); err != nil {
+	if err := errors.Join(errs...); err != nil {
 		return err
 	}
 

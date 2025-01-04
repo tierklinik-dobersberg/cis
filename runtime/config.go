@@ -12,7 +12,6 @@ import (
 	"github.com/ppacher/system-conf/conf"
 	"github.com/tierklinik-dobersberg/cis/pkg/confutil"
 	"github.com/tierklinik-dobersberg/cis/pkg/httperr"
-	"github.com/tierklinik-dobersberg/cis/pkg/multierr"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -640,19 +639,19 @@ func (schema *ConfigSchema) getTest(_ context.Context, schemaType, testID string
 }
 
 func (schema *ConfigSchema) runValidators(ctx context.Context, sec Section) error {
-	errs := new(multierr.Error)
+	var errs []error
 	for _, validator := range schema.validators[""] {
 		if err := validator.Validate(ctx, sec); err != nil {
-			errs.Add(err)
+			errs = append(errs, err)
 		}
 	}
 	for _, validator := range schema.validators[strings.ToLower(sec.Name)] {
 		if err := validator.Validate(ctx, sec); err != nil {
-			errs.Add(err)
+			errs = append(errs, err)
 		}
 	}
 
-	if err := errs.ToError(); err != nil {
+	if err := errors.Join(errs...); err != nil {
 		return httperr.BadRequest(err.Error())
 	}
 
@@ -667,19 +666,19 @@ func (schema *ConfigSchema) notifyChangeListeners(ctx context.Context, changeTyp
 	)
 	defer sp.End()
 
-	errs := new(multierr.Error)
+	var errs []error
 	for _, listener := range schema.listeners[""] {
 		if err := listener.NotifyChange(ctx, changeType, id, sec); err != nil {
-			errs.Add(err)
+			errs = append(errs, err)
 		}
 	}
 	for _, listener := range schema.listeners[strings.ToLower(secName)] {
 		if err := listener.NotifyChange(ctx, changeType, id, sec); err != nil {
-			errs.Add(err)
+			errs = append(errs, err)
 		}
 	}
 
-	if err := errs.ToError(); err != nil {
+	if err := errors.Join(errs...); err != nil {
 		return &NotificationError{Wrapped: err}
 	}
 
