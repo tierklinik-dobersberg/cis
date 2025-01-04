@@ -40,45 +40,12 @@
 
         <button
           hlmMenuItem
-          [brnMenuTriggerFor]="offtimeMenu"
           class="px-4 py-2"
-          #trigger="cdkMenuTriggerFor"
           routerLink="/offtime"
-          routerLinkActive="bg-gray-100"
-          (mouseenter)="(!!sheetRef && !trigger.isOpen()) || trigger.open()">
+          routerLinkActive="bg-gray-100">
           <hlm-icon name="lucideLayers" hlmMenuIcon />
           Urlaubsanträge
-          <hlm-menu-item-sub-indicator />
         </button>
-
-        <ng-template #offtimeMenu>
-          <hlm-sub-menu
-            (mouseleave)="trigger.toggle()"
-            class="w-64 [&_button]:py-4 [&_button]:md:px-4 [&_button]:md:py-2">
-            <hlm-menu-label>Urlaubsanträge</hlm-menu-label>
-            <hlm-menu-separator />
-
-            <button
-              hlmMenuItem
-              class="px-4 py-2"
-              routerLink="/offtime"
-              [routerLinkActiveOptions]="{ exact: true }"
-              routerLinkActive="bg-gray-100">
-              <hlm-icon name="lucideLayers" hlmMenuIcon />
-              Alle anzeigen
-            </button>
-
-            <button
-              hlmMenuItem
-              class="px-4 py-2"
-              [routerLinkActiveOptions]="{ exact: true }"
-              routerLink="/offtime/create"
-              routerLinkActive="bg-gray-100">
-              <hlm-icon name="lucidePlus" hlmMenuIcon />
-              Antrag erstellen
-            </button>
-          </hlm-sub-menu>
-        </ng-template>
 
         <button
           hlmMenuItem
