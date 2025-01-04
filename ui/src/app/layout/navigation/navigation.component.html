@@ -162,7 +162,7 @@
       <hlm-menu-separator />
 
       <hlm-menu-group class="space-y-1">
-        @if (mailboxes().length) {
+        @if (mailboxes().length > 1) {
           <button
             hlmMenuItem
             class="px-4 py-2"
@@ -194,6 +194,18 @@
               </hlm-menu-group>
             </hlm-sub-menu>
           </ng-template>
+        } @else if (mailboxes().length === 1) {
+          @if (mailboxes()[0]; as mb) {
+            <button
+              hlmMenuItem
+              inset
+              routerLinkActive="bg-gray-100"
+              [routerLink]="['/voicemail', mb.id]"
+              class="px-4 py-2">
+              <hlm-icon name="lucideFileAudio" hlmMenuIcon />
+              {{ mb.displayName }}
+            </button>
+          }
         }
 
         @for (item of rootLinks(); track item) {
