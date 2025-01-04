@@ -112,42 +112,6 @@ var ExternalLinkSpec = conf.SectionSpec{
 	},
 }
 
-// TriggerActionSpec defines the configuration spec that can be used for the custom
-// trigger actions.
-var TriggerActionSpec = conf.SectionSpec{
-	{
-		Name:        "Name",
-		Description: "The name of the action",
-		Type:        conf.StringType,
-	},
-	{
-		Name:        "PrimaryTrigger",
-		Description: "The ID of the primary trigger used to detect if the action is already pending.",
-		Type:        conf.StringType,
-		Annotations: new(conf.Annotation).With(
-			runtime.OneOfRef("trigger", runtime.IDRef, "Name"),
-		),
-	},
-	{
-		Name:        "TriggerGroup",
-		Description: "The name of the trigger group to execute. If set, PrimaryTrigger is expected to be part of the group",
-		Type:        conf.StringSliceType,
-		Annotations: new(conf.Annotation).With(
-			runtime.OneOfRef("trigger", "Group", "Group"),
-		),
-	},
-	{
-		Name:        "ActionText",
-		Description: "The text for the action button",
-		Type:        conf.StringType,
-	},
-	{
-		Name:        "PendingText",
-		Description: "The text to display if the trigger is already pending.",
-		Type:        conf.StringType,
-	},
-}
-
 func addUISchema(schema *runtime.ConfigSchema) error {
 	var categoryName = "User Interface"
 	if err := schema.Register(
@@ -169,18 +133,6 @@ func addUISchema(schema *runtime.ConfigSchema) error {
 			SVGData:     `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />`,
 			Annotations: new(conf.Annotation).With(
 				runtime.OverviewFields("Text", "ParentMenu"),
-			),
-		},
-		runtime.Schema{
-			Name:        "TriggerAction",
-			DisplayName: "Benutzerdefinierte Aktionen",
-			Category:    categoryName,
-			Description: "Define actions that can be triggered via the user interface",
-			Spec:        TriggerActionSpec,
-			Multi:       true,
-			SVGData:     `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />`,
-			Annotations: new(conf.Annotation).With(
-				runtime.OverviewFields("Name", "PrimaryTrigger", "TriggerGroup"),
 			),
 		},
 		runtime.Schema{
