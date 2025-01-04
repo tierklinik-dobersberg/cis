@@ -216,8 +216,8 @@
       <span class="overflow-hidden text-ellipsis whitespace-normal">
         <span>
           {{
-            (data.entry.acceptedAgent | knownPhoneExtension: config()) ||
-              'Unbekannt'
+            (data.entry.acceptedAgent
+              | knownPhoneExtension: phoneExtensions()) || 'Unbekannt'
           }}
         </span>
         <br />

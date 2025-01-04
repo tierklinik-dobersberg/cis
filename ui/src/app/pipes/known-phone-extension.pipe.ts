@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from "@angular/core";
-import { UIConfig } from "../api";
+import { PhoneExtension } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
 
 
 @Pipe({
@@ -8,17 +8,7 @@ import { UIConfig } from "../api";
     standalone: true
 })
 export class KnownPhoneExtensionPipe implements PipeTransform {
-    private extensionMap = new Map<string, string>();
-    private oldConfigRef: UIConfig | null = null;
-
-    transform(extension: string, config: UIConfig) {
-        if (this.oldConfigRef !== config) {
-            this.oldConfigRef = config;
-            this.extensionMap.clear();
-
-            config.KnownPhoneExtension?.forEach(kpe => this.extensionMap.set(kpe.ExtensionNumber, kpe.DisplayName))
-        } 
-
-        return this.extensionMap.get(extension) || null;
+    transform(extension: string, extensions: PhoneExtension[]) {
+        return extensions.find(ext => ext.extension === extension)?.displayName || null
     }
 }

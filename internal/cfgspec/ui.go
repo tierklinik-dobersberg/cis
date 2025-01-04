@@ -112,49 +112,6 @@ var ExternalLinkSpec = conf.SectionSpec{
 	},
 }
 
-var KnownPhoneExtensionSpec = conf.SectionSpec{
-	{
-		Name:        "ExtensionNumber",
-		Description: "The phone extension to match",
-		Type:        conf.StringType,
-		Required:    true,
-	},
-	{
-		Name:        "DisplayName",
-		Description: "The name to display in the UI",
-		Type:        conf.StringType,
-		Required:    true,
-	},
-}
-
-// QuickRosterOverwriteSpec defines the configuration stanzas
-// for a quick-roster overwrite definition.
-var QuickRosterOverwriteSpec = conf.SectionSpec{
-	{
-		Name:        "DisplayName",
-		Type:        conf.StringType,
-		Description: "The display name for the quick-overwrite",
-		Required:    true,
-		Annotations: new(conf.Annotation).With(
-			runtime.Unique(),
-		),
-	},
-	{
-		Name:        "TargetNumber",
-		Type:        conf.StringType,
-		Description: "Target phone number or extension",
-		Required:    true,
-	},
-	{
-		Name:        "RequiresRole",
-		Type:        conf.StringSliceType,
-		Description: "List access to this quick-selector to one or more roles",
-		Annotations: new(conf.Annotation).With(
-			runtime.OneOfRoles,
-		),
-	},
-}
-
 // TriggerActionSpec defines the configuration spec that can be used for the custom
 // trigger actions.
 var TriggerActionSpec = conf.SectionSpec{
@@ -215,18 +172,6 @@ func addUISchema(schema *runtime.ConfigSchema) error {
 			),
 		},
 		runtime.Schema{
-			Name:        "QuickRosterOverwrite",
-			DisplayName: "Zusätzliche Umleitungen",
-			Category:    categoryName,
-			Description: "Quick settings for roster overwrites",
-			Spec:        QuickRosterOverwriteSpec,
-			Multi:       true,
-			SVGData:     `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />`,
-			Annotations: new(conf.Annotation).With(
-				runtime.OverviewFields("DisplayName", "TargetNumber"),
-			),
-		},
-		runtime.Schema{
 			Name:        "TriggerAction",
 			DisplayName: "Benutzerdefinierte Aktionen",
 			Category:    categoryName,
@@ -236,18 +181,6 @@ func addUISchema(schema *runtime.ConfigSchema) error {
 			SVGData:     `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />`,
 			Annotations: new(conf.Annotation).With(
 				runtime.OverviewFields("Name", "PrimaryTrigger", "TriggerGroup"),
-			),
-		},
-		runtime.Schema{
-			Name:        "KnownPhoneExtension",
-			DisplayName: "Bennenung Telefondurchwahl",
-			Category:    categoryName,
-			Description: "Additional phone-number to name mappings",
-			Spec:        KnownPhoneExtensionSpec,
-			Multi:       true,
-			SVGData:     `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />`,
-			Annotations: new(conf.Annotation).With(
-				runtime.OverviewFields("DisplayName", "ExtensionNumber"),
 			),
 		},
 		runtime.Schema{

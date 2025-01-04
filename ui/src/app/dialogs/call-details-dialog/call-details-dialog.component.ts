@@ -1,6 +1,7 @@
 import { DatePipe, JsonPipe } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from "@angular/core";
 import { PartialMessage } from "@bufbuild/protobuf";
+import { ConnectError } from "@connectrpc/connect";
 import { lucidePhone, lucidePhoneCall, lucidePhoneForwarded, lucidePhoneIncoming, lucidePhoneMissed, lucidePhoneOutgoing } from "@ng-icons/lucide";
 import { BrnDialogRef, injectBrnDialogContext } from "@spartan-ng/ui-dialog-brain";
 import { BrnSeparatorComponent } from "@spartan-ng/ui-separator-brain";
@@ -8,6 +9,7 @@ import { BrnTabsModule } from "@spartan-ng/ui-tabs-brain";
 import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
 import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
+import { injectCallService } from "@tierklinik-dobersberg/angular/connect";
 import { HlmDialogDescriptionDirective, HlmDialogFooterComponent, HlmDialogHeaderComponent, HlmDialogService, HlmDialogTitleDirective } from "@tierklinik-dobersberg/angular/dialog";
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { DurationPipe, ToDatePipe, ToUserPipe } from "@tierklinik-dobersberg/angular/pipes";
@@ -15,8 +17,8 @@ import { HlmSeparatorDirective } from "@tierklinik-dobersberg/angular/separator"
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
 import { HlmTabsModule } from "@tierklinik-dobersberg/angular/tabs";
 import { Customer } from "@tierklinik-dobersberg/apis/customer/v1";
-import { CallEntry } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
-import { injectCurrentConfig } from "src/app/api";
+import { CallEntry, ListPhoneExtensionsResponse, PhoneExtension } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
+import { toast } from "ngx-sonner";
 import { AppAvatarComponent } from "src/app/components/avatar";
 import { CustomerDetailsTableComponent } from "src/app/components/customer-details-table";
 
@@ -68,25 +70,22 @@ const contentClass =
 export class CallDetailsDialogComponent implements OnInit {
     private readonly dialogRef = inject(BrnDialogRef);
     private readonly context = injectBrnDialogContext<CallDetailsDialogContext>()
+    private readonly callService = injectCallService();
 
     protected readonly profiles = injectUserProfiles();
     protected readonly record = this.context.record;
     protected readonly customer = this.context.customer || null;
 
-    protected readonly config = injectCurrentConfig();
+    protected readonly phoneExtensions = signal<PhoneExtension[]>([]);
 
     protected readonly _computedAgent = computed(() => {
-        const config = this.config();
-
-        return (config.KnownPhoneExtension || [])
-            .find(e => e.ExtensionNumber === this.record.acceptedAgent);
+        const ext = this.phoneExtensions();
+        return ext.find(e => e.extension === this.record.acceptedAgent)
     })
 
     protected readonly _computedTransfer = computed(() => {
-        const config = this.config();
-
-        return (config.KnownPhoneExtension || [])
-            .find(e => e.ExtensionNumber === this.record.transferTarget);
+        const ext = this.phoneExtensions();
+        return ext.find(e => e.extension === this.record.transferTarget)
     })
 
     protected readonly details = this.record.toJson();
@@ -118,6 +117,19 @@ export class CallDetailsDialogComponent implements OnInit {
 
     protected close() {
         this.dialogRef.close();
+    }
+
+    constructor() {
+        this.callService
+            .listPhoneExtensions({})
+            .catch(err => {
+                toast.error("Telefon-Nebenstellen konnten nicht geladen werden", {
+                    description: ConnectError.from(err).message
+                })
+
+                return new ListPhoneExtensionsResponse
+            })
+            .then(res => this.phoneExtensions.set(res.phoneExtensions || []))
     }
 
     ngOnInit(): void {

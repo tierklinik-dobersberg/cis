@@ -20,11 +20,11 @@ import { HlmSeparatorDirective } from "@tierklinik-dobersberg/angular/separator"
 import { HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
 import { TimeRange } from "@tierklinik-dobersberg/apis/common/v1";
 import { Profile } from "@tierklinik-dobersberg/apis/idm/v1";
-import { CreateOverwriteRequest, CustomOverwrite, InboundNumber, ListInboundNumberResponse } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
+import { CreateOverwriteRequest, CustomOverwrite, InboundNumber, ListInboundNumberResponse, ListPhoneExtensionsResponse, PhoneExtension } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
 import { GetWorkingStaffResponse, PlannedShift } from "@tierklinik-dobersberg/apis/roster/v1";
 import { endOfDay, isSameDay, startOfDay } from "date-fns";
 import { toast } from "ngx-sonner";
-import { injectCurrentConfig, QuickRosterOverwrite } from "src/app/api";
+import { injectCurrentConfig } from "src/app/api";
 import { AppAvatarComponent } from "src/app/components/avatar";
 import { TkdDatePickerComponent } from "src/app/components/date-picker";
 import { EmergencyTargetService } from "src/app/layout/redirect-emergency-button/emergency-target.service";
@@ -73,8 +73,8 @@ export class CreateOverwriteComponent {
     private readonly emergencyTargetService = inject(EmergencyTargetService);
     private readonly config = injectCurrentConfig();
 
-    protected displayProfileGroup =  (item: Profile | QuickRosterOverwrite, prev?: Profile | QuickRosterOverwrite) => !prev;
-    protected displaySettingsGroup = (item: Profile | QuickRosterOverwrite, prev?: Profile | QuickRosterOverwrite) => prev instanceof Profile && !(item instanceof Profile);
+    protected displayProfileGroup =  (item: Profile | PhoneExtension, prev?: Profile | PhoneExtension) => !prev;
+    protected displaySettingsGroup = (item: Profile | PhoneExtension, prev?: Profile | PhoneExtension) => prev instanceof Profile && !(item instanceof Profile);
 
     protected readonly context = injectBrnDialogContext<CreateOverwriteContext>();
 
@@ -121,10 +121,10 @@ export class CreateOverwriteComponent {
     protected readonly inboundNumbers = signal<InboundNumber[]>([]);
 
     protected readonly dateRange = model<[Date, Date] | null>(null)
-    protected readonly selectedProfile = model<Profile | QuickRosterOverwrite | null>(null);
+    protected readonly selectedProfile = model<Profile | PhoneExtension | null>(null);
     protected readonly customTarget = model<string>('');
     protected readonly shiftDate = model<Date>(new Date());
-    protected readonly quickSettings = model<QuickRosterOverwrite[]>([]);
+    protected readonly quickSettings = model<PhoneExtension[]>([]);
     protected readonly numberToRedirect = model<InboundNumber | null>(null);
 
     protected close() {
@@ -192,6 +192,21 @@ export class CreateOverwriteComponent {
                 }
             });
 
+        this.callService
+            .listPhoneExtensions({})
+            .catch(err => {
+                toast.error('Bekannte Telefon-Nebenstellen konnten nicht geladen werden', {
+                    description: ConnectError.from(err).message
+                })
+
+                return new ListPhoneExtensionsResponse()
+            })
+            .then(res => {
+                this.quickSettings.set(
+                    (res.phoneExtensions || []).filter(e => e.eligibleForOverwrite)
+                )
+            })
+
         effect(() => {
             const config = this.config();
             const date = this.shiftDate();
@@ -202,7 +217,6 @@ export class CreateOverwriteComponent {
             }
 
             this.shifts.set([])
-            this.quickSettings.set(config.QuickRosterOverwrite || []);
 
             const now = new Date();
             let from = startOfDay(date);

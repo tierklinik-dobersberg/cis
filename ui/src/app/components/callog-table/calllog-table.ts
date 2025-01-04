@@ -7,17 +7,19 @@ import {
   computed,
   Directive,
   inject,
-  input
+  input,
+  signal
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { PartialMessage } from '@bufbuild/protobuf';
+import { ConnectError } from '@connectrpc/connect';
 import { lucideArrowLeft, lucideArrowRight, lucidePhoneCall, lucidePhoneForwarded, lucidePhoneIncoming, lucidePhoneMissed, lucidePhoneOff, lucidePhoneOutgoing } from '@ng-icons/lucide';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import { BrnTableModule } from '@spartan-ng/ui-table-brain';
 import { HlmBadgeDirective } from '@tierklinik-dobersberg/angular/badge';
 import { injectUserProfiles, sortProtoTimestamps } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
+import { injectCallService } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { TkdEmptyTableComponent } from '@tierklinik-dobersberg/angular/empty-table';
 import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
@@ -33,8 +35,8 @@ import { HlmSkeletonComponent } from '@tierklinik-dobersberg/angular/skeleton';
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { Customer } from '@tierklinik-dobersberg/apis/customer/v1';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
-import { CallDirection, CallEntry, CallStatus } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
-import { injectCurrentConfig } from 'src/app/api';
+import { CallDirection, CallEntry, CallStatus, ListPhoneExtensionsResponse, PhoneExtension } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
+import { toast } from 'ngx-sonner';
 import { KnownPhoneExtensionPipe } from 'src/app/pipes/known-phone-extension.pipe';
 import { getUserEmergencyExtension, getUserPhoneExtension } from 'src/app/services';
 import { usePaginationManager } from 'src/app/utils/pagination-manager';
@@ -79,7 +81,6 @@ export enum Columns {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    RouterLink,
     ToUserPipe,
     DisplayNamePipe,
     DurationPipe,
@@ -117,6 +118,7 @@ export enum Columns {
 })
 export class CallLogTableComponent {
   private readonly dialogService = inject(HlmDialogService)
+  private readonly callService = injectCallService();
 
   /** All records */
   public readonly records = input.required<CallEntry[]>();
@@ -133,8 +135,8 @@ export class CallLogTableComponent {
   /** All user profiles, used to map by registered phone number */
   protected readonly profiles = injectUserProfiles();
 
-  /** The current configuration */
-  protected readonly config = injectCurrentConfig();
+  /** All registered phone extensions */
+  protected readonly phoneExtensions = signal<PhoneExtension[]>([]);
 
   /** The currently displayed columns */
   protected readonly _computedDisplayedColumns = computed(() => {
@@ -274,6 +276,19 @@ export class CallLogTableComponent {
       return true;
     })
   })
+
+  constructor() {
+    this.callService
+      .listPhoneExtensions({})
+      .catch(err => {
+        toast.error("Telefon-Nebenstellen konnten nicht geladen werden", {
+          description: ConnectError.from(err).message
+        })
+
+        return new ListPhoneExtensionsResponse()
+      })
+      .then(res => this.phoneExtensions.set(res.phoneExtensions || []))
+  }
 
   public readonly paginator = usePaginationManager(this._computedFilteredCalls);
 

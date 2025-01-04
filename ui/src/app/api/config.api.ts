@@ -87,17 +87,6 @@ export interface Annotated {
 }
 
 
-export interface QuickRosterOverwrite {
-  DisplayName: string;
-  TargetNumber: string;
-  RequiresRole: string[] | null;
-}
-
-export interface KnownPhoneExtension {
-  DisplayName: string;
-  ExtensionNumber: string;
-}
-
 export interface TriggerAction {
   Name: string;
   PrimaryTrigger: string;
@@ -122,8 +111,6 @@ export interface UIConfig {
     TaskCommentScope?: string;
   };
   ExternalLink?: ExternalLink[];
-  QuickRosterOverwrite?: QuickRosterOverwrite[];
-  KnownPhoneExtension?: KnownPhoneExtension[];
   TriggerAction?: TriggerAction[];
   Roster?: RosterUIConfig;
 }

@@ -52,7 +52,7 @@
             <app-avatar [user]="record.agentUserId" showName="true" />
           } @else {
             @if (_computedAgent(); as agent) {
-              {{ agent.DisplayName }} ({{ agent.ExtensionNumber }})
+              {{ agent.displayName }} ({{ agent.extension }})
             } @else {
               {{ record.acceptedAgent }}
             }
@@ -93,7 +93,7 @@
           <hlm-th class="w-0 flex-[0_0_8rem]"> Transfer von </hlm-th>
           <hlm-td>
             @if (_computedTransfer(); as transfer) {
-              {{ transfer.DisplayName }} ( {{ transfer.ExtensionNumber }})
+              {{ transfer.displayName }} ( {{ transfer.extension }})
             } @else {
               {{ record.transferTarget }}
             }
