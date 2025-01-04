@@ -150,9 +150,6 @@ export class ConfigAPI {
       params: new HttpParams()
         .append('keys', 'UI')
         .append('keys', 'ExternalLink')
-        .append('keys', 'QuickRosterOverwrite')
-        .append('keys', 'TriggerAction')
-        .append('keys', 'KnownPhoneExtension')
         .append('keys', 'Roster')
     }).pipe(retry({delay: 2000, count: 5}))
       .subscribe({
