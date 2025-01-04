@@ -143,12 +143,20 @@ export class CreateOverwriteComponent {
         const profile = this.selectedProfile();
         let custom = this.customTarget();
 
-        if (custom || !(profile instanceof Profile)) {
+        if (custom) {
             req.transferTarget = {
                 case: 'custom',
                 value: new CustomOverwrite({
                     displayName: custom,
                     transferTarget: custom,
+                })
+            }
+        } else if (!(profile instanceof Profile)) {
+            req.transferTarget = {
+                case: 'custom',
+                value: new CustomOverwrite({
+                    displayName: profile.displayName,
+                    transferTarget: profile.extension,
                 })
             }
         } else {
