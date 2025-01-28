@@ -1,5 +1,5 @@
 import { CdkTableModule } from "@angular/cdk/table";
-import { DatePipe, KeyValuePipe, NgClass } from "@angular/common";
+import { DatePipe, NgClass } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, effect, inject, model, OnInit, signal, TrackByFunction, untracked } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { RouterLink } from "@angular/router";
@@ -49,7 +49,6 @@ import { AppSheetTriggerDirective } from "src/app/components/triggers";
 import { UserColorVarsDirective } from "src/app/components/user-color-vars";
 import { HeaderTitleService } from "src/app/layout/header-title";
 import { usePaginationManager } from "src/app/utils/pagination-manager";
-import { OffTimeCalendarOverviewComponent } from "../offtime-calendar-overview/calendar-overview";
 import { MatchingOfftimePipe } from "../pipes/matching-offtime.pipe";
 import { AppOffTimeFilterSheetComponent, filterOffTimeEntries, OffTimeFilter } from "./offtime-filter";
 
@@ -79,11 +78,9 @@ import { AppOffTimeFilterSheetComponent, filterOffTimeEntries, OffTimeFilter } f
     ToDatePipe,
     DisplayNamePipe,
     DatePipe,
-    OffTimeCalendarOverviewComponent,
     HlmSheetModule,
     BrnSheetModule,
     CommentComponent,
-    KeyValuePipe,
     HlmButtonDirective,
     HlmSelectModule,
     BrnSelectModule,

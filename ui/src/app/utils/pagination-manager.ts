@@ -45,7 +45,7 @@ export class PaginationManager<T = any> implements IPaginationManager {
     const data = this.records();
     const page = this._range();
 
-    return data.slice(page.from, page.to);
+    return data.slice(page.from, page.to+1);
   });
 
   public openPage(idx: number) {
