@@ -1,12 +1,11 @@
-import { DatePipe } from "@angular/common";
+import { DatePipe, JsonPipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from "@angular/core";
 import { lucideDownload, lucideExternalLink, lucideEye, lucideMail, lucideMoreVertical, lucideShare } from "@ng-icons/lucide";
 import { BrnDialogRef, injectBrnDialogContext } from "@spartan-ng/ui-dialog-brain";
 import { BrnMenuModule } from "@spartan-ng/ui-menu-brain";
 import { BrnTabsModule } from "@spartan-ng/ui-tabs-brain";
-import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
-import { HlmDialogDescriptionDirective, HlmDialogFooterComponent, HlmDialogHeaderComponent, HlmDialogService, HlmDialogTitleDirective } from '@tierklinik-dobersberg/angular/dialog';
+import { HlmDialogDescriptionDirective, HlmDialogHeaderComponent, HlmDialogService, HlmDialogTitleDirective } from '@tierklinik-dobersberg/angular/dialog';
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { HlmMenuModule } from "@tierklinik-dobersberg/angular/menu";
 import { ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
@@ -28,9 +27,8 @@ export interface DicomStudyDialogContext {
         HlmDialogHeaderComponent,
         HlmDialogDescriptionDirective,
         HlmDialogTitleDirective,
-        HlmDialogFooterComponent,
         HlmButtonDirective,
-        HlmBadgeDirective,
+        JsonPipe,
         HlmTableComponent,
         HlmThComponent,
         HlmTrowComponent,

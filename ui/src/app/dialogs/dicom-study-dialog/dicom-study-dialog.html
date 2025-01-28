@@ -186,7 +186,7 @@
               </hlm-td>
               <hlm-td class="flex-1 break-all">
                 @for (value of tag.value; track value) {
-                  {{ value.toJson() }}
+                  {{ value.toJson() | json }}
                 }
               </hlm-td>
             </hlm-trow>
