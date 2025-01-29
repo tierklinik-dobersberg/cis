@@ -225,7 +225,6 @@ export class TkdCalendarViewComponent implements OnInit {
         .forEach(profile => {
           const calendarId = getCalendarId(profile);
           if (!calendarId) {
-            console.log("no calendar id", profile.user.username)
             return;
           }
 
