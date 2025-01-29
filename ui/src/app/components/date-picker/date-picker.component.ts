@@ -43,8 +43,7 @@ import { HlmInputModule } from '@tierklinik-dobersberg/angular/input';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import {
-  IsSameDayPipe,
-  ToDatePipe,
+  ToDatePipe
 } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmPopoverModule } from '@tierklinik-dobersberg/angular/popover';
 import { HlmSeparatorModule } from '@tierklinik-dobersberg/angular/separator';
@@ -90,7 +89,6 @@ export type DatePickerMode = 'single' | 'range';
     HlmInputModule,
     DatePipe,
     NgClass,
-    IsSameDayPipe,
     ToDatePipe,
     DatePipe,
     FormsModule,
@@ -269,7 +267,13 @@ export class TkdDatePickerComponent
     combineLatest([this.hourBtns.changes, this.minuteBtns.changes])
       .pipe(startWith(1), debounceTime(10), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        //this.scrollTimeIntoView();
+        const start = this.startDate()
+        const end = this.endDate();
+
+        this.scrollTimeIntoView('start', start);
+        if (end) {
+          this.scrollTimeIntoView('end', end)
+        }
       });
   }
 
@@ -278,11 +282,16 @@ export class TkdDatePickerComponent
       () => {
         // We immediately apply the value in "inline" mode
         // every time one of the following signal changes
-        this.startDate();
-        this.endDate();
+        const start = this.startDate();
+        const end = this.endDate();
 
         if (this.variant() === 'inline') {
           untracked(() => this.apply());
+
+          this.scrollTimeIntoView('start', start);
+          if (end) {
+            this.scrollTimeIntoView('end', end);
+          }
         }
       },
       { allowSignalWrites: true }
@@ -298,19 +307,28 @@ export class TkdDatePickerComponent
     this.endDate.set(null);
   }
 
-  private scrollTimeIntoView() {
-    const value = this.startDate();
+  private scrollTimeIntoView(what: 'start' | 'end', value: Date) {
     if (!value) {
+      console.log("no value, not scrolling into view")
       return;
     }
-    const date = coerceDate(value);
-    this.hourBtns
-      .find(el => +el.nativeElement.getAttribute('hour') === getHours(date))
-      ?.nativeElement?.scrollIntoView();
 
-    this.minuteBtns
-      .find(el => +el.nativeElement.getAttribute('minute') === getMinutes(date))
-      ?.nativeElement?.scrollIntoView();
+    const date = coerceDate(value);
+
+    const hourKey = what + '-hour-' + getHours(date);
+    const minuteKey = what + '-minute-' + getMinutes(date);
+
+    const hourBtn = this.hourBtns
+      .find(el => el.nativeElement.id === hourKey);
+
+    hourBtn?.nativeElement?.scrollIntoView();
+
+    const minBtn = this.minuteBtns
+      .find(el => el.nativeElement.id === minuteKey);
+
+    minBtn?.nativeElement?.scrollIntoView();
+
+    console.log("scrolling", what, hourKey, hourBtn, minuteKey, minBtn)
   }
 
   writeValue(obj: Date | [Date, Date]): void {
