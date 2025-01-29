@@ -47,6 +47,7 @@ import { PlannedShift, WorkShift } from '@tierklinik-dobersberg/apis/roster/v1';
 import {
   endOfDay,
   getMinutes,
+  isAfter,
   isBefore,
   isSameDay,
   setMinutes,
@@ -214,12 +215,17 @@ export class TkdCalendarViewComponent implements OnInit {
         from = 0;
       }
 
+      if (isAfter(shift.to.toDate(), endOfDay(date))) {
+        duration -= getSeconds(shift.to);
+      }
+
       shift.assignedUserIds
         .map(id => profileById.get(id))
         .filter(profile => !!profile)
         .forEach(profile => {
           const calendarId = getCalendarId(profile);
           if (!calendarId) {
+            console.log("no calendar id", profile.user.username)
             return;
           }
 
@@ -245,6 +251,7 @@ export class TkdCalendarViewComponent implements OnInit {
           });
         });
     });
+
 
     return shiftEvents;
   });

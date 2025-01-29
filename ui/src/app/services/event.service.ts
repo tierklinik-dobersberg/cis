@@ -1,4 +1,5 @@
 import { effect, Injectable } from "@angular/core";
+import { toObservable } from "@angular/core/rxjs-interop";
 import { IMessageTypeRegistry, Message } from '@bufbuild/protobuf';
 import { injectCurrentProfile } from "@tierklinik-dobersberg/angular/behaviors";
 import { injectEventService } from "@tierklinik-dobersberg/angular/connect";
@@ -8,7 +9,7 @@ import { InstanceReceivedEvent } from "@tierklinik-dobersberg/apis/orthanc_bridg
 import { CallRecordReceived, OnCallChangeEvent, OverwriteCreatedEvent, OverwriteDeletedEvent, VoiceMailReceivedEvent } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
 import { RosterChangedEvent } from "@tierklinik-dobersberg/apis/roster/v1";
 import { BoardEvent, TaskEvent } from "@tierklinik-dobersberg/apis/tasks/v1";
-import { filter, Observable, PartialObserver, retry, Subject, Subscription } from "rxjs";
+import { filter, interval, merge, Observable, PartialObserver, retry, Subject, Subscription } from "rxjs";
 import { environment } from "src/environments/environment";
 
 @Injectable({providedIn: 'root'})
@@ -93,6 +94,6 @@ export class EventService {
                 abrtCtrl.abort();
                 console.log("aborting");
             }
-        }).pipe(retry({delay: 5000})) as Observable<T>
+        }).pipe(retry({delay: () => merge(interval(5000), toObservable(this.profile))})) as Observable<T>
     }
 }
