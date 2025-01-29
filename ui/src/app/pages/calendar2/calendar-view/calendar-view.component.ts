@@ -61,6 +61,7 @@ import {
 import { TkdDatePickerComponent, TkdDatePickerInputDirective } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
 import { UserColorVarsDirective } from 'src/app/components/user-color-vars';
+import { HeaderTitleService } from 'src/app/layout/header-title';
 import { ByCalendarIdPipe } from 'src/app/pipes/by-calendar-id.pipe';
 import { getCalendarId } from 'src/app/services';
 import { EventService } from 'src/app/services/event.service';
@@ -156,6 +157,7 @@ export class TkdCalendarViewComponent implements OnInit {
   private readonly renderer = inject(Renderer2);
   private readonly document = inject(DOCUMENT);
   private readonly dialog = inject(HlmDialogService);
+  private readonly header = inject(HeaderTitleService)
 
   protected readonly layout = inject(LayoutService);
 
@@ -321,6 +323,11 @@ export class TkdCalendarViewComponent implements OnInit {
       if (!date) {
         return;
       }
+
+      this.header.set(
+        'Kalender',
+        'Termine am ' + toDateString(date),
+      )
 
       this.isFirstLoad = true;
 
