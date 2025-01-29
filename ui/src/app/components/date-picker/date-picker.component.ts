@@ -321,12 +321,16 @@ export class TkdDatePickerComponent
     const hourBtn = this.hourBtns
       .find(el => el.nativeElement.id === hourKey);
 
-    hourBtn?.nativeElement?.scrollIntoView();
+    hourBtn?.nativeElement?.scrollIntoView({
+      behavior: 'smooth'
+    });
 
     const minBtn = this.minuteBtns
       .find(el => el.nativeElement.id === minuteKey);
 
-    minBtn?.nativeElement?.scrollIntoView();
+    minBtn?.nativeElement?.scrollIntoView({
+      behavior: 'smooth'
+    });
 
     console.log("scrolling", what, hourKey, hourBtn, minuteKey, minBtn)
   }
