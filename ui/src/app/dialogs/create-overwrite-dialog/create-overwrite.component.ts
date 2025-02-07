@@ -86,6 +86,10 @@ export class CreateOverwriteComponent {
         const profiles = this.profiles()
 
         return profiles.filter(p => {
+            if (p.user?.deleted) {
+                return false
+            }
+
             if (p.phoneNumbers?.length > 0) {
                 return true
             }
