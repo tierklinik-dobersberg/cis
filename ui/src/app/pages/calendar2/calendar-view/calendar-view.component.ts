@@ -315,14 +315,13 @@ export class TkdCalendarViewComponent implements OnInit {
     });
   }
 
-  private isFirstLoad = true;
-
   constructor() {
     inject(EventService)
       .subscribe(new CalendarChangeEvent)
       .pipe(takeUntilDestroyed(), debounceTime(1000))
       .subscribe(() => this.loadEvents(this.currentDate()))
 
+    let loading = 0;
     effect(() => {
       const date = this.currentDate();
 
@@ -335,7 +334,7 @@ export class TkdCalendarViewComponent implements OnInit {
         'Termine am ' + toDateString(date),
       )
 
-      this.isFirstLoad = true;
+      loading = 0;
 
       // clear out the shifts so we don't display anything until we got the new response.
       this.shifts.set([]);
@@ -359,6 +358,21 @@ export class TkdCalendarViewComponent implements OnInit {
     }, {
       allowSignalWrites: true
     });
+
+    effect(() => {
+      const events = this._computedEvents();
+
+      if (loading <= 2) {
+        loading++;
+
+        let set = new Set<string>();
+        events.forEach(evt => {
+          set.add(evt.calendarId);
+        });
+
+        this.displayedCalendars.set(Array.from(set.values()));
+      }
+    }, { allowSignalWrites: true })
   }
 
   private _lastLoadEventsResponse: ListEventsResponse | null = null;
@@ -399,16 +413,6 @@ export class TkdCalendarViewComponent implements OnInit {
         });
         this.events.set(events);
 
-        if (this.isFirstLoad) {
-          this.isFirstLoad = false;
-
-          let set = new Set<string>();
-          this.events().forEach(evt => {
-            set.add(evt.calendarId);
-          });
-
-          this.displayedCalendars.set(Array.from(set.values()));
-        }
       });
   }
 

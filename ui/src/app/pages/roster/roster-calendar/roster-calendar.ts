@@ -61,7 +61,7 @@ export class RosterCalendarComponent {
             const config = this.config();
             const date = this.calendarDate();
 
-            if (!date || !config || !config.UI.OnCallRosterType) {
+            if (!date || !config || !config.UI?.OnCallRosterType) {
                 return
             }
 

@@ -17,6 +17,7 @@ export class EventService {
     private readonly client = injectEventService();
     private registry: IMessageTypeRegistry;
     private readonly profile = injectCurrentProfile();
+    private readonly profile$ = toObservable(this.profile)
 
     private events$ = new Subject<Message<any>>();
 
@@ -84,6 +85,7 @@ export class EventService {
                         }
                     }
                 } catch (err) {
+                    console.log("error receiving event", err)
                     sub.error(err)
                 }
             }
@@ -94,6 +96,6 @@ export class EventService {
                 abrtCtrl.abort();
                 console.log("aborting");
             }
-        }).pipe(retry({delay: () => merge(interval(5000), toObservable(this.profile))})) as Observable<T>
+        }).pipe(retry({delay: () => merge(interval(5000), this.profile$)})) as Observable<T>
     }
 }
