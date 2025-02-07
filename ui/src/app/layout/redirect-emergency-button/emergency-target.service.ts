@@ -37,21 +37,17 @@ export class EmergencyTargetService {
     })
   }
 
-  createRedirect(inboundNumber?: string): Promise<BrnDialogRef> {
-    return import("../../dialogs/create-overwrite-dialog")
-      .then(m => {
-        const ref = this.dialogService.open(m.CreateOverwriteComponent, {
-            contentClass: 'max-w-full w-full h-[100dvh] sm:h-[unset] max-w-[unset] md:max-w-[unset]',
-            context: {
-              inboundNumber
-            }
-        })
-
-        ref.closed$
-          .subscribe(() => this.load())
-
-        return ref;
-      })
+  async createRedirect(inboundNumber?: string): Promise<BrnDialogRef> {
+    const m = await import("../../dialogs/create-overwrite-dialog");
+    const ref = this.dialogService.open(m.CreateOverwriteComponent, {
+      contentClass: 'max-w-full w-full h-[100dvh] sm:h-[unset] max-w-[unset] md:max-w-[unset]',
+      context: {
+        inboundNumber
+      }
+    });
+    ref.closed$
+      .subscribe(() => this.load());
+    return ref;
   }
   
   public load() {

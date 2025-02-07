@@ -100,6 +100,15 @@
     </hlm-td>
   </hlm-trow>
 
+  @if (createTime(); as time) {
+    <hlm-trow>
+      <hlm-th class="w-48 overflow-hidden text-ellipsis">Erstellt am</hlm-th>
+      <hlm-td class="whitespace-normal">
+        {{ time | date: 'medium' }}
+      </hlm-td>
+    </hlm-trow>
+  }
+
   <hlm-trow>
     <hlm-th class="w-48 overflow-hidden text-ellipsis">Beschreibung</hlm-th>
     <hlm-td class="whitespace-normal">

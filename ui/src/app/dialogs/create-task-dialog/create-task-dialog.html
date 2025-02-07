@@ -21,6 +21,12 @@
     <ckeditor [editor]="editor" [(ngModel)]="description"></ckeditor>
   </div>
 
+  @if (createTime(); as time) {
+    <label hlmLabel for="createTime">
+      Erstellt am {{ time | date: 'medium' }}
+    </label>
+  }
+
   <div>
     <label hlmLabel for="dueTime"> Fertigstellungs-Datum </label>
     <tkd-date-picker

@@ -1,3 +1,4 @@
+import { DatePipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, model, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { PartialMessage, Timestamp } from "@bufbuild/protobuf";
@@ -61,6 +62,7 @@ const contentClass =
         HlmPopoverModule,
         BrnCommandModule,
         HlmCommandModule,
+        DatePipe
     ],
     providers: [
         ...provideIcons({
@@ -83,6 +85,7 @@ export class EditTaskDialog {
     protected readonly dueTime = model<Date | null>(null)
     protected readonly tags = model<string[]>([]);
     protected readonly status = model('');
+    protected readonly createTime = model<Date | null>(null)
 
     protected readonly editor = MyEditor;
 
@@ -153,6 +156,7 @@ export class EditTaskDialog {
                     this.assigneeId.set(t.assigneeId || null)
                     this.tags.set(t.tags)
                     this.status.set(t.status)
+                    this.createTime.set(t.createTime?.toDate() || null)
 
                     if (t.dueTime) {
                         this.dueTime.set(t.dueTime.toDate());

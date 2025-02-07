@@ -107,12 +107,13 @@ export class AppEventDetailsDialogComponent implements OnInit {
     
     protected readonly availableCalendars = signal<Calendar[]>([]);
 
-    protected calendarId = model<string>('');
-    protected summary = model<string>('');
-    protected description = model<string>('');
-    protected date = model<string>('');
-    protected startTime = model<Date>();
-    protected duration = model<string>('');
+    protected readonly calendarId = model<string>('');
+    protected readonly summary = model<string>('');
+    protected readonly description = model<string>('');
+    protected readonly date = model<string>('');
+    protected readonly startTime = model<Date>();
+    protected readonly duration = model<string>('');
+    protected readonly createTime = model<Date | null>(null);
 
     static open(service: HlmDialogService, ctx: EventDetailsDialogContext): BrnDialogRef<AppEventDetailsDialogComponent> {
         return service.open(AppEventDetailsDialogComponent, {
@@ -128,16 +129,17 @@ export class AppEventDetailsDialogComponent implements OnInit {
             this.description.set(this.event.description)
             this.startTime.set(this.event.startTime.toDate());
             this.duration.set(Duration.seconds(getSeconds(this.event.endTime) - getSeconds(this.event.startTime)).toString());
+            this.createTime.set(this.event.createTime?.toDate() || null)
         } else {
             this.duration.set("15m")
             this.edit.set(true);
             this.isNew.set(true);
+            this.createTime.set(null);
 
             if (!this.event) {
                 this.startTime.set(this._dialogContext.startTime)
                 this.event = new CalendarEvent({});
                 this.calendarId.set(this.calendar.id)
-
             } else {
                 this.calendarId.set(this.event.calendarId);
                 this.startTime.set(this.event.startTime.toDate());
