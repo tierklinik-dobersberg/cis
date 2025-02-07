@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import {
+  booleanAttribute,
   ChangeDetectionStrategy,
   Component,
   inject,
@@ -63,6 +64,9 @@ export class DicomListComponent {
   protected readonly studies = signal<StudyModel[]>([]);
   protected readonly layout = inject(LayoutService);
 
+  // when set, only recent studies will be loaded.
+  public readonly onlyRecent = input(false, {transform: booleanAttribute})
+
   constructor() {
     const currentUser = injectCurrentProfile();
     let abrt: AbortController | null = null;
@@ -73,7 +77,8 @@ export class DicomListComponent {
       toObservable(currentUser),
       toObservable(this.dateRange),
       toObservable(this.patientName),
-      toObservable(this.ownerName)
+      toObservable(this.ownerName),
+      toObservable(this.onlyRecent)
     )
       .pipe(
         tap(() => console.log("study reload triggered")),
@@ -83,6 +88,9 @@ export class DicomListComponent {
         filter(() => !!currentUser()),
       )
       .subscribe((event) => {
+        const recent = this.onlyRecent();
+
+        if (!recent) {
         const req: PartialMessage<ListStudiesRequest> = {
           enableFuzzyMatching: true,
         };
@@ -158,6 +166,29 @@ export class DicomListComponent {
             );
           })
           .finally(() => abrt = null);
+        } else {
+        abrt = new AbortController();
+
+        this.client
+          .listRecentStudies({}, {signal: abrt.signal})
+          .catch(err => {
+            const cerr = ConnectError.from(err);
+            toast.error('DICOM Studies failed to load', {
+              description: cerr.message,
+            });
+
+            return new ListStudiesResponse();
+          })
+          .then(response => {
+            const studies = this.studies() || [];
+            this.studies.set(
+              (response.studies || []).map(study => {
+                return new StudyModel(study);
+              })
+            );
+          })
+          .finally(() => abrt = null);
+        }
       });
   }
 }

@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { HlmCardDirective, HlmCardModule } from "@tierklinik-dobersberg/angular/card";
 import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
-import { addDays } from "date-fns";
 import { DicomListComponent } from "src/app/components/dicom/dicom-list";
 
 @Component({
@@ -19,7 +18,5 @@ import { DicomListComponent } from "src/app/components/dicom/dicom-list";
     ]
 })
 export class StudyCardComponent {
-    protected readonly range = signal<[Date, Date]>([addDays(new Date, -7), new Date])
-
     protected readonly layout = inject(LayoutService)
 }
