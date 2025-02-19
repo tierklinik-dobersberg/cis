@@ -45,6 +45,7 @@ import { CalendarChangeEvent, CalendarEvent, ListEventsResponse, Calendar as PbC
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
 import { PlannedShift, WorkShift } from '@tierklinik-dobersberg/apis/roster/v1';
 import {
+  differenceInSeconds,
   endOfDay,
   getMinutes,
   isAfter,
@@ -122,7 +123,7 @@ type CalEvent = Timed &
   styles: [
     `
       :host {
-        @apply flex h-full flex-col pb-8;
+        @apply flex h-full flex-col pb-8 xl:flex-row gap-2 xl:!p-0;
       }
       .event-container {
         container-type: size;
@@ -191,7 +192,7 @@ export class TkdCalendarViewComponent implements OnInit {
   protected readonly _computedShiftEvents = computed(() => {
     const shifts = this.shifts();
     const profiles = this.profiles();
-    const date = this.currentDate();
+    const date = startOfDay(this.currentDate());
 
     const definitions = this.shiftDefinitions();
     const lm = new Map<string, WorkShift>();
@@ -207,17 +208,19 @@ export class TkdCalendarViewComponent implements OnInit {
 
     shifts.forEach(shift => {
       let from = getSeconds(shift.from);
-      let duration = getSeconds(shift.to) - getSeconds(shift.from);
+      let fromDate = shift.from.toDate();
+      let toDate = shift.to.toDate();
 
-      // clip the shift beginning to the start of the day.
-      if (isBefore(shift.from.toDate(), date)) {
-        duration -= getSeconds(date) - getSeconds(shift.from);
+      if (isBefore(fromDate, date)) {
+        fromDate = date
         from = 0;
       }
 
-      if (isAfter(shift.to.toDate(), endOfDay(date))) {
-        duration -= getSeconds(shift.to);
+      if (isAfter(toDate, endOfDay(date))) {
+        toDate = endOfDay(date)
       }
+
+      let duration = differenceInSeconds(toDate, fromDate)
 
       shift.assignedUserIds
         .map(id => profileById.get(id))
@@ -243,7 +246,8 @@ export class TkdCalendarViewComponent implements OnInit {
               ':' +
               shift.from.toDate().toISOString() +
               '-' +
-              shift.to.toDate().toISOString(),
+              shift.to.toDate().toISOString()
+              + '-' + definitions.find(w => w.id === shift.workShiftId).tags.join(':'),
             description: '',
             ignoreOverlapping: true,
             isShiftType: true,

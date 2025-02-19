@@ -132,6 +132,7 @@ export class TkdDayViewComponent<E extends Timed>
     return calendars
       .filter(cal => idsToDisplay.has(cal.id))
       .map(cal => {
+        console.log("events for calendar", cal.name, "shifts", sorted.filter(e => e.calendarId === cal.id && e.ignoreOverlapping === true))
         return {
           ...cal,
           events: sorted.filter(e => e.calendarId === cal.id)
