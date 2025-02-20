@@ -146,7 +146,11 @@
       </div>
     } @else {
       <div
-        class="h-full w-full cursor-default bg-sky-600 bg-opacity-20 shadow-inner"></div>
+        class="h-full w-full cursor-default bg-opacity-20 shadow-inner"
+        [ngClass]="{
+          'bg-sky-600': !event.isOnCall,
+          'bg-red-600': event.isOnCall,
+        }"></div>
     }
   </ng-template>
 </tkd-day-view>

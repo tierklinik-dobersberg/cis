@@ -18,6 +18,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
+import { ConnectError } from '@connectrpc/connect';
 import {
   lucideZoomIn,
   lucideZoomOut
@@ -44,7 +45,7 @@ import {
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { CalendarChangeEvent, CalendarEvent, ListEventsResponse, Calendar as PbCalendar } from '@tierklinik-dobersberg/apis/calendar/v1';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
-import { PlannedShift, WorkShift } from '@tierklinik-dobersberg/apis/roster/v1';
+import { ListRosterTypesResponse, PlannedShift, RosterType, WorkShift } from '@tierklinik-dobersberg/apis/roster/v1';
 import {
   differenceInSeconds,
   endOfDay,
@@ -56,6 +57,7 @@ import {
   setSeconds,
   startOfDay
 } from 'date-fns';
+import { toast } from 'ngx-sonner';
 import {
   debounceTime,
   filter,
@@ -85,6 +87,7 @@ import { getSeconds } from '../day-view/sort.pipe';
 type CalEvent = Timed &
   PlainMessage<CalendarEvent> & {
     isShiftType?: boolean;
+    isOnCall?: boolean;
   };
 
 @Component({
@@ -244,11 +247,13 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
 
   protected readonly shifts = signal<PlannedShift[]>([]);
   protected readonly shiftDefinitions = signal<WorkShift[]>([]);
+  protected readonly rosterTypes = signal<null | RosterType[]>([]);
 
   protected readonly _computedShiftEvents = computed(() => {
     const shifts = this.shifts();
     const profiles = this.profiles();
     const date = startOfDay(this.currentDate());
+    const types = this.rosterTypes();
 
     const definitions = this.shiftDefinitions();
     const lm = new Map<string, WorkShift>();
@@ -276,7 +281,9 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         toDate = endOfDay(date)
       }
 
-      let duration = differenceInSeconds(toDate, fromDate)
+      const duration = differenceInSeconds(toDate, fromDate)
+      const def = definitions.find(w => w.id === shift.workShiftId);
+      const rosterTypes = types.filter(t => def.tags.some(tag => t.shiftTags.includes(tag)));
 
       shift.assignedUserIds
         .map(id => profileById.get(id))
@@ -294,6 +301,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
             duration: duration,
             fullDay: false,
             isFree: false,
+            isOnCall: rosterTypes.some(type => type.onCallTags.some(tag => def.tags.includes(tag))),
             id:
               'shift:' +
               profile.user.id +
@@ -303,7 +311,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
               shift.from.toDate().toISOString() +
               '-' +
               shift.to.toDate().toISOString()
-              + '-' + definitions.find(w => w.id === shift.workShiftId).tags.join(':'),
+              + '-' + def.tags.join(':'),
             description: '',
             ignoreOverlapping: true,
             isShiftType: true,
@@ -440,6 +448,19 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
           this.shiftDefinitions.set(response.definitions);
           this.shifts.set(response.shifts);
         });
+
+      this.rosterAPI
+        .listRosterTypes({})
+        .catch(err => {
+          toast.error('Failed to load roster types', {
+            description: ConnectError.from(err).message
+          })
+
+          return new ListRosterTypesResponse()
+        })
+        .then(response => {
+          this.rosterTypes.set(response.rosterTypes || null)
+        })
 
       this.loadEvents(date);
     }, {
