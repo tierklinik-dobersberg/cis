@@ -25,7 +25,7 @@ import {
   lucideZoomOut
 } from '@ng-icons/lucide';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
-import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
+import { injectUserProfiles, sortUserProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
 import { HlmCheckboxComponent } from '@tierklinik-dobersberg/angular/checkbox';
 import {
@@ -245,7 +245,12 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         let av = ap ? (workingStaff.has(ap.user.id) ? 2 : 1) : -1;
         let bv = bp ? (workingStaff.has(bp.user.id) ? 2 : 1) : -1;
 
-        return bv - av;
+        const result = bv - av;
+        if (result === 0) {
+          return sortUserProfile(bp, ap)
+        }
+
+        return result
       })
   })
 
