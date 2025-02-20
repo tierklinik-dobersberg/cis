@@ -507,10 +507,14 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
 
   private _lastLoadEventsResponse: ListEventsResponse | null = null;
   private _abrt: AbortController | null;
+  private _prevDate: Date | null = null;
 
   private loadEvents(date: Date) {
     const eventsBefore = untracked(() => this.events());
-    this.events.set([]);
+
+    if (!isSameDay(date, this._prevDate)) {
+      this.events.set([]);
+    }
 
     if (this._abrt) {
       this._abrt.abort()
@@ -556,6 +560,8 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
           });
         });
         this.events.set(events);
+
+        this._prevDate = date;
       })
       .catch(err => {
         console.error("failed to load events", err)

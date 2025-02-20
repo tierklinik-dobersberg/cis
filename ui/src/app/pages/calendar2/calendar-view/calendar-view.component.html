@@ -34,6 +34,7 @@
             <label
               hlmLabel
               class="flex flex-row items-center"
+              [attr.calendar-id]="cal.id"
               [style.--color]="cal.color | toRgba: '0.2'"
               [style.--border-color]="cal.color | toRgba">
               <hlm-checkbox
