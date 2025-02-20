@@ -21,6 +21,7 @@ import {
 import { SwUpdateManager, WebPushSubscriptionManager } from 'src/app/services';
 import { environment } from 'src/environments/environment';
 import { StudyService } from './components/dicom/study.service';
+import { NavigationService } from './layout/navigation/navigation.service';
 
 interface MenuEntry {
   Icon: string;
@@ -67,6 +68,7 @@ export class AppComponent implements OnInit {
   private readonly markdownService = inject(MarkdownService);
   private readonly studyService = inject(StudyService);
 
+  protected readonly navService = inject(NavigationService);
   protected readonly layout = inject(LayoutService);
 
   protected readonly isReachable = signal(false);

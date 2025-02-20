@@ -2,8 +2,9 @@
   <!--
   Menu on Desktop and up
   -->
-  @if (layout.lg()) {
+  @if (navService.showNav()) {
     <app-navigation
+      [@moveInOut]
       class="z-10 block flex-[0_0_16rem] shadow-md print:hidden" />
   }
 

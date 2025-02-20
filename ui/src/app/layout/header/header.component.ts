@@ -8,7 +8,6 @@ import {
 } from '@ng-icons/lucide';
 import { BrnMenuModule } from '@spartan-ng/ui-menu-brain';
 import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
-import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import {
   HlmIconModule,
   provideIcons,
@@ -21,6 +20,7 @@ import { openProfilePage } from 'src/app/services';
 import { AppDoorStatusButtonComponent } from '../door-status-button';
 import { HeaderTitleOutletComponent } from '../header-title';
 import { AppSheetNavigationComponent } from '../navigation';
+import { NavigationService } from '../navigation/navigation.service';
 import { AppRedirectEmergencyButtonComponent } from '../redirect-emergency-button/redirect-emergency-button.component';
 
 @Component({
@@ -34,7 +34,6 @@ import { AppRedirectEmergencyButtonComponent } from '../redirect-emergency-butto
     HlmIconModule,
     HeaderTitleOutletComponent,
     AppSheetNavigationComponent,
-    HlmButtonDirective,
     AppRedirectEmergencyButtonComponent,
     AppDoorStatusButtonComponent,
     AppAvatarComponent,
@@ -53,6 +52,7 @@ import { AppRedirectEmergencyButtonComponent } from '../redirect-emergency-butto
 export class AppHeaderComponent {
   protected readonly layout = inject(LayoutService);
   protected readonly profile = injectCurrentProfile();
+  protected readonly showNav = inject(NavigationService).showNav;
   
   openProfilePage() {
     openProfilePage()

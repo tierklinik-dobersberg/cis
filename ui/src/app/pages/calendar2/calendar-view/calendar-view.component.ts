@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  OnDestroy,
   OnInit,
   Renderer2,
   ViewChild,
@@ -64,6 +65,7 @@ import { TkdDatePickerComponent, TkdDatePickerInputDirective } from 'src/app/com
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
 import { UserColorVarsDirective } from 'src/app/components/user-color-vars';
 import { HeaderTitleService } from 'src/app/layout/header-title';
+import { NavigationService } from 'src/app/layout/navigation/navigation.service';
 import { ByCalendarIdPipe } from 'src/app/pipes/by-calendar-id.pipe';
 import { ToRGBAPipe } from 'src/app/pipes/to-rgba.pipe';
 import { getCalendarId } from 'src/app/services';
@@ -148,7 +150,7 @@ type CalEvent = Timed &
     `,
   ],
 })
-export class TkdCalendarViewComponent implements OnInit {
+export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   private readonly calendarAPI = inject(CALENDAR_SERVICE);
   private readonly rosterAPI = inject(ROSTER_SERVICE);
   private readonly activeRoute = inject(ActivatedRoute);
@@ -159,6 +161,7 @@ export class TkdCalendarViewComponent implements OnInit {
   private readonly dialog = inject(HlmDialogService);
   private readonly header = inject(HeaderTitleService)
 
+  protected readonly navService = inject(NavigationService)
   protected readonly layout = inject(LayoutService);
 
   protected readonly isToday = computed(() => {
@@ -382,6 +385,24 @@ export class TkdCalendarViewComponent implements OnInit {
   }
 
   constructor() {
+    if (window.localStorage && typeof(window.localStorage.getItem) === 'function') {
+      const shouldHide = window.localStorage.getItem("cis:calendar:hideMenu")
+
+      this.navService.forceHide.set(shouldHide === null ? true : (shouldHide === 'true'));
+
+      effect(() => {
+        const forceHide = this.navService.forceHide();
+
+        if (forceHide) {
+          window.localStorage.setItem('cis:calendar:hideMenu', 'true')
+        } else {
+          window.localStorage.setItem('cis:calendar:hideMenu', 'false')
+        }
+      })
+    } else {
+      this.navService.forceHide.set(true)
+    }
+
     inject(EventService)
       .subscribe(new CalendarChangeEvent)
       .pipe(takeUntilDestroyed(), debounceTime(1000))
@@ -520,5 +541,9 @@ export class TkdCalendarViewComponent implements OnInit {
       .subscribe((date) => {
         this.currentDate.set(new Date(date));
       });
+  }
+
+  ngOnDestroy(): void {
+    this.navService.forceHide.set(false);
   }
 }

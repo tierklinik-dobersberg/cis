@@ -78,6 +78,14 @@
       (click)="dayView.zoomOut()">
       <hlm-icon name="lucideZoomOut" size="sm" />
     </button>
+
+    <!-- spacer -->
+    <div class="hidden flex-grow xl:block"></div>
+
+    <label hlmLabel class="flex items-center">
+      <hlm-checkbox [(ngModel)]="navService.forceHide" class="mr-2" />
+      Menü ausblenden
+    </label>
   </div>
 </header>
 
