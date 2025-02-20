@@ -521,6 +521,8 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
 
     const toastId = untracked(() => toast.loading('Termine werden geladen', {
       dismissable: false,
+      important: true,
+      duration: 200000000
     }))
 
     this.calendarAPI
