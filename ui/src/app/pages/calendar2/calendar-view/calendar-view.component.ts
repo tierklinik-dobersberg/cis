@@ -24,6 +24,7 @@ import {
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
+import { HlmCheckboxComponent } from '@tierklinik-dobersberg/angular/checkbox';
 import {
   CALENDAR_SERVICE,
   ROSTER_SERVICE,
@@ -33,12 +34,11 @@ import {
   HlmIconModule,
   provideIcons,
 } from '@tierklinik-dobersberg/angular/icon';
+import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import {
   DurationPipe,
-  ToDatePipe,
-  UserColorPipe,
-  UserContrastColorPipe,
+  ToDatePipe
 } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { CalendarChangeEvent, CalendarEvent, ListEventsResponse, Calendar as PbCalendar } from '@tierklinik-dobersberg/apis/calendar/v1';
@@ -65,6 +65,7 @@ import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/pi
 import { UserColorVarsDirective } from 'src/app/components/user-color-vars';
 import { HeaderTitleService } from 'src/app/layout/header-title';
 import { ByCalendarIdPipe } from 'src/app/pipes/by-calendar-id.pipe';
+import { ToRGBAPipe } from 'src/app/pipes/to-rgba.pipe';
 import { getCalendarId } from 'src/app/services';
 import { EventService } from 'src/app/services/event.service';
 import { toDateString } from 'src/app/utils';
@@ -72,12 +73,10 @@ import { AppEventDetailsDialogComponent } from '../../../dialogs/event-details-d
 import {
   Calendar,
   CalendarMouseEvent,
-  IsSameDayPipe,
-  TimeFormatPipe,
   Timed,
   TkdCalendarEventCellTemplateDirective,
   TkdCalendarHeaderCellTemplateDirective,
-  TkdDayViewComponent,
+  TkdDayViewComponent
 } from '../day-view';
 import { getSeconds } from '../day-view/sort.pipe';
 
@@ -97,11 +96,9 @@ type CalEvent = Timed &
     TkdDayViewComponent,
     TkdCalendarHeaderCellTemplateDirective,
     TkdCalendarEventCellTemplateDirective,
-    UserColorPipe,
-    UserContrastColorPipe,
-    TimeFormatPipe,
+    HlmLabelDirective,
+    HlmCheckboxComponent,
     FormsModule,
-    IsSameDayPipe,
     HlmButtonModule,
     UserColorVarsDirective,
     HlmIconModule,
@@ -112,7 +109,8 @@ type CalEvent = Timed &
     HlmSelectModule,
     ByCalendarIdPipe,
     DurationPipe,
-    ToDatePipe
+    ToDatePipe,
+    ToRGBAPipe,
   ],
   providers: [
     ...provideIcons({
@@ -175,7 +173,62 @@ export class TkdCalendarViewComponent implements OnInit {
   protected readonly currentDate = signal<Date | null>(null);
 
   /** A list of available calendars */
-  protected readonly calendars = signal<PbCalendar[]>([]);
+  protected readonly allCalendars = signal<PbCalendar[]>([]);
+
+  protected readonly calendars = computed(() => {
+    const profiles = this.profiles();
+    const calendars = this.allCalendars();
+    const displayed = new Set(this.displayedCalendars());
+    const shifts = this.shifts();
+
+    const profileLookupMap = new Map<string, Profile>();
+    profiles.forEach(p => {
+      const calId = getCalendarId(p)
+      if (calId) {
+        profileLookupMap.set(calId, p)
+      }
+    })
+
+    const workingStaff = new Set<string>();
+    shifts.forEach(shift => shift.assignedUserIds.forEach(user => workingStaff.add(user)))
+
+    return calendars
+      .filter(cal => {
+        if (displayed.has(cal.id)) {
+          return true
+        }
+
+        const profile = profileLookupMap.get(cal.id)
+        if (!profile) {
+          return true
+        }
+
+        // display the user even if it has been deleted
+        // if it was still assigned to a working shift on the current date.
+        if (workingStaff.has(profile.user.id)) {
+          return true
+        }
+
+        return !profile.user.deleted
+      })
+      .sort((a, b) => {
+        let ap = profileLookupMap.get(a.id);
+        let bp = profileLookupMap.get(b.id);
+
+        if (ap && ap.user.deleted) {
+          ap = null
+        }
+
+        if (bp && bp.user.deleted) {
+          bp = null
+        }
+
+        let av = ap ? (workingStaff.has(ap.user.id) ? 2 : 1) : -1;
+        let bv = bp ? (workingStaff.has(bp.user.id) ? 2 : 1) : -1;
+
+        return bv - av;
+      })
+  })
 
   /** The user profiles */
   protected readonly profiles = injectUserProfiles();
@@ -310,6 +363,15 @@ export class TkdCalendarViewComponent implements OnInit {
     this.setDate(new Date());
   }
 
+  protected toggleUser(user: string) {
+    const calendars = this.displayedCalendars();
+    if (calendars.includes(user)) {
+      this.displayedCalendars.set(calendars.filter(c => c != user))
+    } else {
+      this.displayedCalendars.set([...calendars, user])
+    }
+  }
+
   setDate(date: Date) {
     this.router.navigate([], {
       queryParams: {
@@ -422,9 +484,10 @@ export class TkdCalendarViewComponent implements OnInit {
 
   ngOnInit(): void {
     this.calendarAPI.listCalendars({}).then(response => {
-      this.calendars.set(
-        response.calendars.sort((a, b) => a.id.localeCompare(b.id))
-      );
+      const calendars = response.calendars
+        .sort((a, b) => a.id.localeCompare(b.id))
+
+      this.allCalendars.set(calendars);
     });
 
     this.destroyRef.onDestroy(
