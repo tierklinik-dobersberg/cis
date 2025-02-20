@@ -1,5 +1,5 @@
 <header
-  class="flex flex-row items-center gap-2 xl:max-h-full xl:min-w-[390px] xl:flex-col xl:border-r xl:border-t xl:border-gray-200 xl:bg-white xl:pb-8">
+  class="flex flex-row items-center gap-2 xl:max-h-full xl:min-w-[390px] xl:flex-col xl:border-r xl:border-t xl:border-gray-100 xl:bg-white xl:pb-8">
   <!-- Date controls -->
   <div class="flex flex-row flex-nowrap gap-1 xl:p-4 xl:pt-8">
     <tkd-date-picker
@@ -60,7 +60,7 @@
 
   <!-- Zoom Controls -->
   <div
-    class="flex flex-row flex-nowrap items-center gap-0 xl:w-full xl:border-t xl:border-gray-200 xl:p-2">
+    class="flex flex-row flex-nowrap items-center gap-0 xl:w-full xl:border-t xl:border-gray-100 xl:p-2">
     <button
       hlmBtn
       variant="outline"
@@ -79,13 +79,15 @@
       <hlm-icon name="lucideZoomOut" size="sm" />
     </button>
 
-    <!-- spacer -->
-    <div class="hidden flex-grow xl:block"></div>
+    @if (layout.lg()) {
+      <!-- spacer -->
+      <div class="w-4 xl:w-auto xl:flex-grow"></div>
 
-    <label hlmLabel class="flex items-center">
-      <hlm-checkbox [(ngModel)]="navService.forceHide" class="mr-2" />
-      Menü ausblenden
-    </label>
+      <label hlmLabel class="flex items-center">
+        <hlm-checkbox [(ngModel)]="navService.forceHide" class="mr-2" />
+        Menü ausblenden
+      </label>
+    }
   </div>
 </header>
 
