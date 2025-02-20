@@ -59,6 +59,10 @@ import { AppRedirectEmergencyButtonComponent } from '../redirect-emergency-butto
       ]),
       transition('* => void', [
         animate('150ms ease-in-out', style({
+          transform: 'scale(125%)',
+          opacity: 1
+        })),
+        animate('150ms ease-in-out', style({
           transform: 'scale(0%)',
           opacity: 0,
         }))
