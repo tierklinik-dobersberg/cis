@@ -335,6 +335,8 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     return shiftEvents;
   });
 
+  protected readonly loading = signal<('types' | 'shifts' | 'events')[]>([]);
+
   protected readonly _computedEvents = computed(() => {
     const shiftEvents = this._computedShiftEvents();
     const events = this.events();
@@ -428,7 +430,6 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       .pipe(takeUntilDestroyed(), debounceTime(1000))
       .subscribe(() => this.loadEvents(this.currentDate()))
 
-    let loading = 0;
     effect(() => {
       const date = this.currentDate();
 
@@ -441,7 +442,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         'Termine am ' + toDateString(date),
       )
 
-      loading = 0;
+      this.loading.set([]);
 
       // clear out the shifts so we don't display anything until we got the new response.
       this.shifts.set([]);
@@ -459,6 +460,8 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         .then(response => {
           this.shiftDefinitions.set(response.definitions);
           this.shifts.set(response.shifts);
+
+          this.loading.set([...this.loading(), 'shifts'])
         });
 
       this.rosterAPI
@@ -472,6 +475,8 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         })
         .then(response => {
           this.rosterTypes.set(response.rosterTypes || null)
+
+          this.loading.set([...this.loading(), 'types'])
         })
 
       this.loadEvents(date);
@@ -481,25 +486,38 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
 
     effect(() => {
       const events = this._computedEvents();
+      const loading = this.loading();
 
-      if (loading <= 2) {
-        loading++;
-
+      if (loading.length === 3) {
         let set = new Set<string>();
         events
           .forEach(evt => {
             set.add(evt.calendarId);
           });
 
-        this.displayedCalendars.set(Array.from(set.values()));
+        const values = Array.from(set.values())
+        this.displayedCalendars.set(values);
       }
     }, { allowSignalWrites: true })
   }
 
   private _lastLoadEventsResponse: ListEventsResponse | null = null;
+  private _abrt: AbortController | null;
+
   private loadEvents(date: Date) {
     const eventsBefore = untracked(() => this.events());
     this.events.set([]);
+
+    if (this._abrt) {
+      this._abrt.abort()
+    }
+
+    const abrt = new AbortController();
+    this._abrt = abrt;
+
+    const toastId = untracked(() => toast.loading('Termine werden geladen', {
+      dismissable: false,
+    }))
 
     this.calendarAPI
       .listEvents({
@@ -511,7 +529,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
           case: 'allCalendars',
           value: true,
         },
-      })
+      }, {signal: this._abrt.signal})
       .then(response => {
         if (response.equals(this._lastLoadEventsResponse)) {
           console.log("skipping update, nothing changed")
@@ -533,8 +551,18 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
           });
         });
         this.events.set(events);
+      })
+      .catch(err => {
+        console.error("failed to load events", err)
+      })
+      .finally(() => {
+        if (this._abrt === abrt) {
+          this._abrt = null;
+          this.loading.set([...this.loading(), 'events']);
+        }
 
-      });
+        toast.dismiss(toastId);
+      })
   }
 
   ngOnInit(): void {
