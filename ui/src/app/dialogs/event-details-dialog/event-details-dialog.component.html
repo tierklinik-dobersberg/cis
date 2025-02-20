@@ -50,8 +50,23 @@
           type="text"
           required
           hlmInput
+          (keypress)="trigger.closePanel(); trigger.autocompleteDisabled = true"
           [(ngModel)]="summary"
+          #trigger="matAutocompleteTrigger"
+          [matAutocomplete]="auto"
           class="w-full flex-1" />
+
+        <mat-autocomplete
+          #auto="matAutocomplete"
+          (optionSelected)="summary.set($event.option.value)">
+          @if (isNew()) {
+            @for (option of recentCalls(); track option) {
+              <mat-option class="!min-h-8 !text-sm" [value]="option">
+                {{ option }}
+              </mat-option>
+            }
+          }
+        </mat-autocomplete>
       } @else {
         {{ event.summary }}
       }

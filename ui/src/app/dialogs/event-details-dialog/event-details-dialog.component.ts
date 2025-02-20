@@ -1,6 +1,7 @@
 import { DatePipe, NgClass } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, model, OnInit, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import { Timestamp } from "@bufbuild/protobuf";
 import { CKEditorModule } from "@ckeditor/ckeditor5-angular";
 import { ConnectError } from "@connectrpc/connect";
@@ -10,9 +11,9 @@ import { BrnDialogRef, injectBrnDialogContext } from "@spartan-ng/ui-dialog-brai
 import { BrnSelectModule } from "@spartan-ng/ui-select-brain";
 import { HlmAlertDialogModule } from "@tierklinik-dobersberg/angular/alertdialog";
 import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
-import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
+import { injectUserProfiles, sortProtoTimestamps } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
-import { injectCalendarService } from "@tierklinik-dobersberg/angular/connect";
+import { injectCalendarService, injectCallService } from "@tierklinik-dobersberg/angular/connect";
 import { HlmDialogDescriptionDirective, HlmDialogFooterComponent, HlmDialogHeaderComponent, HlmDialogService, HlmDialogTitleDirective } from '@tierklinik-dobersberg/angular/dialog';
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
@@ -22,8 +23,9 @@ import { HlmTableComponent, HlmTdComponent, HlmThComponent, HlmTrowComponent } f
 import { Duration } from "@tierklinik-dobersberg/angular/utils/date";
 import { DurationValidatorDirective } from "@tierklinik-dobersberg/angular/validators";
 import { Calendar, CalendarEvent, CreateEventRequest, MoveEventRequest, UpdateEventRequest, UpdateEventResponse } from "@tierklinik-dobersberg/apis/calendar/v1";
+import { CallDirection } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
 import { Markdown } from "ckeditor5";
-import { addSeconds } from "date-fns";
+import { addMinutes, addSeconds } from "date-fns";
 import { toast } from "ngx-sonner";
 import { catchError, defer, retry, throwError } from "rxjs";
 import { config, MyEditor } from "src/app/ckeditor";
@@ -67,6 +69,7 @@ export interface EventDetailsDialogContext {
         HlmAlertDialogModule,
         CKEditorModule,
         NgClass,
+        MatAutocompleteModule
     ],
     providers: [
         ...provideIcons({lucideCalendar, lucideClock})
@@ -86,6 +89,7 @@ export class AppEventDetailsDialogComponent implements OnInit {
     private readonly _calendarService = injectCalendarService();
     private readonly _dialogRef = inject<BrnDialogRef<unknown>>(BrnDialogRef);
     private readonly _dialogContext = injectBrnDialogContext<EventDetailsDialogContext>();
+    private readonly _callService = injectCallService();
 
     protected readonly editor = MyEditor;
     protected readonly config = (() => {
@@ -94,6 +98,8 @@ export class AppEventDetailsDialogComponent implements OnInit {
             plugins: config.plugins.filter(p => p !== Markdown)
         }
     })()
+
+    protected readonly recentCalls = signal<string[]>([]);
 
     protected event = this._dialogContext.event;
     protected readonly calendar = this._dialogContext.calendar;
@@ -135,6 +141,38 @@ export class AppEventDetailsDialogComponent implements OnInit {
             this.edit.set(true);
             this.isNew.set(true);
             this.createTime.set(null);
+
+            const now = new Date();
+            const before = addMinutes(now, -5)
+
+            this._callService
+                .searchCallLogs({
+                    timeRange: {
+                        from: Timestamp.fromDate(before),
+                        to: Timestamp.fromDate(now)
+                    }
+                })
+                .then(response => {
+                    const logs = response.results
+                        .filter(record => !!record.customerId)
+                        .filter(record => record.direction === CallDirection.INBOUND)
+                        .sort((a, b) => sortProtoTimestamps(b.receivedAt, a.receivedAt))
+                        .map(record => {
+                            const customer = response.customers.find(c => c.id === record.customerId)
+                            if (!customer) {
+                                return ''
+                            }
+
+                            return `${customer.lastName} ${customer.firstName}`
+                        })
+                        .filter(record => record !== '')
+
+                    this.recentCalls.set(logs);
+                       
+                })
+                .catch(err => {
+                    console.error(err)
+                })
 
             if (!this.event) {
                 this.startTime.set(this._dialogContext.startTime)
