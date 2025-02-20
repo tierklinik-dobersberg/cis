@@ -1,0 +1,39 @@
+<hlm-dialog-header>
+  <h3 hlmDialogTitle>Neuen Kunden-Eintrag erstellen</h3>
+  <p hlmDialogDescription></p>
+</hlm-dialog-header>
+
+<hlm-table
+  class="w-full [&_hlm-td]:flex-1 [&_hlm-th]:h-8 [&_hlm-th]:sm:h-12 [&_hlm-trow]:flex-col [&_hlm-trow]:sm:flex-row">
+  <hlm-trow>
+    <hlm-th class="w-48 overflow-hidden text-ellipsis">Telefonnummer</hlm-th>
+    <hlm-td>
+      <input hlmInput [(ngModel)]="number" />
+    </hlm-td>
+  </hlm-trow>
+
+  <hlm-trow>
+    <hlm-th class="w-48 overflow-hidden text-ellipsis">Nachname</hlm-th>
+    <hlm-td>
+      <input hlmInput [(ngModel)]="lastName" />
+    </hlm-td>
+  </hlm-trow>
+
+  <hlm-trow>
+    <hlm-th class="w-48 overflow-hidden text-ellipsis">Vorname</hlm-th>
+    <hlm-td>
+      <input hlmInput [(ngModel)]="firstName" />
+    </hlm-td>
+  </hlm-trow>
+</hlm-table>
+
+<div class="flex-grow"></div>
+
+<hlm-dialog-footer
+  class="mt-4 flex flex-row flex-wrap items-center justify-between gap-2 p-1">
+  <button hlmBtn variant="secondary" (click)="close()">Schließen</button>
+
+  <div class="flex flex-row flex-wrap items-center justify-end gap-2">
+    <button hlmBtn (click)="save()">Speichern</button>
+  </div>
+</hlm-dialog-footer>

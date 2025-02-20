@@ -12,9 +12,10 @@ import {
 import { Code, ConnectError } from '@connectrpc/connect';
 import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { injectCustomerService } from '@tierklinik-dobersberg/angular/connect';
+import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { CallRecordReceived } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
-import { toast } from 'ngx-sonner';
+import { ExternalToast, toast } from 'ngx-sonner';
 import {
   retry,
   tap
@@ -22,6 +23,7 @@ import {
 import { SwUpdateManager, WebPushSubscriptionManager } from 'src/app/services';
 import { environment } from 'src/environments/environment';
 import { StudyService } from './components/dicom/study.service';
+import { CreateCustomerDialog } from './dialogs/create-customer-dialog';
 import { NavigationService } from './layout/navigation/navigation.service';
 import { EventService } from './services/event.service';
 
@@ -70,6 +72,7 @@ export class AppComponent implements OnInit {
   private readonly eventsService = inject(EventService);
   private readonly studyService = inject(StudyService);
   private readonly customerService = injectCustomerService();
+  private readonly dialogService = inject(HlmDialogService)
 
   protected readonly navService = inject(NavigationService);
   protected readonly layout = inject(LayoutService);
@@ -149,10 +152,24 @@ export class AppComponent implements OnInit {
               })
           }
 
+          let action: undefined | ExternalToast['action'] = {
+                  label: 'Telefonnummer speichern',
+                  onClick: () => {
+                    CreateCustomerDialog.open(this.dialogService, {
+                      caller: caller,
+                    })
+                  }
+          }
+
+          if (evt.callEntry?.customerId) {
+            action = null;
+          }
+
           display
             .then(who => {
               const id  = toast.loading('Aktives Telefonat mit ' + who, {
                 duration: 10 * 60 * 1000,
+                action,
               })
 
               console.log("adding caller id", caller, id, evt)

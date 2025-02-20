@@ -13,7 +13,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { PartialMessage } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
-import { lucideArrowLeft, lucideArrowRight, lucidePhoneCall, lucidePhoneForwarded, lucidePhoneIncoming, lucidePhoneMissed, lucidePhoneOff, lucidePhoneOutgoing } from '@ng-icons/lucide';
+import { lucideArrowLeft, lucideArrowRight, lucidePhoneCall, lucidePhoneForwarded, lucidePhoneIncoming, lucidePhoneMissed, lucidePhoneOff, lucidePhoneOutgoing, lucideUserPlus } from '@ng-icons/lucide';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import { BrnTableModule } from '@spartan-ng/ui-table-brain';
 import { HlmBadgeDirective } from '@tierklinik-dobersberg/angular/badge';
@@ -37,6 +37,7 @@ import { Customer } from '@tierklinik-dobersberg/apis/customer/v1';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
 import { CallDirection, CallEntry, CallStatus, ListPhoneExtensionsResponse, PhoneExtension } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { toast } from 'ngx-sonner';
+import { CreateCustomerDialog } from 'src/app/dialogs/create-customer-dialog';
 import { KnownPhoneExtensionPipe } from 'src/app/pipes/known-phone-extension.pipe';
 import { getUserEmergencyExtension, getUserPhoneExtension } from 'src/app/services';
 import { usePaginationManager } from 'src/app/utils/pagination-manager';
@@ -112,7 +113,8 @@ export enum Columns {
       lucidePhoneOff,
       lucideArrowRight,
       lucidePhoneCall,
-      lucideArrowLeft
+      lucideArrowLeft,
+      lucideUserPlus
     })
   ]
 })
@@ -296,6 +298,12 @@ export class CallLogTableComponent {
 
   protected trackRecord(_: number, r: LocalCallLog) {
     return r.entry.id;
+  }
+
+  protected saveCustomer(caller: string) {
+    CreateCustomerDialog.open(this.dialogService, {
+      caller,
+    })
   }
 
   protected openDetails(record: LocalCallLog) {

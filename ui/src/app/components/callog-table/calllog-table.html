@@ -162,14 +162,27 @@
     </hlm-td>
   </brn-column-def>
 
-  <brn-column-def [name]="cols.Actions" class="w-0 flex-[0_0_4rem] p-0">
+  <brn-column-def
+    [name]="cols.Actions"
+    class="flex w-0 flex-[0_0_8rem] justify-end gap-2 p-0">
     <hlm-th *brnHeaderDef></hlm-th>
     <hlm-td *brnCellDef="let row">
+      @if (!row.customer && layout.md()) {
+        <a
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          class="h-full w-16"
+          (click)="$event.stopPropagation(); saveCustomer(row.entry.caller)">
+          <hlm-icon name="lucideUserPlus" />
+        </a>
+      }
+
       <a
         hlmBtn
         variant="ghost"
         size="icon"
-        class="h-full w-full"
+        class="h-full w-16"
         (click)="$event.stopPropagation()"
         [attr.href]="'tel:' + row.entry.caller">
         <hlm-icon name="lucidePhoneCall" />
