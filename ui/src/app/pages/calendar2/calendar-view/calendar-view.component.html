@@ -30,16 +30,18 @@
     @if (layout.xl()) {
       <ol class="flex h-full w-full list-none flex-col gap-4">
         @for (cal of calendars(); track cal.id) {
-          <li
-            hlmLabel
-            class="flex flex-row items-center"
-            [style.--color]="cal.color | toRgba: '0.2'"
-            [style.--border-color]="cal.color | toRgba">
-            <hlm-checkbox
-              class="mr-2 border-[--border-color] data-[state=checked]:bg-[--color] data-[state=checked]:text-[--border-color]"
-              (changed)="toggleUser(cal.id)"
-              [checked]="displayedCalendars().includes(cal.id)" />
-            {{ cal.name }}
+          <li>
+            <label
+              hlmLabel
+              class="flex flex-row items-center"
+              [style.--color]="cal.color | toRgba: '0.2'"
+              [style.--border-color]="cal.color | toRgba">
+              <hlm-checkbox
+                class="mr-2 border-[--border-color] data-[state=checked]:bg-[--color] data-[state=checked]:text-[--border-color]"
+                (changed)="toggleUser(cal.id)"
+                [checked]="displayedCalendars().includes(cal.id)" />
+              {{ cal.name }}
+            </label>
           </li>
         }
       </ol>

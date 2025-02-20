@@ -181,11 +181,22 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   /** A list of available calendars */
   protected readonly allCalendars = signal<PbCalendar[]>([]);
 
+  protected readonly workingStaff = computed(() => {
+    const shifts = this.shifts();
+    const workingStaff = new Set<string>();
+
+    shifts.forEach(shift => {
+      shift.assignedUserIds.forEach(user => workingStaff.add(user))
+    })
+
+    return workingStaff;
+  })
+
   protected readonly calendars = computed(() => {
     const profiles = this.profiles();
     const calendars = this.allCalendars();
     const displayed = new Set(this.displayedCalendars());
-    const shifts = this.shifts();
+    const workingStaff = this.workingStaff();
 
     const profileLookupMap = new Map<string, Profile>();
     profiles.forEach(p => {
@@ -194,9 +205,6 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         profileLookupMap.set(calId, p)
       }
     })
-
-    const workingStaff = new Set<string>();
-    shifts.forEach(shift => shift.assignedUserIds.forEach(user => workingStaff.add(user)))
 
     return calendars
       .filter(cal => {
@@ -215,7 +223,11 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
           return true
         }
 
-        return !profile.user.deleted
+        if (profile.user.deleted) {
+          return false
+        }
+
+        return true
       })
       .sort((a, b) => {
         let ap = profileLookupMap.get(a.id);
@@ -474,9 +486,10 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         loading++;
 
         let set = new Set<string>();
-        events.forEach(evt => {
-          set.add(evt.calendarId);
-        });
+        events
+          .forEach(evt => {
+            set.add(evt.calendarId);
+          });
 
         this.displayedCalendars.set(Array.from(set.values()));
       }
