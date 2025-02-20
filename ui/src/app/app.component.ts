@@ -11,8 +11,9 @@ import {
 } from '@angular/core';
 import { Code, ConnectError } from '@connectrpc/connect';
 import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
+import { injectCustomerService } from '@tierklinik-dobersberg/angular/connect';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
-import { MarkdownService } from 'ngx-markdown';
+import { CallRecordReceived } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { toast } from 'ngx-sonner';
 import {
   retry,
@@ -22,6 +23,7 @@ import { SwUpdateManager, WebPushSubscriptionManager } from 'src/app/services';
 import { environment } from 'src/environments/environment';
 import { StudyService } from './components/dicom/study.service';
 import { NavigationService } from './layout/navigation/navigation.service';
+import { EventService } from './services/event.service';
 
 interface MenuEntry {
   Icon: string;
@@ -65,8 +67,9 @@ interface SubMenu {
 export class AppComponent implements OnInit {
   private readonly webPushManager = inject(WebPushSubscriptionManager);
   private readonly updateManager = inject(SwUpdateManager);
-  private readonly markdownService = inject(MarkdownService);
+  private readonly eventsService = inject(EventService);
   private readonly studyService = inject(StudyService);
+  private readonly customerService = injectCustomerService();
 
   protected readonly navService = inject(NavigationService);
   protected readonly layout = inject(LayoutService);
@@ -105,6 +108,67 @@ export class AppComponent implements OnInit {
         ref.destroy();
       }
     })
+
+    const toasts = new Map<string, any>();
+
+    this.eventsService.subscribe(new CallRecordReceived)
+      .subscribe(evt => {
+        const caller = evt.callEntry.caller;
+
+        if (Number(evt.callEntry?.duration?.seconds || 0) === 0) {
+          // new active call received
+
+          let display = Promise.resolve(caller)
+
+          if (evt.callEntry.customerId) {
+            display = this.customerService
+              .searchCustomer({
+                queries: [
+                  {
+                    query: {
+                      case: 'id',
+                      value: evt.callEntry.customerId,
+                    }
+                  }
+                ]
+              })
+              .then(response => {
+                if (response.results && response.results.length === 1) {
+                  const customer = response.results[0].customer;
+                  if (customer) {
+                    return `${customer.lastName} ${customer.firstName}`
+                  }
+                }
+
+                return ''
+              })
+              .catch(err => {
+                console.error(err);
+                
+                return caller
+              })
+          }
+
+          display
+            .then(who => {
+              const id  = toast.loading('Aktives Telefonat mit ' + who, {
+                duration: 10 * 60 * 1000,
+              })
+
+              console.log("adding caller id", caller, id)
+              toasts.set(caller, id);
+            })
+        } else {
+          // call finished
+          const id = toasts.get(caller);
+          if (id !== undefined) {
+            toast.dismiss(id);
+            toasts.delete(id);
+          } else {
+            console.log("no active toast for caller", caller, Array.from(toasts.keys()))
+          }
+        }
+      })
   }
 
   ngOnInit(): void {

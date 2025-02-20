@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, input, model, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, HostListener, inject, input, model, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { provideIcons } from "@ng-icons/core";
 import { lucidePause, lucidePlay } from "@ng-icons/lucide";
@@ -8,13 +8,21 @@ import { Instance, Study } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
 import { filter, interval, Subscription } from "rxjs";
 import { DicomImageUrlPipe } from "src/app/pipes/dicom-instance-preview.pipe";
 
+enum ArrowKeys {
+    left = "ArrowLeft",
+    up = "ArrowUp",
+    right = "ArrowRight",
+    down = "ArrowDown",
+}
+
 @Component({
     selector: 'dicom-viewer',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './dicom-viewer.html',
     host: {
-        'class': 'block w-full h-full bg-black relative'
+        'class': 'block w-full h-full bg-black relative',
+        'tabindex': '0'
     },
     imports: [
         DicomImageUrlPipe,
@@ -49,6 +57,26 @@ export class DicomViewer {
     protected fps = signal<number>(24);
 
     protected readonly selectedFrame = signal(1);
+
+    @HostListener('keydown', ['$event'])
+    onKeyPress(evt: KeyboardEvent) {
+        if (evt.key === ArrowKeys.left || evt.key === ArrowKeys.right) {
+            this.playing.set(false);
+            const frameCount = this.frameCount();
+
+            let offset = 1;
+            if (evt.key === ArrowKeys.left) {
+                offset = -1
+            }
+
+            let next = ((this.selectedFrame() + offset) % frameCount) + offset;
+            if (next < 0) {
+                next = 0
+            }
+
+            this.selectedFrame.set(next);
+        }
+    }
 
     constructor() {
         const destroyRef = inject(DestroyRef);
