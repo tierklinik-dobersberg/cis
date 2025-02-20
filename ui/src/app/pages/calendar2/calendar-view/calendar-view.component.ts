@@ -1,18 +1,19 @@
-import { CommonModule, DOCUMENT } from '@angular/common';
+import { CommonModule, DatePipe, DOCUMENT } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
+  effect,
+  inject,
+  LOCALE_ID,
+  model,
   OnDestroy,
   OnInit,
   Renderer2,
-  ViewChild,
-  computed,
-  effect,
-  inject,
-  model,
   signal,
-  untracked
+  untracked,
+  ViewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -407,6 +408,9 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   }
 
   constructor() {
+    const localeId = inject(LOCALE_ID);
+    const datePipe = new DatePipe(localeId)
+
     if (window.localStorage && typeof(window.localStorage.getItem) === 'function') {
       const shouldHide = window.localStorage.getItem("cis:calendar:hideMenu")
 
@@ -439,7 +443,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
 
       this.header.set(
         'Kalender',
-        'Termine am ' + toDateString(date),
+        'Termine am ' + datePipe.transform(date, 'fullDate')
       )
 
       this.loading.set([]);
