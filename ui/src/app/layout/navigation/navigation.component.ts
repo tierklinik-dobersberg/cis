@@ -14,7 +14,7 @@ import { HlmMenuModule } from '@tierklinik-dobersberg/angular/menu';
 import { Mailbox } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { Board, BoardEvent, ListBoardsResponse } from '@tierklinik-dobersberg/apis/tasks/v1';
 import { toast } from 'ngx-sonner';
-import { catchError, debounceTime, filter, finalize, from, interval, merge, of, switchMap } from 'rxjs';
+import { catchError, debounceTime, filter, finalize, from, interval, merge, of, startWith, switchMap } from 'rxjs';
 import { EventService } from 'src/app/services/event.service';
 import { environment } from 'src/environments/environment';
 import { injectCurrentConfig, UIConfig } from '../../api';
@@ -96,7 +96,7 @@ export class AppNavigationComponent {
     merge(
       this.eventsService.subscribe(new BoardEvent),
       toObservable(this.profile),
-      interval(60 * 1000 * 5) 
+      interval(60 * 1000 * 5).pipe(startWith(0)),
     )
     .pipe(
       filter(() => !this.profile()),
