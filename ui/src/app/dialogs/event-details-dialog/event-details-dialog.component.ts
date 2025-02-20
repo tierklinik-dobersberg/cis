@@ -1,4 +1,4 @@
-import { DatePipe, NgClass } from "@angular/common";
+import { DatePipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, model, OnInit, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
@@ -10,20 +10,19 @@ import { BrnAlertDialogModule } from "@spartan-ng/ui-alertdialog-brain";
 import { BrnDialogRef, injectBrnDialogContext } from "@spartan-ng/ui-dialog-brain";
 import { BrnSelectModule } from "@spartan-ng/ui-select-brain";
 import { HlmAlertDialogModule } from "@tierklinik-dobersberg/angular/alertdialog";
-import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
 import { injectUserProfiles, sortProtoTimestamps } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { injectCalendarService, injectCallService } from "@tierklinik-dobersberg/angular/connect";
 import { HlmDialogDescriptionDirective, HlmDialogFooterComponent, HlmDialogHeaderComponent, HlmDialogService, HlmDialogTitleDirective } from '@tierklinik-dobersberg/angular/dialog';
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
-import { DurationPipe, ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
+import { ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmSelectModule } from "@tierklinik-dobersberg/angular/select";
 import { HlmTableComponent, HlmTdComponent, HlmThComponent, HlmTrowComponent } from '@tierklinik-dobersberg/angular/table';
 import { Duration } from "@tierklinik-dobersberg/angular/utils/date";
 import { DurationValidatorDirective } from "@tierklinik-dobersberg/angular/validators";
 import { Calendar, CalendarEvent, CreateEventRequest, MoveEventRequest, UpdateEventRequest, UpdateEventResponse } from "@tierklinik-dobersberg/apis/calendar/v1";
-import { CallDirection } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
+import { CallStatus } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
 import { Markdown } from "ckeditor5";
 import { addMinutes, addSeconds } from "date-fns";
 import { toast } from "ngx-sonner";
@@ -49,7 +48,6 @@ export interface EventDetailsDialogContext {
         HlmDialogTitleDirective,
         HlmDialogFooterComponent,
         HlmButtonDirective,
-        HlmBadgeDirective,
         HlmTableComponent,
         HlmThComponent,
         HlmTrowComponent,
@@ -64,11 +62,9 @@ export interface EventDetailsDialogContext {
         HlmInputDirective,
         TkdDatePickerComponent,
         DurationValidatorDirective,
-        DurationPipe,
         BrnAlertDialogModule,
         HlmAlertDialogModule,
         CKEditorModule,
-        NgClass,
         MatAutocompleteModule
     ],
     providers: [
@@ -155,7 +151,7 @@ export class AppEventDetailsDialogComponent implements OnInit {
                 .then(response => {
                     const logs = response.results
                         .filter(record => !!record.customerId)
-                        .filter(record => record.direction === CallDirection.INBOUND)
+                        .filter(record => [CallStatus.INBOUND, CallStatus.OUTBOUND].includes(record.status))
                         .sort((a, b) => sortProtoTimestamps(b.receivedAt, a.receivedAt))
                         .map(record => {
                             const customer = response.customers.find(c => c.id === record.customerId)
@@ -167,7 +163,7 @@ export class AppEventDetailsDialogComponent implements OnInit {
                         })
                         .filter(record => record !== '')
 
-                    this.recentCalls.set(logs);
+                    this.recentCalls.set(Array.from(new Set(logs).values()));
                        
                 })
                 .catch(err => {
