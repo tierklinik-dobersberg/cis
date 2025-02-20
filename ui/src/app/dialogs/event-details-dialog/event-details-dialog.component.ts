@@ -149,9 +149,11 @@ export class AppEventDetailsDialogComponent implements OnInit {
                     }
                 })
                 .then(response => {
+                    console.log(response.results);
+
                     const logs = response.results
                         .filter(record => !!record.customerId)
-                        .filter(record => [CallStatus.INBOUND, CallStatus.OUTBOUND].includes(record.status))
+                        .filter(record => [CallStatus.INBOUND, CallStatus.OUTBOUND, CallStatus.UNSPECIFIED].includes(record.status))
                         .sort((a, b) => sortProtoTimestamps(b.receivedAt, a.receivedAt))
                         .map(record => {
                             const customer = response.customers.find(c => c.id === record.customerId)
