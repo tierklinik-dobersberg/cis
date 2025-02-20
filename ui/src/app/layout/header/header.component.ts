@@ -1,3 +1,4 @@
+import { animate, style, transition, trigger } from '@angular/animations';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import {
@@ -39,6 +40,30 @@ import { AppRedirectEmergencyButtonComponent } from '../redirect-emergency-butto
     AppAvatarComponent,
     RouterModule,
     AppMenuComponent
+  ],
+  animations: [
+    trigger('scaleInOut', [
+      transition('void => *', [
+        style({
+          transform: 'scale(0%)',
+          opacity: 0,
+        }),
+        animate('150ms ease-in-out', style({
+          transform: 'scale(125%)',
+          opacity: 1
+        })),
+        animate('150ms ease-in-out', style({
+          transform: 'scale(100%)',
+          opacity: 1
+        }))
+      ]),
+      transition('* => void', [
+        animate('150ms ease-in-out', style({
+          transform: 'scale(0%)',
+          opacity: 0,
+        }))
+      ]),
+    ])
   ],
   providers: [
     ...provideIcons({
