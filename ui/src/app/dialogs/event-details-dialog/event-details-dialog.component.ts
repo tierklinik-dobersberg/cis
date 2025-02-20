@@ -26,18 +26,25 @@ import { CallStatus } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
 import { Markdown } from "ckeditor5";
 import { addMinutes, addSeconds } from "date-fns";
 import { toast } from "ngx-sonner";
-import { catchError, defer, retry, throwError } from "rxjs";
+import { catchError, defer, retry, take, throwError } from "rxjs";
 import { config, MyEditor } from "src/app/ckeditor";
 import { AppAvatarComponent } from "src/app/components/avatar";
 import { TkdDatePickerComponent } from "src/app/components/date-picker";
 import { getCalendarId } from "src/app/services";
 import { getSeconds } from "../../pages/calendar2/day-view/sort.pipe";
 import { DIALOG_CONTENT_CLASS } from "../constants";
+import { CreateCustomerDialog } from "../create-customer-dialog";
 
 export interface EventDetailsDialogContext {
         event?: CalendarEvent,
         calendar: Calendar,
         startTime?: Date,
+}
+
+interface RecentCall {
+    caller: string;
+    name: string;
+    unknown: boolean;
 }
 
 @Component({
@@ -86,6 +93,7 @@ export class AppEventDetailsDialogComponent implements OnInit {
     private readonly _dialogRef = inject<BrnDialogRef<unknown>>(BrnDialogRef);
     private readonly _dialogContext = injectBrnDialogContext<EventDetailsDialogContext>();
     private readonly _callService = injectCallService();
+    private readonly _dialogService = inject(HlmDialogService)
 
     protected readonly editor = MyEditor;
     protected readonly config = (() => {
@@ -95,7 +103,7 @@ export class AppEventDetailsDialogComponent implements OnInit {
         }
     })()
 
-    protected readonly recentCalls = signal<string[]>([]);
+    protected readonly recentCalls = signal<RecentCall[]>([]);
 
     protected event = this._dialogContext.event;
     protected readonly calendar = this._dialogContext.calendar;
@@ -152,20 +160,28 @@ export class AppEventDetailsDialogComponent implements OnInit {
                     console.log(response.results);
 
                     const logs = response.results
-                        .filter(record => !!record.customerId)
                         .filter(record => [CallStatus.INBOUND, CallStatus.OUTBOUND, CallStatus.UNSPECIFIED].includes(record.status))
                         .sort((a, b) => sortProtoTimestamps(b.receivedAt, a.receivedAt))
                         .map(record => {
                             const customer = response.customers.find(c => c.id === record.customerId)
                             if (!customer) {
-                                return ''
+                                return <RecentCall>{
+                                    caller: record.caller,
+                                    name: 'Neuer Kunde: ' + record.caller,
+                                    unknown: true
+                                }
                             }
 
-                            return `${customer.lastName} ${customer.firstName}`
+                            return <RecentCall>{
+                                caller: record.caller,
+                                name: `${customer.lastName} ${customer.firstName}`
+                            }
                         })
-                        .filter(record => record !== '')
 
-                    this.recentCalls.set(Array.from(new Set(logs).values()));
+                    const m = new Map<string, RecentCall>();
+                    logs.forEach(l => m.set(l.caller, l))
+
+                    this.recentCalls.set(Array.from(m.values()))
                        
                 })
                 .catch(err => {
@@ -202,6 +218,23 @@ export class AppEventDetailsDialogComponent implements OnInit {
             .subscribe(response => {
                 this.availableCalendars.set(response.calendars);
             })
+    }
+
+    protected handleRecentCallClick(call: RecentCall) {
+        if (call.unknown) {
+            CreateCustomerDialog.open(this._dialogService, {
+                caller: call.caller,
+            })
+                .closed$
+                .pipe(take(1))
+                .subscribe(customer => {
+                    this.summary.set(customer.lastName + ' ' + customer.firstName)
+                })
+
+
+        } else {
+            this.summary.set(call.name)
+        }
     }
 
     protected async create() {

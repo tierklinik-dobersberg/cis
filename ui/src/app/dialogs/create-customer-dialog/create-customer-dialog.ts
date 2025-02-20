@@ -13,6 +13,7 @@ import { HlmIconModule } from "@tierklinik-dobersberg/angular/icon";
 import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
 import { HlmSelectModule } from "@tierklinik-dobersberg/angular/select";
 import { HlmTableComponent, HlmTdComponent, HlmThComponent, HlmTrowComponent } from "@tierklinik-dobersberg/angular/table";
+import { Customer } from "@tierklinik-dobersberg/apis/customer/v1";
 import { toast } from "ngx-sonner";
 import { DIALOG_CONTENT_CLASS } from "../constants";
 
@@ -49,14 +50,14 @@ export class CreateCustomerDialog implements OnInit {
     protected readonly lastName = signal('');
 
     private readonly customerService = injectCustomerService();
-    private readonly _dialogRef = inject<BrnDialogRef<unknown>>(BrnDialogRef);
+    private readonly _dialogRef = inject<BrnDialogRef<Customer | null>>(BrnDialogRef);
     private readonly _dialogContext = injectBrnDialogContext<CreateCustomerDialogContext>();
 
     ngOnInit() {
         this.number.set(this._dialogContext.caller)
     }
 
-    static open(service: HlmDialogService, ctx: CreateCustomerDialogContext): BrnDialogRef<CreateCustomerDialog> {
+    static open(service: HlmDialogService, ctx: CreateCustomerDialogContext): BrnDialogRef<Customer | null> {
         return service.open(CreateCustomerDialog, {
             context: ctx,
             contentClass: DIALOG_CONTENT_CLASS,
@@ -72,8 +73,8 @@ export class CreateCustomerDialog implements OnInit {
                     lastName: this.lastName(),
                 }
             })
-            .then(() => {
-                this._dialogRef.close();
+            .then((respose) => {
+                this._dialogRef.close(respose.response.customer);
             })
             .catch( err => {
                 toast.error('Kunde konnte nicht gespeichert werden', {
@@ -83,6 +84,6 @@ export class CreateCustomerDialog implements OnInit {
     }
 
     protected close() {
-        this._dialogRef.close();
+        this._dialogRef.close(null);
     }
 }

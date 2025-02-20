@@ -58,11 +58,11 @@
 
         <mat-autocomplete
           #auto="matAutocomplete"
-          (optionSelected)="summary.set($event.option.value)">
+          (optionSelected)="handleRecentCallClick($event.option.value)">
           @if (isNew()) {
-            @for (option of recentCalls(); track option) {
+            @for (option of recentCalls(); track option.name) {
               <mat-option class="!min-h-8 !text-sm" [value]="option">
-                {{ option }}
+                {{ option.name }}
               </mat-option>
             }
           }
