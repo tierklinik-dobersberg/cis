@@ -388,7 +388,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     if (window.localStorage && typeof(window.localStorage.getItem) === 'function') {
       const shouldHide = window.localStorage.getItem("cis:calendar:hideMenu")
 
-      this.navService.forceHide.set(shouldHide === null ? true : (shouldHide === 'true'));
+      this.navService.forceHide.set(shouldHide === null ? this.layout.xxl() : (shouldHide === 'true'));
 
       effect(() => {
         const forceHide = this.navService.forceHide();
