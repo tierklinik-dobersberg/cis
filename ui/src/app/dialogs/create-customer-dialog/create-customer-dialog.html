@@ -24,7 +24,7 @@
         @for (customer of matchingCustomers(); track customer.id) {
           <mat-option
             [value]="customer"
-            class="[.mdc-list-item__primary-text]:!w-full !h-auto !min-h-[unset] !p-2 !font-sans !text-sm !font-medium">
+            class="!h-auto !min-h-[unset] !p-2 !font-sans !text-sm !font-medium [&>span]:!w-full">
             <div class="flex w-full flex-row items-center justify-between">
               <span class="font-bold">
                 {{ customer.lastName }} {{ customer.firstName }}
@@ -35,7 +35,7 @@
                 as addr
               ) {
                 <span class="ml-2">
-                  ({{ addr.street }}, {{ addr.postalCode }} {{ addr.city }})
+                  {{ addr.street }}, {{ addr.postalCode }} {{ addr.city }}
                 </span>
               }
             </div>
