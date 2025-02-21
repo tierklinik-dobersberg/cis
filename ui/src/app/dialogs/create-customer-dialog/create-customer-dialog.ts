@@ -1,5 +1,7 @@
-import { Component, inject, OnInit, signal } from "@angular/core";
+import { Component, DestroyRef, inject, OnInit, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormsModule } from "@angular/forms";
+import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import { CKEditorModule } from "@ckeditor/ckeditor5-angular";
 import { ConnectError } from "@connectrpc/connect";
 import { BrnAlertDialogModule } from "@spartan-ng/ui-alertdialog-brain";
@@ -11,10 +13,12 @@ import { injectCustomerService } from "@tierklinik-dobersberg/angular/connect";
 import { HlmDialogDescriptionDirective, HlmDialogFooterComponent, HlmDialogHeaderComponent, HlmDialogService, HlmDialogTitleDirective } from "@tierklinik-dobersberg/angular/dialog";
 import { HlmIconModule } from "@tierklinik-dobersberg/angular/icon";
 import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
+import { HlmLabelDirective } from "@tierklinik-dobersberg/angular/label";
 import { HlmSelectModule } from "@tierklinik-dobersberg/angular/select";
 import { HlmTableComponent, HlmTdComponent, HlmThComponent, HlmTrowComponent } from "@tierklinik-dobersberg/angular/table";
-import { Customer } from "@tierklinik-dobersberg/apis/customer/v1";
+import { Customer, SearchCustomerResponse } from "@tierklinik-dobersberg/apis/customer/v1";
 import { toast } from "ngx-sonner";
+import { debounceTime, filter, Subject, switchMap } from "rxjs";
 import { DIALOG_CONTENT_CLASS } from "../constants";
 
 export interface CreateCustomerDialogContext {
@@ -40,7 +44,9 @@ export interface CreateCustomerDialogContext {
         BrnAlertDialogModule,
         HlmAlertDialogModule,
         CKEditorModule,
-        HlmInputDirective
+        MatAutocompleteModule,
+        HlmInputDirective,
+        HlmLabelDirective,
     ],
     templateUrl: './create-customer-dialog.html',
 })
@@ -48,13 +54,56 @@ export class CreateCustomerDialog implements OnInit {
     protected readonly number = signal('');
     protected readonly firstName = signal('');
     protected readonly lastName = signal('');
+    protected readonly matchingCustomers = signal<Customer[]>([]);
+    protected readonly existingCustomerId = signal<string | null>(null);
 
     private readonly customerService = injectCustomerService();
     private readonly _dialogRef = inject<BrnDialogRef<Customer | null>>(BrnDialogRef);
     private readonly _dialogContext = injectBrnDialogContext<CreateCustomerDialogContext>();
+    private readonly destroyRef = inject(DestroyRef)
 
     ngOnInit() {
         this.number.set(this._dialogContext.caller)
+
+        this.debouncedSearch$
+            .pipe(
+                takeUntilDestroyed(this.destroyRef),
+                debounceTime(100),
+                filter(() => this.existingCustomerId() === null),
+                switchMap(searchValue => {
+                    const abrt = new AbortController()
+
+                    const promise = this.customerService
+                        .searchCustomer({
+                            queries: [
+                                {
+                                    query: {
+                                        case: 'name',
+                                        value: {
+                                            lastName: searchValue
+                                        },
+                                    }
+                                }
+                            ]
+                        }, { signal: abrt.signal })
+                        .catch((err) => {
+                            toast.error('Kundendaten konnten nicht durchsucht werden', {
+                                description: ConnectError.from(err).message
+                            })
+
+                            return new SearchCustomerResponse()
+                        })
+                        .finally(() => abrt.abort())
+
+                    return promise
+                }),
+            )
+            .subscribe(response => {
+                this.matchingCustomers.set(
+                    (response.results || [])
+                        .map(r => r.customer)
+                )
+            })
     }
 
     static open(service: HlmDialogService, ctx: CreateCustomerDialogContext): BrnDialogRef<Customer | null> {
@@ -64,6 +113,22 @@ export class CreateCustomerDialog implements OnInit {
         })
     }
 
+    private readonly debouncedSearch$ = new Subject<string>();
+
+    protected searchCustomer(name: string) {
+        this.debouncedSearch$
+            .next(name)
+    }
+
+    protected onCustomerSelected(customer: Customer) {
+        this.existingCustomerId.set(customer.id);
+        this.firstName.set(customer.firstName);
+    }
+
+    protected customerName(c: Customer) {
+        return c.lastName
+    }
+
     protected save() {
         this.customerService
             .updateCustomer({
@@ -71,6 +136,7 @@ export class CreateCustomerDialog implements OnInit {
                     phoneNumbers: [this.number()],
                     firstName: this.firstName(),
                     lastName: this.lastName(),
+                    id: this.existingCustomerId(),
                 }
             })
             .then((respose) => {

@@ -6,23 +6,43 @@
 <hlm-table
   class="w-full [&_hlm-td]:flex-1 [&_hlm-th]:h-8 [&_hlm-th]:sm:h-12 [&_hlm-trow]:flex-col [&_hlm-trow]:sm:flex-row">
   <hlm-trow>
-    <hlm-th class="w-48 overflow-hidden text-ellipsis">Telefonnummer</hlm-th>
-    <hlm-td>
-      <input hlmInput [(ngModel)]="number" />
-    </hlm-td>
-  </hlm-trow>
-
-  <hlm-trow>
     <hlm-th class="w-48 overflow-hidden text-ellipsis">Nachname</hlm-th>
     <hlm-td>
-      <input hlmInput [(ngModel)]="lastName" />
+      <input
+        hlmInput
+        [(ngModel)]="lastName"
+        [matAutocomplete]="auto"
+        class="w-full"
+        (ngModelChange)="searchCustomer($event)" />
+
+      <mat-autocomplete
+        #auto="matAutocomplete"
+        [displayWith]="customerName"
+        (optionSelected)="onCustomerSelected($event.option.value)">
+        <label hlmLabel class="p-2">Zu bestehenden Kunden hinzufügen:</label>
+
+        @for (customer of matchingCustomers(); track customer.id) {
+          <mat-option
+            [value]="customer"
+            class="!h-auto !min-h-[unset] !p-2 !font-sans !text-sm !font-medium">
+            {{ customer.lastName }} {{ customer.firstName }}
+          </mat-option>
+        }
+      </mat-autocomplete>
     </hlm-td>
   </hlm-trow>
 
   <hlm-trow>
     <hlm-th class="w-48 overflow-hidden text-ellipsis">Vorname</hlm-th>
     <hlm-td>
-      <input hlmInput [(ngModel)]="firstName" />
+      <input hlmInput [(ngModel)]="firstName" class="w-full" />
+    </hlm-td>
+  </hlm-trow>
+
+  <hlm-trow>
+    <hlm-th class="w-48 overflow-hidden text-ellipsis">Telefonnummer</hlm-th>
+    <hlm-td>
+      <input hlmInput [(ngModel)]="number" class="w-full" />
     </hlm-td>
   </hlm-trow>
 </hlm-table>
