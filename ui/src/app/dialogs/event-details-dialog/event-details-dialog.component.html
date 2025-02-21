@@ -50,20 +50,33 @@
           type="text"
           required
           hlmInput
-          (keypress)="trigger.closePanel(); trigger.autocompleteDisabled = true"
           [(ngModel)]="summary"
+          [matAutocompleteDisabled]="disabledComplete()"
+          (ngModelChange)="searchCustomer($event)"
           #trigger="matAutocompleteTrigger"
           [matAutocomplete]="auto"
           class="w-full flex-1" />
 
         <mat-autocomplete
+          [displayWith]="customerName"
           #auto="matAutocomplete"
           (optionSelected)="handleRecentCallClick($event.option.value)">
           @if (isNew()) {
-            @for (option of recentCalls(); track option.name) {
-              <mat-option class="!min-h-8 !text-sm" [value]="option">
-                {{ option.name }}
-              </mat-option>
+            @if (
+              matchingCustomers().length && matchingCustomers();
+              as customers
+            ) {
+              @for (option of customers; track option.id) {
+                <mat-option class="!min-h-8 !text-sm" [value]="option">
+                  {{ option.lastName }} {{ option.firstName }}
+                </mat-option>
+              }
+            } @else {
+              @for (option of recentCalls(); track option.name) {
+                <mat-option class="!min-h-8 !text-sm" [value]="option">
+                  {{ option.name }}
+                </mat-option>
+              }
             }
           }
         </mat-autocomplete>

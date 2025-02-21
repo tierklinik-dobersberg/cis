@@ -55,12 +55,19 @@ export class CreateCustomerDialog implements OnInit {
     protected readonly firstName = signal('');
     protected readonly lastName = signal('');
     protected readonly matchingCustomers = signal<Customer[]>([]);
+    private readonly destroyRef = inject(DestroyRef)
     protected readonly existingCustomerId = signal<string | null>(null);
 
     private readonly customerService = injectCustomerService();
     private readonly _dialogRef = inject<BrnDialogRef<Customer | null>>(BrnDialogRef);
     private readonly _dialogContext = injectBrnDialogContext<CreateCustomerDialogContext>();
-    private readonly destroyRef = inject(DestroyRef)
+
+    static open(service: HlmDialogService, ctx: CreateCustomerDialogContext): BrnDialogRef<Customer | null> {
+        return service.open(CreateCustomerDialog, {
+            context: ctx,
+            contentClass: DIALOG_CONTENT_CLASS,
+        })
+    }
 
     ngOnInit() {
         this.number.set(this._dialogContext.caller)
@@ -107,12 +114,6 @@ export class CreateCustomerDialog implements OnInit {
             })
     }
 
-    static open(service: HlmDialogService, ctx: CreateCustomerDialogContext): BrnDialogRef<Customer | null> {
-        return service.open(CreateCustomerDialog, {
-            context: ctx,
-            contentClass: DIALOG_CONTENT_CLASS,
-        })
-    }
 
     private readonly debouncedSearch$ = new Subject<string>();
 
