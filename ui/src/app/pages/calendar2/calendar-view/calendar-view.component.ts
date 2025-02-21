@@ -1,19 +1,19 @@
 import { CommonModule, DatePipe, DOCUMENT } from '@angular/common';
 import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    DestroyRef,
-    effect,
-    inject,
-    LOCALE_ID,
-    model,
-    OnDestroy,
-    OnInit,
-    Renderer2,
-    signal,
-    untracked,
-    ViewChild
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  LOCALE_ID,
+  model,
+  OnDestroy,
+  OnInit,
+  Renderer2,
+  signal,
+  untracked,
+  ViewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -21,48 +21,48 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
 import {
-    lucideZoomIn,
-    lucideZoomOut
+  lucideZoomIn,
+  lucideZoomOut
 } from '@ng-icons/lucide';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import { injectUserProfiles, sortUserProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
 import { HlmCheckboxComponent } from '@tierklinik-dobersberg/angular/checkbox';
 import {
-    CALENDAR_SERVICE,
-    ROSTER_SERVICE,
+  CALENDAR_SERVICE,
+  ROSTER_SERVICE,
 } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import {
-    HlmIconModule,
-    provideIcons,
+  HlmIconModule,
+  provideIcons,
 } from '@tierklinik-dobersberg/angular/icon';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import {
-    DurationPipe,
-    ToDatePipe
+  DurationPipe,
+  ToDatePipe
 } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
-import { CalendarChangeEvent, CalendarEvent, ListEventsResponse, Calendar as PbCalendar } from '@tierklinik-dobersberg/apis/calendar/v1';
+import { CalendarChangeEvent, CalendarEvent, Calendar as PbCalendar } from '@tierklinik-dobersberg/apis/calendar/v1';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
 import { ListRosterTypesResponse, PlannedShift, RosterType, WorkShift } from '@tierklinik-dobersberg/apis/roster/v1';
 import {
-    differenceInSeconds,
-    endOfDay,
-    getMinutes,
-    isAfter,
-    isBefore,
-    isSameDay,
-    setMinutes,
-    setSeconds,
-    startOfDay
+  differenceInSeconds,
+  endOfDay,
+  getMinutes,
+  isAfter,
+  isBefore,
+  isSameDay,
+  setMinutes,
+  setSeconds,
+  startOfDay
 } from 'date-fns';
 import { toast } from 'ngx-sonner';
 import {
-    debounceTime,
-    filter,
-    map
+  debounceTime,
+  filter,
+  map
 } from 'rxjs';
 import { TkdDatePickerComponent, TkdDatePickerInputDirective } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
@@ -76,12 +76,12 @@ import { EventService } from 'src/app/services/event.service';
 import { toDateString } from 'src/app/utils';
 import { AppEventDetailsDialogComponent } from '../../../dialogs/event-details-dialog';
 import {
-    Calendar,
-    CalendarMouseEvent,
-    Timed,
-    TkdCalendarEventCellTemplateDirective,
-    TkdCalendarHeaderCellTemplateDirective,
-    TkdDayViewComponent
+  Calendar,
+  CalendarMouseEvent,
+  Timed,
+  TkdCalendarEventCellTemplateDirective,
+  TkdCalendarHeaderCellTemplateDirective,
+  TkdDayViewComponent
 } from '../day-view';
 import { getSeconds } from '../day-view/sort.pipe';
 
@@ -510,13 +510,10 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     }, { allowSignalWrites: true })
   }
 
-  private _lastLoadEventsResponse: ListEventsResponse | null = null;
   private _abrt: AbortController | null;
   private _prevDate: Date | null = null;
 
   private loadEvents(date: Date) {
-    const eventsBefore = untracked(() => this.events());
-
     if (!isSameDay(date, this._prevDate)) {
       this.events.set([]);
     }
@@ -545,14 +542,6 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         },
       }, {signal: this._abrt.signal})
       .then(response => {
-        if (response.equals(this._lastLoadEventsResponse)) {
-          console.log("skipping update, nothing changed")
-          this.events.set(eventsBefore);
-
-          return
-        }
-
-        this._lastLoadEventsResponse = response;
 
         let events: CalEvent[] = [];
         response.results.forEach(eventList => {
@@ -566,7 +555,9 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         });
         this.events.set(events);
 
+        console.log("successfully loaded events for ", date)
         this._prevDate = date;
+        this.loading.set([...this.loading(), 'events']);
       })
       .catch(err => {
         console.error("failed to load events", err)
@@ -574,7 +565,6 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       .finally(() => {
         if (this._abrt === abrt) {
           this._abrt = null;
-          this.loading.set([...this.loading(), 'events']);
         }
 
         toast.dismiss(toastId);
