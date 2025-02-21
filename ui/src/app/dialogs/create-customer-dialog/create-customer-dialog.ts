@@ -69,6 +69,7 @@ export class CreateCustomerDialog implements OnInit {
             .pipe(
                 takeUntilDestroyed(this.destroyRef),
                 debounceTime(100),
+                filter(value => value.length > 2), // onyl search for customers once we have at least 3 characters to search
                 filter(() => this.existingCustomerId() === null),
                 switchMap(searchValue => {
                     const abrt = new AbortController()
@@ -116,6 +117,10 @@ export class CreateCustomerDialog implements OnInit {
     private readonly debouncedSearch$ = new Subject<string>();
 
     protected searchCustomer(name: string) {
+        if (name.length < 3) {
+            this.matchingCustomers.set([]);
+        }
+
         this.debouncedSearch$
             .next(name)
     }

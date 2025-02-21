@@ -12,7 +12,8 @@
         hlmInput
         [(ngModel)]="lastName"
         [matAutocomplete]="auto"
-        class="w-full"
+        [attr.data-open]="auto.isOpen"
+        class="w-full data-[open=true]:rounded-b-none"
         (ngModelChange)="searchCustomer($event)" />
 
       <mat-autocomplete
