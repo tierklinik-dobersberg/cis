@@ -228,6 +228,10 @@ export class AppEventDetailsDialogComponent implements OnInit {
                 .closed$
                 .pipe(take(1))
                 .subscribe(customer => {
+                    if (!customer) {
+                        return
+                    }
+
                     this.summary.set(customer.lastName + ' ' + customer.firstName)
                 })
 
