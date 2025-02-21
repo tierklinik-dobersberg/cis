@@ -24,8 +24,21 @@
         @for (customer of matchingCustomers(); track customer.id) {
           <mat-option
             [value]="customer"
-            class="!h-auto !min-h-[unset] !p-2 !font-sans !text-sm !font-medium">
-            {{ customer.lastName }} {{ customer.firstName }}
+            class="[.mdc-list-item__primary-text]:!w-full !h-auto !min-h-[unset] !p-2 !font-sans !text-sm !font-medium">
+            <div class="flex w-full flex-row items-center justify-between">
+              <span class="font-bold">
+                {{ customer.lastName }} {{ customer.firstName }}
+              </span>
+
+              @if (
+                customer.addresses?.length > 0 && customer.addresses[0];
+                as addr
+              ) {
+                <span class="ml-2">
+                  ({{ addr.street }}, {{ addr.postalCode }} {{ addr.city }})
+                </span>
+              }
+            </div>
           </mat-option>
         }
       </mat-autocomplete>
