@@ -1,86 +1,87 @@
 import { DatePipe } from '@angular/common';
 import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    DestroyRef,
-    inject,
-    model,
-    OnInit,
-    signal,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  model,
+  OnInit,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { Timestamp } from '@bufbuild/protobuf';
+import { Any, Timestamp } from '@bufbuild/protobuf';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { ConnectError } from '@connectrpc/connect';
 import { lucideCalendar, lucideClock } from '@ng-icons/lucide';
 import { BrnAlertDialogModule } from '@spartan-ng/ui-alertdialog-brain';
 import {
-    BrnDialogRef,
-    injectBrnDialogContext,
+  BrnDialogRef,
+  injectBrnDialogContext,
 } from '@spartan-ng/ui-dialog-brain';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import { HlmAlertDialogModule } from '@tierklinik-dobersberg/angular/alertdialog';
 import {
-    injectUserProfiles,
-    sortProtoTimestamps,
+  injectUserProfiles,
+  sortProtoTimestamps,
 } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import {
-    injectCalendarService,
-    injectCallService,
-    injectCustomerService,
+  injectCalendarService,
+  injectCallService,
+  injectCustomerService,
 } from '@tierklinik-dobersberg/angular/connect';
 import {
-    HlmDialogDescriptionDirective,
-    HlmDialogFooterComponent,
-    HlmDialogHeaderComponent,
-    HlmDialogService,
-    HlmDialogTitleDirective,
+  HlmDialogDescriptionDirective,
+  HlmDialogFooterComponent,
+  HlmDialogHeaderComponent,
+  HlmDialogService,
+  HlmDialogTitleDirective,
 } from '@tierklinik-dobersberg/angular/dialog';
 import {
-    HlmIconModule,
-    provideIcons,
+  HlmIconModule,
+  provideIcons,
 } from '@tierklinik-dobersberg/angular/icon';
 import { HlmInputDirective } from '@tierklinik-dobersberg/angular/input';
 import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import {
-    HlmTableComponent,
-    HlmTdComponent,
-    HlmThComponent,
-    HlmTrowComponent,
+  HlmTableComponent,
+  HlmTdComponent,
+  HlmThComponent,
+  HlmTrowComponent,
 } from '@tierklinik-dobersberg/angular/table';
 import { Duration } from '@tierklinik-dobersberg/angular/utils/date';
 import { DurationValidatorDirective } from '@tierklinik-dobersberg/angular/validators';
 import {
-    Calendar,
-    CalendarEvent,
-    CreateEventRequest,
-    MoveEventRequest,
-    UpdateEventRequest,
-    UpdateEventResponse,
+  Calendar,
+  CalendarEvent,
+  CreateEventRequest,
+  CustomerAnnotation,
+  MoveEventRequest,
+  UpdateEventRequest,
+  UpdateEventResponse,
 } from '@tierklinik-dobersberg/apis/calendar/v1';
 import {
-    Customer,
-    SearchCustomerResponse,
+  Customer,
+  SearchCustomerResponse,
 } from '@tierklinik-dobersberg/apis/customer/v1';
 import { CallStatus } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { Markdown } from 'ckeditor5';
 import { addMinutes, addSeconds } from 'date-fns';
 import { toast } from 'ngx-sonner';
 import {
-    catchError,
-    debounceTime,
-    defer,
-    filter,
-    retry,
-    Subject,
-    switchMap,
-    take,
-    throwError,
+  catchError,
+  debounceTime,
+  defer,
+  filter,
+  retry,
+  Subject,
+  switchMap,
+  take,
+  throwError,
 } from 'rxjs';
 import { config, MyEditor } from 'src/app/ckeditor';
 import { AppAvatarComponent } from 'src/app/components/avatar';
@@ -181,6 +182,7 @@ export class AppEventDetailsDialogComponent implements OnInit {
   protected readonly duration = model<string>('');
   protected readonly createTime = model<Date | null>(null);
   protected readonly disabledComplete = signal(false);
+  protected readonly selectedCustomer = signal<Customer | null>(null);
 
   protected readonly matchingCustomers = signal<Customer[]>([]);
   private readonly destroyRef = inject(DestroyRef);
@@ -344,6 +346,9 @@ export class AppEventDetailsDialogComponent implements OnInit {
     if (call instanceof Customer) {
       // nothing to do
       // TODO(ppacher): prepare customer annoation
+
+      this.selectedCustomer.set(call);
+
       return;
     }
 
@@ -358,9 +363,13 @@ export class AppEventDetailsDialogComponent implements OnInit {
           }
 
           this.summary.set(customer.lastName + ' ' + customer.firstName);
+          this.selectedCustomer.set(customer);
         });
+
     } else {
-      // nothing to do
+        if (call.customer) {
+            this.selectedCustomer.set(call.customer);
+        }
     }
   }
 
@@ -370,6 +379,7 @@ export class AppEventDetailsDialogComponent implements OnInit {
     if (name.length < 3) {
       this.matchingCustomers.set([]);
       this.disabledComplete.set(false);
+      this.selectedCustomer.set(null);
     }
 
     this.debouncedSearch$.next(name);
@@ -388,6 +398,20 @@ export class AppEventDetailsDialogComponent implements OnInit {
   }
 
   protected async create() {
+    var extraData: Any | undefined = undefined;
+
+    try {
+      if (this.selectedCustomer()) {
+        const customer = this.selectedCustomer();
+
+        extraData = Any.pack(new CustomerAnnotation({
+          customerId: customer.id,
+        }));
+      }
+    } catch(err) {
+      console.log(err)
+    }
+
     const req = new CreateEventRequest({
       calendarId: this.calendarId(),
       description: this.description(),
@@ -399,6 +423,7 @@ export class AppEventDetailsDialogComponent implements OnInit {
         )
       ),
       name: this.summary(),
+      extraData,
     });
 
     await this.calendarService.createEvent(req).catch(err => {
