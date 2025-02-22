@@ -66,16 +66,55 @@
               matchingCustomers().length && matchingCustomers();
               as customers
             ) {
-              @for (option of customers; track option.id) {
-                <mat-option class="!min-h-8 !text-sm" [value]="option">
-                  {{ option.lastName }} {{ option.firstName }}
+              @for (customer of customers; track customer.id) {
+                <mat-option
+                  [value]="customer"
+                  class="!h-auto !min-h-[unset] !p-2 !font-sans !text-sm !font-medium [&>span]:!w-full">
+                  <div
+                    class="flex w-full flex-row items-center justify-between">
+                    <span class="font-bold">
+                      {{ customer.lastName }} {{ customer.firstName }}
+                    </span>
+
+                    @if (
+                      customer.addresses?.length > 0 && customer.addresses[0];
+                      as addr
+                    ) {
+                      <span class="ml-2">
+                        {{ addr.street }}, {{ addr.postalCode }} {{ addr.city }}
+                      </span>
+                    }
+                  </div>
                 </mat-option>
               }
             } @else {
               @for (option of recentCalls(); track option.name) {
-                <mat-option class="!min-h-8 !text-sm" [value]="option">
-                  {{ option.name }}
-                </mat-option>
+                @if (option.customer; as customer) {
+                  <mat-option
+                    [value]="customer"
+                    class="!h-auto !min-h-[unset] !p-2 !font-sans !text-sm !font-medium [&>span]:!w-full">
+                    <div
+                      class="flex w-full flex-row items-center justify-between">
+                      <span class="font-bold">
+                        {{ customer.lastName }} {{ customer.firstName }}
+                      </span>
+
+                      @if (
+                        customer.addresses?.length > 0 && customer.addresses[0];
+                        as addr
+                      ) {
+                        <span class="ml-2">
+                          {{ addr.street }}, {{ addr.postalCode }}
+                          {{ addr.city }}
+                        </span>
+                      }
+                    </div>
+                  </mat-option>
+                } @else {
+                  <mat-option class="!min-h-8 !text-sm" [value]="option">
+                    {{ option.name }}
+                  </mat-option>
+                }
               }
             }
           }

@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -130,6 +130,7 @@ interface RecentCall {
     HlmAlertDialogModule,
     CKEditorModule,
     MatAutocompleteModule,
+    NgTemplateOutlet
   ],
   providers: [...provideIcons({ lucideCalendar, lucideClock })],
   templateUrl: './event-details-dialog.component.html',
