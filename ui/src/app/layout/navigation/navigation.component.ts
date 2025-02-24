@@ -1,4 +1,3 @@
-import { NgClass } from '@angular/common';
 import { booleanAttribute, ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal, untracked, ViewEncapsulation } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
@@ -45,7 +44,6 @@ interface SubMenu {
   imports: [
     RouterModule,
     AppLogo,
-    NgClass,
     HlmIconModule,
     HlmMenuModule,
     BrnMenuModule,
@@ -99,10 +97,18 @@ export class AppNavigationComponent {
       interval(60 * 1000 * 5).pipe(startWith(0)),
     )
     .pipe(
-      filter(() => !this.profile()),
+      filter((a) => {
+        if (!this.profile()) {
+          console.log("not loading boards, profile not ready")
+          return false
+        }
+
+        return true
+      }),
       debounceTime(10),
       switchMap(() => {
         const ctrl = new AbortController();
+
         const loadBoards = this.boardService
           .listBoards({}, {signal: ctrl.signal});
 

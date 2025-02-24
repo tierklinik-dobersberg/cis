@@ -61,6 +61,10 @@
           [displayWith]="customerName"
           #auto="matAutocomplete"
           (optionSelected)="handleRecentCallClick($event.option.value)">
+          <label hlmLabel class="block p-2 pb-4 text-sm"
+            >Bitte Kunde auswählen:</label
+          >
+
           @if (isNew()) {
             @if (
               matchingCustomers().length && matchingCustomers();
@@ -111,7 +115,9 @@
                     </div>
                   </mat-option>
                 } @else {
-                  <mat-option class="!min-h-8 !text-sm" [value]="option">
+                  <mat-option
+                    [value]="option"
+                    class="!h-auto !min-h-[unset] !p-2 !font-sans !text-sm !font-bold [&>span]:!w-full">
                     {{ option.name }}
                   </mat-option>
                 }
