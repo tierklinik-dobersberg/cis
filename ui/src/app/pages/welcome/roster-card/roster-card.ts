@@ -74,7 +74,7 @@ import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shift
     ...provideIcons({lucideArrowLeft, lucideArrowRight, lucideCalendarDays, lucideInfo})
   ],
   host: {
-    'class': '@container flex flex-col'
+    '[class]': 'computedClass()'
   }
 })
 export class RosterCardComponent {
@@ -86,6 +86,15 @@ export class RosterCardComponent {
   protected readonly profiles = injectUserProfiles();
   protected readonly config = injectCurrentConfig();
   public readonly variant = input<'default' | 'small'>('default')
+  protected readonly computedClass = computed(() => {
+    const v= this.variant();
+
+    if (v === 'default') {
+      return '@container flex flex-col'
+    }
+
+    return '@container flex flex-col border-none'
+  })
 
 
   protected readonly rosterLoading = signal(true);
