@@ -28,24 +28,39 @@
 
   <div class="w-full flex-grow overflow-auto xl:p-4">
     @if (layout.xl()) {
-      <ol class="flex h-full w-full list-none flex-col gap-4">
-        @for (cal of calendars(); track cal.id) {
-          <li>
-            <label
-              hlmLabel
-              class="flex flex-row items-center"
-              [attr.calendar-id]="cal.id"
-              [style.--color]="cal.color | toRgba: '0.2'"
-              [style.--border-color]="cal.color | toRgba">
-              <hlm-checkbox
-                class="mr-2 border-[--border-color] data-[state=checked]:bg-[--color] data-[state=checked]:text-[--border-color]"
-                (changed)="toggleUser(cal.id)"
-                [checked]="displayedCalendars().includes(cal.id)" />
-              {{ cal.name }}
-            </label>
-          </li>
-        }
-      </ol>
+      <hlm-tabs tab="roster" class="w-full">
+        <hlm-tabs-list
+          class="grid w-full grid-cols-2"
+          aria-label="tabs example">
+          <button hlmTabsTrigger="calendars">Kalender</button>
+          <button hlmTabsTrigger="roster">Dienstplan</button>
+        </hlm-tabs-list>
+
+        <div hlmTabsContent="roster">
+          <app-roster-card [(calendarDate)]="currentDate" variant="small" />
+        </div>
+
+        <div hlmTabsContent="calendars">
+          <ol class="flex h-full w-full list-none flex-col gap-4">
+            @for (cal of calendars(); track cal.id) {
+              <li>
+                <label
+                  hlmLabel
+                  class="flex flex-row items-center"
+                  [attr.calendar-id]="cal.id"
+                  [style.--color]="cal.color | toRgba: '0.2'"
+                  [style.--border-color]="cal.color | toRgba">
+                  <hlm-checkbox
+                    class="mr-2 border-[--border-color] data-[state=checked]:bg-[--color] data-[state=checked]:text-[--border-color]"
+                    (changed)="toggleUser(cal.id)"
+                    [checked]="displayedCalendars().includes(cal.id)" />
+                  {{ cal.name }}
+                </label>
+              </li>
+            }
+          </ol>
+        </div>
+      </hlm-tabs>
     } @else {
       <brn-select [multiple]="true" [(ngModel)]="displayedCalendars">
         <hlm-select-trigger class="xl:w-96">
@@ -149,11 +164,8 @@
       </div>
     } @else {
       <div
-        class="h-full w-full cursor-default bg-opacity-20 shadow-inner"
-        [ngClass]="{
-          'bg-sky-600': !event.isOnCall,
-          'bg-red-600': event.isOnCall,
-        }"></div>
+        class="h-full w-full cursor-default bg-[--color] bg-opacity-20 shadow-inner"
+        [style.--color]="event.colorOverwrite | toRgba: '0.5'"></div>
     }
   </ng-template>
 </tkd-day-view>

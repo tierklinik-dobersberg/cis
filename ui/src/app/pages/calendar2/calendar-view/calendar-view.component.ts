@@ -44,6 +44,7 @@ import {
   ToDatePipe
 } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
+import { HlmTabsModule } from '@tierklinik-dobersberg/angular/tabs';
 import { CalendarChangeEvent, CalendarEvent, Calendar as PbCalendar } from '@tierklinik-dobersberg/apis/calendar/v1';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
 import { ListRosterTypesResponse, PlannedShift, RosterType, WorkShift } from '@tierklinik-dobersberg/apis/roster/v1';
@@ -75,6 +76,7 @@ import { getCalendarId } from 'src/app/services';
 import { EventService } from 'src/app/services/event.service';
 import { toDateString } from 'src/app/utils';
 import { AppEventDetailsDialogComponent } from '../../../dialogs/event-details-dialog';
+import { RosterCardComponent } from '../../welcome/roster-card';
 import {
   Calendar,
   CalendarMouseEvent,
@@ -89,6 +91,7 @@ type CalEvent = Timed &
   PlainMessage<CalendarEvent> & {
     isShiftType?: boolean;
     isOnCall?: boolean;
+    colorOverwrite?: string;
   };
 
 @Component({
@@ -117,6 +120,8 @@ type CalEvent = Timed &
     DurationPipe,
     ToDatePipe,
     ToRGBAPipe,
+    HlmTabsModule,
+    RosterCardComponent
   ],
   providers: [
     ...provideIcons({
@@ -320,6 +325,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
             fullDay: false,
             isFree: false,
             isOnCall: rosterTypes.some(type => type.onCallTags.some(tag => def.tags.includes(tag))),
+            colorOverwrite: def.color,
             id:
               'shift:' +
               profile.user.id +

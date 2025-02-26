@@ -1,31 +1,37 @@
-<div
-  hlmCardHeader
-  class="flex w-full flex-col items-center justify-center gap-2 @xs:flex-row @xs:justify-between">
-  <h3 hlmCardTitle>
-    @switch (_computedDateKind()) {
-      @case ('yesterday') {
-        Gestern im Dienst
+@if (variant() === 'default') {
+  <div
+    hlmCardHeader
+    class="flex w-full flex-col items-center justify-center gap-2 @xs:flex-row @xs:justify-between">
+    <h3 hlmCardTitle>
+      @switch (_computedDateKind()) {
+        @case ('yesterday') {
+          Gestern im Dienst
+        }
+        @case ('today') {
+          Heute im Dienst
+        }
+        @case ('tomorrow') {
+          Morgen im Dienst
+        }
+        @default {
+          Im Dienst am {{ calendarDate() | date: 'shortDate' }}
+        }
       }
-      @case ('today') {
-        Heute im Dienst
-      }
-      @case ('tomorrow') {
-        Morgen im Dienst
-      }
-      @default {
-        Im Dienst am {{ calendarDate() | date: 'shortDate' }}
-      }
-    }
-  </h3>
+    </h3>
 
-  <tkd-date-picker [(ngModel)]="calendarDate" mode="single" allowClear="false">
-    <tkd-picker-trigger *tdkDatePickerTrigger variant="icon" size="small" />
-  </tkd-date-picker>
-</div>
+    <tkd-date-picker
+      [(ngModel)]="calendarDate"
+      mode="single"
+      allowClear="false">
+      <tkd-picker-trigger *tdkDatePickerTrigger variant="icon" size="small" />
+    </tkd-date-picker>
+  </div>
+}
 
 <div
   hlmCardContent
-  class="flex flex-grow flex-col justify-between p-2 !pt-0 md:p-4 lg:p-6">
+  class="flex flex-grow flex-col justify-between p-2 md:p-4 lg:p-6"
+  [class.!pt-0]="variant() === 'default'">
   <div
     class="grid grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-2 xl:gap-4">
     @if (!rosterLoading()) {
@@ -90,9 +96,11 @@
     }
   </div>
 
-  <div
-    class="mt-2 flex flex-row items-center justify-center gap-2 text-xs text-gray-600">
-    <hlm-icon name="lucideInfo" size="xs" />
-    Klicke auf ein Benutzerbild für eine Terminübersicht
-  </div>
+  @if (variant() === 'default') {
+    <div
+      class="mt-2 flex flex-row items-center justify-center gap-2 text-xs text-gray-600">
+      <hlm-icon name="lucideInfo" size="xs" />
+      Klicke auf ein Benutzerbild für eine Terminübersicht
+    </div>
+  }
 </div>

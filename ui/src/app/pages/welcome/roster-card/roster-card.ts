@@ -5,6 +5,7 @@ import {
   computed,
   effect,
   inject,
+  input,
   model,
   output,
   signal,
@@ -76,15 +77,16 @@ import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shift
 export class RosterCardComponent {
   private readonly rosterService = injectRosterService();
   private readonly dialogService = inject(HlmDialogService);
-
   public readonly userHover = output<Profile | null>();
 
   protected readonly currentShifts = signal<PlannedShift[]>([]);
   protected readonly profiles = injectUserProfiles();
   protected readonly config = injectCurrentConfig();
+  public readonly variant = input<'default' | 'small'>('default')
+
 
   protected readonly rosterLoading = signal(true);
-  protected readonly calendarDate = model<Date>(new Date);
+  public readonly calendarDate = model<Date>(new Date);
 
   protected readonly localPlannedShifts = injectLocalPlannedShifts(this.currentShifts)
 
