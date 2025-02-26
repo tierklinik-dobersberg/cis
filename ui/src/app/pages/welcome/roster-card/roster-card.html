@@ -30,8 +30,11 @@
 
 <div
   hlmCardContent
-  class="flex flex-grow flex-col justify-between p-2 md:p-4 lg:p-6"
-  [class.!pt-0]="variant() === 'default'">
+  class="flex flex-grow flex-col justify-between"
+  [ngClass]="{
+    'p-2 !pt-0 md:p-4 lg:p-6': variant() == 'default',
+    '!p-0': variant() === 'small',
+  }">
   <div
     class="grid grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-2 xl:gap-4">
     @if (!rosterLoading()) {

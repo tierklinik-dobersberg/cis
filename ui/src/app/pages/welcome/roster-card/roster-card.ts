@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -65,6 +65,7 @@ import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shift
     HlmSkeletonComponent,
     HlmTooltipModule,
     BrnTooltipModule,
+    NgClass
   ],
   hostDirectives: [HlmCardDirective],
   providers: [
