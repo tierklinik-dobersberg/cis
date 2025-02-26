@@ -54,7 +54,7 @@
           [matAutocompleteDisabled]="disabledComplete()"
           (ngModelChange)="searchCustomer($event)"
           #trigger="matAutocompleteTrigger"
-          [matAutocomplete]="auto"
+          [matAutocomplete]="isNew() ? auto : null"
           class="w-full flex-1" />
 
         <mat-autocomplete

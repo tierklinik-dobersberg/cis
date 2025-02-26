@@ -4,6 +4,7 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   inject,
   model,
   OnInit,
@@ -198,6 +199,12 @@ export class AppEventDetailsDialogComponent implements OnInit {
     });
   }
 
+  constructor() {
+    effect(() => {
+      console.log("summary", this.summary())
+    })
+  }
+
   ngOnInit() {
     if (this.event && !this.event.isFree) {
       this.calendarId.set(this.event.calendarId);
@@ -345,11 +352,7 @@ export class AppEventDetailsDialogComponent implements OnInit {
     this.disabledComplete.set(true);
 
     if (call instanceof Customer) {
-      // nothing to do
-      // TODO(ppacher): prepare customer annoation
-
       this.selectedCustomer.set(call);
-
       return;
     }
 
@@ -363,7 +366,6 @@ export class AppEventDetailsDialogComponent implements OnInit {
             return;
           }
 
-          this.summary.set(customer.lastName + ' ' + customer.firstName);
           this.selectedCustomer.set(customer);
         });
 
@@ -387,6 +389,11 @@ export class AppEventDetailsDialogComponent implements OnInit {
   }
 
   protected customerName(c: Customer | RecentCall) {
+    console.log("called with", c)
+    if (!c) {
+      return null
+    }
+
     if (c instanceof Customer) {
       return c.lastName + ' ' + c.firstName;
     }
@@ -413,6 +420,12 @@ export class AppEventDetailsDialogComponent implements OnInit {
       console.log(err)
     }
 
+    let summary = this.summary()
+    if (typeof summary === 'object') {
+      const c = summary as Customer;
+      summary = c.lastName + ' ' + c.firstName
+    }
+
     const req = new CreateEventRequest({
       calendarId: this.calendarId(),
       description: this.description(),
@@ -423,9 +436,11 @@ export class AppEventDetailsDialogComponent implements OnInit {
           Duration.parseString(this.duration()).seconds
         )
       ),
-      name: this.summary(),
+      name: summary,
       extraData,
     });
+
+    console.log(req)
 
     await this.calendarService.createEvent(req).catch(err => {
       toast.error('Termin konnte nicht erstellt werden', {
@@ -455,20 +470,12 @@ export class AppEventDetailsDialogComponent implements OnInit {
       req.updateMask.paths.push('name');
     }
 
-    if (
-      this.startTime().getTime() !== this.event.startTime.toDate().getTime()
-    ) {
-      req.start = Timestamp.fromDate(this.startTime());
-      req.updateMask.paths.push('start');
-    }
+    req.start = Timestamp.fromDate(this.startTime());
+    req.updateMask.paths.push('start');
 
     const duration = Duration.parseString(this.duration()).seconds;
-    const oldDuration =
-      getSeconds(this.event.endTime) - getSeconds(this.event.startTime);
-    if (oldDuration !== duration) {
-      req.end = Timestamp.fromDate(addSeconds(this.startTime(), duration));
-      req.updateMask.paths.push('end');
-    }
+    req.end = Timestamp.fromDate(addSeconds(this.startTime(), duration));
+    req.updateMask.paths.push('end');
 
     if (req.updateMask.paths.length > 0) {
       const response = await this.calendarService
