@@ -40,6 +40,7 @@ import { injectCurrentConfig } from 'src/app/api';
 import { AppAvatarComponent } from 'src/app/components/avatar';
 import { TkdDatePickerComponent, TkdDatePickerInputDirective } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
+import { ToRGBAPipe } from 'src/app/pipes/to-rgba.pipe';
 import { getCalendarId } from 'src/app/services';
 import { isBetween } from 'src/app/utils/date';
 import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shifts';
@@ -65,7 +66,8 @@ import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shift
     HlmSkeletonComponent,
     HlmTooltipModule,
     BrnTooltipModule,
-    NgClass
+    NgClass,
+    ToRGBAPipe
   ],
   hostDirectives: [HlmCardDirective],
   providers: [
