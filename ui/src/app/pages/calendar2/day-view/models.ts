@@ -2,10 +2,15 @@ import { Duration, Timestamp } from '@bufbuild/protobuf';
 
 export interface Timed {
   id: string | number;
+
+  uniqueId: string | number;
+
   from: Timestamp | number;
   duration: Duration | number;
   ignoreOverlapping?: boolean;
   calendarId: string;
+  resources: string[];
+  virtualCopy: boolean;
 }
 
 export interface Calendar {
@@ -14,6 +19,8 @@ export interface Calendar {
 
   /** The name of the calendar */
   name: string;
+
+  isVirtualResource: boolean;
 }
 
 export interface CalendarMouseEvent<T extends Timed, C extends Calendar> {

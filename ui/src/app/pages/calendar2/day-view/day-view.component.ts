@@ -13,8 +13,10 @@ import {
   ViewChild,
   booleanAttribute,
   computed,
+  effect,
   inject,
   input,
+  model,
   output,
   signal
 } from '@angular/core';
@@ -87,7 +89,7 @@ export class TkdDayViewComponent<E extends Timed>
   });
 
   /** The current factor for calculating pixel offsets in the calendar */
-  protected readonly sizeFactor = signal(DEFAULT_HOUR_HEIGHT_PX / 60 / 60);
+  public readonly sizeFactor = model(DEFAULT_HOUR_HEIGHT_PX / 60 / 60);
 
   /** Minimum number of minutes for calendar entries */
   protected readonly min = 15 * 60;
@@ -134,7 +136,13 @@ export class TkdDayViewComponent<E extends Timed>
       .map(cal => {
         return {
           ...cal,
-          events: sorted.filter(e => e.calendarId === cal.id)
+          events: sorted.filter(e => {
+            if (e.virtualCopy) {
+              return cal.isVirtualResource && e.resources.includes(cal.id)
+            }
+
+            return e.calendarId === cal.id
+          })
         }
       })
   })
@@ -192,6 +200,14 @@ export class TkdDayViewComponent<E extends Timed>
     this.cursorTime.set(cursorDate);
   }
 
+  constructor() {
+    effect(() => {
+      this.sizeFactor()
+
+      this.zoom()
+    })
+  }
+
   /** The current time */
   currentTime$ = interval(45 * 1000).pipe(
     startWith(-1),
@@ -211,11 +227,11 @@ export class TkdDayViewComponent<E extends Timed>
   }
 
   zoomIn(step = this.sizeFactor() * 0.05) {
-    this.zoom(step);
+    this.sizeFactor.set(this.sizeFactor() + step)
   }
 
   zoomOut(step = this.sizeFactor() * 0.05) {
-    this.zoom(-step);
+    this.sizeFactor.set(this.sizeFactor() - step)
   }
 
   private createDate(input: DateInput): Date {
@@ -230,14 +246,12 @@ export class TkdDayViewComponent<E extends Timed>
     );
   }
 
-  private zoom(diff: number) {
+  private zoom() {
     const currentCursorTime = getSeconds(this.cursorTime());
     const scrollTopTime =
       this.calendarContainer.nativeElement.scrollTop / this.sizeFactor();
     const cursorTimeOffset = getSeconds(currentCursorTime) - scrollTopTime;
     const cursorPxOffset = cursorTimeOffset * this.sizeFactor();
-
-    this.sizeFactor.set(this.sizeFactor() + diff);
 
     this.ngZone.onStable
       .pipe(take(1), takeUntilDestroyed(this.destroyRef))
@@ -290,8 +304,6 @@ export class TkdDayViewComponent<E extends Timed>
       if (this.showCurrentTime()) {
         const now = new Date();
 
-        console.log("scrolling to now")
-
         this.scrollTo(
           now.getHours() * 60 * 60 +
             now.getMinutes() * 60 +
@@ -316,11 +328,8 @@ export class TkdDayViewComponent<E extends Timed>
 
       if (firstEvent !== Infinity) {
         this.scrolled = true;
-        console.log("scrolling to first event", firstEvent)
         this.scrollTo(firstEvent);
       }
-    } else {
-      console.log("auto-scroll disabled")
     }
   }
 
@@ -364,7 +373,7 @@ export class TkdDayViewComponent<E extends Timed>
     // find all events that match the clicked time
     const events = this.events()
       .filter(evt => {
-        if (evt.calendarId !== cal.id) {
+        if (evt.calendarId !== cal.id && (!evt.virtualCopy || !evt.resources.includes(cal.id))) {
           return false;
         }
 
@@ -373,6 +382,7 @@ export class TkdDayViewComponent<E extends Timed>
 
         return start <= seconds && end >= seconds;
       });
+
 
     // get all hours elements and find the hour-anchor
     const hours = this.calendarContainer.nativeElement.querySelectorAll(
@@ -394,6 +404,7 @@ export class TkdDayViewComponent<E extends Timed>
       anchor = hours.item(hours.length - 1) as HTMLDivElement;
     }
 
+
     // finally, emit the calendar-click event
     this.calendarClick.emit({
       calendar: cal,
@@ -403,7 +414,7 @@ export class TkdDayViewComponent<E extends Timed>
       date: this.createDate(seconds),
       clickedEventElement: clickedEvent,
       clickedEvent: clickedEvent
-        ? events.find(evt => evt.id === clickedEvent.getAttribute('event-id'))
+        ? events.find(evt => evt.uniqueId === clickedEvent.getAttribute('event-id'))
         : undefined,
     });
   }

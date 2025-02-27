@@ -51,7 +51,10 @@
           required
           hlmInput
           [(ngModel)]="summary"
-          [matAutocompleteDisabled]="disabledComplete()"
+          [matAutocompleteDisabled]="
+            disabledComplete() ||
+            (matchingCustomers().length === 0 && recentCalls().length === 0)
+          "
           (ngModelChange)="searchCustomer($event)"
           #trigger="matAutocompleteTrigger"
           [matAutocomplete]="isNew() ? auto : null"
@@ -130,6 +133,28 @@
       }
     </hlm-td>
   </hlm-trow>
+
+  @if (availableResources().length > 0) {
+    <hlm-trow>
+      <hlm-th class="w-48 overflow-hidden text-ellipsis">Benötigt</hlm-th>
+      <hlm-td class="flex flex-col items-start justify-start gap-1">
+        <ul class="flex w-full flex-row justify-between gap-2">
+          @for (res of availableResources(); track res.name) {
+            <li>
+              <label hlmLabel class="flex items-center">
+                <hlm-checkbox
+                  [ngModel]="selectedResources().includes(res.name)"
+                  (ngModelChange)="toggleResource(res.name)"
+                  [disabled]="!edit()"
+                  class="mr-2" />
+                {{ res.displayName }}
+              </label>
+            </li>
+          }
+        </ul>
+      </hlm-td>
+    </hlm-trow>
+  }
 
   <hlm-trow>
     <hlm-th class="w-48 overflow-hidden text-ellipsis">Zeitraum</hlm-th>

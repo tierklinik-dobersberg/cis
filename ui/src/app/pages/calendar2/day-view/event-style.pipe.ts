@@ -61,10 +61,10 @@ export class EventStylePipe implements PipeTransform {
 
       for (let i = 0; i < list.length; i++) {
         const event = list[i];
-
+        const id = event.uniqueId !== undefined ? event.uniqueId : event.id;
 
         // skip this one if it's already done.
-        if (done.has(event.id)) {
+        if (done.has(id)) {
           continue;
         }
 
@@ -82,7 +82,7 @@ export class EventStylePipe implements PipeTransform {
           
           (event as any).style = style;
 
-          done.set(event.id, round);
+          done.set(id, round);
         }
       }
 

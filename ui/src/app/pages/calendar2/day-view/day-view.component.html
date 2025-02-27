@@ -67,7 +67,7 @@
               [ngClass]="{
                 'hover:!z-[100]': !event.ignoreOverlapping,
               }"
-              [attr.event-id]="event.id"
+              [attr.event-id]="event.uniqueId"
               [ngStyle]="event.style">
               <ng-container
                 *ngTemplateOutlet="

@@ -1,14 +1,13 @@
-import { DatePipe, NgTemplateOutlet } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
   DestroyRef,
-  effect,
   inject,
   model,
   OnInit,
-  signal,
+  signal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -29,6 +28,7 @@ import {
   sortProtoTimestamps,
 } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
+import { HlmCheckboxComponent } from '@tierklinik-dobersberg/angular/checkbox';
 import {
   injectCalendarService,
   injectCallService,
@@ -46,6 +46,7 @@ import {
   provideIcons,
 } from '@tierklinik-dobersberg/angular/icon';
 import { HlmInputDirective } from '@tierklinik-dobersberg/angular/input';
+import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import {
@@ -62,6 +63,7 @@ import {
   CreateEventRequest,
   CustomerAnnotation,
   MoveEventRequest,
+  ResourceCalendar,
   UpdateEventRequest,
   UpdateEventResponse,
 } from '@tierklinik-dobersberg/apis/calendar/v1';
@@ -131,7 +133,8 @@ interface RecentCall {
     HlmAlertDialogModule,
     CKEditorModule,
     MatAutocompleteModule,
-    NgTemplateOutlet
+    HlmLabelDirective,
+    HlmCheckboxComponent
   ],
   providers: [...provideIcons({ lucideCalendar, lucideClock })],
   templateUrl: './event-details-dialog.component.html',
@@ -185,6 +188,8 @@ export class AppEventDetailsDialogComponent implements OnInit {
   protected readonly createTime = model<Date | null>(null);
   protected readonly disabledComplete = signal(false);
   protected readonly selectedCustomer = signal<Customer | null>(null);
+  protected readonly availableResources = signal<ResourceCalendar[]>([]);
+  protected readonly selectedResources = signal<string[]>([]);
 
   protected readonly matchingCustomers = signal<Customer[]>([]);
   private readonly destroyRef = inject(DestroyRef);
@@ -199,10 +204,19 @@ export class AppEventDetailsDialogComponent implements OnInit {
     });
   }
 
-  constructor() {
-    effect(() => {
-      console.log("summary", this.summary())
-    })
+  toggleResource(name: string) {
+    const selected = [...this.selectedResources()]
+
+    const idx = selected.findIndex(v => v === name)
+    if (idx >= 0) {
+      selected.splice(idx, 1)
+    } else {
+      selected.push(name)
+    }
+
+    console.log("new resources", selected)
+
+    this.selectedResources.set(selected)
   }
 
   ngOnInit() {
@@ -211,6 +225,7 @@ export class AppEventDetailsDialogComponent implements OnInit {
       this.summary.set(this.event.summary);
       this.description.set(this.event.description);
       this.startTime.set(this.event.startTime.toDate());
+      this.selectedResources.set(this.event.resources || [])
       this.duration.set(
         Duration.seconds(
           getSeconds(this.event.endTime) - getSeconds(this.event.startTime)
@@ -302,6 +317,16 @@ export class AppEventDetailsDialogComponent implements OnInit {
       )
       .subscribe(response => {
         this.availableCalendars.set(response.calendars);
+      });
+
+    defer(() => this.calendarService.listResourceCalendars({}))
+      .pipe(
+        retry({
+          delay: 2000,
+        })
+      )
+      .subscribe(response => {
+        this.availableResources.set(response.resourceCalendars)
       });
 
     this.debouncedSearch$
@@ -430,6 +455,7 @@ export class AppEventDetailsDialogComponent implements OnInit {
       calendarId: this.calendarId(),
       description: this.description(),
       start: Timestamp.fromDate(this.startTime()),
+      resources: this.selectedResources(),
       end: Timestamp.fromDate(
         addSeconds(
           this.startTime(),
@@ -455,8 +481,11 @@ export class AppEventDetailsDialogComponent implements OnInit {
     const req = new UpdateEventRequest({
       calendarId: this.event.calendarId,
       eventId: this.event.id,
+      resources: this.selectedResources(),
       updateMask: {
-        paths: [],
+        paths: [
+          'resources'
+        ],
       },
     });
 

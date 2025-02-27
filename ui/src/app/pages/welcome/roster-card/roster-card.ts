@@ -170,7 +170,9 @@ export class RosterCardComponent {
       this.rosterLoading.set(true)
       this.currentShifts.set([]);
 
-      const now = new Date();
+      if (!date) {
+        return
+      }
 
       this.rosterService
         .getWorkingStaff2({
