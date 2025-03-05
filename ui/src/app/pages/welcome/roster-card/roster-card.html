@@ -41,6 +41,7 @@
       @for (shift of _computedShifts(); track shift) {
         <div
           class="flex flex-col gap-2 rounded-md border border-border bg-[--color-light] px-2 pb-2 pt-1"
+          (click)="shiftClick.emit(shift)"
           [style.--color-light]="shift.definition.color | toRgba: '0.15'">
           <label
             hlmLabel

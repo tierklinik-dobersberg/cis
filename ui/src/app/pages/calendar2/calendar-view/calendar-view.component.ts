@@ -751,7 +751,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       });
   }
 
-  handleHeaderSwipe(evt: SwipeEvent) {
+  protected handleHeaderSwipe(evt: SwipeEvent) {
     const calendars = this.displayedCalendars();
     if (calendars.length > 1) {
       return
@@ -789,7 +789,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  handleCalendarSwipe(evt: SwipeEvent) {
+  protected handleCalendarSwipe(evt: SwipeEvent) {
     const date = this.currentDate();
 
     switch (evt.directionX) {
@@ -801,6 +801,17 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         this.currentDate.set(addDays(date, -1))
         break
     }
+  }
+
+  protected handleShiftClick(shift: PlannedShift) {
+    const profiles = this.profiles();
+
+    const cals = shift.assignedUserIds
+      .map(user => profiles.find(u => u.user.id === user))
+      .map(profile => getCalendarId(profile))
+      .filter(cal => !!cal)
+
+    this.displayedCalendars.set(cals)
   }
 
   ngOnDestroy(): void {

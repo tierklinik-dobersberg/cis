@@ -99,6 +99,7 @@ export class RosterCardComponent {
 
   protected readonly rosterLoading = signal(true);
   public readonly calendarDate = model<Date>(new Date);
+  public readonly shiftClick = output<PlannedShift>()
 
   protected readonly localPlannedShifts = injectLocalPlannedShifts(this.currentShifts)
 

@@ -37,7 +37,10 @@
         </hlm-tabs-list>
 
         <div hlmTabsContent="roster">
-          <app-roster-card [(calendarDate)]="currentDate" variant="small" />
+          <app-roster-card
+            [(calendarDate)]="currentDate"
+            variant="small"
+            (shiftClick)="handleShiftClick($event)" />
         </div>
 
         <div hlmTabsContent="calendars">
