@@ -1,0 +1,5 @@
+{
+	"dependencies": {
+		"@types/hammerjs": "^2.0.46"
+	}
+}

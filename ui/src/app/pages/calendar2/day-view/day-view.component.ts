@@ -249,7 +249,7 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     });
   }
 
-  protected handleHeaderSwipe(evt: any) {
+  protected handleHeaderSwipe(evt: HammerInput) {
     if (evt.distance < 100) {
       return;
     }
@@ -270,7 +270,7 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     });
   }
 
-  protected handleCalendarSwipe(evt: any) {
+  protected handleCalendarSwipe(evt: HammerInput) {
     if (evt.distance < 100) {
       return;
     }

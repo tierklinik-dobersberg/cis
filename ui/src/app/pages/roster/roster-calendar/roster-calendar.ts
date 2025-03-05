@@ -87,7 +87,7 @@ export class RosterCalendarComponent {
                     return
                 }
 
-                this.shifts.set(response.roster[0].shifts)
+                this.shifts.set(response.roster[0].shifts.filter(shift => shift.assignedUserIds?.length > 0))
             })
         })
     }
