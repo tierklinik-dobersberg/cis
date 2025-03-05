@@ -20,7 +20,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
-import { lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
+import { lucideStar, lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import {
   injectUserProfiles,
@@ -39,13 +39,18 @@ import {
 } from '@tierklinik-dobersberg/angular/icon';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
-import { DurationPipe, getUserColor, ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
+import {
+  DurationPipe,
+  getUserColor,
+  ToDatePipe,
+} from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { HlmTabsModule } from '@tierklinik-dobersberg/angular/tabs';
 import {
   CalenarEventRequestKind,
   CalendarChangeEvent,
   CalendarEvent,
+  CustomerAnnotation,
   ListEventsResponse,
   Calendar as PbCalendar,
 } from '@tierklinik-dobersberg/apis/calendar/v1';
@@ -84,7 +89,10 @@ import { getCalendarId } from 'src/app/services';
 import { EventService } from 'src/app/services/event.service';
 import { toDateString } from 'src/app/utils';
 import { storedSignal } from 'src/app/utils/stored-signal';
-import { AppEventDetailsDialogComponent, EventDetailsDialogContext } from '../../../dialogs/event-details-dialog';
+import {
+  AppEventDetailsDialogComponent,
+  EventDetailsDialogContext,
+} from '../../../dialogs/event-details-dialog';
 import { RosterCardComponent } from '../../welcome/roster-card';
 import {
   Calendar,
@@ -102,6 +110,7 @@ type CalEvent = Timed &
     isShiftType?: boolean;
     isOnCall?: boolean;
     colorOverwrite?: string;
+    customerId?: string;
   };
 
 @Component({
@@ -138,6 +147,7 @@ type CalEvent = Timed &
     ...provideIcons({
       lucideZoomIn,
       lucideZoomOut,
+      lucideStar,
     }),
   ],
   styles: [
@@ -147,6 +157,16 @@ type CalEvent = Timed &
       }
       .event-container {
         container-type: size;
+      }
+
+      @container (max-width: 100px) {
+        .event-summary {
+          @apply flex-col gap-0;
+        }
+
+        .event-duration {
+          @apply hidden;
+        }
       }
 
       @container (max-height: 1.5rem) {
@@ -293,7 +313,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     const profiles = this.profiles();
 
     if (!response) {
-      return []
+      return [];
     }
 
     let events: CalEvent[] = [];
@@ -303,31 +323,42 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         let color: string | undefined = undefined;
 
         if (isVirtual) {
-          const profile = profiles.find(p => getCalendarId(p) === evt.calendarId);
+          const profile = profiles.find(
+            p => getCalendarId(p) === evt.calendarId
+          );
 
           if (profile) {
             color = getUserColor(profile);
           } else {
             let calendar = response.results.find(
               r =>
-                r.calendar.id === evt.calendarId && !r.calendar.isVirtualResource
+                r.calendar.id === evt.calendarId &&
+                !r.calendar.isVirtualResource
             )?.calendar;
 
             if (calendar) {
-              color = calendar.color
+              color = calendar.color;
             }
           }
+        }
 
+        let customerAnnotation: CustomerAnnotation | null = null;
+        if (evt.extraData) {
+          customerAnnotation = new CustomerAnnotation();
+          if (!evt.extraData.unpackTo(customerAnnotation)) {
+            customerAnnotation = null;
+          }
         }
 
         events.push({
           ...evt,
           from: evt.startTime,
           duration: getSeconds(evt.endTime) - getSeconds(evt.startTime),
-          uniqueId: isVirtual
-            ? eventList.calendar.id + ':' + evt.id
-            : evt.id,
+          uniqueId: isVirtual ? eventList.calendar.id + ':' + evt.id : evt.id,
           colorOverwrite: color,
+          customerId: customerAnnotation
+            ? customerAnnotation.customerId
+            : undefined,
         });
       });
     });
@@ -382,16 +413,17 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
             return;
           }
 
-          const id =  'shift:' +
-              profile.user.id +
-              ':' +
-              shift.workShiftId +
-              ':' +
-              shift.from.toDate().toISOString() +
-              '-' +
-              shift.to.toDate().toISOString() +
-              '-' +
-              def.tags.join(':');
+          const id =
+            'shift:' +
+            profile.user.id +
+            ':' +
+            shift.workShiftId +
+            ':' +
+            shift.from.toDate().toISOString() +
+            '-' +
+            shift.to.toDate().toISOString() +
+            '-' +
+            def.tags.join(':');
 
           shiftEvents.push({
             calendarId: calendarId,
@@ -406,7 +438,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
             colorOverwrite: def.color,
             resources: [],
             virtualCopy: false,
-            id:id,
+            id: id,
             uniqueId: id,
             description: '',
             ignoreOverlapping: true,
@@ -454,10 +486,12 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
 
       ctx.startTime = date;
     } else if (event.clickedEvent && !event.clickedEvent.isShiftType) {
-      ctx.event = new CalendarEvent(event.clickedEvent)
+      ctx.event = new CalendarEvent(event.clickedEvent);
 
       if (ctx.event.virtualCopy) {
-        ctx.calendar = this.allCalendars().find(cal => !cal.isVirtualResource && cal.id === ctx.event.calendarId)
+        ctx.calendar = this.allCalendars().find(
+          cal => !cal.isVirtualResource && cal.id === ctx.event.calendarId
+        );
       }
     } else {
       return;
@@ -581,21 +615,36 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
 
     effect(
       () => {
-        const events = this._computedEvents();
+        let _ = this._computedEvents();
         const loading = this.loading();
 
         if (loading.length === 3) {
-          let set = new Set<string>();
-          events.forEach(evt => {
-            set.add(evt.calendarId);
-          });
-
-          const values = Array.from(set.values());
-          this.displayedCalendars.set(values);
+          this.resetDisplayedCalendars()
         }
       },
       { allowSignalWrites: true }
     );
+  }
+
+  protected handleCalendarHeaderClick(cal: Calendar) {
+    const display = this.displayedCalendars();
+    if (display.length === 1 && display[0] === cal.id) {
+      this.resetDisplayedCalendars()
+    } else {
+      this.displayedCalendars.set([cal.id])
+    }
+  }
+
+  protected resetDisplayedCalendars() {
+    const events = this._computedEvents();
+    const set = new Set<string>();
+
+    events.forEach(evt => {
+      set.add(evt.calendarId);
+    });
+
+    const values = Array.from(set.values());
+    this.displayedCalendars.set(values);
   }
 
   private _abrt: AbortController | null;
@@ -603,7 +652,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
 
   private loadEvents(date: Date) {
     if (!isSameDay(date, this._prevDate)) {
-      this.eventListResponse.set(null)
+      this.eventListResponse.set(null);
     }
 
     if (this._abrt) {

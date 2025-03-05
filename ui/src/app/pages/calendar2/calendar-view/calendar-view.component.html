@@ -1,7 +1,7 @@
 <header
   class="flex flex-row items-center gap-2 xl:max-h-full xl:min-w-[390px] xl:flex-col xl:border-r xl:border-t xl:border-gray-100 xl:bg-white xl:pb-8">
   <!-- Date controls -->
-  <div class="flex flex-row gap-1 flex-nowrap xl:p-4">
+  <div class="flex flex-row flex-nowrap gap-1 xl:p-4">
     <tkd-date-picker
       [ngModel]="currentDate()"
       (ngModelChange)="setDate($event)"
@@ -26,7 +26,7 @@
   <!-- Spacer -->
   <div class="flex-grow xl:hidden"></div>
 
-  <div class="flex-grow w-full overflow-auto xl:p-4">
+  <div class="w-full flex-grow overflow-auto xl:p-4">
     @if (layout.xl()) {
       <hlm-tabs tab="roster" class="w-full">
         <hlm-tabs-list
@@ -41,7 +41,7 @@
         </div>
 
         <div hlmTabsContent="calendars">
-          <ol class="flex flex-col w-full h-full gap-4 list-none">
+          <ol class="flex h-full w-full list-none flex-col gap-4">
             @for (cal of calendars(); track cal.id) {
               <li>
                 <label
@@ -78,12 +78,12 @@
 
   <!-- Zoom Controls -->
   <div
-    class="flex flex-row items-center gap-0 flex-nowrap xl:w-full xl:border-t xl:border-gray-100 xl:p-2">
+    class="flex flex-row flex-nowrap items-center gap-0 xl:w-full xl:border-t xl:border-gray-100 xl:p-2">
     <button
       hlmBtn
       variant="outline"
       size="sm"
-      class="border-r-0 rounded-r-none"
+      class="rounded-r-none border-r-0"
       (click)="dayView.zoomIn()">
       <hlm-icon name="lucideZoomIn" size="sm" />
     </button>
@@ -95,6 +95,14 @@
       class="rounded-l-none"
       (click)="dayView.zoomOut()">
       <hlm-icon name="lucideZoomOut" size="sm" />
+    </button>
+
+    <button
+      hlmBtn
+      class="mx-2"
+      variant="secondary"
+      (click)="resetDisplayedCalendars()">
+      Zurücksetzten
     </button>
 
     @if (layout.lg()) {
@@ -114,7 +122,7 @@
   [(sizeFactor)]="sizeFactor"
   (calendarClick)="handleCalendarClick($event)"
   #dayView="tkdDayView"
-  class="flex-grow w-full bg-white border rounded-md shadow-md cursor-not-allowed border-border"
+  class="w-full flex-grow cursor-not-allowed rounded-md border border-border bg-white shadow-md"
   autoScroll="true"
   [showCurrentTime]="isToday()"
   [calendars]="calendars()"
@@ -127,7 +135,8 @@
     let-calendar>
     <div
       [userColorVars]="calendar.id | byCalendarId: profiles()"
-      class="overflow-hidden text-ellipsis whitespace-nowrap rounded-t-md bg-white p-2 text-center text-sm font-medium text-[var(--user-color,black)]">
+      (click)="handleCalendarHeaderClick(calendar)"
+      class="cursor-pointer select-none overflow-hidden text-ellipsis whitespace-nowrap rounded-t-md bg-white p-2 text-center text-sm font-medium text-[var(--user-color,black)]">
       {{ calendar.name }}
     </div>
   </ng-template>
@@ -140,29 +149,39 @@
     let-calendar="calendar">
     @if (!event.isShiftType) {
       <div
-        class="w-full h-full overflow-hidden transform event-container drop-shadow hover:bg-blend-difference hover:shadow-lg">
+        class="event-container h-full w-full transform overflow-hidden drop-shadow hover:bg-blend-difference hover:shadow-lg">
         <div
           [userColorVars]="calendar.id | byCalendarId: profiles()"
           [style.--user-color]="event.colorOverwrite || null"
           [style.--user-contrast]="event.colorOverwrite || null | contrast"
           class="event-details h-full w-full cursor-pointer overflow-hidden border border-[var(--user-contrast)] bg-[var(--user-color,white)] p-2 text-xs text-[var(--user-contrast)]">
           <div
-            class="flex flex-row w-full gap-1 overflow-hidden event-summary flex-nowrap whitespace-nowrap">
-            <span class="text-opacity-25">
+            class="event-summary relative flex w-full flex-row flex-nowrap gap-1 overflow-hidden whitespace-nowrap">
+            <span class="text-opacity-25" [class.pr-4]="!!event.customerId">
               {{ event.startTime | toDate | date: 'HH:mm' }} -
             </span>
-            <span class="overflow-hidden font-semibold text-ellipsis">
+
+            <span
+              class="event-summary overflow-hidden text-ellipsis font-semibold">
               {{ event.summary }}
             </span>
+
             <span class="flex-grow"></span>
-            <span class="text-opacity-25">
+
+            <span class="event-duration text-opacity-25">
               {{ event.duration | duration }}
             </span>
+
+            @if (event.customerId) {
+              <hlm-icon name="lucideStar" variant="sm" />
+            }
           </div>
-          <div
-            class="event-description mt-1.5 hidden w-full overflow-hidden border-t border-dashed border-white border-opacity-50 pt-1.5">
-            {{ event.description }}
-          </div>
+          @if (event.description) {
+            <div
+              class="event-description mt-1.5 hidden w-full overflow-hidden border-t border-dashed border-white border-opacity-50 pt-1.5">
+              {{ event.description }}
+            </div>
+          }
         </div>
       </div>
     } @else {
