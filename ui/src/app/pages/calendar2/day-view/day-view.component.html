@@ -30,8 +30,9 @@
 </header>
 
 <div
-  class="relative flex-grow flex-nowrap overflow-auto"
+  class="relative flex-grow !touch-pan-y flex-nowrap overflow-auto"
   #calendarContainer
+  (swipe)="handleCalendarSwipe($event)"
   (scroll)="handleScroll($event)">
   <div
     class="grid-container w-full"
@@ -43,7 +44,6 @@
         tkdDebounceEvent="click"
         tkdDebounceStopEvent="dblclick"
         [tkdDebounceEventTime]="10"
-        (swipe)="handleCalendarSwipe($event)"
         (tkdOnEvent)="handleCalendarClick($any($event), cal, container, false)"
         (dblclick)="handleCalendarClick($event, cal, container, true)"
         class="relative h-full"

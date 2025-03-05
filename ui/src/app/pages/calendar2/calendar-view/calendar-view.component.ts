@@ -757,13 +757,32 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       return
     }
 
+    let offset = 0
+    switch (evt.directionX) {
+      case 'left':
+        offset = 1
+        break;
+
+      case 'right':
+        offset = -1
+        break
+    }
+
     const all = this.allCalendars();
     const idx = all.findIndex(c => c.id === calendars[0])
 
     if (idx < 0) {
       this.resetDisplayedCalendars()
     } else {
-      const nextIndex = (idx+1) >= all.length ? 0 : idx+1;
+      let nextIndex = (idx + offset);
+      if (nextIndex >= all.length) {
+        nextIndex = 0
+      }
+
+      if (nextIndex < 0) {
+        nextIndex = all.length - 1
+      }
+
       const next = all[nextIndex]
 
       this.displayedCalendars.set([next.id]);

@@ -250,13 +250,17 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
   }
 
   protected handleHeaderSwipe(evt: any) {
-    if (evt.distance < 200) {
+    if (evt.distance < 100) {
       return;
     }
 
     const x =
       Math.abs(evt.deltaX) > 40 ? (evt.deltaX > 0 ? 'right' : 'left') : '';
     const y = Math.abs(evt.deltaY) > 40 ? (evt.deltaY > 0 ? 'down' : 'up') : '';
+
+    if (y !== '') {
+      return
+    }
 
     this.headerSwipe.emit({
       deltaX: evt.deltaX,
@@ -267,13 +271,17 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
   }
 
   protected handleCalendarSwipe(evt: any) {
-    if (evt.distance < 200) {
+    if (evt.distance < 100) {
       return;
     }
 
     const x =
       Math.abs(evt.deltaX) > 40 ? (evt.deltaX > 0 ? 'right' : 'left') : '';
     const y = Math.abs(evt.deltaY) > 40 ? (evt.deltaY > 0 ? 'down' : 'up') : '';
+
+    if (y !== '') {
+      return
+    }
 
     this.calendarSwipe.emit({
       deltaX: evt.deltaX,
