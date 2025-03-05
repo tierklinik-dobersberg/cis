@@ -55,7 +55,7 @@
                 <app-avatar
                   (mouseenter)="userHover.emit(profile)"
                   (mouseleave)="userHover.emit(null)"
-                  (click)="openUserEvents(user)"
+                  (click)="openUserEvents(user); $event.stopPropagation()"
                   class="cursor-pointer"
                   [user]="profile"
                   showName="false"
