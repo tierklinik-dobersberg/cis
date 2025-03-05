@@ -69,7 +69,7 @@ import {
 } from '@tierklinik-dobersberg/apis/calendar/v1';
 import {
   Customer,
-  SearchCustomerResponse,
+  SearchCustomerResponse
 } from '@tierklinik-dobersberg/apis/customer/v1';
 import { CallStatus } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { Markdown } from 'ckeditor5';
@@ -337,6 +337,7 @@ export class AppEventDetailsDialogComponent implements OnInit {
         switchMap(searchValue => {
           const abrt = new AbortController();
 
+          const split = searchValue.split(' ');
           const promise = this.customerService
             .searchCustomer(
               {
@@ -345,7 +346,8 @@ export class AppEventDetailsDialogComponent implements OnInit {
                     query: {
                       case: 'name',
                       value: {
-                        lastName: searchValue.split(' ')[0],
+                        lastName: split[0],
+                        firstName: split.length > 1 ? split[1] : undefined
                       },
                     },
                   },
