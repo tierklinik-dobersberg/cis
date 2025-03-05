@@ -54,6 +54,7 @@
     "clsx": "^1.2.1",
     "date-fns": "^3.6.0",
     "emoji-toolkit": "^7.0.0",
+    "hammerjs": "^2.0.8",
     "marked": "12",
     "marked-alert": "^2.1.2",
     "marked-directive": "^1.0.7",

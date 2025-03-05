@@ -127,6 +127,8 @@
   [showCurrentTime]="isToday()"
   [calendars]="calendars()"
   [displayCalendars]="displayedCalendars()"
+  (headerSwipe)="handleHeaderSwipe($event)"
+  (calendarSwipe)="handleCalendarSwipe($event)"
   [events]="_computedEvents()">
   <!-- Calendar Header Cell -->
   <ng-template

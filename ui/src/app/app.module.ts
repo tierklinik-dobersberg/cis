@@ -4,7 +4,7 @@ import { registerLocaleData } from '@angular/common';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import de from '@angular/common/locales/de';
 import { isDevMode, LOCALE_ID, NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+import { BrowserModule, HammerModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 import { ServiceWorkerModule } from '@angular/service-worker';
@@ -41,6 +41,15 @@ function getMarkedRenderer() {
   return r
 }
 
+import { HAMMER_GESTURE_CONFIG, HammerGestureConfig } from '@angular/platform-browser';
+import * as Hammer from 'hammerjs';
+
+export class MyHammerConfig extends HammerGestureConfig {
+  overrides = <any> {
+    swipe: { direction: Hammer.DIRECTION_ALL },
+  };
+}
+
 @NgModule({
   declarations: [AppComponent],
   imports: [
@@ -61,6 +70,7 @@ function getMarkedRenderer() {
     }),
     RouterModule,
     LayoutModule,
+    HammerModule,
     PlatformModule,
     HlmToasterModule,
     TaskDetailsComponent,
@@ -105,6 +115,10 @@ function getMarkedRenderer() {
       ]
     },
     provideBreakpoints(Breakpoints),
+    {
+      provide: HAMMER_GESTURE_CONFIG,
+      useClass: MyHammerConfig,
+    }
   ],
   bootstrap: [AppComponent],
 })

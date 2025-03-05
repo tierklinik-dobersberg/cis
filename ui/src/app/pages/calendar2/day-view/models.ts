@@ -13,6 +13,14 @@ export interface Timed {
   virtualCopy: boolean;
 }
 
+export interface SwipeEvent {
+  directionX: 'left' | 'right' | '';
+  directionY: 'up' | 'down' | '';
+
+  deltaX: number;
+  deltaY: number;
+}
+
 export interface Calendar {
   /** A unique id of the calendar */
   id: string;

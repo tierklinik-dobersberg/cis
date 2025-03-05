@@ -62,6 +62,7 @@ import {
   WorkShift,
 } from '@tierklinik-dobersberg/apis/roster/v1';
 import {
+  addDays,
   differenceInSeconds,
   endOfDay,
   getMinutes,
@@ -98,6 +99,7 @@ import {
   Calendar,
   CalendarMouseEvent,
   DEFAULT_HOUR_HEIGHT_PX,
+  SwipeEvent,
   Timed,
   TkdCalendarEventCellTemplateDirective,
   TkdCalendarHeaderCellTemplateDirective,
@@ -747,6 +749,39 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       .subscribe(date => {
         this.currentDate.set(new Date(date));
       });
+  }
+
+  handleHeaderSwipe(evt: SwipeEvent) {
+    const calendars = this.displayedCalendars();
+    if (calendars.length > 1) {
+      return
+    }
+
+    const all = this.allCalendars();
+    const idx = all.findIndex(c => c.id === calendars[0])
+
+    if (idx < 0) {
+      this.resetDisplayedCalendars()
+    } else {
+      const nextIndex = (idx+1) >= all.length ? 0 : idx+1;
+      const next = all[nextIndex]
+
+      this.displayedCalendars.set([next.id]);
+    }
+  }
+
+  handleCalendarSwipe(evt: SwipeEvent) {
+    const date = this.currentDate();
+
+    switch (evt.directionX) {
+      case 'left':
+        this.currentDate.set(addDays(date, 1))
+        break;
+
+      case 'right':
+        this.currentDate.set(addDays(date, -1))
+        break
+    }
   }
 
   ngOnDestroy(): void {

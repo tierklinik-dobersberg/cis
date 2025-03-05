@@ -8,8 +8,6 @@ import {
   ElementRef,
   HostListener,
   NgZone,
-  OnChanges,
-  SimpleChanges,
   ViewChild,
   booleanAttribute,
   computed,
@@ -18,7 +16,7 @@ import {
   input,
   model,
   output,
-  signal
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, interval, map, share, startWith, take } from 'rxjs';
@@ -27,7 +25,13 @@ import { TkdCalendarEventCellTemplateDirective } from './event-cell.directive';
 import { EventStylePipe } from './event-style.pipe';
 import { TkdCalendarHeaderCellTemplateDirective } from './header-cell.directive';
 import { coerceDate } from './is-same-day.pipe';
-import { Calendar, CalendarMouseEvent, DateInput, Timed } from './models';
+import {
+  Calendar,
+  CalendarMouseEvent,
+  DateInput,
+  SwipeEvent,
+  Timed,
+} from './models';
 import { SecondsToPixelPipe } from './seconds-to-pixel.pipe';
 import { getSeconds } from './sort.pipe';
 import { TimeFormatPipe } from './time.pipe';
@@ -66,9 +70,7 @@ export const DEFAULT_HOUR_HEIGHT_PX = 200;
     `,
   ],
 })
-export class TkdDayViewComponent<E extends Timed>
-  implements AfterViewInit, OnChanges
-{
+export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly ngZone = inject(NgZone);
 
@@ -76,6 +78,9 @@ export class TkdDayViewComponent<E extends Timed>
 
   readonly eventType: E = null;
   readonly calendarType: Calendar = null;
+
+  public readonly headerSwipe = output<SwipeEvent>();
+  public readonly calendarSwipe = output<SwipeEvent>();
 
   private cursorY = 0;
 
@@ -101,36 +106,36 @@ export class TkdDayViewComponent<E extends Timed>
 
   /** The list of calendars and events to render */
   public readonly calendars = input<Calendar[]>([]);
-  
+
   /** A list of calendar ids to display */
   public readonly displayCalendars = input<string[]>([]);
-  
+
   /** The actual events to display. */
-  public readonly events = input<E[]>([])
+  public readonly events = input<E[]>([]);
 
   protected readonly _computedCalendarsToDisplay = computed(() => {
     const calendars = this.calendars();
     const idsToDisplay = new Set(this.displayCalendars());
     const events = this.events();
 
-      const sorted = [...events].sort((a, b) => {
-        let da = getSeconds(a.duration);
-        let db = getSeconds(b.duration);
+    const sorted = [...events].sort((a, b) => {
+      let da = getSeconds(a.duration);
+      let db = getSeconds(b.duration);
 
-        let sa = getSeconds(a.from);
-        let sb = getSeconds(b.from);
+      let sa = getSeconds(a.from);
+      let sb = getSeconds(b.from);
 
-        if (sb < sa) {
-          return 1;
-        }
+      if (sb < sa) {
+        return 1;
+      }
 
-        if (sb > sa) {
-          return -1;
-        }
+      if (sb > sa) {
+        return -1;
+      }
 
-        return db - da;
-      });
-    
+      return db - da;
+    });
+
     return calendars
       .filter(cal => idsToDisplay.has(cal.id))
       .map(cal => {
@@ -138,15 +143,15 @@ export class TkdDayViewComponent<E extends Timed>
           ...cal,
           events: sorted.filter(e => {
             if (e.virtualCopy) {
-              return cal.isVirtualResource && e.resources.includes(cal.id)
+              return cal.isVirtualResource && e.resources.includes(cal.id);
             }
 
-            return e.calendarId === cal.id
-          })
-        }
-      })
-  })
-  
+            return e.calendarId === cal.id;
+          }),
+        };
+      });
+  });
+
   /* The currently displayed date */
   public readonly currentDate = input.required<Date, DateInput>({
     transform: coerceDate,
@@ -154,11 +159,17 @@ export class TkdDayViewComponent<E extends Timed>
 
   /** A TemplateRef to render event cells */
   @ContentChild(TkdCalendarEventCellTemplateDirective)
-  protected readonly eventCell?: TkdCalendarEventCellTemplateDirective<E, Calendar>;
+  protected readonly eventCell?: TkdCalendarEventCellTemplateDirective<
+    E,
+    Calendar
+  >;
 
   /** A TemplateRef to render calendar headers */
   @ContentChild(TkdCalendarHeaderCellTemplateDirective)
-  protected readonly headerCell?: TkdCalendarHeaderCellTemplateDirective<E, Calendar>;
+  protected readonly headerCell?: TkdCalendarHeaderCellTemplateDirective<
+    E,
+    Calendar
+  >;
 
   /** Whether or not to show the current time marker */
   public readonly showCurrentTime = input(false, {
@@ -202,10 +213,21 @@ export class TkdDayViewComponent<E extends Timed>
 
   constructor() {
     effect(() => {
-      this.sizeFactor()
+      this.sizeFactor();
 
-      this.zoom()
-    })
+      this.zoom();
+    });
+
+    let prevDate: Date | null = null;
+    effect(() => {
+      const events = this.events();
+      const currentDate = this.currentDate();
+
+      if (!prevDate || prevDate.getTime() != currentDate.getTime()) {
+        this.doAutoScroll();
+        prevDate = currentDate;
+      }
+    });
   }
 
   /** The current time */
@@ -220,18 +242,53 @@ export class TkdDayViewComponent<E extends Timed>
 
   scrollTo(seconds: number, behavior: ScrollBehavior = 'smooth') {
     const offset = seconds * this.sizeFactor();
+    console.log('scrolling to ', offset);
     this.calendarContainer.nativeElement.scrollTo({
       top: offset,
       behavior,
     });
   }
 
+  protected handleHeaderSwipe(evt: any) {
+    if (evt.distance < 200) {
+      return;
+    }
+
+    const x =
+      Math.abs(evt.deltaX) > 40 ? (evt.deltaX > 0 ? 'right' : 'left') : '';
+    const y = Math.abs(evt.deltaY) > 40 ? (evt.deltaY > 0 ? 'down' : 'up') : '';
+
+    this.headerSwipe.emit({
+      deltaX: evt.deltaX,
+      deltaY: evt.deltaY,
+      directionX: x,
+      directionY: y,
+    });
+  }
+
+  protected handleCalendarSwipe(evt: any) {
+    if (evt.distance < 200) {
+      return;
+    }
+
+    const x =
+      Math.abs(evt.deltaX) > 40 ? (evt.deltaX > 0 ? 'right' : 'left') : '';
+    const y = Math.abs(evt.deltaY) > 40 ? (evt.deltaY > 0 ? 'down' : 'up') : '';
+
+    this.calendarSwipe.emit({
+      deltaX: evt.deltaX,
+      deltaY: evt.deltaY,
+      directionX: x,
+      directionY: y,
+    });
+  }
+
   zoomIn(step = this.sizeFactor() * 0.05) {
-    this.sizeFactor.set(this.sizeFactor() + step)
+    this.sizeFactor.set(this.sizeFactor() + step);
   }
 
   zoomOut(step = this.sizeFactor() * 0.05) {
-    this.sizeFactor.set(this.sizeFactor() - step)
+    this.sizeFactor.set(this.sizeFactor() - step);
   }
 
   private createDate(input: DateInput): Date {
@@ -278,28 +335,28 @@ export class TkdDayViewComponent<E extends Timed>
 
   private getFirstEventTime(ignoreOverlapping: boolean): number {
     let firstEvent = this.events().reduce((min, event) => {
-        if (ignoreOverlapping && event.ignoreOverlapping) {
-          return min;
-        }
-
-        const start = getSeconds(event.from);
-        if (start < min) {
-          return start;
-        }
-
+      if (ignoreOverlapping && event.ignoreOverlapping) {
         return min;
+      }
+
+      const start = getSeconds(event.from);
+      if (start < min) {
+        return start;
+      }
+
+      return min;
     }, Infinity);
 
     return firstEvent;
   }
 
   private doAutoScroll() {
-    if (this.scrolled) {
-      return;
-    }
-    
-    if (this.autoScroll()) {
+    //if (this.scrolled) {
+    //  console.log("not scrolling")
+    //  return;
+    //}
 
+    if (this.autoScroll()) {
       // if we show the current time we scroll there
       if (this.showCurrentTime()) {
         const now = new Date();
@@ -313,6 +370,7 @@ export class TkdDayViewComponent<E extends Timed>
             5 * 60
         );
 
+        console.log('scrolled to now');
         this.scrolled = true;
         return;
       }
@@ -328,6 +386,7 @@ export class TkdDayViewComponent<E extends Timed>
 
       if (firstEvent !== Infinity) {
         this.scrolled = true;
+        console.log('scrolled to first event');
         this.scrollTo(firstEvent);
       }
     }
@@ -335,17 +394,6 @@ export class TkdDayViewComponent<E extends Timed>
 
   ngAfterViewInit(): void {
     this.viewInitialized = true;
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if ('currentDate' in changes) {
-      this.scrolled = false;
-    }
-    
-    this.ngZone
-      .onStable
-      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.doAutoScroll())
   }
 
   handleCalendarClick(
@@ -371,18 +419,19 @@ export class TkdDayViewComponent<E extends Timed>
     const seconds = offsetY / this.sizeFactor();
 
     // find all events that match the clicked time
-    const events = this.events()
-      .filter(evt => {
-        if (evt.calendarId !== cal.id && (!evt.virtualCopy || !evt.resources.includes(cal.id))) {
-          return false;
-        }
+    const events = this.events().filter(evt => {
+      if (
+        evt.calendarId !== cal.id &&
+        (!evt.virtualCopy || !evt.resources.includes(cal.id))
+      ) {
+        return false;
+      }
 
-        const start = getSeconds(evt.from);
-        const end = start + getSeconds(evt.duration);
+      const start = getSeconds(evt.from);
+      const end = start + getSeconds(evt.duration);
 
-        return start <= seconds && end >= seconds;
-      });
-
+      return start <= seconds && end >= seconds;
+    });
 
     // get all hours elements and find the hour-anchor
     const hours = this.calendarContainer.nativeElement.querySelectorAll(
@@ -404,7 +453,6 @@ export class TkdDayViewComponent<E extends Timed>
       anchor = hours.item(hours.length - 1) as HTMLDivElement;
     }
 
-
     // finally, emit the calendar-click event
     this.calendarClick.emit({
       calendar: cal,
@@ -414,7 +462,9 @@ export class TkdDayViewComponent<E extends Timed>
       date: this.createDate(seconds),
       clickedEventElement: clickedEvent,
       clickedEvent: clickedEvent
-        ? events.find(evt => evt.uniqueId === clickedEvent.getAttribute('event-id'))
+        ? events.find(
+            evt => evt.uniqueId === clickedEvent.getAttribute('event-id')
+          )
         : undefined,
     });
   }

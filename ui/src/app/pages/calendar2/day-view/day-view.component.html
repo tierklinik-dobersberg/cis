@@ -14,7 +14,8 @@
 
 <header
   class="grid-container z-50 w-full flex-shrink-0 flex-grow-0 border-b border-border drop-shadow-sm"
-  [style.gridTemplateColumns]="_computedGridTemplateColumns()">
+  [style.gridTemplateColumns]="_computedGridTemplateColumns()"
+  (swipe)="handleHeaderSwipe($event)">
   @for (cal of _computedCalendarsToDisplay(); track cal.id) {
     <div class="overflow-hidden text-ellipsis">
       <ng-container
@@ -42,6 +43,7 @@
         tkdDebounceEvent="click"
         tkdDebounceStopEvent="dblclick"
         [tkdDebounceEventTime]="10"
+        (swipe)="handleCalendarSwipe($event)"
         (tkdOnEvent)="handleCalendarClick($any($event), cal, container, false)"
         (dblclick)="handleCalendarClick($event, cal, container, true)"
         class="relative h-full"
