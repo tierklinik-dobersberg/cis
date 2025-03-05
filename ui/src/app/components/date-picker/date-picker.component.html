@@ -115,6 +115,7 @@
       variant="small"
       [ranges]="_computedRanges()"
       (dateClick)="updateDate($event.date)"
+      (swipe)="handleSwipe($any($event))"
       [ngClass]="{
         'rounded-md border border-border': !layout.sm(),
       }"

@@ -307,6 +307,20 @@ export class TkdDatePickerComponent
     this.endDate.set(null);
   }
 
+  protected handleSwipe(evt: any) {
+    const x =
+      Math.abs(evt.deltaX) > 40 ? (evt.deltaX > 0 ? 'right' : 'left') : '';
+
+    switch (x) {
+      case 'left':
+        this.nextMonth()
+        break;
+      case 'right':
+        this.prevMonth();
+        break;
+    }
+  }
+
   private scrollTimeIntoView(what: 'start' | 'end', value: Date) {
     if (!value) {
       console.log("no value, not scrolling into view")

@@ -48,6 +48,10 @@ export class MyHammerConfig extends HammerGestureConfig {
   overrides = <any> {
     swipe: { direction: Hammer.DIRECTION_ALL },
   };
+
+  options = {
+    inputClass: Hammer.TouchInput
+  }
 }
 
 @NgModule({
