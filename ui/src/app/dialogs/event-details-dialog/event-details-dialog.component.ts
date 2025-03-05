@@ -7,11 +7,12 @@ import {
   inject,
   model,
   OnInit,
-  signal
+  signal,
+  ViewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatAutocompleteModule, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { Any, Timestamp } from '@bufbuild/protobuf';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { ConnectError } from '@connectrpc/connect';
@@ -194,6 +195,9 @@ export class AppEventDetailsDialogComponent implements OnInit {
   protected readonly matchingCustomers = signal<Customer[]>([]);
   private readonly destroyRef = inject(DestroyRef);
 
+  @ViewChild(MatAutocompleteTrigger)
+  autocompleteTrigger!: MatAutocompleteTrigger;
+
   static open(
     service: HlmDialogService,
     ctx: EventDetailsDialogContext
@@ -282,7 +286,12 @@ export class AppEventDetailsDialogComponent implements OnInit {
           const m = new Map<string, RecentCall>();
           logs.forEach(l => m.set(l.caller, l));
 
-          this.recentCalls.set(Array.from(m.values()));
+          const values = Array.from(m.values())
+          this.recentCalls.set(values);
+
+          if (values.length > 0) {
+            this.autocompleteTrigger.openPanel()
+          }
         })
         .catch(err => {
           console.error(err);
