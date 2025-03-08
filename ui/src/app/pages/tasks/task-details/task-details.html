@@ -5,7 +5,7 @@
     <hlm-sheet-content
       *brnSheetContent
       class="flex w-screen !max-w-[unset] flex-col gap-0 overflow-auto rounded-l-3xl p-0 lg:w-[70vw] lg:!max-w-[1200px]">
-      <hlm-sheet-header class="p-6 text-left border-b border-border">
+      <hlm-sheet-header class="border-b border-border p-6 text-left">
         <label hlmLabel>Zusammenfassung</label>
         <h3 hlmSheetTitle class="flex flex-row items-center justify-between">
           <span class="flex flex-row gap-4">
@@ -44,12 +44,12 @@
         </p>
       </hlm-sheet-header>
 
-      <div class="flex flex-col flex-grow w-full md:flex-row">
+      <div class="flex w-full flex-grow flex-col md:flex-row">
         <div
-          class="flex flex-col flex-grow p-6 pt-4 overflow-auto border-r border-border">
+          class="flex flex-grow flex-col overflow-auto border-r border-border p-6 pt-4">
           <label
             hlmLabel
-            class="flex flex-row items-center justify-between mb-4">
+            class="mb-4 flex flex-row items-center justify-between">
             Beschreibung
             <button
               hlmBtn
@@ -61,7 +61,7 @@
           </label>
 
           @if (!editDescription()) {
-            <div class="w-full border rounded-md border-border">
+            <div class="w-full rounded-md border border-border">
               <header
                 [style.--user-color-opacity]="0.15"
                 class="flex w-full flex-row items-center gap-2 rounded-t-md border-b border-border bg-[var(--user-color)] p-2 px-4"
@@ -72,7 +72,7 @@
                   variant="small"
                   showName="true" />
               </header>
-              <div class="px-4 prose">
+              <div class="prose px-4">
                 <markdown [data]="task().description || 'N/A'" />
               </div>
             </div>
@@ -80,7 +80,7 @@
             <ckeditor [editor]="editor" [(ngModel)]="description"></ckeditor>
           }
 
-          <ol class="relative pt-8 pr-8 ml-8 space-y-4 border-l border-border">
+          <ol class="relative ml-8 space-y-4 border-l border-border pr-8 pt-8">
             @for (tl of timeline(); track tl.id) {
               <li
                 class="relative -left-6 top-2 flex flex-row items-center gap-4 p-1.5"
@@ -108,7 +108,7 @@
             }
 
             <li
-              class="relative flex flex-col items-stretch gap-4 bg-white -left-6 top-2">
+              class="relative -left-6 top-2 flex flex-col items-stretch gap-4 bg-white">
               <ckeditor
                 [editor]="editor"
                 [(ngModel)]="newCommentText"
@@ -121,14 +121,14 @@
           </ol>
         </div>
 
-        <div class="flex flex-col flex-shrink-0">
-          <div class="p-6 border-b border-border">
+        <div class="flex flex-shrink-0 flex-col">
+          <div class="border-b border-border p-6">
             <label hlmLabel class="py-3">Details</label>
 
             <hlm-table class="[&_hlm-td.flex-1>*]:w-full">
               @if (board().allowedTaskPriorities?.length) {
                 <hlm-trow>
-                  <hlm-td class="items-center w-32 gap-2 pl-0">
+                  <hlm-td class="w-32 items-center gap-2 pl-0">
                     <hlm-icon name="lucideCircleDot" size="sm" />
                     Priorität
                   </hlm-td>
@@ -140,7 +140,7 @@
                         [board]="board()"
                         (switch)="setPriority($event)" />
                     } @placeholder {
-                      <hlm-skeleton class="w-32 h-5" />
+                      <hlm-skeleton class="h-5 w-32" />
                     }
                   </hlm-td>
                 </hlm-trow>
@@ -148,7 +148,7 @@
 
               @if (board().allowedTaskStatus?.length) {
                 <hlm-trow>
-                  <hlm-td class="items-center w-32 gap-2 pl-0">
+                  <hlm-td class="w-32 items-center gap-2 pl-0">
                     <hlm-icon name="lucideCircleDot" size="sm" />
                     Status
                   </hlm-td>
@@ -159,14 +159,14 @@
                         [board]="board()"
                         (switch)="setStatus($event)" />
                     } @placeholder {
-                      <hlm-skeleton class="w-16 h-5" />
+                      <hlm-skeleton class="h-5 w-16" />
                     }
                   </hlm-td>
                 </hlm-trow>
               }
 
               <hlm-trow>
-                <hlm-td class="items-center w-32 gap-2 pl-0">
+                <hlm-td class="w-32 items-center gap-2 pl-0">
                   <hlm-icon name="lucideUser" size="sm" />
                   Zugewiesen
                 </hlm-td>
@@ -177,13 +177,13 @@
                       [board]="board()"
                       (switch)="setAssignee($event)" />
                   } @placeholder {
-                    <hlm-skeleton class="w-24 h-5" />
+                    <hlm-skeleton class="h-5 w-24" />
                   }
                 </hlm-td>
               </hlm-trow>
 
               <hlm-trow>
-                <hlm-td class="items-center w-32 gap-2 pl-0">
+                <hlm-td class="w-32 items-center gap-2 pl-0">
                   <hlm-icon name="lucideUser2" size="sm" />
                   Besitzer
                 </hlm-td>
@@ -196,7 +196,7 @@
               </hlm-trow>
 
               <hlm-trow>
-                <hlm-td class="items-center w-32 gap-2 pl-0">
+                <hlm-td class="w-32 items-center gap-2 pl-0">
                   <hlm-icon name="lucideClock" size="sm" />
                   Erstellt am
                 </hlm-td>
@@ -206,7 +206,7 @@
               </hlm-trow>
 
               <hlm-trow>
-                <hlm-td class="items-center w-32 gap-2 pl-0">
+                <hlm-td class="w-32 items-center gap-2 pl-0">
                   <hlm-icon name="lucideCalendarCheck" size="sm" />
                   Fertig bis
                 </hlm-td>
@@ -228,14 +228,42 @@
                       </div>
                     </tkd-date-picker>
                   } @placeholder {
-                    <hlm-skeleton class="w-20 h-5" />
+                    <hlm-skeleton class="h-5 w-20" />
+                  }
+                </hlm-td>
+              </hlm-trow>
+
+              <hlm-trow>
+                <hlm-td class="w-32 items-center gap-2 pl-0">
+                  <hlm-icon name="lucideCalendarCheck" size="sm" />
+                  Nicht bevor
+                </hlm-td>
+                <hlm-td class="flex-1">
+                  @defer {
+                    <tkd-date-picker
+                      [ngModel]="
+                        task().notBefore ? (task().notBefore | toDate) : null
+                      "
+                      (ngModelChange)="updateNotBefore($event)"
+                      allowClear="true"
+                      mode="single">
+                      <div *datePickerInput class="cursor-pointer">
+                        @if (task().notBefore; as notBefore) {
+                          {{ notBefore | toDate | date: 'short' }}
+                        } @else {
+                          <span class="text-gray-500">Nicht angegeben</span>
+                        }
+                      </div>
+                    </tkd-date-picker>
+                  } @placeholder {
+                    <hlm-skeleton class="h-5 w-20" />
                   }
                 </hlm-td>
               </hlm-trow>
 
               @if (board().allowedTaskTags?.length) {
                 <hlm-trow>
-                  <hlm-td class="items-start w-32 gap-2 pl-0">
+                  <hlm-td class="w-32 items-start gap-2 pl-0">
                     <hlm-icon name="lucideTags" size="sm" />
                     Labels
                   </hlm-td>
@@ -286,7 +314,7 @@
                 hlmBtn
                 brnAlertDialogTrigger
                 variant="ghost"
-                class="justify-start w-full text-red-500 hover:text-red-500">
+                class="w-full justify-start text-red-500 hover:text-red-500">
                 <hlm-icon name="lucideTrash2" class="mr-4" />
                 Task Löschen
               </button>

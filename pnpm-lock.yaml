@@ -8,15 +8,56 @@ importers:
 
   .:
     dependencies:
+      '@tierklinik-dobersberg/apis':
+        specifier: 0.40.0
+        version: 0.40.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect-web@1.6.1(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.6.1(@bufbuild/protobuf@1.10.0)))(@connectrpc/connect@1.6.1(@bufbuild/protobuf@1.10.0))
       '@types/hammerjs':
         specifier: ^2.0.46
         version: 2.0.46
 
 packages:
 
+  '@bufbuild/protobuf@1.10.0':
+    resolution: {integrity: sha512-QDdVFLoN93Zjg36NoQPZfsVH9tZew7wKDKyV5qRdj8ntT4wQCOradQjRaTdwMhWUYsgKsvCINKKm87FdEk96Ag==}
+
+  '@connectrpc/connect-web@1.6.1':
+    resolution: {integrity: sha512-GVfxQOmt3TtgTaKeXLS/EA2IHa3nHxwe2BCHT7X0Q/0hohM+nP5DDnIItGEjGrGdt3LTTqWqE4s70N4h+qIMlQ==}
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.10.0
+      '@connectrpc/connect': 1.6.1
+
+  '@connectrpc/connect@1.6.1':
+    resolution: {integrity: sha512-KchMDNtU4CDTdkyf0qG7ugJ6qHTOR/aI7XebYn3OTCNagaDYWiZUVKgRgwH79yeMkpNgvEUaXSK7wKjaBK9b/Q==}
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.10.0
+
+  '@tierklinik-dobersberg/apis@0.40.0':
+    resolution: {integrity: sha512-EExrR0LikrOCWporLAqIav26IsScBOhgSXkcjD4csMhfOV08uI8WCfn643ACA5ZicLAvdv75iWNd9aQ/5QgIzg==, tarball: https://npm.pkg.github.com/download/@tierklinik-dobersberg/apis/0.40.0/c6142cac04489903ae7d8856ba363a627e39dfc2}
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.9.0
+      '@connectrpc/connect': ^1.4.0
+      '@connectrpc/connect-web': ^1.4.0
+
   '@types/hammerjs@2.0.46':
     resolution: {integrity: sha512-ynRvcq6wvqexJ9brDMS4BnBLzmr0e14d6ZJTEShTBWKymQiHwlAyGu0ZPEFI2Fh1U53F7tN9ufClWM5KvqkKOw==}
 
 snapshots:
+
+  '@bufbuild/protobuf@1.10.0': {}
+
+  '@connectrpc/connect-web@1.6.1(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.6.1(@bufbuild/protobuf@1.10.0))':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+      '@connectrpc/connect': 1.6.1(@bufbuild/protobuf@1.10.0)
+
+  '@connectrpc/connect@1.6.1(@bufbuild/protobuf@1.10.0)':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+
+  '@tierklinik-dobersberg/apis@0.40.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect-web@1.6.1(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.6.1(@bufbuild/protobuf@1.10.0)))(@connectrpc/connect@1.6.1(@bufbuild/protobuf@1.10.0))':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+      '@connectrpc/connect': 1.6.1(@bufbuild/protobuf@1.10.0)
+      '@connectrpc/connect-web': 1.6.1(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.6.1(@bufbuild/protobuf@1.10.0))
 
   '@types/hammerjs@2.0.46': {}

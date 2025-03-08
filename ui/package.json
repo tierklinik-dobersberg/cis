@@ -47,7 +47,7 @@
     "@spartan-ng/ui-tooltip-brain": "0.0.1-alpha.347",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tierklinik-dobersberg/angular": "^0.4.1",
-    "@tierklinik-dobersberg/apis": "^0.38.1",
+    "@tierklinik-dobersberg/apis": "^0.40.0",
     "@webcomponents/custom-elements": "^1.5.1",
     "ckeditor5": "42.0.0",
     "class-variance-authority": "^0.6.0",

@@ -206,6 +206,12 @@ export class TaskDetailsComponent implements AfterViewInit {
         }, ['due_time'])
     }
 
+    protected updateNotBefore(date?: Date) {
+        this.updateTask({
+            notBefore: date ? Timestamp.fromDate(date) : null,
+        }, ['not_before'])
+    }
+
     protected deleteTask() {
         this.taskService
             .deleteTask({taskId: this.task().id})

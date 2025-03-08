@@ -55,6 +55,14 @@ var UISpec = conf.SectionSpec{
 		Type:    conf.StringType,
 		Default: "tasks",
 	},
+	{
+		Name: "ImportantTasksBoard",
+		Type: conf.StringType,
+	},
+	{
+		Name: "ImportantTasksFilter",
+		Type: conf.StringType,
+	},
 }
 
 var RosterUISpec = conf.SectionSpec{
