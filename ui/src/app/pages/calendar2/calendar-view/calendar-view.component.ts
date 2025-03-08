@@ -155,7 +155,7 @@ type CalEvent = Timed &
   styles: [
     `
       :host {
-        @apply flex h-full flex-col gap-2 pb-8 xl:flex-row xl:!p-0;
+        @apply flex h-full flex-col pb-8 xl:flex-row xl:!p-0;
       }
       .event-container {
         container-type: size;

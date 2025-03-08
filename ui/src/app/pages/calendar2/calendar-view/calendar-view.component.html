@@ -1,5 +1,5 @@
 <header
-  class="flex flex-row items-center gap-2 xl:max-h-full xl:min-w-[390px] xl:flex-col xl:border-r xl:border-t xl:border-gray-100 xl:bg-white xl:pb-8">
+  class="flex flex-row items-center gap-2 xl:max-h-full xl:min-w-[390px] xl:flex-col xl:border-r xl:border-t xl:border-border xl:bg-white xl:pb-8">
   <!-- Date controls -->
   <div class="flex flex-row flex-nowrap gap-1 xl:p-4">
     <tkd-date-picker
@@ -125,7 +125,7 @@
   [(sizeFactor)]="sizeFactor"
   (calendarClick)="handleCalendarClick($event)"
   #dayView="tkdDayView"
-  class="w-full flex-grow cursor-not-allowed rounded-md border border-border bg-white shadow-md"
+  class="!m-0 w-full flex-grow cursor-not-allowed border-t border-border bg-white"
   autoScroll="true"
   [showCurrentTime]="isToday()"
   [calendars]="calendars()"
