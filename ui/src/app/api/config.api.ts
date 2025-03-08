@@ -109,6 +109,8 @@ export interface UIConfig {
     OfftimeCommentScope?: string;
     ComputerAccountRole?: string;
     TaskCommentScope?: string;
+    ImportantTasksBoard?: string;
+    ImportantTasksFilter?: string;
   };
   ExternalLink?: ExternalLink[];
   TriggerAction?: TriggerAction[];
