@@ -1,6 +1,0 @@
-{
-	"dependencies": {
-		"@tierklinik-dobersberg/apis": "0.40.0",
-		"@types/hammerjs": "^2.0.46"
-	}
-}
