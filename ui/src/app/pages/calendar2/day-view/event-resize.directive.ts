@@ -18,6 +18,7 @@ export class TkdEventResizeDirective {
     private readonly host = inject(ElementRef);
     private readonly renderer = inject(Renderer2);
     private readonly cdkDrag = inject(CdkDrag)
+    private isActive = false;
 
     @HostListener('mousemove', ['$event'])
     onMouseMove(event: MouseEvent) {
@@ -56,14 +57,18 @@ export class TkdEventResizeDirective {
                 event: event,
                 data: this.tkdEventResize()
             })
+
+            this.isActive = true;
         }
     }
 
     @HostListener('mouseup', ['$event'])
     onMouseUp(event: MouseEvent) {
-        if (this.tkdEventResizeDisabled()) {
+        if (this.tkdEventResizeDisabled() || !this.isActive) {
             return
         }
+
+        this.isActive = false;
 
         this.dayView.onResizeStop()
 
