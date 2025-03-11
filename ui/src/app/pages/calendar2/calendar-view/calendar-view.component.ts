@@ -486,7 +486,21 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   }
 
   protected handleResize(e: {event: StyledTimed, duration: number}) {
+    this.skipLoading = true;
+
     let duration = Math.round(e.duration / (15*60)) *15*60
+
+    console.log("handleResize", e)
+
+    // apply min-duration
+    if (duration < 15 * 60) {
+      duration = 15*60;
+    }
+
+    // update the event style now to immediately reflect the changes
+    e.event.style.height = (this.dayViewComponent.sizeFactor() * duration) + 'px';
+    e.event.style = {...e.event.style};
+
     this.calendarAPI
       .updateEvent({
         calendarId:e.event.calendarId, 
@@ -501,9 +515,14 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
           description: ConnectError.from(err).message
         })
       })
+      .finally(() => {
+        this.loadEvents(this.currentDate())
+      })
   }
 
   handleEventMoved(evt: EventMovedEvent<CalEvent>) {
+    console.log("event moved")
+
     this.skipLoading = true;
 
     const duration = Number(evt.event.endTime?.seconds - evt.event.startTime.seconds);
@@ -571,7 +590,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         })
       })
       .finally(() => {
-        this.skipLoading = false;
+        this.loadEvents(this.currentDate());
       })
   }
 
@@ -763,6 +782,8 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   private _prevDate: Date | null = null;
 
   private loadEvents(date: Date): Promise<any> {
+    this.skipLoading = true;
+
     if (!isSameDay(date, this._prevDate)) {
       this.eventListResponse.set(null);
     }
@@ -813,6 +834,8 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         if (this._abrt === abrt) {
           this._abrt = null;
         }
+
+        this.skipLoading = false;
 
         toast.dismiss(toastId);
       });

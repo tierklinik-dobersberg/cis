@@ -227,10 +227,20 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
 
   private resizeEvent: StyledTimed | null = null;
   onResizeStart(event: { event: MouseEvent; data: StyledTimed }) {
+    console.log("resize start")
+
     this.resizeEvent = event.data;
     this.startY = event.event.clientY;
   }
+
   onResizeStop() {
+    console.log("resize stop")
+
+    if (!this.resizeEvent) {
+      console.log("no resize event")
+      return
+    }
+
     const height = parseFloat(this.resizeEvent.style.height.replace('px', ''));
 
     const seconds = height / this.sizeFactor();
@@ -250,14 +260,19 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
       // update the event style
       const offset = event.clientY - this.startY;
       const style = { ...ce.style };
-      const durationOffset = offset / this.sizeFactor();
+      let durationOffset = offset / this.sizeFactor();
+
+      let duration = getSeconds(ce.duration) + durationOffset;
+
+      if (duration < 15 *60) {
+        duration = 15*60;
+      }
+
+      duration = Math.ceil(duration / (15*60)) * 15 * 60
 
       style.height =
-        ((getSeconds(ce.duration) + durationOffset) * this.sizeFactor()) + 'px';
+        (duration * this.sizeFactor()) + 'px';
 
-      console.log(offset, style, durationOffset);
-
-      // TODO(ppacher): how to update the UI
       ce.style = style;
     }
   }

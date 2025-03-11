@@ -65,13 +65,16 @@
         @for (event of cal.events; track event.id) {
           <div
             class="absolute overflow-visible transition duration-150 ease-in-out"
+            [tkdEventResize]="event"
+            [tkdEventResizeDisabled]="
+              event.virtualCopy || event.ignoreOverlapping
+            "
             cdkDrag
             [cdkDragDisabled]="event.virtualCopy || event.ignoreOverlapping"
             (cdkDragEnded)="onEventDropped($event)"
             (cdkDragStarted)="onDragStart()"
             [cdkDragBoundary]="'.calendar-container'"
-            [cdkDragStartDelay]="250"
-            [tkdEventResize]="event"
+            [cdkDragStartDelay]="100"
             #drag="cdkDrag"
             [ngClass]="{
               'hover:!z-[100]': !event.ignoreOverlapping,
