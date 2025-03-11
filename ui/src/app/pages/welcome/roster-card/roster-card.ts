@@ -33,7 +33,7 @@ import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
 import { TimeRange } from '@tierklinik-dobersberg/apis/common/v1';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
 import { GetWorkingStaffResponse, PlannedShift } from '@tierklinik-dobersberg/apis/roster/v1';
-import { differenceInDays, endOfDay, isSameDay, startOfDay } from 'date-fns';
+import { differenceInDays, endOfDay, isBefore, isSameDay, startOfDay } from 'date-fns';
 import { toast } from 'ngx-sonner';
 import { interval } from 'rxjs';
 import { injectCurrentConfig } from 'src/app/api';
@@ -105,9 +105,17 @@ export class RosterCardComponent {
 
   protected readonly _computedShifts = computed<LocalPlannedShift[]>(() => {
     const current = this.localPlannedShifts();
+    const calendarDate = this.calendarDate();
 
     return current
       .filter(shift => shift.assignedUserIds?.length > 0)
+      .filter(shift => {
+        if (isBefore(shift.from.toDate(), startOfDay(calendarDate))) {
+          return false
+        }
+
+        return true
+      })
       .sort((a, b) => {
         return Number((a.definition?.order || BigInt(0)) - (b.definition?.order || BigInt(0)))
       })
