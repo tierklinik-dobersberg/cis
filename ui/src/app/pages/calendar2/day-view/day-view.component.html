@@ -30,7 +30,7 @@
 </header>
 
 <div
-  class="relative flex-grow !touch-pan-x !touch-pan-y flex-nowrap overflow-auto"
+  class="calendar-container relative flex-grow !touch-pan-x !touch-pan-y flex-nowrap overflow-auto"
   #calendarContainer
   (swipe)="handleCalendarSwipe($any($event))"
   (scroll)="handleScroll($event)">
@@ -62,26 +62,33 @@
             {{ h }}:00
           </div>
         }
-        @if (cal.events | eventStyle: sizeFactor() : min; as events) {
-          @for (event of events; track event.id) {
-            <div
-              class="absolute overflow-visible transition duration-150 ease-in-out"
-              [ngClass]="{
-                'hover:!z-[100]': !event.ignoreOverlapping,
-              }"
-              [attr.event-id]="event.uniqueId"
-              [ngStyle]="event.style">
-              <ng-container
-                *ngTemplateOutlet="
-                  eventCell?.template || defaultEventCell.template;
-                  context: {
-                    $implicit: event,
-                    calendar: cal,
-                  }
-                ">
-              </ng-container>
-            </div>
-          }
+        @for (event of cal.events; track event.id) {
+          <div
+            class="absolute overflow-visible transition duration-150 ease-in-out"
+            cdkDrag
+            [cdkDragDisabled]="event.virtualCopy || event.ignoreOverlapping"
+            (cdkDragEnded)="onEventDropped($event)"
+            (cdkDragStarted)="onDragStart()"
+            [cdkDragBoundary]="'.calendar-container'"
+            [cdkDragStartDelay]="250"
+            [tkdEventResize]="event"
+            #drag="cdkDrag"
+            [ngClass]="{
+              'hover:!z-[100]': !event.ignoreOverlapping,
+            }"
+            [tkdDragReset]="event.style"
+            [ngStyle]="event.style"
+            [attr.event-id]="event.uniqueId">
+            <ng-container
+              *ngTemplateOutlet="
+                eventCell?.template || defaultEventCell.template;
+                context: {
+                  $implicit: event,
+                  calendar: cal,
+                }
+              ">
+            </ng-container>
+          </div>
         }
       </div>
     }

@@ -19,7 +19,7 @@ export class EventStylePipe implements PipeTransform {
     return getSeconds(value) * factor;
   }
 
-  transform(list: Timed[], factor: number, minHeight: number): StyledTimed[] {
+  transform(list: Timed[], factor: number, minDuration: number = 15 * 60): StyledTimed[] {
     const done = new Map<string | number, number>();
 
     let hasOverlapping = (event: Timed, index: number, round: number) => {
@@ -71,10 +71,15 @@ export class EventStylePipe implements PipeTransform {
         if (event.ignoreOverlapping || !hasOverlapping(event, i, round)) {
           didSomething = true;
 
+          let duration = getSeconds(event.duration);
+          if (duration < minDuration) {
+            duration = minDuration
+          }
+
           // calculate style
           const style: any = {
             top: (round * 5 + this.secondsToPixel(event.from, factor)) + 'px',
-            height: this.secondsToPixel(event.duration, factor) + 'px',
+            height: this.secondsToPixel(duration, factor) + 'px',
             right: '0px',
             left: round * 25 + '%',
             zIndex: event.ignoreOverlapping ? 'unset' : (round + 1) * 5,

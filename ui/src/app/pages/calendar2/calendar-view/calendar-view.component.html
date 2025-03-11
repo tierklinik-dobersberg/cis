@@ -132,6 +132,8 @@
   [displayCalendars]="displayedCalendars()"
   (headerSwipe)="handleHeaderSwipe($event)"
   (calendarSwipe)="handleCalendarSwipe($event)"
+  (onResize)="handleResize($event)"
+  (eventMoved)="handleEventMoved($event)"
   [events]="_computedEvents()">
   <!-- Calendar Header Cell -->
   <ng-template

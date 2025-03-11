@@ -52,6 +52,7 @@ import {
   CalendarEvent,
   CustomerAnnotation,
   ListEventsResponse,
+  MoveEventResponse,
   Calendar as PbCalendar,
 } from '@tierklinik-dobersberg/apis/calendar/v1';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
@@ -63,6 +64,7 @@ import {
 } from '@tierklinik-dobersberg/apis/roster/v1';
 import {
   addDays,
+  addSeconds,
   differenceInSeconds,
   endOfDay,
   getMinutes,
@@ -98,13 +100,17 @@ import { RosterCardComponent } from '../../welcome/roster-card';
 import {
   Calendar,
   CalendarMouseEvent,
+  coerceDate,
   DEFAULT_HOUR_HEIGHT_PX,
+  EventMovedEvent,
   SwipeEvent,
   Timed,
   TkdCalendarEventCellTemplateDirective,
   TkdCalendarHeaderCellTemplateDirective,
   TkdDayViewComponent,
 } from '../day-view';
+import { TkdEventResizeDirective } from '../day-view/event-resize.directive';
+import { StyledTimed } from '../day-view/event-style.pipe';
 import { getSeconds } from '../day-view/sort.pipe';
 
 type CalEvent = Timed &
@@ -144,6 +150,7 @@ type CalEvent = Timed &
     HlmTabsModule,
     ContrastColorPipe,
     RosterCardComponent,
+    TkdEventResizeDirective
   ],
   providers: [
     ...provideIcons({
@@ -302,6 +309,8 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
 
   /** A list of calendar ids to display */
   protected readonly displayedCalendars = model<string[]>([]);
+
+  protected skipLoading = false;
 
   protected readonly shifts = signal<PlannedShift[]>([]);
   protected readonly shiftDefinitions = signal<WorkShift[]>([]);
@@ -476,6 +485,96 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     }
   }
 
+  protected handleResize(e: {event: StyledTimed, duration: number}) {
+    let duration = Math.round(e.duration / (15*60)) *15*60
+    this.calendarAPI
+      .updateEvent({
+        calendarId:e.event.calendarId, 
+        eventId: e.event.id as any,
+        end: Timestamp.fromDate( addSeconds(coerceDate(e.event.from), duration) ), 
+        updateMask: {
+          paths: ['end']
+        }
+      })
+      .catch( err => {
+        toast.error('Termin konnte nicht gespeichert werden', {
+          description: ConnectError.from(err).message
+        })
+      })
+  }
+
+  handleEventMoved(evt: EventMovedEvent<CalEvent>) {
+    this.skipLoading = true;
+
+    const duration = Number(evt.event.endTime?.seconds - evt.event.startTime.seconds);
+
+    if (duration < 0 || isNaN(duration))  {
+      return
+    }
+
+    const copy = new CalendarEvent({
+      ...evt.event,
+      startTime: Timestamp.fromDate(evt.date),
+      calendarId: evt.calendarId,
+      endTime: Timestamp.fromDate( addSeconds(evt.date, duration)),
+      id: evt.event.id + '-moved'
+    })
+
+    const res = this.eventListResponse()
+    const sourceCalendar = res.results.find(c => c.calendar.id === evt.event.calendarId)
+    const sourceIndex = sourceCalendar.events.findIndex(e => e.id === evt.event.id);
+
+    if (evt.calendarId !== evt.event.calendarId) {
+      const targetCalendar = res.results.find(c => c.calendar.id === evt.calendarId);
+      sourceCalendar.events.splice(sourceIndex, 1)
+      targetCalendar.events.push(copy);
+    } else {
+      sourceCalendar.events[sourceIndex] = copy  
+    }
+
+    this.eventListResponse.set(new ListEventsResponse({
+      ...res,
+    }))
+
+    this.calendarAPI
+      .updateEvent({
+        calendarId: evt.event.calendarId,
+        eventId: evt.event.id,
+        start: copy.startTime,
+        end: copy.endTime,
+        updateMask: {
+          paths: ['start', 'end']
+        }
+      })
+      .then(() => {
+        // check if we need to move the event to a different calendar as well
+        if (evt.calendarId !== evt.event.calendarId) {
+          return this.calendarAPI
+            .moveEvent({
+              eventId: evt.event.id,
+              source: {
+                case: 'sourceCalendarId',
+                value: evt.event.calendarId
+              },
+              target: {
+                case: 'targetCalendarId',
+                value: evt.calendarId,
+              }
+            })
+        }
+
+        return Promise.resolve(new MoveEventResponse)
+      })
+      .catch(err => {
+        toast.error('Termin konnte nicht gespeichert werden', {
+          description: ConnectError.from(err).message
+        })
+      })
+      .finally(() => {
+        this.skipLoading = false;
+      })
+  }
+
   handleCalendarClick(event: CalendarMouseEvent<CalEvent, Calendar>) {
     let ctx: EventDetailsDialogContext = {
       calendar: new PbCalendar(event.calendar),
@@ -501,7 +600,11 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
 
     AppEventDetailsDialogComponent.open(this.dialog, ctx)
       .closed$.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.loadEvents(this.currentDate()));
+      .subscribe(() => {
+
+        console.log("loading events due to details-dialog close")
+        this.loadEvents(this.currentDate());
+      });
   }
 
   loadToday() {
@@ -556,7 +659,14 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     inject(EventService)
       .subscribe(new CalendarChangeEvent())
       .pipe(takeUntilDestroyed(), debounceTime(1000))
-      .subscribe(() => this.loadEvents(this.currentDate()));
+      .subscribe(() => {
+        if (this.skipLoading) {
+          return
+        }
+
+        console.log("loading events due to events event")
+        this.loadEvents(this.currentDate())
+      });
 
     effect(
       () => {
@@ -652,7 +762,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   private _abrt: AbortController | null;
   private _prevDate: Date | null = null;
 
-  private loadEvents(date: Date) {
+  private loadEvents(date: Date): Promise<any> {
     if (!isSameDay(date, this._prevDate)) {
       this.eventListResponse.set(null);
     }
@@ -671,7 +781,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       })
     );
 
-    this.calendarAPI
+    return this.calendarAPI
       .listEvents(
         {
           searchTime: {

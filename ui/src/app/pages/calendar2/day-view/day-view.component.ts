@@ -1,3 +1,9 @@
+import {
+  CdkDrag,
+  CdkDragEnd,
+  CdkDragStart,
+  DragDropModule,
+} from '@angular/cdk/drag-drop';
 import { AsyncPipe, NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
@@ -19,10 +25,13 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { getMinutes, setMinutes, setSeconds } from 'date-fns';
 import { BehaviorSubject, interval, map, share, startWith, take } from 'rxjs';
 import { TkdDebounceEventDirective } from 'src/app/components/debounce-event.directive';
+import { TkdDragResetDirective } from './drag-reset.directive';
 import { TkdCalendarEventCellTemplateDirective } from './event-cell.directive';
-import { EventStylePipe } from './event-style.pipe';
+import { TkdEventResizeDirective } from './event-resize.directive';
+import { EventStylePipe, StyledTimed } from './event-style.pipe';
 import { TkdCalendarHeaderCellTemplateDirective } from './header-cell.directive';
 import { coerceDate } from './is-same-day.pipe';
 import {
@@ -38,6 +47,13 @@ import { TimeFormatPipe } from './time.pipe';
 
 export const DEFAULT_HOUR_HEIGHT_PX = 200;
 
+export interface EventMovedEvent<E> {
+  event: E;
+  date: Date;
+  calendarId: string;
+  drag: CdkDrag;
+}
+
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'tkd-day-view',
@@ -51,11 +67,13 @@ export const DEFAULT_HOUR_HEIGHT_PX = 200;
     NgClass,
     AsyncPipe,
     SecondsToPixelPipe,
-    EventStylePipe,
     TimeFormatPipe,
     TkdCalendarHeaderCellTemplateDirective,
     TkdCalendarEventCellTemplateDirective,
     TkdDebounceEventDirective,
+    DragDropModule,
+    TkdDragResetDirective,
+    TkdEventResizeDirective,
   ],
   styles: [
     `
@@ -81,6 +99,7 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
 
   public readonly headerSwipe = output<SwipeEvent>();
   public readonly calendarSwipe = output<SwipeEvent>();
+  public readonly eventMoved = output<EventMovedEvent<E>>();
 
   private cursorY = 0;
 
@@ -113,6 +132,8 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
   /** The actual events to display. */
   public readonly events = input<E[]>([]);
 
+  public readonly onResize = output<{event: StyledTimed, duration: number}>()
+
   protected readonly _computedCalendarsToDisplay = computed(() => {
     const calendars = this.calendars();
     const idsToDisplay = new Set(this.displayCalendars());
@@ -136,18 +157,24 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
       return db - da;
     });
 
+    const styler = new EventStylePipe();
+    const size = this.sizeFactor();
+
     return calendars
       .filter(cal => idsToDisplay.has(cal.id))
       .map(cal => {
         return {
           ...cal,
-          events: sorted.filter(e => {
-            if (e.virtualCopy) {
-              return cal.isVirtualResource && e.resources.includes(cal.id);
-            }
+          events: styler.transform(
+            sorted.filter(e => {
+              if (e.virtualCopy) {
+                return cal.isVirtualResource && e.resources.includes(cal.id);
+              }
 
-            return e.calendarId === cal.id;
-          }),
+              return e.calendarId === cal.id;
+            }),
+            size
+          ),
         };
       });
   });
@@ -187,11 +214,52 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
   @ViewChild('calendarContainer', { read: ElementRef, static: true })
   protected readonly calendarContainer!: ElementRef<HTMLElement>;
 
+  private activeDrags: CdkDrag[] = [];
+
+  private startY: number | null = null;
+
   @HostListener('mousemove', ['$event'])
   protected handleMouseMove(event: MouseEvent) {
     this.cursorY = event.clientY;
 
     this.calculateCursorTime();
+  }
+
+  private resizeEvent: StyledTimed | null = null;
+  onResizeStart(event: { event: MouseEvent; data: StyledTimed }) {
+    this.resizeEvent = event.data;
+    this.startY = event.event.clientY;
+  }
+  onResizeStop() {
+    const height = parseFloat(this.resizeEvent.style.height.replace('px', ''));
+
+    const seconds = height / this.sizeFactor();
+    this.onResize.emit({
+      event: this.resizeEvent,
+      duration: seconds,
+    })
+
+    this.resizeEvent = null;
+  }
+
+  @HostListener('mousemove', ['$event'])
+  protected handleResize(event: MouseEvent) {
+    const ce = this.resizeEvent;
+
+    if (this.startY !== null && ce !== null) {
+      // update the event style
+      const offset = event.clientY - this.startY;
+      const style = { ...ce.style };
+      const durationOffset = offset / this.sizeFactor();
+
+      style.height =
+        ((getSeconds(ce.duration) + durationOffset) * this.sizeFactor()) + 'px';
+
+      console.log(offset, style, durationOffset);
+
+      // TODO(ppacher): how to update the UI
+      ce.style = style;
+    }
   }
 
   protected handleScroll(event: Event) {
@@ -222,6 +290,17 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     effect(() => {
       const events = this.events();
       const currentDate = this.currentDate();
+
+      /*
+      this.activeDrags.forEach(d => {
+        try {
+          d.reset();
+        } catch(err) {
+
+        }
+      })
+      this.activeDrags = [];
+      */
 
       if (!prevDate || prevDate.getTime() != currentDate.getTime()) {
         this.doAutoScroll();
@@ -259,7 +338,7 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     const y = Math.abs(evt.deltaY) > 40 ? (evt.deltaY > 0 ? 'down' : 'up') : '';
 
     if (y !== '') {
-      return
+      return;
     }
 
     this.headerSwipe.emit({
@@ -280,7 +359,7 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     const y = Math.abs(evt.deltaY) > 40 ? (evt.deltaY > 0 ? 'down' : 'up') : '';
 
     if (y !== '') {
-      return
+      return;
     }
 
     this.calendarSwipe.emit({
@@ -404,12 +483,69 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     this.viewInitialized = true;
   }
 
+  private dragging = false;
+  onDragStart() {
+    this.dragging = true;
+  }
+
+  onEventDropped(event: CdkDragStart | CdkDragEnd) {
+    const elementBounds =
+      event.source.element.nativeElement.getBoundingClientRect();
+    const eventId = event.source.element.nativeElement.getAttribute('event-id');
+
+    this.activeDrags.push(event.source);
+
+    const newPos = {
+      x: (event.event as MouseEvent).clientX,
+      y: elementBounds.y,
+    };
+
+    const calendars =
+      this.calendarContainer.nativeElement.querySelectorAll('[calendar-id]');
+
+    const cal = Array.from(calendars).find(cal => {
+      const bounds = cal.getBoundingClientRect();
+
+      if (bounds.x <= newPos.x && bounds.x + bounds.width >= newPos.x) {
+        return true;
+      }
+
+      return false;
+    });
+
+    const offsetY = newPos.y - cal.getBoundingClientRect().top;
+    const seconds = offsetY / this.sizeFactor();
+    let date = this.createDate(seconds);
+
+    event.event.preventDefault();
+    event.event.stopPropagation();
+    event.event.stopImmediatePropagation();
+
+    // clip to 15 minutes slots
+    date = setSeconds(date, 0);
+    date = setMinutes(date, Math.round(getMinutes(date) / 15) * 15);
+
+    const calEvent = this.events().find(e => e.id === eventId);
+
+    this.eventMoved.emit({
+      event: calEvent,
+      date: date,
+      calendarId: cal.getAttribute('calendar-id'),
+      drag: event.source,
+    });
+  }
+
   handleCalendarClick(
     event: MouseEvent,
     cal: Calendar,
     container: HTMLElement,
     dblclick: boolean
   ) {
+    if (this.dragging) {
+      this.dragging = false;
+      return;
+    }
+
     // find the actually clicked event container, if any
     let clickedEvent: HTMLElement = event.target as HTMLElement;
     while (
@@ -436,7 +572,11 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
       }
 
       const start = getSeconds(evt.from);
-      const end = start + getSeconds(evt.duration);
+      let end = start + getSeconds(evt.duration);
+
+      if (end - start < 10 * 60) {
+        end = start + 10 * 60;
+      }
 
       return start <= seconds && end >= seconds;
     });
