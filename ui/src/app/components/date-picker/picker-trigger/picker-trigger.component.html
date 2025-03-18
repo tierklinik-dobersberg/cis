@@ -14,9 +14,7 @@
     variant="secondary"
     [size]="_computedButtonSize()"
     tabindex="-1"
-    class="w-32 rounded-none border-b border-t {{
-      _computedBorderClasses()
-    }} text-center">
+    [class]="_computedButtonClasses()">
     {{ calendarDate() | date: _computedDateFormat() }}
   </button>
 } @else {
@@ -25,9 +23,7 @@
     variant="secondary"
     [size]="_computedButtonSize()"
     tabindex="-1"
-    class="rounded-none border-b border-t {{
-      _computedBorderClasses()
-    }} text-center">
+    [class]="_computedButtonClasses()">
     <hlm-icon name="lucideCalendarDays" [size]="_computedIconSize()" />
   </button>
 }

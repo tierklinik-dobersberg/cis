@@ -42,6 +42,8 @@ export class TkdDatePickerTriggerComponent {
 
     public readonly variant = input<DatePickerTriggerVariants>('date');
     public readonly size = input<DatePickerTriggerSize>('default');
+    public readonly dateFormat = input<string | null>(null);
+    public readonly buttonClass = input<string | null>(null);
 
     protected readonly _computedIconSize = computed<IconSize>(() => {
         const size = this.size();
@@ -53,7 +55,21 @@ export class TkdDatePickerTriggerComponent {
         return 'xs';
     })
 
+    protected readonly _computedButtonClasses = computed(() => {
+        let defaultCls = "rounded-none border-b border-t text-center";
+        if (this.variant() === "date") {
+            defaultCls += " w-32"
+        }
+        return hlm(defaultCls + " " + this._computedBorderClasses(), this.buttonClass())
+    })
+
     protected readonly _computedDateFormat = computed(() => {
+        const userFormat = this.dateFormat();
+
+        if (userFormat) {
+            return userFormat
+        }
+
         if (this.picker.withTime()) {
             return 'short'
         }

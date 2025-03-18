@@ -130,6 +130,12 @@
         </mat-autocomplete>
       } @else {
         {{ event.summary }}
+
+        @if (customer(); as customer) {
+          <button hlmBtn variant="secondary" (click)="openCustomerDetails()">
+            Kundendetails
+          </button>
+        }
       }
     </hlm-td>
   </hlm-trow>

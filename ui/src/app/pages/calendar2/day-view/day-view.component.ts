@@ -227,17 +227,16 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
 
   private resizeEvent: StyledTimed | null = null;
   onResizeStart(event: { event: MouseEvent; data: StyledTimed }) {
-    console.log("resize start")
+    this.dragging = true;
 
     this.resizeEvent = event.data;
     this.startY = event.event.clientY;
   }
 
   onResizeStop() {
-    console.log("resize stop")
+    this.dragging = false;
 
     if (!this.resizeEvent) {
-      console.log("no resize event")
       return
     }
 

@@ -1,85 +1,87 @@
 import { CommonModule, DatePipe, DOCUMENT } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  DestroyRef,
-  effect,
-  inject,
-  LOCALE_ID,
-  model,
-  OnDestroy,
-  OnInit,
-  Renderer2,
-  signal,
-  untracked,
-  ViewChild,
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    DestroyRef,
+    effect,
+    inject,
+    LOCALE_ID,
+    model,
+    OnDestroy,
+    OnInit,
+    Renderer2,
+    signal,
+    untracked,
+    ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
-import { lucideStar, lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
+import { lucideCog, lucideStar, lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
+import { BrnSheetModule } from '@spartan-ng/ui-sheet-brain';
 import {
-  injectUserProfiles,
-  sortUserProfile,
+    injectUserProfiles,
+    sortUserProfile,
 } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
 import { HlmCheckboxComponent } from '@tierklinik-dobersberg/angular/checkbox';
 import {
-  CALENDAR_SERVICE,
-  ROSTER_SERVICE,
+    CALENDAR_SERVICE,
+    ROSTER_SERVICE,
 } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import {
-  HlmIconModule,
-  provideIcons,
+    HlmIconModule,
+    provideIcons,
 } from '@tierklinik-dobersberg/angular/icon';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import {
-  DurationPipe,
-  getUserColor,
-  ToDatePipe,
+    DurationPipe,
+    getUserColor,
+    ToDatePipe,
 } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
+import { HlmSheetModule } from '@tierklinik-dobersberg/angular/sheet';
 import { HlmTabsModule } from '@tierklinik-dobersberg/angular/tabs';
 import {
-  CalenarEventRequestKind,
-  CalendarChangeEvent,
-  CalendarEvent,
-  CustomerAnnotation,
-  ListEventsResponse,
-  MoveEventResponse,
-  Calendar as PbCalendar,
+    CalenarEventRequestKind,
+    CalendarChangeEvent,
+    CalendarEvent,
+    CustomerAnnotation,
+    ListEventsResponse,
+    MoveEventResponse,
+    Calendar as PbCalendar,
 } from '@tierklinik-dobersberg/apis/calendar/v1';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
 import {
-  ListRosterTypesResponse,
-  PlannedShift,
-  RosterType,
-  WorkShift,
+    ListRosterTypesResponse,
+    PlannedShift,
+    RosterType,
+    WorkShift,
 } from '@tierklinik-dobersberg/apis/roster/v1';
 import {
-  addDays,
-  addSeconds,
-  differenceInSeconds,
-  endOfDay,
-  getMinutes,
-  isAfter,
-  isBefore,
-  isSameDay,
-  setMinutes,
-  setSeconds,
-  startOfDay,
+    addDays,
+    addSeconds,
+    differenceInSeconds,
+    endOfDay,
+    getMinutes,
+    isAfter,
+    isBefore,
+    isSameDay,
+    setMinutes,
+    setSeconds,
+    startOfDay,
 } from 'date-fns';
 import { toast } from 'ngx-sonner';
 import { debounceTime, filter, map } from 'rxjs';
 import {
-  TkdDatePickerComponent,
-  TkdDatePickerInputDirective,
+    TkdDatePickerComponent,
+    TkdDatePickerInputDirective,
 } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
 import { UserColorVarsDirective } from 'src/app/components/user-color-vars';
@@ -93,23 +95,22 @@ import { EventService } from 'src/app/services/event.service';
 import { toDateString } from 'src/app/utils';
 import { storedSignal } from 'src/app/utils/stored-signal';
 import {
-  AppEventDetailsDialogComponent,
-  EventDetailsDialogContext,
+    AppEventDetailsDialogComponent,
+    EventDetailsDialogContext,
 } from '../../../dialogs/event-details-dialog';
 import { RosterCardComponent } from '../../welcome/roster-card';
 import {
-  Calendar,
-  CalendarMouseEvent,
-  coerceDate,
-  DEFAULT_HOUR_HEIGHT_PX,
-  EventMovedEvent,
-  SwipeEvent,
-  Timed,
-  TkdCalendarEventCellTemplateDirective,
-  TkdCalendarHeaderCellTemplateDirective,
-  TkdDayViewComponent,
+    Calendar,
+    CalendarMouseEvent,
+    coerceDate,
+    DEFAULT_HOUR_HEIGHT_PX,
+    EventMovedEvent,
+    SwipeEvent,
+    Timed,
+    TkdCalendarEventCellTemplateDirective,
+    TkdCalendarHeaderCellTemplateDirective,
+    TkdDayViewComponent,
 } from '../day-view';
-import { TkdEventResizeDirective } from '../day-view/event-resize.directive';
 import { StyledTimed } from '../day-view/event-style.pipe';
 import { getSeconds } from '../day-view/sort.pipe';
 
@@ -150,13 +151,15 @@ type CalEvent = Timed &
     HlmTabsModule,
     ContrastColorPipe,
     RosterCardComponent,
-    TkdEventResizeDirective
+    HlmSheetModule,
+    BrnSheetModule,
   ],
   providers: [
     ...provideIcons({
       lucideZoomIn,
       lucideZoomOut,
       lucideStar,
+      lucideCog
     }),
   ],
   styles: [
@@ -210,9 +213,13 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   private readonly dialog = inject(HlmDialogService);
   private readonly header = inject(HeaderTitleService);
 
+  // Used by the template
+
   protected readonly navService = inject(NavigationService);
+
   protected readonly layout = inject(LayoutService);
 
+  /** Whether or not the current date is today */
   protected readonly isToday = computed(() => {
     const date = this.currentDate();
     if (!date) {
@@ -222,11 +229,13 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     return isSameDay(date, new Date());
   });
 
+  /** The currently selected date */
   protected readonly currentDate = signal<Date | null>(null);
 
   /** A list of available calendars */
   protected readonly allCalendars = signal<PbCalendar[]>([]);
 
+  /** A list of working user IDs based on the planned work-shifts (roster) of the selected ate */
   protected readonly workingStaff = computed(() => {
     const shifts = this.shifts();
     const workingStaff = new Set<string>();
@@ -238,6 +247,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     return workingStaff;
   });
 
+  /** A list of all shown calendars  */
   protected readonly calendars = computed(() => {
     const profiles = this.profiles();
     const calendars = this.allCalendars();
@@ -299,6 +309,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       });
   });
 
+  /** The current "size" factor */
   protected readonly sizeFactor = storedSignal(
     'cis:calendar:sizeFactor',
     DEFAULT_HOUR_HEIGHT_PX / 60 / 60
@@ -310,15 +321,24 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   /** A list of calendar ids to display */
   protected readonly displayedCalendars = model<string[]>([]);
 
+  /** Whether or not CalendarEventChanged events should trigger a reload or not */
   protected skipLoading = false;
 
+  /** All planned shifts for the selected date */
   protected readonly shifts = signal<PlannedShift[]>([]);
+
+  /** Work-shift definitions */
   protected readonly shiftDefinitions = signal<WorkShift[]>([]);
+
+  /** The roster-types to considere for working-staff and shifts */
   protected readonly rosterTypes = signal<null | RosterType[]>([]);
+
+  /** The last ListeEventsResponse, if any */
   protected readonly eventListResponse = signal<ListEventsResponse | null>(
     null
   );
 
+  /** A computed signal to prepare all calendar events for display */
   protected readonly events = computed(() => {
     const response = this.eventListResponse();
     const profiles = this.profiles();
@@ -377,6 +397,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     return events;
   });
 
+  /** A computed signal that creates "fake" calendar events for working shifts */
   protected readonly _computedShiftEvents = computed(() => {
     const shifts = this.shifts();
     const profiles = this.profiles();
@@ -461,8 +482,13 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     return shiftEvents;
   });
 
+  /**
+   * The current state of loading data. Once all types are loaded (i.e. loading.length == 3), the calendars to display
+   * can be calculated.
+   */
   protected readonly loading = signal<('types' | 'shifts' | 'events')[]>([]);
 
+  /** A computed signal that returns all events (calendar & shifts) to be displayed */
   protected readonly _computedEvents = computed(() => {
     const shiftEvents = this._computedShiftEvents();
     const events = this.events();
@@ -470,11 +496,14 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     return [...shiftEvents, ...events];
   });
 
+  /** A dummy variable to type-safety in the template */
   protected readonly calendarType: Calendar = null;
 
+  /** A reference to the day-view component */
   @ViewChild(TkdDayViewComponent, { static: true })
   dayViewComponent!: TkdDayViewComponent<CalEvent>;
 
+  /** Callback handler for adjusting the size-factor using '+' and '-' keys */
   private handleKeyPress(event: KeyboardEvent) {
     if (event.key === '+') {
       this.dayViewComponent?.zoomIn();
@@ -485,6 +514,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** A callback for the day-view component to handle calendar-event resize events */
   protected handleResize(e: {event: StyledTimed, duration: number}) {
     this.skipLoading = true;
 
@@ -520,9 +550,9 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       })
   }
 
-  handleEventMoved(evt: EventMovedEvent<CalEvent>) {
-    console.log("event moved")
-
+  
+  /** A callback function for the day-view component to handle calendar-event moves */
+  protected handleEventMoved(evt: EventMovedEvent<CalEvent>) {
     this.skipLoading = true;
 
     const duration = Number(evt.event.endTime?.seconds - evt.event.startTime.seconds);
@@ -594,7 +624,8 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       })
   }
 
-  handleCalendarClick(event: CalendarMouseEvent<CalEvent, Calendar>) {
+  /** A callback function for the day-view component to handle event and calendar clicks */
+  protected handleCalendarClick(event: CalendarMouseEvent<CalEvent, Calendar>) {
     let ctx: EventDetailsDialogContext = {
       calendar: new PbCalendar(event.calendar),
     };
@@ -626,20 +657,23 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       });
   }
 
-  loadToday() {
+  /** A utility method used by the template to quickly switch the current date to today */
+  protected loadToday() {
     this.setDate(new Date());
   }
 
-  protected toggleUser(user: string) {
+  /** A utility method used by the temlate to toggle whether or not a given calendar is displayd */
+  protected toggleUser(calendarID: string) {
     const calendars = this.displayedCalendars();
-    if (calendars.includes(user)) {
-      this.displayedCalendars.set(calendars.filter(c => c != user));
+    if (calendars.includes(calendarID)) {
+      this.displayedCalendars.set(calendars.filter(c => c != calendarID));
     } else {
-      this.displayedCalendars.set([...calendars, user]);
+      this.displayedCalendars.set([...calendars, calendarID]);
     }
   }
 
-  setDate(date: Date) {
+  /** A utility method to switch the current calendar date by updating the current component URL */
+  protected setDate(date: Date) {
     this.router.navigate([], {
       queryParams: {
         d: toDateString(date),

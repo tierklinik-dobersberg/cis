@@ -70,6 +70,7 @@ import {
 } from '@tierklinik-dobersberg/apis/calendar/v1';
 import {
   Customer,
+  CustomerResponse,
   SearchCustomerResponse
 } from '@tierklinik-dobersberg/apis/customer/v1';
 import { CallStatus } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
@@ -94,6 +95,7 @@ import { getCalendarId } from 'src/app/services';
 import { getSeconds } from '../../pages/calendar2/day-view/sort.pipe';
 import { DIALOG_CONTENT_CLASS } from '../constants';
 import { CreateCustomerDialog } from '../create-customer-dialog';
+import { CustomerDetailsDialog } from '../customer-details-dialog';
 
 export interface EventDetailsDialogContext {
   event?: CalendarEvent;
@@ -191,6 +193,7 @@ export class AppEventDetailsDialogComponent implements OnInit {
   protected readonly selectedCustomer = signal<Customer | null>(null);
   protected readonly availableResources = signal<ResourceCalendar[]>([]);
   protected readonly selectedResources = signal<string[]>([]);
+  protected readonly customer = signal<CustomerResponse | null>(null)
 
   protected readonly matchingCustomers = signal<Customer[]>([]);
   private readonly destroyRef = inject(DestroyRef);
@@ -223,6 +226,16 @@ export class AppEventDetailsDialogComponent implements OnInit {
     this.selectedResources.set(selected)
   }
 
+  protected openCustomerDetails() {
+    const c = this.customer();
+    if (!c) {
+      return
+    }
+
+    CustomerDetailsDialog
+      .open(this.dialogService, c)
+  }
+
   ngOnInit() {
     if (this.event && !this.event.isFree) {
       this.calendarId.set(this.event.calendarId);
@@ -236,6 +249,40 @@ export class AppEventDetailsDialogComponent implements OnInit {
         ).toString()
       );
       this.createTime.set(this.event.createTime?.toDate() || null);
+
+      if (this.event.extraData) {
+        let data = new CustomerAnnotation();
+
+        if (this.event.extraData.unpackTo(data)) {
+          this.customerService
+            .searchCustomer({
+              queries: [
+                {
+                  query: {
+                    case: 'id',
+                    value: data.customerId
+                  }
+                }
+              ]
+            })
+            .catch(err => {
+              toast.error('Failed to load customer record', {
+                description: ConnectError.from(err).message
+              })
+
+              return new SearchCustomerResponse()
+            })
+            .then(res => {
+              if (res.results && res.results.length === 1) {
+                this.customer.set(res.results[0])
+              }
+
+              console.log("got customer response", res.results)
+            })
+        } else {
+          console.error("failed to unpack extraData", this.event.extraData)
+        }
+      }
     } else {
       this.duration.set('15m');
       this.edit.set(true);
