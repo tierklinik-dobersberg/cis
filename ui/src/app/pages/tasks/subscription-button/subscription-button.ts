@@ -5,13 +5,13 @@ import { ConnectError } from "@connectrpc/connect";
 import { lucideBell, lucideBellOff } from "@ng-icons/lucide";
 import { BrnCommandModule } from "@spartan-ng/ui-command-brain";
 import { BrnPopoverModule } from "@spartan-ng/ui-popover-brain";
-import { injectCurrentProfile } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { HlmCommandModule } from "@tierklinik-dobersberg/angular/command";
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { HlmPopoverModule } from "@tierklinik-dobersberg/angular/popover";
 import { ManageSubscriptionRequest, NotificationType, Subscription } from "@tierklinik-dobersberg/apis/tasks/v1";
 import { toast } from "ngx-sonner";
+import { injectStoredProfile } from "src/app/utils/inject-helpers";
 
 interface SubscriptionManager {
     manageSubscription(req: PartialMessage<ManageSubscriptionRequest>): Promise<Empty>;
@@ -40,7 +40,7 @@ export class SubscriptionButton {
     public readonly subscription = input.required<{[userId: string]: Subscription}>();
     public readonly service = input.required<SubscriptionManager>();
 
-    protected readonly currentUser = injectCurrentProfile();
+    protected readonly currentUser = injectStoredProfile();
 
     protected readonly computedSubscription = computed(() => {
         const user = this.currentUser();

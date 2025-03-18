@@ -9,7 +9,7 @@ import { BrnAlertDialogModule } from '@spartan-ng/ui-alertdialog-brain';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import { BrnSheetModule } from "@spartan-ng/ui-sheet-brain";
 import { HlmAlertDialogModule } from "@tierklinik-dobersberg/angular/alertdialog";
-import { injectCurrentProfile, injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
+import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { HlmCheckboxModule } from '@tierklinik-dobersberg/angular/checkbox';
 import { injectOfftimeService, injectWorktimeSerivce } from "@tierklinik-dobersberg/angular/connect";
@@ -26,6 +26,7 @@ import { MarkdownModule } from "ngx-markdown";
 import { toast } from "ngx-sonner";
 import { MyEditor } from 'src/app/ckeditor';
 import { TkdDatePickerComponent } from "src/app/components/date-picker";
+import { injectStoredProfile } from "src/app/utils/inject-helpers";
 import { OffTimeCalendarOverviewComponent } from "../offtime-calendar-overview/calendar-overview";
 
 const dateForDateTimeInputValue = date => new Date(date.getTime() + date.getTimezoneOffset() * -60 * 1000).toISOString().slice(0, 19);
@@ -72,7 +73,7 @@ export class OffTimeCreateComponent implements OnInit {
   protected readonly dateRange = model<[Date, Date]>([null, null])
   
   protected readonly profiles = injectUserProfiles();
-  protected readonly currentUser = injectCurrentProfile();
+  protected readonly currentUser = injectStoredProfile();
   protected readonly vacation = signal<UserVacationSum | null>(null)
   
   // load user vacation credits once the profile is set

@@ -4,13 +4,14 @@ import {
 } from '@angular/common/http';
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { ConnectError } from '@connectrpc/connect';
-import { injectCurrentProfile, injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
+import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
 import { injectRoleService } from '@tierklinik-dobersberg/angular/connect';
 import { toast } from 'ngx-sonner';
 import {
   Observable
 } from 'rxjs';
 import { map, retry } from 'rxjs/operators';
+import { injectStoredProfile } from '../utils/inject-helpers';
 
 export interface ExternalLink {
   ParentMenu: string;
@@ -127,12 +128,10 @@ export function injectCurrentConfig() {
   providedIn: 'root',
 })
 export class ConfigAPI {
-  private currentUser = injectCurrentProfile();
-
-  private roleService = injectRoleService()
-  private profiles = injectUserProfiles();
-  private http = inject(HttpClient);
-  
+  private readonly currentUser = injectStoredProfile();
+  private readonly roleService = injectRoleService()
+  private readonly profiles = injectUserProfiles();
+  private readonly http = inject(HttpClient);
   private readonly _config = signal<UIConfig>({})
 
   public readonly config = this._config.asReadonly();

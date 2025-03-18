@@ -5,13 +5,13 @@ import {
   inject,
   signal
 } from '@angular/core';
-import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { DisplayNamePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
 import { HeaderTitleService } from 'src/app/layout/header-title';
 import { CalendarIdPipe } from 'src/app/pipes/by-calendar-id.pipe';
 import { injectCurrentUserIsAdmin } from 'src/app/services';
+import { injectStoredProfile } from 'src/app/utils/inject-helpers';
 import { EmergencyCardComponent } from './emergency-card';
 import { MobileWelcomeCardComponent } from './mobile-welcome-card';
 import { RosterCardComponent } from './roster-card';
@@ -41,7 +41,7 @@ export class WelcomeComponent {
 
   public readonly layout = inject(LayoutService);
 
-  protected readonly currentUser = injectCurrentProfile();
+  protected readonly currentUser = injectStoredProfile();
   protected readonly hoveredUser = signal<Profile | null>(null);
   protected readonly showStudyCard = injectCurrentUserIsAdmin();
 

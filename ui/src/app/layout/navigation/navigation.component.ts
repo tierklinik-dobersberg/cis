@@ -5,7 +5,6 @@ import { ConnectError } from '@connectrpc/connect';
 import { lucideCalendar, lucideCircuitBoard, lucideCopyright, lucideFileAudio, lucideFilm, lucideHome, lucideLayers, lucidePhoneCall, lucidePhoneForwarded, lucidePlus, lucideTimer, lucideUserCircle } from '@ng-icons/lucide';
 import { BrnMenuModule } from '@spartan-ng/ui-menu-brain';
 import { BrnSheetComponent } from '@spartan-ng/ui-sheet-brain';
-import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { injectBoardService, injectVoiceMailService } from '@tierklinik-dobersberg/angular/connect';
 import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
@@ -15,8 +14,9 @@ import { Board, BoardEvent, ListBoardsResponse } from '@tierklinik-dobersberg/ap
 import { toast } from 'ngx-sonner';
 import { catchError, debounceTime, filter, finalize, from, interval, merge, of, startWith, switchMap } from 'rxjs';
 import { EventService } from 'src/app/services/event.service';
+import { injectStoredConfig, injectStoredProfile } from 'src/app/utils/inject-helpers';
 import { environment } from 'src/environments/environment';
-import { injectCurrentConfig, UIConfig } from '../../api';
+import { UIConfig } from '../../api';
 import { AppLogo } from './logo.component';
 import { MenuFixDirective } from './menu-fix.directive';
 
@@ -69,12 +69,12 @@ interface SubMenu {
 export class AppNavigationComponent { 
   protected readonly layout = inject(LayoutService);
   protected readonly voiceService = injectVoiceMailService();
-  protected readonly config = injectCurrentConfig()
+  protected readonly config = injectStoredConfig()
   protected readonly destroyRef = inject(DestroyRef);
   protected readonly sheetRef = inject(BrnSheetComponent, {optional: true})
   protected readonly router = inject(Router);
   protected readonly boardService = injectBoardService();
-  protected readonly profile = injectCurrentProfile()
+  protected readonly profile = injectStoredProfile()
   protected readonly eventsService = inject(EventService);
   
   protected readonly rootLinks = signal<MenuEntry[]>([]);

@@ -1,7 +1,6 @@
 import { effect, Injectable } from "@angular/core";
 import { toObservable } from "@angular/core/rxjs-interop";
 import { IMessageTypeRegistry, Message } from '@bufbuild/protobuf';
-import { injectCurrentProfile } from "@tierklinik-dobersberg/angular/behaviors";
 import { injectEventService } from "@tierklinik-dobersberg/angular/connect";
 import { CalendarChangeEvent } from "@tierklinik-dobersberg/apis/calendar/v1";
 import { OpenChangeEvent } from "@tierklinik-dobersberg/apis/office_hours/v1";
@@ -11,12 +10,13 @@ import { RosterChangedEvent } from "@tierklinik-dobersberg/apis/roster/v1";
 import { BoardEvent, TaskEvent } from "@tierklinik-dobersberg/apis/tasks/v1";
 import { filter, interval, merge, Observable, PartialObserver, retry, Subject, Subscription } from "rxjs";
 import { environment } from "src/environments/environment";
+import { injectStoredProfile } from "../utils/inject-helpers";
 
 @Injectable({providedIn: 'root'})
 export class EventService {
     private readonly client = injectEventService();
     private registry: IMessageTypeRegistry;
-    private readonly profile = injectCurrentProfile();
+    private readonly profile = injectStoredProfile();
     private readonly profile$ = toObservable(this.profile)
 
     private events$ = new Subject<Message<any>>();

@@ -10,7 +10,6 @@ import {
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { PartialMessage } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
-import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { injectOrthancClient } from '@tierklinik-dobersberg/angular/connect';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
@@ -26,6 +25,7 @@ import { debounceTime, filter, interval, merge, startWith, tap } from 'rxjs';
 import { StudyService } from 'src/app/components/dicom/study.service';
 import { DicomImageUrlPipe } from 'src/app/pipes/dicom-instance-preview.pipe';
 import { DicomInstancesPipe } from 'src/app/pipes/dicom-instances.pipe';
+import { injectStoredProfile } from 'src/app/utils/inject-helpers';
 
 interface PreviewURL {
   url: string;
@@ -68,7 +68,7 @@ export class DicomListComponent {
   public readonly onlyRecent = input(false, {transform: booleanAttribute})
 
   constructor() {
-    const currentUser = injectCurrentProfile();
+    const currentUser = injectStoredProfile();
     let abrt: AbortController | null = null;
 
     merge(

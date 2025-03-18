@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { injectCurrentProfile } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { DisplayNamePipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HeaderTitleService } from "src/app/layout/header-title";
+import { injectStoredProfile } from "src/app/utils/inject-helpers";
 import { environment } from "src/environments/environment";
 
 @Component({
@@ -21,7 +21,7 @@ export class NotAllowedComponent implements OnInit {
   private readonly titleService = inject(HeaderTitleService);
   private readonly accountService = environment.accountService;
 
-  protected readonly currentUser = injectCurrentProfile();
+  protected readonly currentUser = injectStoredProfile();
 
   reason: string = '';
   deniedRoute: string = '';

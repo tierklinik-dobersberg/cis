@@ -36,13 +36,13 @@ import { GetWorkingStaffResponse, PlannedShift } from '@tierklinik-dobersberg/ap
 import { differenceInDays, endOfDay, isBefore, isSameDay, startOfDay } from 'date-fns';
 import { toast } from 'ngx-sonner';
 import { interval } from 'rxjs';
-import { injectCurrentConfig } from 'src/app/api';
 import { AppAvatarComponent } from 'src/app/components/avatar';
 import { TkdDatePickerComponent, TkdDatePickerInputDirective } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
 import { ToRGBAPipe } from 'src/app/pipes/to-rgba.pipe';
 import { getCalendarId } from 'src/app/services';
 import { isBetween } from 'src/app/utils/date';
+import { injectStoredConfig } from 'src/app/utils/inject-helpers';
 import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shifts';
 
 @Component({
@@ -84,7 +84,7 @@ export class RosterCardComponent {
 
   protected readonly currentShifts = signal<PlannedShift[]>([]);
   protected readonly profiles = injectUserProfiles();
-  protected readonly config = injectCurrentConfig();
+  protected readonly config = injectStoredConfig();
   public readonly variant = input<'default' | 'small'>('default')
   protected readonly computedClass = computed(() => {
     const v= this.variant();

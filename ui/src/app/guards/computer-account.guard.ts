@@ -1,13 +1,12 @@
 import { Injectable, computed, inject } from "@angular/core";
 import { ActivatedRouteSnapshot, Router } from "@angular/router";
-import { injectCurrentProfile } from "@tierklinik-dobersberg/angular/behaviors";
 import { Observable, of } from "rxjs";
-import { injectCurrentConfig } from "../api";
+import { injectStoredConfig, injectStoredProfile } from "../utils/inject-helpers";
 
 @Injectable({ providedIn: 'root' })
 export class ComputerAccountGuard  {
-    private readonly currentProfile = injectCurrentProfile();
-    private readonly config = injectCurrentConfig();
+    private readonly currentProfile = injectStoredProfile();
+    private readonly config = injectStoredConfig();
     
     private readonly router = inject(Router);
     

@@ -13,7 +13,7 @@ import { BrnMenuTriggerDirective } from "@spartan-ng/ui-menu-brain";
 import { BrnPopoverModule } from "@spartan-ng/ui-popover-brain";
 import { HlmAlertDialogModule } from "@tierklinik-dobersberg/angular/alertdialog";
 import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
-import { injectCurrentProfile, injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
+import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { HlmCardModule } from "@tierklinik-dobersberg/angular/card";
 import { HlmCommandModule } from "@tierklinik-dobersberg/angular/command";
@@ -34,6 +34,7 @@ import { EditTaskDialog } from "src/app/dialogs/create-task-dialog";
 import { HeaderTitleService } from "src/app/layout/header-title";
 import { ContrastColorPipe } from "src/app/pipes/contrast-color.pipe";
 import { EventService } from "src/app/services/event.service";
+import { injectStoredProfile } from 'src/app/utils/inject-helpers';
 import { StatusColorPipe, TagColorPipe } from "../color.pipe";
 import { TaskGroupValueComponent } from "../group-value/group-value";
 import { TaskQueryFilterComponent } from "../task-query-filter/task-query-filter";
@@ -102,7 +103,7 @@ export class TaskListComponent {
 
     protected readonly layout = inject(LayoutService)
     protected readonly profiles = injectUserProfiles();
-    protected readonly currentProfile = injectCurrentProfile();
+    protected readonly currentProfile = injectStoredProfile();
     protected readonly board = signal<Board>(new Board())
     protected readonly groups = signal<TaskGroupWithBoard[]>([]);
     protected readonly isBoardOwner = computed(() => {

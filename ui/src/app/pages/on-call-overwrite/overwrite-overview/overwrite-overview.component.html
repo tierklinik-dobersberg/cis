@@ -1,17 +1,13 @@
-<header class="flex flex-col items-center justify-between sm:flex-row">
-  <h3 class="text-lg font-medium">Umleitungen</h3>
+<header class="flex flex-row items-center justify-between gap-2">
+  <tkd-date-picker
+    class="min-w-96"
+    mode="range"
+    [(ngModel)]="dateRange"
+    withTime="false" />
 
-  <div class="flex flex-row items-center gap-2">
-    <tkd-date-picker
-      class="min-w-96"
-      mode="range"
-      [(ngModel)]="dateRange"
-      withTime="false" />
-
-    <button hlmBtn variant="default" (click)="createOverwrite()">
-      Umleitung erstellen
-    </button>
-  </div>
+  <button hlmBtn variant="default" (click)="createOverwrite()">
+    Umleitung erstellen
+  </button>
 </header>
 
 <brn-table

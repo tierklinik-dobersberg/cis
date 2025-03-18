@@ -13,7 +13,7 @@ import { BrnSheetContentDirective, BrnSheetTriggerDirective } from "@spartan-ng/
 import { BrnTooltipModule } from "@spartan-ng/ui-tooltip-brain";
 import { HlmAlertDialogModule } from "@tierklinik-dobersberg/angular/alertdialog";
 import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
-import { injectCurrentProfile, injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
+import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { injectBoardService, injectTaskService } from "@tierklinik-dobersberg/angular/connect";
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
@@ -29,13 +29,13 @@ import { Board, BoardEvent, EventType, GetTimelineResponse, Task, TaskEvent, Tas
 import { MarkdownModule } from "ngx-markdown";
 import { toast } from "ngx-sonner";
 import { startWith } from "rxjs";
-import { injectCurrentConfig } from "src/app/api";
 import { MyEditor } from "src/app/ckeditor";
 import { AppAvatarComponent } from "src/app/components/avatar";
 import { TkdDatePickerComponent, TkdDatePickerInputDirective } from "src/app/components/date-picker";
 import { UserColorVarsDirective } from "src/app/components/user-color-vars";
 import { ContrastColorPipe } from "src/app/pipes/contrast-color.pipe";
 import { EventService } from "src/app/services/event.service";
+import { injectStoredConfig, injectStoredProfile } from "src/app/utils/inject-helpers";
 import { StatusColorPipe } from "../color.pipe";
 import { SubscriptionButton } from "../subscription-button/subscription-button";
 import { TagListComponent } from "../tag-list/tag-list";
@@ -112,9 +112,9 @@ import { TimelineEntryComponent } from '../timeline-entry/timeline-entry';
 })
 export class TaskDetailsComponent implements AfterViewInit {
     protected readonly task = signal<Task>(new Task);
-    protected readonly currentProfile = injectCurrentProfile();
+    protected readonly currentProfile = injectStoredProfile();
     protected readonly profiles = injectUserProfiles();
-    protected readonly config = injectCurrentConfig();
+    protected readonly config = injectStoredConfig();
     protected readonly editor = MyEditor;
     protected readonly injector = inject(Injector);
     protected readonly availableBoards = signal<Board[]>([]);

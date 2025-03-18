@@ -3,7 +3,7 @@ import { FormsModule } from "@angular/forms";
 import { BrnSelectModule } from "@spartan-ng/ui-select-brain";
 import { BrnSeparatorModule } from '@spartan-ng/ui-separator-brain';
 import { BrnSheetModule, BrnSheetTriggerDirective } from "@spartan-ng/ui-sheet-brain";
-import { injectComputedFilterSheetSide, injectCurrentProfile, injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
+import { injectComputedFilterSheetSide, injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { Filter } from "@tierklinik-dobersberg/angular/empty-table";
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
@@ -15,6 +15,7 @@ import { HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
 import { OffTimeEntry } from "@tierklinik-dobersberg/apis/roster/v1";
 import { AppAvatarComponent } from "src/app/components/avatar";
 import { SelectUserValueComponent } from "src/app/components/select-user-value";
+import { injectStoredProfile } from "src/app/utils/inject-helpers";
 
 export type StateFilter = 'all' | 'new' | 'approved' | 'rejected';
 
@@ -96,7 +97,7 @@ export function filterOffTimeEntries(entries: OffTimeEntry[], filter: OffTimeFil
 })
 export class AppOffTimeFilterSheetComponent implements Filter {
     protected readonly profiles = injectUserProfiles(); 
-    protected readonly currentUser = injectCurrentProfile();
+    protected readonly currentUser = injectStoredProfile();
     
     protected readonly userIds = model<string[]>([]);
     protected readonly state = model<StateFilter>('all');

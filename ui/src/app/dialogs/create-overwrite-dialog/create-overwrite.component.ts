@@ -24,10 +24,10 @@ import { CreateOverwriteRequest, CustomOverwrite, InboundNumber, ListInboundNumb
 import { GetWorkingStaffResponse, PlannedShift } from "@tierklinik-dobersberg/apis/roster/v1";
 import { endOfDay, isSameDay, startOfDay } from "date-fns";
 import { toast } from "ngx-sonner";
-import { injectCurrentConfig } from "src/app/api";
 import { AppAvatarComponent } from "src/app/components/avatar";
 import { TkdDatePickerComponent } from "src/app/components/date-picker";
 import { EmergencyTargetService } from "src/app/layout/redirect-emergency-button/emergency-target.service";
+import { injectStoredConfig } from "src/app/utils/inject-helpers";
 import { injectLocalPlannedShifts } from "src/app/utils/shifts";
 import { SelectionSheet, SelectionSheetItemDirective } from "../selection-sheet";
 import { SheetItemGroupDirective } from "../selection-sheet/selection-group.directive";
@@ -71,7 +71,7 @@ export class CreateOverwriteComponent {
     private readonly callService = injectCallService();
     private readonly rosterService = injectRosterService();
     private readonly emergencyTargetService = inject(EmergencyTargetService);
-    private readonly config = injectCurrentConfig();
+    private readonly config = injectStoredConfig();
 
     protected displayProfileGroup =  (item: Profile | PhoneExtension, prev?: Profile | PhoneExtension) => !prev;
     protected displaySettingsGroup = (item: Profile | PhoneExtension, prev?: Profile | PhoneExtension) => prev instanceof Profile && !(item instanceof Profile);

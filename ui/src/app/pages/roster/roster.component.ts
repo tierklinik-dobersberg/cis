@@ -4,7 +4,6 @@ import { Duration, Timestamp } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
 import { lucideArrowLeft, lucideArrowRight } from "@ng-icons/lucide";
 import { BrnTabsContentDirective } from "@spartan-ng/ui-tabs-brain";
-import { injectCurrentProfile } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { HlmCardModule } from "@tierklinik-dobersberg/angular/card";
 import { injectWorktimeSerivce } from "@tierklinik-dobersberg/angular/connect";
@@ -15,6 +14,7 @@ import { HlmTabsModule } from "@tierklinik-dobersberg/angular/tabs";
 import { GetVacationCreditsLeftResponse } from "@tierklinik-dobersberg/apis/roster/v1";
 import { addMonths, endOfYear } from "date-fns";
 import { toast } from "ngx-sonner";
+import { injectStoredProfile } from "src/app/utils/inject-helpers";
 import { environment } from "src/environments/environment";
 import { RosterCalendarComponent } from "./roster-calendar";
 import { UserShiftsComponent } from "./user-shifts";
@@ -42,7 +42,7 @@ import { UserShiftsComponent } from "./user-shifts";
 export class RosterComponent {
     private readonly workTimeService = injectWorktimeSerivce();
 
-    protected readonly profile = injectCurrentProfile();
+    protected readonly profile = injectStoredProfile();
     protected readonly vacation = signal<Duration | null>(null)
     protected readonly overtime = signal<Duration | null>(null);
     protected readonly calendarDate = signal(new Date);

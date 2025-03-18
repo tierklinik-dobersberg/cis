@@ -10,7 +10,6 @@ import {
   signal
 } from '@angular/core';
 import { Code, ConnectError } from '@connectrpc/connect';
-import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { injectCustomerService } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
@@ -26,6 +25,7 @@ import { StudyService } from './components/dicom/study.service';
 import { CreateCustomerDialog } from './dialogs/create-customer-dialog';
 import { NavigationService } from './layout/navigation/navigation.service';
 import { EventService } from './services/event.service';
+import { injectStoredProfile } from './utils/inject-helpers';
 
 interface MenuEntry {
   Icon: string;
@@ -81,7 +81,7 @@ export class AppComponent implements OnInit {
   protected readonly checkRunning = signal(false);
 
   private readonly http = inject(HttpClient);
-  private readonly currentUser = injectCurrentProfile();
+  private readonly currentUser = injectStoredProfile();
 
   constructor() {
     this.studyService

@@ -38,7 +38,6 @@ import { FindOffTimeRequestsResponse, GetVacationCreditsLeftResponse, GetWorkTim
 import { addMonths, endOfMonth, isAfter, isBefore, isSameMonth, startOfMonth } from "date-fns";
 import { MarkdownModule } from "ngx-markdown";
 import { toast } from "ngx-sonner";
-import { injectCurrentConfig } from 'src/app/api';
 import { MyEditor } from 'src/app/ckeditor';
 import { AppAvatarComponent } from "src/app/components/avatar";
 import { CommentComponent } from "src/app/components/comment";
@@ -48,6 +47,7 @@ import { TextInputComponent } from "src/app/components/text-input";
 import { AppSheetTriggerDirective } from "src/app/components/triggers";
 import { UserColorVarsDirective } from "src/app/components/user-color-vars";
 import { HeaderTitleService } from "src/app/layout/header-title";
+import { injectStoredConfig } from "src/app/utils/inject-helpers";
 import { usePaginationManager } from "src/app/utils/pagination-manager";
 import { MatchingOfftimePipe } from "../pipes/matching-offtime.pipe";
 import { AppOffTimeFilterSheetComponent, filterOffTimeEntries, OffTimeFilter } from "./offtime-filter";
@@ -121,7 +121,7 @@ export class OffTimeListComponent implements OnInit {
   private readonly offTimeService = injectOfftimeService();
   private readonly worktimeService = injectWorktimeSerivce();
   private readonly commentService = injectCommentService();
-  private readonly config = injectCurrentConfig();
+  private readonly config = injectStoredConfig();
   public readonly layout = inject(LayoutService);
 
   protected readonly currentUser = injectCurrentProfile();

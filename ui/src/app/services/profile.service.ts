@@ -1,7 +1,7 @@
 import { computed } from '@angular/core';
-import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { Profile, User } from '@tierklinik-dobersberg/apis/idm/v1';
 import { environment } from 'src/environments/environment';
+import { injectStoredProfile } from '../utils/inject-helpers';
 
 export enum UserExtraKey {
   CalendarID = 'calendarID',
@@ -96,7 +96,7 @@ export function openProfilePage() {
 }
 
 export function injectCurrentUserIsAdmin() {
-  const user = injectCurrentProfile();
+  const user = injectStoredProfile();
   return computed(() => {
     const profile = user();
     if (!profile) {

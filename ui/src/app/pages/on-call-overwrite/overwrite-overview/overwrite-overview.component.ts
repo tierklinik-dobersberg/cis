@@ -11,11 +11,9 @@ import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
 import { injectUserProfiles, sortProtoTimestamps, sortUserProfile } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { injectCallService } from "@tierklinik-dobersberg/angular/connect";
-import { HlmDialogService } from "@tierklinik-dobersberg/angular/dialog";
-import { TkdEmptyTableComponent } from "@tierklinik-dobersberg/angular/empty-table";
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
-import { DisplayNamePipe, ToDatePipe, ToUserPipe } from "@tierklinik-dobersberg/angular/pipes";
+import { DisplayNamePipe, ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
 import { SortColumn, TkdTableSortColumnComponent } from '@tierklinik-dobersberg/angular/table-sort';
 import { TimeRange } from "@tierklinik-dobersberg/apis/common/v1";
@@ -25,6 +23,7 @@ import { isBefore } from "date-fns";
 import { toast } from "ngx-sonner";
 import { AppAvatarComponent } from "src/app/components/avatar";
 import { TkdDatePickerComponent } from "src/app/components/date-picker";
+import { HeaderTitleService } from "src/app/layout/header-title";
 import { EmergencyTargetService } from "src/app/layout/redirect-emergency-button/emergency-target.service";
 import { injectCurrentUserIsAdmin } from "src/app/services";
 
@@ -105,12 +104,10 @@ export class BrnCellDefTypeGuard {
         HlmIconModule,
         HlmBadgeDirective,
         HlmTableModule,
-        ToUserPipe,
         DisplayNamePipe,
         ToDatePipe,
         DatePipe,
         BrnTableModule,
-        TkdEmptyTableComponent,
         TkdTableSortColumnComponent,
         BrnCellDefTypeGuard,
         AppAvatarComponent,
@@ -129,7 +126,7 @@ export class BrnCellDefTypeGuard {
 export class OverwriteOverviewComponent {
     private readonly callService = injectCallService();
     private readonly emergencyService = inject(EmergencyTargetService);
-    private readonly dialogService = inject(HlmDialogService);
+    private readonly headerService = inject(HeaderTitleService)
     
     protected readonly layout = inject(LayoutService);
     
@@ -271,6 +268,9 @@ export class OverwriteOverviewComponent {
                     this.records.set(response.overwrites);
                 })
         })
+
+        this.headerService
+            .set("Umleitungen")
     }
     
     protected deleteOverwrite() {
