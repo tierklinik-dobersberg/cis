@@ -9,7 +9,7 @@ import { storedSignal } from "./stored-signal";
  * for faster page views.
  */
 export function injectStoredProfile() {
-    const signal = storedSignal<Profile | null>("cis:profile", null, (val: string) => new Profile(JSON.parse(val)))
+    const signal = storedSignal<Profile | null>("cis:profile", null, obj => new Profile(obj))
     const profile = injectCurrentProfile();
 
     effect(() => {
