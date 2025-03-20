@@ -1,17 +1,17 @@
 import { effect, model, ModelSignal, signal, WritableSignal } from "@angular/core";
 
 
-export function storedSignal<T>(key: string, initialValue: T): WritableSignal<T>;
-export function storedSignal<T>(key: string, initialValue: T, constructor: typeof model): ModelSignal<T>;
+export function storedSignal<T>(key: string, initialValue: T, unmarshal?: (s: string) => T): WritableSignal<T>;
+export function storedSignal<T>(key: string, initialValue: T, unmarshal: (s: string) => T, constructor: typeof model): ModelSignal<T>;
 
-export function storedSignal<T>(key: string, initialValue: T, constructor = signal): WritableSignal<T> | ModelSignal<T> {
+export function storedSignal<T>(key: string, initialValue: T, unmarshal = JSON.parse, constructor = signal): WritableSignal<T> | ModelSignal<T> {
     const s = constructor<T>(initialValue)
 
     try {
         if (window.localStorage) {
             const str = window.localStorage.getItem(key);
             if (str) {
-                const value: T = JSON.parse(str)
+                const value: T = unmarshal(str)
                 s.set(value);
             }
 

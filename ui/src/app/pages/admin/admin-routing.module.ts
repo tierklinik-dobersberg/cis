@@ -8,6 +8,10 @@ const routes: Routes = [
     path: 'settings',
     loadChildren: () => import('./settings').then((m) => m.SettingsModule),
   },
+  {
+    path: 'operations',
+    loadComponent: () => import('./operations/operations.component').then(c => c.OperationsComponent)
+  }
 ];
 
 @NgModule({

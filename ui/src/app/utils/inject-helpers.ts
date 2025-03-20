@@ -9,12 +9,26 @@ import { storedSignal } from "./stored-signal";
  * for faster page views.
  */
 export function injectStoredProfile() {
-    const signal = storedSignal<Profile | null>("cis:profile", null)
+    const signal = storedSignal<Profile | null>("cis:profile", null, (val: string) => new Profile(JSON.parse(val)))
     const profile = injectCurrentProfile();
 
     effect(() => {
         const p = profile();
         const last = untracked(() => signal())
+
+        if (p == last) {
+            return
+        }
+
+        if (!p && !!last) {
+            signal.set(null)
+            return
+        }
+
+        if (p && !last) {
+            signal.set(p)
+            return
+        }
 
         // only set the profile signal if the response
         // actually changed in order to avoid triggering to

@@ -1,0 +1,50 @@
+<hlm-table class="rounded-md border border-border bg-white">
+  @for (op of operations(); track op.uniqueId) {
+    <hlm-trow>
+      <hlm-td class="w-1/6">
+        {{ op.createTime | toDate | date: 'short' }}
+      </hlm-td>
+      <hlm-td class="w-1/6">
+        {{ op.description }}
+      </hlm-td>
+      <hlm-td class="w-1/6">
+        {{ op.kind }}
+      </hlm-td>
+      <hlm-td class="w-1/6">
+        {{ op.creator | toUser: profiles() | displayName }}
+      </hlm-td>
+      <hlm-td class="w-1/6">
+        {{ op.owner }}
+      </hlm-td>
+      <hlm-td class="w-1/6">
+        @switch (op.state) {
+          @case (states.OperationState_RUNNING) {
+            <label hlmBadge class="bg-sky-400"> Running </label>
+          }
+          @case (states.OperationState_PENDING) {
+            <label hlmBadge variant="outline" class="bg-gray-400">
+              Pending
+            </label>
+          }
+          @case (states.OperationState_LOST) {
+            <label hlmBadge class="bg-gray-400"> Lost </label>
+          }
+          @case (states.OperationState_COMPLETE) {
+            @switch (op.result.case) {
+              @case ('success') {
+                <label hlmBadge class="bg-green-400">
+                  Success: {{ op.result.value.message }}
+                </label>
+              }
+              @case ('error') {
+                <label hlmBadge class="bg-red-400">
+                  Error: {{ op.result.value.message }}
+                </label>
+              }
+            }
+          }
+        }
+      </hlm-td>
+    </hlm-trow>
+  }
+</hlm-table>
