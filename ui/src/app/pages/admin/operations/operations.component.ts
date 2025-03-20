@@ -8,8 +8,9 @@ import { DisplayNamePipe, ToDatePipe, ToUserPipe } from '@tierklinik-dobersberg/
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { Operation, OperationState, QueryOperationsResponse } from '@tierklinik-dobersberg/apis/longrunning/v1';
 import { toast } from 'ngx-sonner';
-import { catchError, interval, of, startWith, switchMap } from 'rxjs';
+import { catchError, interval, merge, of, startWith, switchMap } from 'rxjs';
 import { HeaderTitleService } from 'src/app/layout/header-title';
+import { EventService } from 'src/app/services/event.service';
 
 @Component({
     standalone: true,
@@ -27,6 +28,7 @@ import { HeaderTitleService } from 'src/app/layout/header-title';
 export class OperationsComponent implements OnInit {
     private readonly longRunning = injectLongRunning();
     private readonly headerService = inject(HeaderTitleService);
+    private readonly events = inject(EventService)
     protected readonly operations = signal<Operation[]>([]);
     protected readonly profiles = injectUserProfiles();
 
@@ -35,7 +37,10 @@ export class OperationsComponent implements OnInit {
     ngOnInit(): void {
         this.headerService.set('Background Tasks', 'Eine übersicht über die letzten Background-Tasks')
 
-        interval(10 * 1000)
+        merge([
+            interval(10 * 1000),
+            this.events.listen([new Operation]),
+        ])
             .pipe(
                 startWith(0),
                 switchMap(() => {

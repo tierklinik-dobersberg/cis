@@ -70,7 +70,9 @@
               event.virtualCopy || event.ignoreOverlapping
             "
             cdkDrag
-            [cdkDragDisabled]="event.virtualCopy || event.ignoreOverlapping"
+            [cdkDragDisabled]="
+              event.virtualCopy || event.ignoreOverlapping || !layout.sm()
+            "
             (cdkDragEnded)="onEventDropped($event)"
             (cdkDragStarted)="onDragStart()"
             [cdkDragBoundary]="'.calendar-container'"

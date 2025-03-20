@@ -25,6 +25,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { getMinutes, setMinutes, setSeconds } from 'date-fns';
 import { BehaviorSubject, interval, map, share, startWith, take } from 'rxjs';
 import { TkdDebounceEventDirective } from 'src/app/components/debounce-event.directive';
@@ -100,6 +101,8 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
   public readonly headerSwipe = output<SwipeEvent>();
   public readonly calendarSwipe = output<SwipeEvent>();
   public readonly eventMoved = output<EventMovedEvent<E>>();
+
+  protected readonly layout = inject(LayoutService)
 
   private cursorY = 0;
 
