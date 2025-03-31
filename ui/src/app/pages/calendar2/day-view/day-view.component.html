@@ -71,7 +71,7 @@
             "
             cdkDrag
             [cdkDragDisabled]="
-              event.virtualCopy || event.ignoreOverlapping || !layout.sm()
+              event.virtualCopy || event.ignoreOverlapping || !layout.md()
             "
             (cdkDragEnded)="onEventDropped($event)"
             (cdkDragStarted)="onDragStart()"
