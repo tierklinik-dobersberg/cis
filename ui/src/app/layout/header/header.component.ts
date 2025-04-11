@@ -18,12 +18,13 @@ import {
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { HlmMenuModule } from '@tierklinik-dobersberg/angular/menu';
 import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
-import { ListTasksResponse, Task } from '@tierklinik-dobersberg/apis/tasks/v1';
+import { ListTasksResponse, Task, TaskEvent } from '@tierklinik-dobersberg/apis/tasks/v1';
 import { toast } from 'ngx-sonner';
-import { interval, startWith, Subscription, switchMap } from 'rxjs';
+import { interval, merge, startWith, Subscription, switchMap } from 'rxjs';
 import { AppMenuComponent } from 'src/app/components/app-menu';
 import { AppAvatarComponent } from 'src/app/components/avatar';
 import { openProfilePage } from 'src/app/services';
+import { EventService } from 'src/app/services/event.service';
 import { injectStoredConfig, injectStoredProfile } from 'src/app/utils/inject-helpers';
 import { AppDoorStatusButtonComponent } from '../door-status-button';
 import { HeaderTitleOutletComponent } from '../header-title';
@@ -94,6 +95,7 @@ export class AppHeaderComponent {
   protected readonly config = injectStoredConfig();
   protected readonly taskService = injectTaskService();
   protected readonly importantTasks = signal<Task[]>([]);
+  protected readonly eventsService = inject(EventService)
 
   constructor() {
     let sub = Subscription.EMPTY;
@@ -103,7 +105,8 @@ export class AppHeaderComponent {
       sub.unsubscribe()
 
       if (config.UI?.ImportantTasksBoard) {
-        const sub = interval(10 * 60 * 1000)
+        const sub = 
+        merge(interval(10 * 60 * 1000), this.eventsService.subscribe(new TaskEvent))
           .pipe(
             startWith(-1),
             switchMap(() => {
