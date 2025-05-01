@@ -375,13 +375,13 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
   }
 
   protected handleCalendarSwipe(evt: HammerInput) {
-    if (evt.distance < 100) {
+    if (evt.distance < 80) {
       return;
     }
 
     const x =
       Math.abs(evt.deltaX) > 40 ? (evt.deltaX > 0 ? 'right' : 'left') : '';
-    const y = Math.abs(evt.deltaY) > 40 ? (evt.deltaY > 0 ? 'down' : 'up') : '';
+    const y = Math.abs(evt.deltaY) > 80 ? (evt.deltaY > 0 ? 'down' : 'up') : '';
 
     if (y !== '') {
       return;
