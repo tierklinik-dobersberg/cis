@@ -32,6 +32,7 @@ export class OperationsComponent implements OnInit {
     protected readonly operations = signal<Operation[]>([]);
     protected readonly profiles = injectUserProfiles();
 
+
     protected readonly states = OperationState;
 
     ngOnInit(): void {

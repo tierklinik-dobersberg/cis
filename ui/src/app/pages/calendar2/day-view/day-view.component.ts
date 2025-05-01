@@ -1,8 +1,8 @@
 import {
   CdkDrag,
-  CdkDragEnd,
+  CdkDragRelease,
   CdkDragStart,
-  DragDropModule,
+  DragDropModule
 } from '@angular/cdk/drag-drop';
 import { AsyncPipe, NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
 import {
@@ -22,7 +22,7 @@ import {
   input,
   model,
   output,
-  signal,
+  signal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
@@ -230,14 +230,16 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
 
   private resizeEvent: StyledTimed | null = null;
   onResizeStart(event: { event: MouseEvent; data: StyledTimed }) {
-    this.dragging = true;
+    console.log("resize start")
+
+    this.dragging.set(true);
 
     this.resizeEvent = event.data;
     this.startY = event.event.clientY;
   }
 
   onResizeStop() {
-    this.dragging = false;
+    console.log("resize stopped")
 
     if (!this.resizeEvent) {
       return
@@ -500,17 +502,21 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     this.viewInitialized = true;
   }
 
-  private dragging = false;
-  onDragStart() {
-    this.dragging = true;
+  public readonly dragging = model(false);
+
+  onDragStart(event: CdkDragStart) {
+    this.activeDrags.push(event.source);
   }
 
-  onEventDropped(event: CdkDragStart | CdkDragEnd) {
+  onEventDropped(event: CdkDragRelease) {
+    if (!this.layout.md()) {
+      event.source.reset()
+      return
+    }
+
     const elementBounds =
       event.source.element.nativeElement.getBoundingClientRect();
     const eventId = event.source.element.nativeElement.getAttribute('event-id');
-
-    this.activeDrags.push(event.source);
 
     const newPos = {
       x: (event.event as MouseEvent).clientX,
@@ -558,8 +564,10 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     container: HTMLElement,
     dblclick: boolean
   ) {
-    if (this.dragging) {
-      this.dragging = false;
+    console.log("handle calendar click", this.dragging())
+
+    if (this.dragging()) {
+      this.dragging.set(false);
       return;
     }
 

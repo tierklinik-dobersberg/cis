@@ -73,8 +73,8 @@
             [cdkDragDisabled]="
               event.virtualCopy || event.ignoreOverlapping || !layout.md()
             "
-            (cdkDragEnded)="onEventDropped($event)"
-            (cdkDragStarted)="onDragStart()"
+            (cdkDragReleased)="onEventDropped($event)"
+            (cdkDragStarted)="onDragStart($event)"
             [cdkDragBoundary]="'.calendar-container'"
             [cdkDragStartDelay]="100"
             #drag="cdkDrag"

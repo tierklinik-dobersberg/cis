@@ -1,19 +1,19 @@
 import { CommonModule, DatePipe, DOCUMENT } from '@angular/common';
 import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    DestroyRef,
-    effect,
-    inject,
-    LOCALE_ID,
-    model,
-    OnDestroy,
-    OnInit,
-    Renderer2,
-    signal,
-    untracked,
-    ViewChild,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  LOCALE_ID,
+  model,
+  OnDestroy,
+  OnInit,
+  Renderer2,
+  signal,
+  untracked,
+  ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -24,64 +24,64 @@ import { lucideCog, lucideStar, lucideZoomIn, lucideZoomOut } from '@ng-icons/lu
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import { BrnSheetModule } from '@spartan-ng/ui-sheet-brain';
 import {
-    injectUserProfiles,
-    sortUserProfile,
+  injectUserProfiles,
+  sortUserProfile,
 } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
 import { HlmCheckboxComponent } from '@tierklinik-dobersberg/angular/checkbox';
 import {
-    CALENDAR_SERVICE,
-    ROSTER_SERVICE,
+  CALENDAR_SERVICE,
+  ROSTER_SERVICE,
 } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import {
-    HlmIconModule,
-    provideIcons,
+  HlmIconModule,
+  provideIcons,
 } from '@tierklinik-dobersberg/angular/icon';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import {
-    DurationPipe,
-    getUserColor,
-    ToDatePipe,
+  DurationPipe,
+  getUserColor,
+  ToDatePipe,
 } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { HlmSheetModule } from '@tierklinik-dobersberg/angular/sheet';
 import { HlmTabsModule } from '@tierklinik-dobersberg/angular/tabs';
 import {
-    CalenarEventRequestKind,
-    CalendarChangeEvent,
-    CalendarEvent,
-    CustomerAnnotation,
-    ListEventsResponse,
-    MoveEventResponse,
-    Calendar as PbCalendar,
+  CalenarEventRequestKind,
+  CalendarChangeEvent,
+  CalendarEvent,
+  CustomerAnnotation,
+  ListEventsResponse,
+  MoveEventResponse,
+  Calendar as PbCalendar,
 } from '@tierklinik-dobersberg/apis/calendar/v1';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
 import {
-    ListRosterTypesResponse,
-    PlannedShift,
-    RosterType,
-    WorkShift,
+  ListRosterTypesResponse,
+  PlannedShift,
+  RosterType,
+  WorkShift,
 } from '@tierklinik-dobersberg/apis/roster/v1';
 import {
-    addDays,
-    addSeconds,
-    differenceInSeconds,
-    endOfDay,
-    getMinutes,
-    isAfter,
-    isBefore,
-    isSameDay,
-    setMinutes,
-    setSeconds,
-    startOfDay,
+  addDays,
+  addSeconds,
+  differenceInSeconds,
+  endOfDay,
+  getMinutes,
+  isAfter,
+  isBefore,
+  isSameDay,
+  setMinutes,
+  setSeconds,
+  startOfDay,
 } from 'date-fns';
 import { toast } from 'ngx-sonner';
 import { debounceTime, filter, map } from 'rxjs';
 import {
-    TkdDatePickerComponent,
-    TkdDatePickerInputDirective,
+  TkdDatePickerComponent,
+  TkdDatePickerInputDirective,
 } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
 import { UserColorVarsDirective } from 'src/app/components/user-color-vars';
@@ -95,21 +95,21 @@ import { EventService } from 'src/app/services/event.service';
 import { toDateString } from 'src/app/utils';
 import { storedSignal } from 'src/app/utils/stored-signal';
 import {
-    AppEventDetailsDialogComponent,
-    EventDetailsDialogContext,
+  AppEventDetailsDialogComponent,
+  EventDetailsDialogContext,
 } from '../../../dialogs/event-details-dialog';
 import { RosterCardComponent } from '../../welcome/roster-card';
 import {
-    Calendar,
-    CalendarMouseEvent,
-    coerceDate,
-    DEFAULT_HOUR_HEIGHT_PX,
-    EventMovedEvent,
-    SwipeEvent,
-    Timed,
-    TkdCalendarEventCellTemplateDirective,
-    TkdCalendarHeaderCellTemplateDirective,
-    TkdDayViewComponent,
+  Calendar,
+  CalendarMouseEvent,
+  coerceDate,
+  DEFAULT_HOUR_HEIGHT_PX,
+  EventMovedEvent,
+  SwipeEvent,
+  Timed,
+  TkdCalendarEventCellTemplateDirective,
+  TkdCalendarHeaderCellTemplateDirective,
+  TkdDayViewComponent,
 } from '../day-view';
 import { StyledTimed } from '../day-view/event-style.pipe';
 import { getSeconds } from '../day-view/sort.pipe';
@@ -181,17 +181,21 @@ type CalEvent = Timed &
         }
       }
 
-      @container (max-height: 1.5rem) {
+      @container (max-height: 4rem) {
         .event-details {
-          @apply flex flex-row flex-nowrap items-center py-0;
+          @apply py-0;
           font-size: 75%;
         }
       }
 
-      @container (max-height: 54px) {
-        .event-details {
-          @apply flex flex-row flex-nowrap items-center;
+      @container (max-width: 60px) {
+        .event-start-time {
+          display: none;
         }
+      }
+
+      .event-details {
+          @apply flex flex-col flex-nowrap;
       }
 
       @container (min-height: 55px) {

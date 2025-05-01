@@ -58,8 +58,9 @@ export class TkdDatePickerTriggerComponent {
     protected readonly _computedButtonClasses = computed(() => {
         let defaultCls = "rounded-none border-b border-t text-center";
         if (this.variant() === "date") {
-            defaultCls += " w-32"
+            defaultCls += "min-w-32"
         }
+
         return hlm(defaultCls + " " + this._computedBorderClasses(), this.buttonClass())
     })
 

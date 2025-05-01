@@ -179,20 +179,19 @@
           [style.--user-contrast]="event.colorOverwrite || null | contrast"
           class="event-details h-full w-full cursor-pointer overflow-hidden border border-[var(--user-contrast)] bg-[var(--user-color,white)] p-2 text-xs text-[var(--user-contrast)]">
           <div
-            class="event-summary relative flex w-full flex-row flex-nowrap gap-1 overflow-hidden whitespace-nowrap">
-            <span class="text-opacity-25" [class.pr-4]="!!event.customerId">
-              {{ event.startTime | toDate | date: 'HH:mm' }} -
-            </span>
-
+            class="event-summary relative flex w-full flex-row flex-wrap justify-between gap-1 overflow-hidden">
             <span
-              class="event-summary overflow-hidden text-ellipsis font-semibold">
+              class="event-summary flex-shrink-0 overflow-hidden text-ellipsis font-semibold">
               {{ event.summary }}
             </span>
 
-            <span class="flex-grow"></span>
-
-            <span class="event-duration text-opacity-25">
-              {{ event.duration | duration }}
+            <span
+              class="event-start-time flex flex-shrink flex-row gap-2 overflow-hidden text-opacity-25"
+              [class.pr-4]="!!event.customerId">
+              <span> {{ event.startTime | toDate | date: 'HH:mm' }} - </span>
+              <span>
+                {{ event.duration | duration }}
+              </span>
             </span>
 
             @if (event.customerId) {

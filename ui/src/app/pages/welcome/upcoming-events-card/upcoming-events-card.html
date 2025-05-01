@@ -6,12 +6,12 @@
         <h3 hlmCardTitle class="text-left">Termin Übersicht</h3>
         <p hlmCardDescription>
           Hier findest du eine Übersicht aller Termine am
-          {{ calendarDate() | date: 'shortDate' }}
+          {{ calendarDate() | date: 'fullDate' }}
         </p>
       </div>
 
       <div
-        class="flex flex-grow flex-col items-center justify-end gap-4 @lg:flex-row">
+        class="flex w-full flex-grow flex-col items-center justify-end gap-4 @lg:flex-row">
         <brn-select [(ngModel)]="eventsToShow" class="@lg:flex-[0_0_10rem]">
           <hlm-select-trigger class="w-full">
             <hlm-select-value />
@@ -31,7 +31,11 @@
           [(ngModel)]="calendarDate"
           mode="single"
           class="@lg:flex-[0_0_10rem]">
-          <tkd-picker-trigger *datePickerInput variant="date" size="small" />
+          <tkd-picker-trigger
+            *datePickerInput
+            dateFormat="fullDate"
+            variant="date"
+            size="small" />
         </tkd-date-picker>
       </div>
     </div>
