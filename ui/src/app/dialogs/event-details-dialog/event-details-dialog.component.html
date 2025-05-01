@@ -140,7 +140,25 @@
     </hlm-td>
   </hlm-trow>
 
-  @if (availableResources().length > 0) {
+  <hlm-trow>
+    <hlm-th class="w-48 overflow-hidden text-ellipsis">Beschreibung</hlm-th>
+    <hlm-td class="whitespace-normal">
+      @if (edit()) {
+        <ckeditor
+          class="min-h-[80px] w-[200px] flex-[1_1_200px]"
+          [editor]="editor"
+          [config]="config"
+          [(ngModel)]="description" />
+      } @else {
+        <span [innerHTML]="event.description || 'N/A'"></span>
+      }
+    </hlm-td>
+  </hlm-trow>
+
+  @if (
+    availableResources().length > 0 &&
+    (edit() || selectedResources().length > 0)
+  ) {
     <hlm-trow>
       <hlm-th class="w-48 overflow-hidden text-ellipsis">Benötigt</hlm-th>
       <hlm-td class="flex flex-col items-start justify-start gap-1">
@@ -212,21 +230,6 @@
       </hlm-td>
     </hlm-trow>
   }
-
-  <hlm-trow>
-    <hlm-th class="w-48 overflow-hidden text-ellipsis">Beschreibung</hlm-th>
-    <hlm-td class="whitespace-normal">
-      @if (edit()) {
-        <ckeditor
-          class="min-h-[80px] w-[200px] flex-[1_1_200px]"
-          [editor]="editor"
-          [config]="config"
-          [(ngModel)]="description" />
-      } @else {
-        <span [innerHTML]="event.description || 'N/A'"></span>
-      }
-    </hlm-td>
-  </hlm-trow>
 </hlm-table>
 
 <div class="flex-grow"></div>
@@ -243,7 +246,7 @@
     }
 
     @if (!isNew()) {
-      <hlm-alert-dialog>
+      <hlm-alert-dialog #deleteDialog>
         <button hlmBtn variant="destructive" brnAlertDialogTrigger>
           Löschen
         </button>

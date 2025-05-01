@@ -4,6 +4,7 @@ import {
   Component,
   computed,
   DestroyRef,
+  HostListener,
   inject,
   model,
   OnInit,
@@ -23,7 +24,7 @@ import {
   injectBrnDialogContext,
 } from '@spartan-ng/ui-dialog-brain';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
-import { HlmAlertDialogModule } from '@tierklinik-dobersberg/angular/alertdialog';
+import { HlmAlertDialogComponent, HlmAlertDialogModule } from '@tierklinik-dobersberg/angular/alertdialog';
 import {
   injectUserProfiles,
   sortProtoTimestamps,
@@ -234,6 +235,16 @@ export class AppEventDetailsDialogComponent implements OnInit {
 
     CustomerDetailsDialog
       .open(this.dialogService, c)
+  }
+
+  @ViewChild(HlmAlertDialogComponent, {static: false})
+  alertDialog: HlmAlertDialogComponent;
+
+  @HostListener('keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    if ('key' in event && event.key === 'Delete') {
+      this.alertDialog?.open()
+    }
   }
 
   ngOnInit() {

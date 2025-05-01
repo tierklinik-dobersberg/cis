@@ -46,6 +46,10 @@ export class TkdEventResizeDirective {
             return
         }
 
+        if ('button' in event && event.button != 3) {
+            return
+        }
+
         const bounds = (this.host.nativeElement as HTMLElement).getBoundingClientRect();
         const upper = bounds.y + bounds.height;
         const lower = upper - 10;
@@ -72,7 +76,7 @@ export class TkdEventResizeDirective {
 
         this.isActive = false;
 
-        this.dayView.onResizeStop()
+        this.dayView.onResizeStop(event)
 
         event.preventDefault();
         event.stopImmediatePropagation();
