@@ -33,6 +33,8 @@
   class="calendar-container relative flex-grow !touch-pan-x !touch-pan-y flex-nowrap overflow-auto"
   #calendarContainer
   (swipe)="handleCalendarSwipe($any($event))"
+  (panmove)="handlePanMove($any($event))"
+  (panend)="handlePanEnd($any($event))"
   (scroll)="handleScroll($event)">
   <div
     class="grid-container w-full"

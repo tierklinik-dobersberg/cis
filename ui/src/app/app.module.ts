@@ -45,8 +45,14 @@ import { HammerGestureConfig } from '@angular/platform-browser';
 import * as Hammer from 'hammerjs';
 
 export class MyHammerConfig extends HammerGestureConfig {
+  events: string[] = [
+    "swipe",
+    "pan"
+  ]
+
   overrides = <any> {
     swipe: { direction: Hammer.DIRECTION_ALL },
+    pan: {direction: Hammer.DIRECTION_ALL, enable: true},
   };
 
   options = {

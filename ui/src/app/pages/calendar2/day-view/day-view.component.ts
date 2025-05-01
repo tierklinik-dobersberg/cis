@@ -2,7 +2,7 @@ import {
   CdkDrag,
   CdkDragRelease,
   CdkDragStart,
-  DragDropModule
+  DragDropModule,
 } from '@angular/cdk/drag-drop';
 import { AsyncPipe, NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
 import {
@@ -14,6 +14,7 @@ import {
   ElementRef,
   HostListener,
   NgZone,
+  Renderer2,
   ViewChild,
   booleanAttribute,
   computed,
@@ -22,7 +23,7 @@ import {
   input,
   model,
   output,
-  signal
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
@@ -92,6 +93,8 @@ export interface EventMovedEvent<E> {
 export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly ngZone = inject(NgZone);
+  private readonly renderer = inject(Renderer2);
+  private readonly host = inject(ElementRef);
 
   private viewInitialized = false;
 
@@ -102,7 +105,7 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
   public readonly calendarSwipe = output<SwipeEvent>();
   public readonly eventMoved = output<EventMovedEvent<E>>();
 
-  protected readonly layout = inject(LayoutService)
+  protected readonly layout = inject(LayoutService);
 
   private cursorY = 0;
 
@@ -135,7 +138,7 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
   /** The actual events to display. */
   public readonly events = input<E[]>([]);
 
-  public readonly onResize = output<{event: StyledTimed, duration: number}>()
+  public readonly onResize = output<{ event: StyledTimed; duration: number }>();
 
   protected readonly _computedCalendarsToDisplay = computed(() => {
     const calendars = this.calendars();
@@ -230,7 +233,7 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
 
   private resizeEvent: StyledTimed | null = null;
   onResizeStart(event: { event: MouseEvent; data: StyledTimed }) {
-    console.log("resize start")
+    console.log('resize start');
 
     this.dragging.set(true);
 
@@ -239,16 +242,15 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
   }
 
   onResizeStop(event: MouseEvent) {
-
-    console.log("resize stopped")
+    console.log('resize stopped');
 
     if (!this.resizeEvent) {
-      return
+      return;
     }
 
-    if (this.startY === event.clientY)  {
+    if (this.startY === event.clientY) {
       this.dragging.set(false);
-      return
+      return;
     }
 
     const height = parseFloat(this.resizeEvent.style.height.replace('px', ''));
@@ -257,7 +259,7 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     this.onResize.emit({
       event: this.resizeEvent,
       duration: seconds,
-    })
+    });
 
     this.resizeEvent = null;
   }
@@ -274,14 +276,13 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
 
       let duration = getSeconds(ce.duration) + durationOffset;
 
-      if (duration < 15 *60) {
-        duration = 15*60;
+      if (duration < 15 * 60) {
+        duration = 15 * 60;
       }
 
-      duration = Math.ceil(duration / (15*60)) * 15 * 60
+      duration = Math.ceil(duration / (15 * 60)) * 15 * 60;
 
-      style.height =
-        (duration * this.sizeFactor()) + 'px';
+      style.height = duration * this.sizeFactor() + 'px';
 
       ce.style = style;
     }
@@ -316,6 +317,17 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
       const events = this.events();
       const currentDate = this.currentDate();
 
+      if (this.frame !== null) {
+        cancelAnimationFrame(this.frame);
+      }
+
+      this.frame = requestAnimationFrame(() => {
+        this.renderer.setStyle(
+          this.host.nativeElement,
+          'transform',
+          'translateX(0%)'
+        );
+      });
       /*
       this.activeDrags.forEach(d => {
         try {
@@ -374,18 +386,78 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     });
   }
 
+  private panning = false;
+  private frame: any = null;
+  protected handlePanMove(event: HammerInput) {
+    if (this.layout.lg()) {
+      return
+    }
+
+    if (Math.abs(event.deltaX) < 50) {
+      return;
+    }
+    this.panning = true;
+
+    if (this.frame !== null) {
+      cancelAnimationFrame(this.frame);
+    }
+
+    this.frame = requestAnimationFrame(() => {
+      this.renderer.setStyle(
+        this.host.nativeElement,
+        'transform',
+        'translateX(' + event.deltaX + 'px)'
+      );
+    });
+  }
+
+  protected handlePanEnd(event: HammerInput) {
+    if (!this.panning) {
+      return
+    }
+
+
+    this.panning = false;
+    if (this.frame !== null) {
+      cancelAnimationFrame(this.frame);
+    }
+
+    if (Math.abs(event.deltaX) < 300) {
+
+      this.renderer.setStyle(
+        this.host.nativeElement,
+        'transform',
+        'translateX(0%)'
+      );
+
+      return;
+    }
+
+    this.frame = requestAnimationFrame(() => {
+      this.renderer.setStyle(
+        this.host.nativeElement,
+        'transform',
+        'translateX(100%)'
+      );
+
+      setTimeout(() => {
+        this.renderer.setStyle(
+          this.host.nativeElement,
+          'transform',
+          'translateX(0%)'
+        );
+      }, 500);
+    });
+  }
+
   protected handleCalendarSwipe(evt: HammerInput) {
-    if (evt.distance < 80) {
+    if (Math.abs(evt.deltaX) < 300) {
       return;
     }
 
     const x =
-      Math.abs(evt.deltaX) > 40 ? (evt.deltaX > 0 ? 'right' : 'left') : '';
+      Math.abs(evt.deltaX) > 80 ? (evt.deltaX > 0 ? 'right' : 'left') : '';
     const y = Math.abs(evt.deltaY) > 80 ? (evt.deltaY > 0 ? 'down' : 'up') : '';
-
-    if (y !== '') {
-      return;
-    }
 
     this.calendarSwipe.emit({
       deltaX: evt.deltaX,
@@ -516,8 +588,8 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
 
   onEventDropped(event: CdkDragRelease) {
     if (!this.layout.md()) {
-      event.source.reset()
-      return
+      event.source.reset();
+      return;
     }
 
     const elementBounds =
@@ -570,7 +642,7 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     container: HTMLElement,
     dblclick: boolean
   ) {
-    console.log("handle calendar click", this.dragging())
+    console.log('handle calendar click', this.dragging());
 
     if (this.dragging()) {
       this.dragging.set(false);
