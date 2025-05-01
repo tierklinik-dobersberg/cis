@@ -171,9 +171,44 @@
     let-event
     let-calendar="calendar">
     @if (!event.isShiftType) {
+      <brn-popover #hoverCard [align]="'end'" sideOffset="0">
+        <div
+          hlmPopoverContent
+          class="flex !w-[unset] min-w-80 flex-col gap-2"
+          *brnPopoverContent="let ctx">
+          <div class="flex flex-col gap-2">
+            <h4 class="font-medium leading-none">{{ event.summary }}</h4>
+            <span
+              class="flex flex-row items-center gap-2 overflow-hidden text-sm text-opacity-25"
+              [class.pr-4]="!!event.customerId">
+              <hlm-icon
+                class="text-opacity-25"
+                size="sm"
+                name="lucideClock"></hlm-icon>
+
+              <span> {{ event.startTime | toDate | date: 'HH:mm' }}</span>
+              <span>-</span>
+              <span>
+                {{ event.duration | duration }}
+              </span>
+            </span>
+          </div>
+
+          @if (event.description) {
+            <div
+              class="mt-1.5 w-full overflow-hidden border-t border-dashed border-white border-opacity-50 pt-1.5"
+              [innerHTML]="event.description"></div>
+          }
+        </div>
+      </brn-popover>
+
       <div
         class="event-container h-full w-full transform overflow-hidden drop-shadow hover:bg-blend-difference hover:shadow-lg">
         <div
+          [appPopoverTrigger]="event"
+          [appPopoverTriggerMode]="'shared-side'"
+          [appPopoverTriggerDisabled]="!layout.md()"
+          [brnPopoverTriggerFor]="hoverCard"
           [userColorVars]="calendar.id | byCalendarId: profiles()"
           [style.--user-color]="event.colorOverwrite || null"
           [style.--user-contrast]="event.colorOverwrite || null | contrast"

@@ -63,6 +63,11 @@
           </div>
         }
         @for (event of cal.events; track event.id) {
+          <!--
+            [ngClass]="{
+              'hover:!z-[100]': !event.ignoreOverlapping,
+            }"
+            -->
           <div
             class="absolute overflow-visible transition duration-150 ease-in-out"
             [tkdEventResize]="event"
@@ -78,9 +83,6 @@
             [cdkDragBoundary]="'.calendar-container'"
             [cdkDragStartDelay]="100"
             #drag="cdkDrag"
-            [ngClass]="{
-              'hover:!z-[100]': !event.ignoreOverlapping,
-            }"
             [tkdDragReset]="event.style"
             [ngStyle]="event.style"
             [attr.event-id]="event.uniqueId">

@@ -1,6 +1,7 @@
 import { CommonModule, DatePipe, DOCUMENT } from '@angular/common';
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   computed,
   DestroyRef,
@@ -20,7 +21,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
-import { lucideCog, lucideStar, lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
+import { lucideClock, lucideCog, lucideStar, lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
+import { BrnPopoverModule } from '@spartan-ng/ui-popover-brain';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import { BrnSheetModule } from '@spartan-ng/ui-sheet-brain';
 import {
@@ -45,6 +47,7 @@ import {
   getUserColor,
   ToDatePipe,
 } from '@tierklinik-dobersberg/angular/pipes';
+import { HlmPopoverModule } from '@tierklinik-dobersberg/angular/popover';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { HlmSheetModule } from '@tierklinik-dobersberg/angular/sheet';
 import { HlmTabsModule } from '@tierklinik-dobersberg/angular/tabs';
@@ -84,6 +87,7 @@ import {
   TkdDatePickerInputDirective,
 } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
+import { AppPopoverTriggerDirective } from 'src/app/components/triggers';
 import { UserColorVarsDirective } from 'src/app/components/user-color-vars';
 import { HeaderTitleService } from 'src/app/layout/header-title';
 import { NavigationService } from 'src/app/layout/navigation/navigation.service';
@@ -153,13 +157,17 @@ type CalEvent = Timed &
     RosterCardComponent,
     HlmSheetModule,
     BrnSheetModule,
+    BrnPopoverModule,
+    HlmPopoverModule,
+    AppPopoverTriggerDirective,
   ],
   providers: [
     ...provideIcons({
       lucideZoomIn,
       lucideZoomOut,
       lucideStar,
-      lucideCog
+      lucideCog,
+      lucideClock,
     }),
   ],
   styles: [
@@ -216,6 +224,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   private readonly document = inject(DOCUMENT);
   private readonly dialog = inject(HlmDialogService);
   private readonly header = inject(HeaderTitleService);
+  protected readonly cdr = inject(ChangeDetectorRef)
 
   // Used by the template
 
