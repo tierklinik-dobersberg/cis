@@ -3,7 +3,6 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  computed,
   DestroyRef,
   effect,
   inject,
@@ -13,8 +12,7 @@ import {
   OnInit,
   Renderer2,
   signal,
-  untracked,
-  ViewChild,
+  ViewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -26,14 +24,13 @@ import { BrnPopoverModule } from '@spartan-ng/ui-popover-brain';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import { BrnSheetModule } from '@spartan-ng/ui-sheet-brain';
 import {
-  injectUserProfiles,
-  sortUserProfile,
+  injectUserProfiles
 } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
 import { HlmCheckboxComponent } from '@tierklinik-dobersberg/angular/checkbox';
 import {
-  CALENDAR_SERVICE,
-  ROSTER_SERVICE,
+  injectCalendarService,
+  injectRosterService
 } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import {
@@ -44,41 +41,29 @@ import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import {
   DurationPipe,
-  getUserColor,
-  ToDatePipe,
+  ToDatePipe
 } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmPopoverModule } from '@tierklinik-dobersberg/angular/popover';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { HlmSheetModule } from '@tierklinik-dobersberg/angular/sheet';
 import { HlmTabsModule } from '@tierklinik-dobersberg/angular/tabs';
 import {
-  CalenarEventRequestKind,
   CalendarChangeEvent,
   CalendarEvent,
-  CustomerAnnotation,
   ListEventsResponse,
   MoveEventResponse,
-  Calendar as PbCalendar,
+  Calendar as PbCalendar
 } from '@tierklinik-dobersberg/apis/calendar/v1';
-import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
 import {
-  ListRosterTypesResponse,
   PlannedShift,
-  RosterType,
-  WorkShift,
+  RosterType
 } from '@tierklinik-dobersberg/apis/roster/v1';
 import {
   addDays,
   addSeconds,
-  differenceInSeconds,
-  endOfDay,
   getMinutes,
-  isAfter,
-  isBefore,
-  isSameDay,
   setMinutes,
-  setSeconds,
-  startOfDay,
+  setSeconds
 } from 'date-fns';
 import { toast } from 'ngx-sonner';
 import { debounceTime, filter, map } from 'rxjs';
@@ -109,16 +94,15 @@ import {
   coerceDate,
   DEFAULT_HOUR_HEIGHT_PX,
   EventMovedEvent,
-  SwipeEvent,
   Timed,
   TkdCalendarEventCellTemplateDirective,
   TkdCalendarHeaderCellTemplateDirective,
-  TkdDayViewComponent,
+  TkdDayViewComponent
 } from '../day-view';
 import { StyledTimed } from '../day-view/event-style.pipe';
-import { getSeconds } from '../day-view/sort.pipe';
+import { CalendarViewService } from './calendar-view.service';
 
-type CalEvent = Timed &
+export type CalEvent = Timed &
   PlainMessage<CalendarEvent> & {
     isShiftType?: boolean;
     isOnCall?: boolean;
@@ -215,8 +199,8 @@ type CalEvent = Timed &
   ],
 })
 export class TkdCalendarViewComponent implements OnInit, OnDestroy {
-  private readonly calendarAPI = inject(CALENDAR_SERVICE);
-  private readonly rosterAPI = inject(ROSTER_SERVICE);
+  private readonly calendarAPI = injectCalendarService();
+  private readonly rosterAPI = injectRosterService();
   private readonly activeRoute = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
@@ -232,95 +216,11 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
 
   protected readonly layout = inject(LayoutService);
 
-  /** Whether or not the current date is today */
-  protected readonly isToday = computed(() => {
-    const date = this.currentDate();
-    if (!date) {
-      return;
-    }
-
-    return isSameDay(date, new Date());
-  });
-
   /** The currently selected date */
   protected readonly currentDate = signal<Date | null>(null);
 
   /** A list of available calendars */
   protected readonly allCalendars = signal<PbCalendar[]>([]);
-
-  /** A list of working user IDs based on the planned work-shifts (roster) of the selected ate */
-  protected readonly workingStaff = computed(() => {
-    const shifts = this.shifts();
-    const workingStaff = new Set<string>();
-
-    shifts.forEach(shift => {
-      shift.assignedUserIds.forEach(user => workingStaff.add(user));
-    });
-
-    return workingStaff;
-  });
-
-  /** A list of all shown calendars  */
-  protected readonly calendars = computed(() => {
-    const profiles = this.profiles();
-    const calendars = this.allCalendars();
-    const displayed = new Set(this.displayedCalendars());
-    const workingStaff = this.workingStaff();
-
-    const profileLookupMap = new Map<string, Profile>();
-    profiles.forEach(p => {
-      const calId = getCalendarId(p);
-      if (calId) {
-        profileLookupMap.set(calId, p);
-      }
-    });
-
-    return calendars
-      .filter(cal => {
-        if (displayed.has(cal.id)) {
-          return true;
-        }
-
-        const profile = profileLookupMap.get(cal.id);
-        if (!profile) {
-          return true;
-        }
-
-        // display the user even if it has been deleted
-        // if it was still assigned to a working shift on the current date.
-        if (workingStaff.has(profile.user.id)) {
-          return true;
-        }
-
-        if (profile.user.deleted) {
-          return false;
-        }
-
-        return true;
-      })
-      .sort((a, b) => {
-        let ap = profileLookupMap.get(a.id);
-        let bp = profileLookupMap.get(b.id);
-
-        if (ap && ap.user.deleted) {
-          ap = null;
-        }
-
-        if (bp && bp.user.deleted) {
-          bp = null;
-        }
-
-        let av = ap ? (workingStaff.has(ap.user.id) ? 2 : 1) : -1;
-        let bv = bp ? (workingStaff.has(bp.user.id) ? 2 : 1) : -1;
-
-        const result = bv - av;
-        if (result === 0) {
-          return sortUserProfile(bp, ap);
-        }
-
-        return result;
-      });
-  });
 
   /** The current "size" factor */
   protected readonly sizeFactor = storedSignal(
@@ -337,163 +237,8 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   /** Whether or not CalendarEventChanged events should trigger a reload or not */
   protected skipLoading = false;
 
-  /** All planned shifts for the selected date */
-  protected readonly shifts = signal<PlannedShift[]>([]);
-
-  /** Work-shift definitions */
-  protected readonly shiftDefinitions = signal<WorkShift[]>([]);
-
   /** The roster-types to considere for working-staff and shifts */
   protected readonly rosterTypes = signal<null | RosterType[]>([]);
-
-  /** The last ListeEventsResponse, if any */
-  protected readonly eventListResponse = signal<ListEventsResponse | null>(
-    null
-  );
-
-  /** A computed signal to prepare all calendar events for display */
-  protected readonly events = computed(() => {
-    const response = this.eventListResponse();
-    const profiles = this.profiles();
-
-    if (!response) {
-      return [];
-    }
-
-    let events: CalEvent[] = [];
-    response.results.forEach(eventList => {
-      const isVirtual = eventList.calendar.isVirtualResource || false;
-      eventList.events.forEach(evt => {
-        let color: string | undefined = undefined;
-
-        if (isVirtual) {
-          const profile = profiles.find(
-            p => getCalendarId(p) === evt.calendarId
-          );
-
-          if (profile) {
-            color = getUserColor(profile);
-          } else {
-            let calendar = response.results.find(
-              r =>
-                r.calendar.id === evt.calendarId &&
-                !r.calendar.isVirtualResource
-            )?.calendar;
-
-            if (calendar) {
-              color = calendar.color;
-            }
-          }
-        }
-
-        let customerAnnotation: CustomerAnnotation | null = null;
-        if (evt.extraData) {
-          customerAnnotation = new CustomerAnnotation();
-          if (!evt.extraData.unpackTo(customerAnnotation)) {
-            customerAnnotation = null;
-          }
-        }
-
-        events.push({
-          ...evt,
-          from: evt.startTime,
-          duration: getSeconds(evt.endTime) - getSeconds(evt.startTime),
-          uniqueId: isVirtual ? eventList.calendar.id + ':' + evt.id : evt.id,
-          colorOverwrite: color,
-          customerId: customerAnnotation
-            ? customerAnnotation.customerId
-            : undefined,
-        });
-      });
-    });
-
-    return events;
-  });
-
-  /** A computed signal that creates "fake" calendar events for working shifts */
-  protected readonly _computedShiftEvents = computed(() => {
-    const shifts = this.shifts();
-    const profiles = this.profiles();
-    const date = startOfDay(this.currentDate());
-    const types = this.rosterTypes();
-
-    const definitions = this.shiftDefinitions();
-    const lm = new Map<string, WorkShift>();
-
-    definitions.forEach(def => lm.set(def.id, def));
-
-    const profileById = new Map<string, Profile>();
-    profiles.forEach(p => {
-      profileById.set(p.user.id, p);
-    });
-
-    const shiftEvents: CalEvent[] = [];
-
-    shifts.forEach(shift => {
-      let from = getSeconds(shift.from);
-      let fromDate = shift.from.toDate();
-      let toDate = shift.to.toDate();
-
-      if (isBefore(fromDate, date)) {
-        fromDate = date;
-        from = 0;
-      }
-
-      if (isAfter(toDate, endOfDay(date))) {
-        toDate = endOfDay(date);
-      }
-
-      const duration = differenceInSeconds(toDate, fromDate);
-      const def = definitions.find(w => w.id === shift.workShiftId);
-      const rosterTypes = types.filter(t =>
-        def.tags.some(tag => t.shiftTags.includes(tag))
-      );
-
-      shift.assignedUserIds
-        .map(id => profileById.get(id))
-        .filter(profile => !!profile)
-        .forEach(profile => {
-          const calendarId = getCalendarId(profile);
-          if (!calendarId) {
-            return;
-          }
-
-          const id =
-            'shift:' +
-            profile.user.id +
-            ':' +
-            shift.workShiftId +
-            ':' +
-            shift.from.toDate().toISOString() +
-            '-' +
-            shift.to.toDate().toISOString() +
-            '-' +
-            def.tags.join(':');
-
-          shiftEvents.push({
-            calendarId: calendarId,
-            summary: lm.get(shift.workShiftId)?.name || 'unknown',
-            from: from,
-            duration: duration,
-            fullDay: false,
-            isFree: false,
-            isOnCall: rosterTypes.some(type =>
-              type.onCallTags.some(tag => def.tags.includes(tag))
-            ),
-            colorOverwrite: def.color,
-            resources: [],
-            virtualCopy: false,
-            id: id,
-            uniqueId: id,
-            description: '',
-            ignoreOverlapping: true,
-            isShiftType: true,
-          });
-        });
-    });
-
-    return shiftEvents;
-  });
 
   /**
    * The current state of loading data. Once all types are loaded (i.e. loading.length == 3), the calendars to display
@@ -501,16 +246,17 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
    */
   protected readonly loading = signal<('types' | 'shifts' | 'events')[]>([]);
 
-  /** A computed signal that returns all events (calendar & shifts) to be displayed */
-  protected readonly _computedEvents = computed(() => {
-    const shiftEvents = this._computedShiftEvents();
-    const events = this.events();
-
-    return [...shiftEvents, ...events];
-  });
-
   /** A dummy variable to type-safety in the template */
   protected readonly calendarType: Calendar = null;
+
+  protected viewService = new CalendarViewService(
+    this.currentDate,
+    this.allCalendars,
+    this.rosterTypes,
+    this.profiles
+  )
+
+  protected viewState = this.viewService.viewState;
 
   /** A reference to the day-view component */
   @ViewChild(TkdDayViewComponent, { static: true })
@@ -558,9 +304,6 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
           description: ConnectError.from(err).message
         })
       })
-      .finally(() => {
-        this.loadEvents(this.currentDate())
-      })
   }
 
   
@@ -582,7 +325,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       id: evt.event.id + '-moved'
     })
 
-    const res = this.eventListResponse()
+    const res = this.viewService.eventListResponse()
     const sourceCalendar = res.results.find(c => c.calendar.id === evt.event.calendarId)
     const sourceIndex = sourceCalendar.events.findIndex(e => e.id === evt.event.id);
 
@@ -594,7 +337,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       sourceCalendar.events[sourceIndex] = copy  
     }
 
-    this.eventListResponse.set(new ListEventsResponse({
+    this.viewService.eventListResponse.set(new ListEventsResponse({
       ...res,
     }))
 
@@ -632,9 +375,6 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
           description: ConnectError.from(err).message
         })
       })
-      .finally(() => {
-        this.loadEvents(this.currentDate());
-      })
   }
 
   /** A callback function for the day-view component to handle event and calendar clicks */
@@ -662,12 +402,6 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     }
 
     AppEventDetailsDialogComponent.open(this.dialog, ctx)
-      .closed$.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-
-        console.log("loading events due to details-dialog close")
-        this.loadEvents(this.currentDate());
-      });
   }
 
   /** A utility method used by the template to quickly switch the current date to today */
@@ -731,7 +465,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         }
 
         console.log("loading events due to events event")
-        this.loadEvents(this.currentDate())
+        this.viewService.reload()
       });
 
     effect(
@@ -746,59 +480,16 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
           'Kalender',
           'Termine am ' + datePipe.transform(date, 'fullDate')
         );
-
-        this.loading.set([]);
-
-        // clear out the shifts so we don't display anything until we got the new response.
-        this.shifts.set([]);
-
-        this.rosterAPI
-          .getUserShifts({
-            timerange: {
-              from: Timestamp.fromDate(startOfDay(date)),
-              to: Timestamp.fromDate(endOfDay(date)),
-            },
-            users: {
-              allUsers: true,
-            },
-          })
-          .then(response => {
-            this.shiftDefinitions.set(response.definitions);
-            this.shifts.set(response.shifts);
-
-            this.loading.set([...this.loading(), 'shifts']);
-          });
-
-        this.rosterAPI
-          .listRosterTypes({})
-          .catch(err => {
-            toast.error('Failed to load roster types', {
-              description: ConnectError.from(err).message,
-            });
-
-            return new ListRosterTypesResponse();
-          })
-          .then(response => {
-            this.rosterTypes.set(response.rosterTypes || null);
-
-            this.loading.set([...this.loading(), 'types']);
-          });
-
-        this.loadEvents(date);
-      },
-      {
-        allowSignalWrites: true,
-      }
-    );
+    })
 
     effect(
       () => {
-        let _ = this._computedEvents();
-        const loading = this.loading();
-
-        if (loading.length === 3) {
-          this.resetDisplayedCalendars()
+        const loading = this.viewService.loading();
+        if (!loading) {
+          return
         }
+
+        this.resetDisplayedCalendars()
       },
       { allowSignalWrites: true }
     );
@@ -814,7 +505,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   }
 
   protected resetDisplayedCalendars() {
-    const events = this._computedEvents();
+    const events = this.viewService.viewState().events;
     const set = new Set<string>();
 
     events.forEach(evt => {
@@ -825,70 +516,13 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     this.displayedCalendars.set(values);
   }
 
-  private _abrt: AbortController | null;
-  private _prevDate: Date | null = null;
-
-  private loadEvents(date: Date): Promise<any> {
-    this.skipLoading = true;
-
-    if (!isSameDay(date, this._prevDate)) {
-      this.eventListResponse.set(null);
-    }
-
-    if (this._abrt) {
-      this._abrt.abort();
-    }
-
-    const abrt = new AbortController();
-    this._abrt = abrt;
-
-    const toastId = untracked(() =>
-      toast.loading('Termine werden geladen', {
-        dismissable: false,
-        duration: 60 * 1000,
-      })
-    );
-
-    return this.calendarAPI
-      .listEvents(
-        {
-          searchTime: {
-            case: 'date',
-            value: toDateString(date),
-          },
-          source: {
-            case: 'allCalendars',
-            value: true,
-          },
-          requestKinds: [
-            CalenarEventRequestKind.CALENDAR_EVENT_REQUEST_KIND_VIRTUAL_RESOURCES,
-            CalenarEventRequestKind.CALENDAR_EVENT_REQUEST_KIND_EVENTS,
-          ],
-        },
-        { signal: this._abrt.signal }
-      )
-      .then(response => {
-        this.eventListResponse.set(response || null);
-
-        console.log('successfully loaded events for ', date);
-        this._prevDate = date;
-        this.loading.set([...this.loading(), 'events']);
-      })
-      .catch(err => {
-        console.error('failed to load events', err);
-      })
-      .finally(() => {
-        if (this._abrt === abrt) {
-          this._abrt = null;
-        }
-
-        this.skipLoading = false;
-
-        toast.dismiss(toastId);
-      });
-  }
-
   ngOnInit(): void {
+    this.rosterAPI
+      .listRosterTypes({})
+      .then(response => {
+        this.rosterTypes.set(response.rosterTypes)
+      })
+
     this.calendarAPI
       .listCalendars({ includeVirtualResourceCalendars: true })
       .then(response => {
@@ -931,48 +565,18 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       });
   }
 
-  protected handleHeaderSwipe(evt: SwipeEvent) {
-    const calendars = this.displayedCalendars();
-    if (calendars.length > 1) {
-      return
+  protected handleCalendarSwipe(evt: HammerInput) {
+    if (Math.abs(evt.deltaX) < 300) {
+      return;
     }
 
-    let offset = 0
-    switch (evt.directionX) {
-      case 'left':
-        offset = 1
-        break;
+    const x =
+      Math.abs(evt.deltaX) > 80 ? (evt.deltaX > 0 ? 'right' : 'left') : '';
+    const y = Math.abs(evt.deltaY) > 80 ? (evt.deltaY > 0 ? 'down' : 'up') : '';
 
-      case 'right':
-        offset = -1
-        break
-    }
-
-    const all = this.allCalendars();
-    const idx = all.findIndex(c => c.id === calendars[0])
-
-    if (idx < 0) {
-      this.resetDisplayedCalendars()
-    } else {
-      let nextIndex = (idx + offset);
-      if (nextIndex >= all.length) {
-        nextIndex = 0
-      }
-
-      if (nextIndex < 0) {
-        nextIndex = all.length - 1
-      }
-
-      const next = all[nextIndex]
-
-      this.displayedCalendars.set([next.id]);
-    }
-  }
-
-  protected handleCalendarSwipe(evt: SwipeEvent) {
     const date = this.currentDate();
 
-    switch (evt.directionX) {
+    switch (x) {
       case 'left':
         this.currentDate.set(addDays(date, 1))
         break;

@@ -45,7 +45,7 @@
 
         <div hlmTabsContent="calendars">
           <ol class="flex h-full w-full list-none flex-col gap-4">
-            @for (cal of calendars(); track cal.id) {
+            @for (cal of viewState().calendars; track cal.id) {
               <li>
                 <label
                   hlmLabel
@@ -143,14 +143,13 @@
   #dayView="tkdDayView"
   class="!m-0 w-full flex-grow cursor-not-allowed border-t border-border bg-white"
   autoScroll="true"
-  [showCurrentTime]="isToday()"
-  [calendars]="calendars()"
+  [showCurrentTime]="viewService.isToday()"
+  [calendars]="viewState().calendars"
   [displayCalendars]="displayedCalendars()"
-  (headerSwipe)="handleHeaderSwipe($event)"
-  (calendarSwipe)="handleCalendarSwipe($event)"
   (onResize)="handleResize($event)"
+  (swipe)="handleCalendarSwipe($any($event))"
   (eventMoved)="handleEventMoved($event)"
-  [events]="_computedEvents()">
+  [events]="viewState().events">
   <!-- Calendar Header Cell -->
   <ng-template
     [headerCell]="calendarType"
@@ -174,7 +173,7 @@
       <brn-popover #hoverCard [align]="'end'" sideOffset="0">
         <div
           hlmPopoverContent
-          class="flex !w-[unset] min-w-80 flex-col gap-2"
+          class="flex !w-[unset] min-w-80 max-w-96 flex-col gap-2"
           *brnPopoverContent="let ctx">
           <div class="flex flex-col gap-2">
             <h4 class="font-medium leading-none">{{ event.summary }}</h4>

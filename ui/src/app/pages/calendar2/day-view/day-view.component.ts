@@ -6,7 +6,6 @@ import {
 } from '@angular/cdk/drag-drop';
 import { AsyncPipe, NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   ContentChild,
@@ -14,7 +13,6 @@ import {
   ElementRef,
   HostListener,
   NgZone,
-  Renderer2,
   ViewChild,
   booleanAttribute,
   computed,
@@ -23,7 +21,7 @@ import {
   input,
   model,
   output,
-  signal,
+  signal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
@@ -40,8 +38,7 @@ import {
   Calendar,
   CalendarMouseEvent,
   DateInput,
-  SwipeEvent,
-  Timed,
+  Timed
 } from './models';
 import { SecondsToPixelPipe } from './seconds-to-pixel.pipe';
 import { getSeconds } from './sort.pipe';
@@ -90,19 +87,13 @@ export interface EventMovedEvent<E> {
     `,
   ],
 })
-export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
+export class TkdDayViewComponent<E extends Timed>  {
   private readonly destroyRef = inject(DestroyRef);
   private readonly ngZone = inject(NgZone);
-  private readonly renderer = inject(Renderer2);
-  private readonly host = inject(ElementRef);
-
-  private viewInitialized = false;
 
   readonly eventType: E = null;
   readonly calendarType: Calendar = null;
 
-  public readonly headerSwipe = output<SwipeEvent>();
-  public readonly calendarSwipe = output<SwipeEvent>();
   public readonly eventMoved = output<EventMovedEvent<E>>();
 
   protected readonly layout = inject(LayoutService);
@@ -317,17 +308,6 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
       const events = this.events();
       const currentDate = this.currentDate();
 
-      if (this.frame !== null) {
-        cancelAnimationFrame(this.frame);
-      }
-
-      this.frame = requestAnimationFrame(() => {
-        this.renderer.setStyle(
-          this.host.nativeElement,
-          'transform',
-          'translateX(0%)'
-        );
-      });
       /*
       this.activeDrags.forEach(d => {
         try {
@@ -365,107 +345,6 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     });
   }
 
-  protected handleHeaderSwipe(evt: HammerInput) {
-    if (evt.distance < 100) {
-      return;
-    }
-
-    const x =
-      Math.abs(evt.deltaX) > 40 ? (evt.deltaX > 0 ? 'right' : 'left') : '';
-    const y = Math.abs(evt.deltaY) > 40 ? (evt.deltaY > 0 ? 'down' : 'up') : '';
-
-    if (y !== '') {
-      return;
-    }
-
-    this.headerSwipe.emit({
-      deltaX: evt.deltaX,
-      deltaY: evt.deltaY,
-      directionX: x,
-      directionY: y,
-    });
-  }
-
-  private panning = false;
-  private frame: any = null;
-  protected handlePanMove(event: HammerInput) {
-    if (this.layout.lg()) {
-      return
-    }
-
-    if (Math.abs(event.deltaX) < 50) {
-      return;
-    }
-    this.panning = true;
-
-    if (this.frame !== null) {
-      cancelAnimationFrame(this.frame);
-    }
-
-    this.frame = requestAnimationFrame(() => {
-      this.renderer.setStyle(
-        this.host.nativeElement,
-        'transform',
-        'translateX(' + event.deltaX + 'px)'
-      );
-    });
-  }
-
-  protected handlePanEnd(event: HammerInput) {
-    if (!this.panning) {
-      return
-    }
-
-
-    this.panning = false;
-    if (this.frame !== null) {
-      cancelAnimationFrame(this.frame);
-    }
-
-    if (Math.abs(event.deltaX) < 300) {
-
-      this.renderer.setStyle(
-        this.host.nativeElement,
-        'transform',
-        'translateX(0%)'
-      );
-
-      return;
-    }
-
-    this.frame = requestAnimationFrame(() => {
-      this.renderer.setStyle(
-        this.host.nativeElement,
-        'transform',
-        'translateX(100%)'
-      );
-
-      setTimeout(() => {
-        this.renderer.setStyle(
-          this.host.nativeElement,
-          'transform',
-          'translateX(0%)'
-        );
-      }, 500);
-    });
-  }
-
-  protected handleCalendarSwipe(evt: HammerInput) {
-    if (Math.abs(evt.deltaX) < 300) {
-      return;
-    }
-
-    const x =
-      Math.abs(evt.deltaX) > 80 ? (evt.deltaX > 0 ? 'right' : 'left') : '';
-    const y = Math.abs(evt.deltaY) > 80 ? (evt.deltaY > 0 ? 'down' : 'up') : '';
-
-    this.calendarSwipe.emit({
-      deltaX: evt.deltaX,
-      deltaY: evt.deltaY,
-      directionX: x,
-      directionY: y,
-    });
-  }
 
   zoomIn(step = this.sizeFactor() * 0.05) {
     this.sizeFactor.set(this.sizeFactor() + step);
@@ -574,10 +453,6 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
         this.scrollTo(firstEvent);
       }
     }
-  }
-
-  ngAfterViewInit(): void {
-    this.viewInitialized = true;
   }
 
   public readonly dragging = model(false);
