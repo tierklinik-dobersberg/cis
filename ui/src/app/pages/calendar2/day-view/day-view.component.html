@@ -19,7 +19,9 @@
     <div class="overflow-hidden text-ellipsis">
       <ng-container
         *ngTemplateOutlet="
-          headerCell?.template || defaultHeaderCell.template;
+          headerCellTemplate()?.template ||
+            headerCell?.template ||
+            defaultHeaderCell.template;
           context: {
             $implicit: cal,
           }
@@ -86,7 +88,9 @@
             [attr.event-id]="event.uniqueId">
             <ng-container
               *ngTemplateOutlet="
-                eventCell?.template || defaultEventCell.template;
+                eventCellTemplate()?.template ||
+                  eventCell?.template ||
+                  defaultEventCell.template;
                 context: {
                   $implicit: event,
                   calendar: cal,

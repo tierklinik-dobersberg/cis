@@ -6,22 +6,22 @@ import {
 } from '@angular/cdk/drag-drop';
 import { AsyncPipe, NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
 import {
+  booleanAttribute,
   ChangeDetectionStrategy,
   Component,
+  computed,
   ContentChild,
   DestroyRef,
+  effect,
   ElementRef,
   HostListener,
-  NgZone,
-  ViewChild,
-  booleanAttribute,
-  computed,
-  effect,
   inject,
   input,
   model,
+  NgZone,
   output,
-  signal
+  signal,
+  ViewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
@@ -128,6 +128,9 @@ export class TkdDayViewComponent<E extends Timed>  {
 
   /** The actual events to display. */
   public readonly events = input<E[]>([]);
+
+  public readonly headerCellTemplate = input<TkdCalendarHeaderCellTemplateDirective<E, Calendar> | null>(null)
+  public readonly eventCellTemplate = input<TkdCalendarEventCellTemplateDirective<E, Calendar> | null>(null)
 
   public readonly onResize = output<{ event: StyledTimed; duration: number }>();
 

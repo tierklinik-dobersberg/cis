@@ -36,6 +36,8 @@ export interface CalendarView {
   workingStaff: Set<string>;
   calendars: PbCalendar[];
   shifts: PlannedShift[];
+  date: Date;
+  isToday: boolean;
 }
 
 @Injectable()
@@ -46,7 +48,7 @@ export class CalendarViewService {
   protected readonly calendarAPI = injectCalendarService();
   protected readonly rosterAPI = injectRosterService();
 
-  public readonly viewState = computed(() => {
+  public readonly viewState = computed<CalendarView>(() => {
     const events = this._computedEvents();
     const workingStaff = this.workingStaff();
     const calendars = this.calendars();
@@ -61,6 +63,8 @@ export class CalendarViewService {
       workingStaff,
       calendars,
       shifts,
+      date: this.date,
+      isToday: this.isToday(),
     };
   });
 

@@ -138,114 +138,120 @@
     }
   </header>
 
-  <tkd-day-view
-    [currentDate]="currentDate()"
-    [(sizeFactor)]="sizeFactor"
-    (calendarClick)="handleCalendarClick($event)"
-    #dayView="tkdDayView"
-    class="!m-0 w-full flex-grow cursor-not-allowed border-t border-border bg-white"
-    autoScroll="true"
-    [showCurrentTime]="viewService().isToday()"
-    [calendars]="viewState().calendars"
-    [displayCalendars]="displayedCalendars()"
-    (onResize)="handleResize($event)"
-    (swipe)="handleCalendarSwipe($any($event))"
-    (eventMoved)="handleEventMoved($event)"
-    [events]="viewState().events">
-    <!-- Calendar Header Cell -->
-    <ng-template
-      [headerCell]="calendarType"
-      #headerCell="tkdCalendarHeaderCell"
-      let-calendar>
-      <div
-        [userColorVars]="calendar.id | byCalendarId: profiles()"
-        (click)="handleCalendarHeaderClick(calendar)"
-        class="cursor-pointer select-none overflow-hidden text-ellipsis whitespace-nowrap rounded-t-md bg-white p-2 text-center text-sm font-medium text-[var(--user-color,black)]">
-        {{ calendar.name }}
-      </div>
-    </ng-template>
+  <!-- Calendar Header Cell -->
+  <ng-template
+    [headerCell]="calendarType"
+    #headerCell="tkdCalendarHeaderCell"
+    let-calendar>
+    <div
+      [userColorVars]="calendar.id | byCalendarId: profiles()"
+      (click)="handleCalendarHeaderClick(calendar)"
+      class="cursor-pointer select-none overflow-hidden text-ellipsis whitespace-nowrap rounded-t-md bg-white p-2 text-center text-sm font-medium text-[var(--user-color,black)]">
+      {{ calendar.name }}
+    </div>
+  </ng-template>
 
-    <!-- Event Cell Template -->
-    <ng-template
-      [eventCell]="calendarType"
-      #eventCell="tkdCalendarEventCell"
-      let-event
-      let-calendar="calendar">
-      @if (!event.isShiftType) {
-        <brn-popover #hoverCard [align]="'end'" sideOffset="0">
-          <div
-            hlmPopoverContent
-            class="flex !w-[unset] min-w-80 max-w-96 flex-col gap-2"
-            *brnPopoverContent="let ctx">
-            <div class="flex flex-col gap-2">
-              <h4 class="font-medium leading-none">{{ event.summary }}</h4>
-              <span
-                class="flex flex-row items-center gap-2 overflow-hidden text-sm text-opacity-25"
-                [class.pr-4]="!!event.customerId">
-                <hlm-icon
-                  class="text-opacity-25"
-                  size="sm"
-                  name="lucideClock"></hlm-icon>
-
-                <span> {{ event.startTime | toDate | date: 'HH:mm' }}</span>
-                <span>-</span>
-                <span>
-                  {{ event.duration | duration }}
-                </span>
-              </span>
-            </div>
-
-            @if (event.description) {
-              <div
-                class="mt-1.5 w-full overflow-hidden border-t border-dashed border-white border-opacity-50 pt-1.5"
-                [innerHTML]="event.description"></div>
-            }
-          </div>
-        </brn-popover>
-
+  <!-- Event Cell Template -->
+  <ng-template
+    [eventCell]="calendarType"
+    #eventCell="tkdCalendarEventCell"
+    let-event
+    let-calendar="calendar">
+    @if (!event.isShiftType) {
+      <brn-popover #hoverCard [align]="'end'" sideOffset="0">
         <div
-          class="event-container h-full w-full transform overflow-hidden drop-shadow hover:bg-blend-difference hover:shadow-lg">
-          <div
-            [appPopoverTrigger]="event"
-            [appPopoverTriggerMode]="'shared-side'"
-            [appPopoverTriggerDisabled]="!layout.md()"
-            [brnPopoverTriggerFor]="hoverCard"
-            [userColorVars]="calendar.id | byCalendarId: profiles()"
-            [style.--user-color]="event.colorOverwrite || null"
-            [style.--user-contrast]="event.colorOverwrite || null | contrast"
-            class="event-details h-full w-full cursor-pointer overflow-hidden border border-[var(--user-contrast)] bg-[var(--user-color,white)] p-2 text-xs text-[var(--user-contrast)]">
+          hlmPopoverContent
+          class="flex !w-[unset] min-w-80 max-w-96 flex-col gap-2"
+          *brnPopoverContent="let ctx">
+          <div class="flex flex-col gap-2">
+            <h4 class="font-medium leading-none">{{ event.summary }}</h4>
+            <span
+              class="flex flex-row items-center gap-2 overflow-hidden text-sm text-opacity-25"
+              [class.pr-4]="!!event.customerId">
+              <hlm-icon
+                class="text-opacity-25"
+                size="sm"
+                name="lucideClock"></hlm-icon>
+
+              <span> {{ event.startTime | toDate | date: 'HH:mm' }}</span>
+              <span>-</span>
+              <span>
+                {{ event.duration | duration }}
+              </span>
+            </span>
+          </div>
+
+          @if (event.description) {
             <div
-              class="event-summary relative flex w-full flex-row flex-wrap justify-between gap-1 overflow-hidden">
-              <span
-                class="event-summary flex-shrink-0 overflow-hidden text-ellipsis font-semibold">
-                {{ event.summary }}
-              </span>
+              class="mt-1.5 w-full overflow-hidden border-t border-dashed border-white border-opacity-50 pt-1.5"
+              [innerHTML]="event.description"></div>
+          }
+        </div>
+      </brn-popover>
 
-              <span
-                class="event-start-time flex flex-shrink flex-row gap-2 overflow-hidden text-opacity-25"
-                [class.pr-4]="!!event.customerId">
-                <span> {{ event.startTime | toDate | date: 'HH:mm' }} - </span>
-                <span>
-                  {{ event.duration | duration }}
-                </span>
-              </span>
+      <div
+        class="event-container h-full w-full transform overflow-hidden drop-shadow hover:bg-blend-difference hover:shadow-lg">
+        <div
+          [appPopoverTrigger]="event"
+          [appPopoverTriggerMode]="'shared-side'"
+          [appPopoverTriggerDisabled]="!layout.md()"
+          [brnPopoverTriggerFor]="hoverCard"
+          [userColorVars]="calendar.id | byCalendarId: profiles()"
+          [style.--user-color]="event.colorOverwrite || null"
+          [style.--user-contrast]="event.colorOverwrite || null | contrast"
+          class="event-details h-full w-full cursor-pointer overflow-hidden border border-[var(--user-contrast)] bg-[var(--user-color,white)] p-2 text-xs text-[var(--user-contrast)]">
+          <div
+            class="event-summary relative flex w-full flex-row flex-wrap justify-between gap-1 overflow-hidden">
+            <span
+              class="event-summary flex-shrink-0 overflow-hidden text-ellipsis font-semibold">
+              {{ event.summary }}
+            </span>
 
-              @if (event.customerId) {
-                <hlm-icon name="lucideStar" variant="sm" />
-              }
-            </div>
-            @if (event.description) {
-              <div
-                class="event-description mt-1.5 hidden w-full overflow-hidden border-t border-dashed border-white border-opacity-50 pt-1.5"
-                [innerHTML]="event.description"></div>
+            <span
+              class="event-start-time flex flex-shrink flex-row gap-2 overflow-hidden text-opacity-25"
+              [class.pr-4]="!!event.customerId">
+              <span> {{ event.startTime | toDate | date: 'HH:mm' }} - </span>
+              <span>
+                {{ event.duration | duration }}
+              </span>
+            </span>
+
+            @if (event.customerId) {
+              <hlm-icon name="lucideStar" variant="sm" />
             }
           </div>
+          @if (event.description) {
+            <div
+              class="event-description mt-1.5 hidden w-full overflow-hidden border-t border-dashed border-white border-opacity-50 pt-1.5"
+              [innerHTML]="event.description"></div>
+          }
         </div>
-      } @else {
-        <div
-          class="h-full w-full cursor-default bg-[--color] bg-opacity-20 shadow-inner"
-          [style.--color]="event.colorOverwrite | toRgba: '0.5'"></div>
-      }
-    </ng-template>
-  </tkd-day-view>
+      </div>
+    } @else {
+      <div
+        class="h-full w-full cursor-default bg-[--color] bg-opacity-20 shadow-inner"
+        [style.--color]="event.colorOverwrite | toRgba: '0.5'"></div>
+    }
+  </ng-template>
+
+  <div
+    class="!m-0 flex w-full flex-grow flex-row flex-nowrap overflow-x-hidden">
+    <tkd-day-view
+      [currentDate]="viewState().date"
+      [(sizeFactor)]="sizeFactor"
+      (calendarClick)="handleCalendarClick($event)"
+      #dayView="tkdDayView"
+      class="h-full w-full flex-shrink-0 cursor-not-allowed border-t border-border bg-white"
+      autoScroll="true"
+      [showCurrentTime]="viewState().isToday"
+      [calendars]="viewState().calendars"
+      [displayCalendars]="displayedCalendars()"
+      (onResize)="handleResize($event)"
+      (swipe)="handleCalendarSwipe($any($event))"
+      (eventMoved)="handleEventMoved($event)"
+      [headerCellTemplate]="headerCell"
+      [eventCellTemplate]="eventCell"
+      [events]="viewState().events">
+    </tkd-day-view>
+  </div>
 }
