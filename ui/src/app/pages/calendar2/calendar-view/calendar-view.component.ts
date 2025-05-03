@@ -549,7 +549,9 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         }
 
         console.log("loading events due to events event")
-        this.viewService().reload()
+        this.viewService()?.reload()
+        this.nextService()?.reload()
+        this.prevService()?.reload()
       });
 
     effect(
@@ -566,14 +568,17 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         );
     })
 
+    let lastService: CalendarViewService | null = null;
     effect(
       () => {
-        const loading = this.viewService().loading();
-        if (!loading) {
+        const current = this.viewService();
+        const loading = current.loading();
+        if (loading || current === lastService) {
           return
         }
 
         this.resetDisplayedCalendars()
+        lastService = current;
       },
       { allowSignalWrites: true }
     );
@@ -589,6 +594,8 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   }
 
   protected resetDisplayedCalendars() {
+    console.log("resetting displayed calendars")
+
     const events = this.viewService().viewState().events;
     const set = new Set<string>();
 

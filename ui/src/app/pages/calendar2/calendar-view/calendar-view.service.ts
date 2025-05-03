@@ -10,11 +10,22 @@ import {
   CalenarEventRequestKind,
   CustomerAnnotation,
   ListEventsResponse,
-  Calendar as PbCalendar
+  Calendar as PbCalendar,
 } from '@tierklinik-dobersberg/apis/calendar/v1';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
-import { PlannedShift, RosterType, WorkShift } from '@tierklinik-dobersberg/apis/roster/v1';
-import { differenceInSeconds, endOfDay, isAfter, isBefore, isSameDay, startOfDay } from 'date-fns';
+import {
+  PlannedShift,
+  RosterType,
+  WorkShift,
+} from '@tierklinik-dobersberg/apis/roster/v1';
+import {
+  differenceInSeconds,
+  endOfDay,
+  isAfter,
+  isBefore,
+  isSameDay,
+  startOfDay,
+} from 'date-fns';
 import { getCalendarId } from 'src/app/services';
 import { toDateString } from 'src/app/utils';
 import { getSeconds } from '../day-view/sort.pipe';
@@ -23,7 +34,7 @@ import { CalEvent } from './calendar-view.component';
 export interface CalendarView {
   events: CalEvent[];
   workingStaff: Set<string>;
-  calendars: PbCalendar[]; 
+  calendars: PbCalendar[];
   shifts: PlannedShift[];
 }
 
@@ -50,11 +61,11 @@ export class CalendarViewService {
       workingStaff,
       calendars,
       shifts,
-    }
-  })
+    };
+  });
 
   public reload() {
-    this.loadEvents(this.date)
+    this.loadEvents(this.date);
   }
 
   constructor(
@@ -67,49 +78,48 @@ export class CalendarViewService {
     public readonly rosterTypes: Signal<RosterType[] | null>,
 
     /** All user profiles */
-    public readonly profiles: Signal<Profile[]>,
+    public readonly profiles: Signal<Profile[]>
   ) {
+    this.loading.set(true);
 
-        this.loading.set(true);
+    if (this.abrt) {
+      this.abrt.abort();
+    }
 
-        if (this.abrt) {
-          this.abrt.abort()
-        }
+    const abrt = new AbortController();
+    this.abrt = abrt;
 
-        const abrt = new AbortController();
-        this.abrt = abrt;
+    // clear out the shifts so we don't display anything until we got the new response.
+    this.shifts.set([]);
 
+    const getShifts = this.rosterAPI
+      .getUserShifts(
+        {
+          timerange: {
+            from: Timestamp.fromDate(startOfDay(date)),
+            to: Timestamp.fromDate(endOfDay(date)),
+          },
+          users: {
+            allUsers: true,
+          },
+        },
+        { signal: abrt.signal }
+      )
+      .then(response => {
+        this.shiftDefinitions.set(response.definitions);
+        this.shifts.set(response.shifts);
 
-        // clear out the shifts so we don't display anything until we got the new response.
-        this.shifts.set([]);
+        console.log('got shifts', response.shifts);
+      });
 
-        const getShifts = this.rosterAPI
-          .getUserShifts({
-            timerange: {
-              from: Timestamp.fromDate(startOfDay(date)),
-              to: Timestamp.fromDate(endOfDay(date)),
-            },
-            users: {
-              allUsers: true,
-            },
-          }, { signal: abrt.signal })
-          .then(response => {
-            this.shiftDefinitions.set(response.definitions);
-            this.shifts.set(response.shifts);
+    const loadEvents = this.loadEvents(date, abrt);
 
-            console.log("got shifts", response.shifts)
-          });
-
-        const loadEvents = this.loadEvents(date, abrt)
-
-        Promise.all([loadEvents, getShifts])
-          .finally(() => {
-            if (this.abrt == abrt) {
-              this.loading.set(false);
-              this.abrt = null
-            }
-          })
-
+    Promise.all([loadEvents, getShifts]).finally(() => {
+      if (this.abrt == abrt) {
+        this.loading.set(false);
+        this.abrt = null;
+      }
+    });
   }
 
   // Private signals for computing the view state
@@ -121,9 +131,7 @@ export class CalendarViewService {
   protected readonly shiftDefinitions = signal<WorkShift[]>([]);
 
   /** The last ListeEventsResponse, if any */
-  public readonly eventListResponse = signal<ListEventsResponse | null>(
-    null
-  );
+  public readonly eventListResponse = signal<ListEventsResponse | null>(null);
 
   /** A list of working user IDs based on the planned work-shifts (roster) of the selected ate */
   protected readonly workingStaff = computed(() => {
@@ -296,7 +304,7 @@ export class CalendarViewService {
         .map(id => profileById.get(id))
         .filter(profile => !!profile)
         .forEach(profile => {
-          console.log("creating shift event for profile", profile)
+          console.log('creating shift event for profile', profile);
 
           const calendarId = getCalendarId(profile);
           if (!calendarId) {
@@ -337,7 +345,7 @@ export class CalendarViewService {
         });
     });
 
-    console.log("shift events", shiftEvents);
+    console.log('shift events', shiftEvents);
     return shiftEvents;
   });
 
@@ -346,7 +354,7 @@ export class CalendarViewService {
     const shiftEvents = this._computedShiftEvents();
     const events = this.events();
 
-    console.log("shift events", shiftEvents)
+    console.log('shift events', shiftEvents);
 
     return [...shiftEvents, ...events];
   });
@@ -364,32 +372,32 @@ export class CalendarViewService {
   });
 
   public readonly loading = signal(true);
-    private loadEvents (date: Date, abrt?: AbortController): Promise<void> {
-      return this.calendarAPI
-        .listEvents(
-          {
-            searchTime: {
-              case: 'date',
-              value: toDateString(date),
-            },
-            source: {
-              case: 'allCalendars',
-              value: true,
-            },
-            requestKinds: [
-              CalenarEventRequestKind.CALENDAR_EVENT_REQUEST_KIND_VIRTUAL_RESOURCES,
-              CalenarEventRequestKind.CALENDAR_EVENT_REQUEST_KIND_EVENTS,
-            ],
+  private loadEvents(date: Date, abrt?: AbortController): Promise<void> {
+    return this.calendarAPI
+      .listEvents(
+        {
+          searchTime: {
+            case: 'date',
+            value: toDateString(date),
           },
-          { signal: abrt?.signal }
-        )
-        .catch(err => {
-          console.error("failed to load events for date ", date, err)
+          source: {
+            case: 'allCalendars',
+            value: true,
+          },
+          requestKinds: [
+            CalenarEventRequestKind.CALENDAR_EVENT_REQUEST_KIND_VIRTUAL_RESOURCES,
+            CalenarEventRequestKind.CALENDAR_EVENT_REQUEST_KIND_EVENTS,
+          ],
+        },
+        { signal: abrt?.signal }
+      )
+      .catch(err => {
+        console.error('failed to load events for date ', date, err);
 
-          return new ListEventsResponse({results: []})
-        })
-        .then(response => {
-          this.eventListResponse.set(response || null)
-        })
-    }
+        return new ListEventsResponse({ results: [] });
+      })
+      .then(response => {
+        this.eventListResponse.set(response || null);
+      });
+  }
 }
