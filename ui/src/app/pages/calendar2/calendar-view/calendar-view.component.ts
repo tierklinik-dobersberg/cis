@@ -578,11 +578,11 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
 
     switch (x) {
       case 'left':
-        this.currentDate.set(addDays(date, 1))
+        this.setDate(addDays(date, 1))
         break;
 
       case 'right':
-        this.currentDate.set(addDays(date, -1))
+        this.setDate(addDays(date, -1))
         break
     }
   }

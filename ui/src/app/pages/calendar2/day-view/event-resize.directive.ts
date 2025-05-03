@@ -18,11 +18,16 @@ export class TkdEventResizeDirective {
     private readonly host = inject(ElementRef);
     private readonly renderer = inject(Renderer2);
     private readonly cdkDrag = inject(CdkDrag)
+    private oldState = false;
 
     private isActive = false;
 
     @HostListener('mousemove', ['$event'])
     onMouseMove(event: MouseEvent) {
+        if (!this.isActive) {
+            return
+        }
+
         if (this.tkdEventResizeDisabled()) {
             return
         }
@@ -43,18 +48,25 @@ export class TkdEventResizeDirective {
     @HostListener('mousedown', ['$event'])
     onMouseDown(event: MouseEvent) {
         if (this.tkdEventResizeDisabled()) {
+            console.log("resize disabled")
             return
         }
 
-        if ('button' in event && event.button != 3) {
+
+        if ('button' in event && event.button != 0) {
+            console.log("invalid button", event.button)
             return
         }
+
+        this.oldState = this.cdkDrag.disabled;
+        this.cdkDrag.disabled = true;
 
         const bounds = (this.host.nativeElement as HTMLElement).getBoundingClientRect();
         const upper = bounds.y + bounds.height;
         const lower = upper - 10;
 
         if (event.clientY >= lower && event.clientY <= upper) {
+            console.log("starting resize")
             event.stopPropagation();
             event.stopImmediatePropagation();
 
@@ -69,8 +81,10 @@ export class TkdEventResizeDirective {
 
     @HostListener('mouseup', ['$event'])
     onMouseUp(event: MouseEvent) {
+        this.cdkDrag.disabled = this.oldState;
 
         if (this.tkdEventResizeDisabled() || !this.isActive) {
+            console.log("resize disabled")
             return
         }
 
