@@ -1,5 +1,6 @@
 import { CommonModule, DatePipe, DOCUMENT } from '@angular/common';
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -203,7 +204,7 @@ export type CalEvent = Timed &
     `,
   ],
 })
-export class TkdCalendarViewComponent implements OnInit, OnDestroy {
+export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly calendarAPI = injectCalendarService();
   private readonly rosterAPI = injectRosterService();
   private readonly activeRoute = inject(ActivatedRoute);
@@ -288,7 +289,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   protected prevService = signal<CalendarViewService | null>(null)
 
   /** A reference to the day-view component */
-  @ViewChild(TkdDayViewComponent, { static: true })
+  @ViewChild(TkdDayViewComponent, { static: false })
   dayViewComponent!: TkdDayViewComponent<CalEvent>;
 
   /** Callback handler for adjusting the size-factor using '+' and '-' keys */
@@ -578,6 +579,17 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         }
 
         this.resetDisplayedCalendars()
+
+        if (this.viewInitialized) {
+          this.dayViewComponent.doAutoScroll();
+        } else {
+          setTimeout(() => {
+            requestAnimationFrame(() => {
+              this.dayViewComponent.doAutoScroll()
+            })
+          }, 500)
+        }
+
         lastService = current;
       },
       { allowSignalWrites: true }
@@ -635,7 +647,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   }
 
   protected handleCalendarSwipe(evt: HammerInput) {
-    if (Math.abs(evt.deltaX) < 300) {
+    if (Math.abs(evt.deltaX) < 100) {
       return;
     }
 
@@ -669,5 +681,10 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.navService.forceHide.set(false);
+  }
+
+  private viewInitialized = false;
+  ngAfterViewInit(): void {
+    this.viewInitialized = true
   }
 }

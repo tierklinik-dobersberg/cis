@@ -112,8 +112,6 @@ export class CalendarViewService {
       .then(response => {
         this.shiftDefinitions.set(response.definitions);
         this.shifts.set(response.shifts);
-
-        console.log('got shifts', response.shifts);
       });
 
     const loadEvents = this.loadEvents(date, abrt);
@@ -308,8 +306,6 @@ export class CalendarViewService {
         .map(id => profileById.get(id))
         .filter(profile => !!profile)
         .forEach(profile => {
-          console.log('creating shift event for profile', profile);
-
           const calendarId = getCalendarId(profile);
           if (!calendarId) {
             return;
@@ -349,7 +345,6 @@ export class CalendarViewService {
         });
     });
 
-    console.log('shift events', shiftEvents);
     return shiftEvents;
   });
 
@@ -357,8 +352,6 @@ export class CalendarViewService {
   protected readonly _computedEvents = computed(() => {
     const shiftEvents = this._computedShiftEvents();
     const events = this.events();
-
-    console.log('shift events', shiftEvents);
 
     return [...shiftEvents, ...events];
   });
@@ -396,8 +389,6 @@ export class CalendarViewService {
         { signal: abrt?.signal }
       )
       .catch(err => {
-        console.error('failed to load events for date ', date, err);
-
         return new ListEventsResponse({ results: [] });
       })
       .then(response => {

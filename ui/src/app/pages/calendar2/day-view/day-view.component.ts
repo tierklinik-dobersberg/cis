@@ -6,6 +6,7 @@ import {
 } from '@angular/cdk/drag-drop';
 import { AsyncPipe, NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
 import {
+  AfterViewInit,
   booleanAttribute,
   ChangeDetectionStrategy,
   Component,
@@ -87,7 +88,7 @@ export interface EventMovedEvent<E> {
     `,
   ],
 })
-export class TkdDayViewComponent<E extends Timed>  {
+export class TkdDayViewComponent<E extends Timed> implements AfterViewInit  {
   private readonly destroyRef = inject(DestroyRef);
   private readonly ngZone = inject(NgZone);
 
@@ -205,7 +206,6 @@ export class TkdDayViewComponent<E extends Timed>  {
 
   /** Whether or not the calendar should scroll to the current time / first event */
   public readonly autoScroll = input(false, { transform: booleanAttribute });
-  public scrolled = false;
 
   /** Emits when the user clicks on a calendar */
   public readonly calendarClick = output<CalendarMouseEvent<E, Calendar>>();
@@ -305,28 +305,6 @@ export class TkdDayViewComponent<E extends Timed>  {
 
       this.zoom();
     });
-
-    let prevDate: Date | null = null;
-    effect(() => {
-      const events = this.events();
-      const currentDate = this.currentDate();
-
-      /*
-      this.activeDrags.forEach(d => {
-        try {
-          d.reset();
-        } catch(err) {
-
-        }
-      })
-      this.activeDrags = [];
-      */
-
-      if (!prevDate || prevDate.getTime() != currentDate.getTime()) {
-        this.doAutoScroll();
-        prevDate = currentDate;
-      }
-    });
   }
 
   /** The current time */
@@ -339,7 +317,7 @@ export class TkdDayViewComponent<E extends Timed>  {
     share({ connector: () => new BehaviorSubject(new Date()) })
   );
 
-  scrollTo(seconds: number, behavior: ScrollBehavior = 'smooth') {
+  scrollTo(seconds: number, behavior: ScrollBehavior = 'instant') {
     const offset = seconds * this.sizeFactor();
     console.log('scrolling to ', offset);
     this.calendarContainer.nativeElement.scrollTo({
@@ -416,14 +394,8 @@ export class TkdDayViewComponent<E extends Timed>  {
     return firstEvent;
   }
 
-  private doAutoScroll() {
-    //if (this.scrolled) {
-    //  console.log("not scrolling")
-    //  return;
-    //}
+  public doAutoScroll() {
 
-    if (this.autoScroll()) {
-      // if we show the current time we scroll there
       if (this.showCurrentTime()) {
         const now = new Date();
 
@@ -437,7 +409,6 @@ export class TkdDayViewComponent<E extends Timed>  {
         );
 
         console.log('scrolled to now');
-        this.scrolled = true;
         return;
       }
 
@@ -451,11 +422,9 @@ export class TkdDayViewComponent<E extends Timed>  {
       }
 
       if (firstEvent !== Infinity) {
-        this.scrolled = true;
         console.log('scrolled to first event');
         this.scrollTo(firstEvent);
       }
-    }
   }
 
   public readonly dragging = model(false);
@@ -596,5 +565,13 @@ export class TkdDayViewComponent<E extends Timed>  {
           )
         : undefined,
     });
+  }
+
+  ngAfterViewInit(): void {
+    /*
+      setTimeout( () => {
+        this.doAutoScroll()
+      }, 500)
+    */
   }
 }

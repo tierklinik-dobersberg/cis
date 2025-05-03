@@ -1,10 +1,10 @@
 import {
-    Directive,
-    ElementRef,
-    HostListener,
-    inject,
-    input,
-    model
+  Directive,
+  ElementRef,
+  HostListener,
+  inject,
+  input,
+  model
 } from '@angular/core';
 import { BrnPopoverTriggerDirective } from '@spartan-ng/ui-popover-brain';
 
@@ -55,7 +55,6 @@ export class AppPopoverTriggerDirective extends BrnPopoverTriggerDirective {
       },
     ];
 
-    console.log("open")
     this._brnDialog.open()
   }
 
@@ -66,7 +65,6 @@ export class AppPopoverTriggerDirective extends BrnPopoverTriggerDirective {
     }
     this.isOpen = false;
 
-    console.log("close")
     this._brnDialog?.close(null);
   }
 }

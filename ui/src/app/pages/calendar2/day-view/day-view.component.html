@@ -35,9 +35,11 @@
   #calendarContainer
   (scroll)="handleScroll($event)">
   <div
+    style="visibility: hidden; width: 0px"
+    [style.height]="24 * 3600 | secondsToPixel: sizeFactor()"></div>
+  <div
     class="grid-container w-full"
-    [style.gridTemplateColumns]="_computedGridTemplateColumns()"
-    [style.height]="24 * 3600 | secondsToPixel: sizeFactor()">
+    [style.gridTemplateColumns]="_computedGridTemplateColumns()">
     @for (cal of _computedCalendarsToDisplay(); track cal.id) {
       <div
         #container
