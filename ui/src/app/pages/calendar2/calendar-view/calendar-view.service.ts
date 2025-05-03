@@ -1,4 +1,4 @@
-import { computed, effect, Injectable, signal, Signal } from '@angular/core';
+import { computed, Injectable, signal, Signal } from '@angular/core';
 import { Timestamp } from '@bufbuild/protobuf';
 import { sortUserProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import {
@@ -54,11 +54,11 @@ export class CalendarViewService {
   })
 
   public reload() {
-    this.loadEvents(this.date())
+    this.loadEvents(this.date)
   }
 
   constructor(
-    public readonly date: Signal<Date>,
+    public readonly date: Date,
 
     /** A list of available calendars */
     public readonly allCalendars: Signal<PbCalendar[]>,
@@ -69,14 +69,6 @@ export class CalendarViewService {
     /** All user profiles */
     public readonly profiles: Signal<Profile[]>,
   ) {
-
-    // Effect to load users shifts
-    effect(
-      () => {
-        const date = this.date();
-        if (!date) {
-          return;
-        }
 
         this.loading.set(true);
 
@@ -117,11 +109,6 @@ export class CalendarViewService {
               this.abrt = null
             }
           })
-      },
-      {
-        allowSignalWrites: true,
-      }
-    );
 
   }
 
@@ -270,7 +257,7 @@ export class CalendarViewService {
   protected readonly _computedShiftEvents = computed(() => {
     const shifts = this.shifts();
     const profiles = this.profiles();
-    const date = startOfDay(this.date());
+    const date = startOfDay(this.date);
     const types = this.rosterTypes();
 
     const definitions = this.shiftDefinitions();
@@ -368,7 +355,7 @@ export class CalendarViewService {
 
   /** Whether or not the current date is today */
   public readonly isToday = computed(() => {
-    const date = this.date();
+    const date = this.date;
     if (!date) {
       return;
     }

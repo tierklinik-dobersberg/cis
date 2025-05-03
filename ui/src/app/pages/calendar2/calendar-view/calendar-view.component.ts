@@ -3,18 +3,22 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  computed,
   DestroyRef,
   effect,
   inject,
+  Injector,
   LOCALE_ID,
   model,
   OnDestroy,
   OnInit,
   Renderer2,
+  runInInjectionContext,
   signal,
+  untracked,
   ViewChild
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
@@ -62,11 +66,12 @@ import {
   addDays,
   addSeconds,
   getMinutes,
+  isSameDay,
   setMinutes,
   setSeconds
 } from 'date-fns';
 import { toast } from 'ngx-sonner';
-import { debounceTime, filter, map } from 'rxjs';
+import { debounceTime, map } from 'rxjs';
 import {
   TkdDatePickerComponent,
   TkdDatePickerInputDirective,
@@ -217,7 +222,20 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   protected readonly layout = inject(LayoutService);
 
   /** The currently selected date */
-  protected readonly currentDate = signal<Date | null>(null);
+  protected readonly currentDate = toSignal(
+    this.activeRoute.queryParamMap
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        map(paramMap => paramMap.get('d')),
+        map(dateString => {
+          if (dateString) {
+            return new Date(dateString)
+          }
+
+          return new Date()
+        })
+      )
+  )
 
   /** A list of available calendars */
   protected readonly allCalendars = signal<PbCalendar[]>([]);
@@ -249,14 +267,25 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   /** A dummy variable to type-safety in the template */
   protected readonly calendarType: Calendar = null;
 
-  protected viewService = new CalendarViewService(
-    this.currentDate,
+  protected viewService = signal(new CalendarViewService(
+    this.currentDate(),
     this.allCalendars,
     this.rosterTypes,
     this.profiles
-  )
+  ))
 
-  protected viewState = this.viewService.viewState;
+  protected viewState = computed(() => {
+    const service = this.viewService()
+
+    if (!service) {
+      return null
+    }
+
+    return service.viewState()
+  })
+
+  protected nextService = signal<CalendarViewService | null>(null)
+  protected prevService = signal<CalendarViewService | null>(null)
 
   /** A reference to the day-view component */
   @ViewChild(TkdDayViewComponent, { static: true })
@@ -278,8 +307,6 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
     this.skipLoading = true;
 
     let duration = Math.round(e.duration / (15*60)) *15*60
-
-    console.log("handleResize", e)
 
     // apply min-duration
     if (duration < 15 * 60) {
@@ -325,7 +352,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       id: evt.event.id + '-moved'
     })
 
-    const res = this.viewService.eventListResponse()
+    const res = this.viewService().eventListResponse()
     const sourceCalendar = res.results.find(c => c.calendar.id === evt.event.calendarId)
     const sourceIndex = sourceCalendar.events.findIndex(e => e.id === evt.event.id);
 
@@ -337,7 +364,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       sourceCalendar.events[sourceIndex] = copy  
     }
 
-    this.viewService.eventListResponse.set(new ListEventsResponse({
+    this.viewService().eventListResponse.set(new ListEventsResponse({
       ...res,
     }))
 
@@ -432,6 +459,63 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   constructor() {
     const localeId = inject(LOCALE_ID);
     const datePipe = new DatePipe(localeId);
+    const injector = inject(Injector)
+
+    effect(() => {
+      const current = this.viewService();
+      if (!current) {
+        return
+      }
+
+      let next: CalendarViewService;
+      let prev: CalendarViewService;
+      runInInjectionContext(injector, () => {
+        next = new CalendarViewService(
+          addDays(current.date, 1),
+          this.allCalendars,
+          this.rosterTypes,
+          this.profiles
+        )
+
+        prev = new CalendarViewService(
+          addDays(current.date, -1),
+          this.allCalendars,
+          this.rosterTypes,
+          this.profiles
+        )
+      })
+
+      this.nextService.set(next);
+      this.prevService.set(prev);
+    }, { allowSignalWrites: true })
+
+    effect(() => {
+      const date = this.currentDate();
+
+      // if we're just switching to the next or prev date we might just need
+      // to replace the service with the existing nextService or prevService
+      // respectively.
+      let next = untracked(() => this.nextService())
+      let prev = untracked(() => this.prevService())
+      if (isSameDay(next?.date, date)) {
+        this.viewService.set(next)
+        return
+      }
+
+      if (isSameDay(prev?.date, date)) {
+        this.viewService.set(prev)
+        return
+      }
+
+      runInInjectionContext(injector, () => {
+        this.viewService.set(new CalendarViewService(
+          date,
+          this.allCalendars,
+          this.rosterTypes,
+          this.profiles
+        ))
+      })
+    }, {allowSignalWrites: true})
 
     if (
       window.localStorage &&
@@ -465,7 +549,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
         }
 
         console.log("loading events due to events event")
-        this.viewService.reload()
+        this.viewService().reload()
       });
 
     effect(
@@ -484,7 +568,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
 
     effect(
       () => {
-        const loading = this.viewService.loading();
+        const loading = this.viewService().loading();
         if (!loading) {
           return
         }
@@ -505,7 +589,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
   }
 
   protected resetDisplayedCalendars() {
-    const events = this.viewService.viewState().events;
+    const events = this.viewService().viewState().events;
     const set = new Set<string>();
 
     events.forEach(evt => {
@@ -541,28 +625,6 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy {
       )
     );
 
-    this.activeRoute.queryParamMap
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        map(paramMap => paramMap.get('d')),
-        filter(dateString => {
-          if (dateString) {
-            return true;
-          }
-
-          this.router.navigate([], {
-            queryParams: {
-              d: toDateString(new Date()),
-            },
-            queryParamsHandling: 'merge',
-          });
-
-          return false;
-        })
-      )
-      .subscribe(date => {
-        this.currentDate.set(new Date(date));
-      });
   }
 
   protected handleCalendarSwipe(evt: HammerInput) {

@@ -1,248 +1,253 @@
-<header
-  class="z-10 flex flex-row items-center gap-2 pb-4 xl:max-h-full xl:min-w-[390px] xl:flex-col xl:border-r xl:border-t xl:border-border xl:bg-white xl:pb-8">
-  <!-- Date controls -->
-  <div class="flex flex-row flex-nowrap gap-1 xl:p-4">
-    <tkd-date-picker
-      [ngModel]="currentDate()"
-      (ngModelChange)="setDate($event)"
-      [variant]="layout.xl() ? 'inline' : 'default'"
-      class="inline-block"
-      withTime="false">
-      <tkd-picker-trigger
-        *tdkDatePickerTrigger
-        dateFormat="fullDate"
-        buttonClass="w-[unset] px-4" />
-    </tkd-date-picker>
+@if (viewState() !== null) {
+  <header
+    class="z-10 flex flex-row items-center gap-2 pb-4 xl:max-h-full xl:min-w-[390px] xl:flex-col xl:border-r xl:border-t xl:border-border xl:bg-white xl:pb-8">
+    <!-- Date controls -->
+    <div class="flex flex-row flex-nowrap gap-1 xl:p-4">
+      <tkd-date-picker
+        [ngModel]="currentDate()"
+        (ngModelChange)="setDate($event)"
+        [variant]="layout.xl() ? 'inline' : 'default'"
+        class="inline-block"
+        withTime="false">
+        <tkd-picker-trigger
+          *tdkDatePickerTrigger
+          dateFormat="fullDate"
+          buttonClass="w-[unset] px-4" />
+      </tkd-date-picker>
 
-    <button
-      hlmBtn
-      variant="outline"
-      class="relative xl:top-2"
-      (click)="loadToday()">
-      Heute
-    </button>
-  </div>
-
-  <!-- Spacer -->
-  <div class="flex-grow xl:hidden"></div>
-
-  <ng-template #calendarTabs>
-    <div class="w-full flex-grow overflow-auto xl:p-4">
-      <hlm-tabs tab="roster" class="w-full">
-        <hlm-tabs-list
-          class="grid w-full grid-cols-2"
-          aria-label="tabs example">
-          <button hlmTabsTrigger="calendars">Kalender</button>
-          <button hlmTabsTrigger="roster">Dienstplan</button>
-        </hlm-tabs-list>
-
-        <div hlmTabsContent="roster">
-          <app-roster-card
-            [(calendarDate)]="currentDate"
-            variant="small"
-            (shiftClick)="handleShiftClick($event)" />
-        </div>
-
-        <div hlmTabsContent="calendars">
-          <ol class="flex h-full w-full list-none flex-col gap-4">
-            @for (cal of viewState().calendars; track cal.id) {
-              <li>
-                <label
-                  hlmLabel
-                  class="flex flex-row items-center"
-                  [attr.calendar-id]="cal.id"
-                  [style.--color]="cal.color | toRgba: '0.2'"
-                  [style.--border-color]="cal.color | toRgba">
-                  <hlm-checkbox
-                    class="mr-2 border-[--border-color] data-[state=checked]:bg-[--color] data-[state=checked]:text-[--border-color]"
-                    (changed)="toggleUser(cal.id)"
-                    [checked]="displayedCalendars().includes(cal.id)" />
-                  {{ cal.name }}
-                </label>
-              </li>
-            }
-          </ol>
-        </div>
-      </hlm-tabs>
-    </div>
-  </ng-template>
-
-  <ng-template #zoomControls>
-    <!-- Zoom Controls -->
-    <div
-      class="flex flex-row flex-nowrap items-center gap-0 xl:w-full xl:border-t xl:border-gray-100 xl:p-2">
       <button
         hlmBtn
         variant="outline"
-        size="sm"
-        class="rounded-r-none border-r-0"
-        (click)="dayView.zoomIn()">
-        <hlm-icon name="lucideZoomIn" size="sm" />
+        class="relative xl:top-2"
+        (click)="loadToday()">
+        Heute
       </button>
-
-      <button
-        hlmBtn
-        size="sm"
-        variant="outline"
-        class="rounded-l-none"
-        (click)="dayView.zoomOut()">
-        <hlm-icon name="lucideZoomOut" size="sm" />
-      </button>
-
-      <button
-        hlmBtn
-        class="mx-2"
-        variant="secondary"
-        (click)="resetDisplayedCalendars()">
-        Zurücksetzten
-      </button>
-
-      @if (layout.lg()) {
-        <!-- spacer -->
-        <div class="w-4 xl:w-auto xl:flex-grow"></div>
-
-        <label hlmLabel class="flex items-center">
-          <hlm-checkbox [(ngModel)]="navService.forceHide" class="mr-2" />
-          Menü ausblenden
-        </label>
-      }
     </div>
-  </ng-template>
 
-  @if (layout.xl()) {
-    <ng-container *ngTemplateOutlet="calendarTabs" />
-  }
+    <!-- Spacer -->
+    <div class="flex-grow xl:hidden"></div>
 
-  @if (layout.sm()) {
-    <ng-container *ngTemplateOutlet="zoomControls" />
-  }
+    <ng-template #calendarTabs>
+      <div class="w-full flex-grow overflow-auto xl:p-4">
+        <hlm-tabs tab="roster" class="w-full">
+          <hlm-tabs-list
+            class="grid w-full grid-cols-2"
+            aria-label="tabs example">
+            <button hlmTabsTrigger="calendars">Kalender</button>
+            <button hlmTabsTrigger="roster">Dienstplan</button>
+          </hlm-tabs-list>
 
-  @if (!layout.xl()) {
-    <hlm-sheet #sheet side="right">
-      <button hlmBtn variant="outline" size="icon" brnSheetTrigger>
-        <hlm-icon name="lucideCog" size="sm" />
-      </button>
-
-      <hlm-sheet-content *brnSheetContent="let ctx">
-        <div class="mt-4 flex h-full flex-col gap-3">
-          <div class="flex flex-grow flex-col">
-            <ng-container *ngTemplateOutlet="calendarTabs" />
+          <div hlmTabsContent="roster">
+            <app-roster-card
+              [calendarDate]="currentDate()"
+              (calendarDateChange)="setDate($event)"
+              variant="small"
+              (shiftClick)="handleShiftClick($event)" />
           </div>
 
-          <ng-container *ngTemplateOutlet="zoomControls" />
-        </div>
-      </hlm-sheet-content>
-    </hlm-sheet>
-  }
-</header>
-
-<tkd-day-view
-  [currentDate]="currentDate()"
-  [(sizeFactor)]="sizeFactor"
-  (calendarClick)="handleCalendarClick($event)"
-  #dayView="tkdDayView"
-  class="!m-0 w-full flex-grow cursor-not-allowed border-t border-border bg-white"
-  autoScroll="true"
-  [showCurrentTime]="viewService.isToday()"
-  [calendars]="viewState().calendars"
-  [displayCalendars]="displayedCalendars()"
-  (onResize)="handleResize($event)"
-  (swipe)="handleCalendarSwipe($any($event))"
-  (eventMoved)="handleEventMoved($event)"
-  [events]="viewState().events">
-  <!-- Calendar Header Cell -->
-  <ng-template
-    [headerCell]="calendarType"
-    #headerCell="tkdCalendarHeaderCell"
-    let-calendar>
-    <div
-      [userColorVars]="calendar.id | byCalendarId: profiles()"
-      (click)="handleCalendarHeaderClick(calendar)"
-      class="cursor-pointer select-none overflow-hidden text-ellipsis whitespace-nowrap rounded-t-md bg-white p-2 text-center text-sm font-medium text-[var(--user-color,black)]">
-      {{ calendar.name }}
-    </div>
-  </ng-template>
-
-  <!-- Event Cell Template -->
-  <ng-template
-    [eventCell]="calendarType"
-    #eventCell="tkdCalendarEventCell"
-    let-event
-    let-calendar="calendar">
-    @if (!event.isShiftType) {
-      <brn-popover #hoverCard [align]="'end'" sideOffset="0">
-        <div
-          hlmPopoverContent
-          class="flex !w-[unset] min-w-80 max-w-96 flex-col gap-2"
-          *brnPopoverContent="let ctx">
-          <div class="flex flex-col gap-2">
-            <h4 class="font-medium leading-none">{{ event.summary }}</h4>
-            <span
-              class="flex flex-row items-center gap-2 overflow-hidden text-sm text-opacity-25"
-              [class.pr-4]="!!event.customerId">
-              <hlm-icon
-                class="text-opacity-25"
-                size="sm"
-                name="lucideClock"></hlm-icon>
-
-              <span> {{ event.startTime | toDate | date: 'HH:mm' }}</span>
-              <span>-</span>
-              <span>
-                {{ event.duration | duration }}
-              </span>
-            </span>
+          <div hlmTabsContent="calendars">
+            <ol class="flex h-full w-full list-none flex-col gap-4">
+              @for (cal of viewState().calendars; track cal.id) {
+                <li>
+                  <label
+                    hlmLabel
+                    class="flex flex-row items-center"
+                    [attr.calendar-id]="cal.id"
+                    [style.--color]="cal.color | toRgba: '0.2'"
+                    [style.--border-color]="cal.color | toRgba">
+                    <hlm-checkbox
+                      class="mr-2 border-[--border-color] data-[state=checked]:bg-[--color] data-[state=checked]:text-[--border-color]"
+                      (changed)="toggleUser(cal.id)"
+                      [checked]="displayedCalendars().includes(cal.id)" />
+                    {{ cal.name }}
+                  </label>
+                </li>
+              }
+            </ol>
           </div>
-
-          @if (event.description) {
-            <div
-              class="mt-1.5 w-full overflow-hidden border-t border-dashed border-white border-opacity-50 pt-1.5"
-              [innerHTML]="event.description"></div>
-          }
-        </div>
-      </brn-popover>
-
-      <div
-        class="event-container h-full w-full transform overflow-hidden drop-shadow hover:bg-blend-difference hover:shadow-lg">
-        <div
-          [appPopoverTrigger]="event"
-          [appPopoverTriggerMode]="'shared-side'"
-          [appPopoverTriggerDisabled]="!layout.md()"
-          [brnPopoverTriggerFor]="hoverCard"
-          [userColorVars]="calendar.id | byCalendarId: profiles()"
-          [style.--user-color]="event.colorOverwrite || null"
-          [style.--user-contrast]="event.colorOverwrite || null | contrast"
-          class="event-details h-full w-full cursor-pointer overflow-hidden border border-[var(--user-contrast)] bg-[var(--user-color,white)] p-2 text-xs text-[var(--user-contrast)]">
-          <div
-            class="event-summary relative flex w-full flex-row flex-wrap justify-between gap-1 overflow-hidden">
-            <span
-              class="event-summary flex-shrink-0 overflow-hidden text-ellipsis font-semibold">
-              {{ event.summary }}
-            </span>
-
-            <span
-              class="event-start-time flex flex-shrink flex-row gap-2 overflow-hidden text-opacity-25"
-              [class.pr-4]="!!event.customerId">
-              <span> {{ event.startTime | toDate | date: 'HH:mm' }} - </span>
-              <span>
-                {{ event.duration | duration }}
-              </span>
-            </span>
-
-            @if (event.customerId) {
-              <hlm-icon name="lucideStar" variant="sm" />
-            }
-          </div>
-          @if (event.description) {
-            <div
-              class="event-description mt-1.5 hidden w-full overflow-hidden border-t border-dashed border-white border-opacity-50 pt-1.5"
-              [innerHTML]="event.description"></div>
-          }
-        </div>
+        </hlm-tabs>
       </div>
-    } @else {
+    </ng-template>
+
+    <ng-template #zoomControls>
+      <!-- Zoom Controls -->
       <div
-        class="h-full w-full cursor-default bg-[--color] bg-opacity-20 shadow-inner"
-        [style.--color]="event.colorOverwrite | toRgba: '0.5'"></div>
+        class="flex flex-row flex-nowrap items-center gap-0 xl:w-full xl:border-t xl:border-gray-100 xl:p-2">
+        <button
+          hlmBtn
+          variant="outline"
+          size="sm"
+          class="rounded-r-none border-r-0"
+          (click)="dayView.zoomIn()">
+          <hlm-icon name="lucideZoomIn" size="sm" />
+        </button>
+
+        <button
+          hlmBtn
+          size="sm"
+          variant="outline"
+          class="rounded-l-none"
+          (click)="dayView.zoomOut()">
+          <hlm-icon name="lucideZoomOut" size="sm" />
+        </button>
+
+        <button
+          hlmBtn
+          class="mx-2"
+          variant="secondary"
+          (click)="resetDisplayedCalendars()">
+          Zurücksetzten
+        </button>
+
+        @if (layout.lg()) {
+          <!-- spacer -->
+          <div class="w-4 xl:w-auto xl:flex-grow"></div>
+
+          <label hlmLabel class="flex items-center">
+            <hlm-checkbox [(ngModel)]="navService.forceHide" class="mr-2" />
+            Menü ausblenden
+          </label>
+        }
+      </div>
+    </ng-template>
+
+    @if (layout.xl()) {
+      <ng-container *ngTemplateOutlet="calendarTabs" />
     }
-  </ng-template>
-</tkd-day-view>
+
+    @if (layout.sm()) {
+      <ng-container *ngTemplateOutlet="zoomControls" />
+    }
+
+    @if (!layout.xl()) {
+      <hlm-sheet #sheet side="right">
+        <button hlmBtn variant="outline" size="icon" brnSheetTrigger>
+          <hlm-icon name="lucideCog" size="sm" />
+        </button>
+
+        <hlm-sheet-content *brnSheetContent="let ctx">
+          <div class="mt-4 flex h-full flex-col gap-3">
+            <div class="flex flex-grow flex-col">
+              <ng-container *ngTemplateOutlet="calendarTabs" />
+            </div>
+
+            <ng-container *ngTemplateOutlet="zoomControls" />
+          </div>
+        </hlm-sheet-content>
+      </hlm-sheet>
+    }
+  </header>
+
+  <tkd-day-view
+    [currentDate]="currentDate()"
+    [(sizeFactor)]="sizeFactor"
+    (calendarClick)="handleCalendarClick($event)"
+    #dayView="tkdDayView"
+    class="!m-0 w-full flex-grow cursor-not-allowed border-t border-border bg-white"
+    autoScroll="true"
+    [showCurrentTime]="viewService().isToday()"
+    [calendars]="viewState().calendars"
+    [displayCalendars]="displayedCalendars()"
+    (onResize)="handleResize($event)"
+    (swipe)="handleCalendarSwipe($any($event))"
+    (eventMoved)="handleEventMoved($event)"
+    [events]="viewState().events">
+    <!-- Calendar Header Cell -->
+    <ng-template
+      [headerCell]="calendarType"
+      #headerCell="tkdCalendarHeaderCell"
+      let-calendar>
+      <div
+        [userColorVars]="calendar.id | byCalendarId: profiles()"
+        (click)="handleCalendarHeaderClick(calendar)"
+        class="cursor-pointer select-none overflow-hidden text-ellipsis whitespace-nowrap rounded-t-md bg-white p-2 text-center text-sm font-medium text-[var(--user-color,black)]">
+        {{ calendar.name }}
+      </div>
+    </ng-template>
+
+    <!-- Event Cell Template -->
+    <ng-template
+      [eventCell]="calendarType"
+      #eventCell="tkdCalendarEventCell"
+      let-event
+      let-calendar="calendar">
+      @if (!event.isShiftType) {
+        <brn-popover #hoverCard [align]="'end'" sideOffset="0">
+          <div
+            hlmPopoverContent
+            class="flex !w-[unset] min-w-80 max-w-96 flex-col gap-2"
+            *brnPopoverContent="let ctx">
+            <div class="flex flex-col gap-2">
+              <h4 class="font-medium leading-none">{{ event.summary }}</h4>
+              <span
+                class="flex flex-row items-center gap-2 overflow-hidden text-sm text-opacity-25"
+                [class.pr-4]="!!event.customerId">
+                <hlm-icon
+                  class="text-opacity-25"
+                  size="sm"
+                  name="lucideClock"></hlm-icon>
+
+                <span> {{ event.startTime | toDate | date: 'HH:mm' }}</span>
+                <span>-</span>
+                <span>
+                  {{ event.duration | duration }}
+                </span>
+              </span>
+            </div>
+
+            @if (event.description) {
+              <div
+                class="mt-1.5 w-full overflow-hidden border-t border-dashed border-white border-opacity-50 pt-1.5"
+                [innerHTML]="event.description"></div>
+            }
+          </div>
+        </brn-popover>
+
+        <div
+          class="event-container h-full w-full transform overflow-hidden drop-shadow hover:bg-blend-difference hover:shadow-lg">
+          <div
+            [appPopoverTrigger]="event"
+            [appPopoverTriggerMode]="'shared-side'"
+            [appPopoverTriggerDisabled]="!layout.md()"
+            [brnPopoverTriggerFor]="hoverCard"
+            [userColorVars]="calendar.id | byCalendarId: profiles()"
+            [style.--user-color]="event.colorOverwrite || null"
+            [style.--user-contrast]="event.colorOverwrite || null | contrast"
+            class="event-details h-full w-full cursor-pointer overflow-hidden border border-[var(--user-contrast)] bg-[var(--user-color,white)] p-2 text-xs text-[var(--user-contrast)]">
+            <div
+              class="event-summary relative flex w-full flex-row flex-wrap justify-between gap-1 overflow-hidden">
+              <span
+                class="event-summary flex-shrink-0 overflow-hidden text-ellipsis font-semibold">
+                {{ event.summary }}
+              </span>
+
+              <span
+                class="event-start-time flex flex-shrink flex-row gap-2 overflow-hidden text-opacity-25"
+                [class.pr-4]="!!event.customerId">
+                <span> {{ event.startTime | toDate | date: 'HH:mm' }} - </span>
+                <span>
+                  {{ event.duration | duration }}
+                </span>
+              </span>
+
+              @if (event.customerId) {
+                <hlm-icon name="lucideStar" variant="sm" />
+              }
+            </div>
+            @if (event.description) {
+              <div
+                class="event-description mt-1.5 hidden w-full overflow-hidden border-t border-dashed border-white border-opacity-50 pt-1.5"
+                [innerHTML]="event.description"></div>
+            }
+          </div>
+        </div>
+      } @else {
+        <div
+          class="h-full w-full cursor-default bg-[--color] bg-opacity-20 shadow-inner"
+          [style.--color]="event.colorOverwrite | toRgba: '0.5'"></div>
+      }
+    </ng-template>
+  </tkd-day-view>
+}
+
+{{ nextService()?.date }}
