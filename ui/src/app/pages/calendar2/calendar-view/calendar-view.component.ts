@@ -514,13 +514,24 @@ export class TkdCalendarViewComponent
         // respectively.
         let next = untracked(() => this.nextService());
         let prev = untracked(() => this.prevService());
+        let toReplace: CalendarViewService | null = null;
+        let dir = 'abort';
+
         if (isSameDay(next?.date, date)) {
-          this.viewService.set(next);
-          return;
+          toReplace = next;
+          dir = 'left';
+        } else if (isSameDay(prev?.date, date)) {
+          toReplace = prev;
+          dir = 'right';
         }
 
-        if (isSameDay(prev?.date, date)) {
-          this.viewService.set(prev);
+        if (toReplace) {
+          this.startPanning();
+          requestAnimationFrame(() => {
+            this.stopPanning(dir as any, () => {
+              this.viewService.set(toReplace);
+            });
+          });
           return;
         }
 
@@ -658,55 +669,122 @@ export class TkdCalendarViewComponent
   protected readonly dayViewClass = signal('');
   protected readonly panActive = signal(false);
 
-  protected handlePanStart(event: HammerInput) {
+  protected handlePanStart(event: HammerInput) {}
+
+  private lastPanDeltaX = 0;
+
+  protected handlePanMove(event: HammerInput) {
+    if (this.layout.md()) {
+      return;
+    }
+
+    var clientX: number | null = null;
+
+    if (event.srcEvent instanceof MouseEvent) {
+      clientX = event.srcEvent.clientX;
+    } else if (
+      event.srcEvent instanceof TouchEvent &&
+      event.srcEvent.touches.length === 1
+    ) {
+      clientX = event.srcEvent.touches[0].clientX;
+    } else if (event.srcEvent instanceof PointerEvent) {
+      clientX = event.srcEvent.clientX;
+    }
+
+    if (clientX === null) {
+      return;
+    }
+
+    if (!this.panActive()) {
+      if (
+        (Math.abs(event.deltaX) < 20 &&
+          clientX < window.innerWidth * 0.7 &&
+          clientX > window.innerHeight * 0.3) ||
+        Math.abs(event.deltaX) < 5
+      ) {
+        return;
+      }
+
+      this.startPanning();
+      this.lastPanDeltaX = event.deltaX;
+    } else {
+      this.translateX.set('calc(-100% + ' + event.deltaX + 'px)');
+
+      if (Math.abs(this.lastPanDeltaX) < Math.abs(event.deltaX)) {
+        this.lastPanDeltaX = event.deltaX;
+      }
+    }
+  }
+
+  private startPanning() {
     this.translateX.set('-100%');
     this.panActive.set(true);
   }
 
-  protected handlePanMove(event: HammerInput) {
-    this.translateX.set('calc(-100% + ' + event.deltaX + 'px)');
-  }
-
   protected handlePanStop(evt: HammerInput) {
-    this.dayViewClass.set('transition-transform duration-500');
+    if (!this.panActive()) {
+      return;
+    }
 
-    // abort if distance is lower than 100
-    if (Math.abs(evt.deltaX) < 400) {
-        this.translateX.set('-100%');
+    let x: 'right' | 'left' | 'abort' =
+      Math.abs(evt.deltaX) > 80 ? (evt.deltaX > 0 ? 'right' : 'left') : 'abort';
 
-        setTimeout(() => {
-          this.dayViewClass.set('');
-          this.translateX.set('0%');
-          this.panActive.set(false);
-        }, 500)
+    let newDate: Date;
+    if (
+      Math.abs(evt.deltaX) < 80 ||
+      Math.abs(evt.deltaX) < Math.abs(this.lastPanDeltaX)
+    ) {
+      x = 'abort';
     } else {
-      const x =
-        Math.abs(evt.deltaX) > 80 ? (evt.deltaX > 0 ? 'right' : 'left') : '';
-
-      this.dayViewClass.set('transition-transform duration-500');
-
       const date = this.currentDate();
-      let newDate: Date;
 
       switch (x) {
         case 'left':
           newDate = addDays(date, 1);
-          this.translateX.set('-200%');
           break;
 
         case 'right':
           newDate = addDays(date, -1);
-          this.translateX.set('0%');
           break;
       }
-
-      setTimeout(() => {
-        this.setDate(newDate);
-        this.dayViewClass.set('');
-        this.translateX.set('0%');
-        this.panActive.set(false);
-      }, 500);
     }
+
+    this.stopPanning(x, newDate);
+  }
+
+  private stopPanning(
+    direction: 'left' | 'right' | 'abort',
+    newDate?: Date | (() => void)
+  ) {
+    this.dayViewClass.set('transition-transform duration-500');
+    this.lastPanDeltaX = 0;
+
+    switch (direction) {
+      case 'left':
+        this.translateX.set('-200%');
+        break;
+
+      case 'right':
+        this.translateX.set('0%');
+        break;
+
+      case 'abort':
+        this.translateX.set('-100%');
+        break;
+    }
+
+    setTimeout(() => {
+      if (newDate) {
+        if (newDate instanceof Date) {
+          this.setDate(newDate);
+        } else {
+          newDate();
+        }
+      }
+      this.dayViewClass.set('');
+      this.translateX.set('0%');
+      this.panActive.set(false);
+    }, 500);
   }
 
   protected handleCalendarSwipe(evt: HammerInput) {

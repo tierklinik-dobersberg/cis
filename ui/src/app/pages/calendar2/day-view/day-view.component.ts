@@ -216,7 +216,7 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
   @ViewChild('calendarContainer', { read: ElementRef, static: true })
   protected readonly calendarContainer!: ElementRef<HTMLElement>;
 
-  private activeDrags: CdkDrag[] = [];
+  private activeDrags: CdkDrag | null = null;
 
   private startY: number | null = null;
 
@@ -303,6 +303,14 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
   }
 
   constructor() {
+    effect(() => {
+      const disabled = this.disabled()
+
+      if (disabled && this.activeDrags) {
+        this.activeDrags.reset();
+      }
+    })
+
     effect(() => {
       this.sizeFactor();
 
@@ -447,14 +455,17 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
   public readonly dragging = model(false);
 
   onDragStart(event: CdkDragStart) {
-    this.activeDrags.push(event.source);
+    this.activeDrags = event.source
   }
 
   onEventDropped(event: CdkDragRelease) {
-    if (!this.layout.md()) {
+    this.activeDrags = null;
+
+    if (!this.layout.md() || this.disabled()) {
       event.source.reset();
       return;
     }
+
 
     const elementBounds =
       event.source.element.nativeElement.getBoundingClientRect();
