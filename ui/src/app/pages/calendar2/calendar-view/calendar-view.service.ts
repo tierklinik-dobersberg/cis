@@ -38,6 +38,7 @@ export interface CalendarView {
   shifts: PlannedShift[];
   date: Date;
   isToday: boolean;
+  defaultDisplayCalendars: string[]
 }
 
 @Injectable()
@@ -58,6 +59,14 @@ export class CalendarViewService {
       return null;
     }
 
+    const set = new Set<string>();
+
+    events.forEach(evt => {
+      set.add(evt.calendarId);
+    });
+
+    const values = Array.from(set.values());
+
     return {
       events,
       workingStaff,
@@ -65,6 +74,7 @@ export class CalendarViewService {
       shifts,
       date: this.date,
       isToday: this.isToday(),
+      defaultDisplayCalendars: values,
     };
   });
 

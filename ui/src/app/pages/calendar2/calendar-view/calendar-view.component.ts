@@ -17,25 +17,29 @@ import {
   runInInjectionContext,
   signal,
   untracked,
-  ViewChild
+  ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
-import { lucideClock, lucideCog, lucideStar, lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
+import {
+  lucideClock,
+  lucideCog,
+  lucideStar,
+  lucideZoomIn,
+  lucideZoomOut,
+} from '@ng-icons/lucide';
 import { BrnPopoverModule } from '@spartan-ng/ui-popover-brain';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import { BrnSheetModule } from '@spartan-ng/ui-sheet-brain';
-import {
-  injectUserProfiles
-} from '@tierklinik-dobersberg/angular/behaviors';
+import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
 import { HlmCheckboxComponent } from '@tierklinik-dobersberg/angular/checkbox';
 import {
   injectCalendarService,
-  injectRosterService
+  injectRosterService,
 } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import {
@@ -44,10 +48,7 @@ import {
 } from '@tierklinik-dobersberg/angular/icon';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
-import {
-  DurationPipe,
-  ToDatePipe
-} from '@tierklinik-dobersberg/angular/pipes';
+import { DurationPipe, ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmPopoverModule } from '@tierklinik-dobersberg/angular/popover';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { HlmSheetModule } from '@tierklinik-dobersberg/angular/sheet';
@@ -57,11 +58,11 @@ import {
   CalendarEvent,
   ListEventsResponse,
   MoveEventResponse,
-  Calendar as PbCalendar
+  Calendar as PbCalendar,
 } from '@tierklinik-dobersberg/apis/calendar/v1';
 import {
   PlannedShift,
-  RosterType
+  RosterType,
 } from '@tierklinik-dobersberg/apis/roster/v1';
 import {
   addDays,
@@ -69,7 +70,7 @@ import {
   getMinutes,
   isSameDay,
   setMinutes,
-  setSeconds
+  setSeconds,
 } from 'date-fns';
 import { toast } from 'ngx-sonner';
 import { debounceTime, map } from 'rxjs';
@@ -103,7 +104,7 @@ import {
   Timed,
   TkdCalendarEventCellTemplateDirective,
   TkdCalendarHeaderCellTemplateDirective,
-  TkdDayViewComponent
+  TkdDayViewComponent,
 } from '../day-view';
 import { StyledTimed } from '../day-view/event-style.pipe';
 import { CalendarViewService } from './calendar-view.service';
@@ -193,7 +194,7 @@ export type CalEvent = Timed &
       }
 
       .event-details {
-          @apply flex flex-col flex-nowrap;
+        @apply flex flex-col flex-nowrap;
       }
 
       @container (min-height: 55px) {
@@ -204,7 +205,9 @@ export type CalEvent = Timed &
     `,
   ],
 })
-export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewInit {
+export class TkdCalendarViewComponent
+  implements OnInit, OnDestroy, AfterViewInit
+{
   private readonly calendarAPI = injectCalendarService();
   private readonly rosterAPI = injectRosterService();
   private readonly activeRoute = inject(ActivatedRoute);
@@ -214,7 +217,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewIni
   private readonly document = inject(DOCUMENT);
   private readonly dialog = inject(HlmDialogService);
   private readonly header = inject(HeaderTitleService);
-  protected readonly cdr = inject(ChangeDetectorRef)
+  protected readonly cdr = inject(ChangeDetectorRef);
 
   // Used by the template
 
@@ -224,19 +227,18 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewIni
 
   /** The currently selected date */
   protected readonly currentDate = toSignal(
-    this.activeRoute.queryParamMap
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        map(paramMap => paramMap.get('d')),
-        map(dateString => {
-          if (dateString) {
-            return new Date(dateString)
-          }
+    this.activeRoute.queryParamMap.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      map(paramMap => paramMap.get('d')),
+      map(dateString => {
+        if (dateString) {
+          return new Date(dateString);
+        }
 
-          return new Date()
-        })
-      )
-  )
+        return new Date();
+      })
+    )
+  );
 
   /** A list of available calendars */
   protected readonly allCalendars = signal<PbCalendar[]>([]);
@@ -268,25 +270,27 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewIni
   /** A dummy variable to type-safety in the template */
   protected readonly calendarType: Calendar = null;
 
-  protected viewService = signal(new CalendarViewService(
-    this.currentDate(),
-    this.allCalendars,
-    this.rosterTypes,
-    this.profiles
-  ))
+  protected viewService = signal(
+    new CalendarViewService(
+      this.currentDate(),
+      this.allCalendars,
+      this.rosterTypes,
+      this.profiles
+    )
+  );
 
   protected viewState = computed(() => {
-    const service = this.viewService()
+    const service = this.viewService();
 
     if (!service) {
-      return null
+      return null;
     }
 
-    return service.viewState()
-  })
+    return service.viewState();
+  });
 
-  protected nextService = signal<CalendarViewService | null>(null)
-  protected prevService = signal<CalendarViewService | null>(null)
+  protected nextService = signal<CalendarViewService | null>(null);
+  protected prevService = signal<CalendarViewService | null>(null);
 
   /** A reference to the day-view component */
   @ViewChild(TkdDayViewComponent, { static: false })
@@ -304,70 +308,79 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewIni
   }
 
   /** A callback for the day-view component to handle calendar-event resize events */
-  protected handleResize(e: {event: StyledTimed, duration: number}) {
+  protected handleResize(e: { event: StyledTimed; duration: number }) {
     this.skipLoading = true;
 
-    let duration = Math.round(e.duration / (15*60)) *15*60
+    let duration = Math.round(e.duration / (15 * 60)) * 15 * 60;
 
     // apply min-duration
     if (duration < 15 * 60) {
-      duration = 15*60;
+      duration = 15 * 60;
     }
 
     // update the event style now to immediately reflect the changes
-    e.event.style.height = (this.dayViewComponent.sizeFactor() * duration) + 'px';
-    e.event.style = {...e.event.style};
+    e.event.style.height = this.dayViewComponent.sizeFactor() * duration + 'px';
+    e.event.style = { ...e.event.style };
 
     this.calendarAPI
       .updateEvent({
-        calendarId:e.event.calendarId, 
+        calendarId: e.event.calendarId,
         eventId: e.event.id as any,
-        end: Timestamp.fromDate( addSeconds(coerceDate(e.event.from), duration) ), 
+        end: Timestamp.fromDate(addSeconds(coerceDate(e.event.from), duration)),
         updateMask: {
-          paths: ['end']
-        }
+          paths: ['end'],
+        },
       })
-      .catch( err => {
+      .catch(err => {
         toast.error('Termin konnte nicht gespeichert werden', {
-          description: ConnectError.from(err).message
-        })
-      })
+          description: ConnectError.from(err).message,
+        });
+      });
   }
 
-  
   /** A callback function for the day-view component to handle calendar-event moves */
   protected handleEventMoved(evt: EventMovedEvent<CalEvent>) {
     this.skipLoading = true;
 
-    const duration = Number(evt.event.endTime?.seconds - evt.event.startTime.seconds);
+    const duration = Number(
+      evt.event.endTime?.seconds - evt.event.startTime.seconds
+    );
 
-    if (duration < 0 || isNaN(duration))  {
-      return
+    if (duration < 0 || isNaN(duration)) {
+      return;
     }
 
     const copy = new CalendarEvent({
       ...evt.event,
       startTime: Timestamp.fromDate(evt.date),
       calendarId: evt.calendarId,
-      endTime: Timestamp.fromDate( addSeconds(evt.date, duration)),
-      id: evt.event.id + '-moved'
-    })
+      endTime: Timestamp.fromDate(addSeconds(evt.date, duration)),
+      id: evt.event.id + '-moved',
+    });
 
-    const res = this.viewService().eventListResponse()
-    const sourceCalendar = res.results.find(c => c.calendar.id === evt.event.calendarId)
-    const sourceIndex = sourceCalendar.events.findIndex(e => e.id === evt.event.id);
+    const res = this.viewService().eventListResponse();
+    const sourceCalendar = res.results.find(
+      c => c.calendar.id === evt.event.calendarId
+    );
+    const sourceIndex = sourceCalendar.events.findIndex(
+      e => e.id === evt.event.id
+    );
 
     if (evt.calendarId !== evt.event.calendarId) {
-      const targetCalendar = res.results.find(c => c.calendar.id === evt.calendarId);
-      sourceCalendar.events.splice(sourceIndex, 1)
+      const targetCalendar = res.results.find(
+        c => c.calendar.id === evt.calendarId
+      );
+      sourceCalendar.events.splice(sourceIndex, 1);
       targetCalendar.events.push(copy);
     } else {
-      sourceCalendar.events[sourceIndex] = copy  
+      sourceCalendar.events[sourceIndex] = copy;
     }
 
-    this.viewService().eventListResponse.set(new ListEventsResponse({
-      ...res,
-    }))
+    this.viewService().eventListResponse.set(
+      new ListEventsResponse({
+        ...res,
+      })
+    );
 
     this.calendarAPI
       .updateEvent({
@@ -376,33 +389,32 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewIni
         start: copy.startTime,
         end: copy.endTime,
         updateMask: {
-          paths: ['start', 'end']
-        }
+          paths: ['start', 'end'],
+        },
       })
       .then(() => {
         // check if we need to move the event to a different calendar as well
         if (evt.calendarId !== evt.event.calendarId) {
-          return this.calendarAPI
-            .moveEvent({
-              eventId: evt.event.id,
-              source: {
-                case: 'sourceCalendarId',
-                value: evt.event.calendarId
-              },
-              target: {
-                case: 'targetCalendarId',
-                value: evt.calendarId,
-              }
-            })
+          return this.calendarAPI.moveEvent({
+            eventId: evt.event.id,
+            source: {
+              case: 'sourceCalendarId',
+              value: evt.event.calendarId,
+            },
+            target: {
+              case: 'targetCalendarId',
+              value: evt.calendarId,
+            },
+          });
         }
 
-        return Promise.resolve(new MoveEventResponse)
+        return Promise.resolve(new MoveEventResponse());
       })
       .catch(err => {
         toast.error('Termin konnte nicht gespeichert werden', {
-          description: ConnectError.from(err).message
-        })
-      })
+          description: ConnectError.from(err).message,
+        });
+      });
   }
 
   /** A callback function for the day-view component to handle event and calendar clicks */
@@ -429,7 +441,7 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewIni
       return;
     }
 
-    AppEventDetailsDialogComponent.open(this.dialog, ctx)
+    AppEventDetailsDialogComponent.open(this.dialog, ctx);
   }
 
   /** A utility method used by the template to quickly switch the current date to today */
@@ -460,63 +472,71 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewIni
   constructor() {
     const localeId = inject(LOCALE_ID);
     const datePipe = new DatePipe(localeId);
-    const injector = inject(Injector)
+    const injector = inject(Injector);
 
-    effect(() => {
-      const current = this.viewService();
-      if (!current) {
-        return
-      }
+    effect(
+      () => {
+        const current = this.viewService();
+        if (!current) {
+          return;
+        }
 
-      let next: CalendarViewService;
-      let prev: CalendarViewService;
-      runInInjectionContext(injector, () => {
-        next = new CalendarViewService(
-          addDays(current.date, 1),
-          this.allCalendars,
-          this.rosterTypes,
-          this.profiles
-        )
+        let next: CalendarViewService;
+        let prev: CalendarViewService;
+        runInInjectionContext(injector, () => {
+          next = new CalendarViewService(
+            addDays(current.date, 1),
+            this.allCalendars,
+            this.rosterTypes,
+            this.profiles
+          );
 
-        prev = new CalendarViewService(
-          addDays(current.date, -1),
-          this.allCalendars,
-          this.rosterTypes,
-          this.profiles
-        )
-      })
+          prev = new CalendarViewService(
+            addDays(current.date, -1),
+            this.allCalendars,
+            this.rosterTypes,
+            this.profiles
+          );
+        });
 
-      this.nextService.set(next);
-      this.prevService.set(prev);
-    }, { allowSignalWrites: true })
+        this.nextService.set(next);
+        this.prevService.set(prev);
+      },
+      { allowSignalWrites: true }
+    );
 
-    effect(() => {
-      const date = this.currentDate();
+    effect(
+      () => {
+        const date = this.currentDate();
 
-      // if we're just switching to the next or prev date we might just need
-      // to replace the service with the existing nextService or prevService
-      // respectively.
-      let next = untracked(() => this.nextService())
-      let prev = untracked(() => this.prevService())
-      if (isSameDay(next?.date, date)) {
-        this.viewService.set(next)
-        return
-      }
+        // if we're just switching to the next or prev date we might just need
+        // to replace the service with the existing nextService or prevService
+        // respectively.
+        let next = untracked(() => this.nextService());
+        let prev = untracked(() => this.prevService());
+        if (isSameDay(next?.date, date)) {
+          this.viewService.set(next);
+          return;
+        }
 
-      if (isSameDay(prev?.date, date)) {
-        this.viewService.set(prev)
-        return
-      }
+        if (isSameDay(prev?.date, date)) {
+          this.viewService.set(prev);
+          return;
+        }
 
-      runInInjectionContext(injector, () => {
-        this.viewService.set(new CalendarViewService(
-          date,
-          this.allCalendars,
-          this.rosterTypes,
-          this.profiles
-        ))
-      })
-    }, {allowSignalWrites: true})
+        runInInjectionContext(injector, () => {
+          this.viewService.set(
+            new CalendarViewService(
+              date,
+              this.allCalendars,
+              this.rosterTypes,
+              this.profiles
+            )
+          );
+        });
+      },
+      { allowSignalWrites: true }
+    );
 
     if (
       window.localStorage &&
@@ -546,28 +566,27 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewIni
       .pipe(takeUntilDestroyed(), debounceTime(1000))
       .subscribe(() => {
         if (this.skipLoading) {
-          return
-        }
-
-        console.log("loading events due to events event")
-        this.viewService()?.reload()
-        this.nextService()?.reload()
-        this.prevService()?.reload()
-      });
-
-    effect(
-      () => {
-        const date = this.currentDate();
-
-        if (!date) {
           return;
         }
 
-        this.header.set(
-          'Kalender',
-          'Termine am ' + datePipe.transform(date, 'fullDate')
-        );
-    })
+        console.log('loading events due to events event');
+        this.viewService()?.reload();
+        this.nextService()?.reload();
+        this.prevService()?.reload();
+      });
+
+    effect(() => {
+      const date = this.currentDate();
+
+      if (!date) {
+        return;
+      }
+
+      this.header.set(
+        'Kalender',
+        'Termine am ' + datePipe.transform(date, 'fullDate')
+      );
+    });
 
     let lastService: CalendarViewService | null = null;
     effect(
@@ -575,20 +594,22 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewIni
         const current = this.viewService();
         const loading = current.loading();
         if (loading || current === lastService) {
-          return
+          return;
         }
 
-        this.resetDisplayedCalendars()
+        this.resetDisplayedCalendars();
 
+        /*
         if (this.viewInitialized) {
           this.dayViewComponent.doAutoScroll();
         } else {
           setTimeout(() => {
             requestAnimationFrame(() => {
-              this.dayViewComponent.doAutoScroll()
-            })
-          }, 500)
+              this.dayViewComponent.doAutoScroll();
+            });
+          }, 500);
         }
+        */
 
         lastService = current;
       },
@@ -599,32 +620,20 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewIni
   protected handleCalendarHeaderClick(cal: Calendar) {
     const display = this.displayedCalendars();
     if (display.length === 1 && display[0] === cal.id) {
-      this.resetDisplayedCalendars()
+      this.resetDisplayedCalendars();
     } else {
-      this.displayedCalendars.set([cal.id])
+      this.displayedCalendars.set([cal.id]);
     }
   }
 
   protected resetDisplayedCalendars() {
-    console.log("resetting displayed calendars")
-
-    const events = this.viewService().viewState().events;
-    const set = new Set<string>();
-
-    events.forEach(evt => {
-      set.add(evt.calendarId);
-    });
-
-    const values = Array.from(set.values());
-    this.displayedCalendars.set(values);
+    this.displayedCalendars.set(this.viewState().defaultDisplayCalendars);
   }
 
   ngOnInit(): void {
-    this.rosterAPI
-      .listRosterTypes({})
-      .then(response => {
-        this.rosterTypes.set(response.rosterTypes)
-      })
+    this.rosterAPI.listRosterTypes({}).then(response => {
+      this.rosterTypes.set(response.rosterTypes);
+    });
 
     this.calendarAPI
       .listCalendars({ includeVirtualResourceCalendars: true })
@@ -643,7 +652,61 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewIni
         this.handleKeyPress.bind(this)
       )
     );
+  }
 
+  protected readonly translateX = signal('0%');
+  protected readonly dayViewClass = signal('');
+  protected readonly panActive = signal(false);
+
+  protected handlePanStart(event: HammerInput) {
+    this.translateX.set('-100%');
+    this.panActive.set(true);
+  }
+
+  protected handlePanMove(event: HammerInput) {
+    this.translateX.set('calc(-100% + ' + event.deltaX + 'px)');
+  }
+
+  protected handlePanStop(evt: HammerInput) {
+    this.dayViewClass.set('transition-transform duration-500');
+
+    // abort if distance is lower than 100
+    if (Math.abs(evt.deltaX) < 400) {
+        this.translateX.set('-100%');
+
+        setTimeout(() => {
+          this.dayViewClass.set('');
+          this.translateX.set('0%');
+          this.panActive.set(false);
+        }, 500)
+    } else {
+      const x =
+        Math.abs(evt.deltaX) > 80 ? (evt.deltaX > 0 ? 'right' : 'left') : '';
+
+      this.dayViewClass.set('transition-transform duration-500');
+
+      const date = this.currentDate();
+      let newDate: Date;
+
+      switch (x) {
+        case 'left':
+          newDate = addDays(date, 1);
+          this.translateX.set('-200%');
+          break;
+
+        case 'right':
+          newDate = addDays(date, -1);
+          this.translateX.set('0%');
+          break;
+      }
+
+      setTimeout(() => {
+        this.setDate(newDate);
+        this.dayViewClass.set('');
+        this.translateX.set('0%');
+        this.panActive.set(false);
+      }, 500);
+    }
   }
 
   protected handleCalendarSwipe(evt: HammerInput) {
@@ -659,12 +722,12 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewIni
 
     switch (x) {
       case 'left':
-        this.setDate(addDays(date, 1))
+        this.setDate(addDays(date, 1));
         break;
 
       case 'right':
-        this.setDate(addDays(date, -1))
-        break
+        this.setDate(addDays(date, -1));
+        break;
     }
   }
 
@@ -674,9 +737,9 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewIni
     const cals = shift.assignedUserIds
       .map(user => profiles.find(u => u.user.id === user))
       .map(profile => getCalendarId(profile))
-      .filter(cal => !!cal)
+      .filter(cal => !!cal);
 
-    this.displayedCalendars.set(cals)
+    this.displayedCalendars.set(cals);
   }
 
   ngOnDestroy(): void {
@@ -685,6 +748,6 @@ export class TkdCalendarViewComponent implements OnInit, OnDestroy, AfterViewIni
 
   private viewInitialized = false;
   ngAfterViewInit(): void {
-    this.viewInitialized = true
+    this.viewInitialized = true;
   }
 }

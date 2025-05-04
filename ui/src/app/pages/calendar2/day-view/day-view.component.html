@@ -74,11 +74,17 @@
             class="absolute overflow-visible transition duration-150 ease-in-out"
             [tkdEventResize]="event"
             [tkdEventResizeDisabled]="
-              event.virtualCopy || event.ignoreOverlapping || !layout.md()
+              event.virtualCopy ||
+              event.ignoreOverlapping ||
+              !layout.md() ||
+              disabled()
             "
             cdkDrag
             [cdkDragDisabled]="
-              event.virtualCopy || event.ignoreOverlapping || !layout.md()
+              event.virtualCopy ||
+              event.ignoreOverlapping ||
+              !layout.md() ||
+              disabled()
             "
             (cdkDragReleased)="onEventDropped($event)"
             (cdkDragStarted)="onDragStart($event)"

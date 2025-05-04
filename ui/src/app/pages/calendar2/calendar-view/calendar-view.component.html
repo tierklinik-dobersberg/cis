@@ -194,7 +194,7 @@
         <div
           [appPopoverTrigger]="event"
           [appPopoverTriggerMode]="'shared-side'"
-          [appPopoverTriggerDisabled]="!layout.md()"
+          [appPopoverTriggerDisabled]="!layout.md() || panActive()"
           [brnPopoverTriggerFor]="hoverCard"
           [userColorVars]="calendar.id | byCalendarId: profiles()"
           [style.--user-color]="event.colorOverwrite || null"
@@ -235,23 +235,65 @@
   </ng-template>
 
   <div
-    class="!m-0 flex w-full flex-grow flex-row flex-nowrap overflow-x-hidden">
+    class="!m-0 flex w-full flex-grow flex-row flex-nowrap overflow-x-hidden"
+    (panstart)="handlePanStart($any($event))"
+    (panmove)="handlePanMove($any($event))"
+    (panend)="handlePanStop($any($event))">
+    @if (panActive()) {
+      <tkd-day-view
+        [disabled]="true"
+        [style.transform]="'translateX(' + translateX() + ')'"
+        [currentDate]="prevService().viewState().date"
+        [(sizeFactor)]="sizeFactor"
+        [scrollTop]="dayView.scrollTop()"
+        class="h-full w-full flex-shrink-0 cursor-not-allowed border-t border-border bg-white {{
+          dayViewClass()
+        }}"
+        [calendars]="prevService().viewState().calendars"
+        [displayCalendars]="prevService().viewState().defaultDisplayCalendars"
+        [headerCellTemplate]="headerCell"
+        [eventCellTemplate]="eventCell"
+        [events]="prevService().viewState().events">
+      </tkd-day-view>
+    }
+
     <tkd-day-view
+      [disabled]="panActive()"
+      [style.transform]="'translateX(' + translateX() + ')'"
       [currentDate]="viewState().date"
       [(sizeFactor)]="sizeFactor"
       (calendarClick)="handleCalendarClick($event)"
       #dayView="tkdDayView"
-      class="h-full w-full flex-shrink-0 cursor-not-allowed border-t border-border bg-white"
+      class="h-full w-full flex-shrink-0 cursor-not-allowed border-t border-border bg-white {{
+        dayViewClass()
+      }}"
       autoScroll="true"
       [showCurrentTime]="viewState().isToday"
       [calendars]="viewState().calendars"
       [displayCalendars]="displayedCalendars()"
       (onResize)="handleResize($event)"
-      (swipe)="handleCalendarSwipe($any($event))"
       (eventMoved)="handleEventMoved($event)"
       [headerCellTemplate]="headerCell"
       [eventCellTemplate]="eventCell"
       [events]="viewState().events">
     </tkd-day-view>
+
+    @if (panActive()) {
+      <tkd-day-view
+        [disabled]="true"
+        [style.transform]="'translateX(' + translateX() + ')'"
+        [scrollTop]="dayView.scrollTop()"
+        [currentDate]="nextService().viewState().date"
+        [(sizeFactor)]="sizeFactor"
+        class="h-full w-full flex-shrink-0 cursor-not-allowed border-t border-border bg-white {{
+          dayViewClass()
+        }}"
+        [calendars]="nextService().viewState().calendars"
+        [displayCalendars]="nextService().viewState().defaultDisplayCalendars"
+        [headerCellTemplate]="headerCell"
+        [eventCellTemplate]="eventCell"
+        [events]="nextService().viewState().events">
+      </tkd-day-view>
+    }
   </div>
 }

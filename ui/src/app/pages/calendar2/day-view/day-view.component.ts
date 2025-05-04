@@ -22,7 +22,7 @@ import {
   NgZone,
   output,
   signal,
-  ViewChild
+  ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
@@ -35,12 +35,7 @@ import { TkdEventResizeDirective } from './event-resize.directive';
 import { EventStylePipe, StyledTimed } from './event-style.pipe';
 import { TkdCalendarHeaderCellTemplateDirective } from './header-cell.directive';
 import { coerceDate } from './is-same-day.pipe';
-import {
-  Calendar,
-  CalendarMouseEvent,
-  DateInput,
-  Timed
-} from './models';
+import { Calendar, CalendarMouseEvent, DateInput, Timed } from './models';
 import { SecondsToPixelPipe } from './seconds-to-pixel.pipe';
 import { getSeconds } from './sort.pipe';
 import { TimeFormatPipe } from './time.pipe';
@@ -88,7 +83,7 @@ export interface EventMovedEvent<E> {
     `,
   ],
 })
-export class TkdDayViewComponent<E extends Timed> implements AfterViewInit  {
+export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly ngZone = inject(NgZone);
 
@@ -110,6 +105,9 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit  {
     return data.map(() => '1fr').join(' ');
   });
 
+  /** Whether or not interactions with events are disabled */
+  public readonly disabled = input(false);
+
   /** The current factor for calculating pixel offsets in the calendar */
   public readonly sizeFactor = model(DEFAULT_HOUR_HEIGHT_PX / 60 / 60);
 
@@ -130,8 +128,12 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit  {
   /** The actual events to display. */
   public readonly events = input<E[]>([]);
 
-  public readonly headerCellTemplate = input<TkdCalendarHeaderCellTemplateDirective<E, Calendar> | null>(null)
-  public readonly eventCellTemplate = input<TkdCalendarEventCellTemplateDirective<E, Calendar> | null>(null)
+  public readonly scrollTop = model<number>(0);
+
+  public readonly headerCellTemplate =
+    input<TkdCalendarHeaderCellTemplateDirective<E, Calendar> | null>(null);
+  public readonly eventCellTemplate =
+    input<TkdCalendarEventCellTemplateDirective<E, Calendar> | null>(null);
 
   public readonly onResize = output<{ event: StyledTimed; duration: number }>();
 
@@ -283,6 +285,7 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit  {
   }
 
   protected handleScroll(event: Event) {
+    this.scrollTop.set(this.calendarContainer.nativeElement.scrollTop)
     this.calculateCursorTime();
   }
 
@@ -305,6 +308,22 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit  {
 
       this.zoom();
     });
+
+    effect(() => {
+      const top = this.scrollTop();
+      if (!this.calendarContainer) {
+        return
+      }
+
+      console.log("adjusting scroll top")
+
+      if (this.calendarContainer.nativeElement.scrollTop !== top) {
+        this.calendarContainer.nativeElement.scrollTo({
+          top: top,
+          behavior: 'instant'
+        })
+      }
+    })
   }
 
   /** The current time */
@@ -325,7 +344,6 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit  {
       behavior,
     });
   }
-
 
   zoomIn(step = this.sizeFactor() * 0.05) {
     this.sizeFactor.set(this.sizeFactor() + step);
@@ -395,36 +413,35 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit  {
   }
 
   public doAutoScroll() {
+    if (this.showCurrentTime()) {
+      const now = new Date();
 
-      if (this.showCurrentTime()) {
-        const now = new Date();
+      this.scrollTo(
+        now.getHours() * 60 * 60 +
+          now.getMinutes() * 60 +
+          now.getSeconds() -
+          // give it a 5 minute offset so the current-time line is not
+          // directly on the top
+          5 * 60
+      );
 
-        this.scrollTo(
-          now.getHours() * 60 * 60 +
-            now.getMinutes() * 60 +
-            now.getSeconds() -
-            // give it a 5 minute offset so the current-time line is not
-            // directly on the top
-            5 * 60
-        );
+      console.log('scrolled to now');
+      return;
+    }
 
-        console.log('scrolled to now');
-        return;
-      }
+    // find the first calendar event that does not have "ignoreOverlapping" set
+    let firstEvent = this.getFirstEventTime(true);
 
-      // find the first calendar event that does not have "ignoreOverlapping" set
-      let firstEvent = this.getFirstEventTime(true);
+    if (firstEvent === Infinity) {
+      // we did not find a "first event". Try again but take events with "ignoreOverlapping"
+      // into account as well.
+      firstEvent = this.getFirstEventTime(false);
+    }
 
-      if (firstEvent === Infinity) {
-        // we did not find a "first event". Try again but take events with "ignoreOverlapping"
-        // into account as well.
-        firstEvent = this.getFirstEventTime(false);
-      }
-
-      if (firstEvent !== Infinity) {
-        console.log('scrolled to first event');
-        this.scrollTo(firstEvent);
-      }
+    if (firstEvent !== Infinity) {
+      console.log('scrolled to first event');
+      this.scrollTo(firstEvent);
+    }
   }
 
   public readonly dragging = model(false);
@@ -568,6 +585,11 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit  {
   }
 
   ngAfterViewInit(): void {
+    this.calendarContainer.nativeElement.scrollTo({
+      top: this.scrollTop(),
+      behavior: 'instant'
+    })
+
     /*
       setTimeout( () => {
         this.doAutoScroll()
