@@ -52,6 +52,7 @@ import { coerceDate } from '@tierklinik-dobersberg/angular/utils/date';
 import {
   addMonths,
   endOfDay,
+  endOfMinute,
   getDate,
   getHours,
   getMinutes,
@@ -65,6 +66,7 @@ import {
   setMonth,
   setYear,
   startOfDay,
+  startOfMinute
 } from 'date-fns';
 import { combineLatest, debounceTime, startWith } from 'rxjs';
 import { AppDateTableModule, CalendarRange } from '../date-table';
@@ -435,6 +437,7 @@ export class TkdDatePickerComponent
         if (withTime) {
           date = setHours(date, this.startHour())
           date = setMinutes(date, this.startMinute())
+          date = startOfMinute(date)
         } else {
           date = startOfDay(date);
         }
@@ -442,6 +445,7 @@ export class TkdDatePickerComponent
         if (withTime) {
           date = setHours(date, this.endHour())
           date = setMinutes(date, this.endMinute());
+          date = endOfMinute(date)
         } else {
           date = endOfDay(date);
         }
@@ -454,6 +458,7 @@ export class TkdDatePickerComponent
 
     this.applyDate(date, what);
     if (what === 'start') {
+      console.log("resetting end date")
       this.endDate.set(null);
     }
   }
@@ -481,11 +486,11 @@ export class TkdDatePickerComponent
     const minutes = getMinutes(date);
 
     if (what === 'start') {
-      this.startDate.set(date);
+      this.startDate.set(startOfMinute(date));
       this.startHour.set(hours);
       this.startMinute.set(minutes);
     } else {
-      this.endDate.set(date);
+      this.endDate.set(endOfMinute(date));
       this.endHour.set(hours);
       this.endMinute.set(minutes);
     }
@@ -495,7 +500,17 @@ export class TkdDatePickerComponent
     let date = what === 'start' ? this.startDate() : this.endDate();
 
     if (!date) {
-      date = new Date();
+      if (what === 'start') {
+        date = new Date();
+        date = setHours(date, this.startHour())
+        date = setMinutes(date, this.startMinute())
+        date = startOfMinute(date)
+      } else {
+        date = this.startDate();
+        date = setHours(date, this.endHour())
+        date = setMinutes(date, this.endMinute())
+        date = endOfMinute(date)
+      }
     }
 
     date = setHours(date, h);
@@ -506,7 +521,17 @@ export class TkdDatePickerComponent
     let date = what === 'start' ? this.startDate() : this.endDate();
 
     if (!date) {
-      date = new Date();
+      if (what === 'start') {
+        date = new Date();
+        date = setHours(date, this.startHour())
+        date = setMinutes(date, this.startMinute())
+        date = startOfMinute(date)
+      } else {
+        date = this.startDate();
+        date = setHours(date, this.endHour())
+        date = setMinutes(date, this.endMinute())
+        date = endOfMinute(date)
+      }
     }
 
     date = setMinutes(date, m);
@@ -532,7 +557,18 @@ export class TkdDatePickerComponent
 
     if (this.isRangeSelect()) {
       if (!end && !this.allowOpenRange()) {
-        end = endOfDay(start);
+        if (this.withTime()) {
+          end = start
+          end = setHours(end, this.endHour())
+          end = setMinutes(end, this.endMinute())
+          end = endOfMinute(end)
+
+          if (isBefore(end, start)) {
+            end = endOfMinute(start)
+          }
+        } else {
+          end = endOfDay(start);
+        }
       }
 
       this._onChange([start, end]);
