@@ -225,6 +225,8 @@ export class TkdCalendarViewComponent
 
   protected readonly layout = inject(LayoutService);
 
+  protected readonly scrollTop = model<number>();
+
   /** The currently selected date */
   protected readonly currentDate = toSignal(
     this.activeRoute.queryParamMap.pipe(
@@ -298,12 +300,21 @@ export class TkdCalendarViewComponent
 
   /** Callback handler for adjusting the size-factor using '+' and '-' keys */
   private handleKeyPress(event: KeyboardEvent) {
+    console.log("key", event.key)
     if (event.key === '+') {
       this.dayViewComponent?.zoomIn();
     }
 
     if (event.key === '-') {
       this.dayViewComponent?.zoomOut();
+    }
+
+    if (event.key === 'ArrowLeft') {
+      this.setDate(addDays(this.currentDate(), -1))
+    }
+
+    if (event.key === 'ArrowRight') {
+      this.setDate(addDays(this.currentDate(), 1))
     }
   }
 
@@ -659,7 +670,7 @@ export class TkdCalendarViewComponent
     this.destroyRef.onDestroy(
       this.renderer.listen(
         this.document,
-        'keypress',
+        'keydown',
         this.handleKeyPress.bind(this)
       )
     );
@@ -695,12 +706,24 @@ export class TkdCalendarViewComponent
       return;
     }
 
+    let y: 'top' | 'bottom' | '' =
+      Math.abs(event.deltaY) > 80 ? (event.deltaY > 0 ? 'bottom' : 'top') : '';
+
+    if (y !== '' && this.panActive() && Math.abs(event.deltaY) >= Math.abs(event.deltaX)) {
+      console.log("aborting pan due to vertical movement")
+      this.panActive.set(false);
+      this.dayViewClass.set('')
+      this.translateX.set('0%')
+      return
+    }
+
     if (!this.panActive()) {
       if (
         (Math.abs(event.deltaX) < 20 &&
           clientX < window.innerWidth * 0.7 &&
           clientX > window.innerHeight * 0.3) ||
-        Math.abs(event.deltaX) < 5
+        Math.abs(event.deltaX) < 5 ||
+        y !== ''
       ) {
         return;
       }

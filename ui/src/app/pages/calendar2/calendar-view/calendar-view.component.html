@@ -262,6 +262,7 @@
       [style.transform]="'translateX(' + translateX() + ')'"
       [currentDate]="viewState().date"
       [(sizeFactor)]="sizeFactor"
+      [(scrollTop)]="scrollTop"
       (calendarClick)="handleCalendarClick($event)"
       #dayView="tkdDayView"
       class="h-full w-full flex-shrink-0 cursor-not-allowed border-t border-border bg-white {{
