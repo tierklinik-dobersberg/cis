@@ -1,4 +1,4 @@
-import { CommonModule, DatePipe, DOCUMENT } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -7,17 +7,17 @@ import {
   computed,
   DestroyRef,
   effect,
+  HostListener,
   inject,
   Injector,
   LOCALE_ID,
   model,
   OnDestroy,
   OnInit,
-  Renderer2,
   runInInjectionContext,
   signal,
   untracked,
-  ViewChild,
+  ViewChild
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -161,6 +161,10 @@ export type CalEvent = Timed &
       lucideClock,
     }),
   ],
+  host: {
+    '[attr.tabindex]': "'0'",
+    '[autofocus]': "'true'",
+  },
   styles: [
     `
       :host {
@@ -213,8 +217,6 @@ export class TkdCalendarViewComponent
   private readonly activeRoute = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
-  private readonly renderer = inject(Renderer2);
-  private readonly document = inject(DOCUMENT);
   private readonly dialog = inject(HlmDialogService);
   private readonly header = inject(HeaderTitleService);
   protected readonly cdr = inject(ChangeDetectorRef);
@@ -299,8 +301,8 @@ export class TkdCalendarViewComponent
   dayViewComponent!: TkdDayViewComponent<CalEvent>;
 
   /** Callback handler for adjusting the size-factor using '+' and '-' keys */
-  private handleKeyPress(event: KeyboardEvent) {
-    console.log("key", event.key)
+  @HostListener('keydown', ['$event'])
+  public handleKeyPress(event: KeyboardEvent) {
     if (event.key === '+') {
       this.dayViewComponent?.zoomIn();
     }
@@ -667,6 +669,7 @@ export class TkdCalendarViewComponent
         this.allCalendars.set(calendars);
       });
 
+      /*
     this.destroyRef.onDestroy(
       this.renderer.listen(
         this.document,
@@ -674,6 +677,7 @@ export class TkdCalendarViewComponent
         this.handleKeyPress.bind(this)
       )
     );
+    */
   }
 
   protected readonly translateX = signal('0%');
