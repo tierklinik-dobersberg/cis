@@ -3,6 +3,7 @@ import {
     AfterViewInit,
     Component,
     ContentChild,
+    effect,
     EmbeddedViewRef,
     model,
     signal,
@@ -10,7 +11,7 @@ import {
     ViewChild,
     ViewContainerRef
 } from '@angular/core';
-import { addDays } from 'date-fns';
+import { addDays, isSameDay } from 'date-fns';
 import {
     PanEndEvent,
     PanStartEvent,
@@ -48,6 +49,19 @@ export class DateSwiperComponent implements AfterViewInit {
 
   public setDate(date: Date) {
     this.date.set(date);
+  }
+
+  constructor() {
+    effect(() => {
+        const date = this.date();
+
+        if (this.mainViewRef && !isSameDay(this.mainViewRef.context.$implicit.date, date)) {
+            this.mainViewRef.context.$implicit = {
+                date: date,
+                virtual: false
+            }
+        }
+    })
   }
 
   ngAfterViewInit(): void {
@@ -117,7 +131,7 @@ export class DateSwiperComponent implements AfterViewInit {
       }
 
       this.mainViewRef.context.$implicit = {
-        date: this.mainViewRef.context.$implicit.date,
+        date: this.date(),
         virtual: false,
       }
 
