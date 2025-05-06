@@ -39,6 +39,7 @@ import { interval } from 'rxjs';
 import { AppAvatarComponent } from 'src/app/components/avatar';
 import { TkdDatePickerComponent, TkdDatePickerInputDirective } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
+import { SwipeArrowControlDirective } from 'src/app/components/swipe-arrow-ctrl/swipe-arrow-ctrl.directive';
 import { ToRGBAPipe } from 'src/app/pipes/to-rgba.pipe';
 import { getCalendarId } from 'src/app/services';
 import { isBetween } from 'src/app/utils/date';
@@ -67,7 +68,8 @@ import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shift
     HlmTooltipModule,
     BrnTooltipModule,
     NgClass,
-    ToRGBAPipe
+    ToRGBAPipe,
+    SwipeArrowControlDirective,
   ],
   hostDirectives: [HlmCardDirective],
   providers: [
@@ -163,7 +165,6 @@ export class RosterCardComponent {
   }
 
   constructor() {
-
     interval(10 * 60 * 1000)
       .pipe(takeUntilDestroyed())
       .subscribe(() => {

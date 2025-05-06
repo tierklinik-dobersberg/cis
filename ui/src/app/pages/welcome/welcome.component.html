@@ -15,7 +15,11 @@
       <!--
       <app-roster-card (userHover)="hoveredUser.set($event)"> </app-roster-card>
     -->
-      <app-roster-card> </app-roster-card>
+      <date-swiper id="app-roster-card" #dateSwiper>
+        <app-roster-card
+          *dateSwiperContent="let ctx"
+          [calendarDate]="ctx.date"></app-roster-card>
+      </date-swiper>
     }
 
     @defer {

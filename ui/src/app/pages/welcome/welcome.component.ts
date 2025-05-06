@@ -8,6 +8,8 @@ import {
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { DisplayNamePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
+import { DateSwiperContentDirective } from 'src/app/components/date-swiper/date-swiper-content.directive';
+import { DateSwiperComponent } from 'src/app/components/date-swiper/date-swiper.component';
 import { HeaderTitleService } from 'src/app/layout/header-title';
 import { CalendarIdPipe } from 'src/app/pipes/by-calendar-id.pipe';
 import { injectCurrentUserIsAdmin } from 'src/app/services';
@@ -31,6 +33,8 @@ import { UpcomingEventsCardComponent } from './upcoming-events-card';
     RosterCardComponent,
     CalendarIdPipe,
     StudyCardComponent,
+    DateSwiperComponent,
+    DateSwiperContentDirective
   ],
   host: {
     'class': '@container'

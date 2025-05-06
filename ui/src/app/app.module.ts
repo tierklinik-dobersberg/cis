@@ -51,8 +51,8 @@ export class MyHammerConfig extends HammerGestureConfig {
   ]
 
   overrides = <any> {
-    swipe: { direction: Hammer.DIRECTION_ALL },
-    pan: {direction: Hammer.DIRECTION_ALL, enable: true},
+    swipe: { direction: Hammer.DIRECTION_HORIZONTAL },
+    pan: {direction: Hammer.DIRECTION_HORIZONTAL, enable: true},
   };
 
   options = {
