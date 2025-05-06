@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 
 export class PanEvent {
-  constructor(public readonly delta) {}
+  constructor(public readonly delta, public readonly index: number) {}
 }
 
 export class PanStartEvent extends PanEvent {}
@@ -21,9 +21,10 @@ export class PanStartEvent extends PanEvent {}
 export class PanEndEvent extends PanEvent {
   constructor(
     delta,
+    index,
     public readonly direction: 'left' | 'right' | 'abort'
   ) {
-    super(delta);
+    super(delta, index);
   }
 }
 
@@ -59,6 +60,7 @@ export class SwipeArrowControlDirective {
     alias: 'swipeArrowControlDisabled',
   });
 
+  private index = 0;
   constructor() {
     /**
      * Effect to cancel an active pan if [disabled] is set to
@@ -72,7 +74,6 @@ export class SwipeArrowControlDirective {
         if (disabled && active) {
           this._panActive.set(false);
           this._lastDelta = 0;
-          this.events.emit(new PanEndEvent(0, 'abort'));
         }
       },
       { allowSignalWrites: true }
@@ -92,11 +93,11 @@ export class SwipeArrowControlDirective {
   protected keyDown(event: KeyboardEvent) {
     switch (event.key) {
         case 'ArrowLeft':
-            this.events.emit(new PanEndEvent(0, 'right'))
+            this.events.emit(new PanEndEvent(0, ++this.index, 'right'))
             break;
 
         case 'ArrowRight':
-            this.events.emit(new PanEndEvent(0, 'left'))
+            this.events.emit(new PanEndEvent(0, ++this.index, 'left'))
             break;
     }
   }
@@ -155,14 +156,14 @@ export class SwipeArrowControlDirective {
         // start panning
         this._lastDelta = event.deltaX;
         this._panActive.set(true)
-        this.events.emit(new PanStartEvent(event.deltaX))
+        this.events.emit(new PanStartEvent(event.deltaX, ++this.index))
 
         return
     }
 
     // emit a PanEvent with the new delta and store it in _lastAbsDelta 
     // if it's higher.
-    this.events.emit(new PanEvent(event.deltaX))
+    this.events.emit(new PanEvent(event.deltaX, this.index))
     if ((this._lastDelta < 0 && event.deltaX < this._lastDelta) || (this._lastDelta > 0 && event.deltaX > this._lastDelta)) {
         this._lastDelta = event.deltaX;
     }
@@ -185,7 +186,7 @@ export class SwipeArrowControlDirective {
     }
 
     this._panActive.set(false);
-    this.events.emit(new PanEndEvent(event.deltaX, x))
+    this.events.emit(new PanEndEvent(event.deltaX, this.index, x))
   }
 
   private inStartRegion(clientX: number, bounds: DOMRect): boolean {

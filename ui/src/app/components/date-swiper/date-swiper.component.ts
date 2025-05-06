@@ -9,14 +9,14 @@ import {
     signal,
     TemplateRef,
     ViewChild,
-    ViewContainerRef
+    ViewContainerRef,
 } from '@angular/core';
 import { addDays, isSameDay } from 'date-fns';
 import {
     PanEndEvent,
     PanStartEvent,
     SwipeArrowControlDirective,
-    SwipeEvent
+    SwipeEvent,
 } from '../swipe-arrow-ctrl/swipe-arrow-ctrl.directive';
 import {
     DateSwiperContentDirective,
@@ -43,6 +43,9 @@ export class DateSwiperComponent implements AfterViewInit {
   @ViewChild('viewTemplate', { static: true, read: TemplateRef })
   viewTemplate: TemplateRef<DateSwiperContext>;
 
+  @ViewChild(SwipeArrowControlDirective, { static: true })
+  swipeArrowController: SwipeArrowControlDirective;
+
   private mainViewRef?: EmbeddedViewRef<DateSwiperContext>;
   private prevViewRef?: EmbeddedViewRef<DateSwiperContext>;
   private nextViewRef?: EmbeddedViewRef<DateSwiperContext>;
@@ -53,66 +56,81 @@ export class DateSwiperComponent implements AfterViewInit {
 
   constructor() {
     effect(() => {
-        const date = this.date();
+      const date = this.date();
 
-        if (this.mainViewRef && !isSameDay(this.mainViewRef.context.$implicit.date, date)) {
-            this.mainViewRef.context.$implicit = {
-                date: date,
-                virtual: false
-            }
-        }
-    })
+      if (
+        this.mainViewRef &&
+        !isSameDay(this.mainViewRef.context.$implicit.date, date)
+      ) {
+        this.mainViewRef.context.$implicit = {
+          date: date,
+          virtual: false,
+        };
+      }
+    });
   }
 
   ngAfterViewInit(): void {
-    this.mainViewRef = this.viewContainerRef.createEmbeddedView(this.viewTemplate, {
+    this.mainViewRef = this.viewContainerRef.createEmbeddedView(
+      this.viewTemplate,
+      {
         $implicit: {
-            date: this.date(),
-            virtual: false,
-        }
-    })
+          date: this.date(),
+          virtual: false,
+        },
+      }
+    );
   }
 
   private createViews() {
-    this.prevViewRef = this.viewContainerRef.createEmbeddedView(this.viewTemplate, {
+    this.prevViewRef = this.viewContainerRef.createEmbeddedView(
+      this.viewTemplate,
+      {
         $implicit: {
-            date: addDays(this.date(), -1),
-            virtual: true,
-        }
-    }, {index: 0})
+          date: addDays(this.date(), -1),
+          virtual: true,
+        },
+      },
+      { index: 0 }
+    );
 
-    this.nextViewRef = this.viewContainerRef.createEmbeddedView(this.viewTemplate, {
+    this.nextViewRef = this.viewContainerRef.createEmbeddedView(
+      this.viewTemplate,
+      {
         $implicit: {
-            date: addDays(this.date(), 1),
-            virtual: true
-        }
-    })
+          date: addDays(this.date(), 1),
+          virtual: true,
+        },
+      }
+    );
   }
 
   private destroyViews() {
-    this.prevViewRef?.destroy();
-    this.prevViewRef = null;
-
-    this.nextViewRef?.destroy();
-    this.nextViewRef = null;
   }
 
+  private index: number | null = null;
+
   protected handleSwipe(event: SwipeEvent) {
+    if (this.index !== null && event.index !== this.index) {
+        return
+    }
 
     if (event instanceof PanStartEvent) {
       this.createViews();
       this.startPanning();
+      this.index = event.index;
     } else if (event instanceof PanEndEvent) {
       if (event.direction !== 'abort' && event.delta === 0) {
         this.createViews();
         this.startPanning();
+        this.index = event.index;
 
-        event = new PanEndEvent(1, event.direction)
+        event = new PanEndEvent(1, event.index, event.direction);
         setTimeout(() => {
-            this.handleSwipe(event);
-        }, 0)
+          this.handleSwipe(event);
+        }, 0);
 
-        return
+        return;
       }
 
       switch (event.direction) {
@@ -121,19 +139,25 @@ export class DateSwiperComponent implements AfterViewInit {
 
         case 'left':
           this.date.set(addDays(this.date(), 1));
-          [this.nextViewRef, this.mainViewRef]  = [this.mainViewRef, this.nextViewRef];
+          [this.nextViewRef, this.mainViewRef] = [
+            this.mainViewRef,
+            this.nextViewRef,
+          ];
           break;
 
         case 'right':
           this.date.set(addDays(this.date(), -1));
-          [this.prevViewRef, this.mainViewRef]  = [this.mainViewRef, this.prevViewRef];
+          [this.prevViewRef, this.mainViewRef] = [
+            this.mainViewRef,
+            this.prevViewRef,
+          ];
           break;
       }
 
       this.mainViewRef.context.$implicit = {
         date: this.date(),
         virtual: false,
-      }
+      };
 
       this.stopPanning(event.direction);
     } else {
@@ -162,11 +186,17 @@ export class DateSwiperComponent implements AfterViewInit {
         break;
     }
 
+    const prev = this.prevViewRef;
+    const next = this.nextViewRef;
+
     setTimeout(() => {
+
       this.classes.set('');
       this.translateX.set('translateX(0%)');
 
-      this.destroyViews();
+      prev?.destroy();
+      next?.destroy();
+      this.index = null;
     }, 500);
   }
 }

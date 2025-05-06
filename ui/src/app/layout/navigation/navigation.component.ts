@@ -12,7 +12,7 @@ import { HlmMenuModule } from '@tierklinik-dobersberg/angular/menu';
 import { Mailbox } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { Board, BoardEvent, ListBoardsResponse } from '@tierklinik-dobersberg/apis/tasks/v1';
 import { toast } from 'ngx-sonner';
-import { catchError, debounceTime, filter, finalize, from, interval, merge, of, startWith, switchMap } from 'rxjs';
+import { catchError, debounceTime, filter, finalize, from, interval, merge, of, retry, startWith, switchMap } from 'rxjs';
 import { EventService } from 'src/app/services/event.service';
 import { injectStoredConfig, injectStoredProfile } from 'src/app/utils/inject-helpers';
 import { environment } from 'src/environments/environment';
@@ -104,6 +104,10 @@ export class AppNavigationComponent {
         }
 
         return true
+      }),
+      retry({
+        count: 4,
+        delay: 1000,
       }),
       debounceTime(10),
       switchMap(() => {
