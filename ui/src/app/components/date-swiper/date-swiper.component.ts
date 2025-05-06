@@ -2,22 +2,21 @@ import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import {
     AfterViewInit,
     Component,
-    ComponentRef,
     ContentChild,
+    EmbeddedViewRef,
     model,
     signal,
     TemplateRef,
     ViewChild,
-    ViewContainerRef,
+    ViewContainerRef
 } from '@angular/core';
 import { addDays } from 'date-fns';
 import {
     PanEndEvent,
     PanStartEvent,
     SwipeArrowControlDirective,
-    SwipeEvent,
+    SwipeEvent
 } from '../swipe-arrow-ctrl/swipe-arrow-ctrl.directive';
-import { DateSwiperContentContainerComponent } from './date-swiper-content-container.component';
 import {
     DateSwiperContentDirective,
     DateSwiperContext,
@@ -43,52 +42,37 @@ export class DateSwiperComponent implements AfterViewInit {
   @ViewChild('viewTemplate', { static: true, read: TemplateRef })
   viewTemplate: TemplateRef<DateSwiperContext>;
 
-  private mainViewRef?: ComponentRef<DateSwiperContentContainerComponent>;
-  private prevViewRef?: ComponentRef<DateSwiperContentContainerComponent>;
-  private nextViewRef?: ComponentRef<DateSwiperContentContainerComponent>;
+  private mainViewRef?: EmbeddedViewRef<DateSwiperContext>;
+  private prevViewRef?: EmbeddedViewRef<DateSwiperContext>;
+  private nextViewRef?: EmbeddedViewRef<DateSwiperContext>;
+
+  public setDate(date: Date) {
+    this.date.set(date);
+  }
 
   ngAfterViewInit(): void {
-    this.mainViewRef = this.viewContainerRef.createComponent(
-      DateSwiperContentContainerComponent
-    );
-    this.mainViewRef.instance.classes = this.classes;
-    this.mainViewRef.instance.translateX = this.translateX;
-    this.mainViewRef.instance.content.set(this.content.template);
-    this.mainViewRef.instance.ctx.set({
-      $implicit: {
-        date: this.date(),
-        virtual: false,
-      },
-    });
+    this.mainViewRef = this.viewContainerRef.createEmbeddedView(this.viewTemplate, {
+        $implicit: {
+            date: this.date(),
+            virtual: false,
+        }
+    })
   }
 
   private createViews() {
-    this.prevViewRef = this.viewContainerRef.createComponent(
-      DateSwiperContentContainerComponent,
-      { index: 0 }
-    );
-    this.prevViewRef.instance.content.set(this.content.template);
-    this.prevViewRef.instance.translateX = this.translateX;
-    this.prevViewRef.instance.classes = this.classes;
-    this.prevViewRef.instance.ctx.set({
-      $implicit: {
-        date: addDays(this.date(), -1),
-        virtual: true,
-      },
-    });
+    this.prevViewRef = this.viewContainerRef.createEmbeddedView(this.viewTemplate, {
+        $implicit: {
+            date: addDays(this.date(), -1),
+            virtual: true,
+        }
+    }, {index: 0})
 
-    this.nextViewRef = this.viewContainerRef.createComponent(
-      DateSwiperContentContainerComponent
-    );
-    this.nextViewRef.instance.classes = this.classes;
-    this.nextViewRef.instance.content.set(this.content.template);
-    this.nextViewRef.instance.translateX = this.translateX;
-    this.nextViewRef.instance.ctx.set({
-      $implicit: {
-        date: addDays(this.date(), 1),
-        virtual: true,
-      },
-    });
+    this.nextViewRef = this.viewContainerRef.createEmbeddedView(this.viewTemplate, {
+        $implicit: {
+            date: addDays(this.date(), 1),
+            virtual: true
+        }
+    })
   }
 
   private destroyViews() {
@@ -100,39 +84,42 @@ export class DateSwiperComponent implements AfterViewInit {
   }
 
   protected handleSwipe(event: SwipeEvent) {
-    console.log('swipe event');
 
     if (event instanceof PanStartEvent) {
       this.createViews();
       this.startPanning();
     } else if (event instanceof PanEndEvent) {
+      if (event.direction !== 'abort' && event.delta === 0) {
+        this.createViews();
+        this.startPanning();
+
+        event = new PanEndEvent(1, event.direction)
+        setTimeout(() => {
+            this.handleSwipe(event);
+        }, 0)
+
+        return
+      }
+
       switch (event.direction) {
         case 'abort':
           break;
 
         case 'left':
           this.date.set(addDays(this.date(), 1));
-          [this.nextViewRef, this.mainViewRef] = [
-            this.mainViewRef,
-            this.nextViewRef,
-          ];
+          [this.nextViewRef, this.mainViewRef]  = [this.mainViewRef, this.nextViewRef];
           break;
 
         case 'right':
           this.date.set(addDays(this.date(), -1));
-          [this.prevViewRef, this.mainViewRef] = [
-            this.mainViewRef,
-            this.prevViewRef,
-          ];
+          [this.prevViewRef, this.mainViewRef]  = [this.mainViewRef, this.prevViewRef];
           break;
       }
 
-      this.mainViewRef.instance.ctx.set({
-        $implicit: {
-          date: this.mainViewRef.instance.ctx().$implicit.date,
-          virtual: false,
-        },
-      });
+      this.mainViewRef.context.$implicit = {
+        date: this.mainViewRef.context.$implicit.date,
+        virtual: false,
+      }
 
       this.stopPanning(event.direction);
     } else {

@@ -9,9 +9,8 @@
     <div
       class="w-full h-full flex-shrink-0 {{ classes() }}"
       [style.transform]="translateX()">
-      {{ ctx.date | date: 'shortDate' }}
-      {{ ctx.virtual }}
-      <ng-container *ngTemplateOutlet="content.template; context: ctx" />
+      <ng-container
+        *ngTemplateOutlet="content.template; context: { $implicit: ctx }" />
     </div>
   </ng-template>
 </div>
