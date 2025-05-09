@@ -231,8 +231,8 @@ export class SwipeArrowControlDirective {
         : 'abort';
 
     if (
-      (this._lastDelta < 0 && event.deltaX > this._lastDelta) ||
-      (this._lastDelta > 0 && event.deltaX < this._lastDelta)
+      (this._lastDelta < 0 && event.deltaX > this._lastDelta*0.9) ||
+      (this._lastDelta > 0 && event.deltaX < this._lastDelta*0.9)
     ) {
       x = 'abort';
     }
