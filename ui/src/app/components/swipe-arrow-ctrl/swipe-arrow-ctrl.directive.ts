@@ -1,15 +1,15 @@
 import {
-    Directive,
-    ElementRef,
-    HostListener,
-    booleanAttribute,
-    effect,
-    inject,
-    input,
-    numberAttribute,
-    output,
-    signal,
-    untracked,
+  Directive,
+  ElementRef,
+  HostListener,
+  booleanAttribute,
+  effect,
+  inject,
+  input,
+  numberAttribute,
+  output,
+  signal,
+  untracked,
 } from '@angular/core';
 
 export class PanEvent {
@@ -93,13 +93,21 @@ export class SwipeArrowControlDirective {
   protected keyDown(event: KeyboardEvent) {
     switch (event.key) {
         case 'ArrowLeft':
-            this.events.emit(new PanEndEvent(0, ++this.index, 'right'))
-            break;
+          this.previous();
+          break;
 
         case 'ArrowRight':
-            this.events.emit(new PanEndEvent(0, ++this.index, 'left'))
-            break;
+          this.next();
+          break;
     }
+  }
+
+  public next() {
+    this.events.emit(new PanEndEvent(0, ++this.index, 'left'))
+  }
+
+  public previous() {
+    this.events.emit(new PanEndEvent(0, ++this.index, 'right'))
   }
 
   @HostListener('panstart', ['$event'])
