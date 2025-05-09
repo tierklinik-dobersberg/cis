@@ -1,10 +1,8 @@
 import { Directive, inject, TemplateRef } from "@angular/core";
+import { SwiperContext } from "../swiper/swiper-content.directive";
 
 export interface DateSwiperContext {
-    $implicit: {
-        date: Date;
-        virtual: boolean;
-    }
+    $implicit: SwiperContext<Date>
 }
 
 @Directive({

@@ -1,0 +1,16 @@
+<div
+  class="flex flex-row flex-nowrap gap-2 overflow-x-hidden"
+  (swipeArrowControl)="handleSwipe($event)"
+  #ctrl="swipeArrowControl">
+  <ng-container #viewRef></ng-container>
+
+  <!-- the view template -->
+  <ng-template #viewTemplate let-ctx>
+    <div
+      class="w-full h-full flex-shrink-0 {{ classes() }}"
+      [style.transform]="translateX()">
+      <ng-container
+        *ngTemplateOutlet="content.template; context: { $implicit: ctx }" />
+    </div>
+  </ng-template>
+</div>
