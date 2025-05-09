@@ -105,10 +105,6 @@ export class AppNavigationComponent {
 
         return true
       }),
-      retry({
-        count: 4,
-        delay: 1000,
-      }),
       debounceTime(10),
       switchMap(() => {
         const ctrl = new AbortController();
@@ -120,6 +116,10 @@ export class AppNavigationComponent {
           .pipe(
             finalize(() => ctrl.abort()),
           )
+      }),
+      retry({
+        count: 4,
+        delay: 1000,
       }),
       catchError(err => {
         toast.error('Task-Boards konnten nicht geladen werden', {
