@@ -13,6 +13,7 @@ import { Instance, Study } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
 import { toast } from "ngx-sonner";
 import { StudyService } from "src/app/components/dicom/study.service";
 import { DicomImageUrlPipe } from "src/app/pipes/dicom-instance-preview.pipe";
+import { AbstractBaseDialog } from "../base-dialog/base-dialog.component";
 import { DIALOG_CONTENT_CLASS } from "../constants";
 
 export interface DicomExportStudyDialogContext {
@@ -55,7 +56,7 @@ export class InstanceModel extends Instance {
         `
     ]
 })
-export class AppDicomExportStudyDialog implements OnInit {
+export class AppDicomExportStudyDialog extends AbstractBaseDialog implements OnInit {
     private readonly _dialogRef = inject<BrnDialogRef<unknown>>(BrnDialogRef);
     private readonly _dialogContext = injectBrnDialogContext<DicomExportStudyDialogContext>();
 

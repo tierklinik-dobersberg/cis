@@ -8,7 +8,6 @@ import { CKEditorModule } from "@ckeditor/ckeditor5-angular";
 import { ConnectError } from "@connectrpc/connect";
 import { lucideActivity, lucideCalendarCheck, lucideCheck, lucideCheckCheck, lucideCircleDot, lucideClock, lucideLayers, lucideMoreVertical, lucideMove, lucideMoveHorizontal, lucideTags, lucideTrash2, lucideUser, lucideUser2, lucideX } from "@ng-icons/lucide";
 import { BrnAlertDialogModule } from "@spartan-ng/ui-alertdialog-brain";
-import { BrnSeparatorComponent } from "@spartan-ng/ui-separator-brain";
 import { BrnSheetContentDirective, BrnSheetTriggerDirective } from "@spartan-ng/ui-sheet-brain";
 import { BrnTooltipModule } from "@spartan-ng/ui-tooltip-brain";
 import { HlmAlertDialogModule } from "@tierklinik-dobersberg/angular/alertdialog";
@@ -20,7 +19,6 @@ import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon
 import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
 import { HlmLabelDirective } from "@tierklinik-dobersberg/angular/label";
 import { DisplayNamePipe, ToDatePipe, ToUserPipe } from "@tierklinik-dobersberg/angular/pipes";
-import { HlmSeparatorDirective } from "@tierklinik-dobersberg/angular/separator";
 import { HlmSheetComponent, HlmSheetModule } from "@tierklinik-dobersberg/angular/sheet";
 import { HlmSkeletonComponent } from "@tierklinik-dobersberg/angular/skeleton";
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
@@ -56,8 +54,6 @@ import { TimelineEntryComponent } from '../timeline-entry/timeline-entry';
         CKEditorModule,
         HlmInputDirective,
         MarkdownModule,
-        BrnSeparatorComponent,
-        HlmSeparatorDirective,
         ToDatePipe,
         DatePipe,
         ToUserPipe,

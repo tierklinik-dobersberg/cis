@@ -94,6 +94,7 @@ import { AppAvatarComponent } from 'src/app/components/avatar';
 import { TkdDatePickerComponent } from 'src/app/components/date-picker';
 import { getCalendarId } from 'src/app/services';
 import { getSeconds } from '../../pages/calendar2/day-view/sort.pipe';
+import { AbstractBaseDialog } from '../base-dialog/base-dialog.component';
 import { DIALOG_CONTENT_CLASS } from '../constants';
 import { CreateCustomerDialog } from '../create-customer-dialog';
 import { CustomerDetailsDialog } from '../customer-details-dialog';
@@ -151,7 +152,7 @@ interface RecentCall {
     `,
   ],
 })
-export class AppEventDetailsDialogComponent implements OnInit {
+export class AppEventDetailsDialogComponent extends AbstractBaseDialog implements OnInit {
   private readonly profiles = injectUserProfiles();
   private readonly calendarService = injectCalendarService();
   private readonly dialogRef = inject<BrnDialogRef<unknown>>(BrnDialogRef);

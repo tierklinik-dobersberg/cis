@@ -1,6 +1,5 @@
-import { DatePipe, JsonPipe, LocationStrategy } from "@angular/common";
+import { DatePipe, JsonPipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, model, OnInit } from "@angular/core";
-import { Router } from "@angular/router";
 import { lucideDownload, lucideExternalLink, lucideEye, lucideMail, lucideMoreVertical, lucideShare } from "@ng-icons/lucide";
 import { BrnDialogRef, injectBrnDialogContext } from "@spartan-ng/ui-dialog-brain";
 import { BrnMenuModule } from "@spartan-ng/ui-menu-brain";
@@ -19,6 +18,7 @@ import { SwiperContentDirective } from "src/app/components/swiper/swiper-content
 import { ListSwiperComponent } from "src/app/components/swiper/swiper.component";
 import { DicomImageUrlPipe } from "src/app/pipes/dicom-instance-preview.pipe";
 import { SortDicomTagsPipe } from "src/app/pipes/sort-dicom-tags.pipe";
+import { AbstractBaseDialog } from "../base-dialog/base-dialog.component";
 
 export interface DicomStudyDialogContext {
     study: Study;
@@ -69,7 +69,7 @@ export interface DicomStudyDialogContext {
         `
     ]
 })
-export class AppDicomStudyDialog implements OnInit {
+export class AppDicomStudyDialog extends AbstractBaseDialog implements OnInit {
     private readonly _dialogRef = inject<BrnDialogRef<unknown>>(BrnDialogRef);
     private readonly _dialogContext = injectBrnDialogContext<DicomStudyDialogContext>();
 
@@ -80,15 +80,6 @@ export class AppDicomStudyDialog implements OnInit {
         return this.allInstances[index];
     })
     protected readonly selectedIndex = model<number>(0);
-
-    constructor() {
-        const location = inject(LocationStrategy)
-
-        location.pushState("DicomStudyDialog", "DicomStudyDialog", inject(Router).url, '')
-        location.onPopState(() => {
-            this._dialogRef.close();
-        })
-    }
 
     protected study = this._dialogContext.study;
 

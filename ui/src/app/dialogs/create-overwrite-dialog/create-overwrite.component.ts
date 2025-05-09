@@ -13,7 +13,6 @@ import { injectCallService, injectRosterService } from "@tierklinik-dobersberg/a
 import { HlmDialogModule } from "@tierklinik-dobersberg/angular/dialog";
 import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
 import { HlmLabelDirective } from "@tierklinik-dobersberg/angular/label";
-import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
 import { ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmSelectModule } from "@tierklinik-dobersberg/angular/select";
 import { HlmSeparatorDirective } from "@tierklinik-dobersberg/angular/separator";
@@ -29,6 +28,7 @@ import { TkdDatePickerComponent } from "src/app/components/date-picker";
 import { EmergencyTargetService } from "src/app/layout/redirect-emergency-button/emergency-target.service";
 import { injectStoredConfig } from "src/app/utils/inject-helpers";
 import { injectLocalPlannedShifts } from "src/app/utils/shifts";
+import { AbstractBaseDialog } from "../base-dialog/base-dialog.component";
 import { SelectionSheet, SelectionSheetItemDirective } from "../selection-sheet";
 import { SheetItemGroupDirective } from "../selection-sheet/selection-group.directive";
 
@@ -66,7 +66,7 @@ export interface CreateOverwriteContext {
         SheetItemGroupDirective,
     ]
 })
-export class CreateOverwriteComponent {
+export class CreateOverwriteComponent extends AbstractBaseDialog {
     private readonly dialogRef = inject(BrnDialogRef);
     private readonly callService = injectCallService();
     private readonly rosterService = injectRosterService();
@@ -77,8 +77,6 @@ export class CreateOverwriteComponent {
     protected displaySettingsGroup = (item: Profile | PhoneExtension, prev?: Profile | PhoneExtension) => prev instanceof Profile && !(item instanceof Profile);
 
     protected readonly context = injectBrnDialogContext<CreateOverwriteContext>();
-
-    protected readonly layout = inject(LayoutService);
 
     protected readonly profiles = injectUserProfiles();
 
@@ -184,6 +182,8 @@ export class CreateOverwriteComponent {
     }
 
     constructor() {
+        super()
+
         this.callService
             .listInboundNumber({})
             .catch(err => {

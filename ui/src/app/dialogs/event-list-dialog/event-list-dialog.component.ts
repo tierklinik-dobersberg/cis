@@ -53,6 +53,7 @@ import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/pi
 import { AppEventListComponent } from 'src/app/components/event-list';
 import { getCalendarId } from 'src/app/services';
 import { toDateString } from 'src/app/utils';
+import { AbstractBaseDialog } from '../base-dialog/base-dialog.component';
 
 export type EventListDialogContext = {
   date: Date;
@@ -108,7 +109,7 @@ class EventModel extends CalendarEvent {
     `,
   ],
 })
-export class EventListDialogComponent {
+export class EventListDialogComponent extends AbstractBaseDialog {
   private readonly dialogRef = inject(BrnDialogRef);
   private readonly dialogService = inject(HlmDialogService);
   private readonly calendarService = injectCalendarService();
@@ -199,6 +200,8 @@ export class EventListDialogComponent {
   }
 
   constructor() {
+    super()
+
     this.calendarDate.set(this.dialogContext.date);
 
     effect(

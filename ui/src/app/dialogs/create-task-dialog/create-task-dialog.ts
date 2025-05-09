@@ -29,6 +29,7 @@ import { TkdDatePickerComponent, TkdDatePickerInputDirective } from "src/app/com
 import { TkdDatePickerTriggerComponent } from "src/app/components/date-picker/picker-trigger";
 import { TagColorPipe } from "src/app/pages/tasks/color.pipe";
 import { ContrastColorPipe } from "src/app/pipes/contrast-color.pipe";
+import { AbstractBaseDialog } from "../base-dialog/base-dialog.component";
 
 export interface CreateTaskDialogContext {
     boardId: string;
@@ -72,7 +73,7 @@ const contentClass =
         })
     ]
 })
-export class EditTaskDialog {
+export class EditTaskDialog extends AbstractBaseDialog {
     private readonly dialogRef = inject(BrnDialogRef<'success' | null>);
     private readonly dialogContext = injectBrnDialogContext<CreateTaskDialogContext>();
     private readonly boardService = injectBoardService();
@@ -108,6 +109,8 @@ export class EditTaskDialog {
     }
 
     constructor() {
+        super()
+
         this.rolseService
             .listRoles({})
             .catch(err => {

@@ -4,16 +4,13 @@ import { PartialMessage } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
 import { lucidePhone, lucidePhoneCall, lucidePhoneForwarded, lucidePhoneIncoming, lucidePhoneMissed, lucidePhoneOutgoing } from "@ng-icons/lucide";
 import { BrnDialogRef, injectBrnDialogContext } from "@spartan-ng/ui-dialog-brain";
-import { BrnSeparatorComponent } from "@spartan-ng/ui-separator-brain";
 import { BrnTabsModule } from "@spartan-ng/ui-tabs-brain";
-import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
 import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { injectCallService } from "@tierklinik-dobersberg/angular/connect";
-import { HlmDialogDescriptionDirective, HlmDialogFooterComponent, HlmDialogHeaderComponent, HlmDialogService, HlmDialogTitleDirective } from "@tierklinik-dobersberg/angular/dialog";
+import { HlmDialogFooterComponent, HlmDialogHeaderComponent, HlmDialogService, HlmDialogTitleDirective } from "@tierklinik-dobersberg/angular/dialog";
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
-import { DurationPipe, ToDatePipe, ToUserPipe } from "@tierklinik-dobersberg/angular/pipes";
-import { HlmSeparatorDirective } from "@tierklinik-dobersberg/angular/separator";
+import { DurationPipe, ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
 import { HlmTabsModule } from "@tierklinik-dobersberg/angular/tabs";
 import { Customer } from "@tierklinik-dobersberg/apis/customer/v1";
@@ -21,6 +18,7 @@ import { CallEntry, ListPhoneExtensionsResponse, PhoneExtension } from "@tierkli
 import { toast } from "ngx-sonner";
 import { AppAvatarComponent } from "src/app/components/avatar";
 import { CustomerDetailsTableComponent } from "src/app/components/customer-details-table";
+import { AbstractBaseDialog } from "../base-dialog/base-dialog.component";
 
 export interface CallDetailsDialogContext {
     record: CallEntry,
@@ -39,10 +37,6 @@ const contentClass =
         HlmDialogHeaderComponent,
         HlmDialogFooterComponent,
         HlmDialogTitleDirective,
-        HlmDialogDescriptionDirective,
-        HlmBadgeDirective,
-        BrnSeparatorComponent,
-        HlmSeparatorDirective,
         HlmTabsModule,
         BrnTabsModule,
         HlmIconModule,
@@ -50,7 +44,6 @@ const contentClass =
         ToDatePipe,
         DatePipe,
         DurationPipe,
-        ToUserPipe,
         AppAvatarComponent,
         HlmTabsModule,
         CustomerDetailsTableComponent,
@@ -67,7 +60,7 @@ const contentClass =
         })
     ]
 })
-export class CallDetailsDialogComponent implements OnInit {
+export class CallDetailsDialogComponent extends AbstractBaseDialog implements OnInit {
     private readonly dialogRef = inject(BrnDialogRef);
     private readonly context = injectBrnDialogContext<CallDetailsDialogContext>()
     private readonly callService = injectCallService();
@@ -120,6 +113,8 @@ export class CallDetailsDialogComponent implements OnInit {
     }
 
     constructor() {
+        super()
+
         this.callService
             .listPhoneExtensions({})
             .catch(err => {
