@@ -8,8 +8,8 @@ import {
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { DisplayNamePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
-import { DateSwiperContentDirective } from 'src/app/components/date-swiper/date-swiper-content.directive';
 import { DateSwiperComponent } from 'src/app/components/date-swiper/date-swiper.component';
+import { SwiperContentDirective } from 'src/app/components/swiper/swiper-content.directive';
 import { HeaderTitleService } from 'src/app/layout/header-title';
 import { CalendarIdPipe } from 'src/app/pipes/by-calendar-id.pipe';
 import { injectCurrentUserIsAdmin } from 'src/app/services';
@@ -34,7 +34,7 @@ import { UpcomingEventsCardComponent } from './upcoming-events-card';
     CalendarIdPipe,
     StudyCardComponent,
     DateSwiperComponent,
-    DateSwiperContentDirective
+    SwiperContentDirective,
   ],
   host: {
     'class': '@container'
@@ -45,6 +45,16 @@ export class WelcomeComponent {
 
   public readonly layout = inject(LayoutService);
 
+  protected testList = [
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f"
+  ]
+
+  protected readonly dateType = Date.prototype;
   protected readonly currentUser = injectStoredProfile();
   protected readonly hoveredUser = signal<Profile | null>(null);
   protected readonly showStudyCard = injectCurrentUserIsAdmin();

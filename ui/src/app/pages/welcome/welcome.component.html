@@ -14,9 +14,9 @@
     @defer {
       <date-swiper id="app-roster-card" #dateSwiper>
         <app-roster-card
-          *dateSwiperContent="let ctx"
-          [calendarDate]="ctx?.date"
-          (calendarDateChange)="dateSwiper.setDate($event)"></app-roster-card>
+          *swiperContent="let ctx; contextType: dateType"
+          [calendarDate]="ctx?.value"
+          (calendarDateChange)="dateSwiper.setValue($event)"></app-roster-card>
       </date-swiper>
     }
 

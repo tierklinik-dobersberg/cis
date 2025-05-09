@@ -1,6 +1,7 @@
 <div
-  class="flex flex-row flex-nowrap gap-2 overflow-x-hidden"
+  class="flex h-full w-full flex-row flex-nowrap overflow-x-hidden"
   (swipeArrowControl)="handleSwipe($event)"
+  [swipeArrowControlDisabled]="disabled()"
   #ctrl="swipeArrowControl">
   <ng-container #viewRef></ng-container>
 

@@ -2,9 +2,11 @@ import { NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   Component,
+  computed,
   ContentChild,
   effect,
   EmbeddedViewRef,
+  input,
   model,
   signal,
   TemplateRef,
@@ -30,9 +32,12 @@ import {
 })
 export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit {
   @ContentChild(SwiperContentDirective)
-  content?: SwiperContentDirective;
+  content?: SwiperContentDirective<T>;
 
   public readonly value = model<T | null>(null)
+
+  public readonly disabled = model(false);
+
   protected readonly translateX = signal('translateX(0%)');
   protected readonly classes = signal('');
 
@@ -44,6 +49,14 @@ export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit 
 
   @ViewChild(SwipeArrowControlDirective, { static: true })
   swipeArrowController: SwipeArrowControlDirective;
+
+  public next() {
+    this.swipeArrowController?.next();
+  }
+
+  public previous() {
+    this.swipeArrowController?.previous();
+  }
 
   private mainViewRef?: EmbeddedViewRef<SwiperTemplateContext<T>>;
   private prevViewRef?: EmbeddedViewRef<SwiperTemplateContext<T>>;
@@ -61,11 +74,14 @@ export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit 
   constructor() {
     effect(() => {
       const value = this.value();
+
+      console.log("value changed", value)
+
       if (
         this.mainViewRef &&
         !this.compareContext(this.mainViewRef.context.$implicit.value, value)
       ) {
-        this.mainViewRef.context.$implicit = this.createContext(value).$implicit
+        Object.assign(this.mainViewRef.context, this.createContext(value))
       }
     });
   }
@@ -74,7 +90,7 @@ export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit 
   ngAfterViewInit(): void {
     this.mainViewRef = this.viewContainerRef.createEmbeddedView(
       this.viewTemplate,
-      this.createContext(null, 0)
+      this.createContext(this.value())
     );
   }
 
@@ -139,7 +155,7 @@ export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit 
           break;
       }
 
-      this.mainViewRef.context.$implicit = this.createContext(this.value()).$implicit
+      Object.assign(this.mainViewRef.context, this.createContext(this.value()))
 
       this.stopPanning(event.direction);
     } else {
@@ -172,7 +188,6 @@ export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit 
     const next = this.nextViewRef;
 
     setTimeout(() => {
-
       this.classes.set('');
       this.translateX.set('translateX(0%)');
 
@@ -189,19 +204,82 @@ export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit 
   templateUrl: './swiper.component.html',
   imports: [SwipeArrowControlDirective, NgTemplateOutlet],
 })
-export class IndexSwiperComponent extends AbstractSwiperComponent<number> {
+export class SwiperComponent extends AbstractSwiperComponent<any> implements AfterViewInit {
+  public readonly updateValueFn = input.required<typeof this.updateValue>()
+  public readonly createContextFn = input.required<typeof this.createContext>();
+  public readonly compareContextFn = input.required<typeof this.compareContext>();
+
   protected override updateValue(offset: number) {
-    this.value.set(this.value() + offset)  
+    this.updateValueFn()(offset)
   }
 
-  protected override createContext(newValue: number): SwiperTemplateContext<number>;
-  protected override createContext(current: number, offset: number): SwiperTemplateContext<number>;
   protected override createContext(current: number, offset?: number): SwiperTemplateContext<number> {
+    return this.createContextFn()(current, offset)
+  }
+
+  protected override compareContext(current: number, other: number): boolean {
+    return this.compareContextFn()(current, other)
+  }
+}
+
+@Component({
+  standalone: true,
+  selector: 'list-swiper',
+  templateUrl: './swiper.component.html',
+  imports: [SwipeArrowControlDirective, NgTemplateOutlet],
+})
+export class ListSwiperComponent<T> extends AbstractSwiperComponent<number> implements AfterViewInit {
+  public readonly list = input.required<T[]>();
+
+  public override value = model<number>(0);
+
+  public readonly currentElement = computed(() => {
+    const list = this.list();
+    const index = this.value();
+
+    return list[index];
+  })
+
+
+  constructor() {
+    super()
+
+    effect(() => {
+      const list = this.list();
+      this.disabled.set(list.length <= 1);
+    })
+  }
+
+  protected override updateValue(offset: number) {
+    let newIndex = this.clampIndex(this.value() + offset);
+    this.setValue(newIndex)
+  }
+
+  private clampIndex(newIndex: number): number {
+    let n = newIndex;
+    if (n < 0) {
+      console.log("newIndex is lower than zero")
+      n = this.list().length - 1
+    }
+    if (n >= this.list().length) {
+      console.log("newIndex is higher than list-length", n, this.list().length)
+      n = 0
+    }
+
+    return n;
+  }
+
+  protected override createContext(current: number, offset?: number): SwiperTemplateContext<number> {
+    const index = this.clampIndex(offset === undefined ? current : current + offset);
+
+    console.log("current", current, "offset", offset, "newIndex", index)
+
     return {
       $implicit: {
-        value: offset === undefined ? current : current + offset,
-        virtual: offset !== undefined ? true : false,
-      }
+        value: index,
+        virtual: offset !== undefined,
+        element: this.list()[index]
+      },
     }
   }
 
