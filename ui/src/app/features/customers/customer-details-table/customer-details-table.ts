@@ -8,7 +8,7 @@ import { Customer, CustomerResponse } from "@tierklinik-dobersberg/apis/customer
 import { CustomerRoutePipe } from "src/app/pipes/customer-route.pipe";
 
 @Component({
-    selector: 'app-customer-details',
+    selector: 'app-customer-details, customer-details',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [

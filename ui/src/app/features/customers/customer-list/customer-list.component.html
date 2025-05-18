@@ -23,7 +23,7 @@
         </hlm-trow>
 
         @for (r of customers(); track r.customer.id) {
-          <hlm-trow (click)="showDetails(r)">
+          <hlm-trow [routerLink]="[r.customer.id, 'patient', 'none']">
             <hlm-td class="w-96">
               {{ r.customer.lastName }} {{ r.customer.firstName }}
             </hlm-td>

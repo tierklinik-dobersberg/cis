@@ -1,15 +1,15 @@
 import { DatePipe } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  DestroyRef,
-  HostListener,
-  inject,
-  model,
-  OnInit,
-  signal,
-  ViewChild
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    DestroyRef,
+    HostListener,
+    inject,
+    model,
+    OnInit,
+    signal,
+    ViewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -20,80 +20,80 @@ import { ConnectError } from '@connectrpc/connect';
 import { lucideCalendar, lucideClock } from '@ng-icons/lucide';
 import { BrnAlertDialogModule } from '@spartan-ng/ui-alertdialog-brain';
 import {
-  BrnDialogRef,
-  injectBrnDialogContext,
+    BrnDialogRef,
+    injectBrnDialogContext,
 } from '@spartan-ng/ui-dialog-brain';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import { HlmAlertDialogComponent, HlmAlertDialogModule } from '@tierklinik-dobersberg/angular/alertdialog';
 import {
-  injectUserProfiles,
-  sortProtoTimestamps,
+    injectUserProfiles,
+    sortProtoTimestamps,
 } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { HlmCheckboxComponent } from '@tierklinik-dobersberg/angular/checkbox';
 import {
-  injectCalendarService,
-  injectCallService,
-  injectCustomerService,
+    injectCalendarService,
+    injectCallService,
+    injectCustomerService,
 } from '@tierklinik-dobersberg/angular/connect';
 import {
-  HlmDialogDescriptionDirective,
-  HlmDialogFooterComponent,
-  HlmDialogHeaderComponent,
-  HlmDialogService,
-  HlmDialogTitleDirective,
+    HlmDialogDescriptionDirective,
+    HlmDialogFooterComponent,
+    HlmDialogHeaderComponent,
+    HlmDialogService,
+    HlmDialogTitleDirective,
 } from '@tierklinik-dobersberg/angular/dialog';
 import {
-  HlmIconModule,
-  provideIcons,
+    HlmIconModule,
+    provideIcons,
 } from '@tierklinik-dobersberg/angular/icon';
 import { HlmInputDirective } from '@tierklinik-dobersberg/angular/input';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import {
-  HlmTableComponent,
-  HlmTdComponent,
-  HlmThComponent,
-  HlmTrowComponent,
+    HlmTableComponent,
+    HlmTdComponent,
+    HlmThComponent,
+    HlmTrowComponent,
 } from '@tierklinik-dobersberg/angular/table';
 import { Duration } from '@tierklinik-dobersberg/angular/utils/date';
 import { DurationValidatorDirective } from '@tierklinik-dobersberg/angular/validators';
 import {
-  Calendar,
-  CalendarEvent,
-  CreateEventRequest,
-  CustomerAnnotation,
-  MoveEventRequest,
-  ResourceCalendar,
-  UpdateEventRequest,
-  UpdateEventResponse,
+    Calendar,
+    CalendarEvent,
+    CreateEventRequest,
+    CustomerAnnotation,
+    MoveEventRequest,
+    ResourceCalendar,
+    UpdateEventRequest,
+    UpdateEventResponse,
 } from '@tierklinik-dobersberg/apis/calendar/v1';
 import {
-  Customer,
-  CustomerResponse,
-  SearchCustomerResponse
+    Customer,
+    CustomerResponse,
+    SearchCustomerResponse
 } from '@tierklinik-dobersberg/apis/customer/v1';
 import { CallStatus } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { Markdown } from 'ckeditor5';
 import { addMinutes, addSeconds } from 'date-fns';
 import { toast } from 'ngx-sonner';
 import {
-  catchError,
-  debounceTime,
-  defer,
-  filter,
-  retry,
-  Subject,
-  switchMap,
-  take,
-  throwError,
+    catchError,
+    debounceTime,
+    defer,
+    filter,
+    retry,
+    Subject,
+    switchMap,
+    take,
+    throwError,
 } from 'rxjs';
 import { config, MyEditor } from 'src/app/ckeditor';
 import { AppAvatarComponent } from 'src/app/components/avatar';
 import { TkdDatePickerComponent } from 'src/app/components/date-picker';
 import { getCalendarId } from 'src/app/services';
-import { getSeconds } from '../../pages/calendar2/day-view/sort.pipe';
+import { getSeconds } from '../../features/calendar2/day-view/sort.pipe';
 import { AbstractBaseDialog } from '../base-dialog/base-dialog.component';
 import { DIALOG_CONTENT_CLASS } from '../constants';
 import { CreateCustomerDialog } from '../create-customer-dialog';

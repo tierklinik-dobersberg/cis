@@ -1,16 +1,16 @@
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  forwardRef,
-  Input,
-  Output,
+    ChangeDetectionStrategy,
+    ChangeDetectorRef,
+    Component,
+    EventEmitter,
+    forwardRef,
+    Input,
+    Output,
 } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Schema, SchemaInstance } from 'src/app/api';
-import { TkdOptionListInputComponent } from 'src/app/pages/admin/option-list-input';
+import { TkdOptionListInputComponent } from 'src/app/features/admin/option-list-input';
 
 @Component({
   selector: 'app-setting-editor',

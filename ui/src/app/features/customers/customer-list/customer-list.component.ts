@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, effect, inject, model, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { RouterLink } from "@angular/router";
 import { PartialMessage } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
 import { lucideMapPin } from "@ng-icons/lucide";
@@ -13,8 +14,6 @@ import { injectCustomerService } from "@tierklinik-dobersberg/angular/connect";
 import { HlmDialogService } from "@tierklinik-dobersberg/angular/dialog";
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { HlmInputDirective } from "@tierklinik-dobersberg/angular/input";
-import { HlmLabelDirective } from "@tierklinik-dobersberg/angular/label";
-import { JoinListPipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmSeparatorDirective } from "@tierklinik-dobersberg/angular/separator";
 import { HlmTableModule } from "@tierklinik-dobersberg/angular/table";
 import { HlmTooltipModule } from "@tierklinik-dobersberg/angular/tooltip";
@@ -32,7 +31,6 @@ import { AsyncPaginationManager } from "src/app/utils/pagination-manager";
     imports: [
         HlmIconModule,
         HlmButtonDirective,
-        HlmLabelDirective,
         HlmBadgeDirective,
         HlmTableModule,
         BrnTableModule,
@@ -41,11 +39,11 @@ import { AsyncPaginationManager } from "src/app/utils/pagination-manager";
         HlmInputDirective,
         FormsModule,
         BrnSeparatorComponent,
-        JoinListPipe,
         HlmSeparatorDirective,
         HlmTooltipModule,
         CustomerRoutePipe,
-        BrnTooltipModule
+        BrnTooltipModule,
+        RouterLink
     ],
     providers: [
         ...provideIcons({lucideMapPin})

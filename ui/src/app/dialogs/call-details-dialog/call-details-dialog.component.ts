@@ -17,7 +17,7 @@ import { Customer } from "@tierklinik-dobersberg/apis/customer/v1";
 import { CallEntry, ListPhoneExtensionsResponse, PhoneExtension } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
 import { toast } from "ngx-sonner";
 import { AppAvatarComponent } from "src/app/components/avatar";
-import { CustomerDetailsTableComponent } from "src/app/components/customer-details-table";
+import { CustomerDetailsTableComponent } from "src/app/features/customers/customer-details-table";
 import { AbstractBaseDialog } from "../base-dialog/base-dialog.component";
 
 export interface CallDetailsDialogContext {

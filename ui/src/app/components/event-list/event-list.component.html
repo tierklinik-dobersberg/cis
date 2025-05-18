@@ -38,22 +38,41 @@
           'text-opacity-70': event.isOver,
         }"
         (click)="openEvent(event)">
-        <hlm-tooltip>
+        @if (showDate()) {
           <div
-            class="flex w-0 flex-[0_0_2.5rem] flex-col text-sm"
-            hlmTooltipTrigger>
+            class="flex flex-col text-sm"
+            [class.w-48]="layout.md()"
+            [class.w-14]="!layout.md()">
             <span>
-              {{ event.startTime | toDate | date: 'shortTime' }}
+              {{
+                event.startTime
+                  | toDate
+                  | date: (layout.md() ? 'EE, d. MMMM y' : 'shortDate')
+              }}
             </span>
             <span>
+              {{ event.startTime | toDate | date: 'shortTime' }} -
               {{ event.endTime | toDate | date: 'shortTime' }}
             </span>
           </div>
+        } @else {
+          <hlm-tooltip>
+            <div
+              class="flex w-0 flex-[0_0_2.5rem] flex-col text-sm"
+              hlmTooltipTrigger>
+              <span>
+                {{ event.startTime | toDate | date: 'shortTime' }}
+              </span>
+              <span>
+                {{ event.endTime | toDate | date: 'shortTime' }}
+              </span>
+            </div>
 
-          <span *brnTooltipContent>
-            Dauer: {{ event.duration | duration: 'default-hours' }}
-          </span>
-        </hlm-tooltip>
+            <span *brnTooltipContent>
+              Dauer: {{ event.duration | duration: 'default-hours' }}
+            </span>
+          </hlm-tooltip>
+        }
 
         <span
           class="flex-grow text-ellipsis whitespace-normal text-sm font-medium">
@@ -74,8 +93,12 @@
     } @empty {
       <li
         class="flex h-full flex-col items-center justify-center gap-4 self-stretch py-4">
-        <hlm-icon name="lucideCheckCircle" size="xl" class="text-green-500" />
-        Keine Termine mehr
+        @if (onlyUpcoming()) {
+          <hlm-icon name="lucideCheckCircle" size="xl" class="text-green-500" />
+          Keine Termine mehr
+        } @else {
+          Keine Termine gefunden
+        }
       </li>
     }
   }

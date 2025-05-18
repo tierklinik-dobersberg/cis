@@ -17,7 +17,7 @@ import { Calendar, CalendarEvent, ListCalendarsResponse } from "@tierklinik-dobe
 import { Profile } from "@tierklinik-dobersberg/apis/idm/v1";
 import { isAfter, isBefore } from "date-fns";
 import { toast } from "ngx-sonner";
-import { getSeconds } from "src/app/pages/calendar2/day-view/sort.pipe";
+import { getSeconds } from "src/app/features/calendar2/day-view/sort.pipe";
 import { getCalendarId } from "src/app/services";
 import { sortCalendarEvents } from "src/app/utils/calendar/sorting";
 import { AppAvatarComponent } from "../avatar";
@@ -82,6 +82,12 @@ export class AppEventListComponent {
     /** Whether or not only upcoming events are shown */
     public readonly onlyUpcoming = input(true, { transform: booleanAttribute })
 
+    /** Whether or not the whole date is shown */
+    public readonly showDate = input(false, { transform: booleanAttribute })
+
+    /** Whether or not the whole date is shown */
+    public readonly sort = input<'asc' | 'desc'>('asc')
+
     /** A list of all available calendars */
     protected readonly calendars = signal<Calendar[]>([]);
 
@@ -91,6 +97,7 @@ export class AppEventListComponent {
         const calendars = this.calendars();
         const profiles = this.profiles();
         const upcoming = this.onlyUpcoming();
+        const sort = this.sort();
 
         const result = events
             .map(event => {
@@ -99,7 +106,15 @@ export class AppEventListComponent {
 
                 return new EventListModel(event, calendar, profile)
             })
-            .sort(sortCalendarEvents)
+            .sort((a, b) => {
+                let result = sortCalendarEvents(a, b)
+
+                if (sort === 'desc') {
+                    result = result * -1;
+                }
+
+                return result
+            })
             .filter(event => {
                 if (upcoming && event.isOver) {
                     return false;

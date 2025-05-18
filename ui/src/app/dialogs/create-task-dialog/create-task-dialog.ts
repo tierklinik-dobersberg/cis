@@ -27,7 +27,7 @@ import { toast } from "ngx-sonner";
 import { MyEditor } from "src/app/ckeditor";
 import { TkdDatePickerComponent, TkdDatePickerInputDirective } from "src/app/components/date-picker";
 import { TkdDatePickerTriggerComponent } from "src/app/components/date-picker/picker-trigger";
-import { TagColorPipe } from "src/app/pages/tasks/color.pipe";
+import { TagColorPipe } from "src/app/features/tasks/color.pipe";
 import { ContrastColorPipe } from "src/app/pipes/contrast-color.pipe";
 import { AbstractBaseDialog } from "../base-dialog/base-dialog.component";
 

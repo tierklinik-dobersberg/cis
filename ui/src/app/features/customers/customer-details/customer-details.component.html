@@ -1,0 +1,206 @@
+<div hlmCard>
+  @if (customer(); as customer) {
+    <div hlmCardHeader class="flex flex-col items-start gap-8 md:flex-row">
+      <div class="space-y-1.5">
+        <h1 hlmCardTitle>{{ customer.lastName }} {{ customer.firstName }}</h1>
+        <p hlmCardDescription>
+          Importiert von
+          @for (state of states(); track state.importer) {
+            <label hlmBadge class="mr-2 uppercase">
+              {{ state.importer }}
+            </label>
+          }
+          @if (customer.recordCreatedAt?.seconds > 0) {
+            am
+            {{ customer.recordCreatedAt | toDate | date: 'shortDate' }}
+          }
+        </p>
+      </div>
+    </div>
+
+    <div hlmCardContent>
+      <hlm-tabs
+        [activationMode]="'automatic'"
+        [tab]="selectedTab()"
+        (tabActivated)="onTabActivated($event)">
+        <hlm-tabs-list class="grid grid-cols-3">
+          <button hlmTabsTrigger="customer">Stammdaten</button>
+          <button hlmTabsTrigger="events">Letzte Termine</button>
+          <button hlmTabsTrigger="patients">Patienten</button>
+        </hlm-tabs-list>
+
+        <div hlmTabsContent="customer" class="h-full w-full bg-white">
+          <customer-details [customer]="customer" />
+        </div>
+
+        <div hlmTabsContent="events" class="h-full w-full bg-white">
+          <app-event-list
+            [events]="customerAppointments()"
+            [sort]="'desc'"
+            [showDate]="true"
+            [onlyUpcoming]="false" />
+        </div>
+
+        <div hlmTabsContent="patients" class="h-full w-full bg-white">
+          <div
+            class="flex h-full w-full flex-col gap-4 overflow-hidden md:flex-row">
+            <div
+              class="flex h-24 grid-cols-1 flex-row gap-2 overflow-auto border-r border-border md:grid md:h-full md:w-64 md:pr-4">
+              @for (patient of patients(); track patient.patientId) {
+                <div
+                  class="flex h-full w-64 flex-shrink-0 cursor-pointer flex-col items-center justify-center overflow-hidden rounded border border-border p-2 hover:bg-border md:w-full"
+                  [class.bg-border]="selectedPatient() === patient"
+                  (click)="selectPatient(patient)">
+                  <span class="text-xs leading-3">
+                    {{ patient.species }}
+                  </span>
+
+                  <span class="text-ellipsis whitespace-nowrap">{{
+                    patient.patientName
+                  }}</span>
+
+                  @if (patient.birthday) {
+                    <span class="text-xs leading-3">
+                      {{ patient.birthday | toDate | date: 'shortDate' }}
+                    </span>
+                  }
+                </div>
+              }
+            </div>
+
+            @if (selectedPatient(); as patient) {
+              <div class="flex h-full w-full flex-col">
+                <hlm-table class="w-full">
+                  <hlm-trow>
+                    <hlm-td
+                      class="flex h-12 w-40 flex-none items-center px-4 text-sm font-medium text-muted-foreground">
+                      Name
+                    </hlm-td>
+                    <hlm-td>{{ patient.patientName }} </hlm-td>
+                  </hlm-trow>
+
+                  <hlm-trow>
+                    <hlm-td
+                      class="flex h-12 w-40 flex-none items-center px-4 text-sm font-medium text-muted-foreground">
+                      Tierart
+                    </hlm-td>
+                    <hlm-td>{{ patient.species }} </hlm-td>
+                  </hlm-trow>
+
+                  <hlm-trow>
+                    <hlm-td
+                      class="flex h-12 w-40 flex-none items-center px-4 text-sm font-medium text-muted-foreground">
+                      Rasse
+                    </hlm-td>
+                    <hlm-td>{{ patient.breed }} </hlm-td>
+                  </hlm-trow>
+
+                  <hlm-trow>
+                    <hlm-td
+                      class="flex h-12 w-40 flex-none items-center px-4 text-sm font-medium text-muted-foreground">
+                      Geburtstag
+                    </hlm-td>
+                    <hlm-td>
+                      @if (patient.birthday) {
+                        {{ patient.birthday | toDate | date: 'mediumDate' }}
+                      } @else {
+                        {{
+                          $any(patient.extraData?.fields['Geburtstag'])
+                            ?.value || 'N/A'
+                        }}
+                      }
+                    </hlm-td>
+                  </hlm-trow>
+
+                  <hlm-trow>
+                    <hlm-td
+                      class="flex h-12 w-40 flex-none items-center px-4 text-sm font-medium text-muted-foreground">
+                      Farbe
+                    </hlm-td>
+                    <hlm-td>{{ patient.color || 'N/A' }} </hlm-td>
+                  </hlm-trow>
+
+                  <hlm-trow>
+                    <hlm-td
+                      class="flex h-12 w-40 flex-none items-center px-4 text-sm font-medium text-muted-foreground">
+                      Chip-Nr.
+                    </hlm-td>
+                    <hlm-td>{{ patient.chipNumber || 'N/A' }} </hlm-td>
+                  </hlm-trow>
+
+                  <hlm-trow>
+                    <hlm-td
+                      class="flex h-12 w-40 flex-none items-center px-4 text-sm font-medium text-muted-foreground">
+                      Bemerkung
+                    </hlm-td>
+                    <hlm-td>{{ patient.comment || 'N/A' }} </hlm-td>
+                  </hlm-trow>
+
+                  <hlm-trow>
+                    <hlm-td
+                      class="flex h-12 w-40 flex-none items-center px-4 text-sm font-medium text-muted-foreground">
+                      Geschlecht
+                    </hlm-td>
+                    <hlm-td>{{ selectedPatientGender() }} </hlm-td>
+                  </hlm-trow>
+
+                  <hlm-trow>
+                    <hlm-td
+                      class="flex h-12 w-40 flex-none items-center px-4 text-sm font-medium text-muted-foreground">
+                      Kastriert
+                    </hlm-td>
+                    <hlm-td
+                      >{{ selectedPatientCastrated() ? 'Ja' : 'Nein' }}
+                    </hlm-td>
+                  </hlm-trow>
+                </hlm-table>
+
+                <hlm-tabs tab="events">
+                  <hlm-tabs-list class="grid grid-cols-2">
+                    <button hlmTabsTrigger="events">Termine</button>
+                    <button hlmTabsTrigger="anamnesis">Anamnese</button>
+                  </hlm-tabs-list>
+
+                  <div hlmTabsContent="events">
+                    <h1 class="mb-2 mt-4 text-base font-medium">Termine</h1>
+
+                    <app-event-list
+                      [events]="selectedPatientAppointments()"
+                      [sort]="'desc'"
+                      [showDate]="true"
+                      [onlyUpcoming]="false" />
+                  </div>
+
+                  <div hlmTabsContent="anamnesis">
+                    @for (
+                      am of selectedPatientAnamnesis();
+                      track am.anamnesisId
+                    ) {
+                      <div
+                        class="my-2 flex flex-row flex-nowrap border border-b p-2 text-sm">
+                        <span
+                          class="inline-block w-48 flex-shrink-0 flex-grow-0 border-r border-border font-medium">
+                          @if (am.time) {
+                            {{ am.time | toDate | date: 'EE, d. MMMM y' }}
+                          }
+                        </span>
+
+                        <p class="flex-grow pl-2">
+                          {{ am.text }}
+                        </p>
+                      </div>
+                    }
+                  </div>
+                </hlm-tabs>
+              </div>
+            }
+          </div>
+        </div>
+      </hlm-tabs>
+    </div>
+  }
+</div>
+
+<ng-template #icon>
+  <hlm-icon name="lucideUser2" size="lg" class="mr-2 text-sky-600" />
+</ng-template>
