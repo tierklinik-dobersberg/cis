@@ -107,6 +107,7 @@ import {
   TkdDayViewComponent,
 } from '../day-view';
 import { StyledTimed } from '../day-view/event-style.pipe';
+import { SearchEventsDialogComponent } from '../search-events-dialog/search-events-dialog.component';
 import { CalendarViewService } from './calendar-view.service';
 
 export type CalEvent = Timed &
@@ -741,6 +742,10 @@ export class TkdCalendarViewComponent
         this.lastPanDeltaX = event.deltaX;
       }
     }
+  }
+
+  protected searchEvents() {
+    SearchEventsDialogComponent.open(this.dialog)
   }
 
   private startPanning() {

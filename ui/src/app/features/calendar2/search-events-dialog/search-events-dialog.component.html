@@ -1,0 +1,25 @@
+<hlm-dialog-header>
+  <h3 hlmDialogTitle>Termine suchen</h3>
+  <p hlmDialogDescription></p>
+</hlm-dialog-header>
+
+<div class="w-full p-2">
+  <input hlmInput class="w-full" [(ngModel)]="searchText" />
+</div>
+
+<div class="flex-grow overflow-auto">
+  @if (!loading()) {
+    <app-event-list
+      [events]="events()"
+      onlyUpcoming="false"
+      showDate="true"
+      sort="desc" />
+  } @else {
+    <span>Termine werden gesucht ...</span>
+  }
+</div>
+
+<hlm-dialog-footer
+  class="mt-4 flex flex-row flex-wrap items-center justify-between gap-2 p-1">
+  <button hlmBtn variant="secondary" (click)="close()">Schließen</button>
+</hlm-dialog-footer>

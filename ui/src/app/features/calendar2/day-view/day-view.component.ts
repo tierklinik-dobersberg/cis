@@ -28,7 +28,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { getMinutes, setMinutes, setSeconds } from 'date-fns';
 import { BehaviorSubject, interval, map, share, startWith, take } from 'rxjs';
-import { TkdDebounceEventDirective } from 'src/app/components/debounce-event.directive';
+import { TkdDblclickDirective, TkdDebounceEventDirective } from 'src/app/components/debounce-event.directive';
 import { TkdDragResetDirective } from './drag-reset.directive';
 import { TkdCalendarEventCellTemplateDirective } from './event-cell.directive';
 import { TkdEventResizeDirective } from './event-resize.directive';
@@ -69,6 +69,7 @@ export interface EventMovedEvent<E> {
     DragDropModule,
     TkdDragResetDirective,
     TkdEventResizeDirective,
+    TkdDblclickDirective,
   ],
   styles: [
     `
