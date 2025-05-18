@@ -21,6 +21,7 @@ import {
   Patient,
   PatientGender
 } from '@tierklinik-dobersberg/apis/customer/v1';
+import { MarkdownModule } from 'ngx-markdown';
 import { toast } from 'ngx-sonner';
 import { distinctUntilChanged, map, Subscription, switchMap } from 'rxjs';
 import { AppEventListComponent } from 'src/app/components/event-list';
@@ -30,7 +31,7 @@ import { CustomerDetailsTableComponent } from '../customer-details-table';
 @Component({
   standalone: true,
   templateUrl: './customer-details.component.html',
-  imports: [HlmTableModule, HlmTabsModule, HlmCardModule, CustomerDetailsTableComponent, ToDatePipe, HlmBadgeModule, DatePipe, HlmIconComponent, BrnTabsDirective, AppEventListComponent],
+  imports: [MarkdownModule, HlmTableModule, HlmTabsModule, HlmCardModule, CustomerDetailsTableComponent, ToDatePipe, HlmBadgeModule, DatePipe, HlmIconComponent, BrnTabsDirective, AppEventListComponent],
   providers: [
     ...provideIcons({
         lucideUser2
