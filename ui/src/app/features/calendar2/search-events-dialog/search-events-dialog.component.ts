@@ -13,6 +13,7 @@ import { hlm } from '@spartan-ng/ui-core';
 import {
   BrnDialogRef
 } from '@spartan-ng/ui-dialog-brain';
+import { HlmBadgeDirective } from '@tierklinik-dobersberg/angular/badge';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { injectCalendarService } from '@tierklinik-dobersberg/angular/connect';
 import {
@@ -22,8 +23,10 @@ import {
 import { TkdEmptyTableComponent } from '@tierklinik-dobersberg/angular/empty-table';
 import { HlmIconComponent, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { HlmInputDirective } from '@tierklinik-dobersberg/angular/input';
+import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { CalendarEvent } from '@tierklinik-dobersberg/apis/calendar/v1';
 import { toast } from 'ngx-sonner';
+import { take } from 'rxjs';
 import { AppEventListComponent } from 'src/app/components/event-list';
 import { DIALOG_CONTENT_CLASS } from 'src/app/dialogs/constants';
 
@@ -39,6 +42,7 @@ import { DIALOG_CONTENT_CLASS } from 'src/app/dialogs/constants';
     FormsModule,
     HlmIconComponent,
     TkdEmptyTableComponent,
+    HlmBadgeDirective,
   ],
   providers: [
     ...provideIcons({lucideCalendarSearch})
@@ -50,15 +54,22 @@ import { DIALOG_CONTENT_CLASS } from 'src/app/dialogs/constants';
 export class SearchEventsDialogComponent {
   private readonly calendarService = injectCalendarService();
   private readonly dialogRef = inject(BrnDialogRef);
+  protected readonly layout = inject(LayoutService)
 
   protected readonly searchText = model<string>('');
   protected readonly events = signal<CalendarEvent[]>([]);
   protected readonly loading = signal(false);
 
+  public static lastRef:BrnDialogRef | null = null;
+
   static open(service: HlmDialogService): BrnDialogRef<unknown> {
-    return service.open(SearchEventsDialogComponent, {
+    if (this.lastRef) {
+      return
+    }
+
+    return (this.lastRef = service.open(SearchEventsDialogComponent, {
       contentClass: hlm(DIALOG_CONTENT_CLASS, "md:max-h-[90vh] md:h-[90vh] overflow-hidden"),
-    });
+    }));
   }
 
   public close() {
@@ -68,6 +79,12 @@ export class SearchEventsDialogComponent {
   constructor() {
     let abrt: AbortController | null = null;
     let timeout: any | null = null;
+
+    this.dialogRef
+      .closed$
+      .pipe(take(1))
+      .subscribe(() => SearchEventsDialogComponent.lastRef = null)
+
 
     effect(() => {
       const text = this.searchText();

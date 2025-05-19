@@ -2,7 +2,7 @@ import { DatePipe, NgClass } from "@angular/common";
 import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from "@angular/core";
 import { Duration } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
-import { lucideCheckCircle } from "@ng-icons/lucide";
+import { lucideCircleCheck } from "@ng-icons/lucide";
 import { BrnTooltipModule } from "@spartan-ng/ui-tooltip-brain";
 import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { injectCalendarService } from "@tierklinik-dobersberg/angular/connect";
@@ -61,7 +61,7 @@ class EventListModel extends CalendarEvent {
         'class': 'block',
     },
     providers: [
-        ...provideIcons({lucideCheckCircle})
+        ...provideIcons({lucideCircleCheck})
     ]
 })
 export class AppEventListComponent {

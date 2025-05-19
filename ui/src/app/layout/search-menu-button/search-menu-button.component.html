@@ -4,13 +4,26 @@
 
 <ng-template #searchMenu>
   <app-menu class="w-56">
-    <hlm-menu-label> Suchen </hlm-menu-label>
+    <hlm-menu-label> Suchen nach ...</hlm-menu-label>
 
     <hlm-menu-separator />
 
     <button inset hlmMenuItem (click)="searchEvents()">
       <hlm-icon name="lucideCalendarSearch" hlmMenuIcon />
-      Kalender Termine
+      Terminen
+
+      <label hlmBadge variant="outline" class="ml-auto hidden md:inline-block">
+        ALT + T
+      </label>
+    </button>
+
+    <button inset hlmMenuItem (click)="searchCustomers()">
+      <hlm-icon name="lucideUserRoundSearch" hlmMenuIcon />
+      Kunden
+
+      <label hlmBadge variant="outline" class="ml-auto hidden md:inline-block">
+        ALT + C
+      </label>
     </button>
   </app-menu>
 </ng-template>

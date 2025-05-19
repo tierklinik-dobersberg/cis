@@ -2,11 +2,6 @@ import { Route } from '@angular/router';
 
 export const CUSTOMER_ROUTES: Route[] = [
   {
-    path: '',
-    pathMatch: 'full',
-    loadComponent: () => import("./customer-list").then(m => m.CustomerListComponent)
-  },
-  {
     path: ':customerId',
     loadComponent: () => import("./customer-details").then(m => m.CustomerDetailsComponent)
   },

@@ -7,7 +7,7 @@ import {
   OnInit,
   effect,
   inject,
-  signal
+  signal,
 } from '@angular/core';
 import { Code, ConnectError } from '@connectrpc/connect';
 import { injectCustomerService } from '@tierklinik-dobersberg/angular/connect';
@@ -15,14 +15,13 @@ import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { CallRecordReceived } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { ExternalToast, toast } from 'ngx-sonner';
-import {
-  retry,
-  tap
-} from 'rxjs/operators';
+import { retry, tap } from 'rxjs/operators';
 import { SwUpdateManager, WebPushSubscriptionManager } from 'src/app/services';
 import { environment } from 'src/environments/environment';
 import { StudyService } from './components/dicom/study.service';
 import { CreateCustomerDialog } from './dialogs/create-customer-dialog';
+import { SearchEventsDialogComponent } from './features/calendar2/search-events-dialog/search-events-dialog.component';
+import { CustomerSearchDialogComponent } from './features/customers/customer-search-dialog';
 import { NavigationService } from './layout/navigation/navigation.service';
 import { EventService } from './services/event.service';
 import { injectStoredProfile } from './utils/inject-helpers';
@@ -51,18 +50,24 @@ interface SubMenu {
           opacity: 0,
           position: 'absolute',
         }),
-        animate('150ms ease-in-out', style({
-          transform: 'translateX(0%)',
-          opacity: 1
-        }))
+        animate(
+          '150ms ease-in-out',
+          style({
+            transform: 'translateX(0%)',
+            opacity: 1,
+          })
+        ),
       ]),
       transition('* => void', [
-        animate('150ms ease-in-out', style({
-          transform: 'translateX(-100%)',
-          opacity: 0,
-        }))
+        animate(
+          '150ms ease-in-out',
+          style({
+            transform: 'translateX(-100%)',
+            opacity: 0,
+          })
+        ),
       ]),
-    ])
+    ]),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -72,7 +77,7 @@ export class AppComponent implements OnInit {
   private readonly eventsService = inject(EventService);
   private readonly studyService = inject(StudyService);
   private readonly customerService = injectCustomerService();
-  private readonly dialogService = inject(HlmDialogService)
+  private readonly dialogService = inject(HlmDialogService);
 
   protected readonly navService = inject(NavigationService);
   protected readonly layout = inject(LayoutService);
@@ -84,108 +89,131 @@ export class AppComponent implements OnInit {
   private readonly currentUser = injectStoredProfile();
 
   constructor() {
-    this.studyService
-      .instanceReceived
-      .subscribe(msg => {
-        toast.info(
-          "Neue Röntgenaufnahme",
+    this.studyService.instanceReceived.subscribe(msg => {
+      toast.info(
+        'Neue Röntgenaufnahme',
 
-          {
-            description: `${msg.ownerName}, ${msg.patientName}`,
-            duration: 20*1000,
-            action: {
-              label: 'ÖFFNEN',
-              onClick: () => {
-                window.open(`${environment.orthancBridge}/viewer?StudyInstanceUIDs=${msg.studyUid}`, '_blank')
-              }
-            }
-          }
-        )
-      })
+        {
+          description: `${msg.ownerName}, ${msg.patientName}`,
+          duration: 20 * 1000,
+          action: {
+            label: 'ÖFFNEN',
+            onClick: () => {
+              window.open(
+                `${environment.orthancBridge}/viewer?StudyInstanceUIDs=${msg.studyUid}`,
+                '_blank'
+              );
+            },
+          },
+        }
+      );
+    });
 
     let ref = effect(() => {
       const profile = this.currentUser();
 
       if (profile) {
-        setTimeout(() => this.webPushManager.updateWebPushSubscription(), 1000)
+        setTimeout(() => this.webPushManager.updateWebPushSubscription(), 1000);
         ref.destroy();
       }
-    })
+    });
 
     const toasts = new Map<string, any>();
 
-    this.eventsService.subscribe(new CallRecordReceived)
-      .subscribe(evt => {
-        const caller = evt.callEntry.caller;
+    this.eventsService.subscribe(new CallRecordReceived()).subscribe(evt => {
+      const caller = evt.callEntry.caller;
 
-        if (Number(evt.callEntry?.duration?.seconds || 0) === 0) {
-          // new active call received
+      if (Number(evt.callEntry?.duration?.seconds || 0) === 0) {
+        // new active call received
 
-          let display = Promise.resolve(caller)
+        let display = Promise.resolve(caller);
 
-          if (evt.callEntry.customerId) {
-            display = this.customerService
-              .searchCustomer({
-                queries: [
-                  {
-                    query: {
-                      case: 'id',
-                      value: evt.callEntry.customerId,
-                    }
-                  }
-                ]
-              })
-              .then(response => {
-                if (response.results && response.results.length === 1) {
-                  const customer = response.results[0].customer;
-                  if (customer) {
-                    return `${customer.lastName} ${customer.firstName}`
-                  }
-                }
-
-                return ''
-              })
-              .catch(err => {
-                console.error(err);
-                
-                return caller
-              })
-          }
-
-          let action: undefined | ExternalToast['action'] = {
-                  label: 'Telefonnummer speichern',
-                  onClick: () => {
-                    CreateCustomerDialog.open(this.dialogService, {
-                      caller: caller,
-                    })
-                  }
-          }
-
-          if (evt.callEntry?.customerId) {
-            action = null;
-          }
-
-          display
-            .then(who => {
-              const id  = toast.loading('Aktives Telefonat mit ' + who, {
-                duration: 10 * 60 * 1000,
-                action,
-              })
-
-              console.log("adding caller id", caller, id, evt)
-              toasts.set(caller, id);
+        if (evt.callEntry.customerId) {
+          display = this.customerService
+            .searchCustomer({
+              queries: [
+                {
+                  query: {
+                    case: 'id',
+                    value: evt.callEntry.customerId,
+                  },
+                },
+              ],
             })
-        } else {
-          // call finished
-          const id = toasts.get(caller);
-          if (id !== undefined) {
-            toast.dismiss(id);
-            toasts.delete(id);
-          } else {
-            console.log("no active toast for caller", caller, Array.from(toasts.keys()))
-          }
+            .then(response => {
+              if (response.results && response.results.length === 1) {
+                const customer = response.results[0].customer;
+                if (customer) {
+                  return `${customer.lastName} ${customer.firstName}`;
+                }
+              }
+
+              return '';
+            })
+            .catch(err => {
+              console.error(err);
+
+              return caller;
+            });
         }
-      })
+
+        let action: undefined | ExternalToast['action'] = {
+          label: 'Telefonnummer speichern',
+          onClick: () => {
+            CreateCustomerDialog.open(this.dialogService, {
+              caller: caller,
+            });
+          },
+        };
+
+        if (evt.callEntry?.customerId) {
+          action = null;
+        }
+
+        display.then(who => {
+          const id = toast.loading('Aktives Telefonat mit ' + who, {
+            duration: 10 * 60 * 1000,
+            action,
+          });
+
+          console.log('adding caller id', caller, id, evt);
+          toasts.set(caller, id);
+        });
+      } else {
+        // call finished
+        const id = toasts.get(caller);
+        if (id !== undefined) {
+          toast.dismiss(id);
+          toasts.delete(id);
+        } else {
+          console.log(
+            'no active toast for caller',
+            caller,
+            Array.from(toasts.keys())
+          );
+        }
+      }
+    });
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    console.log('event');
+    if (event.key === 'c' && event.altKey) {
+      if (CustomerSearchDialogComponent.lastRef) {
+        CustomerSearchDialogComponent.lastRef.close();
+      } else {
+        CustomerSearchDialogComponent.open(this.dialogService);
+      }
+    }
+
+    if (event.key === 't' && event.altKey) {
+      if (SearchEventsDialogComponent.lastRef) {
+        SearchEventsDialogComponent.lastRef.close();
+      } else {
+        SearchEventsDialogComponent.open(this.dialogService);
+      }
+    }
   }
 
   ngOnInit(): void {
@@ -210,18 +238,20 @@ export class AppComponent implements OnInit {
 
             if (ConnectError.from(err).code === Code.Unauthenticated) {
               const redirectTarget = btoa(`${location.href}`);
-              window.location.replace(`${environment.accountService}/login?redirect=${redirectTarget}&force=true`);
+              window.location.replace(
+                `${environment.accountService}/login?redirect=${redirectTarget}&force=true`
+              );
             }
-          }
+          },
         }),
         retry({ delay: 2000 })
       )
       .subscribe({
         next: () => {
-          this.isReachable.set(true)
+          this.isReachable.set(true);
           this.checkRunning.set(false);
         },
-        error: (err) => console.error(err),
+        error: err => console.error(err),
       });
   }
 }

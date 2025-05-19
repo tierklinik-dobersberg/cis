@@ -2,7 +2,7 @@ import { NgClass } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, model, OnInit, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ConnectError } from "@connectrpc/connect";
-import { lucideCheckSquare, lucideSquare } from "@ng-icons/lucide";
+import { lucideSquare, lucideSquareCheck } from "@ng-icons/lucide";
 import { BrnDialogRef, injectBrnDialogContext } from "@spartan-ng/ui-dialog-brain";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { HlmCheckboxModule } from "@tierklinik-dobersberg/angular/checkbox";
@@ -42,7 +42,7 @@ export class InstanceModel extends Instance {
     ],
     providers: [
         ...provideIcons({
-            lucideCheckSquare,
+            lucideSquareCheck,
             lucideSquare
         })
     ],

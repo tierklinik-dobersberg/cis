@@ -2,10 +2,11 @@ import { booleanAttribute, ChangeDetectionStrategy, Component, DestroyRef, effec
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { ConnectError } from '@connectrpc/connect';
-import { lucideCalendar, lucideCircuitBoard, lucideCopyright, lucideFileAudio, lucideFilm, lucideHome, lucideLayers, lucidePhoneCall, lucidePhoneForwarded, lucidePlus, lucideTimer, lucideUserCircle } from '@ng-icons/lucide';
+import { lucideCalendar, lucideCircleUser, lucideCircuitBoard, lucideCopyright, lucideFileAudio, lucideFilm, lucideHouse, lucideLayers, lucidePhoneCall, lucidePhoneForwarded, lucidePlus, lucideTimer, lucideUserRoundSearch } from '@ng-icons/lucide';
 import { BrnMenuModule } from '@spartan-ng/ui-menu-brain';
 import { BrnSheetComponent } from '@spartan-ng/ui-sheet-brain';
 import { injectBoardService, injectVoiceMailService } from '@tierklinik-dobersberg/angular/connect';
+import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { HlmMenuModule } from '@tierklinik-dobersberg/angular/menu';
@@ -13,6 +14,7 @@ import { Mailbox } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { Board, BoardEvent, ListBoardsResponse } from '@tierklinik-dobersberg/apis/tasks/v1';
 import { toast } from 'ngx-sonner';
 import { catchError, debounceTime, filter, finalize, from, interval, merge, of, retry, startWith, switchMap } from 'rxjs';
+import { CustomerSearchDialogComponent } from 'src/app/features/customers/customer-search-dialog';
 import { EventService } from 'src/app/services/event.service';
 import { injectStoredConfig, injectStoredProfile } from 'src/app/utils/inject-helpers';
 import { environment } from 'src/environments/environment';
@@ -51,18 +53,19 @@ interface SubMenu {
   ],
   providers: [
     ...provideIcons({
-      lucideHome,
+      lucideHouse,
       lucideCalendar,
       lucideTimer,
       lucideLayers,
-      lucideUserCircle,
+      lucideCircleUser,
       lucideFilm,
       lucideFileAudio,
       lucideCopyright,
       lucidePlus,
       lucideCircuitBoard,
       lucidePhoneCall,
-      lucidePhoneForwarded
+      lucidePhoneForwarded,
+      lucideUserRoundSearch
     })
   ]
 })
@@ -76,6 +79,7 @@ export class AppNavigationComponent {
   protected readonly boardService = injectBoardService();
   protected readonly profile = injectStoredProfile()
   protected readonly eventsService = inject(EventService);
+  private readonly dialog = inject(HlmDialogService)
   
   protected readonly rootLinks = signal<MenuEntry[]>([]);
   protected readonly subMenus = signal<SubMenu[]>([]);
@@ -84,6 +88,9 @@ export class AppNavigationComponent {
 
   public readonly sheet = input(false, { transform: booleanAttribute });
 
+  protected searchCustomers() {
+    CustomerSearchDialogComponent.open(this.dialog)
+  }
 
   protected changeProfile() {
     const redirectUrl = btoa(`${location.href}`);

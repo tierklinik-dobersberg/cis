@@ -1,0 +1,57 @@
+<hlm-dialog-header>
+  <h3 hlmDialogTitle class="flex flex-row items-center gap-2">
+    <hlm-icon name="lucideUserRoundSearch" />
+    Kunden suchen
+  </h3>
+
+  @if (layout.md()) {
+    <p hlmDialogDescription>
+      Drücke <label hlmBadge variant="outline">ALT + C</label> um diesen Dialog
+      von überall zu öffnen.
+    </p>
+  }
+</hlm-dialog-header>
+
+<div class="w-full p-2">
+  <input
+    hlmInput
+    class="w-full"
+    [(ngModel)]="searchByName"
+    placeholder="Suchen" />
+</div>
+
+<div class="flex flex-grow flex-col gap-4 overflow-auto">
+  <hlm-table>
+    <hlm-trow>
+      <hlm-th class="w-96">Name</hlm-th>
+      <hlm-th class="w-48">Ursprung</hlm-th>
+    </hlm-trow>
+
+    @for (r of customers(); track r.customer.id) {
+      <hlm-trow [routerLink]="['customers', r.customer.id, 'patient', 'none']">
+        <hlm-td class="w-96">
+          {{ r.customer.lastName }} {{ r.customer.firstName }}
+        </hlm-td>
+        <hlm-td class="flex w-48 flex-row flex-wrap gap-2">
+          @for (importer of r.states; track importer.importer) {
+            <hlm-tooltip>
+              <label
+                hlmBadge
+                variant="outline"
+                class="uppercase"
+                hlmTooltipTrigger>
+                {{ importer.importer }}
+              </label>
+
+              <span *brnTooltipContent hlm>{{
+                importer.internalReference
+              }}</span>
+            </hlm-tooltip>
+          }
+        </hlm-td>
+      </hlm-trow>
+    }
+  </hlm-table>
+
+  <tkd-pagination class="self-end" [paginator]="paginator" />
+</div>

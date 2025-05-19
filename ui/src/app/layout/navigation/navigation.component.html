@@ -1,7 +1,7 @@
-<nav class="relative flex flex-col flex-shrink-0 h-full bg-white">
+<nav class="relative flex h-full flex-shrink-0 flex-col bg-white">
   @if (!sheet()) {
     <!-- Logo -->
-    <app-logo class="px-4 py-4 ml-1 h-14" />
+    <app-logo class="ml-1 h-14 px-4 py-4" />
   }
 
   @defer {
@@ -16,7 +16,7 @@
           [routerLinkActiveOptions]="{ exact: true }"
           routerLinkActive="bg-gray-100"
           class="px-4 py-2">
-          <hlm-icon name="lucideHome" hlmMenuIcon />
+          <hlm-icon name="lucideHouse" hlmMenuIcon />
           Dashboard
         </button>
 
@@ -47,12 +47,8 @@
           Urlaubsanträge
         </button>
 
-        <button
-          hlmMenuItem
-          routerLink="/customers"
-          routerLinkActive="bg-gray-100"
-          class="px-4 py-2">
-          <hlm-icon name="lucideUserCircle" hlmMenuIcon />
+        <button hlmMenuItem (click)="searchCustomers()" class="px-4 py-2">
+          <hlm-icon name="lucideUserRoundSearch" hlmMenuIcon />
           Kunden
         </button>
 
@@ -228,7 +224,7 @@
 
     <!-- Copyright -->
     <span
-      class="flex flex-col items-center justify-around py-2 text-xs text-center text-gray-500">
+      class="flex flex-col items-center justify-around py-2 text-center text-xs text-gray-500">
       <span class="font-semibold text-gray-700">V1.19</span>
       <span>
         <hlm-icon name="lucideCopyright" size="sm" />

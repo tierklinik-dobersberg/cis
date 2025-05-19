@@ -1,19 +1,19 @@
 import { DatePipe } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  input,
-  signal,
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    effect,
+    input,
+    signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { ConnectError } from '@connectrpc/connect';
 import {
-  lucideMoreVertical,
-  lucidePencil,
-  lucideTrash2,
+    lucideEllipsisVertical,
+    lucidePencil,
+    lucideTrash2,
 } from '@ng-icons/lucide';
 import { BrnMenuModule } from '@spartan-ng/ui-menu-brain';
 import { BrnTooltipModule } from '@spartan-ng/ui-tooltip-brain';
@@ -21,16 +21,16 @@ import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { injectTaskService } from '@tierklinik-dobersberg/angular/connect';
 import {
-  HlmIconModule,
-  provideIcons,
+    HlmIconModule,
+    provideIcons,
 } from '@tierklinik-dobersberg/angular/icon';
 import { HlmMenuModule } from '@tierklinik-dobersberg/angular/menu';
 import { DisplayNamePipe, ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
 import {
-  Board,
-  TaskComment,
-  TaskTimelineEntry,
+    Board,
+    TaskComment,
+    TaskTimelineEntry,
 } from '@tierklinik-dobersberg/apis/tasks/v1';
 import { MarkdownModule } from 'ngx-markdown';
 import { toast } from 'ngx-sonner';
@@ -60,7 +60,7 @@ import { UserColorVarsDirective } from 'src/app/components/user-color-vars';
   ],
   providers: [
     ...provideIcons({
-      lucideMoreVertical,
+      lucideEllipsisVertical,
       lucideTrash2,
       lucidePencil,
     }),

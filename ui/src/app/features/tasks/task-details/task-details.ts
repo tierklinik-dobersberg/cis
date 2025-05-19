@@ -6,7 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { PartialMessage, Timestamp } from "@bufbuild/protobuf";
 import { CKEditorModule } from "@ckeditor/ckeditor5-angular";
 import { ConnectError } from "@connectrpc/connect";
-import { lucideActivity, lucideCalendarCheck, lucideCheck, lucideCheckCheck, lucideCircleDot, lucideClock, lucideLayers, lucideMoreVertical, lucideMove, lucideMoveHorizontal, lucideTags, lucideTrash2, lucideUser, lucideUser2, lucideX } from "@ng-icons/lucide";
+import { lucideActivity, lucideCalendarCheck, lucideCheck, lucideCheckCheck, lucideCircleDot, lucideClock, lucideEllipsisVertical, lucideLayers, lucideMove, lucideMoveHorizontal, lucideTags, lucideTrash2, lucideUser, lucideUserRound, lucideX } from "@ng-icons/lucide";
 import { BrnAlertDialogModule } from "@spartan-ng/ui-alertdialog-brain";
 import { BrnSheetContentDirective, BrnSheetTriggerDirective } from "@spartan-ng/ui-sheet-brain";
 import { BrnTooltipModule } from "@spartan-ng/ui-tooltip-brain";
@@ -93,9 +93,9 @@ import { TimelineEntryComponent } from '../timeline-entry/timeline-entry';
             lucideCheck,
             lucideCheckCheck,
             lucideUser,
-            lucideUser2,
+            lucideUserRound,
             lucideTrash2,
-            lucideMoreVertical,
+            lucideEllipsisVertical,
             lucideMoveHorizontal,
             lucideMove,
             lucideActivity,

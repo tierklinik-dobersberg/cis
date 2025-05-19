@@ -5,6 +5,7 @@
         <h1 hlmCardTitle>{{ customer.lastName }} {{ customer.firstName }}</h1>
         <p hlmCardDescription>
           Importiert von
+          <span class="mr-2"></span>
           @for (state of states(); track state.importer) {
             <label hlmBadge class="mr-2 uppercase">
               {{ state.importer }}
@@ -202,5 +203,5 @@
 </div>
 
 <ng-template #icon>
-  <hlm-icon name="lucideUser2" size="lg" class="mr-2 text-sky-600" />
+  <hlm-icon name="lucideUserRound" size="lg" class="mr-2 text-sky-600" />
 </ng-template>

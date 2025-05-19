@@ -1,10 +1,10 @@
 import { DatePipe } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
-  Component,
-  effect,
-  inject,
-  signal
+    ChangeDetectionStrategy,
+    Component,
+    effect,
+    inject,
+    signal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -12,7 +12,7 @@ import { ActivatedRoute } from '@angular/router';
 import { PartialMessage, Timestamp } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
 import { provideIcons } from '@ng-icons/core';
-import { lucideFileAudio, lucidePlayCircle } from '@ng-icons/lucide';
+import { lucideCirclePlay, lucideFileAudio } from '@ng-icons/lucide';
 import { BrnTooltipModule } from '@spartan-ng/ui-tooltip-brain';
 import { HlmBadgeDirective } from '@tierklinik-dobersberg/angular/badge';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
@@ -27,8 +27,8 @@ import { ListMailboxesResponse, ListVoiceMailsRequest, ListVoiceMailsResponse, M
 import { isAfter, isBefore } from 'date-fns';
 import { toast } from 'ngx-sonner';
 import {
-  TkdDatePickerComponent,
-  TkdDatePickerInputDirective,
+    TkdDatePickerComponent,
+    TkdDatePickerInputDirective,
 } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
 import { HeaderTitleService } from 'src/app/layout/header-title';
@@ -58,7 +58,7 @@ import { environment } from 'src/environments/environment';
     HlmTooltipModule,
     BrnTooltipModule
   ],
-  providers: [...provideIcons({ lucideFileAudio, lucidePlayCircle })],
+  providers: [...provideIcons({ lucideFileAudio, lucideCirclePlay })],
 })
 export class VoiceMailComponent {
   private readonly header = inject(HeaderTitleService);

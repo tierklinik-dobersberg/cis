@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from "@angular/core";
-import { lucideChevronDown, lucideSearch, lucideTrash2, lucideUserCheck2 } from "@ng-icons/lucide";
+import { lucideChevronDown, lucideSearch, lucideTrash2, lucideUserRoundCheck } from "@ng-icons/lucide";
 import { BrnCommandModule } from "@spartan-ng/ui-command-brain";
 import { BrnPopoverModule } from "@spartan-ng/ui-popover-brain";
 import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
@@ -30,7 +30,7 @@ import { ResizableComponentWidth } from "../utils";
         HlmIconComponent
     ],
     providers: [
-        ...provideIcons({lucideSearch, lucideTrash2, lucideChevronDown, lucideUserCheck2})
+        ...provideIcons({lucideSearch, lucideTrash2, lucideChevronDown, lucideUserRoundCheck})
     ]
 })
 export class TaskAssigneeComponent extends ResizableComponentWidth {

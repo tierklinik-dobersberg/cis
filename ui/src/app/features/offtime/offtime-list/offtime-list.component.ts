@@ -5,7 +5,7 @@ import { FormsModule } from "@angular/forms";
 import { RouterLink } from "@angular/router";
 import { PartialMessage, Timestamp } from '@bufbuild/protobuf';
 import { Code, ConnectError } from '@connectrpc/connect';
-import { lucideArrowLeft, lucideArrowRight, lucideCalendar, lucideCheckCircle, lucideMessageCircle, lucideXCircle } from "@ng-icons/lucide";
+import { lucideArrowLeft, lucideArrowRight, lucideCalendar, lucideCircleCheck, lucideCircleX, lucideMessageCircle } from "@ng-icons/lucide";
 import { BrnAlertDialogModule } from "@spartan-ng/ui-alertdialog-brain";
 import { BrnHoverCardContentService, BrnHoverCardModule } from '@spartan-ng/ui-hovercard-brain';
 import { BrnSelectModule } from "@spartan-ng/ui-select-brain";
@@ -112,7 +112,7 @@ import { AppOffTimeFilterSheetComponent, filterOffTimeEntries, OffTimeFilter } f
     HlmLabelDirective,
   ],
   providers: [
-    ...provideIcons({lucideMessageCircle, lucideArrowLeft, lucideArrowRight, lucideCheckCircle, lucideCalendar, lucideXCircle}),
+    ...provideIcons({lucideMessageCircle, lucideArrowLeft, lucideArrowRight, lucideCircleCheck, lucideCalendar, lucideCircleX}),
     BrnHoverCardContentService
   ]
 })

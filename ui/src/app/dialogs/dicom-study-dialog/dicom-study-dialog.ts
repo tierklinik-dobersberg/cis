@@ -1,6 +1,6 @@
 import { DatePipe, JsonPipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, model, OnInit } from "@angular/core";
-import { lucideDownload, lucideExternalLink, lucideEye, lucideMail, lucideMoreVertical, lucideShare } from "@ng-icons/lucide";
+import { lucideDownload, lucideEllipsisVertical, lucideExternalLink, lucideEye, lucideMail, lucideShare } from "@ng-icons/lucide";
 import { BrnDialogRef, injectBrnDialogContext } from "@spartan-ng/ui-dialog-brain";
 import { BrnMenuModule } from "@spartan-ng/ui-menu-brain";
 import { BrnTabsModule } from "@spartan-ng/ui-tabs-brain";
@@ -52,7 +52,7 @@ export interface DicomStudyDialogContext {
     providers: [
         ...provideIcons({
             lucideExternalLink,
-            lucideMoreVertical,
+            lucideEllipsisVertical,
             lucideShare,
             lucideDownload,
             lucideMail,

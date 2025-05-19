@@ -3,7 +3,12 @@
     <hlm-icon name="lucideCalendarSearch" />
     Termine suchen
   </h3>
-  <p hlmDialogDescription></p>
+  @if (layout.md()) {
+    <p hlmDialogDescription>
+      Drücke <label hlmBadge variant="outline">ALT + T</label> um diesen Dialog
+      von überall zu öffnen.
+    </p>
+  }
 </hlm-dialog-header>
 
 <div class="w-full p-2">

@@ -3,7 +3,7 @@ import { Component, computed, DestroyRef, effect, inject, signal, TemplateRef, V
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ConnectError } from '@connectrpc/connect';
-import { lucideUser2 } from '@ng-icons/lucide';
+import { lucideUserRound } from '@ng-icons/lucide';
 import { BrnTabsDirective } from '@spartan-ng/ui-tabs-brain';
 import { HlmBadgeModule } from '@tierklinik-dobersberg/angular/badge';
 import { HlmCardModule } from '@tierklinik-dobersberg/angular/card';
@@ -14,12 +14,12 @@ import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { HlmTabsModule } from '@tierklinik-dobersberg/angular/tabs';
 import { CalendarEvent, ListEventsResponse } from '@tierklinik-dobersberg/apis/calendar/v1';
 import {
-  Anamnesis,
-  Customer,
-  GetPatientsByCustomerResponse,
-  ImportState,
-  Patient,
-  PatientGender
+    Anamnesis,
+    Customer,
+    GetPatientsByCustomerResponse,
+    ImportState,
+    Patient,
+    PatientGender
 } from '@tierklinik-dobersberg/apis/customer/v1';
 import { MarkdownModule } from 'ngx-markdown';
 import { toast } from 'ngx-sonner';
@@ -34,7 +34,7 @@ import { CustomerDetailsTableComponent } from '../customer-details-table';
   imports: [MarkdownModule, HlmTableModule, HlmTabsModule, HlmCardModule, CustomerDetailsTableComponent, ToDatePipe, HlmBadgeModule, DatePipe, HlmIconComponent, BrnTabsDirective, AppEventListComponent],
   providers: [
     ...provideIcons({
-        lucideUser2
+        lucideUserRound
     })
   ]
 })

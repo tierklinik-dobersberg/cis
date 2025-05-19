@@ -1,5 +1,5 @@
 @if (comment(); as c) {
-  <div class="w-full border rounded-md border-border">
+  <div class="w-full rounded-md border border-border">
     <header
       [style.--user-color-opacity]="0.15"
       class="flex w-full flex-row items-center gap-2 rounded-t-md border-b border-border bg-[var(--user-color)] p-2 px-4"
@@ -26,7 +26,7 @@
       </span>
 
       <button hlmBtn [brnMenuTriggerFor]="menu" size="icon" variant="ghost">
-        <hlm-icon name="lucideMoreVertical" size="sm" />
+        <hlm-icon name="lucideEllipsisVertical" size="sm" />
       </button>
 
       <ng-template #menu>
@@ -68,7 +68,7 @@
         [editor]="editor"
         [(ngModel)]="commentText" />
     } @else {
-      <div class="px-4 prose">
+      <div class="prose px-4">
         <markdown emoji [data]="c.comment" />
       </div>
     }

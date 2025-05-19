@@ -6,7 +6,7 @@ import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { PartialMessage, Timestamp } from "@bufbuild/protobuf";
 import { ConnectError } from "@connectrpc/connect";
-import { lucideArrowDown, lucideArrowLeft, lucideArrowRight, lucideArrowUp, lucideArrowUpDown, lucideCheck, lucideCheckCheck, lucideChevronDown, lucideCircleDot, lucideClock, lucideDot, lucideGroup, lucideMenu, lucideMoreVertical, lucidePencil, lucidePlus, lucideSave, lucideTags, lucideTrash2, lucideUser } from "@ng-icons/lucide";
+import { lucideArrowDown, lucideArrowLeft, lucideArrowRight, lucideArrowUp, lucideArrowUpDown, lucideCheck, lucideCheckCheck, lucideChevronDown, lucideCircleDot, lucideClock, lucideDot, lucideEllipsisVertical, lucideGroup, lucideMenu, lucidePencil, lucidePlus, lucideSave, lucideTags, lucideTrash2, lucideUser } from "@ng-icons/lucide";
 import { BrnAlertDialogModule } from "@spartan-ng/ui-alertdialog-brain";
 import { BrnCommandModule } from "@spartan-ng/ui-command-brain";
 import { BrnMenuTriggerDirective } from "@spartan-ng/ui-menu-brain";
@@ -87,7 +87,7 @@ import { ViewModel } from "./task-view.model";
         'class': '!p-0'
     },
     providers: [
-        ...provideIcons({lucideArrowLeft, lucideArrowRight, lucideArrowUp, lucideArrowDown, lucideDot, lucideSave ,lucideGroup, lucideArrowUpDown, lucideChevronDown ,lucidePlus ,lucideCheck, lucideUser, lucideCircleDot, lucideTags, lucideCheckCheck, lucideTrash2, lucideClock, lucideMenu, lucideMoreVertical, lucidePencil})
+        ...provideIcons({lucideArrowLeft, lucideArrowRight, lucideArrowUp, lucideArrowDown, lucideDot, lucideSave ,lucideGroup, lucideArrowUpDown, lucideChevronDown ,lucidePlus ,lucideCheck, lucideUser, lucideCircleDot, lucideTags, lucideCheckCheck, lucideTrash2, lucideClock, lucideMenu, lucideEllipsisVertical, lucidePencil})
     ]
 })
 export class TaskListComponent {

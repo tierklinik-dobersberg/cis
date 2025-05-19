@@ -1,7 +1,7 @@
 <brn-popover>
   <button
     brnPopoverTrigger
-    class="flex flex-row items-center justify-between w-full">
+    class="flex w-full flex-row items-center justify-between">
     @if (task().assigneeId; as id) {
       <app-avatar [user]="id" showName="true" variant="small" />
     } @else {
@@ -16,7 +16,7 @@
     hlm
     class="min-w-[200px] p-2">
     <label hlmLabel class="flex flex-row gap-2 p-2">
-      <hlm-icon name="lucideUserCheck2" size="sm" />
+      <hlm-icon name="lucideUserRoundCheck" size="sm" />
       Zuständigkeit auswählen
     </label>
 
