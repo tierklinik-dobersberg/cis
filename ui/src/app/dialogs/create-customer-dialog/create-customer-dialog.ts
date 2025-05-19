@@ -81,6 +81,7 @@ export class CreateCustomerDialog implements OnInit {
                 switchMap(searchValue => {
                     const abrt = new AbortController()
 
+                    const parts = searchValue.split(' ')
                     const promise = this.customerService
                         .searchCustomer({
                             queries: [
@@ -88,7 +89,17 @@ export class CreateCustomerDialog implements OnInit {
                                     query: {
                                         case: 'name',
                                         value: {
-                                            lastName: searchValue
+                                            lastName: parts[0],
+                                            firstName: parts.length > 1 ? parts[1] : undefined
+                                        },
+                                    }
+                                },
+                                {
+                                    query: {
+                                        case: 'name',
+                                        value: {
+                                            firstName: parts[0],
+                                            lastName: parts.length > 1 ? parts[1] : undefined
                                         },
                                     }
                                 }

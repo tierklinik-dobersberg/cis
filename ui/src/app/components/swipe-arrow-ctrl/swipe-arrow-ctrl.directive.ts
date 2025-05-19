@@ -108,15 +108,16 @@ export class SwipeArrowControlDirective {
   protected keyDown(event: KeyboardEvent) {
     switch (event.key) {
       case 'ArrowLeft':
+        event.stopPropagation();
         this.previous();
         break;
 
       case 'ArrowRight':
+        event.stopPropagation();
         this.next();
         break;
     }
 
-    event.stopPropagation();
   }
 
   public next() {
