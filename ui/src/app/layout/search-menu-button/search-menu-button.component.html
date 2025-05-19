@@ -1,0 +1,16 @@
+<button hlmBtn variant="ghost" size="icon" [brnMenuTriggerFor]="searchMenu">
+  <hlm-icon class="!stroke-1" name="lucideSearch" />
+</button>
+
+<ng-template #searchMenu>
+  <app-menu class="w-56">
+    <hlm-menu-label> Suchen </hlm-menu-label>
+
+    <hlm-menu-separator />
+
+    <button inset hlmMenuItem (click)="searchEvents()">
+      <hlm-icon name="lucideCalendarSearch" hlmMenuIcon />
+      Kalender Termine
+    </button>
+  </app-menu>
+</ng-template>

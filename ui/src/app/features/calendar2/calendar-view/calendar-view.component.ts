@@ -29,7 +29,7 @@ import {
   lucideCog,
   lucideStar,
   lucideZoomIn,
-  lucideZoomOut,
+  lucideZoomOut
 } from '@ng-icons/lucide';
 import { BrnPopoverModule } from '@spartan-ng/ui-popover-brain';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';

@@ -56,11 +56,7 @@ export class TkdDatePickerTriggerComponent {
     })
 
     protected readonly _computedButtonClasses = computed(() => {
-        let defaultCls = "rounded-none border-b border-t text-center";
-        if (this.variant() === "date") {
-            defaultCls += "min-w-32"
-        }
-
+        let defaultCls = "rounded-none border-b border-t text-center flex-grow";
         return hlm(defaultCls + " " + this._computedBorderClasses(), this.buttonClass())
     })
 
@@ -98,7 +94,12 @@ export class TkdDatePickerTriggerComponent {
     })
 
     protected readonly _computedClass = computed(() => {
-        return hlm(defaultClasses, this.userClasses())
+        let cls = defaultClasses;
+        if (this.variant() === 'date') {
+            cls += ' w-72'
+        }
+
+        return hlm(cls, this.userClasses())
     })
 
     protected readonly calendarDate = computed(() => {

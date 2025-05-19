@@ -1,23 +1,26 @@
 import {
-    ChangeDetectionStrategy,
-    Component,
-    effect,
-    inject,
-    model,
-    signal,
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  model,
+  signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConnectError } from '@connectrpc/connect';
+import { lucideCalendarSearch } from '@ng-icons/lucide';
 import { hlm } from '@spartan-ng/ui-core';
 import {
-    BrnDialogRef
+  BrnDialogRef
 } from '@spartan-ng/ui-dialog-brain';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { injectCalendarService } from '@tierklinik-dobersberg/angular/connect';
 import {
-    HlmDialogModule,
-    HlmDialogService,
+  HlmDialogModule,
+  HlmDialogService,
 } from '@tierklinik-dobersberg/angular/dialog';
+import { TkdEmptyTableComponent } from '@tierklinik-dobersberg/angular/empty-table';
+import { HlmIconComponent, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { HlmInputDirective } from '@tierklinik-dobersberg/angular/input';
 import { CalendarEvent } from '@tierklinik-dobersberg/apis/calendar/v1';
 import { toast } from 'ngx-sonner';
@@ -34,6 +37,11 @@ import { DIALOG_CONTENT_CLASS } from 'src/app/dialogs/constants';
     HlmInputDirective,
     HlmButtonDirective,
     FormsModule,
+    HlmIconComponent,
+    TkdEmptyTableComponent,
+  ],
+  providers: [
+    ...provideIcons({lucideCalendarSearch})
   ],
   host: {
     'class': 'overflow-y-hidden h-full flex flex-col gap-4'

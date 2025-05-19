@@ -22,6 +22,7 @@ import {
   HlmCardModule,
 } from '@tierklinik-dobersberg/angular/card';
 import { injectRosterService } from '@tierklinik-dobersberg/angular/connect';
+import { TkdContainerSizeDirective } from '@tierklinik-dobersberg/angular/container';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
@@ -39,7 +40,6 @@ import { interval } from 'rxjs';
 import { AppAvatarComponent } from 'src/app/components/avatar';
 import { TkdDatePickerComponent, TkdDatePickerInputDirective } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
-import { SwipeArrowControlDirective } from 'src/app/components/swipe-arrow-ctrl/swipe-arrow-ctrl.directive';
 import { ToRGBAPipe } from 'src/app/pipes/to-rgba.pipe';
 import { getCalendarId } from 'src/app/services';
 import { isBetween } from 'src/app/utils/date';
@@ -69,9 +69,9 @@ import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shift
     BrnTooltipModule,
     NgClass,
     ToRGBAPipe,
-    SwipeArrowControlDirective,
+    TkdContainerSizeDirective
   ],
-  hostDirectives: [HlmCardDirective],
+  hostDirectives: [HlmCardDirective, TkdContainerSizeDirective],
   providers: [
     ...provideIcons({lucideArrowLeft, lucideArrowRight, lucideCalendarDays, lucideInfo})
   ],
@@ -84,6 +84,7 @@ export class RosterCardComponent {
   private readonly dialogService = inject(HlmDialogService);
   public readonly userHover = output<Profile | null>();
 
+  protected readonly containerSize = inject(TkdContainerSizeDirective, {host: true})
   protected readonly currentShifts = signal<PlannedShift[]>([]);
   protected readonly profiles = injectUserProfiles();
   protected readonly config = injectStoredConfig();

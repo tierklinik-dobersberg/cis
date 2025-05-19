@@ -14,7 +14,7 @@
           Morgen im Dienst
         }
         @default {
-          Im Dienst am {{ calendarDate() | date: 'fullDate' }}
+          Im Dienst am {{ calendarDate() | date: 'EE, d.MM' }}
         }
       }
     </h3>
@@ -23,7 +23,11 @@
       [(ngModel)]="calendarDate"
       mode="single"
       allowClear="false">
-      <tkd-picker-trigger *tdkDatePickerTrigger variant="icon" size="small" />
+      <tkd-picker-trigger
+        *datePickerInput
+        [dateFormat]="'fullDate'"
+        variant="date"
+        size="small" />
     </tkd-date-picker>
   </div>
 }

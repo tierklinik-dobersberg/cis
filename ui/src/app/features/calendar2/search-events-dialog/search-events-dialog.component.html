@@ -1,5 +1,8 @@
 <hlm-dialog-header>
-  <h3 hlmDialogTitle>Termine suchen</h3>
+  <h3 hlmDialogTitle class="flex flex-row items-center gap-2">
+    <hlm-icon name="lucideCalendarSearch" />
+    Termine suchen
+  </h3>
   <p hlmDialogDescription></p>
 </hlm-dialog-header>
 
@@ -9,13 +12,19 @@
 
 <div class="flex-grow overflow-auto">
   @if (!loading()) {
-    <app-event-list
-      [events]="events()"
-      onlyUpcoming="false"
-      showDate="true"
-      sort="desc" />
+    @if (events().length) {
+      <app-event-list
+        [events]="events()"
+        onlyUpcoming="false"
+        showDate="true"
+        sort="desc" />
+    } @else {
+      <tkd-empty-table [totalCount]="0" [filteredCount]="0" />
+    }
   } @else {
-    <span>Termine werden gesucht ...</span>
+    <div class="flex w-full flex-row justify-center p-3">
+      <span>Termine werden gesucht ...</span>
+    </div>
   }
 </div>
 

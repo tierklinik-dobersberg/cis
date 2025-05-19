@@ -1,18 +1,23 @@
-<section hlmCard class="flex h-full flex-grow flex-col overflow-hidden">
+<section
+  hlmCard
+  class="flex h-full flex-grow flex-col overflow-hidden"
+  #containerSize="containerSize"
+  containerSize>
   <div hlmCardHeader class="flex-shrink-0 flex-grow-0">
     <div
-      class="flex w-full flex-col items-center justify-between gap-4 sm:flex-row">
-      <div class="space-y-1.5">
+      class="flex w-full flex-col items-center justify-between gap-4"
+      sizeClass.sm="!flex-row">
+      <div class="max-w-80 space-y-1.5">
         <h3 hlmCardTitle class="text-left">Termin Übersicht</h3>
-        <p hlmCardDescription>
+        <p hlmCardDescription sizeClass.md="!block" class="hidden">
           Hier findest du eine Übersicht aller Termine am
           {{ calendarDate() | date: 'fullDate' }}
         </p>
       </div>
 
       <div
-        class="flex w-full flex-grow flex-col items-center justify-end gap-4 @lg:flex-row">
-        <brn-select [(ngModel)]="eventsToShow" class="@lg:flex-[0_0_10rem]">
+        class="grid max-w-[30rem] flex-grow grid-cols-[1fr_2fr] items-stretch gap-4">
+        <brn-select [(ngModel)]="eventsToShow">
           <hlm-select-trigger class="w-full">
             <hlm-select-value />
           </hlm-select-trigger>
@@ -24,13 +29,10 @@
           </hlm-select-content>
         </brn-select>
 
-        <div
-          class="hidden self-stretch justify-self-stretch border-r border-border opacity-50 sm:block"></div>
-
         <tkd-date-picker
           [(ngModel)]="calendarDate"
           mode="single"
-          class="@lg:flex-[0_0_10rem]">
+          class="w-full">
           <tkd-picker-trigger
             *datePickerInput
             dateFormat="fullDate"

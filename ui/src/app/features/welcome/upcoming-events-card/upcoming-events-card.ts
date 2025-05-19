@@ -22,6 +22,10 @@ import {
   injectRosterService,
 } from '@tierklinik-dobersberg/angular/connect';
 import {
+  TkdContainerSizeClassDirective,
+  TkdContainerSizeDirective
+} from '@tierklinik-dobersberg/angular/container';
+import {
   HlmIconModule,
   provideIcons,
 } from '@tierklinik-dobersberg/angular/icon';
@@ -64,7 +68,9 @@ class EventModel extends CalendarEvent {
     HlmCheckboxModule,
     BrnSelectModule,
     HlmSelectModule, 
-    DatePipe
+    DatePipe,
+    TkdContainerSizeDirective,
+    TkdContainerSizeClassDirective
   ],
   standalone: true,
   host: {

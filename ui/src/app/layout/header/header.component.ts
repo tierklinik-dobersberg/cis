@@ -31,6 +31,7 @@ import { HeaderTitleOutletComponent } from '../header-title';
 import { AppSheetNavigationComponent } from '../navigation';
 import { NavigationService } from '../navigation/navigation.service';
 import { AppRedirectEmergencyButtonComponent } from '../redirect-emergency-button/redirect-emergency-button.component';
+import { AppSearchMenuButtonComponent } from '../search-menu-button';
 
 @Component({
   selector: 'app-header',
@@ -47,6 +48,7 @@ import { AppRedirectEmergencyButtonComponent } from '../redirect-emergency-butto
     AppDoorStatusButtonComponent,
     AppAvatarComponent,
     RouterModule,
+    AppSearchMenuButtonComponent,
     AppMenuComponent,
     DatePipe,
     ToDatePipe
