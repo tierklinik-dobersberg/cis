@@ -470,7 +470,7 @@ export class AppEventDetailsDialogComponent
       });
   }
 
-  protected handleRecentCallClick(call: RecentCall | Customer) {
+  protected handleCustomerSelection(call: RecentCall | Customer) {
     this.disabledComplete.set(true);
 
     if (call instanceof Customer) {

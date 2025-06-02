@@ -14,7 +14,7 @@
 </hlm-dialog-header>
 
 <hlm-table
-  class="w-full [&_hlm-td]:flex-1 [&_hlm-th]:h-8 [&_hlm-th]:sm:h-12 [&_hlm-trow]:flex-col [&_hlm-trow]:sm:flex-row">
+  class="w-full overflow-auto [&_hlm-td]:flex-1 [&_hlm-th]:h-8 [&_hlm-th]:sm:h-12 [&_hlm-trow]:flex-col [&_hlm-trow]:sm:flex-row">
   <hlm-trow>
     <hlm-th class="w-48 overflow-hidden text-ellipsis">Kalender</hlm-th>
     <hlm-td>
@@ -65,7 +65,7 @@
         <mat-autocomplete
           [displayWith]="customerName"
           #auto="matAutocomplete"
-          (optionSelected)="handleRecentCallClick($event.option.value)">
+          (optionSelected)="handleCustomerSelection($event.option.value)">
           <label hlmLabel class="block p-2 pb-4 text-sm"
             >Bitte Kunde auswählen:</label
           >
