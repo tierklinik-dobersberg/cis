@@ -26,12 +26,11 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
-import { getMinutes, setMinutes, setSeconds } from 'date-fns';
 import { BehaviorSubject, interval, map, share, startWith, take } from 'rxjs';
-import { TkdDblclickDirective, TkdDebounceEventDirective } from 'src/app/components/debounce-event.directive';
+import { TkdDblclickDirective } from 'src/app/components/debounce-event.directive';
 import { TkdDragResetDirective } from './drag-reset.directive';
 import { TkdCalendarEventCellTemplateDirective } from './event-cell.directive';
-import { TkdEventResizeDirective } from './event-resize.directive';
+import { ResizeStopEvent, TkdEventResizeContainerDirective, TkdEventResizeDirective } from './event-resize.directive';
 import { EventStylePipe, StyledTimed } from './event-style.pipe';
 import { TkdCalendarHeaderCellTemplateDirective } from './header-cell.directive';
 import { coerceDate } from './is-same-day.pipe';
@@ -65,7 +64,7 @@ export interface EventMovedEvent<E> {
     TimeFormatPipe,
     TkdCalendarHeaderCellTemplateDirective,
     TkdCalendarEventCellTemplateDirective,
-    TkdDebounceEventDirective,
+    TkdEventResizeContainerDirective,
     DragDropModule,
     TkdDragResetDirective,
     TkdEventResizeDirective,
@@ -219,8 +218,6 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
 
   private activeDrags: CdkDrag | null = null;
 
-  private startY: number | null = null;
-
   @HostListener('mousemove', ['$event'])
   protected handleMouseMove(event: MouseEvent) {
     this.cursorY = event.clientY;
@@ -228,61 +225,18 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     this.calculateCursorTime();
   }
 
-  private resizeEvent: StyledTimed | null = null;
   onResizeStart(event: { event: MouseEvent; data: StyledTimed }) {
-    console.log('resize start');
-
     this.dragging.set(true);
-
-    this.resizeEvent = event.data;
-    this.startY = event.event.clientY;
   }
 
-  onResizeStop(event: MouseEvent) {
-    console.log('resize stopped');
-
-    if (!this.resizeEvent) {
-      return;
-    }
-
-    if (this.startY === event.clientY) {
-      this.dragging.set(false);
-      return;
-    }
-
-    const height = parseFloat(this.resizeEvent.style.height.replace('px', ''));
-
+  onResizeStop(event: ResizeStopEvent, resizeEvent: StyledTimed) {
+    const height = event.height;
     const seconds = height / this.sizeFactor();
+
     this.onResize.emit({
-      event: this.resizeEvent,
+      event: resizeEvent,
       duration: seconds,
     });
-
-    this.resizeEvent = null;
-  }
-
-  @HostListener('mousemove', ['$event'])
-  protected handleResize(event: MouseEvent) {
-    const ce = this.resizeEvent;
-
-    if (this.startY !== null && ce !== null) {
-      // update the event style
-      const offset = event.clientY - this.startY;
-      const style = { ...ce.style };
-      let durationOffset = offset / this.sizeFactor();
-
-      let duration = getSeconds(ce.duration) + durationOffset;
-
-      if (duration < 15 * 60) {
-        duration = 15 * 60;
-      }
-
-      duration = Math.ceil(duration / (15 * 60)) * 15 * 60;
-
-      style.height = duration * this.sizeFactor() + 'px';
-
-      ce.style = style;
-    }
   }
 
   protected handleScroll(event: Event) {
@@ -457,6 +411,7 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
 
   onDragStart(event: CdkDragStart) {
     this.activeDrags = event.source
+    this.dragging.set(true);
   }
 
   onEventDropped(event: CdkDragRelease) {
@@ -466,7 +421,6 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
       event.source.reset();
       return;
     }
-
 
     const elementBounds =
       event.source.element.nativeElement.getBoundingClientRect();
@@ -498,11 +452,7 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     event.event.stopPropagation();
     event.event.stopImmediatePropagation();
 
-    // clip to 15 minutes slots
-    date = setSeconds(date, 0);
-    date = setMinutes(date, Math.round(getMinutes(date) / 15) * 15);
-
-    const calEvent = this.events().find(e => e.id === eventId);
+    const calEvent = this.events().find(e => e.uniqueId === eventId);
 
     this.eventMoved.emit({
       event: calEvent,
@@ -518,9 +468,8 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     container: HTMLElement,
     dblclick: boolean
   ) {
-    console.log('handle calendar click', this.dragging());
-
     if (this.dragging()) {
+      console.log("aborting click handler")
       this.dragging.set(false);
       return;
     }

@@ -196,10 +196,11 @@
           [appPopoverTriggerMode]="'shared-side'"
           [appPopoverTriggerDisabled]="!layout.md() || panActive()"
           [brnPopoverTriggerFor]="hoverCard"
+          class="cursor-[inherit]"
           [userColorVars]="calendar.id | byCalendarId: profiles()"
           [style.--user-color]="event.colorOverwrite || null"
           [style.--user-contrast]="event.colorOverwrite || null | contrast"
-          class="event-details h-full w-full cursor-pointer overflow-hidden border border-[var(--user-contrast)] bg-[var(--user-color,white)] p-2 text-xs text-[var(--user-contrast)]">
+          class="event-details h-full w-full overflow-hidden border border-[var(--user-contrast)] bg-[var(--user-color,white)] p-2 text-xs text-[var(--user-contrast)]">
           <div
             class="event-summary relative flex w-full flex-row flex-wrap justify-between gap-1 overflow-hidden">
             <span
@@ -242,7 +243,7 @@
         [currentDate]="prevService().viewState().date"
         [(sizeFactor)]="sizeFactor"
         [scrollTop]="dayView.scrollTop()"
-        class="h-full w-full flex-shrink-0 cursor-not-allowed border-t border-border bg-white {{
+        class="h-full w-full flex-shrink-0 border-t border-border bg-white {{
           dayViewClass()
         }}"
         [calendars]="prevService().viewState().calendars"
@@ -261,7 +262,7 @@
       [(scrollTop)]="scrollTop"
       (calendarClick)="handleCalendarClick($event)"
       #dayView="tkdDayView"
-      class="h-full w-full flex-shrink-0 cursor-not-allowed border-t border-border bg-white {{
+      class="h-full w-full flex-shrink-0 border-t border-border bg-white {{
         dayViewClass()
       }}"
       autoScroll="true"
@@ -282,7 +283,7 @@
         [scrollTop]="dayView.scrollTop()"
         [currentDate]="nextService().viewState().date"
         [(sizeFactor)]="sizeFactor"
-        class="h-full w-full flex-shrink-0 cursor-not-allowed border-t border-border bg-white {{
+        class="h-full w-full flex-shrink-0 border-t border-border bg-white {{
           dayViewClass()
         }}"
         [calendars]="nextService().viewState().calendars"

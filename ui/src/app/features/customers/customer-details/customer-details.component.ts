@@ -6,32 +6,35 @@ import { ConnectError } from '@connectrpc/connect';
 import { lucideUserRound } from '@ng-icons/lucide';
 import { BrnTabsDirective } from '@spartan-ng/ui-tabs-brain';
 import { HlmBadgeModule } from '@tierklinik-dobersberg/angular/badge';
+import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { HlmCardModule } from '@tierklinik-dobersberg/angular/card';
 import { injectCalendarService, injectCustomerService, PATIENT_SERVICE } from '@tierklinik-dobersberg/angular/connect';
+import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { HlmIconComponent, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { HlmTabsModule } from '@tierklinik-dobersberg/angular/tabs';
 import { CalendarEvent, ListEventsResponse } from '@tierklinik-dobersberg/apis/calendar/v1';
 import {
-    Anamnesis,
-    Customer,
-    GetPatientsByCustomerResponse,
-    ImportState,
-    Patient,
-    PatientGender
+  Anamnesis,
+  Customer,
+  GetPatientsByCustomerResponse,
+  ImportState,
+  Patient,
+  PatientGender
 } from '@tierklinik-dobersberg/apis/customer/v1';
 import { MarkdownModule } from 'ngx-markdown';
 import { toast } from 'ngx-sonner';
 import { distinctUntilChanged, map, Subscription, switchMap } from 'rxjs';
 import { AppEventListComponent } from 'src/app/components/event-list';
 import { HeaderTitleService } from 'src/app/layout/header-title';
+import { CreateEventSheetComponent } from '../../calendar2/create-event-sheet/create-event-sheet.component';
 import { CustomerDetailsTableComponent } from '../customer-details-table';
 
 @Component({
   standalone: true,
   templateUrl: './customer-details.component.html',
-  imports: [MarkdownModule, HlmTableModule, HlmTabsModule, HlmCardModule, CustomerDetailsTableComponent, ToDatePipe, HlmBadgeModule, DatePipe, HlmIconComponent, BrnTabsDirective, AppEventListComponent],
+  imports: [HlmButtonDirective, MarkdownModule, HlmTableModule, HlmTabsModule, HlmCardModule, CustomerDetailsTableComponent, ToDatePipe, HlmBadgeModule, DatePipe, HlmIconComponent, BrnTabsDirective, AppEventListComponent],
   providers: [
     ...provideIcons({
         lucideUserRound
@@ -39,6 +42,7 @@ import { CustomerDetailsTableComponent } from '../customer-details-table';
   ]
 })
 export class CustomerDetailsComponent {
+  private readonly dialogService = inject(HlmDialogService)
   private readonly customerService = injectCustomerService();
   private readonly patientService = inject(PATIENT_SERVICE);
   private readonly calendarService = injectCalendarService();
@@ -375,5 +379,12 @@ export class CustomerDetailsComponent {
             ])
         }
     });
+  }
+
+  protected createEvent() {
+    CreateEventSheetComponent.open(this.dialogService, {
+      customerId: this.customer().id,
+      isUnknown: false
+    })
   }
 }

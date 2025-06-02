@@ -1,22 +1,28 @@
 <div hlmCard>
   @if (customer(); as customer) {
-    <div hlmCardHeader class="flex flex-col items-start gap-8 md:flex-row">
-      <div class="space-y-1.5">
-        <h1 hlmCardTitle>{{ customer.lastName }} {{ customer.firstName }}</h1>
-        <p hlmCardDescription>
-          Importiert von
-          <span class="mr-2"></span>
-          @for (state of states(); track state.importer) {
-            <label hlmBadge class="mr-2 uppercase">
-              {{ state.importer }}
-            </label>
-          }
-          @if (customer.recordCreatedAt?.seconds > 0) {
-            am
-            {{ customer.recordCreatedAt | toDate | date: 'shortDate' }}
-          }
-        </p>
+    <div hlmCardHeader class="flex flex-row items-start justify-between gap-8">
+      <div class="flex flex-col items-start gap-8 md:flex-row">
+        <div class="space-y-1.5">
+          <h1 hlmCardTitle>{{ customer.lastName }} {{ customer.firstName }}</h1>
+          <p hlmCardDescription>
+            Importiert von
+            <span class="mr-2"></span>
+            @for (state of states(); track state.importer) {
+              <label hlmBadge class="mr-2 uppercase">
+                {{ state.importer }}
+              </label>
+            }
+            @if (customer.recordCreatedAt?.seconds > 0) {
+              am
+              {{ customer.recordCreatedAt | toDate | date: 'shortDate' }}
+            }
+          </p>
+        </div>
       </div>
+
+      <button hlmBtn variant="default" (click)="createEvent()">
+        Termin erstellen
+      </button>
     </div>
 
     <div hlmCardContent>

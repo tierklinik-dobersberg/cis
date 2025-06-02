@@ -19,7 +19,7 @@ html,
 body {
   -webkit-font-smoothing: antialiased;
   background-color: #50566310;
-  font-family: "Lexend", sans-serif;
+  font-family: "Lexend", "Noto Emoji", sans-serif;
   font-optical-sizing: auto;
   font-size: 15px;
   @apply font-normal;
@@ -55,4 +55,9 @@ body {
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+.emoji {
+  font-weight: 500;
+  font-style: normal;
 }

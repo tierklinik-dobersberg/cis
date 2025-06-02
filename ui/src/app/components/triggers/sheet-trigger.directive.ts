@@ -1,4 +1,4 @@
-import { Directive, input } from '@angular/core';
+import { Directive, input, model } from '@angular/core';
 import { BrnDialogTriggerDirective } from '@spartan-ng/ui-dialog-brain';
 import { BrnSheetComponent } from '@spartan-ng/ui-sheet-brain';
 
@@ -8,7 +8,7 @@ import { BrnSheetComponent } from '@spartan-ng/ui-sheet-brain';
 	exportAs: "appSheetTrigger"
 })
 export class AppSheetTriggerDirective extends BrnDialogTriggerDirective {
-    public readonly sheet = input<BrnSheetComponent | undefined>(undefined, {alias: 'appSheetTriggerFor'})
+    public readonly sheet = model<BrnSheetComponent | undefined>(undefined, {alias: 'appSheetTriggerFor'})
 	public readonly side = input<'top' | 'bottom' | 'left' | 'right' | undefined>('bottom');
 
 	override open() {

@@ -1,15 +1,30 @@
 import { Duration, Timestamp } from '@bufbuild/protobuf';
 
 export interface Timed {
+  /** The ID of the event */
   id: string | number;
 
+  /** A unique ID of the event, this is required for calculating the event style correctly if 
+   * an event is displayed multiple times accross different calendars.
+   */
   uniqueId: string | number;
 
+  /** The start time of the event */
   from: Timestamp | number;
+
+  /** The event duration */
   duration: Duration | number;
+
+  /** Whether or not overlapping should be ignored when calculating event styles. */
   ignoreOverlapping?: boolean;
+
+  /** The ID of the calendar this event belongs to */
   calendarId: string;
+
+  /** A list of resources for this event */
   resources: string[];
+
+  /** Whether or not this event is a virtual copy - i.e. displayed in a resource calendar. */
   virtualCopy: boolean;
 }
 

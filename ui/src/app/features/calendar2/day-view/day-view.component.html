@@ -33,6 +33,7 @@
 <div
   class="calendar-container relative flex-grow !touch-pan-x !touch-pan-y flex-nowrap overflow-auto"
   #calendarContainer
+  tkdResizeContainer
   (scroll)="handleScroll($event)">
   <div
     style="visibility: hidden; width: 0px"
@@ -69,13 +70,18 @@
             -->
           <div
             class="absolute overflow-visible transition duration-150 ease-in-out"
-            [tkdEventResize]="event"
+            [class.cursor-pointer]="!event.ignoreOverlapping && !disabled()"
+            [tkdEventResize]="event.style"
+            [tkdEventResizeStep]="15 * 60 * sizeFactor()"
+            [tkdEventResizeMin]="15 * 60 * sizeFactor()"
             [tkdEventResizeDisabled]="
               event.virtualCopy ||
               event.ignoreOverlapping ||
               !layout.md() ||
               disabled()
             "
+            (onResizeStart)="onResizeStart({ event: $event, data: event })"
+            (onResizeStop)="onResizeStop($event, event)"
             cdkDrag
             [cdkDragDisabled]="
               event.virtualCopy ||
@@ -89,7 +95,6 @@
             [cdkDragStartDelay]="10"
             #drag="cdkDrag"
             [tkdDragReset]="event.style"
-            [ngStyle]="event.style"
             [attr.event-id]="event.uniqueId">
             <ng-container
               *ngTemplateOutlet="

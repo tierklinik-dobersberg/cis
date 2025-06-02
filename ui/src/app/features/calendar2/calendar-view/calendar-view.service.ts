@@ -8,6 +8,7 @@ import {
 import { getUserColor } from '@tierklinik-dobersberg/angular/pipes';
 import {
   CalenarEventRequestKind,
+  CalendarEvent,
   CustomerAnnotation,
   ListEventsResponse,
   Calendar as PbCalendar,
@@ -19,6 +20,7 @@ import {
   WorkShift,
 } from '@tierklinik-dobersberg/apis/roster/v1';
 import {
+  addSeconds,
   differenceInSeconds,
   endOfDay,
   isAfter,
@@ -38,7 +40,7 @@ export interface CalendarView {
   shifts: PlannedShift[];
   date: Date;
   isToday: boolean;
-  defaultDisplayCalendars: string[]
+  defaultDisplayCalendars: string[];
 }
 
 @Injectable()
@@ -261,7 +263,7 @@ export class CalendarViewService {
           ...evt,
           from: evt.startTime,
           duration: getSeconds(evt.endTime) - getSeconds(evt.startTime),
-          uniqueId: isVirtual ? eventList.calendar.id + ':' + evt.id : evt.id,
+          uniqueId: eventList.calendar.id + ':' + evt.id,
           colorOverwrite: color,
           customerId: customerAnnotation
             ? customerAnnotation.customerId
@@ -377,6 +379,95 @@ export class CalendarViewService {
 
     return isSameDay(date, new Date());
   });
+
+  public moveEvent(srcEvent: CalendarEvent, targetEvent: CalendarEvent) {
+    this.deleteEvent(srcEvent.calendarId, srcEvent.id)
+    this.push(targetEvent)
+  }
+
+  public deleteEvent(calId: string, id: string) {
+    const [cidx, eidx] = this.findPosition(calId, id)
+    if (eidx < 0) {
+      console.log("event not found", calId, id)
+      return null
+    }
+
+    const res = this.eventListResponse().clone();
+
+    res.results[cidx].events.splice(eidx, 1)
+
+    this.eventListResponse.set(res);
+  }
+
+  public push(evt: CalendarEvent) {
+    const [cidx, _] = this.findPosition(evt.calendarId)
+    if (cidx < 0) {
+      return null
+    }
+
+    const res = this.eventListResponse().clone();
+
+    if (!res.results[cidx].events) {
+      res.results[cidx].events = []
+    }
+
+    res.results[cidx].events.push(evt)
+
+    this.eventListResponse.set(res);
+  }
+
+  public findEvent(calId: string, id: string): CalendarEvent | null {
+    const [cidx, eidx] = this.findPosition(calId, id)
+    if (eidx < 0) {
+      return null
+    }
+
+    return this.eventListResponse().results[cidx].events[eidx]
+  }
+
+  private findPosition(calId: string, id?: string | number): [number, number] {
+    const res = this.eventListResponse().clone();
+
+    const calIdx = res.results?.findIndex(r => r.calendar.id === calId);
+
+    if (calIdx < 0 || calIdx === undefined) {
+      return [-1, -1];
+    }
+
+    if (id === undefined) {
+      return [calIdx, 0]
+    }
+
+    const evtIdx = res.results[calIdx]?.events?.findIndex(e => e.id === id);
+
+    if (evtIdx < 0 || evtIdx === undefined) {
+      return [calIdx, -1];
+    }
+
+    return [calIdx, evtIdx]
+  }
+
+  public updateEventDuration(
+    calId: string,
+    id: string | number,
+    duration: number
+  ) {
+    let [calIdx, evtIdx] = this.findPosition(calId, id)
+    if (evtIdx < 0) {
+      return
+    }
+
+    const res = this.eventListResponse().clone();
+    const upd = new CalendarEvent(res.results[calIdx].events[evtIdx]);
+
+    upd.endTime = Timestamp.fromDate(
+      addSeconds(upd.startTime.toDate(), duration)
+    );
+
+    res.results[calIdx].events[evtIdx] = upd;
+
+    this.eventListResponse.set(res);
+  }
 
   public readonly loading = signal(true);
   private loadEvents(date: Date, abrt?: AbortController): Promise<void> {

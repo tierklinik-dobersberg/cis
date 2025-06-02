@@ -57,17 +57,6 @@ import { AppOffTimeFilterSheetComponent, filterOffTimeEntries, OffTimeFilter } f
   templateUrl: './offtime-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  styles: [
-    `
-        #offtime-tab-set ::ng-deep > .ant-tabs-nav {
-          @apply px-4 bg-gray-100;
-        }
-
-        #offtime-tab-set ::ng-deep > .ant-tabs-nav .ant-tabs-tab {
-          @apply w-40 justify-center;
-        }
-        `
-  ],
   imports: [
     NgClass,
     DurationPipe,

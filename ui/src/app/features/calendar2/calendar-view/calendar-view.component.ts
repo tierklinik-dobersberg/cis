@@ -17,7 +17,7 @@ import {
   runInInjectionContext,
   signal,
   untracked,
-  ViewChild
+  ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -29,7 +29,7 @@ import {
   lucideCog,
   lucideStar,
   lucideZoomIn,
-  lucideZoomOut
+  lucideZoomOut,
 } from '@ng-icons/lucide';
 import { BrnPopoverModule } from '@spartan-ng/ui-popover-brain';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
@@ -56,7 +56,6 @@ import { HlmTabsModule } from '@tierklinik-dobersberg/angular/tabs';
 import {
   CalendarChangeEvent,
   CalendarEvent,
-  ListEventsResponse,
   MoveEventResponse,
   Calendar as PbCalendar,
 } from '@tierklinik-dobersberg/apis/calendar/v1';
@@ -73,7 +72,7 @@ import {
   setSeconds,
 } from 'date-fns';
 import { toast } from 'ngx-sonner';
-import { debounceTime, map } from 'rxjs';
+import { debounceTime, map, take } from 'rxjs';
 import {
   TkdDatePickerComponent,
   TkdDatePickerInputDirective,
@@ -107,6 +106,7 @@ import {
   TkdDayViewComponent,
 } from '../day-view';
 import { StyledTimed } from '../day-view/event-style.pipe';
+import { getSeconds } from '../day-view/sort.pipe';
 import { SearchEventsDialogComponent } from '../search-events-dialog/search-events-dialog.component';
 import { CalendarViewService } from './calendar-view.service';
 
@@ -313,17 +313,19 @@ export class TkdCalendarViewComponent
     }
 
     if (event.key === 'ArrowLeft') {
-      this.setDate(addDays(this.currentDate(), -1))
+      this.setDate(addDays(this.currentDate(), -1));
     }
 
     if (event.key === 'ArrowRight') {
-      this.setDate(addDays(this.currentDate(), 1))
+      this.setDate(addDays(this.currentDate(), 1));
     }
   }
 
   /** A callback for the day-view component to handle calendar-event resize events */
   protected handleResize(e: { event: StyledTimed; duration: number }) {
     this.skipLoading = true;
+
+    let oldDuration = getSeconds(e.event.duration);
 
     let duration = Math.round(e.duration / (15 * 60)) * 15 * 60;
 
@@ -332,9 +334,11 @@ export class TkdCalendarViewComponent
       duration = 15 * 60;
     }
 
-    // update the event style now to immediately reflect the changes
-    e.event.style.height = this.dayViewComponent.sizeFactor() * duration + 'px';
-    e.event.style = { ...e.event.style };
+    this.viewService().updateEventDuration(
+      e.event.calendarId,
+      e.event.id,
+      duration
+    );
 
     this.calendarAPI
       .updateEvent({
@@ -346,6 +350,12 @@ export class TkdCalendarViewComponent
         },
       })
       .catch(err => {
+        this.viewService().updateEventDuration(
+          e.event.calendarId,
+          e.event.id,
+          oldDuration
+        );
+
         toast.error('Termin konnte nicht gespeichert werden', {
           description: ConnectError.from(err).message,
         });
@@ -364,67 +374,74 @@ export class TkdCalendarViewComponent
       return;
     }
 
-    const copy = new CalendarEvent({
-      ...evt.event,
-      startTime: Timestamp.fromDate(evt.date),
-      calendarId: evt.calendarId,
-      endTime: Timestamp.fromDate(addSeconds(evt.date, duration)),
-      id: evt.event.id + '-moved',
-    });
+    // clip to 15 minutes slots
+    let date = setSeconds(evt.date, 0);
+    date = setMinutes(date, Math.round(getMinutes(date) / 15) * 15);
 
-    const res = this.viewService().eventListResponse();
-    const sourceCalendar = res.results.find(
-      c => c.calendar.id === evt.event.calendarId
-    );
-    const sourceIndex = sourceCalendar.events.findIndex(
-      e => e.id === evt.event.id
+    let endDate = addSeconds(
+      date,
+      Math.round((duration / (15 * 60)) * 15 * 60)
     );
 
-    if (evt.calendarId !== evt.event.calendarId) {
-      const targetCalendar = res.results.find(
-        c => c.calendar.id === evt.calendarId
-      );
-      sourceCalendar.events.splice(sourceIndex, 1);
-      targetCalendar.events.push(copy);
-    } else {
-      sourceCalendar.events[sourceIndex] = copy;
+    const original = this.viewService().findEvent(
+      evt.event.calendarId,
+      evt.event.id
+    );
+    if (!original) {
+      return;
     }
 
-    this.viewService().eventListResponse.set(
-      new ListEventsResponse({
-        ...res,
-      })
-    );
+    const updated = original.clone();
+    updated.startTime = Timestamp.fromDate(date);
+    updated.endTime = Timestamp.fromDate(endDate);
+    updated.calendarId = evt.calendarId;
+
+    this.viewService().moveEvent(original, updated);
 
     this.calendarAPI
       .updateEvent({
         calendarId: evt.event.calendarId,
         eventId: evt.event.id,
-        start: copy.startTime,
-        end: copy.endTime,
+        start: updated.startTime,
+        end: updated.endTime,
         updateMask: {
           paths: ['start', 'end'],
         },
       })
-      .then(() => {
+      .then(upd => {
         // check if we need to move the event to a different calendar as well
         if (evt.calendarId !== evt.event.calendarId) {
-          return this.calendarAPI.moveEvent({
-            eventId: evt.event.id,
-            source: {
-              case: 'sourceCalendarId',
-              value: evt.event.calendarId,
-            },
-            target: {
-              case: 'targetCalendarId',
-              value: evt.calendarId,
-            },
-          });
+          return this.calendarAPI
+            .moveEvent({
+              eventId: upd.event!.id,
+              source: {
+                case: 'sourceCalendarId',
+                value: upd.event!.calendarId,
+              },
+              target: {
+                case: 'targetCalendarId',
+                value: updated.calendarId,
+              },
+            })
+            .then(res => {
+              // Delete the fake event and replace it with the actual one (which might have a new ID)
+              this.viewService().deleteEvent(updated.calendarId, updated.id);
+              this.viewService().push(res.event);
+
+              return res;
+            })
+            .catch(err => {
+              this.viewService().deleteEvent(updated.calendarId, updated.id);
+              this.viewService().push(original);
+              throw err;
+            });
         }
 
-        return Promise.resolve(new MoveEventResponse());
+        return new MoveEventResponse();
       })
       .catch(err => {
+        this.viewService().moveEvent(updated, original);
+
         toast.error('Termin konnte nicht gespeichert werden', {
           description: ConnectError.from(err).message,
         });
@@ -443,6 +460,14 @@ export class TkdCalendarViewComponent
       date = setMinutes(date, Math.round(getMinutes(date) / 15) * 15);
 
       ctx.startTime = date;
+
+      /*
+      CreateEventSheetComponent.open(this.dialog, {
+        calendarId: event.calendar.id,
+        dateTime: date,
+      })
+      return
+      */
     } else if (event.clickedEvent && !event.clickedEvent.isShiftType) {
       ctx.event = new CalendarEvent(event.clickedEvent);
 
@@ -455,7 +480,22 @@ export class TkdCalendarViewComponent
       return;
     }
 
-    AppEventDetailsDialogComponent.open(this.dialog, ctx);
+    AppEventDetailsDialogComponent.open(this.dialog, ctx)
+      .closed$.pipe(take(1))
+      .subscribe(result => {
+        if (!result) {
+          return;
+        }
+
+        if (result instanceof CalendarEvent) {
+          this.viewService().deleteEvent(result.calendarId, result.id);
+          this.viewService().push(result);
+        } else if (result.type === 'deleted') {
+          this.viewService().deleteEvent(result.calendarId, result.eventId);
+        } else {
+          this.viewService().moveEvent(result.original, result.updated);
+        }
+      });
   }
 
   /** A utility method used by the template to quickly switch the current date to today */
@@ -670,7 +710,7 @@ export class TkdCalendarViewComponent
         this.allCalendars.set(calendars);
       });
 
-      /*
+    /*
     this.destroyRef.onDestroy(
       this.renderer.listen(
         this.document,
@@ -714,12 +754,16 @@ export class TkdCalendarViewComponent
     let y: 'top' | 'bottom' | '' =
       Math.abs(event.deltaY) > 80 ? (event.deltaY > 0 ? 'bottom' : 'top') : '';
 
-    if (y !== '' && this.panActive() && Math.abs(event.deltaY) >= Math.abs(event.deltaX)) {
-      console.log("aborting pan due to vertical movement")
+    if (
+      y !== '' &&
+      this.panActive() &&
+      Math.abs(event.deltaY) >= Math.abs(event.deltaX)
+    ) {
+      console.log('aborting pan due to vertical movement');
       this.panActive.set(false);
-      this.dayViewClass.set('')
-      this.translateX.set('0%')
-      return
+      this.dayViewClass.set('');
+      this.translateX.set('0%');
+      return;
     }
 
     if (!this.panActive()) {
@@ -745,7 +789,7 @@ export class TkdCalendarViewComponent
   }
 
   protected searchEvents() {
-    SearchEventsDialogComponent.open(this.dialog)
+    SearchEventsDialogComponent.open(this.dialog);
   }
 
   private startPanning() {

@@ -1,98 +1,206 @@
-import { CdkDrag } from "@angular/cdk/drag-drop";
-import { booleanAttribute, Directive, ElementRef, HostListener, inject, input, output, Renderer2 } from "@angular/core";
-import { TkdDayViewComponent } from "./day-view.component";
-import { StyledTimed } from "./event-style.pipe";
+import { CdkDrag } from '@angular/cdk/drag-drop';
+import {
+    booleanAttribute,
+    Directive,
+    effect,
+    ElementRef,
+    HostListener,
+    inject,
+    input,
+    output,
+    Renderer2,
+    signal,
+} from '@angular/core';
+
+export interface ResizeStopEvent {
+    srcEvent: MouseEvent;
+    change: number;
+    height: number;
+}
 
 @Directive({
-    selector: '[tkdEventResize]',
-    standalone: true
+  selector: '[tkdResizeContainer]',
+  standalone: true,
+})
+export class TkdEventResizeContainerDirective {
+  public readonly activeResize = signal<TkdEventResizeDirective | null>(null);
+
+  @HostListener('mousemove', ['$event'])
+  handleMouseMove(event: MouseEvent) {
+    if (!this.activeResize()) {
+      return;
+    }
+
+    this.activeResize().handleMouseMove(event)
+  }
+}
+
+@Directive({
+  selector: '[tkdEventResize]',
+  standalone: true,
 })
 export class TkdEventResizeDirective {
-    public readonly tkdEventResize = input.required<StyledTimed>();
-    public readonly tkdEventResizeDisabled = input(false, {transform: booleanAttribute})
+  public readonly style = input.required<{ [klass: string]: any }>({
+    alias: 'tkdEventResize',
+  });
 
-    public readonly onResizeStart = output<{event: MouseEvent, data: StyledTimed}>();
-    public readonly onResizeStop = output<{event: MouseEvent, data: StyledTimed}>();
+  public readonly disabled = input(false, {
+    transform: booleanAttribute,
+    alias: 'tkdEventResizeDisabled',
+  });
 
-    private readonly dayView = inject(TkdDayViewComponent);
-    private readonly host = inject(ElementRef);
-    private readonly renderer = inject(Renderer2);
-    private readonly cdkDrag = inject(CdkDrag)
-    private oldState = false;
+  public readonly step = input.required<number>({
+    alias: 'tkdEventResizeStep',
+  });
 
-    private isActive = false;
+  public readonly min = input.required<number>({
+    alias: 'tkdEventResizeMin',
+  });
 
-    @HostListener('mousemove', ['$event'])
-    onMouseMove(event: MouseEvent) {
-        if (!this.isActive) {
-            return
-        }
+  public readonly onResizeStart = output<MouseEvent>();
+  public readonly onResizeStop = output<ResizeStopEvent>();
 
-        if (this.tkdEventResizeDisabled()) {
-            return
-        }
+  private readonly host = inject(ElementRef);
+  private readonly renderer = inject(Renderer2);
+  private readonly cdkDrag = inject(CdkDrag);
+  private readonly container = inject(TkdEventResizeContainerDirective)
+  private readonly height = signal<number | null>(null);
 
-        const bounds = (this.host.nativeElement as HTMLElement).getBoundingClientRect();
-        const upper = bounds.y + bounds.height;
-        const lower = upper - 10;
+  private resizeStartPosition = 0;
+  private resizeStartHeight = 0;
 
-        if (event.clientY >= lower && event.clientY <= upper) {
-            this.renderer.addClass(this.host.nativeElement, 'cursor-ns-resize')
-            this.cdkDrag.disabled = true
-        } else {
-            this.renderer.removeClass(this.host.nativeElement, 'cursor-ns-resize')
-            this.cdkDrag.disabled = false
-        }
+  private oldDragDisabledValue = false;
+  private resizeActive = false;
+
+  constructor() {
+    let lastAppliedStyle: {
+      [klass: string]: any;
+    } = {};
+
+    let frame: any = null;
+    effect(() => {
+      const style = {...this.style()};
+      const height = this.height();
+
+      if (frame) {
+        cancelAnimationFrame(frame);
+      }
+
+      if (height !== null) {
+        style['height'] = height + 'px'
+      }
+
+      frame = requestAnimationFrame(() => {
+        Object.keys(style).forEach(klass => {
+          this.renderer.setStyle(this.host.nativeElement, klass, style[klass]);
+          delete lastAppliedStyle[klass];
+        });
+
+        Object.keys(lastAppliedStyle).forEach(klass => {
+          this.renderer.removeStyle(this.host.nativeElement, klass);
+        });
+
+        lastAppliedStyle = style;
+      });
+    });
+  }
+
+  handleMouseMove(event: MouseEvent) {
+    if (this.resizeStartPosition !== null && this.resizeActive) {
+
+      // update the event style
+      let offset = event.clientY - this.resizeStartPosition;
+
+      let h = this.resizeStartHeight + offset;
+      h = Math.ceil(h / this.step()) * this.step();
+
+      if (h < this.min()) {
+        h = this.min();
+      }
+
+      this.height.set(h)
     }
+  }
 
-    @HostListener('mousedown', ['$event'])
-    onMouseDown(event: MouseEvent) {
-        if (this.tkdEventResizeDisabled()) {
-            console.log("resize disabled")
-            return
-        }
+  @HostListener('mousemove', ['$event'])
+  onMouseMove(event: MouseEvent) {
+    const bounds = (
+      this.host.nativeElement as HTMLElement
+    ).getBoundingClientRect();
+    const upper = bounds.y + bounds.height;
+    const lower = upper - 5;
 
-
-        if ('button' in event && event.button != 0) {
-            console.log("invalid button", event.button)
-            return
-        }
-
-        this.oldState = this.cdkDrag.disabled;
+    if (event.clientY >= lower && event.clientY <= upper) {
+      if (!this.disabled()) {
         this.cdkDrag.disabled = true;
+        this.renderer.addClass(this.host.nativeElement, '!cursor-ns-resize');
+      }
+    } else {
+      if (!this.resizeActive) {
+        this.cdkDrag.disabled = false;
+        this.renderer.removeClass(this.host.nativeElement, '!cursor-ns-resize');
+      }
+    }
+  }
 
-        const bounds = (this.host.nativeElement as HTMLElement).getBoundingClientRect();
-        const upper = bounds.y + bounds.height;
-        const lower = upper - 10;
-
-        if (event.clientY >= lower && event.clientY <= upper) {
-            console.log("starting resize")
-            event.stopPropagation();
-            event.stopImmediatePropagation();
-
-            this.dayView.onResizeStart({
-                event: event,
-                data: this.tkdEventResize()
-            })
-
-            this.isActive = true;
-        }
+  @HostListener('mousedown', ['$event'])
+  onMouseDown(event: MouseEvent) {
+    console.log('resize: mousedown');
+    if (this.disabled()) {
+      return;
     }
 
-    @HostListener('mouseup', ['$event'])
-    onMouseUp(event: MouseEvent) {
-        this.cdkDrag.disabled = this.oldState;
-
-        if (this.tkdEventResizeDisabled() || !this.isActive) {
-            console.log("resize disabled")
-            return
-        }
-
-        this.isActive = false;
-
-        this.dayView.onResizeStop(event)
-
-        event.preventDefault();
-        event.stopImmediatePropagation();
+    if ('button' in event && event.button != 0) {
+      return;
     }
+
+    this.oldDragDisabledValue = this.cdkDrag.disabled;
+    this.cdkDrag.disabled = true;
+
+    const bounds = (
+      this.host.nativeElement as HTMLElement
+    ).getBoundingClientRect();
+    const upper = bounds.y + bounds.height;
+    const lower = upper - 5;
+
+    if (event.clientY >= lower && event.clientY <= upper) {
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      this.onResizeStart.emit(event);
+      this.resizeStartPosition = event.clientY;
+      this.resizeStartHeight = (this.host.nativeElement as HTMLElement).getBoundingClientRect().height;
+
+      this.container.activeResize.set(this)
+      console.log("registered", this.container)
+
+      this.resizeActive = true;
+    }
+  }
+
+  @HostListener('mouseup', ['$event'])
+  onMouseUp(event: MouseEvent) {
+    console.log('resize: mouseup');
+
+    this.cdkDrag.disabled = this.oldDragDisabledValue;
+
+    if (this.disabled() || !this.resizeActive) {
+      console.log('disabled or not-active');
+      return;
+    }
+    this.onResizeStop.emit({
+        srcEvent: event,
+        change: event.clientY - this.resizeStartPosition,
+        height: this.height(),
+    });
+
+    this.resizeActive = false;
+    this.resizeStartPosition = 0;
+    this.height.set(null);
+    this.container.activeResize.set(null)
+
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }
 }

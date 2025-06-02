@@ -1,0 +1,410 @@
+<hlm-sheet-header class="border-b border-border p-6 text-left font-medium">
+  Neuen Termin erstellen
+</hlm-sheet-header>
+
+<form #ngForm="ngForm" (keydown.enter)="$event.preventDefault()">
+  @if (selectedCustomer(); as customer) {
+    <section
+      class="flex w-full flex-row items-center gap-4 border-b border-border p-4">
+      <div
+        class="flex flex-row items-center justify-center rounded-full border border-border p-3">
+        <hlm-icon name="lucideUserRound" size="lg" />
+      </div>
+
+      <h1 hlmLabel class="flex flex-grow flex-col text-base">
+        <span class="w-full overflow-hidden text-ellipsis whitespace-nowrap">
+          {{ customer.lastName }} {{ customer.firstName }}
+        </span>
+        @if (customer.addresses?.length) {
+          <span
+            class="w-full overflow-hidden text-ellipsis whitespace-nowrap text-xs font-normal leading-3 text-secondary-foreground">
+            @if (customer.addresses[0].street) {
+              {{ customer.addresses[0].street }},
+            }
+
+            {{ customer.addresses[0].postalCode }}
+            {{ customer.addresses[0].city }}
+          </span>
+        }
+      </h1>
+
+      <button hlmBtn variant="secondary" (click)="selectedCustomer.set(null)">
+        Kunde ändern
+      </button>
+    </section>
+  } @else {
+    <section class="flex w-full flex-col justify-center gap-4 p-4">
+      <div class="flex w-full flex-col gap-4 border-b border-border pb-4">
+        <h1 hlmLabel class="text-base">Bitte Kunde auswählen</h1>
+
+        <div class="relative w-full">
+          <hlm-icon
+            name="lucideUserRoundSearch"
+            class="absolute left-2 top-2 text-secondary-foreground" />
+
+          <input
+            hlmInput
+            placeholder="Kunden durchsuchen"
+            class="w-full pl-10"
+            (focus)="searchFocused.set(true)"
+            (blur)="searchFocused.set(false)"
+            (keydown)="handleSearchKeydown($event)"
+            [ngModelOptions]="{ standalone: true }"
+            [(ngModel)]="customerSearchText" />
+        </div>
+      </div>
+
+      <div
+        class="grid w-full grid-cols-4 justify-center gap-2 border-b border-border pb-4">
+        @for (customer of customers(); track customer.id; let index = $index) {
+          <button
+            hlmBtn
+            variant="outline"
+            (click)="selectedCustomer.set(customer)"
+            [attr.data-focused]="
+              index === focusedIndex() && searchFocused() ? 'true' : null
+            "
+            (focus)="focusedIndex.set(index)"
+            #selection
+            class="flex h-14 flex-col items-start justify-center overflow-hidden data-[focused]:ring-1 data-[focused]:ring-black data-[focused]:ring-offset-2">
+            <span
+              class="w-full overflow-hidden text-ellipsis whitespace-nowrap">
+              {{ customer.lastName }} {{ customer.firstName }}
+            </span>
+            @if (customer.addresses?.length) {
+              <span
+                class="w-full overflow-hidden text-ellipsis whitespace-nowrap text-xs font-normal leading-3 text-secondary-foreground">
+                {{ customer.addresses[0].city }}
+              </span>
+            }
+          </button>
+        }
+      </div>
+    </section>
+  }
+
+  @if (selectedCustomer()) {
+    <section
+      class="flex w-full flex-row items-start border-b border-border p-4">
+      <h1 hlmLabel class="inline-block w-52 flex-shrink-0 text-base">
+        Kalender
+      </h1>
+
+      <div class="mr-4 flex flex-grow flex-col gap-4">
+        <brn-select
+          [(ngModel)]="selectedCalendarId"
+          name="calendar"
+          required
+          duration
+          class="flex-1">
+          <hlm-select-trigger class="[&>button]:w-full">
+            <hlm-select-value class="w-full" />
+          </hlm-select-trigger>
+
+          <hlm-select-content>
+            @for (cal of calendars(); track cal.id) {
+              <hlm-option [value]="cal.id">
+                {{ cal.name }}
+              </hlm-option>
+            }
+          </hlm-select-content>
+        </brn-select>
+
+        <div class="flex flex-row items-center gap-4 self-stretch">
+          <tkd-date-picker
+            withTime="true"
+            class="min-w-52 flex-1"
+            [minutes]="[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]"
+            required
+            name="date-time"
+            [(ngModel)]="dateTime" />
+
+          <span>für</span>
+
+          <brn-select
+            name="duration"
+            [(ngModel)]="duration"
+            required
+            duration
+            class="flex-1">
+            <hlm-select-trigger class="[&>button]:w-full">
+              <hlm-select-value class="w-full" />
+            </hlm-select-trigger>
+
+            <hlm-select-content>
+              <hlm-option value="10m">10 Minuten</hlm-option>
+              <hlm-option value="15m">15 Minuten</hlm-option>
+              <hlm-option value="30m">30 Minuten</hlm-option>
+              <hlm-option value="45m">45 Minuten</hlm-option>
+              <hlm-option value="1h">1 Stunde</hlm-option>
+              <hlm-option value="1h30m">1,5 Stunden</hlm-option>
+              <hlm-option value="2h">2 Stunden</hlm-option>
+            </hlm-select-content>
+          </brn-select>
+        </div>
+      </div>
+
+      <!--
+    <button hlmBtn variant="secondary" (click)="selectDateTime()">
+      Im Kalender auswählen
+    </button>
+    --></section>
+
+    <section
+      class="flex w-full flex-row items-center border-b border-border p-4">
+      <h1 hlmLabel class="inline-block w-52 flex-shrink-0 text-base">
+        Zusammenfassung
+      </h1>
+
+      @if (customerPatients().length > 0) {
+        <hlm-tooltip>
+          <input
+            hlmInput
+            hlmTooltipTrigger
+            class="emoji w-full flex-grow bg-gray-100 focus-visible:ring-offset-0"
+            tabindex="-1"
+            readonly
+            placeholder="Automatisch erstellte Zusammenfassung"
+            [ngModelOptions]="{ standalone: true }"
+            [ngModel]="computedSummary()" />
+
+          <div *brnTooltipContent>
+            Die Zusammenfassung wird automatisch erstellt. Bitte wähle die
+            Patienten aus bzw. gib einen Zusatztext ein.
+          </div>
+        </hlm-tooltip>
+      } @else {
+        <input
+          hlmInput
+          autofocus
+          #patientDescription
+          class="emoji w-full flex-grow focus-visible:ring-offset-0"
+          placeholder="Zusammenfassung des Termins"
+          name="freeSummaryText"
+          [(ngModel)]="freeSummaryText" />
+      }
+    </section>
+
+    @if (customerPatients().length > 0) {
+      <section
+        class="flex w-full flex-col justify-center overflow-y-hidden border-b border-border">
+        <div
+          class="z-20 flex w-full transform cursor-pointer flex-row items-center justify-between rounded-md p-4 hover:bg-gray-100"
+          (click)="patientsVisible.set(!patientsVisible())">
+          <h1 hlmLabel class="flex flex-row items-center text-base">
+            <span class="w-52"> Patienten </span>
+
+            @if (!patientsVisible()) {
+              <span class="text-sm !text-secondary-foreground">
+                {{ selectedPatients().length }} ausgewählt
+              </span>
+            }
+          </h1>
+
+          <hlm-icon
+            [attr.data-state]="patientsVisible() ? 'open' : 'closed'"
+            name="lucideChevronDown"
+            class="mr-2 transform transition-all data-[state=closed]:rotate-180" />
+        </div>
+
+        @if (patientsVisible()) {
+          <div
+            class="z-10 flex w-full flex-col gap-4 px-4 pb-4"
+            [@slide]
+            [attr.data-state]="patientsVisible() ? 'open' : 'closed'">
+            <table class="w-full">
+              @for (
+                p of selectedPatients();
+                track p.patientId;
+                let first = $first;
+                let index = $index
+              ) {
+                <tr
+                  class="border-b border-dashed border-border"
+                  [class.border-t]="first">
+                  <td class="w-52 py-2">
+                    <div class="flex w-full flex-row items-center gap-2">
+                      <span
+                        class="emoji w-8 text-2xl"
+                        [innerHTML]="p | patientIcon"></span>
+
+                      <label
+                        hlmLabel
+                        class="flex flex-grow flex-col overflow-hidden">
+                        <span
+                          class="w-full overflow-hidden text-ellipsis whitespace-nowrap">
+                          {{ p.patientName }}
+                        </span>
+
+                        @if (p.species) {
+                          <span
+                            class="w-full overflow-hidden text-ellipsis whitespace-nowrap text-xs font-normal leading-3 text-secondary-foreground">
+                            {{ p.species }}
+                          </span>
+                        }
+                      </label>
+                    </div>
+                  </td>
+
+                  <td class="py-2">
+                    <input
+                      hlmInput
+                      class="w-full focus-visible:ring-offset-0"
+                      autofocus
+                      #patientDescription
+                      placeholder="Beschreibung"
+                      [name]="'patient-description-' + index"
+                      [(ngModel)]="p.description" />
+                  </td>
+
+                  <td class="w-12 py-2 text-right">
+                    <button
+                      hlmBtn
+                      variant="ghost"
+                      size="icon"
+                      tabindex="-1"
+                      (click)="togglePatient(p)">
+                      <hlm-icon size="sm" name="lucideX" />
+                    </button>
+                  </td>
+                </tr>
+              }
+
+              @if (customerPatients().length > 0) {
+                <tr>
+                  <td class="w-52 py-2"></td>
+
+                  <td class="py-2" colspan="2">
+                    <div class="relative mb-4 w-full">
+                      <hlm-icon
+                        name="lucideSearch"
+                        class="absolute left-2 top-2 text-secondary-foreground" />
+
+                      <input
+                        hlmInput
+                        [(ngModel)]="patientSearchText"
+                        [ngModelOptions]="{ standalone: true }"
+                        (keydown)="handleSearchKeydown($event)"
+                        (focus)="searchFocused.set(true); focusedIndex.set(0)"
+                        (blur)="searchFocused.set(false)"
+                        #patientDescription
+                        placeholder="Patienten durchsuchen"
+                        class="w-full pl-10" />
+                    </div>
+
+                    <div
+                      class="grid w-full grid-cols-4 justify-start gap-2 border-b border-border pb-4"
+                      [class.border-b-0]="patients().length === 0">
+                      @for (
+                        patient of patients();
+                        track patient.patientId;
+                        let index = $index
+                      ) {
+                        <button
+                          hlmBtn
+                          variant="outline"
+                          [attr.data-focused]="
+                            index === focusedIndex() && searchFocused()
+                              ? 'true'
+                              : null
+                          "
+                          (focus)="focusedIndex.set(index)"
+                          tabindex="-1"
+                          #selection
+                          (click)="togglePatient(patient)"
+                          class="flex h-14 flex-row items-center overflow-hidden data-[focused]:ring-1 data-[focused]:ring-black data-[focused]:ring-offset-2">
+                          <span
+                            class="emoji w-8 text-2xl"
+                            [innerHTML]="patient | patientIcon"></span>
+
+                          <div
+                            class="flex flex-grow flex-col items-start justify-center">
+                            <span
+                              class="w-full overflow-hidden text-ellipsis whitespace-nowrap">
+                              {{ patient.patientName }}
+                            </span>
+                            @if (patient.species) {
+                              <span
+                                class="w-full overflow-hidden text-ellipsis whitespace-nowrap text-xs font-normal leading-3 text-secondary-foreground">
+                                {{ patient.species }}
+                              </span>
+                            }
+                          </div>
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+
+              <tr>
+                <td class="w-52 py-2">
+                  <div class="flex w-full flex-row items-center gap-2">
+                    <label
+                      hlmLabel
+                      class="flex flex-grow flex-col overflow-hidden">
+                      Zusatz:
+                    </label>
+                  </div>
+                </td>
+
+                <td class="py-2">
+                  <input
+                    hlmInput
+                    class="w-full focus-visible:ring-offset-0"
+                    autofocus
+                    placeholder="Zusatztext"
+                    name="freeSummaryText"
+                    [(ngModel)]="freeSummaryText" />
+                </td>
+
+                <td class="w-12 py-2 text-right">
+                  <button
+                    hlmBtn
+                    variant="ghost"
+                    size="icon"
+                    tabindex="-1"
+                    (click)="freeSummaryText.set('')">
+                    <hlm-icon size="sm" name="lucideX" />
+                  </button>
+                </td>
+              </tr>
+            </table>
+          </div>
+        }
+      </section>
+    }
+
+    <section
+      class="flex w-full flex-row items-start border-b border-border p-4">
+      <h1 hlmLabel class="inline-block w-52 flex-shrink-0 text-base">
+        Beschreibung
+      </h1>
+
+      <ckeditor
+        class="max-w-[calc(100%-13rem)] flex-grow"
+        (keydown.enter)="$event.stopPropagation()"
+        [editor]="editor"
+        [config]="config"
+        (focus)="patientsVisible.set(false)"
+        name="description"
+        [(ngModel)]="description" />
+    </section>
+  }
+</form>
+
+<div class="flex-grow"></div>
+
+<div class="flex w-full flex-row items-center justify-end gap-4 p-4">
+  @if (selectedCustomer()) {
+    <button
+      hlmBtn
+      [disabled]="ngForm.invalid"
+      variant="default"
+      (click)="createEvent()">
+      Erstellen
+    </button>
+  }
+
+  <button hlmBtn (click)="close()" variant="secondary">Abbrechen</button>
+</div>

@@ -16,7 +16,7 @@ export interface StyledTimed extends Timed {
 })
 export class EventStylePipe implements PipeTransform {
   secondsToPixel(value: Duration | Timestamp | number, factor: number): number {
-    return getSeconds(value) * factor;
+    return Math.round(getSeconds(value) * factor);
   }
 
   transform(list: Timed[], factor: number, minDuration: number = 15 * 60): StyledTimed[] {
@@ -40,8 +40,6 @@ export class EventStylePipe implements PipeTransform {
         const endOverlaps = eventEnd >= otherStart && eventEnd < otherEnd;
 
         if (startOverlaps || endOverlaps) {
-          const otherDone = done.get(other.id);
-
           if (
             round >= 0 &&
             (done.get(other.id) === round)
@@ -61,7 +59,7 @@ export class EventStylePipe implements PipeTransform {
 
       for (let i = 0; i < list.length; i++) {
         const event = list[i];
-        const id = event.uniqueId !== undefined ? event.uniqueId : event.id;
+        const id = event.uniqueId;
 
         // skip this one if it's already done.
         if (done.has(id)) {

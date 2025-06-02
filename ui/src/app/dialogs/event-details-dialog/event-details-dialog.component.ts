@@ -1,93 +1,98 @@
 import { DatePipe } from '@angular/common';
 import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    DestroyRef,
-    HostListener,
-    inject,
-    model,
-    OnInit,
-    signal,
-    ViewChild
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  HostListener,
+  inject,
+  model,
+  OnInit,
+  signal,
+  ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { MatAutocompleteModule, MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import {
+  MatAutocompleteModule,
+  MatAutocompleteTrigger,
+} from '@angular/material/autocomplete';
 import { Any, Timestamp } from '@bufbuild/protobuf';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { ConnectError } from '@connectrpc/connect';
 import { lucideCalendar, lucideClock } from '@ng-icons/lucide';
 import { BrnAlertDialogModule } from '@spartan-ng/ui-alertdialog-brain';
 import {
-    BrnDialogRef,
-    injectBrnDialogContext,
+  BrnDialogRef,
+  injectBrnDialogContext,
 } from '@spartan-ng/ui-dialog-brain';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
-import { HlmAlertDialogComponent, HlmAlertDialogModule } from '@tierklinik-dobersberg/angular/alertdialog';
 import {
-    injectUserProfiles,
-    sortProtoTimestamps,
+  HlmAlertDialogComponent,
+  HlmAlertDialogModule,
+} from '@tierklinik-dobersberg/angular/alertdialog';
+import {
+  injectUserProfiles,
+  sortProtoTimestamps,
 } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { HlmCheckboxComponent } from '@tierklinik-dobersberg/angular/checkbox';
 import {
-    injectCalendarService,
-    injectCallService,
-    injectCustomerService,
+  injectCalendarService,
+  injectCallService,
+  injectCustomerService,
 } from '@tierklinik-dobersberg/angular/connect';
 import {
-    HlmDialogDescriptionDirective,
-    HlmDialogFooterComponent,
-    HlmDialogHeaderComponent,
-    HlmDialogService,
-    HlmDialogTitleDirective,
+  HlmDialogDescriptionDirective,
+  HlmDialogFooterComponent,
+  HlmDialogHeaderComponent,
+  HlmDialogService,
+  HlmDialogTitleDirective,
 } from '@tierklinik-dobersberg/angular/dialog';
 import {
-    HlmIconModule,
-    provideIcons,
+  HlmIconModule,
+  provideIcons,
 } from '@tierklinik-dobersberg/angular/icon';
 import { HlmInputDirective } from '@tierklinik-dobersberg/angular/input';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import {
-    HlmTableComponent,
-    HlmTdComponent,
-    HlmThComponent,
-    HlmTrowComponent,
+  HlmTableComponent,
+  HlmTdComponent,
+  HlmThComponent,
+  HlmTrowComponent,
 } from '@tierklinik-dobersberg/angular/table';
 import { Duration } from '@tierklinik-dobersberg/angular/utils/date';
 import { DurationValidatorDirective } from '@tierklinik-dobersberg/angular/validators';
 import {
-    Calendar,
-    CalendarEvent,
-    CreateEventRequest,
-    CustomerAnnotation,
-    MoveEventRequest,
-    ResourceCalendar,
-    UpdateEventRequest,
-    UpdateEventResponse,
+  Calendar,
+  CalendarEvent,
+  CreateEventRequest,
+  CustomerAnnotation,
+  MoveEventRequest,
+  ResourceCalendar,
+  UpdateEventRequest,
 } from '@tierklinik-dobersberg/apis/calendar/v1';
 import {
-    Customer,
-    CustomerResponse,
-    SearchCustomerResponse
+  Customer,
+  CustomerResponse,
+  SearchCustomerResponse,
 } from '@tierklinik-dobersberg/apis/customer/v1';
 import { CallStatus } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { Markdown } from 'ckeditor5';
 import { addMinutes, addSeconds } from 'date-fns';
 import { toast } from 'ngx-sonner';
 import {
-    catchError,
-    debounceTime,
-    defer,
-    filter,
-    retry,
-    Subject,
-    switchMap,
-    take,
-    throwError,
+  catchError,
+  debounceTime,
+  defer,
+  filter,
+  retry,
+  Subject,
+  switchMap,
+  take,
+  throwError,
 } from 'rxjs';
 import { config, MyEditor } from 'src/app/ckeditor';
 import { AppAvatarComponent } from 'src/app/components/avatar';
@@ -111,6 +116,24 @@ interface RecentCall {
   name?: string;
   customer?: Customer;
 }
+
+export type DialogResultCreatedOrUpdated = CalendarEvent;
+export type DialogResultDeleted = {
+  type: 'deleted';
+  calendarId: string;
+  eventId: string;
+};
+export type DialogResultMoved = {
+  type: 'moved';
+  original: CalendarEvent;
+  updated: CalendarEvent;
+};
+
+export type DialogResult =
+  | DialogResultCreatedOrUpdated
+  | DialogResultDeleted
+  | DialogResultMoved
+  | null;
 
 @Component({
   standalone: true,
@@ -139,7 +162,7 @@ interface RecentCall {
     CKEditorModule,
     MatAutocompleteModule,
     HlmLabelDirective,
-    HlmCheckboxComponent
+    HlmCheckboxComponent,
   ],
   providers: [...provideIcons({ lucideCalendar, lucideClock })],
   templateUrl: './event-details-dialog.component.html',
@@ -152,14 +175,18 @@ interface RecentCall {
     `,
   ],
 })
-export class AppEventDetailsDialogComponent extends AbstractBaseDialog implements OnInit {
+export class AppEventDetailsDialogComponent
+  extends AbstractBaseDialog
+  implements OnInit
+{
   private readonly profiles = injectUserProfiles();
   private readonly calendarService = injectCalendarService();
   private readonly dialogRef = inject<BrnDialogRef<unknown>>(BrnDialogRef);
   private readonly dialogContext =
     injectBrnDialogContext<EventDetailsDialogContext>();
-  private readonly callService = injectCallService();
   private readonly dialogService = inject(HlmDialogService);
+
+  private readonly callService = injectCallService();
   private readonly customerService = injectCustomerService();
 
   protected readonly editor = MyEditor;
@@ -179,6 +206,7 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
 
     return profiles.find(p => getCalendarId(p) === this.calendar.id);
   });
+
   protected readonly edit = signal(false);
   protected readonly isNew = signal(false);
 
@@ -195,7 +223,7 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
   protected readonly selectedCustomer = signal<Customer | null>(null);
   protected readonly availableResources = signal<ResourceCalendar[]>([]);
   protected readonly selectedResources = signal<string[]>([]);
-  protected readonly customer = signal<CustomerResponse | null>(null)
+  protected readonly customer = signal<CustomerResponse | null>(null);
 
   protected readonly matchingCustomers = signal<Customer[]>([]);
   private readonly destroyRef = inject(DestroyRef);
@@ -206,7 +234,7 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
   static open(
     service: HlmDialogService,
     ctx: EventDetailsDialogContext
-  ): BrnDialogRef<AppEventDetailsDialogComponent> {
+  ): BrnDialogRef<DialogResult> {
     return service.open(AppEventDetailsDialogComponent, {
       context: ctx,
       contentClass: DIALOG_CONTENT_CLASS,
@@ -214,37 +242,36 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
   }
 
   toggleResource(name: string) {
-    const selected = [...this.selectedResources()]
+    const selected = [...this.selectedResources()];
 
-    const idx = selected.findIndex(v => v === name)
+    const idx = selected.findIndex(v => v === name);
     if (idx >= 0) {
-      selected.splice(idx, 1)
+      selected.splice(idx, 1);
     } else {
-      selected.push(name)
+      selected.push(name);
     }
 
-    console.log("new resources", selected)
+    console.log('new resources', selected);
 
-    this.selectedResources.set(selected)
+    this.selectedResources.set(selected);
   }
 
   protected openCustomerDetails() {
     const c = this.customer();
     if (!c) {
-      return
+      return;
     }
 
-    CustomerDetailsDialog
-      .open(this.dialogService, c)
+    CustomerDetailsDialog.open(this.dialogService, c);
   }
 
-  @ViewChild(HlmAlertDialogComponent, {static: false})
+  @ViewChild(HlmAlertDialogComponent, { static: false })
   alertDialog: HlmAlertDialogComponent;
 
   @HostListener('keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
     if ('key' in event && event.key === 'Delete') {
-      this.alertDialog?.open()
+      this.alertDialog?.open();
     }
   }
 
@@ -254,7 +281,7 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
       this.summary.set(this.event.summary);
       this.description.set(this.event.description);
       this.startTime.set(this.event.startTime.toDate());
-      this.selectedResources.set(this.event.resources || [])
+      this.selectedResources.set(this.event.resources || []);
       this.duration.set(
         Duration.seconds(
           getSeconds(this.event.endTime) - getSeconds(this.event.startTime)
@@ -272,27 +299,27 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
                 {
                   query: {
                     case: 'id',
-                    value: data.customerId
-                  }
-                }
-              ]
+                    value: data.customerId,
+                  },
+                },
+              ],
             })
             .catch(err => {
               toast.error('Failed to load customer record', {
-                description: ConnectError.from(err).message
-              })
+                description: ConnectError.from(err).message,
+              });
 
-              return new SearchCustomerResponse()
+              return new SearchCustomerResponse();
             })
             .then(res => {
               if (res.results && res.results.length === 1) {
-                this.customer.set(res.results[0])
+                this.customer.set(res.results[0]);
               }
 
-              console.log("got customer response", res.results)
-            })
+              console.log('got customer response', res.results);
+            });
         } else {
-          console.error("failed to unpack extraData", this.event.extraData)
+          console.error('failed to unpack extraData', this.event.extraData);
         }
       }
     } else {
@@ -345,11 +372,11 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
           const m = new Map<string, RecentCall>();
           logs.forEach(l => m.set(l.caller, l));
 
-          const values = Array.from(m.values())
+          const values = Array.from(m.values());
           this.recentCalls.set(values);
 
           if (values.length > 0) {
-            this.autocompleteTrigger.openPanel()
+            this.autocompleteTrigger.openPanel();
           }
         })
         .catch(err => {
@@ -394,7 +421,7 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
         })
       )
       .subscribe(response => {
-        this.availableResources.set(response.resourceCalendars)
+        this.availableResources.set(response.resourceCalendars);
       });
 
     this.debouncedSearch$
@@ -415,7 +442,7 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
                       case: 'name',
                       value: {
                         lastName: split[0],
-                        firstName: split.length > 1 ? split[1] : undefined
+                        firstName: split.length > 1 ? split[1] : undefined,
                       },
                     },
                   },
@@ -463,11 +490,10 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
 
           this.selectedCustomer.set(customer);
         });
-
     } else {
-        if (call.customer) {
-            this.selectedCustomer.set(call.customer);
-        }
+      if (call.customer) {
+        this.selectedCustomer.set(call.customer);
+      }
     }
   }
 
@@ -484,9 +510,9 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
   }
 
   protected customerName(c: Customer | RecentCall) {
-    console.log("called with", c)
+    console.log('called with', c);
     if (!c) {
-      return null
+      return null;
     }
 
     if (c instanceof Customer) {
@@ -507,18 +533,20 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
       if (this.selectedCustomer()) {
         const customer = this.selectedCustomer();
 
-        extraData = Any.pack(new CustomerAnnotation({
-          customerId: customer.id,
-        }));
+        extraData = Any.pack(
+          new CustomerAnnotation({
+            customerId: customer.id,
+          })
+        );
       }
-    } catch(err) {
-      console.log(err)
+    } catch (err) {
+      console.log(err);
     }
 
-    let summary = this.summary()
+    let summary = this.summary();
     if (typeof summary === 'object') {
       const c = summary as Customer;
-      summary = c.lastName + ' ' + c.firstName
+      summary = c.lastName + ' ' + c.firstName;
     }
 
     const req = new CreateEventRequest({
@@ -536,15 +564,16 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
       extraData,
     });
 
-    console.log(req)
+    console.log(req);
 
-    await this.calendarService.createEvent(req).catch(err => {
+    try {
+      const result = await this.calendarService.createEvent(req);
+      this.close(result.event);
+    } catch (err) {
       toast.error('Termin konnte nicht erstellt werden', {
         description: ConnectError.from(err).message,
       });
-    });
-
-    this.close();
+    }
   }
 
   protected async save() {
@@ -553,9 +582,7 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
       eventId: this.event.id,
       resources: this.selectedResources(),
       updateMask: {
-        paths: [
-          'resources'
-        ],
+        paths: ['resources'],
       },
     });
 
@@ -576,6 +603,8 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
     req.end = Timestamp.fromDate(addSeconds(this.startTime(), duration));
     req.updateMask.paths.push('end');
 
+    let result: DialogResult = null;
+
     if (req.updateMask.paths.length > 0) {
       const response = await this.calendarService
         .updateEvent(req)
@@ -584,12 +613,15 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
             description: ConnectError.from(err).message,
           });
 
-          return new UpdateEventResponse({
-            event: this.event,
-          });
+          return null;
         });
 
-      this.event = response.event;
+      if (response) {
+        this.event = response.event;
+        result = this.event;
+      } else {
+        return;
+      }
     }
 
     if (this.event.calendarId !== this.calendarId()) {
@@ -612,27 +644,46 @@ export class AppEventDetailsDialogComponent extends AbstractBaseDialog implement
             description: ConnectError.from(err).message,
           });
 
-          return new UpdateEventResponse({
-            event: this.event,
-          });
+          return null;
         });
 
-      this.event = response.event;
+      if (response) {
+        this.event = response.event;
+        result = {
+          type: 'moved',
+          original: this.event,
+          updated: response.event,
+        };
+      }
+    }
+
+    if (result) {
+      this.close(result);
     }
 
     this.edit.set(false);
   }
 
-  protected close() {
-    this.dialogRef.close();
+  protected close(event: DialogResult | null) {
+    this.dialogRef.close(event);
   }
 
   protected async delete() {
-    await this.calendarService.deleteEvent({
-      calendarId: this.event.calendarId,
-      eventId: this.event.id,
-    });
+    try {
+      await this.calendarService.deleteEvent({
+        calendarId: this.event.calendarId,
+        eventId: this.event.id,
+      });
 
-    this.close();
+      this.close({
+        type: 'deleted',
+        calendarId: this.event.calendarId,
+        eventId: this.event.id,
+      });
+    } catch (err) {
+      toast.error('Termin konnte nicht gelöscht werden', {
+        description: ConnectError.from(err).message,
+      });
+    }
   }
 }

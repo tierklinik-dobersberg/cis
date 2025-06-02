@@ -19,7 +19,7 @@ import { retry, tap } from 'rxjs/operators';
 import { SwUpdateManager, WebPushSubscriptionManager } from 'src/app/services';
 import { environment } from 'src/environments/environment';
 import { StudyService } from './components/dicom/study.service';
-import { CreateCustomerDialog } from './dialogs/create-customer-dialog';
+import { CreateEventSheetComponent } from './features/calendar2/create-event-sheet/create-event-sheet.component';
 import { SearchEventsDialogComponent } from './features/calendar2/search-events-dialog/search-events-dialog.component';
 import { CustomerSearchDialogComponent } from './features/customers/customer-search-dialog';
 import { NavigationService } from './layout/navigation/navigation.service';
@@ -158,21 +158,19 @@ export class AppComponent implements OnInit {
         }
 
         let action: undefined | ExternalToast['action'] = {
-          label: 'Telefonnummer speichern',
+          label: 'Neuer Termin',
           onClick: () => {
-            CreateCustomerDialog.open(this.dialogService, {
-              caller: caller,
+            CreateEventSheetComponent.open(this.dialogService, {
+              customerId: evt.callEntry?.customerId || caller,
+              isUnknown: !evt.callEntry?.customerId
             });
           },
         };
 
-        if (evt.callEntry?.customerId) {
-          action = null;
-        }
-
         display.then(who => {
           const id = toast.loading('Aktives Telefonat mit ' + who, {
             duration: 10 * 60 * 1000,
+            actionButtonStyle: 'font-medium',
             action,
           });
 
@@ -213,6 +211,10 @@ export class AppComponent implements OnInit {
       } else {
         SearchEventsDialogComponent.open(this.dialogService);
       }
+    }
+
+    if (event.key === 'n' && event.altKey) {
+      CreateEventSheetComponent.open(this.dialogService)
     }
   }
 
