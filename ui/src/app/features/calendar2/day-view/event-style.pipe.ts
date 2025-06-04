@@ -42,7 +42,7 @@ export class EventStylePipe implements PipeTransform {
         if (startOverlaps || endOverlaps) {
           if (
             round >= 0 &&
-            (done.get(other.id) === round)
+            (done.get(other.uniqueId) === round)
           ) {
 
             return true;
@@ -82,6 +82,7 @@ export class EventStylePipe implements PipeTransform {
             left: round * 25 + '%',
             zIndex: event.ignoreOverlapping ? 'unset' : (round + 1) * 5,
           };
+
           
           (event as any).style = style;
 
