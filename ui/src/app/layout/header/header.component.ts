@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { ConnectError } from '@connectrpc/connect';
 import {
   lucideCog,
+  lucideDog,
   lucideLayers,
   lucidePlus,
   lucideUser
@@ -87,6 +88,7 @@ import { AppSearchMenuButtonComponent } from '../search-menu-button';
       lucideLayers,
       lucideCog,
       lucidePlus,
+      lucideDog
     }),
   ],
 })

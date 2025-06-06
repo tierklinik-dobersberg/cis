@@ -1,27 +1,29 @@
 import { NgTemplateOutlet } from '@angular/common';
 import {
-  AfterViewInit,
-  Component,
-  computed,
-  ContentChild,
-  effect,
-  EmbeddedViewRef,
-  input,
-  model,
-  signal,
-  TemplateRef,
-  ViewChild,
-  ViewContainerRef
+    AfterViewInit,
+    Component,
+    computed,
+    ContentChild,
+    DestroyRef,
+    effect,
+    EmbeddedViewRef,
+    inject,
+    input,
+    model,
+    signal,
+    TemplateRef,
+    ViewChild,
+    ViewContainerRef
 } from '@angular/core';
 import {
-  PanEndEvent,
-  PanStartEvent,
-  SwipeArrowControlDirective,
-  SwipeEvent,
+    PanEndEvent,
+    PanStartEvent,
+    SwipeArrowControlDirective,
+    SwipeEvent,
 } from '../swipe-arrow-ctrl/swipe-arrow-ctrl.directive';
 import {
-  SwiperContentDirective,
-  SwiperTemplateContext
+    SwiperContentDirective,
+    SwiperTemplateContext,
 } from './swiper-content.directive';
 
 @Component({
@@ -30,11 +32,13 @@ import {
   templateUrl: './swiper.component.html',
   imports: [SwipeArrowControlDirective, NgTemplateOutlet],
 })
-export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit {
+export abstract class AbstractSwiperComponent<T = any>
+  implements AfterViewInit
+{
   @ContentChild(SwiperContentDirective)
   content?: SwiperContentDirective<T>;
 
-  public readonly value = model<T | null>(null)
+  public readonly value = model<T | null>(null);
 
   public readonly disabled = model(false);
 
@@ -68,30 +72,45 @@ export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit 
 
   protected abstract updateValue(offset: number);
   protected abstract createContext(newValue: T): SwiperTemplateContext<T>;
-  protected abstract createContext(current: T, offset: number): SwiperTemplateContext<T>;
+  protected abstract createContext(
+    current: T,
+    offset: number
+  ): SwiperTemplateContext<T>;
   protected abstract compareContext(current: T, other: T): boolean;
 
   constructor() {
+    inject(DestroyRef).onDestroy(() => {
+      clearTimeout(this.destroyTimeout);
+
+      this.mainViewRef?.destroy();
+      this.prevViewRef?.destroy();
+      this.nextViewRef?.destroy();
+
+      this.content = null;
+      console.log('cleanup done');
+    });
+
     effect(() => {
       const value = this.value();
 
-      console.log("value changed", value)
+      console.log('value changed', value);
 
       if (
         this.mainViewRef &&
         !this.compareContext(this.mainViewRef.context.$implicit.value, value)
       ) {
-        Object.assign(this.mainViewRef.context, this.createContext(value))
+        Object.assign(this.mainViewRef.context, this.createContext(value));
       }
     });
   }
-
 
   ngAfterViewInit(): void {
     this.mainViewRef = this.viewContainerRef.createEmbeddedView(
       this.viewTemplate,
       this.createContext(this.value())
     );
+
+    this.mainViewRef.onDestroy(() => (this.mainViewRef = null));
   }
 
   private createViews() {
@@ -101,17 +120,21 @@ export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit 
       { index: 0 }
     );
 
+    this.prevViewRef.onDestroy(() => (this.prevViewRef = undefined));
+
     this.nextViewRef = this.viewContainerRef.createEmbeddedView(
       this.viewTemplate,
       this.createContext(this.mainViewRef.context.$implicit.value, 1)
     );
+
+    this.nextViewRef.onDestroy(() => (this.nextViewRef = undefined));
   }
 
   private swipeIndex: number | null = null;
 
   protected handleSwipe(event: SwipeEvent) {
     if (this.swipeIndex !== null && event.index !== this.swipeIndex) {
-        return
+      return;
     }
 
     if (event instanceof PanStartEvent) {
@@ -137,7 +160,7 @@ export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit 
           break;
 
         case 'left':
-          this.updateValue(1)
+          this.updateValue(1);
           {
             const old = this.mainViewRef;
             this.mainViewRef = this.nextViewRef;
@@ -146,7 +169,7 @@ export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit 
           break;
 
         case 'right':
-          this.updateValue(-1)
+          this.updateValue(-1);
           {
             const old = this.mainViewRef;
             this.mainViewRef = this.prevViewRef;
@@ -155,7 +178,7 @@ export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit 
           break;
       }
 
-      Object.assign(this.mainViewRef.context, this.createContext(this.value()))
+      Object.assign(this.mainViewRef.context, this.createContext(this.value()));
 
       this.stopPanning(event.direction);
     } else {
@@ -167,6 +190,7 @@ export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit 
     this.translateX.set('translateX(-100%)');
   }
 
+  private destroyTimeout: any = undefined;
   private stopPanning(direction: 'left' | 'right' | 'abort') {
     this.classes.set('transition-transform duration-500');
 
@@ -187,7 +211,7 @@ export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit 
     const prev = this.prevViewRef;
     const next = this.nextViewRef;
 
-    setTimeout(() => {
+    this.destroyTimeout = setTimeout(() => {
       this.classes.set('');
       this.translateX.set('translateX(0%)');
 
@@ -204,21 +228,28 @@ export abstract class AbstractSwiperComponent<T = any> implements AfterViewInit 
   templateUrl: './swiper.component.html',
   imports: [SwipeArrowControlDirective, NgTemplateOutlet],
 })
-export class SwiperComponent extends AbstractSwiperComponent<any> implements AfterViewInit {
-  public readonly updateValueFn = input.required<typeof this.updateValue>()
+export class SwiperComponent
+  extends AbstractSwiperComponent<any>
+  implements AfterViewInit
+{
+  public readonly updateValueFn = input.required<typeof this.updateValue>();
   public readonly createContextFn = input.required<typeof this.createContext>();
-  public readonly compareContextFn = input.required<typeof this.compareContext>();
+  public readonly compareContextFn =
+    input.required<typeof this.compareContext>();
 
   protected override updateValue(offset: number) {
-    this.updateValueFn()(offset)
+    this.updateValueFn()(offset);
   }
 
-  protected override createContext(current: number, offset?: number): SwiperTemplateContext<number> {
-    return this.createContextFn()(current, offset)
+  protected override createContext(
+    current: number,
+    offset?: number
+  ): SwiperTemplateContext<number> {
+    return this.createContextFn()(current, offset);
   }
 
   protected override compareContext(current: number, other: number): boolean {
-    return this.compareContextFn()(current, other)
+    return this.compareContextFn()(current, other);
   }
 }
 
@@ -228,7 +259,10 @@ export class SwiperComponent extends AbstractSwiperComponent<any> implements Aft
   templateUrl: './swiper.component.html',
   imports: [SwipeArrowControlDirective, NgTemplateOutlet],
 })
-export class ListSwiperComponent<T> extends AbstractSwiperComponent<number> implements AfterViewInit {
+export class ListSwiperComponent<T>
+  extends AbstractSwiperComponent<number>
+  implements AfterViewInit
+{
   public readonly list = input.required<T[]>();
 
   public override value = model<number>(0);
@@ -238,49 +272,53 @@ export class ListSwiperComponent<T> extends AbstractSwiperComponent<number> impl
     const index = this.value();
 
     return list[index];
-  })
-
+  });
 
   constructor() {
-    super()
+    super();
 
     effect(() => {
       const list = this.list();
       this.disabled.set(list.length <= 1);
-    })
+    });
   }
 
   protected override updateValue(offset: number) {
     let newIndex = this.clampIndex(this.value() + offset);
-    this.setValue(newIndex)
+    this.setValue(newIndex);
   }
 
   private clampIndex(newIndex: number): number {
     let n = newIndex;
     if (n < 0) {
-      console.log("newIndex is lower than zero")
-      n = this.list().length - 1
+      console.log('newIndex is lower than zero');
+      n = this.list().length - 1;
     }
     if (n >= this.list().length) {
-      console.log("newIndex is higher than list-length", n, this.list().length)
-      n = 0
+      console.log('newIndex is higher than list-length', n, this.list().length);
+      n = 0;
     }
 
     return n;
   }
 
-  protected override createContext(current: number, offset?: number): SwiperTemplateContext<number> {
-    const index = this.clampIndex(offset === undefined ? current : current + offset);
+  protected override createContext(
+    current: number,
+    offset?: number
+  ): SwiperTemplateContext<number> {
+    const index = this.clampIndex(
+      offset === undefined ? current : current + offset
+    );
 
-    console.log("current", current, "offset", offset, "newIndex", index)
+    console.log('current', current, 'offset', offset, 'newIndex', index);
 
     return {
       $implicit: {
         value: index,
         virtual: offset !== undefined,
-        element: this.list()[index]
+        element: this.list()[index],
       },
-    }
+    };
   }
 
   protected override compareContext(current: number, other: number): boolean {

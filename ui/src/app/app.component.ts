@@ -1,13 +1,13 @@
 import { animate, style, transition, trigger } from '@angular/animations';
 import { HttpClient } from '@angular/common/http';
 import {
-  ChangeDetectionStrategy,
-  Component,
-  HostListener,
-  OnInit,
-  effect,
-  inject,
-  signal,
+    ChangeDetectionStrategy,
+    Component,
+    HostListener,
+    OnInit,
+    effect,
+    inject,
+    signal,
 } from '@angular/core';
 import { Code, ConnectError } from '@connectrpc/connect';
 import { injectCustomerService } from '@tierklinik-dobersberg/angular/connect';

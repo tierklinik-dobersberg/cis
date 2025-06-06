@@ -1,0 +1,17 @@
+@if (icon(); as icon) {
+  @switch (icon.type) {
+    @case (types.UNSPECIFIED) {}
+
+    @case (types.UNICODE) {
+      <span class="text-[100%]" [innerText]="image()"></span>
+    }
+
+    @case (types.URL) {
+      <img [attr.url]="image()" class="aspect-auto h-full" />
+    }
+
+    @case (types.IMAGE_WEBP) {
+      <img [attr.url]="image()" class="aspect-auto h-full" />
+    }
+  }
+}

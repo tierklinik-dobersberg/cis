@@ -19,6 +19,7 @@ export const environment: Env = {
   officeHourService: 'https://officehours.dobersberg.vet',
   orthancBridge: 'https://dicom.dobersberg.vet',
   longRunning: 'https://longrunning.dobersberg.vet',
+  treatmentService: 'https://treatment.dobersberg.vet',
 
   registry: registry,
 };

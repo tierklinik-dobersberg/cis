@@ -1,0 +1,131 @@
+<hlm-dialog-header>
+  <h3 hlmDialogTitle>
+    @switch (mode()) {
+      @case ('create') {
+        Rasse erstellen
+      }
+
+      @case ('edit') {
+        Rasse bearbeiten
+      }
+    }
+  </h3>
+  <p hlmDialogDescription></p>
+</hlm-dialog-header>
+
+<div class="flex h-full flex-col overflow-hidden">
+  <hlm-table>
+    <hlm-trow>
+      <hlm-th class="w-64"> Icon </hlm-th>
+      <hlm-td class="flex-grow">
+        <div class="flex flex-grow flex-row items-center gap-4">
+          <brn-select
+            [(ngModel)]="iconType"
+            (ngModelChange)="iconData.set(null)">
+            <hlm-select-trigger>
+              <hlm-select-value />
+            </hlm-select-trigger>
+
+            <hlm-select-content>
+              <hlm-option [value]="types.UNSPECIFIED">Kein Icon</hlm-option>
+              <hlm-option [value]="types.UNICODE">Zeichen</hlm-option>
+              <hlm-option [value]="types.IMAGE_WEBP">Bild</hlm-option>
+              <hlm-option [value]="types.URL">Link</hlm-option>
+            </hlm-select-content>
+          </brn-select>
+
+          @switch (iconType()) {
+            @case (types.IMAGE_WEBP) {}
+            @default {
+              <input
+                hlmInput
+                class="flex-grow"
+                [ngClass]="{
+                  '!w-32 text-center !text-3xl': iconType() === types.UNICODE,
+                }"
+                [ngModel]="iconDataValue()"
+                (ngModelChange)="updateIconData($event)" />
+            }
+          }
+        </div>
+      </hlm-td>
+    </hlm-trow>
+
+    <hlm-trow>
+      <hlm-th class="w-64"> ID </hlm-th>
+      <hlm-td class="flex-grow">
+        <input hlmInput class="w-full" [(ngModel)]="name" />
+      </hlm-td>
+    </hlm-trow>
+
+    <hlm-trow>
+      <hlm-th class="w-64"> Anzeige-Name </hlm-th>
+      <hlm-td class="flex-grow">
+        <input hlmInput class="w-full" [(ngModel)]="displayName" />
+      </hlm-td>
+    </hlm-trow>
+
+    <hlm-trow>
+      <hlm-th class="w-64"> Begriffe </hlm-th>
+      <hlm-td class="flex-grow">
+        <div class="flex flex-grow flex-col gap-4">
+          <input
+            hlmInput
+            class="w-full"
+            (keydown.enter)="addWord($event)"
+            [(ngModel)]="newWord" />
+
+          <ul class="flex h-48 flex-col gap-1 overflow-auto">
+            @for (m of matchWords(); track m; let index = $index) {
+              <li class="flex flex-row items-center gap-1">
+                <span class="flex-grow">
+                  {{ m }}
+                </span>
+
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon"
+                  (click)="deleteWord(index)">
+                  <hlm-icon name="lucideX" size="xs" />
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+      </hlm-td>
+    </hlm-trow>
+  </hlm-table>
+</div>
+
+<hlm-dialog-footer>
+  <button hlmBtn (click)="save()">Speichern</button>
+
+  @if (mode() === 'edit') {
+    <hlm-alert-dialog>
+      <button hlmBtn brnAlertDialogTrigger variant="destructive">
+        Löschen
+      </button>
+
+      <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+        <hlm-alert-dialog-header>
+          <h1 hlmAlertDialogTitle>Rasse Löschen?</h1>
+          <p hlmAlertDialogDescription>
+            Sollen die Rassedaten wirklich gelöscht werden?
+          </p>
+        </hlm-alert-dialog-header>
+
+        <hlm-alert-dialog-footer>
+          <button hlmBtn variant="secondary" (click)="ctx.close()">
+            Abbrechen
+          </button>
+          <button hlmBtn variant="destructive" (click)="delete(); ctx.close()">
+            Löschen
+          </button>
+        </hlm-alert-dialog-footer>
+      </hlm-alert-dialog-content>
+    </hlm-alert-dialog>
+  }
+
+  <button hlmBtn variant="secondary" (click)="close(null)">Abbrechen</button>
+</hlm-dialog-footer>
