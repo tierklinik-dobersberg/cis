@@ -86,7 +86,7 @@ export class SpeciesDialogComponent {
       this.iconData.set(new TextEncoder().encode(value))
     }
 
-    protected readonly mode = signal<'create' | 'edit' >(this.ctx ? 'edit' : 'create')
+    protected readonly mode = signal<'create' | 'edit' >(this.ctx?.name !== undefined ? 'edit' : 'create')
 
     protected delete() {
       this.speciesService
@@ -104,7 +104,7 @@ export class SpeciesDialogComponent {
     }
 
     protected save() {
-      if (this.ctx) {
+      if (this.mode() === 'edit') {
         this.speciesService
           .updateSpecies({
             name: this.name(),

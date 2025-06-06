@@ -54,7 +54,11 @@
     <hlm-trow>
       <hlm-th class="w-64"> ID </hlm-th>
       <hlm-td class="flex-grow">
-        <input hlmInput class="w-full" [(ngModel)]="name" />
+        <input
+          hlmInput
+          class="w-full"
+          [readonly]="mode() === 'edit'"
+          [(ngModel)]="name" />
       </hlm-td>
     </hlm-trow>
 
