@@ -13,6 +13,7 @@ const routes: Routes = [
     loadComponent: () => import('./operations/operations.component').then(c => c.OperationsComponent)
   },
   { path: 'species', loadComponent: () => import('./species/species-list/species-list.component').then(m => m.SpeciesListComponent)},
+  { path: 'treatments', loadComponent: () => import('./treatments/treatment-list/treatment-list.component').then(m => m.TreatmentListComponent)},
 ];
 
 @NgModule({

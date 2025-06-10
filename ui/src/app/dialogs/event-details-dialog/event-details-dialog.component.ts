@@ -428,7 +428,7 @@ export class AppEventDetailsDialogComponent
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         debounceTime(100),
-        filter(value => value.length > 2), // onyl search for customers once we have at least 3 characters to search
+        filter(value => value.length > 2), // only search for customers once we have at least 3 characters to search
         switchMap(searchValue => {
           const abrt = new AbortController();
 
@@ -460,7 +460,7 @@ export class AppEventDetailsDialogComponent
             .finally(() => abrt.abort());
 
           return promise;
-        })
+        }),
       )
       .subscribe(response => {
         this.matchingCustomers.set(

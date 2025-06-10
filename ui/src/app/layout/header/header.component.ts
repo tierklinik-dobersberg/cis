@@ -4,8 +4,10 @@ import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@ang
 import { RouterModule } from '@angular/router';
 import { ConnectError } from '@connectrpc/connect';
 import {
+  lucideActivity,
   lucideCog,
   lucideDog,
+  lucideHeartPulse,
   lucideLayers,
   lucidePlus,
   lucideUser
@@ -88,7 +90,9 @@ import { AppSearchMenuButtonComponent } from '../search-menu-button';
       lucideLayers,
       lucideCog,
       lucidePlus,
-      lucideDog
+      lucideDog,
+      lucideHeartPulse,
+      lucideActivity
     }),
   ],
 })

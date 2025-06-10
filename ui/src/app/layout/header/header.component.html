@@ -55,19 +55,37 @@
                 <hlm-icon name="lucideLayers" hlmMenuIcon />
                 Meine Urlaubsanträge
               </button>
-              <button hlmMenuItem routerLink="/admin">
+
+              <hlm-menu-separator />
+
+              <button hlmMenuItem [brnMenuTriggerFor]="subMenu">
                 <hlm-icon name="lucideCog" hlmMenuIcon />
                 Administration
-              </button>
-              <button hlmMenuItem routerLink="/admin/operations">
-                <hlm-icon name="lucideCog" hlmMenuIcon />
-                Background-Jobs
+                <hlm-menu-item-sub-indicator />
               </button>
 
-              <button hlmMenuItem routerLink="/admin/species">
-                <hlm-icon name="lucideDog" hlmMenuIcon />
-                Rassedaten
-              </button>
+              <ng-template #subMenu>
+                <app-menu class="w-56">
+                  <button hlmMenuItem routerLink="/admin">
+                    <hlm-icon name="lucideCog" hlmMenuIcon />
+                    Administration
+                  </button>
+                  <button hlmMenuItem routerLink="/admin/operations">
+                    <hlm-icon name="lucideActivity" hlmMenuIcon />
+                    Background-Jobs
+                  </button>
+
+                  <button hlmMenuItem routerLink="/admin/species">
+                    <hlm-icon name="lucideDog" hlmMenuIcon />
+                    Tierarten
+                  </button>
+
+                  <button hlmMenuItem routerLink="/admin/treatments">
+                    <hlm-icon name="lucideHeartPulse" hlmMenuIcon />
+                    Behandlungen
+                  </button>
+                </app-menu>
+              </ng-template>
             </hlm-menu-group>
           </app-menu>
         </ng-template>

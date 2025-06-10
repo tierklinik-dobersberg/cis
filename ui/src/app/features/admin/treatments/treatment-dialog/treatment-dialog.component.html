@@ -1,0 +1,248 @@
+<hlm-dialog-header>
+  <h3 hlmDialogTitle>
+    @switch (mode()) {
+      @case ('create') {
+        Behandlung erstellen
+      }
+
+      @case ('edit') {
+        Behandlung bearbeiten
+      }
+    }
+  </h3>
+  <p hlmDialogDescription></p>
+</hlm-dialog-header>
+
+<div class="flex flex-grow flex-col overflow-auto">
+  <hlm-table>
+    @if (mode() !== 'edit') {
+      <hlm-trow>
+        <hlm-th class="w-64"> ID </hlm-th>
+        <hlm-td class="flex-grow">
+          <input hlmInput class="w-full" [(ngModel)]="name" />
+        </hlm-td>
+      </hlm-trow>
+    }
+
+    <hlm-trow>
+      <hlm-th class="w-64"> Anzeige-Name </hlm-th>
+      <hlm-td class="flex-grow">
+        <input hlmInput class="w-full" [(ngModel)]="displayName" />
+      </hlm-td>
+    </hlm-trow>
+
+    <hlm-trow>
+      <hlm-th class="w-64"> Beschreibung </hlm-th>
+      <hlm-td class="max-h-32 flex-grow overflow-hidden">
+        <ckeditor [editor]="editor" class="w-[400px]" [(ngModel)]="helpText" />
+      </hlm-td>
+    </hlm-trow>
+
+    <hlm-trow>
+      <hlm-th class="w-64"> Tierarten </hlm-th>
+      <hlm-td class="max-h-32 flex-grow">
+        @if (availableSpecies()?.length > 0) {
+          <brn-select
+            class="w-full"
+            [(ngModel)]="species"
+            [multiple]="true"
+            placeholder="Alle Tierarten">
+            <hlm-select-trigger class="w-full">
+              <hlm-select-value class="w-full" />
+            </hlm-select-trigger>
+
+            <hlm-select-content class="max-h-64 min-w-64">
+              @for (s of availableSpecies(); track s.name) {
+                <hlm-option [value]="s.name" class="flex items-center">
+                  <app-icon class="mr-2 text-lg" [icon]="s.icon" />
+                  {{ s.displayName || s.name }}
+                </hlm-option>
+              }
+            </hlm-select-content>
+          </brn-select>
+        }
+      </hlm-td>
+    </hlm-trow>
+
+    <hlm-trow>
+      <hlm-th class="w-64"> Benötigt </hlm-th>
+      <hlm-td class="max-h-32 flex-grow">
+        @if (availableResources()?.length > 0) {
+          <brn-select
+            class="w-full"
+            [(ngModel)]="resources"
+            [multiple]="true"
+            placeholder="Keine Resourcen benötigt">
+            <hlm-select-trigger class="w-full">
+              <hlm-select-value class="w-full" />
+            </hlm-select-trigger>
+
+            <hlm-select-content class="max-h-64 min-w-64">
+              @for (r of availableResources(); track r.name) {
+                <hlm-option [value]="r.name" class="flex items-center">
+                  {{ r.displayName || r.name }}
+                </hlm-option>
+              }
+            </hlm-select-content>
+          </brn-select>
+        }
+      </hlm-td>
+    </hlm-trow>
+
+    <hlm-trow>
+      <hlm-th class="w-64"> Termindauer </hlm-th>
+      <hlm-td class="max-h-32 flex-grow">
+        <brn-select class="w-full" [(ngModel)]="initialTime">
+          <hlm-select-trigger class="w-full">
+            <hlm-select-value class="w-full" />
+          </hlm-select-trigger>
+
+          <hlm-select-content class="max-h-64 min-w-64">
+            <hlm-option value="10m">10 Minuten</hlm-option>
+            <hlm-option value="15m">15 Minuten</hlm-option>
+            <hlm-option value="30m">30 Minuten</hlm-option>
+            <hlm-option value="45m">45 Minuten</hlm-option>
+            <hlm-option value="1h">1 Stunde</hlm-option>
+            <hlm-option value="1h30m">1 Stunde 30 Minuten</hlm-option>
+            <hlm-option value="2h">1 Stunde 30 Minuten</hlm-option>
+          </hlm-select-content>
+        </brn-select>
+      </hlm-td>
+    </hlm-trow>
+
+    <hlm-trow>
+      <hlm-th class="w-64"> Zusatzdauer </hlm-th>
+      <hlm-td class="max-h-32 flex-grow">
+        <brn-select class="w-full" [(ngModel)]="additionalTime">
+          <hlm-select-trigger class="w-full">
+            <hlm-select-value class="w-full" />
+          </hlm-select-trigger>
+
+          <hlm-select-content class="max-h-64 min-w-64">
+            <hlm-option value="10m">10 Minuten</hlm-option>
+            <hlm-option value="15m">15 Minuten</hlm-option>
+            <hlm-option value="30m">30 Minuten</hlm-option>
+            <hlm-option value="45m">45 Minuten</hlm-option>
+            <hlm-option value="1h">1 Stunde</hlm-option>
+            <hlm-option value="1h30m">1 Stunde 30 Minuten</hlm-option>
+            <hlm-option value="2h">1 Stunde 30 Minuten</hlm-option>
+          </hlm-select-content>
+        </brn-select>
+      </hlm-td>
+    </hlm-trow>
+
+    <hlm-trow>
+      <hlm-th class="w-64"> Onlinebuchung </hlm-th>
+      <hlm-td class="max-h-32 flex-grow">
+        <hlm-checkbox [(ngModel)]="allowOnlineBooking" />
+      </hlm-td>
+    </hlm-trow>
+
+    <hlm-trow>
+      <hlm-th class="w-64"> Zuweisbare Mitarbeiter </hlm-th>
+      <hlm-td class="max-h-32 flex-grow">
+        <brn-select
+          class="w-full"
+          [(ngModel)]="allowedEmployees"
+          [multiple]="true">
+          <hlm-select-trigger class="w-full">
+            <hlm-select-value class="w-full" />
+          </hlm-select-trigger>
+
+          <hlm-select-content class="max-h-64 min-w-64">
+            @for (p of profiles(); track p.user.id) {
+              <hlm-option [value]="p.user.id">
+                {{ p | displayName }}
+              </hlm-option>
+            }
+          </hlm-select-content>
+        </brn-select>
+      </hlm-td>
+    </hlm-trow>
+
+    <hlm-trow>
+      <hlm-th class="w-64"> Bevorzugte Mitarbeiter </hlm-th>
+      <hlm-td class="max-h-32 flex-grow">
+        <brn-select
+          class="w-full"
+          [(ngModel)]="preferredEmployees"
+          [multiple]="true">
+          <hlm-select-trigger class="w-full">
+            <hlm-select-value class="w-full" />
+          </hlm-select-trigger>
+
+          <hlm-select-content class="max-h-64 min-w-64">
+            @for (p of profiles(); track p.user.id) {
+              <hlm-option [value]="p.user.id">
+                {{ p | displayName }}
+              </hlm-option>
+            }
+          </hlm-select-content>
+        </brn-select>
+      </hlm-td>
+    </hlm-trow>
+
+    <hlm-trow>
+      <hlm-th class="w-64"> Begriffe </hlm-th>
+      <hlm-td class="flex-grow">
+        <div class="flex flex-grow flex-col gap-4">
+          <input
+            hlmInput
+            class="w-full"
+            (keydown.enter)="addWord($event)"
+            [(ngModel)]="newWord" />
+
+          <ul class="flex h-48 flex-col gap-1 overflow-auto">
+            @for (m of matchWords(); track m; let index = $index) {
+              <li class="flex flex-row items-center gap-1">
+                <span class="flex-grow">
+                  {{ m }}
+                </span>
+
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon"
+                  (click)="deleteWord(index)">
+                  <hlm-icon name="lucideX" size="xs" />
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+      </hlm-td>
+    </hlm-trow>
+  </hlm-table>
+</div>
+
+<hlm-dialog-footer>
+  <button hlmBtn (click)="save()">Speichern</button>
+
+  @if (mode() === 'edit') {
+    <hlm-alert-dialog>
+      <button hlmBtn brnAlertDialogTrigger variant="destructive">
+        Löschen
+      </button>
+
+      <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+        <hlm-alert-dialog-header>
+          <h1 hlmAlertDialogTitle>Behandlung Löschen?</h1>
+          <p hlmAlertDialogDescription>
+            Sollen die Behandlung wirklich gelöscht werden?
+          </p>
+        </hlm-alert-dialog-header>
+
+        <hlm-alert-dialog-footer>
+          <button hlmBtn variant="secondary" (click)="ctx.close()">
+            Abbrechen
+          </button>
+          <button hlmBtn variant="destructive" (click)="delete(); ctx.close()">
+            Löschen
+          </button>
+        </hlm-alert-dialog-footer>
+      </hlm-alert-dialog-content>
+    </hlm-alert-dialog>
+  }
+
+  <button hlmBtn variant="secondary" (click)="close(null)">Abbrechen</button>
+</hlm-dialog-footer>

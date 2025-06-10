@@ -60,6 +60,7 @@ import {
   SearchCustomerResponse,
 } from '@tierklinik-dobersberg/apis/customer/v1';
 import { CallStatus } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
+import { Species } from '@tierklinik-dobersberg/apis/treatment/v1';
 import { Markdown } from 'ckeditor5';
 import { addMinutes, addSeconds } from 'date-fns';
 import { MarkdownModule } from 'ngx-markdown';
@@ -76,6 +77,7 @@ import {
   switchMap,
 } from 'rxjs';
 import { config, MyEditor } from 'src/app/ckeditor';
+import { AppIconComponent } from 'src/app/components/app-icon/app-icon.component';
 import { TkdDatePickerComponent } from 'src/app/components/date-picker';
 import { Duration } from 'src/utils/duration';
 import { PatientIconPipe } from '../patient-icon.pipe';
@@ -107,13 +109,20 @@ class CustomerModel extends Customer {
   }
 }
 
-class PatientModel extends Patient {
-  public description = signal('');
-
-  constructor(p: PartialMessage<Patient>) {
-    super(p);
+class PatientWithSpecies extends Patient {
+  constructor(p: PartialMessage<Patient>, public readonly assignedSpecies?: Species) {
+    super(p)
   }
 }
+
+class PatientModel extends PatientWithSpecies {
+  public description = signal('');
+
+  constructor(p: PartialMessage<Patient>, public readonly assignedSpecies?: Species) {
+    super(p, assignedSpecies);
+  }
+}
+
 
 
 export type CreateEventContext = {
@@ -144,7 +153,8 @@ export type CreateEventContext = {
     CKEditorModule,
     TkdDatePickerComponent,
     HlmSelectModule,
-    BrnSelectModule
+    BrnSelectModule,
+    AppIconComponent,
   ],
   viewProviders: [
     ...provideIcons({
@@ -311,17 +321,17 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
   protected readonly selectedCalendarId = model<string | null>(null)
 
   /** All known patients of the customer */
-  protected readonly customerPatients = model<Patient[]>([]);
+  protected readonly customerPatients = model<PatientWithSpecies[]>([]);
 
   /** All selected patients */
   protected readonly selectedPatients = signal<PatientModel[]>([]);
 
-  protected togglePatient(p: Patient) {
+  protected togglePatient(p: PatientWithSpecies) {
     const all = [...this.selectedPatients()];
     const indx = all.findIndex(s => s.patientId === p.patientId);
 
     if (indx < 0) {
-      all.push(new PatientModel(p));
+      all.push(new PatientModel(p, p.assignedSpecies));
       this.patientSearchText.set('')
     } else {
       all.splice(indx, 1);
@@ -475,7 +485,13 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
               return new GetPatientsByCustomerResponse();
             })
             .then(response => {
-              this.customerPatients.set(response.patients || []);
+              let m = new Map<string, Species>();
+              response.species
+                ?.forEach(s => m.set(s.name, s))
+
+              this.customerPatients.set(
+                response.patients
+                  ?.map(p => new PatientWithSpecies(p, m.get(p.assignedSpeciesName))) || []);
             });
         }
       },

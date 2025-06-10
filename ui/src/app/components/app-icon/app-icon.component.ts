@@ -19,6 +19,10 @@ export class AppIconComponent {
     protected readonly image = computed(() => {
         const icon = this.icon();
 
+        if (!icon) {
+            return
+        }
+
         if (this.lastUrl) {
             URL.revokeObjectURL(this.lastUrl)
         }

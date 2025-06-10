@@ -97,7 +97,7 @@ export class SpeciesDialogComponent {
           this.close('deleted')
         })
         .catch(err => {
-          toast.error('Rassedaten konnten nicht gelöscht werden', {
+          toast.error('Tierart konnten nicht gelöscht werden', {
             description: ConnectError.from(err).message,
           })
         })
@@ -118,7 +118,7 @@ export class SpeciesDialogComponent {
           this.close('updated')
         })
         .catch(err => {
-          toast.error('Rassedaten konnten nicht gespeichert werden', {
+          toast.error('Tierart konnten nicht gespeichert werden', {
             description: ConnectError.from(err).message,
           })
         })
@@ -137,7 +137,7 @@ export class SpeciesDialogComponent {
           this.close('created')
         })
         .catch(err => {
-          toast.error('Rassedaten konnten nicht gespeichert werden', {
+          toast.error('Tierart konnten nicht gespeichert werden', {
             description: ConnectError.from(err).message,
           })
         })

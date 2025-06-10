@@ -1,28 +1,21 @@
 <div hlmCardHeader class="flex-row">
   <div class="flex flex-grow flex-col gap-2">
-    <h1 hlmCardTitle>Tierarten</h1>
-    <p hlmCardDescription>Verwaltung von Tierarten</p>
+    <h1 hlmCardTitle>Behandlungen</h1>
+    <p hlmCardDescription>Verwaltung von Behandlungen</p>
   </div>
 
-  <button hlmBtn (click)="openOrCreate()">Tierart erstellen</button>
+  <button hlmBtn (click)="openOrCreate()">Behandlung erstellen</button>
 </div>
 
 <div hlmCardContent>
   <hlm-table>
     <hlm-trow>
-      <hlm-th class="flex-[0_0_80px] p-2"> Icon </hlm-th>
-
       <hlm-th class="flex-1 p-2"> ID </hlm-th>
-
       <hlm-th class="flex-1 p-2"> Anzeige-Name </hlm-th>
     </hlm-trow>
 
     @for (s of species(); track s.name) {
       <hlm-trow (click)="openOrCreate(s)" class="cursor-pointer">
-        <hlm-td class="flex-[0_0_80px] p-2">
-          <app-icon [icon]="s.icon" />
-        </hlm-td>
-
         <hlm-td class="flex-1 p-2">
           {{ s.name }}
         </hlm-td>

@@ -212,21 +212,21 @@
             class="z-10 flex w-full flex-col gap-4 px-4 pb-4"
             [@slide]
             [attr.data-state]="patientsVisible() ? 'open' : 'closed'">
-            <table class="w-full">
+            <div class="w-full flex-col">
               @for (
                 p of selectedPatients();
                 track p.patientId;
                 let first = $first;
                 let index = $index
               ) {
-                <tr
-                  class="border-b border-dashed border-border"
+                <div
+                  class="flex flex-row border-b border-dashed border-border"
                   [class.border-t]="first">
-                  <td class="w-52 py-2">
+                  <div class="flex w-52 flex-row py-2">
                     <div class="flex w-full flex-row items-center gap-2">
-                      <span
-                        class="emoji w-8 text-2xl"
-                        [innerHTML]="p | patientIcon"></span>
+                      <app-icon
+                        [icon]="p.assignedSpecies?.icon"
+                        class="w-8 text-2xl" />
 
                       <label
                         hlmLabel
@@ -244,9 +244,9 @@
                         }
                       </label>
                     </div>
-                  </td>
+                  </div>
 
-                  <td class="py-2">
+                  <div class="flex-grow py-2">
                     <input
                       hlmInput
                       class="w-full focus-visible:ring-offset-0"
@@ -255,9 +255,9 @@
                       placeholder="Beschreibung"
                       [name]="'patient-description-' + index"
                       [(ngModel)]="p.description" />
-                  </td>
+                  </div>
 
-                  <td class="w-12 py-2 text-right">
+                  <div class="w-12 py-2 text-right">
                     <button
                       hlmBtn
                       variant="ghost"
@@ -266,15 +266,15 @@
                       (click)="togglePatient(p)">
                       <hlm-icon size="sm" name="lucideX" />
                     </button>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               }
 
               @if (customerPatients().length > 0) {
-                <tr>
-                  <td class="w-52 py-2"></td>
+                <div class="flex flex-row">
+                  <div class="w-52 py-2"></div>
 
-                  <td class="py-2" colspan="2">
+                  <div class="flex flex-grow flex-col py-2">
                     <div class="relative mb-4 w-full">
                       <hlm-icon
                         name="lucideSearch"
@@ -293,7 +293,7 @@
                     </div>
 
                     <div
-                      class="grid w-full grid-cols-4 justify-start gap-2 border-b border-border pb-4"
+                      class="min-[320px]:grid-cols-2 grid w-full grid-cols-1 justify-start gap-2 border-b border-border pb-4 sm:grid-cols-3 md:grid-cols-4"
                       [class.border-b-0]="patients().length === 0">
                       @for (
                         patient of patients();
@@ -313,9 +313,9 @@
                           #selection
                           (click)="togglePatient(patient)"
                           class="flex h-14 flex-row items-center overflow-hidden data-[focused]:ring-1 data-[focused]:ring-black data-[focused]:ring-offset-2">
-                          <span
-                            class="emoji w-8 text-2xl"
-                            [innerHTML]="patient | patientIcon"></span>
+                          <app-icon
+                            [icon]="patient.assignedSpecies?.icon"
+                            class="w-8 text-2xl" />
 
                           <div
                             class="flex flex-grow flex-col items-start justify-center">
@@ -323,32 +323,33 @@
                               class="w-full overflow-hidden text-ellipsis whitespace-nowrap">
                               {{ patient.patientName }}
                             </span>
-                            @if (patient.species) {
+                            @if (patient.assignedSpecies || patient.species) {
                               <span
                                 class="w-full overflow-hidden text-ellipsis whitespace-nowrap text-xs font-normal leading-3 text-secondary-foreground">
-                                {{ patient.species }}
+                                {{
+                                  patient.assignedSpecies?.displayName ||
+                                    patient.species
+                                }}
                               </span>
                             }
                           </div>
                         </button>
                       }
                     </div>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               }
 
-              <tr>
-                <td class="w-52 py-2">
-                  <div class="flex w-full flex-row items-center gap-2">
-                    <label
-                      hlmLabel
-                      class="flex flex-grow flex-col overflow-hidden">
-                      Zusatz:
-                    </label>
-                  </div>
-                </td>
+              <div class="flex flex-row">
+                <div class="flex w-52 items-center py-2">
+                  <label
+                    hlmLabel
+                    class="flex flex-grow flex-col overflow-hidden">
+                    Zusatz:
+                  </label>
+                </div>
 
-                <td class="py-2">
+                <div class="flex-grow py-2">
                   <input
                     hlmInput
                     class="w-full focus-visible:ring-offset-0"
@@ -356,9 +357,9 @@
                     placeholder="Zusatztext"
                     name="freeSummaryText"
                     [(ngModel)]="freeSummaryText" />
-                </td>
+                </div>
 
-                <td class="w-12 py-2 text-right">
+                <div class="w-12 py-2 text-right">
                   <button
                     hlmBtn
                     variant="ghost"
@@ -367,9 +368,9 @@
                     (click)="freeSummaryText.set('')">
                     <hlm-icon size="sm" name="lucideX" />
                   </button>
-                </td>
-              </tr>
-            </table>
+                </div>
+              </div>
+            </div>
           </div>
         }
       </section>

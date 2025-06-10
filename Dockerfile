@@ -1,6 +1,6 @@
 
 # Build the frontend
-FROM node:18 as builder
+FROM node:18 AS builder
 ARG CONFIGURATION="production"
 ARG GITHUB_TOKEN
 
@@ -14,10 +14,10 @@ RUN npx browserslist@latest --update-db
 
 COPY ./ui .
 RUN echo "Building frontend in configuration $CONFIGURATION"
-RUN npx ng build --configuration $CONFIGURATION && rm -r .angular/cache node_modules
+RUN NG_BUILD_MANGLE=false npx ng build --configuration $CONFIGURATION && rm -r .angular/cache node_modules
 
 # Build cisd
-FROM golang:1.23 as build
+FROM golang:1.23 AS build
 
 RUN update-ca-certificates
 
