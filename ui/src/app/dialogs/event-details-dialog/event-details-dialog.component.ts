@@ -292,7 +292,7 @@ export class AppEventDetailsDialogComponent
       dateTime: this.startTime(),
     })
 
-    setTimeout(() => this.close(null), 100)
+    setTimeout(() => this.close(null), 500)
   }
 
   ngOnInit() {
