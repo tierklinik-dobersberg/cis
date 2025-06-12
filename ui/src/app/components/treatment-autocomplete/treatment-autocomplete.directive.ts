@@ -28,7 +28,7 @@ import { ConnectError } from '@connectrpc/connect';
 import { hlm } from '@spartan-ng/ui-core';
 import { injectTreatmentService } from '@tierklinik-dobersberg/angular/connect';
 import { DurationPipe } from '@tierklinik-dobersberg/angular/pipes';
-import { Treatment } from '@tierklinik-dobersberg/apis/treatment/v1';
+import { Species, Treatment } from '@tierklinik-dobersberg/apis/treatment/v1';
 import { toast } from 'ngx-sonner';
 import { debounceTime, Subject } from 'rxjs';
 
@@ -149,6 +149,7 @@ export class TreatmentAutocompleteDirective implements OnInit, OnDestroy {
   private readonly debounce = new Subject<string>();
   private readonly destroyRef = inject(DestroyRef);
   private readonly overlay = inject(Overlay);
+  public readonly treatmentSpecies = input<Species | null>(null)
 
   private readonly treatements = signal<Treatment[]>([]);
   private readonly availableTreatments = computed(() => {
@@ -218,6 +219,7 @@ export class TreatmentAutocompleteDirective implements OnInit, OnDestroy {
         this.treatmentService
           .listTreatments({
             displayNameSearch: value,
+            species: this.treatmentSpecies()?.name
           })
           .then(response => {
             if (!response.treatments?.length) {

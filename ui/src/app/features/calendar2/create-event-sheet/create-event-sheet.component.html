@@ -256,6 +256,7 @@
                       autofocus
                       #patientDescription
                       treatmentAutocomplete
+                      [treatmentSpecies]="p.assignedSpecies"
                       (treatmentSelected)="handleSelectedTreatment($event)"
                       placeholder="Beschreibung"
                       [name]="'patient-description-' + index"
