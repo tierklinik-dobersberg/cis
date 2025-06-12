@@ -4,7 +4,14 @@
       [treatment]="t.displayName || t.name"
       (mouseenter)="onMouseEnter(t)"
       (click)="treatementSelected.emit(t)">
-      {{ t.displayName || t.name }}
+      <span>
+        {{ t.displayName || t.name }}
+      </span>
+
+      <span class="text-xs">
+        {{ t.initialTimeRequirement | duration }} /
+        {{ t.additionalTimeRequirement | duration }}
+      </span>
     </li>
   }
 </ul>

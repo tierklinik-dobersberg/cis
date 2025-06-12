@@ -27,6 +27,7 @@ import { NgModel } from '@angular/forms';
 import { ConnectError } from '@connectrpc/connect';
 import { hlm } from '@spartan-ng/ui-core';
 import { injectTreatmentService } from '@tierklinik-dobersberg/angular/connect';
+import { DurationPipe } from '@tierklinik-dobersberg/angular/pipes';
 import { Treatment } from '@tierklinik-dobersberg/apis/treatment/v1';
 import { toast } from 'ngx-sonner';
 import { debounceTime, Subject } from 'rxjs';
@@ -46,7 +47,7 @@ export class TreatmentItemComponent {
   protected readonly classes = computed(() => {
     const a = this.active();
 
-    let cls = 'p-2 cursor-pointer rounded';
+    let cls = 'p-2 cursor-pointer rounded flex flex-row items-center justify-between';
 
     if (a) {
       cls = hlm(cls, 'bg-gray-100');
@@ -70,7 +71,7 @@ export class TreatmentItemComponent {
 @Component({
   standalone: true,
   templateUrl: './treatment-autocomplete-overlay.component.html',
-  imports: [TreatmentItemComponent],
+  imports: [TreatmentItemComponent, DurationPipe ],
   host: {
     class: 'border-border border shadow-lg bg-white p-2 w-full overflow-hidden',
     '[@animate]': 'true',
