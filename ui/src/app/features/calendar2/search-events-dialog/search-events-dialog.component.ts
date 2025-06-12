@@ -122,6 +122,7 @@ export class SearchEventsDialogComponent {
           .finally(() => {
             abrt = null
             this.loading.set(false)
+            timeout = null;
           })
           .then(response => {
             const events: CalendarEvent[] = [];

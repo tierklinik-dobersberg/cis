@@ -14,7 +14,7 @@ import {
   QueryList,
   signal,
   untracked,
-  ViewChildren
+  ViewChildren,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -26,10 +26,13 @@ import {
   lucideSearch,
   lucideUserRound,
   lucideUserRoundCheck,
-  lucideUserRoundSearch
+  lucideUserRoundSearch,
 } from '@ng-icons/lucide';
 import { hlm } from '@spartan-ng/ui-core';
-import { BrnDialogRef, injectBrnDialogContext } from '@spartan-ng/ui-dialog-brain';
+import {
+  BrnDialogRef,
+  injectBrnDialogContext,
+} from '@spartan-ng/ui-dialog-brain';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
 import { BrnTooltipContentDirective } from '@spartan-ng/ui-tooltip-brain';
 import { HlmAccordionModule } from '@tierklinik-dobersberg/angular/accordion';
@@ -51,7 +54,12 @@ import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { HlmSheetModule } from '@tierklinik-dobersberg/angular/sheet';
 import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
-import { Calendar, CreateEventRequest, CustomerAnnotation } from '@tierklinik-dobersberg/apis/calendar/v1';
+import {
+  Calendar,
+  CreateEventRequest,
+  CustomerAnnotation,
+  ResourceCalendar,
+} from '@tierklinik-dobersberg/apis/calendar/v1';
 import {
   Customer,
   CustomerQuery,
@@ -60,7 +68,7 @@ import {
   SearchCustomerResponse,
 } from '@tierklinik-dobersberg/apis/customer/v1';
 import { CallStatus } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
-import { Species } from '@tierklinik-dobersberg/apis/treatment/v1';
+import { Species, Treatment } from '@tierklinik-dobersberg/apis/treatment/v1';
 import { Markdown } from 'ckeditor5';
 import { addMinutes, addSeconds } from 'date-fns';
 import { MarkdownModule } from 'ngx-markdown';
@@ -80,6 +88,7 @@ import { config, MyEditor } from 'src/app/ckeditor';
 import { AppIconComponent } from 'src/app/components/app-icon/app-icon.component';
 import { TkdDatePickerComponent } from 'src/app/components/date-picker';
 import { Duration } from 'src/utils/duration';
+import { TreatmentAutocompleteDirective } from '../../../components/treatment-autocomplete';
 import { PatientIconPipe } from '../patient-icon.pipe';
 
 const contentClass =
@@ -110,28 +119,34 @@ class CustomerModel extends Customer {
 }
 
 class PatientWithSpecies extends Patient {
-  constructor(p: PartialMessage<Patient>, public readonly assignedSpecies?: Species) {
-    super(p)
+  constructor(
+    p: PartialMessage<Patient>,
+    public readonly assignedSpecies?: Species
+  ) {
+    super(p);
   }
 }
 
 class PatientModel extends PatientWithSpecies {
   public description = signal('');
 
-  constructor(p: PartialMessage<Patient>, public readonly assignedSpecies?: Species) {
+  constructor(
+    p: PartialMessage<Patient>,
+    public readonly assignedSpecies?: Species
+  ) {
     super(p, assignedSpecies);
   }
 }
 
-
-
-export type CreateEventContext = {
-  calendarId: string;
-  dateTime: Date
-} | {
-  customerId: string
-  isUnknown: boolean
-}
+export type CreateEventContext =
+  | {
+      calendarId: string;
+      dateTime: Date;
+    }
+  | {
+      customerId: string;
+      isUnknown: boolean;
+    };
 
 @Component({
   selector: 'create-event-sheet',
@@ -155,6 +170,7 @@ export type CreateEventContext = {
     HlmSelectModule,
     BrnSelectModule,
     AppIconComponent,
+    TreatmentAutocompleteDirective,
   ],
   viewProviders: [
     ...provideIcons({
@@ -166,23 +182,26 @@ export type CreateEventContext = {
     }),
   ],
   host: {
-    'class': 'w-full flex flex-col min-h-full'
+    class: 'w-full flex flex-col min-h-full',
   },
   animations: [
     trigger('slide', [
       transition(':enter', [
-        style({transform: 'translateY(-100%)'}),
-        animate('150ms ease-in', style({transform: 'translateY(0%)'}))
+        style({ transform: 'translateY(-100%)' }),
+        animate('150ms ease-in', style({ transform: 'translateY(0%)' })),
       ]),
       transition(':leave', [
-        animate('150ms ease-in', style({transform: 'translateY(-100%)'}))
-      ])
-    ])
-  ]
+        animate('150ms ease-in', style({ transform: 'translateY(-100%)' })),
+      ]),
+    ]),
+  ],
 })
 export class CreateEventSheetComponent implements OnInit, AfterViewInit {
   /** Static method to open the create event-sheet component */
-  static open(dialog: HlmDialogService, ctx?: CreateEventContext): BrnDialogRef<unknown> {
+  static open(
+    dialog: HlmDialogService,
+    ctx?: CreateEventContext
+  ): BrnDialogRef<unknown> {
     const ref = dialog.open(CreateEventSheetComponent, {
       context: ctx,
       contentClass: hlm(contentClass, noAnimation),
@@ -195,17 +214,61 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
   private readonly callService = injectCallService();
   private readonly customerService = injectCustomerService();
   private readonly patientService = inject(PATIENT_SERVICE);
-  private readonly calendarService = injectCalendarService()
+  private readonly calendarService = injectCalendarService();
   private readonly iconPipe = new PatientIconPipe();
-  private readonly context: CreateEventContext | undefined = injectBrnDialogContext();
-  private readonly ref = inject(BrnDialogRef)
+  private readonly context: CreateEventContext | undefined =
+    injectBrnDialogContext();
+  private readonly ref = inject(BrnDialogRef);
 
-  protected readonly calendars = signal<Calendar[]>([])
+  private readonly selectedTreatments = signal<Treatment[]>([]);
+
+  protected readonly calendars = signal<Calendar[]>([]);
   protected focusedIndex = signal(0);
 
   protected close() {
-    this.ref.close()
+    this.ref.close();
   }
+
+  protected handleSelectedTreatment(t: Treatment) {
+    const all = [...this.requiredResources()]
+
+    t.resources
+      ?.forEach(r => {
+        if (!all.includes(r)) {
+          all.push(r)
+        }
+      })
+
+    this.requiredResources.set(all)
+    this.selectedTreatments.set([...this.selectedTreatments(), t]);
+  }
+
+  protected readonly computedDuration = computed(() => {
+    const all = this.selectedTreatments();
+
+    if (all.length === 0) {
+      return '15m';
+    }
+
+    let highest: Treatment = all[0] || null;
+    all.forEach(t => {
+      if (
+        t.initialTimeRequirement?.seconds >
+        highest.initialTimeRequirement?.seconds
+      ) {
+        highest = t;
+      }
+    });
+
+    let seconds = highest.initialTimeRequirement.seconds;
+    all.forEach(t => {
+      if (t !== highest) {
+        seconds += t.additionalTimeRequirement?.seconds || BigInt(0);
+      }
+    });
+
+    return Duration.seconds(Number(seconds)).format('default-hours');
+  });
 
   protected handleSearchKeydown(event: KeyboardEvent) {
     let idx = this.focusedIndex();
@@ -216,47 +279,45 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
 
     switch (event.key) {
       case 'ArrowLeft':
-        idx--
-        break
+        idx--;
+        break;
 
       case 'ArrowRight':
-        idx++
+        idx++;
         break;
 
       case 'Enter':
         if (!this.selectedCustomer()) {
-          const customer = this.customers()[this.focusedIndex()]
+          const customer = this.customers()[this.focusedIndex()];
           if (!customer) {
-            return
+            return;
           }
 
           this.selectedCustomer.set(customer);
         } else {
-          const p = this.patients()[this.focusedIndex()]
+          const p = this.patients()[this.focusedIndex()];
           if (!p) {
-            return
+            return;
           }
 
-          this.togglePatient(p)
+          this.togglePatient(p);
         }
-        return
+        return;
 
       default:
-        return
+        return;
     }
-
 
     if (!event.shiftKey) {
       if (idx < 0) {
         idx = max - 1;
       } else if (idx >= max) {
-        idx = 0
+        idx = 0;
       }
 
-      this.focusedIndex.set(idx)
+      this.focusedIndex.set(idx);
 
-
-      event.preventDefault()
+      event.preventDefault();
     }
   }
 
@@ -268,9 +329,11 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
     };
   })();
 
+  protected readonly availableResources = signal<ResourceCalendar[]>([]);
+  protected readonly requiredResources = signal<string[]>([]);
   protected readonly patientsVisible = signal(true);
-  protected readonly dateTime = signal<Date | null>(null)
-  protected readonly duration = signal('15m');
+  protected readonly dateTime = signal<Date | null>(null);
+  protected readonly duration = signal<string | null>(null);
   protected readonly description = model('');
   protected readonly computedSummary = computed(() => {
     const selected = this.selectedPatients();
@@ -280,28 +343,28 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
       .map(p => {
         let n = p.patientName;
         if (n === 'Unbekannt') {
-          n = p.species || p.breed
+          n = p.species || p.breed;
         }
 
         let d = p.description();
         if (d !== '' && n !== '') {
-          d = ': ' + d
+          d = ': ' + d;
         }
 
-        return `${this.iconPipe.transform(p)} ${n}${d}`
+        return `${this.iconPipe.transform(p)} ${n}${d}`;
       })
-      .join(', ') 
+      .join(', ');
 
-      if (freeText === '') {
-        return t
-      }
+    if (freeText === '') {
+      return t;
+    }
 
-      if (t === '') {
-        return freeText
-      }
+    if (t === '') {
+      return freeText;
+    }
 
-      return t + ' | ' + freeText
-  })
+    return t + ' | ' + freeText;
+  });
 
   protected readonly freeSummaryText = signal('');
 
@@ -318,7 +381,7 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
   protected readonly selectedCustomer = model<CustomerModel | null>(null);
 
   /** The selected calendar */
-  protected readonly selectedCalendarId = model<string | null>(null)
+  protected readonly selectedCalendarId = model<string | null>(null);
 
   /** All known patients of the customer */
   protected readonly customerPatients = model<PatientWithSpecies[]>([]);
@@ -332,7 +395,7 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
 
     if (indx < 0) {
       all.push(new PatientModel(p, p.assignedSpecies));
-      this.patientSearchText.set('')
+      this.patientSearchText.set('');
     } else {
       all.splice(indx, 1);
     }
@@ -427,22 +490,24 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
         );
       });
 
-    effect(() => {
-      let idx = untracked(() => this.focusedIndex());
-      const customerResult = this.customers();
-      const patientResult = this.patients();
+    effect(
+      () => {
+        let idx = untracked(() => this.focusedIndex());
+        const customerResult = this.customers();
+        const patientResult = this.patients();
 
-      console.log(idx, patientResult.length)
-      if (this.selectedCustomer()) {
-        if (idx >= customerResult.length) {
-          this.focusedIndex.set(0)
+        if (this.selectedCustomer()) {
+          if (idx >= customerResult.length) {
+            this.focusedIndex.set(0);
+          }
+        } else {
+          if (idx >= patientResult.length) {
+            this.focusedIndex.set(0);
+          }
         }
-      } else {
-        if (idx >= patientResult.length) {
-          this.focusedIndex.set(0)
-        }
-      }
-    }, { allowSignalWrites: true })
+      },
+      { allowSignalWrites: true }
+    );
 
     effect(
       () => {
@@ -465,7 +530,7 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
         const customer = this.selectedCustomer();
         this.customerPatients.set([]);
         this.selectedPatients.set([]);
-        this.focusedIndex.set(0)
+        this.focusedIndex.set(0);
         this.searchFocused.set(false);
 
         if (!customer) {
@@ -486,12 +551,13 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
             })
             .then(response => {
               let m = new Map<string, Species>();
-              response.species
-                ?.forEach(s => m.set(s.name, s))
+              response.species?.forEach(s => m.set(s.name, s));
 
               this.customerPatients.set(
-                response.patients
-                  ?.map(p => new PatientWithSpecies(p, m.get(p.assignedSpeciesName))) || []);
+                response.patients?.map(
+                  p => new PatientWithSpecies(p, m.get(p.assignedSpeciesName))
+                ) || []
+              );
             });
         }
       },
@@ -502,39 +568,43 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.loadRecentCalls();
 
+    this.calendarService
+      .listResourceCalendars({})
+      .then(res => this.availableResources.set(res.resourceCalendars || []));
+
     if (this.context) {
-
       if ('calendarId' in this.context) {
-        this.selectedCalendarId.set(this.context.calendarId)
-        this.dateTime.set(this.context.dateTime)
-      } else
-      if ('customerId' in this.context) {
+        this.selectedCalendarId.set(this.context.calendarId);
+        this.dateTime.set(this.context.dateTime);
+      } else if ('customerId' in this.context) {
         if (this.context.isUnknown) {
-          this.selectedCustomer.set(new CustomerModel(this.context.customerId))
+          this.selectedCustomer.set(new CustomerModel(this.context.customerId));
         } else {
-        this.customerService
-          .searchCustomer({
-            queries: [
-              {
-                query: {
-                  case: 'id',
-                  value: this.context.customerId,
-                }
-              }
-            ]
-          })
-          .then(response => {
-            if (!response.results?.length) {
-              throw new Error('Kunde nicht gefunden')
-            }
-
-            this.selectedCustomer.set(new CustomerModel(response.results[0].customer))
-          })
-          .catch(err => {
-            toast.error('Kunde konnte nicht geladen werden', {
-              description: ConnectError.from(err).message
+          this.customerService
+            .searchCustomer({
+              queries: [
+                {
+                  query: {
+                    case: 'id',
+                    value: this.context.customerId,
+                  },
+                },
+              ],
             })
-          })
+            .then(response => {
+              if (!response.results?.length) {
+                throw new Error('Kunde nicht gefunden');
+              }
+
+              this.selectedCustomer.set(
+                new CustomerModel(response.results[0].customer)
+              );
+            })
+            .catch(err => {
+              toast.error('Kunde konnte nicht geladen werden', {
+                description: ConnectError.from(err).message,
+              });
+            });
         }
       }
     }
@@ -542,13 +612,13 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
     this.calendarService
       .listCalendars({})
       .then(response => {
-        this.calendars.set(response.calendars || [])
+        this.calendars.set(response.calendars || []);
       })
       .catch(err => {
         toast.error('Kalendar konnten nicht geladen werden', {
-          description: ConnectError.from(err).message
-        })
-      })
+          description: ConnectError.from(err).message,
+        });
+      });
   }
 
   ngAfterViewInit(): void {
@@ -559,7 +629,9 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
           this.patientDescriptionInputs.last?.nativeElement;
 
         if (this.patientDescriptionInputs.length > 1) {
-          last = this.patientDescriptionInputs.get(this.patientDescriptionInputs.length - 2).nativeElement
+          last = this.patientDescriptionInputs.get(
+            this.patientDescriptionInputs.length - 2
+          ).nativeElement;
         }
 
         if (!last) {
@@ -644,8 +716,6 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
         },
       })
       .then(response => {
-        console.log(response.results);
-
         const logs = response.results
           .filter(record =>
             [
@@ -678,9 +748,10 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
   }
 
   protected createEvent() {
-    let name = `${this.selectedCustomer().lastName} ${this.selectedCustomer().firstName}`.trim();
+    let name =
+      `${this.selectedCustomer().lastName} ${this.selectedCustomer().firstName}`.trim();
     if (this.computedSummary() !== '') {
-      name += ": " + this.computedSummary()
+      name += ': ' + this.computedSummary();
     }
 
     let a: Any | undefined;
@@ -691,15 +762,19 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
         animalIds: this.selectedPatients().map(p => p.patientId),
         eventDescription: this.description(),
         additionalAnimalText: this.freeSummaryText(),
-        animalDescriptions: {}
-      })
+        animalDescriptions: {},
+      });
 
-      this.selectedPatients()
-        .forEach(p => {
-          annotation.animalDescriptions[p.patientId] = p.description() 
-        })
+      this.selectedPatients().forEach(p => {
+        annotation.animalDescriptions[p.patientId] = p.description();
+      });
 
-      a = Any.pack(annotation)
+      a = Any.pack(annotation);
+    }
+
+    let d = this.duration();
+    if (!d) {
+      d = this.computedDuration();
     }
 
     let req = new CreateEventRequest({
@@ -707,19 +782,21 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
       description: this.description(),
       name,
       start: Timestamp.fromDate(this.dateTime()),
-      end: Timestamp.fromDate(addSeconds(this.dateTime(), Duration.parseString(this.duration()).seconds)),
+      end: Timestamp.fromDate(
+        addSeconds(this.dateTime(), Duration.parseString(d).seconds)
+      ),
       extraData: a,
-    })
+    });
 
     this.calendarService
       .createEvent(req)
       .then(() => {
-        this.close()
+        this.close();
       })
       .catch(err => {
         toast.error('Termin konnte nicht erstellt werden', {
-          description: ConnectError.from(err).message
-        })
-      })
+          description: ConnectError.from(err).message,
+        });
+      });
   }
 }

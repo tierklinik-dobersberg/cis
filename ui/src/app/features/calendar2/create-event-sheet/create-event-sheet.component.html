@@ -85,17 +85,16 @@
 
   @if (selectedCustomer()) {
     <section
-      class="flex w-full flex-row items-start border-b border-border p-4">
-      <h1 hlmLabel class="inline-block w-52 flex-shrink-0 text-base">
+      class="flex w-full flex-col items-start border-b border-border p-4 md:flex-row">
+      <h1 hlmLabel class="inline-block flex-shrink-0 text-base md:w-52">
         Kalender
       </h1>
 
-      <div class="mr-4 flex flex-grow flex-col gap-4">
+      <div class="mr-4 flex flex-grow flex-col gap-4 self-stretch">
         <brn-select
           [(ngModel)]="selectedCalendarId"
           name="calendar"
           required
-          duration
           class="flex-1">
           <hlm-select-trigger class="[&>button]:w-full">
             <hlm-select-value class="w-full" />
@@ -126,6 +125,7 @@
             [(ngModel)]="duration"
             required
             duration
+            [placeholder]="computedDuration()"
             class="flex-1">
             <hlm-select-trigger class="[&>button]:w-full">
               <hlm-select-value class="w-full" />
@@ -151,8 +151,9 @@
     --></section>
 
     <section
-      class="flex w-full flex-row items-center border-b border-border p-4">
-      <h1 hlmLabel class="inline-block w-52 flex-shrink-0 text-base">
+      class="w-full flex-col items-center border-b border-border p-4 md:flex md:flex-row"
+      [class.hidden]="customerPatients().length > 0">
+      <h1 hlmLabel class="inline-block flex-shrink-0 text-base md:w-52">
         Zusammenfassung
       </h1>
 
@@ -177,6 +178,8 @@
         <input
           hlmInput
           autofocus
+          treatmentAutocomplete
+          (treatmentSelected)="handleSelectedTreatment($event)"
           #patientDescription
           class="emoji w-full flex-grow focus-visible:ring-offset-0"
           placeholder="Zusammenfassung des Termins"
@@ -252,6 +255,8 @@
                       class="w-full focus-visible:ring-offset-0"
                       autofocus
                       #patientDescription
+                      treatmentAutocomplete
+                      (treatmentSelected)="handleSelectedTreatment($event)"
                       placeholder="Beschreibung"
                       [name]="'patient-description-' + index"
                       [(ngModel)]="p.description" />
@@ -272,7 +277,7 @@
 
               @if (customerPatients().length > 0) {
                 <div class="flex flex-row">
-                  <div class="w-52 py-2"></div>
+                  <div class="hidden py-2 md:block md:w-52"></div>
 
                   <div class="flex flex-grow flex-col py-2">
                     <div class="relative mb-4 w-full">
@@ -293,7 +298,7 @@
                     </div>
 
                     <div
-                      class="min-[320px]:grid-cols-2 grid w-full grid-cols-1 justify-start gap-2 border-b border-border pb-4 sm:grid-cols-3 md:grid-cols-4"
+                      class="grid w-full grid-cols-2 justify-start gap-2 border-b border-border pb-4 sm:grid-cols-3 md:grid-cols-4"
                       [class.border-b-0]="patients().length === 0">
                       @for (
                         patient of patients();
@@ -377,13 +382,40 @@
     }
 
     <section
-      class="flex w-full flex-row items-start border-b border-border p-4">
-      <h1 hlmLabel class="inline-block w-52 flex-shrink-0 text-base">
+      class="flex w-full flex-col items-start border-b border-border p-4 md:flex-row">
+      <h1 hlmLabel class="inline-block flex-shrink-0 text-base md:w-52">
+        Benötigt
+      </h1>
+      @if (availableResources()?.length > 0) {
+        <brn-select
+          class="w-full"
+          [(ngModel)]="requiredResources"
+          [multiple]="true"
+          name="resources"
+          placeholder="Keine Resourcen benötigt">
+          <hlm-select-trigger class="w-full">
+            <hlm-select-value class="w-full" />
+          </hlm-select-trigger>
+
+          <hlm-select-content class="max-h-64 min-w-64">
+            @for (r of availableResources(); track r.name) {
+              <hlm-option [value]="r.name" class="flex items-center">
+                {{ r.displayName || r.name }}
+              </hlm-option>
+            }
+          </hlm-select-content>
+        </brn-select>
+      }
+    </section>
+
+    <section
+      class="flex w-full flex-col items-start border-b border-border p-4 md:flex-row">
+      <h1 hlmLabel class="inline-block flex-shrink-0 text-base md:w-52">
         Beschreibung
       </h1>
 
       <ckeditor
-        class="max-w-[calc(100%-13rem)] flex-grow"
+        class="max-w-full flex-grow self-stretch md:max-w-[calc(100%-13rem)]"
         (keydown.enter)="$event.stopPropagation()"
         [editor]="editor"
         [config]="config"

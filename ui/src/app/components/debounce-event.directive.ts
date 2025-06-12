@@ -1,5 +1,5 @@
 import { coerceNumberProperty } from "@angular/cdk/coercion";
-import { Directive, ElementRef, EventEmitter, HostListener, input, Input, numberAttribute, OnChanges, output, Output, Renderer2, SimpleChanges } from "@angular/core";
+import { DestroyRef, Directive, ElementRef, EventEmitter, HostListener, inject, input, Input, numberAttribute, OnChanges, output, Output, Renderer2, SimpleChanges } from "@angular/core";
 
 @Directive({
     selector: '[tkdDebounceEvent]',
@@ -50,6 +50,7 @@ export class TkdDebounceEventDirective implements OnChanges {
             unlistenStop = this.renderer2.listen(this.elementRef.nativeElement, this.tkdDebounceStopEvent, () => {
                 if (timeout !== undefined) {
                     clearTimeout(timeout)
+                    timeout = undefined
                 }
             })
         }
@@ -74,6 +75,14 @@ export class TkdDblclickDirective {
     public readonly tkdDblclickThreshold = input(600, {
         transform: numberAttribute
     })
+
+    constructor() {
+        inject(DestroyRef)
+            .onDestroy(() => {
+                clearTimeout(this.timeout);
+                this.timeout = null;
+            })
+    }
 
     @HostListener('click', ['$event'])
     protected onClick(event: MouseEvent) {

@@ -31,6 +31,7 @@ import {
   HlmAlertDialogComponent,
   HlmAlertDialogModule,
 } from '@tierklinik-dobersberg/angular/alertdialog';
+import { HlmBadgeDirective } from '@tierklinik-dobersberg/angular/badge';
 import {
   injectUserProfiles,
   sortProtoTimestamps,
@@ -41,6 +42,7 @@ import {
   injectCalendarService,
   injectCallService,
   injectCustomerService,
+  injectTreatmentService,
 } from '@tierklinik-dobersberg/angular/connect';
 import {
   HlmDialogDescriptionDirective,
@@ -80,6 +82,10 @@ import {
   SearchCustomerResponse,
 } from '@tierklinik-dobersberg/apis/customer/v1';
 import { CallStatus } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
+import {
+  ListTreatmentsResponse,
+  Treatment,
+} from '@tierklinik-dobersberg/apis/treatment/v1';
 import { Markdown } from 'ckeditor5';
 import { addMinutes, addSeconds } from 'date-fns';
 import { toast } from 'ngx-sonner';
@@ -92,11 +98,12 @@ import {
   Subject,
   switchMap,
   take,
-  throwError,
+  throwError
 } from 'rxjs';
 import { config, MyEditor } from 'src/app/ckeditor';
 import { AppAvatarComponent } from 'src/app/components/avatar';
 import { TkdDatePickerComponent } from 'src/app/components/date-picker';
+import { CreateEventSheetComponent } from 'src/app/features/calendar2/create-event-sheet/create-event-sheet.component';
 import { getCalendarId } from 'src/app/services';
 import { getSeconds } from '../../features/calendar2/day-view/sort.pipe';
 import { AbstractBaseDialog } from '../base-dialog/base-dialog.component';
@@ -153,6 +160,7 @@ export type DialogResult =
     AppAvatarComponent,
     BrnSelectModule,
     HlmSelectModule,
+    HlmBadgeDirective,
     FormsModule,
     HlmInputDirective,
     TkdDatePickerComponent,
@@ -188,6 +196,7 @@ export class AppEventDetailsDialogComponent
 
   private readonly callService = injectCallService();
   private readonly customerService = injectCustomerService();
+  private readonly treatmentService = injectTreatmentService();
 
   protected readonly editor = MyEditor;
   protected readonly config = (() => {
@@ -226,6 +235,7 @@ export class AppEventDetailsDialogComponent
   protected readonly customer = signal<CustomerResponse | null>(null);
 
   protected readonly matchingCustomers = signal<Customer[]>([]);
+  protected readonly matchingTreatments = signal<Treatment[]>([]);
   private readonly destroyRef = inject(DestroyRef);
 
   @ViewChild(MatAutocompleteTrigger)
@@ -273,6 +283,15 @@ export class AppEventDetailsDialogComponent
     if ('key' in event && event.key === 'Delete') {
       this.alertDialog?.open();
     }
+  }
+
+  protected useNewEventSheet() {
+    CreateEventSheetComponent.open(this.dialogService, {
+      calendarId: this.calendarId(),
+      customerId: this.customer()?.customer?.id,
+      dateTime: this.startTime(),
+    })
+    this.close(null);
   }
 
   ngOnInit() {
@@ -432,9 +451,14 @@ export class AppEventDetailsDialogComponent
         switchMap(searchValue => {
           const abrt = new AbortController();
 
-          const split = searchValue.split(' ');
-          const promise = this.customerService
-            .searchCustomer(
+          let promise: Promise<SearchCustomerResponse | ListTreatmentsResponse>;
+          if (this.selectedCustomer()) {
+            promise = this.treatmentService.listTreatments({
+              displayNameSearch: this.summary(),
+            });
+          } else {
+            const split = searchValue.split(' ');
+            promise = this.customerService.searchCustomer(
               {
                 queries: [
                   {
@@ -449,7 +473,10 @@ export class AppEventDetailsDialogComponent
                 ],
               },
               { signal: abrt.signal }
-            )
+            );
+          }
+
+          promise
             .catch(err => {
               toast.error('Kundendaten konnten nicht durchsucht werden', {
                 description: ConnectError.from(err).message,
@@ -460,18 +487,23 @@ export class AppEventDetailsDialogComponent
             .finally(() => abrt.abort());
 
           return promise;
-        }),
+        })
       )
       .subscribe(response => {
-        this.matchingCustomers.set(
-          (response.results || []).map(r => r.customer)
-        );
-        console.log('found customers', this.matchingCustomers());
+        if (response instanceof SearchCustomerResponse) {
+          this.matchingCustomers.set(
+            (response.results || []).map(r => r.customer)
+          );
+          console.log('found customers', this.matchingCustomers());
+        } else {
+          this.matchingTreatments.set(response.treatments || []);
+          console.log('found treatments', response.treatments);
+        }
       });
   }
 
   protected handleCustomerSelection(call: RecentCall | Customer) {
-    this.disabledComplete.set(true);
+    // this.disabledComplete.set(true);
 
     if (call instanceof Customer) {
       this.selectedCustomer.set(call);
@@ -495,6 +527,8 @@ export class AppEventDetailsDialogComponent
         this.selectedCustomer.set(call.customer);
       }
     }
+
+    this.matchingCustomers.set([])
   }
 
   private readonly debouncedSearch$ = new Subject<string>();

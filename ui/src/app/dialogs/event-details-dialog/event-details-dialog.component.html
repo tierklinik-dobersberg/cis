@@ -55,7 +55,9 @@
           [(ngModel)]="summary"
           [matAutocompleteDisabled]="
             disabledComplete() ||
-            (matchingCustomers().length === 0 && recentCalls().length === 0)
+            (matchingCustomers().length === 0 &&
+              recentCalls().length === 0 &&
+              matchingTreatments().length === 0)
           "
           (ngModelChange)="searchCustomer($event)"
           #trigger="matAutocompleteTrigger"
@@ -94,6 +96,14 @@
                       </span>
                     }
                   </div>
+                </mat-option>
+              }
+            } @else if (matchingTreatments().length) {
+              @for (treatment of matchingTreatments(); track treatment.name) {
+                <mat-option
+                  [value]="treatment.name"
+                  class="!h-auto !min-h-[unset] !p-2 !font-sans !text-sm !font-bold [&>span]:!w-full">
+                  {{ treatment.displayName || treatment.name }}
                 </mat-option>
               }
             } @else {
@@ -238,6 +248,19 @@
 
 <hlm-dialog-footer
   class="mt-4 flex flex-row flex-wrap items-center justify-between gap-2 p-1">
+  @if (isNew()) {
+    <button
+      variant="outline"
+      hlmBtn
+      (click)="useNewEventSheet()"
+      class="flex flex-row items-center gap-2">
+      Mehr
+
+      <label hlmBadge size="default" class="text-sm"> Neu </label>
+    </button>
+    <div class="flex-grow"></div>
+  }
+
   <button hlmBtn variant="secondary" (click)="close(null)">Schließen</button>
 
   <div class="flex flex-row flex-wrap items-center justify-end gap-2">

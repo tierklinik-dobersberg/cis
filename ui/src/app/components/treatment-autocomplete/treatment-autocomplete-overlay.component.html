@@ -1,0 +1,10 @@
+<ul class="text-sm">
+  @for (t of treatments(); track t.name) {
+    <li
+      [treatment]="t.displayName || t.name"
+      (mouseenter)="onMouseEnter(t)"
+      (click)="treatementSelected.emit(t)">
+      {{ t.displayName || t.name }}
+    </li>
+  }
+</ul>
