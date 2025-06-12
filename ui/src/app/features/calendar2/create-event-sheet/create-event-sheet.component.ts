@@ -706,7 +706,7 @@ export class CreateEventSheetComponent implements OnInit, AfterViewInit {
 
   private loadRecentCalls() {
     const now = new Date();
-    const before = addMinutes(now, -50);
+    const before = addMinutes(now, -10);
 
     this.callService
       .searchCallLogs({
