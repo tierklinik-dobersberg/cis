@@ -291,7 +291,8 @@ export class AppEventDetailsDialogComponent
       customerId: this.customer()?.customer?.id,
       dateTime: this.startTime(),
     })
-    this.close(null);
+
+    setTimeout(() => this.close(null), 100)
   }
 
   ngOnInit() {
