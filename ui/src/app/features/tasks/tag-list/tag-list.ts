@@ -1,5 +1,5 @@
 import { AfterViewInit, booleanAttribute, ChangeDetectionStrategy, Component, input, output } from "@angular/core";
-import { lucideChevronDown, lucideLayers, lucideSearch } from "@ng-icons/lucide";
+import { lucideCheck, lucideChevronDown, lucideLayers, lucideSearch } from "@ng-icons/lucide";
 import { BrnCommandModule } from "@spartan-ng/ui-command-brain";
 import { BrnPopoverModule } from "@spartan-ng/ui-popover-brain";
 import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
@@ -29,7 +29,7 @@ import { ResizableComponentWidth } from "../utils";
         HlmLabelDirective,
     ],
     providers: [
-        ...provideIcons({lucideSearch, lucideChevronDown, lucideLayers})
+        ...provideIcons({lucideSearch, lucideChevronDown, lucideLayers, lucideCheck})
     ]
 })
 export class TagListComponent extends ResizableComponentWidth implements AfterViewInit {
