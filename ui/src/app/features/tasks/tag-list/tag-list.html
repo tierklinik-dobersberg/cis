@@ -1,7 +1,8 @@
-<brn-popover>
+<brn-popover #popover>
   <button
     class="flex w-full flex-row flex-nowrap items-center justify-between gap-2"
-    brnPopoverTrigger>
+    brnPopoverTrigger
+    [brnPopoverTriggerFor]="readonly() ? null : popover">
     <div class="flex flex-row flex-wrap items-center gap-2">
       @for (tag of task().tags; track tag) {
         <span
@@ -16,7 +17,9 @@
       }
     </div>
 
-    <hlm-icon name="lucideChevronDown" size="sm" class="text-gray-500" />
+    @if (!readonly()) {
+      <hlm-icon name="lucideChevronDown" size="sm" class="text-gray-500" />
+    }
   </button>
 
   <brn-cmd

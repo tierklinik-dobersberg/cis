@@ -1,10 +1,8 @@
-import { NgStyle } from "@angular/common";
-import { AfterViewInit, ChangeDetectionStrategy, Component, input, output } from "@angular/core";
+import { AfterViewInit, booleanAttribute, ChangeDetectionStrategy, Component, input, output } from "@angular/core";
 import { lucideChevronDown, lucideLayers, lucideSearch } from "@ng-icons/lucide";
 import { BrnCommandModule } from "@spartan-ng/ui-command-brain";
 import { BrnPopoverModule } from "@spartan-ng/ui-popover-brain";
 import { HlmBadgeDirective } from "@tierklinik-dobersberg/angular/badge";
-import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { HlmCommandModule } from "@tierklinik-dobersberg/angular/command";
 import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon";
 import { HlmLabelDirective } from "@tierklinik-dobersberg/angular/label";
@@ -28,9 +26,7 @@ import { ResizableComponentWidth } from "../utils";
         ContrastColorPipe,
         HlmIconModule,
         HlmBadgeDirective,
-        HlmButtonDirective,
         HlmLabelDirective,
-        NgStyle
     ],
     providers: [
         ...provideIcons({lucideSearch, lucideChevronDown, lucideLayers})
@@ -39,6 +35,7 @@ import { ResizableComponentWidth } from "../utils";
 export class TagListComponent extends ResizableComponentWidth implements AfterViewInit {
     public readonly task = input.required<Task>();
     public readonly board = input.required<Board>();
+    public readonly readonly = input(false, {transform: booleanAttribute})
     
     public readonly toggleTag = output<string>();
 }

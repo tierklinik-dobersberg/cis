@@ -4,6 +4,7 @@ import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ComponentRef,
   computed,
@@ -39,6 +40,7 @@ import { debounceTime, Subject } from 'rxjs';
   host: {
     '[class]': 'classes()',
   },
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TreatmentItemComponent {
   public readonly treatment = input('');
@@ -71,6 +73,7 @@ export class TreatmentItemComponent {
 @Component({
   standalone: true,
   templateUrl: './treatment-autocomplete-overlay.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TreatmentItemComponent, DurationPipe ],
   host: {
     class: 'border-border border shadow-lg bg-white p-2 w-full overflow-hidden',

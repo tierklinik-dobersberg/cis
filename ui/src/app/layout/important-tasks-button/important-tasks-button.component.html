@@ -1,0 +1,119 @@
+<brn-popover>
+  <button
+    brnPopoverTrigger
+    hlmBtn
+    [size]="importantTasks().length == 1 ? 'default' : 'icon'"
+    [variant]="importantTasks().length > 0 ? 'destructive' : 'ghost'"
+    class="relative flex flex-row items-center gap-2">
+    <hlm-icon name="lucideAlarmClock" />
+    @switch (importantTasks()?.length) {
+      @case (0) {}
+
+      @case (1) {
+        @if (importantTasks()[0]; as task) {
+          {{ task.dueTime | toDate | date: 'dd.MM' }}: {{ task.title }}
+        }
+      }
+
+      @default {
+        <label hlmBadge variant="default" class="absolute -right-2 -top-2">
+          {{ importantTasks().length }}
+        </label>
+      }
+    }
+  </button>
+
+  <div
+    *brnPopoverContent
+    hlmPopoverContent
+    class="flex w-full min-w-96 flex-col gap-4 p-4 md:w-[500px]">
+    @if (importantTasks().length > 0 && importantTasks(); as tasks) {
+      <label hlmLabel> Wichtige TODOs </label>
+
+      <ul>
+        @for (task of tasks; track task.id; let first = $first) {
+          <li
+            class="flex flex-row gap-2 border-b border-border p-2"
+            [class.border-t]="first">
+            <div class="">
+              <span hlmBadge variant="outline">
+                {{ task.dueTime | toDate | date: 'dd.MM' }}
+              </span>
+            </div>
+
+            <div class="flex flex-grow flex-col gap-2">
+              <span>
+                {{ task.title }}
+              </span>
+
+              <app-tag-list
+                readonly="true"
+                [task]="task"
+                [board]="board()"
+                class="text-xs" />
+            </div>
+
+            <button
+              hlmBtn
+              size="icon"
+              variant="ghost"
+              class="self-center"
+              (click)="completeTask(task)">
+              <hlm-icon name="lucideX" />
+            </button>
+          </li>
+        }
+      </ul>
+    }
+
+    <label hlmLabel> Neuer Eintrag</label>
+
+    <form #form="ngForm">
+      <hlm-table class="w-full">
+        <hlm-trow>
+          <hlm-th class="w-48">Fällig am</hlm-th>
+          <hlm-td class="flex-grow p-0">
+            <tkd-date-picker
+              class="w-full"
+              [(ngModel)]="dueTime"
+              name="dueTime"
+              required>
+              <tkd-picker-trigger class="w-full" *datePickerInput />
+            </tkd-date-picker>
+          </hlm-td>
+        </hlm-trow>
+
+        <hlm-trow>
+          <hlm-th class="w-48"> Zusammenfassung </hlm-th>
+          <hlm-td class="flex-grow p-0">
+            <input
+              hlmInput
+              type="text"
+              class="w-full"
+              [(ngModel)]="newSummary"
+              name="title"
+              required />
+          </hlm-td>
+        </hlm-trow>
+
+        <hlm-trow>
+          <hlm-th class="w-48">Tags</hlm-th>
+          <hlm-td class="flex-grow p-0">
+            <app-tag-list
+              [board]="board()"
+              [task]="taskModel()"
+              (toggleTag)="toggleTag($event)" />
+          </hlm-td>
+        </hlm-trow>
+
+        <hlm-trow>
+          <hlm-td class="flex-grow justify-end">
+            <button hlmBtn [disabled]="form.invalid" (click)="createTask()">
+              Speichern
+            </button>
+          </hlm-td>
+        </hlm-trow>
+      </hlm-table>
+    </form>
+  </div>
+</brn-popover>

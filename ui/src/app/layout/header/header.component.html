@@ -11,22 +11,10 @@
     <app-header-title-outlet class="flex-grow"></app-header-title-outlet>
 
     <div class="flex items-center space-x-4">
-      @if (importantTasks()?.length > 0 && importantTasks(); as tasks) {
-        <ul
-          class="flex flex-row gap-4 rounded-md border border-red-600 bg-red-100 text-sm font-medium">
-          @for (task of tasks; track task.id) {
-            <li
-              class="p-2 text-red-600"
-              [routerLink]="['.']"
-              [queryParams]="{ taskPane: task.id }"
-              [queryParamsHandling]="'merge'">
-              {{ task.dueTime | toDate | date: 'shortDate' }}: {{ task.title }}
-            </li>
-          }
-        </ul>
-      }
+      <app-important-tasks />
 
       <app-door-status-button />
+
       <app-search-menu-button />
 
       @if (layout.sm()) {

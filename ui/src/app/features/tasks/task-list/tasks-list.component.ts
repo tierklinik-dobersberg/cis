@@ -100,6 +100,7 @@ export class TaskListComponent {
     private readonly header = inject(HeaderTitleService)
 
     private readonly boardId = signal<string | null>(null);
+    private readonly isCustomerView = signal(false);
 
     protected readonly layout = inject(LayoutService)
     protected readonly profiles = injectUserProfiles();
@@ -244,6 +245,24 @@ export class TaskListComponent {
             .subscribe(params => {
                 const boardId = params.get("boardId")
                 this.boardId.set(boardId)
+
+                const qm = this.activeRoute
+                    .snapshot
+                    .queryParamMap;
+
+                if (qm.has('viewName')) {
+                    const name = qm.get('viewName')
+                    const filter = qm.get('filter')
+
+                    const view: ViewModel = new ViewModel({
+                        filter: filter,
+                        name: name,
+                    }, boardId, this.boardService, true);
+
+                    this.views.set([...this.views(), view])
+                    this.currentView.set(view)
+                    this.isCustomerView.set(true);
+                }
             })
 
         this.eventsService
@@ -274,6 +293,7 @@ export class TaskListComponent {
                 }
             })
 
+        let last: string = '';
         effect(() => {
             const id = this.boardId();
 
@@ -281,8 +301,14 @@ export class TaskListComponent {
                 return
             }
 
+            if (last !== '' && last !== id) {
+                this.isCustomerView.set(false)
+            }
+
+            last = id
+
             this.loadBoard(id);
-        })
+        }, { allowSignalWrites: true})
 
 
         effect(() => {
@@ -332,6 +358,8 @@ export class TaskListComponent {
                 })
             })
             .then(response => {
+                let oldView = this.views().find(v => v === this.currentView());
+
                 this.board.set(response.board)
                 this.views.set(
                     response.board.views?.length
@@ -345,7 +373,12 @@ export class TaskListComponent {
                     ]
                 )
 
-                const oldView = this.views().find(v => v === this.currentView());
+                if (this.isCustomerView() && oldView) {
+                    this.views.set([...this.views(), oldView])
+                } else {
+                    oldView = this.views().find(v => v === this.currentView());
+                }
+
                 if (this.currentView() === null || oldView === undefined ) {
                     this.currentView.set(this.views()[0])
                 } else {
