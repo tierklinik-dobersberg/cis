@@ -1,32 +1,30 @@
-<brn-popover>
-  <button
-    brnPopoverTrigger
-    hlmBtn
-    [size]="importantTasks().length == 1 ? 'default' : 'icon'"
-    [variant]="importantTasks().length > 0 ? 'destructive' : 'ghost'"
-    class="relative flex flex-row items-center gap-2">
-    <hlm-icon name="lucideAlarmClock" />
-    @switch (importantTasks()?.length) {
-      @case (0) {}
+<button
+  (click)="toggleOverlay(trigger)"
+  #trigger
+  hlmBtn
+  [size]="importantTasks().length == 1 ? 'default' : 'icon'"
+  [variant]="importantTasks().length > 0 ? 'destructive' : 'ghost'"
+  class="relative flex flex-row items-center gap-2">
+  <hlm-icon name="lucideAlarmClock" />
+  @switch (importantTasks()?.length) {
+    @case (0) {}
 
-      @case (1) {
-        @if (importantTasks()[0]; as task) {
-          {{ task.dueTime | toDate | date: 'dd.MM' }}: {{ task.title }}
-        }
-      }
-
-      @default {
-        <label hlmBadge variant="default" class="absolute -right-2 -top-2">
-          {{ importantTasks().length }}
-        </label>
+    @case (1) {
+      @if (importantTasks()[0]; as task) {
+        {{ task.dueTime | toDate | date: 'dd.MM' }}: {{ task.title }}
       }
     }
-  </button>
 
-  <div
-    *brnPopoverContent
-    hlmPopoverContent
-    class="flex w-full min-w-96 flex-col gap-4 p-4 md:w-[500px]">
+    @default {
+      <label hlmBadge variant="default" class="absolute -right-2 -top-2">
+        {{ importantTasks().length }}
+      </label>
+    }
+  }
+</button>
+
+<ng-template #overlay>
+  <div class="flex w-full min-w-96 flex-col gap-4 p-4 md:w-[500px]">
     @if (importantTasks().length > 0 && importantTasks(); as tasks) {
       <label hlmLabel> Wichtige TODOs </label>
 
@@ -76,6 +74,7 @@
             <tkd-date-picker
               class="w-full"
               [(ngModel)]="dueTime"
+              (stateChanged)="(datePickerState)"
               name="dueTime"
               required>
               <tkd-picker-trigger class="w-full" *datePickerInput />
@@ -116,4 +115,4 @@
       </hlm-table>
     </form>
   </div>
-</brn-popover>
+</ng-template>

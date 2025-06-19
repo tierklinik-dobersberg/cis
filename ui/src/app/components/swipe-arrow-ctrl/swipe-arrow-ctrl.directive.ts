@@ -14,7 +14,7 @@ import {
 
 export class PanEvent {
   constructor(
-    public readonly delta,
+    public readonly delta: number,
     public readonly index: number
   ) {}
 }
@@ -31,8 +31,8 @@ export class PanStartEvent extends PanEvent {
 
 export class PanEndEvent extends PanEvent {
   constructor(
-    delta,
-    index,
+    delta: number,
+    index: number,
     public readonly direction: 'left' | 'right' | 'abort'
   ) {
     super(delta, index);

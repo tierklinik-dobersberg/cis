@@ -1,5 +1,5 @@
 import { DatePipe, JsonPipe } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject, model, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, model, OnInit } from "@angular/core";
 import { lucideDownload, lucideEllipsisVertical, lucideExternalLink, lucideEye, lucideMail, lucideShare } from "@ng-icons/lucide";
 import { BrnDialogRef, injectBrnDialogContext } from "@spartan-ng/ui-dialog-brain";
 import { BrnMenuModule } from "@spartan-ng/ui-menu-brain";
@@ -12,13 +12,13 @@ import { ToDatePipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmTableComponent, HlmTdComponent, HlmThComponent, HlmTrowComponent } from '@tierklinik-dobersberg/angular/table';
 import { HlmTabsModule } from "@tierklinik-dobersberg/angular/tabs";
 import { Instance, Study } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
-import { DicomViewer } from "src/app/components/dicom/dicom-viewer";
-import { StudyService } from "src/app/components/dicom/study.service";
 import { SwiperContentDirective } from "src/app/components/swiper/swiper-content.directive";
 import { ListSwiperComponent } from "src/app/components/swiper/swiper.component";
+import { DicomViewer } from "src/app/features/dicom/dicom-viewer";
+import { StudyService } from "src/app/features/dicom/study.service";
 import { DicomImageUrlPipe } from "src/app/pipes/dicom-instance-preview.pipe";
 import { SortDicomTagsPipe } from "src/app/pipes/sort-dicom-tags.pipe";
-import { AbstractBaseDialog } from "../base-dialog/base-dialog.component";
+import { AbstractBaseDialog } from "../../../dialogs/base-dialog/base-dialog.component";
 
 export interface DicomStudyDialogContext {
     study: Study;
@@ -79,7 +79,38 @@ export class AppDicomStudyDialog extends AbstractBaseDialog implements OnInit {
 
         return this.allInstances[index];
     })
+    protected readonly selectedSeries = computed(() => {
+        const instance = this.selectedInstance();
+
+        const s = this.study
+            .series
+            ?.find(s => s.instances?.find(i => i.instanceUid === instance.instanceUid) !== undefined);
+
+        return s
+    })
+
     protected readonly selectedIndex = model<number>(0);
+    protected readonly dicomTags = computed(() => {
+        let tags = [...this.study.tags];
+
+        const s = this.selectedSeries();
+        if (s) {
+            tags = [
+                ...tags,
+                ...s.tags,
+            ]
+        }
+
+        const instance = this.selectedInstance();
+        if (instance) {
+            tags = [
+                ...tags,
+                ...instance.tags,
+            ]
+        }
+
+        return tags
+    })
 
     protected study = this._dialogContext.study;
 
@@ -98,5 +129,16 @@ export class AppDicomStudyDialog extends AbstractBaseDialog implements OnInit {
 
     protected close() {
         this._dialogRef.close();
+    }
+
+    constructor() {
+        super()
+
+        effect(() => {
+            const index = this.selectedIndex();
+            const instance = this.selectedInstance();
+
+            console.log("current", index, instance)
+        })
     }
 }

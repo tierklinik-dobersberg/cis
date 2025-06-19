@@ -6,14 +6,14 @@ import { injectOrthancClient } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { Duration } from '@tierklinik-dobersberg/angular/utils/date';
 import {
-  DownloadType,
-  InstanceReceivedEvent,
-  Study,
+    DownloadType,
+    InstanceReceivedEvent,
+    Study,
 } from '@tierklinik-dobersberg/apis/orthanc_bridge/v1';
 import { toast } from 'ngx-sonner';
 import { Subject } from 'rxjs';
-import { AppDicomExportStudyDialog } from 'src/app/dialogs/dicom-export-study-dialog';
-import { AppDicomStudyDialog } from 'src/app/dialogs/dicom-study-dialog';
+import { AppDicomExportStudyDialog } from 'src/app/features/dicom/dicom-export-study-dialog';
+import { AppDicomStudyDialog } from 'src/app/features/dicom/dicom-study-dialog';
 import { EventService } from 'src/app/services/event.service';
 import { environment } from 'src/environments/environment';
 

@@ -1,8 +1,8 @@
-<div class="flex flex-col w-full">
+<div class="flex w-full flex-col">
   <!-- Date Header -->
   <ol [class]="_computedHeaderClass()">
     @for (date of _computedWeekNames(); track date) {
-      <li class="flex items-center justify-center w-full h-auto px-2">
+      <li class="flex h-auto w-full items-center justify-center px-2">
         <span hlmBadge variant="outline">
           {{ date }}
         </span>
@@ -11,7 +11,7 @@
   </ol>
 
   <!-- Actual Calendar View -->
-  <ol class="grid flex-grow w-full grid-cols-7 overflow-auto" role="list">
+  <ol class="grid w-full flex-grow grid-cols-7 overflow-auto" role="list">
     @for (date of _computedCalendarDates(); track date.date.getTime()) {
       <li
         class="flex h-auto w-full cursor-pointer items-center justify-center hover:bg-gray-100 [&>*]:h-full [&>*]:w-full"

@@ -1,9 +1,9 @@
-<hlm-table class="h-full flex-grow">
+<hlm-table class="h-full max-w-full flex-grow overflow-hidden">
   @for (study of studies(); track study.studyUid) {
-    <hlm-trow class="hover:bg-gray-100">
-      <hlm-td
-        class="flex-1 cursor-pointer flex-row gap-2 p-2"
-        (click)="studyService.openStudyDialog(study)">
+    <hlm-trow
+      class="hover:bg-gray-100"
+      (click)="studyService.openStudyDialog(study)">
+      <hlm-td class="flex-1 cursor-pointer flex-row gap-2 p-2">
         <span class="flex flex-col items-end justify-start text-gray-700">
           @if (study.time | toDate; as date) {
             <span>
@@ -15,23 +15,26 @@
           }
         </span>
 
-        <span class="flex flex-col items-start justify-start">
-          <span class="font-medium">{{ study.ownerName || 'N/A' }}</span>
-          <span>
+        <span
+          class="flex flex-shrink-0 flex-col items-start justify-start overflow-hidden whitespace-nowrap">
+          <span class="overflow-hidden text-ellipsis font-medium">{{
+            study.ownerName || 'N/A'
+          }}</span>
+          <span class="overflow-hidden text-ellipsis">
             {{ study.patientName || 'N/A' }}
           </span>
         </span>
       </hlm-td>
 
-      <hlm-td class="flex flex-row gap-2 p-2">
+      <hlm-td class="flex flex-row gap-2 overflow-hidden p-2">
         @if (!layout.md()) {
           @if (study.series?.[0].instances?.[0]) {
             <img
+              draggable="false"
               [attr.src]="
                 study.series[0].instances[0]
                   | dicomImageUrl: { width: 70, height: 70 }
               "
-              (click)="studyService.openInViewer(study)"
               class="aspect-square min-h-12 w-12 cursor-pointer" />
           }
         } @else {
@@ -47,8 +50,8 @@
               </span>
             } @else if (index < limit()) {
               <img
+                draggable="false"
                 [attr.src]="instance | dicomImageUrl: { width: 70, height: 70 }"
-                (click)="studyService.openInViewer(study, instance.instanceUid)"
                 class="aspect-square min-h-12 w-12 cursor-pointer" />
             }
           }

@@ -15,6 +15,7 @@ const routes: Routes = [
   { path: 'tasks/:boardId', loadComponent: () => import('./features/tasks/task-list/tasks-list.component').then(m => m.TaskListComponent) },
   { path: 'board/:boardId', loadComponent: () => import('./features/tasks/manage-board/manage-board').then(m => m.ManageBoardComponent)},
   { path: 'board', loadComponent: () => import('./features/tasks/manage-board/manage-board').then(m => m.ManageBoardComponent)},
+  { path: 'dicom', loadComponent: () => import('./features/dicom/dicom-overview').then(m => m.DicomOverviewComponent)},
   { path: '**', redirectTo: '/' },
 ];
 

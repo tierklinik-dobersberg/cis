@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { HlmCardDirective, HlmCardModule } from "@tierklinik-dobersberg/angular/card";
 import { LayoutService } from "@tierklinik-dobersberg/angular/layout";
-import { DicomListComponent } from "src/app/components/dicom/dicom-list";
+import { DicomListComponent } from "src/app/features/dicom/dicom-list";
 
 @Component({
     selector: 'app-study-card',

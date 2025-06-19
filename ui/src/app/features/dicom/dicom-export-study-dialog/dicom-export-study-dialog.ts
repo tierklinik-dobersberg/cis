@@ -11,10 +11,10 @@ import { HlmIconModule, provideIcons } from "@tierklinik-dobersberg/angular/icon
 import { HlmLabelDirective } from "@tierklinik-dobersberg/angular/label";
 import { Instance, Study } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
 import { toast } from "ngx-sonner";
-import { StudyService } from "src/app/components/dicom/study.service";
+import { StudyService } from "src/app/features/dicom/study.service";
 import { DicomImageUrlPipe } from "src/app/pipes/dicom-instance-preview.pipe";
-import { AbstractBaseDialog } from "../base-dialog/base-dialog.component";
-import { DIALOG_CONTENT_CLASS } from "../constants";
+import { AbstractBaseDialog } from "../../../dialogs/base-dialog/base-dialog.component";
+import { DIALOG_CONTENT_CLASS } from "../../../dialogs/constants";
 
 export interface DicomExportStudyDialogContext {
     study: Study;

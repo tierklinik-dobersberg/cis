@@ -1,10 +1,11 @@
+import { DialogRef } from '@angular/cdk/dialog';
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, TemplateRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Timestamp } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
 import { lucideAlarmClock, lucideX } from '@ng-icons/lucide';
-import { BrnPopoverComponent, BrnPopoverContentDirective, BrnPopoverTriggerDirective } from '@spartan-ng/ui-popover-brain';
+import { BrnDialogRef, BrnDialogService, BrnDialogState } from '@spartan-ng/ui-dialog-brain';
 import { HlmBadgeDirective } from '@tierklinik-dobersberg/angular/badge';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { injectBoardService, injectTaskService } from '@tierklinik-dobersberg/angular/connect';
@@ -12,7 +13,6 @@ import { HlmIconComponent, provideIcons } from '@tierklinik-dobersberg/angular/i
 import { HlmInputDirective } from '@tierklinik-dobersberg/angular/input';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
-import { HlmPopoverModule } from '@tierklinik-dobersberg/angular/popover';
 import { HlmSheetModule } from '@tierklinik-dobersberg/angular/sheet';
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import {
@@ -23,7 +23,7 @@ import {
 } from '@tierklinik-dobersberg/apis/tasks/v1';
 import { merge } from 'hammerjs';
 import { toast } from 'ngx-sonner';
-import { Subscription, interval, startWith, switchMap } from 'rxjs';
+import { interval, startWith, Subscription, switchMap } from 'rxjs';
 import { injectCurrentConfig } from 'src/app/api';
 import { TkdDatePickerComponent, TkdDatePickerInputDirective } from 'src/app/components/date-picker';
 import { TagListComponent } from 'src/app/features/tasks/tag-list/tag-list';
@@ -42,10 +42,6 @@ import { TkdDatePickerTriggerComponent } from "../../components/date-picker/pick
     HlmIconComponent,
     HlmBadgeDirective,
     HlmSheetModule,
-    HlmPopoverModule,
-    BrnPopoverContentDirective,
-    BrnPopoverTriggerDirective,
-    BrnPopoverComponent,
     HlmLabelDirective,
     TagListComponent,
     TkdDatePickerComponent,
@@ -54,7 +50,7 @@ import { TkdDatePickerTriggerComponent } from "../../components/date-picker/pick
     HlmTableModule,
     TkdDatePickerTriggerComponent,
     HlmInputDirective,
-    FormsModule
+    FormsModule,
 ],
   providers: [
     ...provideIcons({
@@ -67,6 +63,7 @@ export class ImportantTasksButtonComponent {
   private readonly taskService = injectTaskService();
   private readonly boardService = injectBoardService();
   private readonly eventsService = inject(EventService)
+  private readonly dialog = inject(BrnDialogService)
 
   protected readonly config = injectCurrentConfig();
   protected readonly importantTasks = signal<Task[]>([]);
@@ -87,6 +84,64 @@ export class ImportantTasksButtonComponent {
   protected readonly newSummary = signal('');
   protected readonly tags = signal<string[]>([]);
   protected readonly dueTime = signal<Date>(new Date())
+
+  protected readonly datePickerState = signal<BrnDialogState>('closed');
+
+  @ViewChild('overlay', {read: TemplateRef, static: true})
+  overlay: TemplateRef<any>;
+
+  private dialogRef: BrnDialogRef | undefined;
+
+  protected toggleOverlay(element: HTMLButtonElement) {
+    if (this.dialogRef) {
+      this.dialogRef.close()
+      return
+    }
+
+    this.dialogRef = this.dialog
+      .open(this.overlay, undefined, {}, {
+        closeOnOutsidePointerEvents: false,
+        panelClass: 'bg-white rounded-md border border-border p-2 shadow-lg',
+        hasBackdrop: false,
+        attachTo: element,
+        attachPositions: [
+          {
+            originX: 'start',
+            originY: 'bottom',
+            overlayX: 'start',
+            overlayY: 'top',
+          },
+          {
+            originX: 'start',
+            originY: 'bottom',
+            overlayX: 'center',
+            overlayY: 'top',
+          },
+          {
+            originX: 'start',
+            originY: 'bottom',
+            overlayX: 'end',
+            overlayY: 'top',
+          },
+        ],
+      });
+
+      // TODO(ppacher): propose that BrnDialogRef makes acess to cdkDialogRef public.
+      ((this.dialogRef as any)._cdkDialogRef as DialogRef)
+        .outsidePointerEvents
+        .subscribe(e => {
+          console.log("state", this.datePickerState())
+          if (this.datePickerState() === 'open') {
+            return
+          }
+
+          this.dialogRef.close()
+        })
+
+      this.dialogRef
+        .closed$
+        .subscribe(() => this.dialogRef = null)
+  }
 
   protected createTask() {
     this.taskService
@@ -132,6 +187,10 @@ export class ImportantTasksButtonComponent {
   }
 
   constructor() {
+    effect(() => {
+      console.log("picker", this.datePickerState())
+    })
+
     let sub = Subscription.EMPTY;
     effect(() => {
       const config = this.config();

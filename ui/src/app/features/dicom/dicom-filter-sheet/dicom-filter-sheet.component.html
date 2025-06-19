@@ -1,0 +1,74 @@
+<hlm-sheet (closed)="onSheetClosed()" side="right">
+  <button
+    hlmBtn
+    [variant]="filter() === null ? 'secondary' : 'default'"
+    [size]="layout.md() ? 'default' : 'icon'"
+    brnSheetTrigger>
+    <hlm-icon name="lucideSearch" [class.mr-2]="layout.md()" />
+    @if (layout.md()) {
+      Suchen
+    }
+  </button>
+
+  <hlm-sheet-content
+    *brnSheetContent="let ctx"
+    class="w-screen sm:w-[500px] sm:max-w-[unset]">
+    <hlm-sheet-header>
+      <h1 hlmSheetTitle>Studien durchsuchen</h1>
+      <p hlmSheetDescription>Röntgen und Ultraschall Aufnahmen suchen</p>
+    </hlm-sheet-header>
+
+    <div class="mb-8 flex flex-col gap-8 p-2">
+      <div class="flex flex-col gap-2">
+        <label hlmLabel> Zeitraum </label>
+
+        <tkd-date-picker
+          class="w-full"
+          withTime="false"
+          mode="range"
+          allowClear="true"
+          [(ngModel)]="dateRange" />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label hlmLabel> Patientenname </label>
+
+        <input type="text" hlmInput class="w-full" [(ngModel)]="patientName" />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label hlmLabel> Besitzer </label>
+
+        <input type="text" hlmInput class="w-full" [(ngModel)]="ownerName" />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label hlmLabel> Modalität </label>
+
+        <brn-select
+          [multiple]="true"
+          placeholder="Alle Modalitäten"
+          [(ngModel)]="modalities">
+          <hlm-select-trigger class="w-full flex-1">
+            <hlm-select-value />
+          </hlm-select-trigger>
+
+          <hlm-select-content>
+            <hlm-option value="US">US</hlm-option>
+            <hlm-option value="DX">DX</hlm-option>
+          </hlm-select-content>
+        </brn-select>
+      </div>
+    </div>
+
+    <hlm-sheet-footer class="gap-2">
+      <button hlmBtn (click)="ctx.close()">Schließen</button>
+      <button
+        hlmBtn
+        variant="secondary"
+        (click)="filter.set(null); ctx.close()">
+        Zurücksetzen
+      </button>
+    </hlm-sheet-footer>
+  </hlm-sheet-content>
+</hlm-sheet>

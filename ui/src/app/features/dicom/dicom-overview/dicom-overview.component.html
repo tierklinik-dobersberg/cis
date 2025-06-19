@@ -1,0 +1,19 @@
+<div hlmCard>
+  <div hlmCardHeader class="flex flex-row justify-between">
+    <div class="flex flex-col">
+      <h1 hlmCardTitle>Studien</h1>
+      <p hlmCardDescription>Röntgen und Ultraschall Aufnahmen</p>
+    </div>
+    <dicom-filter-sheet [(filter)]="filter" />
+  </div>
+
+  <div hlmCardContent>
+    <app-dicom-list
+      [limit]="5"
+      [onlyRecent]="filter() === null"
+      [modalities]="filter()?.modalities"
+      [patientName]="filter()?.patientName"
+      [ownerName]="filter()?.ownerName"
+      [dateRange]="filter()?.dateRange" />
+  </div>
+</div>

@@ -1,5 +1,7 @@
 @if (instance(); as instance) {
   <img
+    draggable="false"
+    tabinde="-1"
     (loadstart)="loading.set(true)"
     (load)="loading.set(false)"
     [attr.src]="instance | dicomImageUrl: { frame: selectedFrame() }"
@@ -8,9 +10,9 @@
 
   @if (loading()) {
     <span
-      class="absolute top-1/2 flex w-full items-center justify-center font-medium text-white"
-      >Bild wird geladen ...</span
-    >
+      class="absolute top-1/2 flex w-full items-center justify-center font-medium text-white">
+      Bild wird geladen ...
+    </span>
   }
 } @else {
   <span class="flex h-32 flex-row items-center justify-center">

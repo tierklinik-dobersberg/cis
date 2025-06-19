@@ -1,29 +1,29 @@
 import { NgTemplateOutlet } from '@angular/common';
 import {
-    AfterViewInit,
-    Component,
-    computed,
-    ContentChild,
-    DestroyRef,
-    effect,
-    EmbeddedViewRef,
-    inject,
-    input,
-    model,
-    signal,
-    TemplateRef,
-    ViewChild,
-    ViewContainerRef
+  AfterViewInit,
+  Component,
+  computed,
+  ContentChild,
+  DestroyRef,
+  effect,
+  EmbeddedViewRef,
+  inject,
+  input,
+  model,
+  signal,
+  TemplateRef,
+  ViewChild,
+  ViewContainerRef
 } from '@angular/core';
 import {
-    PanEndEvent,
-    PanStartEvent,
-    SwipeArrowControlDirective,
-    SwipeEvent,
+  PanEndEvent,
+  PanStartEvent,
+  SwipeArrowControlDirective,
+  SwipeEvent,
 } from '../swipe-arrow-ctrl/swipe-arrow-ctrl.directive';
 import {
-    SwiperContentDirective,
-    SwiperTemplateContext,
+  SwiperContentDirective,
+  SwiperTemplateContext,
 } from './swiper-content.directive';
 
 @Component({
@@ -87,47 +87,62 @@ export abstract class AbstractSwiperComponent<T = any>
       this.nextViewRef?.destroy();
 
       this.content = null;
-      console.log('cleanup done');
     });
 
     effect(() => {
       const value = this.value();
-
-      console.log('value changed', value);
 
       if (
         this.mainViewRef &&
         !this.compareContext(this.mainViewRef.context.$implicit.value, value)
       ) {
         Object.assign(this.mainViewRef.context, this.createContext(value));
+        this.mainViewRef.markForCheck();
       }
     });
   }
 
   ngAfterViewInit(): void {
-    this.mainViewRef = this.viewContainerRef.createEmbeddedView(
+    let mainViewRef = this.viewContainerRef.createEmbeddedView(
       this.viewTemplate,
       this.createContext(this.value())
     );
 
-    this.mainViewRef.onDestroy(() => (this.mainViewRef = null));
+    this.mainViewRef = mainViewRef;
+
+    this.mainViewRef.onDestroy(() => {
+      if (this.mainViewRef === mainViewRef) {
+        this.mainViewRef = null
+      }
+    });
   }
 
   private createViews() {
-    this.prevViewRef = this.viewContainerRef.createEmbeddedView(
+    let prevViewRef = this.viewContainerRef.createEmbeddedView(
       this.viewTemplate,
       this.createContext(this.mainViewRef.context.$implicit.value, -1),
       { index: 0 }
     );
+    this.prevViewRef = prevViewRef;
 
-    this.prevViewRef.onDestroy(() => (this.prevViewRef = undefined));
+    this.prevViewRef.onDestroy(() => {
+      if (this.prevViewRef === prevViewRef) {
+        this.prevViewRef = undefined;
+      }
+    });
 
-    this.nextViewRef = this.viewContainerRef.createEmbeddedView(
+    let nextViewRef = this.viewContainerRef.createEmbeddedView(
       this.viewTemplate,
       this.createContext(this.mainViewRef.context.$implicit.value, 1)
     );
+    this.nextViewRef = nextViewRef;
 
-    this.nextViewRef.onDestroy(() => (this.nextViewRef = undefined));
+
+    this.nextViewRef.onDestroy(() => {
+      if (this.nextViewRef === nextViewRef) {
+        this.nextViewRef = null;
+      }
+    });
   }
 
   private swipeIndex: number | null = null;
@@ -179,6 +194,7 @@ export abstract class AbstractSwiperComponent<T = any>
       }
 
       Object.assign(this.mainViewRef.context, this.createContext(this.value()));
+      this.mainViewRef.detectChanges();
 
       this.stopPanning(event.direction);
     } else {

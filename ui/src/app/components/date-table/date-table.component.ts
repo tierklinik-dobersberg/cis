@@ -84,7 +84,13 @@ export class AppDateTableComponent {
     /** The calendar date used to decide which month to show. */
     protected readonly _calendarDate = model<Date>(new Date());
     
-    @Input({transform: coerceDate})
+    @Input({transform: (value: any) => {
+        if (!value) {
+            return new Date()
+        }
+
+        return coerceDate(value)
+    }})
     set calendarDate(date: Date) {
         this._calendarDate.set(date);
     }

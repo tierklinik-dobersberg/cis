@@ -1,6 +1,10 @@
 @if (variant() === 'default') {
   @if (layout.sm()) {
-    <brn-popover sideOffset="-4" (closed)="apply()" #popover>
+    <brn-popover
+      sideOffset="-4"
+      (closed)="apply()"
+      #popover
+      (stateChanged)="(currentState)">
       <div appPopoverTrigger>
         <ng-container
           *ngTemplateOutlet="
@@ -26,7 +30,7 @@
       </div>
     </brn-popover>
   } @else {
-    <hlm-sheet #sheet (closed)="apply()">
+    <hlm-sheet #sheet (closed)="apply()" (stateChanged)="(currentState)">
       <div [appSheetTriggerFor]="sheet" side="top">
         <ng-container
           *ngTemplateOutlet="
@@ -102,7 +106,9 @@
     <button hlmBtn variant="ghost" size="icon" (click)="prevMonth()">
       <hlm-icon name="lucideArrowLeft" size="sm" />
     </button>
-    {{ calendarDate() | toDate | date: 'MMMM, YYYY' }}
+    @if (calendarDate(); as date) {
+      {{ date | toDate | date: 'MMMM, YYYY' }}
+    }
     <button hlmBtn variant="ghost" size="icon" (click)="nextMonth()">
       <hlm-icon name="lucideArrowRight" size="sm" />
     </button>

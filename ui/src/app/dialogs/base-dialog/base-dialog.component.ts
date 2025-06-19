@@ -1,18 +1,18 @@
 import { DialogRef } from '@angular/cdk/dialog';
 import {
-    Component,
-    effect,
-    HostListener,
-    inject,
-    Renderer2,
-    signal,
+  Component,
+  effect,
+  HostListener,
+  inject,
+  Renderer2,
+  signal,
 } from '@angular/core';
 import { injectBrnDialogContext } from '@spartan-ng/ui-dialog-brain';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import {
-    PanEndEvent,
-    PanStartEvent,
-    SwipeArrowControlDirective,
+  PanEndEvent,
+  PanStartEvent,
+  SwipeArrowControlDirective,
 } from 'src/app/components/swipe-arrow-ctrl/swipe-arrow-ctrl.directive';
 
 @Component({
@@ -46,8 +46,6 @@ export abstract class AbstractBaseDialog {
         this.ref.close();
       }, 150);
     }
-
-    console.log(event.key);
   }
 
   constructor() {

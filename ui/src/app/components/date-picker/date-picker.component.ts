@@ -14,6 +14,7 @@ import {
   inject,
   input,
   model,
+  output,
   QueryList,
   signal,
   untracked,
@@ -31,6 +32,7 @@ import {
   lucideCalendar,
   lucideClock,
 } from '@ng-icons/lucide';
+import { BrnDialogState } from '@spartan-ng/ui-dialog-brain';
 import { BrnPopoverModule } from '@spartan-ng/ui-popover-brain';
 import { BrnSeparatorComponent } from '@spartan-ng/ui-separator-brain';
 import { BrnSheetModule } from '@spartan-ng/ui-sheet-brain';
@@ -143,6 +145,9 @@ export class TkdDatePickerComponent
 
   /** The currently selected end date */
   public readonly endDate = model<Date | null>(null);
+
+  public readonly stateChanged = output<BrnDialogState>();
+  public readonly currentState = signal<BrnDialogState>('closed')
 
   protected readonly startHour = model(0);
   protected readonly startMinute = model(0);
@@ -280,6 +285,7 @@ export class TkdDatePickerComponent
   }
 
   constructor() {
+    effect(() => console.log("state", this.currentState()))
     effect(
       () => {
         // We immediately apply the value in "inline" mode
