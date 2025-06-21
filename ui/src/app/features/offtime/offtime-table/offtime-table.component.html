@@ -1,0 +1,96 @@
+<brn-table
+  hlm
+  stickyHeader
+  customTemplateDataRows="true"
+  class="mt-4 block min-h-[200px] flex-grow self-stretch overflow-auto border-t border-border @container"
+  [dataSource]="paginator.data()"
+  [displayedColumns]="columns()"
+  [trackBy]="trackEntry">
+  <tkd-empty-table
+    brnNoDataRow
+    [filter]="filter()"
+    [totalCount]="totalCount()"
+    [filteredCount]="_computedFilteredCount()" />
+
+  <cdk-row
+    (mouseenter)="onHovered.emit(row)"
+    (mouseleave)="onHovered.emit(null)"
+    *cdkRowDef="let row; columns: columns()"
+    class="flex w-fit min-w-[100%] border-b border-border transition-[background-color] hover:bg-muted/50 [&:has([role=checkbox][aria-checked=true])]:bg-muted" />
+
+  <brn-column-def name="from" class="flex-[0_0_4rem]">
+    <hlm-th *brnHeaderDef> Von </hlm-th>
+    <hlm-td *brnCellDef="let entry">
+      {{ entry.from | toDate | date: 'dd.MM' }}
+    </hlm-td>
+  </brn-column-def>
+
+  <brn-column-def name="to" class="flex-[0_0_4rem]">
+    <hlm-th *brnHeaderDef> Bis </hlm-th>
+    <hlm-td *brnCellDef="let entry">
+      {{ entry.to | toDate | date: 'dd.MM' }}
+    </hlm-td>
+  </brn-column-def>
+
+  <brn-column-def
+    name="user"
+    class="flex-[0_0_8rem] overflow-hidden sm:flex-[0_0_24rem]">
+    <hlm-th *brnHeaderDef> Mitarbeiter </hlm-th>
+    <hlm-td *brnCellDef="let entry">
+      <app-avatar [user]="entry.requestorId" [showName]="layout.sm()" />
+    </hlm-td>
+  </brn-column-def>
+
+  <brn-column-def name="description" class="flex-[1_1_10rem]">
+    <hlm-th *brnHeaderDef> Beschreibung </hlm-th>
+    <hlm-td *brnCellDef="let entry">
+      {{ entry.description }}
+    </hlm-td>
+  </brn-column-def>
+
+  <brn-column-def name="approval" class="flex-[0_0_2rem]">
+    <hlm-th *brnHeaderDef> </hlm-th>
+    <hlm-td *brnCellDef="let entry" class="items-center justify-center px-0">
+      @if (entry.approval) {
+        @if (entry.approval.approved) {
+          <hlm-icon name="lucideCircleCheck" class="text-green-500" />
+        } @else {
+          <hlm-icon name="lucideCircleX" class="text-red-500" />
+        }
+      }
+    </hlm-td>
+  </brn-column-def>
+
+  <brn-column-def
+    name="actions"
+    class="flex flex-[0_0_12rem] flex-row items-center justify-end">
+    <hlm-th *brnHeaderDef>
+      @if (layout.md()) {
+        <tkd-pagination [paginator]="paginator" />
+      }
+    </hlm-th>
+
+    <hlm-td *brnCellDef="let entry">
+      <div class="flex flex-row justify-end gap-2">
+        @if (!entry.approval && entry.requestorId === currentUser()?.user.id) {
+          <button hlmBtn variant="destructive" (click)="onDelete.emit(entry)">
+            Löschen
+          </button>
+        }
+
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          side="right"
+          (click)="onShowComments.emit(entry)">
+          <hlm-icon name="lucideMessageCircle" size="sm" />
+        </button>
+      </div>
+    </hlm-td>
+  </brn-column-def>
+</brn-table>
+
+<div class="flex w-full justify-end border-t border-border p-2 pt-4">
+  <tkd-pagination [paginator]="paginator" />
+</div>

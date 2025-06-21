@@ -10,7 +10,7 @@ import { RouterModule } from '@angular/router';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { Code, ConnectError } from '@connectrpc/connect';
 import {
-  TkdConnectModule
+    TkdConnectModule
 } from '@tierklinik-dobersberg/angular/connect';
 import { Breakpoints } from '@tierklinik-dobersberg/tailwind/breakpoints';
 import markedAlert from 'marked-alert';
@@ -27,8 +27,8 @@ import { createDirectives, presetDirectiveConfigs } from 'marked-directive';
 import { TaskDetailsComponent } from './features/tasks/task-details/task-details';
 import { AppHeaderComponent } from './layout';
 import {
-  AppNavigationComponent,
-  AppSheetNavigationComponent,
+    AppNavigationComponent,
+    AppSheetNavigationComponent,
 } from './layout/navigation';
 
 registerLocaleData(de);

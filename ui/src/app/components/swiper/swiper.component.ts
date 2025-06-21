@@ -62,6 +62,10 @@ export abstract class AbstractSwiperComponent<T = any>
     this.swipeArrowController?.previous();
   }
 
+  public onKeyDown(event: KeyboardEvent) {
+    this.swipeArrowController?.onKeyDown(event);
+  }
+
   private mainViewRef?: EmbeddedViewRef<SwiperTemplateContext<T>>;
   private prevViewRef?: EmbeddedViewRef<SwiperTemplateContext<T>>;
   private nextViewRef?: EmbeddedViewRef<SwiperTemplateContext<T>>;

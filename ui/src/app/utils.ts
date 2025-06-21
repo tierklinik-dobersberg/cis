@@ -1,3 +1,4 @@
+import { Platform } from '@angular/cdk/platform';
 import {
   ActivatedRoute,
   ActivatedRouteSnapshot,
@@ -157,4 +158,8 @@ export function mergeDeep(...objects) {
 
     return prev;
   }, {});
+}
+
+export function isMobile(platform: Platform): boolean {
+  return !platform.IOS && !platform.ANDROID
 }

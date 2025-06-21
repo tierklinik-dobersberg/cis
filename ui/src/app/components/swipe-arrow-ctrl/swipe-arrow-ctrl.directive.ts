@@ -1,3 +1,4 @@
+import { Platform } from '@angular/cdk/platform';
 import {
   Directive,
   ElementRef,
@@ -11,6 +12,7 @@ import {
   signal,
   untracked
 } from '@angular/core';
+import { isMobile } from 'src/app/utils';
 
 export class PanEvent {
   constructor(
@@ -54,6 +56,7 @@ export class SwipeArrowControlDirective {
   private readonly _panActive = signal(false);
   private _lastDelta = 0;
   private readonly _host = inject(ElementRef);
+  private readonly platform = inject(Platform)
 
   public readonly tabindex = model(0, {
     transform: numberAttribute,
@@ -70,7 +73,7 @@ export class SwipeArrowControlDirective {
     alias: 'swipeArrowControl',
   });
 
-  public readonly disabled = model(false, {
+  public readonly disabled = model(!isMobile(this.platform), {
     transform: booleanAttribute,
     alias: 'swipeArrowControlDisabled',
   });
@@ -105,7 +108,7 @@ export class SwipeArrowControlDirective {
   }
 
   @HostListener('keydown', ['$event'])
-  protected keyDown(event: KeyboardEvent) {
+  public onKeyDown(event: KeyboardEvent) {
     switch (event.key) {
       case 'ArrowLeft':
         event.stopPropagation();
