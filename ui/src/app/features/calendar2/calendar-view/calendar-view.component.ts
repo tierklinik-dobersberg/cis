@@ -72,7 +72,7 @@ import {
   setSeconds,
 } from 'date-fns';
 import { toast } from 'ngx-sonner';
-import { debounceTime, map, take } from 'rxjs';
+import { debounceTime, interval, map, merge, take } from 'rxjs';
 import {
   TkdDatePickerComponent,
   TkdDatePickerInputDirective,
@@ -626,15 +626,20 @@ export class TkdCalendarViewComponent
       this.navService.forceHide.set(true);
     }
 
-    inject(EventService)
-      .subscribe(new CalendarChangeEvent())
-      .pipe(takeUntilDestroyed(), debounceTime(1000))
+    merge(
+      inject(EventService)
+        .subscribe(new CalendarChangeEvent()),
+      interval(10000),
+    )
+      .pipe(
+        takeUntilDestroyed(),
+        debounceTime(1000)
+      )
       .subscribe(() => {
         if (this.skipLoading) {
           return;
         }
 
-        console.log('loading events due to events event');
         this.viewService()?.reload();
         this.nextService()?.reload();
         this.prevService()?.reload();

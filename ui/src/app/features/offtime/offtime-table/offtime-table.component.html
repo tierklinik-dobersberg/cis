@@ -44,7 +44,11 @@
   <brn-column-def name="description" class="flex-[1_1_10rem]">
     <hlm-th *brnHeaderDef> Beschreibung </hlm-th>
     <hlm-td *brnCellDef="let entry">
-      {{ entry.description }}
+      @if (entry.description) {
+        {{ entry.description }}
+      } @else {
+        <span class="text-gray-400">N/A</span>
+      }
     </hlm-td>
   </brn-column-def>
 

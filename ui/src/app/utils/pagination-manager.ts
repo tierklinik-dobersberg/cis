@@ -19,7 +19,6 @@ export function usePaginationManager<T = any>(recordSignal: Signal<T[]>): Pagina
     return new PaginationManager(recordSignal);
 }
 
-
 export class PaginationManager<T = any> implements IPaginationManager {
   private readonly _range = signal({ from: 0, to: 20 });
   private readonly _currentPage = signal(0);

@@ -22,7 +22,8 @@ import {
   NgZone,
   output,
   signal,
-  ViewChild,
+  untracked,
+  ViewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
@@ -269,7 +270,7 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     effect(() => {
       this.sizeFactor();
 
-      this.zoom();
+      untracked(() => this.zoom());
     });
 
     effect(() => {
@@ -336,12 +337,17 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
     const cursorPxOffset = cursorTimeOffset * this.sizeFactor();
 
     this.ngZone.onStable
-      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        take(1),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe(() => {
         const newScrollTop =
           (currentCursorTime - cursorPxOffset / this.sizeFactor()) *
           this.sizeFactor();
         this.calendarContainer.nativeElement.scrollTop = newScrollTop;
+
+        this.doAutoScroll()
       });
   }
 

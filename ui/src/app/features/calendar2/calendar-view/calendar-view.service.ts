@@ -1,5 +1,6 @@
 import { computed, Injectable, signal, Signal } from '@angular/core';
 import { Timestamp } from '@bufbuild/protobuf';
+import { ConnectError } from '@connectrpc/connect';
 import { sortUserProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import {
   injectCalendarService,
@@ -28,6 +29,7 @@ import {
   isSameDay,
   startOfDay,
 } from 'date-fns';
+import { toast } from 'ngx-sonner';
 import { getCalendarId } from 'src/app/services';
 import { toDateString } from 'src/app/utils';
 import { getSeconds } from '../day-view/sort.pipe';
@@ -490,6 +492,10 @@ export class CalendarViewService {
         { signal: abrt?.signal }
       )
       .catch(err => {
+        toast.error('Termine konnten nicht geladen werden', {
+          description: ConnectError.from(err).message,   
+        })
+
         return new ListEventsResponse({ results: [] });
       })
       .then(response => {

@@ -72,6 +72,7 @@ export class EventService {
     public listen<T extends Message>(msgs: T[]): Observable<T> {
         return new Observable(sub => {
             const abrtCtrl = new AbortController();
+
             const iterator = this.client.subscribeOnce({
                 typeUrls: msgs.map(m => m.getType().typeName)
             }, { signal: abrtCtrl.signal })
@@ -82,6 +83,8 @@ export class EventService {
                         try {
                             let e: any = msg.event.unpack(this.registry);
                             sub.next(e);
+
+                            console.log("received event", e)
                         } catch(err) {
                             console.error("failed to unpack message", err)
                         }

@@ -29,7 +29,7 @@
 
     <ng-template #calendarTabs>
       <div class="w-full flex-grow overflow-auto xl:p-4">
-        <hlm-tabs tab="roster" class="w-full">
+        <hlm-tabs tab="calendars" class="w-full">
           <hlm-tabs-list
             class="grid w-full grid-cols-2"
             aria-label="tabs example">
@@ -195,7 +195,7 @@
           [appPopoverTrigger]="event"
           [appPopoverTriggerMode]="'shared-side'"
           [appPopoverTriggerDisabled]="!layout.md() || panActive()"
-          [brnPopoverTriggerFor]="hoverCard"
+          [appPopoverTriggerFor]="hoverCard"
           class="cursor-[inherit]"
           [userColorVars]="calendar.id | byCalendarId: profiles()"
           [style.--user-color]="event.colorOverwrite || null"

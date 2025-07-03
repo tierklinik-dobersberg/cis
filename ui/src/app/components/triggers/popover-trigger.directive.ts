@@ -12,6 +12,12 @@ import { BrnPopoverTriggerDirective } from '@spartan-ng/ui-popover-brain';
   selector: '[appPopoverTrigger]',
   standalone: true,
   exportAs: 'appPopoverTrigger',
+  inputs: [
+    {
+      name: 'brnPopoverTriggerFor',
+      alias: 'appPopoverTriggerFor'
+    }
+  ]
 })
 export class AppPopoverTriggerDirective extends BrnPopoverTriggerDirective {
   public readonly mode = input<'default' | 'shared-side'>('default', {
