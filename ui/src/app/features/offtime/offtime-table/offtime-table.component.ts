@@ -12,7 +12,6 @@ import {
 } from '@angular/core';
 import { lucideCircleCheck, lucideCircleX, lucideMessageCircle } from '@ng-icons/lucide';
 import { BrnTableModule } from '@spartan-ng/ui-table-brain';
-import { injectCurrentProfile } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import {
   Filter,
@@ -25,6 +24,7 @@ import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { OffTimeEntry } from '@tierklinik-dobersberg/apis/roster/v1';
 import { AppAvatarComponent } from 'src/app/components/avatar';
 import { TkdPaginationComponent } from 'src/app/components/pagination';
+import { injectStoredProfile } from 'src/app/utils/inject-helpers';
 import { usePaginationManager } from 'src/app/utils/pagination-manager';
 
 export type Column = 'from' | 'to' | 'user' | 'description' | 'actions' | 'approval';
@@ -60,7 +60,7 @@ export class OfftimeTableComponent {
 
   protected readonly trackEntry: TrackByFunction<OffTimeEntry> = (_, e) => e.id;
   protected readonly paginator = usePaginationManager(this.entries);
-  protected readonly currentUser = injectCurrentProfile();
+  protected readonly currentUser = injectStoredProfile();
   protected readonly entryToDelete = signal<OffTimeEntry | null>(null)
   protected readonly layout = inject(LayoutService)
 

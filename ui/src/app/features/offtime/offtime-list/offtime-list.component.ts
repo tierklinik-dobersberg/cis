@@ -35,9 +35,8 @@ import { BrnTooltipModule } from '@spartan-ng/ui-tooltip-brain';
 import { HlmAlertDialogModule } from '@tierklinik-dobersberg/angular/alertdialog';
 import { HlmBadgeModule } from '@tierklinik-dobersberg/angular/badge';
 import {
-  injectCurrentProfile,
   injectUserProfiles,
-  sortProtoTimestamps,
+  sortProtoTimestamps
 } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { HlmCardModule } from '@tierklinik-dobersberg/angular/card';
@@ -96,7 +95,7 @@ import { AppDateTableModule } from 'src/app/components/date-table';
 import { TextInputComponent } from 'src/app/components/text-input';
 import { UserColorVarsDirective } from 'src/app/components/user-color-vars';
 import { HeaderTitleService } from 'src/app/layout/header-title';
-import { injectStoredConfig } from 'src/app/utils/inject-helpers';
+import { injectStoredConfig, injectStoredProfile } from 'src/app/utils/inject-helpers';
 import { Column, OfftimeTableComponent } from '../offtime-table/offtime-table.component';
 import { MatchingOfftimePipe } from '../pipes/matching-offtime.pipe';
 import {
@@ -169,7 +168,7 @@ export class OffTimeListComponent implements OnInit {
   private readonly config = injectStoredConfig();
   public readonly layout = inject(LayoutService);
 
-  protected readonly currentUser = injectCurrentProfile();
+  protected readonly currentUser = injectStoredProfile();
   protected readonly Editor = MyEditor;
 
   protected readonly types = {

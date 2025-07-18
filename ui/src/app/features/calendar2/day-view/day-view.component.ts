@@ -279,9 +279,10 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
         return
       }
 
-      console.log("adjusting scroll top")
 
       if (this.calendarContainer.nativeElement.scrollTop !== top) {
+        console.log("adjusting scroll top")
+
         this.calendarContainer.nativeElement.scrollTo({
           top: top,
           behavior: 'instant'
@@ -346,8 +347,6 @@ export class TkdDayViewComponent<E extends Timed> implements AfterViewInit {
           (currentCursorTime - cursorPxOffset / this.sizeFactor()) *
           this.sizeFactor();
         this.calendarContainer.nativeElement.scrollTop = newScrollTop;
-
-        this.doAutoScroll()
       });
   }
 

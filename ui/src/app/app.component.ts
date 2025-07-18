@@ -1,16 +1,16 @@
 import { animate, style, transition, trigger } from '@angular/animations';
 import { HttpClient } from '@angular/common/http';
 import {
-    ChangeDetectionStrategy,
-    Component,
-    HostListener,
-    OnInit,
-    effect,
-    inject,
-    signal,
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  OnInit,
+  effect,
+  inject,
+  signal,
 } from '@angular/core';
 import { Code, ConnectError } from '@connectrpc/connect';
-import { injectCustomerService } from '@tierklinik-dobersberg/angular/connect';
+import { injectCustomerService, injectOrthancClient } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { CallRecordReceived } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
@@ -89,6 +89,11 @@ export class AppComponent implements OnInit {
   private readonly currentUser = injectStoredProfile();
 
   constructor() {
+    injectOrthancClient()
+      .getWorklistEntries({})
+      .then(console.log)
+      .catch(console.error)
+
     this.studyService.instanceReceived.subscribe(msg => {
       toast.info(
         'Neue Röntgenaufnahme',
@@ -168,8 +173,9 @@ export class AppComponent implements OnInit {
         };
 
         display.then(who => {
-          const id = toast.loading('Aktives Telefonat mit ' + who, {
+          const id = toast.loading('Telefonat mit ' + who, {
             duration: 10 * 60 * 1000,
+            dismissable: true,
             actionButtonStyle: 'font-medium',
             action,
           });

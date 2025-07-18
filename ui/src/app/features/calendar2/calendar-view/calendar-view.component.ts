@@ -72,7 +72,7 @@ import {
   setSeconds,
 } from 'date-fns';
 import { toast } from 'ngx-sonner';
-import { debounceTime, interval, map, merge, take } from 'rxjs';
+import { interval, map, take } from 'rxjs';
 import {
   TkdDatePickerComponent,
   TkdDatePickerInputDirective,
@@ -359,11 +359,19 @@ export class TkdCalendarViewComponent
         toast.error('Termin konnte nicht gespeichert werden', {
           description: ConnectError.from(err).message,
         });
+      })
+      .finally(() => {
+        this.skipLoading = false;
       });
   }
 
   /** A callback function for the day-view component to handle calendar-event moves */
   protected handleEventMoved(evt: EventMovedEvent<CalEvent>) {
+    if (evt.event.ignoreOverlapping || evt.event.virtualCopy) {
+      evt.drag.reset();
+      return
+    }
+
     this.skipLoading = true;
 
     const duration = Number(
@@ -445,6 +453,9 @@ export class TkdCalendarViewComponent
         toast.error('Termin konnte nicht gespeichert werden', {
           description: ConnectError.from(err).message,
         });
+      })
+      .finally(() => {
+        this.skipLoading = false;
       });
   }
 
@@ -626,23 +637,60 @@ export class TkdCalendarViewComponent
       this.navService.forceHide.set(true);
     }
 
-    merge(
-      inject(EventService)
-        .subscribe(new CalendarChangeEvent()),
-      interval(10000),
-    )
-      .pipe(
-        takeUntilDestroyed(),
-        debounceTime(1000)
-      )
+    interval(10 * 1000)
+      .pipe(takeUntilDestroyed())
       .subscribe(() => {
         if (this.skipLoading) {
-          return;
+          return
         }
 
         this.viewService()?.reload();
         this.nextService()?.reload();
         this.prevService()?.reload();
+      })
+
+    inject(EventService)
+      .subscribe(new CalendarChangeEvent())
+      .pipe(takeUntilDestroyed())
+      .subscribe(evt => {
+        if (this.skipLoading) {
+          return;
+        }
+
+        const services = [
+          this.viewService(),
+          this.nextService(),
+          this.prevService(),
+        ]
+
+        services
+          .forEach(s => {
+            if (!s) {
+              return
+            }
+
+            switch (evt.kind.case) {
+              // TODO(ppacher): add the date and calendar-id of the delete event to the
+              // calendar-event-changed notificatoin
+              case 'deletedEventId':
+                s.reload()
+                break;
+
+              case 'eventChange':
+                const start = evt.kind.value.startTime?.toDate();
+                const end = evt.kind.value.endTime?.toDate();
+
+                if (isSameDay(start, s.date) || isSameDay(end, s.date)) {
+                  s.reload();
+                }
+
+                break;
+
+              default:
+                // unsupported event update, just reload
+                s.reload();
+            }
+          })
       });
 
     effect(() => {

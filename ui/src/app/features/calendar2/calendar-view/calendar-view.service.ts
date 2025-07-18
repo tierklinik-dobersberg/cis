@@ -499,7 +499,9 @@ export class CalendarViewService {
         return new ListEventsResponse({ results: [] });
       })
       .then(response => {
-        this.eventListResponse.set(response || null);
+        if (!this.eventListResponse() || !this.eventListResponse().equals(response)) {
+          this.eventListResponse.set(response || null);
+        }
       });
   }
 }

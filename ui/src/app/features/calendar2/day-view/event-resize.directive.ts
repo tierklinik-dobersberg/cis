@@ -1,15 +1,15 @@
 import { CdkDrag } from '@angular/cdk/drag-drop';
 import {
-    booleanAttribute,
-    Directive,
-    effect,
-    ElementRef,
-    HostListener,
-    inject,
-    input,
-    output,
-    Renderer2,
-    signal,
+  booleanAttribute,
+  Directive,
+  effect,
+  ElementRef,
+  HostListener,
+  inject,
+  input,
+  output,
+  Renderer2,
+  signal,
 } from '@angular/core';
 
 export interface ResizeStopEvent {
@@ -69,7 +69,7 @@ export class TkdEventResizeDirective {
   private resizeStartPosition = 0;
   private resizeStartHeight = 0;
 
-  private oldDragDisabledValue = false;
+  private oldDragDisabledValue: boolean | null = null;
   private resizeActive = false;
 
   constructor() {
@@ -107,7 +107,6 @@ export class TkdEventResizeDirective {
 
   handleMouseMove(event: MouseEvent) {
     if (this.resizeStartPosition !== null && this.resizeActive) {
-
       // update the event style
       let offset = event.clientY - this.resizeStartPosition;
 
@@ -132,12 +131,24 @@ export class TkdEventResizeDirective {
 
     if (event.clientY >= lower && event.clientY <= upper) {
       if (!this.disabled()) {
-        this.cdkDrag.disabled = true;
+
+        if (this.oldDragDisabledValue === null) {
+          console.log("capturing drag-disabled", this.cdkDrag.disabled || false)
+
+          this.oldDragDisabledValue= this.cdkDrag.disabled || false;
+          this.cdkDrag.disabled = true;
+        }
+
         this.renderer.addClass(this.host.nativeElement, '!cursor-ns-resize');
       }
     } else {
       if (!this.resizeActive) {
-        this.cdkDrag.disabled = false;
+        if (this.oldDragDisabledValue !== null) {
+          console.log("resoting drag-disabled", this.oldDragDisabledValue)
+
+          this.cdkDrag.disabled = this.oldDragDisabledValue;
+          this.oldDragDisabledValue = null
+        }
         this.renderer.removeClass(this.host.nativeElement, '!cursor-ns-resize');
       }
     }
@@ -145,7 +156,6 @@ export class TkdEventResizeDirective {
 
   @HostListener('mousedown', ['$event'])
   onMouseDown(event: MouseEvent) {
-    console.log('resize: mousedown');
     if (this.disabled()) {
       return;
     }
@@ -154,8 +164,8 @@ export class TkdEventResizeDirective {
       return;
     }
 
-    this.oldDragDisabledValue = this.cdkDrag.disabled;
-    this.cdkDrag.disabled = true;
+    //this.oldDragDisabledValue = this.cdkDrag.disabled || false;
+    //this.cdkDrag.disabled = true;
 
     const bounds = (
       this.host.nativeElement as HTMLElement
@@ -172,7 +182,6 @@ export class TkdEventResizeDirective {
       this.resizeStartHeight = (this.host.nativeElement as HTMLElement).getBoundingClientRect().height;
 
       this.container.activeResize.set(this)
-      console.log("registered", this.container)
 
       this.resizeActive = true;
     }
@@ -180,7 +189,7 @@ export class TkdEventResizeDirective {
 
   @HostListener('mouseup', ['$event'])
   onMouseUp(event: MouseEvent) {
-    console.log('resize: mouseup');
+    console.log('resize: mouseup', this.oldDragDisabledValue);
 
     this.cdkDrag.disabled = this.oldDragDisabledValue;
 

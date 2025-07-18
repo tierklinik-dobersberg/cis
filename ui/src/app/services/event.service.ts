@@ -1,11 +1,11 @@
-import { effect, Injectable } from "@angular/core";
+import { effect, Injectable, Type } from "@angular/core";
 import { toObservable } from "@angular/core/rxjs-interop";
 import { IMessageTypeRegistry, Message } from '@bufbuild/protobuf';
 import { injectEventService } from "@tierklinik-dobersberg/angular/connect";
 import { CalendarChangeEvent } from "@tierklinik-dobersberg/apis/calendar/v1";
 import { Operation } from "@tierklinik-dobersberg/apis/longrunning/v1";
 import { OpenChangeEvent } from "@tierklinik-dobersberg/apis/office_hours/v1";
-import { InstanceReceivedEvent } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
+import { InstanceReceivedEvent, WorklistEntryCreatedEvent, WorklistEntryRemovedEvent } from "@tierklinik-dobersberg/apis/orthanc_bridge/v1";
 import { CallRecordReceived, OnCallChangeEvent, OverwriteCreatedEvent, OverwriteDeletedEvent, VoiceMailReceivedEvent } from "@tierklinik-dobersberg/apis/pbx3cx/v1";
 import { RosterChangedEvent } from "@tierklinik-dobersberg/apis/roster/v1";
 import { BoardEvent, TaskEvent } from "@tierklinik-dobersberg/apis/tasks/v1";
@@ -46,7 +46,9 @@ export class EventService {
                 new BoardEvent,
                 new InstanceReceivedEvent,
                 new OpenChangeEvent,
-                new Operation
+                new Operation,
+                new WorklistEntryCreatedEvent,
+                new WorklistEntryRemovedEvent
             ])
             .subscribe(event => this.events$.next(event))
         })
@@ -69,12 +71,12 @@ export class EventService {
         return stream.subscribe(observer);
     }
 
-    public listen<T extends Message>(msgs: T[]): Observable<T> {
+    public listen<T extends Message>(msgs: (T | Type<T>)[]): Observable<T> {
         return new Observable(sub => {
             const abrtCtrl = new AbortController();
 
             const iterator = this.client.subscribeOnce({
-                typeUrls: msgs.map(m => m.getType().typeName)
+                typeUrls: msgs.map(m => (m instanceof Message ? m.getType().typeName : new m().getType().typeName))
             }, { signal: abrtCtrl.signal })
 
             const go = async () => {
