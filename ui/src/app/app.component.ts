@@ -91,6 +91,7 @@ export class AppComponent implements OnInit {
         {
           description: `${msg.ownerName}, ${msg.patientName}`,
           duration: 20 * 1000,
+          dismissable: true,
           action: {
             label: 'ÖFFNEN',
             onClick: () => {
@@ -99,9 +100,6 @@ export class AppComponent implements OnInit {
                 '_blank'
               );
             },
-          },
-          cancel: {
-            label: 'X',
           },
         }
       );

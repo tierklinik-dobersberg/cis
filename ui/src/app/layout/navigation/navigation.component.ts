@@ -2,7 +2,7 @@ import { booleanAttribute, ChangeDetectionStrategy, Component, DestroyRef, effec
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { ConnectError } from '@connectrpc/connect';
-import { lucideCalendar, lucideCircleUser, lucideCircuitBoard, lucideCopyright, lucideFileAudio, lucideFilm, lucideHouse, lucideLayers, lucidePhoneCall, lucidePhoneForwarded, lucidePlus, lucideTimer, lucideUserRoundSearch } from '@ng-icons/lucide';
+import { lucideCalendar, lucideCirclePlus, lucideCircleUser, lucideCircuitBoard, lucideCopyright, lucideFileAudio, lucideFilm, lucideHouse, lucideLayers, lucidePhoneCall, lucidePhoneForwarded, lucidePlus, lucideTimer, lucideUserRoundSearch } from '@ng-icons/lucide';
 import { BrnMenuModule } from '@spartan-ng/ui-menu-brain';
 import { BrnSheetComponent } from '@spartan-ng/ui-sheet-brain';
 import { injectBoardService, injectVoiceMailService } from '@tierklinik-dobersberg/angular/connect';
@@ -65,7 +65,8 @@ interface SubMenu {
       lucideCircuitBoard,
       lucidePhoneCall,
       lucidePhoneForwarded,
-      lucideUserRoundSearch
+      lucideUserRoundSearch,
+      lucideCirclePlus,
     })
   ]
 })
