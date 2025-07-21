@@ -10,8 +10,6 @@ import {
   signal,
 } from '@angular/core';
 import { Code, ConnectError } from '@connectrpc/connect';
-import { injectCustomerService } from '@tierklinik-dobersberg/angular/connect';
-import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { toast } from 'ngx-sonner';
 import { retry, tap } from 'rxjs/operators';
@@ -20,7 +18,6 @@ import { environment } from 'src/environments/environment';
 import { StudyService } from './features/dicom/study.service';
 import { NavigationService } from './layout/navigation/navigation.service';
 import { ActiveCallerToastService } from './services/active-caller-toasts.service';
-import { EventService } from './services/event.service';
 import { HotKeyManagementService } from './services/hot-key-manager.service';
 import { injectStoredProfile } from './utils/inject-helpers';
 
@@ -72,10 +69,7 @@ interface SubMenu {
 export class AppComponent implements OnInit {
   private readonly webPushManager = inject(WebPushSubscriptionManager);
   private readonly updateManager = inject(SwUpdateManager);
-  private readonly eventsService = inject(EventService);
   private readonly studyService = inject(StudyService);
-  private readonly customerService = injectCustomerService();
-  private readonly dialogService = inject(HlmDialogService);
 
   protected readonly navService = inject(NavigationService);
   protected readonly layout = inject(LayoutService);
