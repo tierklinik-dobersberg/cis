@@ -10,20 +10,18 @@ import {
   signal,
 } from '@angular/core';
 import { Code, ConnectError } from '@connectrpc/connect';
-import { injectCustomerService, injectOrthancClient } from '@tierklinik-dobersberg/angular/connect';
+import { injectCustomerService } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
-import { CallRecordReceived } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
-import { ExternalToast, toast } from 'ngx-sonner';
+import { toast } from 'ngx-sonner';
 import { retry, tap } from 'rxjs/operators';
 import { SwUpdateManager, WebPushSubscriptionManager } from 'src/app/services';
 import { environment } from 'src/environments/environment';
-import { CreateEventSheetComponent } from './features/calendar2/create-event-sheet/create-event-sheet.component';
-import { SearchEventsDialogComponent } from './features/calendar2/search-events-dialog/search-events-dialog.component';
-import { CustomerSearchDialogComponent } from './features/customers/customer-search-dialog';
 import { StudyService } from './features/dicom/study.service';
 import { NavigationService } from './layout/navigation/navigation.service';
+import { ActiveCallerToastService } from './services/active-caller-toasts.service';
 import { EventService } from './services/event.service';
+import { HotKeyManagementService } from './services/hot-key-manager.service';
 import { injectStoredProfile } from './utils/inject-helpers';
 
 interface MenuEntry {
@@ -88,16 +86,14 @@ export class AppComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly currentUser = injectStoredProfile();
 
-  constructor() {
-    injectOrthancClient()
-      .getWorklistEntries({})
-      .then(console.log)
-      .catch(console.error)
+  // Unused on purpose, it will start doing it's stuff upon creation
+  private readonly activeCallerService = inject(ActiveCallerToastService);
+  private readonly hotKeyManager = inject(HotKeyManagementService)
 
+  constructor() {
     this.studyService.instanceReceived.subscribe(msg => {
       toast.info(
         'Neue Röntgenaufnahme',
-
         {
           description: `${msg.ownerName}, ${msg.patientName}`,
           duration: 20 * 1000,
@@ -109,6 +105,9 @@ export class AppComponent implements OnInit {
                 '_blank'
               );
             },
+          },
+          cancel: {
+            label: 'X',
           },
         }
       );
@@ -123,105 +122,6 @@ export class AppComponent implements OnInit {
       }
     });
 
-    const toasts = new Map<string, any>();
-
-    this.eventsService.subscribe(new CallRecordReceived()).subscribe(evt => {
-      const caller = evt.callEntry.caller;
-
-      if (Number(evt.callEntry?.duration?.seconds || 0) === 0) {
-        // new active call received
-
-        let display = Promise.resolve(caller);
-
-        if (evt.callEntry.customerId) {
-          display = this.customerService
-            .searchCustomer({
-              queries: [
-                {
-                  query: {
-                    case: 'id',
-                    value: evt.callEntry.customerId,
-                  },
-                },
-              ],
-            })
-            .then(response => {
-              if (response.results && response.results.length === 1) {
-                const customer = response.results[0].customer;
-                if (customer) {
-                  return `${customer.lastName} ${customer.firstName}`;
-                }
-              }
-
-              return '';
-            })
-            .catch(err => {
-              console.error(err);
-
-              return caller;
-            });
-        }
-
-        let action: undefined | ExternalToast['action'] = {
-          label: 'Neuer Termin',
-          onClick: () => {
-            CreateEventSheetComponent.open(this.dialogService, {
-              customerId: evt.callEntry?.customerId || caller,
-              isUnknown: !evt.callEntry?.customerId
-            });
-          },
-        };
-
-        display.then(who => {
-          const id = toast.loading('Telefonat mit ' + who, {
-            duration: 10 * 60 * 1000,
-            dismissable: true,
-            actionButtonStyle: 'font-medium',
-            action,
-          });
-
-          console.log('adding caller id', caller, id, evt);
-          toasts.set(caller, id);
-        });
-      } else {
-        // call finished
-        const id = toasts.get(caller);
-        if (id !== undefined) {
-          toast.dismiss(id);
-          toasts.delete(id);
-        } else {
-          console.log(
-            'no active toast for caller',
-            caller,
-            Array.from(toasts.keys())
-          );
-        }
-      }
-    });
-  }
-
-  @HostListener('window:keydown', ['$event'])
-  onKeyDown(event: KeyboardEvent) {
-    console.log('event');
-    if (event.key === 'c' && event.altKey) {
-      if (CustomerSearchDialogComponent.lastRef) {
-        CustomerSearchDialogComponent.lastRef.close();
-      } else {
-        CustomerSearchDialogComponent.open(this.dialogService);
-      }
-    }
-
-    if (event.key === 't' && event.altKey) {
-      if (SearchEventsDialogComponent.lastRef) {
-        SearchEventsDialogComponent.lastRef.close();
-      } else {
-        SearchEventsDialogComponent.open(this.dialogService);
-      }
-    }
-
-    if (event.key === 'n' && event.altKey) {
-      CreateEventSheetComponent.open(this.dialogService)
-    }
   }
 
   ngOnInit(): void {

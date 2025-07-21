@@ -3,14 +3,14 @@ import { PlatformModule } from '@angular/cdk/platform';
 import { registerLocaleData } from '@angular/common';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import de from '@angular/common/locales/de';
-import { isDevMode, LOCALE_ID, NgModule } from '@angular/core';
+import { inject, isDevMode, LOCALE_ID, NgModule } from '@angular/core';
 import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { Code, ConnectError } from '@connectrpc/connect';
 import {
-    TkdConnectModule
+  TkdConnectModule
 } from '@tierklinik-dobersberg/angular/connect';
 import { Breakpoints } from '@tierklinik-dobersberg/tailwind/breakpoints';
 import markedAlert from 'marked-alert';
@@ -27,8 +27,8 @@ import { createDirectives, presetDirectiveConfigs } from 'marked-directive';
 import { TaskDetailsComponent } from './features/tasks/task-details/task-details';
 import { AppHeaderComponent } from './layout';
 import {
-    AppNavigationComponent,
-    AppSheetNavigationComponent,
+  AppNavigationComponent,
+  AppSheetNavigationComponent,
 } from './layout/navigation';
 
 registerLocaleData(de);
@@ -43,6 +43,10 @@ function getMarkedRenderer() {
 
 import { HammerGestureConfig } from '@angular/platform-browser';
 import * as Hammer from 'hammerjs';
+import { CreateEventSheetComponent } from './features/calendar2/create-event-sheet/create-event-sheet.component';
+import { SearchEventsDialogComponent } from './features/calendar2/search-events-dialog/search-events-dialog.component';
+import { CustomerSearchDialogComponent } from './features/customers/customer-search-dialog';
+import { provideHotKeys } from './services/hot-key-manager.service';
 
 export class MyHammerConfig extends HammerGestureConfig {
   events: string[] = [
@@ -128,7 +132,32 @@ export class MyHammerConfig extends HammerGestureConfig {
     {
       provide: HAMMER_GESTURE_CONFIG,
       useClass: MyHammerConfig,
-    }
+    },
+    ...provideHotKeys([
+      {
+        key: 'c',
+        altKey: true,
+        componentType: CustomerSearchDialogComponent,
+      },
+      {
+        key: 't',
+        altKey: true,
+        componentType: SearchEventsDialogComponent,
+      },
+      {
+        key: 'n',
+        altKey: true,
+        componentType: CreateEventSheetComponent,
+      },
+      {
+        key: 'k',
+        altKey: true,
+        onClick: () => {
+          inject(Router)
+            .navigate(['/calendar'])
+        }
+      }
+    ])
   ],
   bootstrap: [AppComponent],
 })
