@@ -20,8 +20,8 @@ import { toast } from "ngx-sonner";
 import { getSeconds } from "src/app/features/calendar2/day-view/sort.pipe";
 import { getCalendarId } from "src/app/services";
 import { sortCalendarEvents } from "src/app/utils/calendar/sorting";
-import { AppAvatarComponent } from "../avatar";
-import { UserColorVarsDirective } from "../user-color-vars";
+import { AppAvatarComponent } from "../../../components/avatar";
+import { UserColorVarsDirective } from "../../../components/user-color-vars";
 
 class EventListModel extends CalendarEvent {
     public readonly isOver: boolean;
@@ -127,7 +127,7 @@ export class AppEventListComponent {
     })
 
     protected openEvent(event: EventListModel) {
-        import("../../dialogs/event-details-dialog")
+        import("../event-details-dialog")
             .then(m => {
                 m.AppEventDetailsDialogComponent.open(this.dialogService, {
                     calendar: event.calendar,

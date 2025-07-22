@@ -1,24 +1,24 @@
 import {
-  ChangeDetectionStrategy,
-  Component,
-  effect,
-  inject,
-  model,
-  signal,
+    ChangeDetectionStrategy,
+    Component,
+    effect,
+    inject,
+    model,
+    signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConnectError } from '@connectrpc/connect';
 import { lucideCalendarSearch } from '@ng-icons/lucide';
 import { hlm } from '@spartan-ng/ui-core';
 import {
-  BrnDialogRef
+    BrnDialogRef
 } from '@spartan-ng/ui-dialog-brain';
 import { HlmBadgeDirective } from '@tierklinik-dobersberg/angular/badge';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { injectCalendarService } from '@tierklinik-dobersberg/angular/connect';
 import {
-  HlmDialogModule,
-  HlmDialogService,
+    HlmDialogModule,
+    HlmDialogService,
 } from '@tierklinik-dobersberg/angular/dialog';
 import { TkdEmptyTableComponent } from '@tierklinik-dobersberg/angular/empty-table';
 import { HlmIconComponent, provideIcons } from '@tierklinik-dobersberg/angular/icon';
@@ -27,8 +27,8 @@ import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { CalendarEvent } from '@tierklinik-dobersberg/apis/calendar/v1';
 import { toast } from 'ngx-sonner';
 import { take } from 'rxjs';
-import { AppEventListComponent } from 'src/app/components/event-list';
 import { DIALOG_CONTENT_CLASS } from 'src/app/dialogs/constants';
+import { AppEventListComponent } from 'src/app/features/calendar2/event-list';
 
 @Component({
   standalone: true,

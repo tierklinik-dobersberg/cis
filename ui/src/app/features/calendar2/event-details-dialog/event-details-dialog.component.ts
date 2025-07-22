@@ -105,11 +105,11 @@ import { AppAvatarComponent } from 'src/app/components/avatar';
 import { TkdDatePickerComponent } from 'src/app/components/date-picker';
 import { CreateEventSheetComponent } from 'src/app/features/calendar2/create-event-sheet/create-event-sheet.component';
 import { getCalendarId } from 'src/app/services';
-import { getSeconds } from '../../features/calendar2/day-view/sort.pipe';
-import { CreateCustomerDialog } from '../../features/customers/create-customer-dialog';
-import { CustomerDetailsDialog } from '../../features/customers/customer-details-dialog';
-import { AbstractBaseDialog } from '../base-dialog/base-dialog.component';
-import { DIALOG_CONTENT_CLASS } from '../constants';
+import { AbstractBaseDialog } from '../../../dialogs/base-dialog/base-dialog.component';
+import { DIALOG_CONTENT_CLASS } from '../../../dialogs/constants';
+import { CreateCustomerDialog } from '../../customers/create-customer-dialog';
+import { CustomerDetailsDialog } from '../../customers/customer-details-dialog';
+import { getSeconds } from '../day-view/sort.pipe';
 
 export interface EventDetailsDialogContext {
   event?: CalendarEvent;

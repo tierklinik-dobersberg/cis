@@ -50,10 +50,10 @@ import {
   TkdDatePickerInputDirective,
 } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
-import { AppEventListComponent } from 'src/app/components/event-list';
+import { AppEventListComponent } from 'src/app/features/calendar2/event-list';
 import { getCalendarId } from 'src/app/services';
 import { toDateString } from 'src/app/utils';
-import { AbstractBaseDialog } from '../base-dialog/base-dialog.component';
+import { AbstractBaseDialog } from '../../../dialogs/base-dialog/base-dialog.component';
 
 export type EventListDialogContext = {
   date: Date;
@@ -141,7 +141,7 @@ export class EventListDialogComponent extends AbstractBaseDialog {
   }
 
   protected openEvent(event: CalendarEvent) {
-    import('../event-details-dialog').then(m => {
+    import('..//event-details-dialog').then(m => {
       m.AppEventDetailsDialogComponent.open(this.dialogService, {
         calendar: this.calendar(),
         event: event,

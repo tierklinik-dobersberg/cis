@@ -156,7 +156,7 @@ export class RosterCardComponent {
       return;
     }
 
-    import("../../../dialogs/event-list-dialog")
+    import("../../calendar2/event-list-dialog/event-list-dialog.component")
       .then(m => {
         m.EventListDialogComponent.open(this.dialogService, {
           userId: userId,

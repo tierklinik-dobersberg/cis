@@ -16,17 +16,17 @@ import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { HlmTabsModule } from '@tierklinik-dobersberg/angular/tabs';
 import { CalendarEvent, ListEventsResponse } from '@tierklinik-dobersberg/apis/calendar/v1';
 import {
-  Anamnesis,
-  Customer,
-  GetPatientsByCustomerResponse,
-  ImportState,
-  Patient,
-  PatientGender
+    Anamnesis,
+    Customer,
+    GetPatientsByCustomerResponse,
+    ImportState,
+    Patient,
+    PatientGender
 } from '@tierklinik-dobersberg/apis/customer/v1';
 import { MarkdownModule } from 'ngx-markdown';
 import { toast } from 'ngx-sonner';
 import { distinctUntilChanged, map, Subscription, switchMap } from 'rxjs';
-import { AppEventListComponent } from 'src/app/components/event-list';
+import { AppEventListComponent } from 'src/app/features/calendar2/event-list';
 import { HeaderTitleService } from 'src/app/layout/header-title';
 import { CreateEventSheetComponent } from '../../calendar2/create-event-sheet/create-event-sheet.component';
 import { CustomerDetailsTableComponent } from '../customer-details-table';

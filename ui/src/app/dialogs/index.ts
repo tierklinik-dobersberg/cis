@@ -1,1 +1,1 @@
-export * from './event-details-dialog';
+export * from '../features/calendar2/event-details-dialog';

@@ -1,14 +1,14 @@
 import { DatePipe } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  DestroyRef,
-  effect,
-  inject,
-  input,
-  model,
-  signal,
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    DestroyRef,
+    effect,
+    inject,
+    input,
+    model,
+    signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -18,27 +18,27 @@ import { injectUserProfiles, sortProtoTimestamps } from '@tierklinik-dobersberg/
 import { HlmCardModule } from '@tierklinik-dobersberg/angular/card';
 import { HlmCheckboxModule } from '@tierklinik-dobersberg/angular/checkbox';
 import {
-  injectCalendarService,
-  injectRosterService,
+    injectCalendarService,
+    injectRosterService,
 } from '@tierklinik-dobersberg/angular/connect';
 import {
-  TkdContainerSizeClassDirective,
-  TkdContainerSizeDirective
+    TkdContainerSizeClassDirective,
+    TkdContainerSizeDirective
 } from '@tierklinik-dobersberg/angular/container';
 import {
-  HlmIconModule,
-  provideIcons,
+    HlmIconModule,
+    provideIcons,
 } from '@tierklinik-dobersberg/angular/icon';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { CalenarEventRequestKind, Calendar, CalendarChangeEvent, CalendarEvent, ListEventsResponse } from '@tierklinik-dobersberg/apis/calendar/v1';
 import { toast } from 'ngx-sonner';
 import { debounceTime } from 'rxjs';
 import {
-  TkdDatePickerComponent,
-  TkdDatePickerInputDirective,
+    TkdDatePickerComponent,
+    TkdDatePickerInputDirective,
 } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
-import { AppEventListComponent } from 'src/app/components/event-list';
+import { AppEventListComponent } from 'src/app/features/calendar2/event-list';
 import { EventService } from 'src/app/services/event.service';
 import { toDateString } from 'src/app/utils';
 

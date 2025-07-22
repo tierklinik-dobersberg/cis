@@ -1,23 +1,23 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  computed,
-  DestroyRef,
-  effect,
-  HostListener,
-  inject,
-  Injector,
-  LOCALE_ID,
-  model,
-  OnDestroy,
-  OnInit,
-  runInInjectionContext,
-  signal,
-  untracked,
-  ViewChild,
+    AfterViewInit,
+    ChangeDetectionStrategy,
+    ChangeDetectorRef,
+    Component,
+    computed,
+    DestroyRef,
+    effect,
+    HostListener,
+    inject,
+    Injector,
+    LOCALE_ID,
+    model,
+    OnDestroy,
+    OnInit,
+    runInInjectionContext,
+    signal,
+    untracked,
+    ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -25,11 +25,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
 import {
-  lucideClock,
-  lucideCog,
-  lucideStar,
-  lucideZoomIn,
-  lucideZoomOut,
+    lucideClock,
+    lucideCog,
+    lucideStar,
+    lucideZoomIn,
+    lucideZoomOut,
 } from '@ng-icons/lucide';
 import { BrnPopoverModule } from '@spartan-ng/ui-popover-brain';
 import { BrnSelectModule } from '@spartan-ng/ui-select-brain';
@@ -38,13 +38,13 @@ import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
 import { HlmButtonModule } from '@tierklinik-dobersberg/angular/button';
 import { HlmCheckboxComponent } from '@tierklinik-dobersberg/angular/checkbox';
 import {
-  injectCalendarService,
-  injectRosterService,
+    injectCalendarService,
+    injectRosterService,
 } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import {
-  HlmIconModule,
-  provideIcons,
+    HlmIconModule,
+    provideIcons,
 } from '@tierklinik-dobersberg/angular/icon';
 import { HlmLabelDirective } from '@tierklinik-dobersberg/angular/label';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
@@ -54,28 +54,28 @@ import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { HlmSheetModule } from '@tierklinik-dobersberg/angular/sheet';
 import { HlmTabsModule } from '@tierklinik-dobersberg/angular/tabs';
 import {
-  CalendarChangeEvent,
-  CalendarEvent,
-  MoveEventResponse,
-  Calendar as PbCalendar,
+    CalendarChangeEvent,
+    CalendarEvent,
+    MoveEventResponse,
+    Calendar as PbCalendar,
 } from '@tierklinik-dobersberg/apis/calendar/v1';
 import {
-  PlannedShift,
-  RosterType,
+    PlannedShift,
+    RosterType,
 } from '@tierklinik-dobersberg/apis/roster/v1';
 import {
-  addDays,
-  addSeconds,
-  getMinutes,
-  isSameDay,
-  setMinutes,
-  setSeconds,
+    addDays,
+    addSeconds,
+    getMinutes,
+    isSameDay,
+    setMinutes,
+    setSeconds,
 } from 'date-fns';
 import { toast } from 'ngx-sonner';
 import { interval, map, take } from 'rxjs';
 import {
-  TkdDatePickerComponent,
-  TkdDatePickerInputDirective,
+    TkdDatePickerComponent,
+    TkdDatePickerInputDirective,
 } from 'src/app/components/date-picker';
 import { TkdDatePickerTriggerComponent } from 'src/app/components/date-picker/picker-trigger';
 import { AppPopoverTriggerDirective } from 'src/app/components/triggers';
@@ -89,24 +89,24 @@ import { getCalendarId } from 'src/app/services';
 import { EventService } from 'src/app/services/event.service';
 import { toDateString } from 'src/app/utils';
 import { storedSignal } from 'src/app/utils/stored-signal';
-import {
-  AppEventDetailsDialogComponent,
-  EventDetailsDialogContext,
-} from '../../../dialogs/event-details-dialog';
 import { RosterCardComponent } from '../../welcome/roster-card';
 import {
-  Calendar,
-  CalendarMouseEvent,
-  coerceDate,
-  DEFAULT_HOUR_HEIGHT_PX,
-  EventMovedEvent,
-  Timed,
-  TkdCalendarEventCellTemplateDirective,
-  TkdCalendarHeaderCellTemplateDirective,
-  TkdDayViewComponent,
+    Calendar,
+    CalendarMouseEvent,
+    coerceDate,
+    DEFAULT_HOUR_HEIGHT_PX,
+    EventMovedEvent,
+    Timed,
+    TkdCalendarEventCellTemplateDirective,
+    TkdCalendarHeaderCellTemplateDirective,
+    TkdDayViewComponent,
 } from '../day-view';
 import { StyledTimed } from '../day-view/event-style.pipe';
 import { getSeconds } from '../day-view/sort.pipe';
+import {
+    AppEventDetailsDialogComponent,
+    EventDetailsDialogContext,
+} from '../event-details-dialog';
 import { SearchEventsDialogComponent } from '../search-events-dialog/search-events-dialog.component';
 import { CalendarViewService } from './calendar-view.service';
 
