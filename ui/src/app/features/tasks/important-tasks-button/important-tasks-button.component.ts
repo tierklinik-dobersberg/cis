@@ -16,10 +16,10 @@ import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSheetModule } from '@tierklinik-dobersberg/angular/sheet';
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import {
-  Board,
-  ListTasksResponse,
-  Task,
-  TaskEvent,
+    Board,
+    ListTasksResponse,
+    Task,
+    TaskEvent,
 } from '@tierklinik-dobersberg/apis/tasks/v1';
 import { merge } from 'hammerjs';
 import { toast } from 'ngx-sonner';
@@ -28,7 +28,7 @@ import { injectCurrentConfig } from 'src/app/api';
 import { TkdDatePickerComponent, TkdDatePickerInputDirective } from 'src/app/components/date-picker';
 import { TagListComponent } from 'src/app/features/tasks/tag-list/tag-list';
 import { EventService } from 'src/app/services/event.service';
-import { TkdDatePickerTriggerComponent } from "../../components/date-picker/picker-trigger/picker-trigger.component";
+import { TkdDatePickerTriggerComponent } from "../../../components/date-picker/picker-trigger/picker-trigger.component";
 
 @Component({
   selector: 'app-important-tasks',

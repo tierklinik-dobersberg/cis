@@ -4,7 +4,7 @@ import { injectUserProfiles } from "@tierklinik-dobersberg/angular/behaviors";
 import { HlmButtonDirective } from "@tierklinik-dobersberg/angular/button";
 import { DisplayNamePipe, ToUserPipe } from "@tierklinik-dobersberg/angular/pipes";
 import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
-import { EmergencyTargetService } from "./emergency-target.service";
+import { EmergencyTargetService } from './emergency-target.service';
 
 @Component({
     selector: 'app-redirect-emergency-button',

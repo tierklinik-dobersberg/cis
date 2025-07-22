@@ -2,18 +2,18 @@ import { animate, style, transition, trigger } from '@angular/animations';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import {
-  lucideActivity,
-  lucideCog,
-  lucideDog,
-  lucideHeartPulse,
-  lucideLayers,
-  lucidePlus,
-  lucideUser
+    lucideActivity,
+    lucideCog,
+    lucideDog,
+    lucideHeartPulse,
+    lucideLayers,
+    lucidePlus,
+    lucideUser
 } from '@ng-icons/lucide';
 import { BrnMenuModule } from '@spartan-ng/ui-menu-brain';
 import {
-  HlmIconModule,
-  provideIcons,
+    HlmIconModule,
+    provideIcons,
 } from '@tierklinik-dobersberg/angular/icon';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import { HlmMenuModule } from '@tierklinik-dobersberg/angular/menu';
@@ -21,12 +21,12 @@ import { AppMenuComponent } from 'src/app/components/app-menu';
 import { AppAvatarComponent } from 'src/app/components/avatar';
 import { openProfilePage } from 'src/app/services';
 import { injectStoredProfile } from 'src/app/utils/inject-helpers';
+import { AppRedirectEmergencyButtonComponent } from '../../features/on-call-overwrite/redirect-emergency-button/redirect-emergency-button.component';
+import { ImportantTasksButtonComponent } from '../../features/tasks/important-tasks-button';
 import { AppDoorStatusButtonComponent } from '../door-status-button';
 import { HeaderTitleOutletComponent } from '../header-title';
-import { ImportantTasksButtonComponent } from '../important-tasks-button';
 import { AppSheetNavigationComponent } from '../navigation';
 import { NavigationService } from '../navigation/navigation.service';
-import { AppRedirectEmergencyButtonComponent } from '../redirect-emergency-button/redirect-emergency-button.component';
 import { AppSearchMenuButtonComponent } from '../search-menu-button';
 
 @Component({

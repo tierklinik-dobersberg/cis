@@ -38,7 +38,7 @@ export class EmergencyTargetService {
   }
 
   async createRedirect(inboundNumber?: string): Promise<BrnDialogRef> {
-    const m = await import("../../features/on-call-overwrite/create-overwrite-dialog");
+    const m = await import("../create-overwrite-dialog");
     const ref = this.dialogService.open(m.CreateOverwriteComponent, {
       contentClass: 'max-w-full w-full h-[100dvh] sm:h-[unset] max-w-[unset] md:max-w-[unset]',
       context: {

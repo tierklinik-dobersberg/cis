@@ -69,7 +69,6 @@ import { injectLocalPlannedShifts, LocalPlannedShift } from 'src/app/utils/shift
     BrnTooltipModule,
     NgClass,
     ToRGBAPipe,
-    TkdContainerSizeDirective
   ],
   hostDirectives: [HlmCardDirective, TkdContainerSizeDirective],
   providers: [
