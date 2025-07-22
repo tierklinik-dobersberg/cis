@@ -28,9 +28,9 @@ import { TkdDatePickerComponent } from "src/app/components/date-picker";
 import { EmergencyTargetService } from "src/app/layout/redirect-emergency-button/emergency-target.service";
 import { injectStoredConfig } from "src/app/utils/inject-helpers";
 import { injectLocalPlannedShifts } from "src/app/utils/shifts";
-import { AbstractBaseDialog } from "../base-dialog/base-dialog.component";
-import { SelectionSheet, SelectionSheetItemDirective } from "../selection-sheet";
-import { SheetItemGroupDirective } from "../selection-sheet/selection-group.directive";
+import { AbstractBaseDialog } from "../../../dialogs/base-dialog/base-dialog.component";
+import { SelectionSheet, SelectionSheetItemDirective } from "../../../dialogs/selection-sheet";
+import { SheetItemGroupDirective } from "../../../dialogs/selection-sheet/selection-group.directive";
 
 export interface CreateOverwriteContext {
     inboundNumber?: string;

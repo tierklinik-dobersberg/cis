@@ -1,14 +1,14 @@
 import { CdkTableModule } from '@angular/cdk/table';
 import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import {
-  booleanAttribute,
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  Directive,
-  inject,
-  input,
-  signal
+    booleanAttribute,
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    Directive,
+    inject,
+    input,
+    signal
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PartialMessage } from '@bufbuild/protobuf';
@@ -25,10 +25,10 @@ import { TkdEmptyTableComponent } from '@tierklinik-dobersberg/angular/empty-tab
 import { HlmIconModule, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { LayoutService } from '@tierklinik-dobersberg/angular/layout';
 import {
-  DisplayNamePipe,
-  DurationPipe,
-  ToDatePipe,
-  ToUserPipe,
+    DisplayNamePipe,
+    DurationPipe,
+    ToDatePipe,
+    ToUserPipe,
 } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSelectModule } from '@tierklinik-dobersberg/angular/select';
 import { HlmSkeletonComponent } from '@tierklinik-dobersberg/angular/skeleton';
@@ -37,7 +37,7 @@ import { Customer } from '@tierklinik-dobersberg/apis/customer/v1';
 import { Profile } from '@tierklinik-dobersberg/apis/idm/v1';
 import { CallDirection, CallEntry, CallStatus, ListPhoneExtensionsResponse, PhoneExtension } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { toast } from 'ngx-sonner';
-import { CreateCustomerDialog } from 'src/app/dialogs/create-customer-dialog';
+import { CreateCustomerDialog } from 'src/app/features/customers/create-customer-dialog';
 import { KnownPhoneExtensionPipe } from 'src/app/pipes/known-phone-extension.pipe';
 import { getUserEmergencyExtension, getUserPhoneExtension } from 'src/app/services';
 import { usePaginationManager } from 'src/app/utils/pagination-manager';
@@ -307,7 +307,7 @@ export class CallLogTableComponent {
   }
 
   protected openDetails(record: LocalCallLog) {
-    import("../../dialogs/call-details-dialog")
+    import("../../features/calllogs/call-details-dialog")
       .then(m => m.CallDetailsDialogComponent.open(
         this.dialogService,
         {

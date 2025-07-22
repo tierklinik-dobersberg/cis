@@ -9,7 +9,7 @@ import { HlmTabsModule } from "@tierklinik-dobersberg/angular/tabs";
 import { HlmTooltipModule } from "@tierklinik-dobersberg/angular/tooltip";
 import { CustomerResponse } from "@tierklinik-dobersberg/apis/customer/v1";
 import { CustomerDetailsTableComponent } from "src/app/features/customers/customer-details-table";
-import { AbstractBaseDialog } from "../base-dialog/base-dialog.component";
+import { AbstractBaseDialog } from "../../../dialogs/base-dialog/base-dialog.component";
 
 const contentClass =
       'w-screen overflow-hidden max-w-[unset] sm:w-[750px] md:w-[750px] h-[100dvh] sm:h-[unset] max-h-screen !max-h-[100dvh]';

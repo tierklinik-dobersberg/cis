@@ -471,6 +471,22 @@ export class CalendarViewService {
     this.eventListResponse.set(res);
   }
 
+  public replaceEvent(evt: CalendarEvent) {
+    const res = this.eventListResponse().clone();
+
+    let [calIdx, evtIdx] = this.findPosition(evt.calendarId, evt.id)
+    if (evtIdx < 0) {
+      res.results[calIdx].events = [
+        ...res.results[calIdx].events,
+        evt
+      ]
+    } else {
+      res.results[calIdx].events[evtIdx] = evt;
+    }
+
+    this.eventListResponse.set(res);
+  }
+
   public readonly loading = signal(true);
   private loadEvents(date: Date, abrt?: AbortController): Promise<void> {
     return this.calendarAPI

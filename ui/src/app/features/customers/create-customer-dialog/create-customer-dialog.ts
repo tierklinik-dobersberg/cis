@@ -19,7 +19,7 @@ import { HlmTableComponent, HlmTdComponent, HlmThComponent, HlmTrowComponent } f
 import { Customer, SearchCustomerResponse } from "@tierklinik-dobersberg/apis/customer/v1";
 import { toast } from "ngx-sonner";
 import { debounceTime, filter, Subject, switchMap } from "rxjs";
-import { DIALOG_CONTENT_CLASS } from "../constants";
+import { DIALOG_CONTENT_CLASS } from "../../../dialogs/constants";
 
 export interface CreateCustomerDialogContext {
     caller: string

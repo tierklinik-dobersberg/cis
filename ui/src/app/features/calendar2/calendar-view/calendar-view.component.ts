@@ -673,7 +673,7 @@ export class TkdCalendarViewComponent
               // TODO(ppacher): add the date and calendar-id of the delete event to the
               // calendar-event-changed notificatoin
               case 'deletedEventId':
-                s.reload()
+                s.deleteEvent(evt.calendar, evt.kind.value)
                 break;
 
               case 'eventChange':
@@ -681,7 +681,7 @@ export class TkdCalendarViewComponent
                 const end = evt.kind.value.endTime?.toDate();
 
                 if (isSameDay(start, s.date) || isSameDay(end, s.date)) {
-                  s.reload();
+                  s.replaceEvent(evt.kind.value)
                 }
 
                 break;

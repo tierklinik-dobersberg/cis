@@ -18,7 +18,7 @@ import { CallEntry, ListPhoneExtensionsResponse, PhoneExtension } from "@tierkli
 import { toast } from "ngx-sonner";
 import { AppAvatarComponent } from "src/app/components/avatar";
 import { CustomerDetailsTableComponent } from "src/app/features/customers/customer-details-table";
-import { AbstractBaseDialog } from "../base-dialog/base-dialog.component";
+import { AbstractBaseDialog } from "../../../dialogs/base-dialog/base-dialog.component";
 
 export interface CallDetailsDialogContext {
     record: CallEntry,
