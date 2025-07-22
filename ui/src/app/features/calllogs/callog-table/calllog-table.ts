@@ -41,7 +41,7 @@ import { CreateCustomerDialog } from 'src/app/features/customers/create-customer
 import { KnownPhoneExtensionPipe } from 'src/app/pipes/known-phone-extension.pipe';
 import { getUserEmergencyExtension, getUserPhoneExtension } from 'src/app/services';
 import { usePaginationManager } from 'src/app/utils/pagination-manager';
-import { TkdPaginationComponent } from '../pagination';
+import { TkdPaginationComponent } from '../../../components/pagination';
 
 interface LocalCallLog {
   entry: CallEntry;
@@ -307,7 +307,7 @@ export class CallLogTableComponent {
   }
 
   protected openDetails(record: LocalCallLog) {
-    import("../../features/calllogs/call-details-dialog")
+    import("../call-details-dialog")
       .then(m => m.CallDetailsDialogComponent.open(
         this.dialogService,
         {

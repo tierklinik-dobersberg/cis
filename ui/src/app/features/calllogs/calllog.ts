@@ -17,9 +17,9 @@ import { Customer } from '@tierklinik-dobersberg/apis/customer/v1';
 import { CallDirection, CallEntry, CallRecordReceived, CallStatus, SearchCallLogsResponse } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { startOfDay } from 'date-fns';
 import { toast } from 'ngx-sonner';
-import { CallLogTableComponent } from 'src/app/components/callog-table';
 import { TkdDatePickerComponent } from 'src/app/components/date-picker';
 import { TkdPaginationComponent } from 'src/app/components/pagination';
+import { CallLogTableComponent } from 'src/app/features/calllogs/callog-table';
 import { HeaderTitleService } from 'src/app/layout/header-title';
 import { EventService } from 'src/app/services/event.service';
 
