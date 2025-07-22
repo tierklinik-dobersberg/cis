@@ -36,7 +36,7 @@ import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
 import { GetOnCallResponse, InboundNumber, ListInboundNumberResponse } from '@tierklinik-dobersberg/apis/pbx3cx/v1';
 import { toast } from 'ngx-sonner';
 import { AppAvatarComponent, AvatarVariants } from 'src/app/components/avatar';
-import { EmergencyTargetService } from 'src/app/features/on-call-overwrite/redirect-emergency-button/emergency-target.service';
+import { EmergencyTargetService } from 'src/app/features/on-call-overwrite/emergency-target.service';
 
 class OnCallResponse extends GetOnCallResponse {
   constructor(

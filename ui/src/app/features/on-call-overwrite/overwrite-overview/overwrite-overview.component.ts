@@ -23,7 +23,7 @@ import { isBefore } from "date-fns";
 import { toast } from "ngx-sonner";
 import { AppAvatarComponent } from "src/app/components/avatar";
 import { TkdDatePickerComponent } from "src/app/components/date-picker";
-import { EmergencyTargetService } from "src/app/features/on-call-overwrite/redirect-emergency-button/emergency-target.service";
+import { EmergencyTargetService } from "src/app/features/on-call-overwrite/emergency-target.service";
 import { HeaderTitleService } from "src/app/layout/header-title";
 import { injectCurrentUserIsAdmin } from "src/app/services";
 

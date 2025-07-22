@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { EmergencyTargetService } from 'src/app/features/on-call-overwrite/redirect-emergency-button/emergency-target.service';
+import { EmergencyTargetService } from 'src/app/features/on-call-overwrite/emergency-target.service';
 import { injectStoredConfig, injectStoredProfile } from 'src/app/utils/inject-helpers';
 
 @Component({
