@@ -20,67 +20,89 @@
           Dashboard
         </button>
 
-        <button
-          hlmMenuItem
-          routerLink="/calendar"
-          routerLinkActive="bg-gray-100"
-          class="px-4 py-2">
-          <hlm-icon name="lucideCalendar" hlmMenuIcon />
-          Kalender
-        </button>
+        <hlm-menu-separator />
 
-        <button
-          hlmMenuItem
-          routerLink="/roster"
-          routerLinkActive="bg-gray-100"
-          class="px-4 py-2">
-          <hlm-icon name="lucideTimer" hlmMenuIcon />
-          Dienstplan
-        </button>
+        <hlm-menu-group>
+          <hlm-menu-label class="flex flex-row items-center justify-between">
+            Betrieb
+          </hlm-menu-label>
 
-        <button
-          hlmMenuItem
-          class="px-4 py-2"
-          routerLink="/offtime"
-          routerLinkActive="bg-gray-100">
-          <hlm-icon name="lucideLayers" hlmMenuIcon />
-          Urlaubsanträge
-        </button>
+          <button
+            hlmMenuItem
+            routerLink="/calendar"
+            routerLinkActive="bg-gray-100"
+            class="px-4 py-2">
+            <hlm-icon name="lucideCalendar" hlmMenuIcon />
+            Kalender
+          </button>
 
-        <button hlmMenuItem (click)="searchCustomers()" class="px-4 py-2">
-          <hlm-icon name="lucideUserRoundSearch" hlmMenuIcon />
-          Kunden
-        </button>
+          <button
+            hlmMenuItem
+            routerLink="/dicom"
+            routerLinkActive="bg-gray-100"
+            class="px-4 py-2">
+            <hlm-icon name="lucideFilm" hlmMenuIcon />
+            Röntgen
+          </button>
 
-        <button
-          hlmMenuItem
-          routerLink="/calllogs"
-          routerLinkActive="bg-gray-100"
-          class="px-4 py-2">
-          <hlm-icon name="lucidePhoneCall" hlmMenuIcon />
-          Anruf-Journal
-        </button>
+          <button hlmMenuItem (click)="searchCustomers()" class="px-4 py-2">
+            <hlm-icon name="lucideUserRoundSearch" hlmMenuIcon />
+            Kunden
+          </button>
+        </hlm-menu-group>
 
-        <button
-          hlmMenuItem
-          routerLink="/on-call"
-          routerLinkActive="bg-gray-100"
-          class="px-4 py-2">
-          <hlm-icon name="lucidePhoneForwarded" hlmMenuIcon />
-          Umleitungen
-        </button>
+        <hlm-menu-separator />
 
-        <button
-          hlmMenuItem
-          routerLink="/dicom"
-          routerLinkActive="bg-gray-100"
-          class="px-4 py-2">
-          <hlm-icon name="lucideFilm" hlmMenuIcon />
-          Röntgen
-        </button>
-      </hlm-menu-group>
+        <hlm-menu-group>
+          <hlm-menu-label class="flex flex-row items-center justify-between">
+            Verwaltung
+          </hlm-menu-label>
 
-      <hlm-menu-group>
+          <button
+            hlmMenuItem
+            routerLink="/roster"
+            routerLinkActive="bg-gray-100"
+            class="px-4 py-2">
+            <hlm-icon name="lucideTimer" hlmMenuIcon />
+            Dienstplan
+          </button>
+
+          <button
+            hlmMenuItem
+            class="px-4 py-2"
+            routerLink="/offtime"
+            routerLinkActive="bg-gray-100">
+            <hlm-icon name="lucideLayers" hlmMenuIcon />
+            Urlaubsanträge
+          </button>
+        </hlm-menu-group>
+
+        <hlm-menu-separator />
+
+        <hlm-menu-group>
+          <hlm-menu-label class="flex flex-row items-center justify-between">
+            Telefon
+          </hlm-menu-label>
+
+          <button
+            hlmMenuItem
+            routerLink="/calllogs"
+            routerLinkActive="bg-gray-100"
+            class="px-4 py-2">
+            <hlm-icon name="lucidePhoneCall" hlmMenuIcon />
+            Anruf-Journal
+          </button>
+
+          <button
+            hlmMenuItem
+            routerLink="/on-call"
+            routerLinkActive="bg-gray-100"
+            class="px-4 py-2">
+            <hlm-icon name="lucidePhoneForwarded" hlmMenuIcon />
+            Umleitungen
+          </button>
+        </hlm-menu-group>
+
         @if (mailboxes().length > 1) {
           <button
             hlmMenuItem
@@ -209,10 +231,10 @@
     <!-- Copyright -->
     <span
       class="flex flex-col items-center justify-around py-2 text-center text-xs text-gray-500">
-      <span class="font-semibold text-gray-700">V1.19</span>
+      <span class="font-semibold text-gray-700">V1.70</span>
       <span>
         <hlm-icon name="lucideCopyright" size="sm" />
-        2019 - 2023
+        2019 - 2025
         <br />
         <a href="https://github.com/tierklinik-dobersberg" target="_blank"
           >Tierklinik Dobersberg</a
