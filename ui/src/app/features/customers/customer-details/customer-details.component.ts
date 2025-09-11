@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
 import { Component, computed, DestroyRef, effect, inject, signal, TemplateRef, ViewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -16,12 +16,12 @@ import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { HlmTabsModule } from '@tierklinik-dobersberg/angular/tabs';
 import { CalendarEvent, ListEventsResponse } from '@tierklinik-dobersberg/apis/calendar/v1';
 import {
-    Anamnesis,
-    Customer,
-    GetPatientsByCustomerResponse,
-    ImportState,
-    Patient,
-    PatientGender
+  Anamnesis,
+  Customer,
+  GetPatientsByCustomerResponse,
+  ImportState,
+  Patient,
+  PatientGender
 } from '@tierklinik-dobersberg/apis/customer/v1';
 import { MarkdownModule } from 'ngx-markdown';
 import { toast } from 'ngx-sonner';
@@ -34,7 +34,7 @@ import { CustomerDetailsTableComponent } from '../customer-details-table';
 @Component({
   standalone: true,
   templateUrl: './customer-details.component.html',
-  imports: [HlmButtonDirective, MarkdownModule, HlmTableModule, HlmTabsModule, HlmCardModule, CustomerDetailsTableComponent, ToDatePipe, HlmBadgeModule, DatePipe, HlmIconComponent, BrnTabsDirective, AppEventListComponent],
+  imports: [HlmButtonDirective, MarkdownModule, HlmTableModule, HlmTabsModule, HlmCardModule, CustomerDetailsTableComponent, ToDatePipe, HlmBadgeModule, DatePipe, HlmIconComponent, BrnTabsDirective, AppEventListComponent, AsyncPipe],
   providers: [
     ...provideIcons({
         lucideUserRound
