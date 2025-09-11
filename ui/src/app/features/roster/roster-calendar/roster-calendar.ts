@@ -87,7 +87,10 @@ export class RosterCalendarComponent {
                     return
                 }
 
-                this.shifts.set(response.roster[0].shifts.filter(shift => shift.assignedUserIds?.length > 0))
+                this.shifts.set(
+                    // Do not show empty shifts
+                    response.roster[0].shifts.filter(shift => shift.assignedUserIds?.length > 0)
+                )
             })
         })
     }

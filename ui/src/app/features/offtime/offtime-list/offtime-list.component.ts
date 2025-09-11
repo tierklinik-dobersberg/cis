@@ -96,6 +96,7 @@ import { TextInputComponent } from 'src/app/components/text-input';
 import { UserColorVarsDirective } from 'src/app/components/user-color-vars';
 import { HeaderTitleService } from 'src/app/layout/header-title';
 import { injectStoredConfig, injectStoredProfile } from 'src/app/utils/inject-helpers';
+import { OfftimeEntryHistoryComponent } from '../offtime-entry-history/offtime-entry-history.component';
 import { Column, OfftimeTableComponent } from '../offtime-table/offtime-table.component';
 import { MatchingOfftimePipe } from '../pipes/matching-offtime.pipe';
 import {
@@ -148,7 +149,8 @@ import {
     HlmSeparatorModule,
     HlmCardModule,
     OfftimeTableComponent,
-    NgTemplateOutlet
+    NgTemplateOutlet,
+    OfftimeEntryHistoryComponent,
   ],
   providers: [
     ...provideIcons({
@@ -426,8 +428,8 @@ export class OffTimeListComponent implements OnInit {
             ?.forEach(sum => {
               sum.costs
                 ?.forEach(cost => {
-                  if (last === null || cost.createdAt?.seconds > last.seconds) {
-                    last = cost.createdAt;
+                  if (last === null || cost.date?.seconds > last.seconds) {
+                    last = cost.date;
                   }
                 })
             }) 

@@ -1,12 +1,11 @@
 import { Route } from '@angular/router';
 import { ComputerAccountGuard } from 'src/app/guards';
-import { OffTimeListComponent } from './offtime-list/offtime-list.component';
 
 export const OFFTIME_ROUTES: Route[] = [
   {
     path: '',
     pathMatch: 'full',
-    component: OffTimeListComponent,
+    loadComponent: () => import('./offtime-list/offtime-list.component').then(m => m.OffTimeListComponent),
   },
   {
     path: 'create',

@@ -1,0 +1,107 @@
+<hlm-table>
+  <hlm-trow>
+    <hlm-th
+      [ngClass]="{
+        'flex-[0_0_4rem]': !layout.sm(),
+        'flex-[0_0_8rem]': layout.sm(),
+      }">
+      Datum</hlm-th
+    >
+    <hlm-th class="flex-[0_1_8rem]">Änderung</hlm-th>
+    <hlm-th class="flex-[0_1_8rem]">Art</hlm-th>
+    <hlm-th class="flex-1">Grund</hlm-th>
+
+    @if (layout.md()) {
+      <hlm-th class="flex-1">Kommentar</hlm-th>
+    }
+    @if (layout.sm()) {
+      <hlm-th
+        class="overflow-hidden"
+        [ngClass]="{
+          'flex-[0_1_8rem]': !layout.xl(),
+          'flex-[0_1_14rem]': layout.xl(),
+        }">
+        Erstellt von
+      </hlm-th>
+    }
+  </hlm-trow>
+
+  @for (c of data(); track c.id) {
+    <hlm-trow>
+      <hlm-td
+        [ngClass]="{
+          'flex-[0_0_4rem]': !layout.sm(),
+          'flex-[0_0_8rem]': layout.sm(),
+        }">
+        {{ c.date | toDate | date: (layout.sm() ? 'mediumDate' : 'shortDate') }}
+      </hlm-td>
+
+      <hlm-td class="flex-[0_1_8rem]">
+        <span
+          hlmBadge
+          variant="secondary"
+          class="flex min-w-16 flex-row items-center justify-between gap-2">
+          <hlm-icon
+            [class]="c.iconClass + ' -ml-2'"
+            size="sm"
+            [name]="c.iconName" />
+          {{ c.costs | duration: 'default-hours' }}
+        </span>
+      </hlm-td>
+
+      <hlm-td class="flex-[0_1_8rem]">
+        @switch (c.isVacation) {
+          @case (true) {
+            <span hlmBadge variant="default">Urlaub</span>
+          }
+          @case (false) {
+            <span hlmBadge variant="outline">ZA</span>
+          }
+        }
+      </hlm-td>
+
+      <hlm-td class="flex-1">
+        @if (c.roster) {
+          <a
+            class="flex cursor-pointer flex-col hover:text-secondary-foreground"
+            (click)="openRoster(c.roster)">
+            <span> Dienstplan: </span>
+            <span class="underline">
+              {{ c.roster.from | toDate | date: 'MMM YY' }}
+            </span>
+            @if (c.expected) {
+              <span class="text-secondary-foreground">
+                {{ c.planned | duration: 'default-hours' }} /
+                {{ c.expected | duration: 'default-hours' }}
+              </span>
+            }
+          </a>
+        } @else if (c.offtimeId) {
+          Urlaubsantrag
+        } @else {
+          <span class="whitespace-nowrap text-secondary-foreground">N/A</span>
+        }
+      </hlm-td>
+
+      @if (layout.md()) {
+        <hlm-td class="flex-1">
+          <span
+            class="[--webkit-box-orient=vertical] line-clamp-2 overflow-hidden text-ellipsis"
+            [innerHTML]="c.comment | markdown | async">
+          </span>
+        </hlm-td>
+      }
+
+      @if (layout.sm()) {
+        <hlm-td
+          class="overflow-hidden"
+          [ngClass]="{
+            'flex-[0_1_8rem]': !layout.xl(),
+            'flex-[0_1_14rem]': layout.xl(),
+          }">
+          <app-avatar [user]="c.creatorId" [showName]="layout.xl()" />
+        </hlm-td>
+      }
+    </hlm-trow>
+  }
+</hlm-table>

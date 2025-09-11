@@ -61,10 +61,11 @@
 
   <div hlmCardContent>
     <hlm-tabs class="w-full" tab="myentries">
-      <hlm-tabs-list class="grid w-full grid-cols-3">
+      <hlm-tabs-list class="grid !h-auto w-full grid-cols-2 sm:grid-cols-4">
         <button hlmTabsTrigger="myentries">Meine Anträge</button>
         <button hlmTabsTrigger="overview">Übersicht</button>
         <button hlmTabsTrigger="calendar">Kalender</button>
+        <button hlmTabsTrigger="history">Historie</button>
       </hlm-tabs-list>
 
       <div hlmTabsContent="myentries">
@@ -134,6 +135,10 @@
             (onHovered)="hoveredEntry.set($event)"
             (onShowComments)="selectedEntry.set($event); sheet.open()" />
         </div>
+      </div>
+
+      <div hlmTabsContent="history">
+        <offtime-entry-history />
       </div>
 
       <div hlmTabsContent="calendar">

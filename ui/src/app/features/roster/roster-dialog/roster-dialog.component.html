@@ -1,0 +1,7 @@
+@if (rosterDate | toDate; as date) {
+  <hlm-dialog-header>
+    <h3 hlmDialogTitle>Dienstplan vom {{ date | date: 'MMMM YYYY' }}</h3>
+  </hlm-dialog-header>
+
+  <app-roster-calendar [calendarDate]="date" />
+}

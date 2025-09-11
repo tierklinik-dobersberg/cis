@@ -16,7 +16,7 @@
     </hlm-sheet-header>
 
     <ul class="mt-1 h-full overflow-scroll border-t border-border pt-1">
-      @for (item of items(); track trackItem; let index = $index) {
+      @for (item of items(); track trackItem(); let index = $index) {
         @for (grp of groups; track grp) {
           @if (grp.when()(item, items()[index - 1])) {
             <ng-container *ngTemplateOutlet="grp.templateRef" />
