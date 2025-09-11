@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, T
 import { FormsModule } from '@angular/forms';
 import { Timestamp } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
-import { lucideAlarmClock, lucideX } from '@ng-icons/lucide';
+import { lucideAlarmClock, lucideTrash } from '@ng-icons/lucide';
 import { BrnDialogRef, BrnDialogService, BrnDialogState } from '@spartan-ng/ui-dialog-brain';
 import { HlmBadgeDirective } from '@tierklinik-dobersberg/angular/badge';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
@@ -16,10 +16,10 @@ import { ToDatePipe } from '@tierklinik-dobersberg/angular/pipes';
 import { HlmSheetModule } from '@tierklinik-dobersberg/angular/sheet';
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import {
-    Board,
-    ListTasksResponse,
-    Task,
-    TaskEvent,
+  Board,
+  ListTasksResponse,
+  Task,
+  TaskEvent,
 } from '@tierklinik-dobersberg/apis/tasks/v1';
 import { merge } from 'hammerjs';
 import { toast } from 'ngx-sonner';
@@ -55,7 +55,7 @@ import { TkdDatePickerTriggerComponent } from "../../../components/date-picker/p
   providers: [
     ...provideIcons({
         lucideAlarmClock,
-        lucideX
+        lucideTrash
     })
   ]
 })
