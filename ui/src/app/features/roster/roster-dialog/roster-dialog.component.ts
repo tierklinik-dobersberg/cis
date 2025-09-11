@@ -29,6 +29,7 @@ export class RosterDialogComponent extends AbstractBaseDialog {
 
     public static open(service: HlmDialogService, ctx: RosterDialogContext): BrnDialogRef<unknown> {
         return service.open(RosterDialogComponent, {
+            context: ctx,
             contentClass: hlm(DIALOG_CONTENT_CLASS, '!w-screen !h-screen !w-[100dvw] !h-[100-dvh] overflow-auto !max-h-screen !max-h-[100dvh')
         })
     }
