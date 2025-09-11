@@ -46,7 +46,7 @@
     <hlm-th class="w-48 overflow-hidden text-ellipsis">
       Kunde / Zusammenfassung
     </hlm-th>
-    <hlm-td class="whitespace-normal">
+    <hlm-td class="flex flex-row justify-between whitespace-normal">
       @if (edit()) {
         <input
           type="text"
@@ -141,7 +141,7 @@
           }
         </mat-autocomplete>
       } @else {
-        {{ event.summary }}
+        <span>{{ event.summary }}</span>
 
         @if (customer(); as customer) {
           <button hlmBtn variant="secondary" (click)="openCustomerDetails()">
@@ -162,7 +162,8 @@
           [config]="config"
           [(ngModel)]="description" />
       } @else {
-        <span [innerHTML]="event.description || 'N/A'"></span>
+        <span
+          [innerHTML]="(event.description | markdown | async) || 'N/A'"></span>
       }
     </hlm-td>
   </hlm-trow>
