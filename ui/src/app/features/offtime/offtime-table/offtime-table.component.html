@@ -18,17 +18,31 @@
     *cdkRowDef="let row; columns: columns()"
     class="flex w-fit min-w-[100%] border-b border-border transition-[background-color] hover:bg-muted/50 [&:has([role=checkbox][aria-checked=true])]:bg-muted" />
 
-  <brn-column-def name="from" class="flex-[0_0_4rem]">
+  <brn-column-def name="from" class="flex-[0_0_6rem]">
     <hlm-th *brnHeaderDef> Von </hlm-th>
     <hlm-td *brnCellDef="let entry">
-      {{ entry.from | toDate | date: 'dd.MM hh:mm' }}
+      <span class="flex flex-col">
+        <span class="whitespace-nowrap">
+          {{ entry.from | toDate | date: 'dd.MM.YY' }}
+        </span>
+        <span>
+          {{ entry.from | toDate | date: 'hh:mm' }}
+        </span>
+      </span>
     </hlm-td>
   </brn-column-def>
 
-  <brn-column-def name="to" class="flex-[0_0_4rem]">
+  <brn-column-def name="to" class="flex-[0_0_6rem]">
     <hlm-th *brnHeaderDef> Bis </hlm-th>
     <hlm-td *brnCellDef="let entry">
-      {{ entry.to | toDate | date: 'dd.MM hh:mm' }}
+      <span class="flex flex-col">
+        <span class="whitespace-nowrap">
+          {{ entry.to | toDate | date: 'dd.MM.YY' }}
+        </span>
+        <span>
+          {{ entry.to | toDate | date: 'hh:mm' }}
+        </span>
+      </span>
     </hlm-td>
   </brn-column-def>
 
