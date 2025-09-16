@@ -11,7 +11,10 @@ import {
   TrackByFunction,
 } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { lucidePlus, lucideTrash } from '@ng-icons/lucide';
 import { BrnTooltipModule } from '@spartan-ng/ui-tooltip-brain';
+import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
+import { HlmIconComponent, provideIcons } from '@tierklinik-dobersberg/angular/icon';
 import { HlmInputDirective } from '@tierklinik-dobersberg/angular/input';
 import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
 
@@ -27,6 +30,10 @@ import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
       multi: true,
       useExisting: forwardRef(() => TkdStringSliceInputComponent),
     },
+    ...provideIcons({
+      lucideTrash,
+      lucidePlus
+    })
   ],
   standalone: true,
   imports: [
@@ -35,6 +42,8 @@ import { HlmTooltipModule } from '@tierklinik-dobersberg/angular/tooltip';
     BrnTooltipModule,
     HlmTooltipModule,
     HlmInputDirective,
+    HlmIconComponent,
+    HlmButtonDirective,
   ]
 })
 export class TkdStringSliceInputComponent implements ControlValueAccessor {

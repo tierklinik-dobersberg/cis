@@ -11,8 +11,11 @@ import {
 import { FormsModule, NgModel } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { provideIcons } from '@ng-icons/core';
+import { lucidePencil, lucidePlus, lucideTrash } from '@ng-icons/lucide';
 import { HlmButtonDirective } from '@tierklinik-dobersberg/angular/button';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
+import { HlmIconComponent } from '@tierklinik-dobersberg/angular/icon';
 import { HlmTableModule } from '@tierklinik-dobersberg/angular/table';
 import { toast } from 'ngx-sonner';
 import {
@@ -46,7 +49,11 @@ import { SettingTestComponent } from '../setting-test';
     RouterLink,
     HlmButtonDirective,
     SettingEditorComponent,
-    FormsModule
+    FormsModule,
+    HlmIconComponent  
+  ],
+  providers: [
+    ...provideIcons({lucidePlus, lucideTrash, lucidePencil})
   ]
 })
 export class SettingViewComponent implements OnInit, OnDestroy {

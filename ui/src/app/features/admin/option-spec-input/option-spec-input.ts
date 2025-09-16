@@ -1,4 +1,5 @@
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -51,6 +52,7 @@ export type NamedOptionSpec = OptionSpec & { displayName?: string };
     FormsModule,
     CKEditorModule,
     TkdStringSliceInputComponent,
+    NgTemplateOutlet,
   ]
 })
 export class TkdOptionSpecInputComponent
