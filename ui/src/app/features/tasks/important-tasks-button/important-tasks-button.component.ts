@@ -1,6 +1,7 @@
 import { DialogRef } from '@angular/cdk/dialog';
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, signal, TemplateRef, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Timestamp } from '@bufbuild/protobuf';
 import { ConnectError } from '@connectrpc/connect';
@@ -64,6 +65,7 @@ export class ImportantTasksButtonComponent {
   private readonly boardService = injectBoardService();
   private readonly eventsService = inject(EventService)
   private readonly dialog = inject(BrnDialogService)
+  private readonly destroyRef = inject(DestroyRef)
 
   protected readonly config = injectCurrentConfig();
   protected readonly importantTasks = signal<Task[]>([]);
@@ -129,6 +131,7 @@ export class ImportantTasksButtonComponent {
       // TODO(ppacher): propose that BrnDialogRef makes acess to cdkDialogRef public.
       ((this.dialogRef as any)._cdkDialogRef as DialogRef)
         .outsidePointerEvents
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(e => {
           console.log("state", this.datePickerState())
           if (this.datePickerState() === 'open') {

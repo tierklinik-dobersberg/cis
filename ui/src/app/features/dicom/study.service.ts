@@ -1,14 +1,15 @@
 
 import { DOCUMENT } from '@angular/common';
 import { inject, Injectable } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Duration as DurationPb, PartialMessage } from '@bufbuild/protobuf';
 import { injectOrthancClient } from '@tierklinik-dobersberg/angular/connect';
 import { HlmDialogService } from '@tierklinik-dobersberg/angular/dialog';
 import { Duration } from '@tierklinik-dobersberg/angular/utils/date';
 import {
-    DownloadType,
-    InstanceReceivedEvent,
-    Study,
+  DownloadType,
+  InstanceReceivedEvent,
+  Study,
 } from '@tierklinik-dobersberg/apis/orthanc_bridge/v1';
 import { toast } from 'ngx-sonner';
 import { Subject } from 'rxjs';
@@ -145,6 +146,7 @@ export class StudyService {
   constructor() {
     this.eventsService
       .subscribe(new InstanceReceivedEvent())
+      .pipe(takeUntilDestroyed())
       .subscribe(event => {
         if (!this.seenStudies.has(event.studyUid)) {
           this.instanceReceived$.next(event);

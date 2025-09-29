@@ -5,16 +5,16 @@
     <h3 hlmCardTitle>
       @switch (_computedDateKind()) {
         @case ('yesterday') {
-          Gestern im Dienst
+          Gestern
         }
         @case ('today') {
-          Heute im Dienst
+          Heute
         }
         @case ('tomorrow') {
-          Morgen im Dienst
+          Morgen
         }
         @default {
-          Im Dienst am {{ calendarDate() | date: 'EE, d.MM' }}
+          {{ calendarDate() | date: 'EEEE, d.MM' }}
         }
       }
     </h3>

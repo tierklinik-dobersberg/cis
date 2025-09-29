@@ -14,27 +14,22 @@
       [(ngModel)]="value[index]"
       (blur)="_onBlur()"
       (ngModelChange)="_onChanged(value)" />
-    <hlm-tooltip>
-      <button
-        hlmTooltipTrigger
-        hlmBtn
-        size="icon"
-        class="tkd-icon-btn tkd-small tkd-secondary no-shadow"
-        nzTooltipPlacement="'right'"
-        [ngClass]="{ 'pointer-events-none hidden': !last }"
-        (click)="addEntry()">
-        <hlm-icon name="lucidePlus" />
-      </button>
-      <button
-        hlmTooltipTrigger
-        hlmBtn
-        size="icon"
-        class="tkd-icon-btn tkd-small tkd-secondary no-shadow"
-        [ngClass]="{ 'pointer-events-none hidden': last }"
-        (click)="removeEntry(index)">
-        <hlm-icon name="lucideTrash" />
-      </button>
-      <span *brnTooltipContent hlm>{{ tooltip }}</span>
-    </hlm-tooltip>
+    <button
+      hlmBtn
+      size="icon"
+      variant="outline"
+      nzTooltipPlacement="'right'"
+      [ngClass]="{ 'pointer-events-none hidden': !last }"
+      (click)="addEntry()">
+      <hlm-icon name="lucidePlus" size="sm" />
+    </button>
+    <button
+      hlmBtn
+      size="icon"
+      variant="outline"
+      [ngClass]="{ 'pointer-events-none hidden': last }"
+      (click)="removeEntry(index)">
+      <hlm-icon name="lucideTrash" size="sm" />
+    </button>
   </div>
 }

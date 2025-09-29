@@ -1,4 +1,5 @@
 import { effect, inject, Injectable, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Timestamp } from "@bufbuild/protobuf";
 import { Code, ConnectError } from "@connectrpc/connect";
 import { BrnDialogRef } from "@spartan-ng/ui-dialog-brain";
@@ -26,6 +27,7 @@ export class EmergencyTargetService {
     // OnCallChangeEvent
     this.eventService
       .subscribe(new OnCallChangeEvent)
+      .pipe(takeUntilDestroyed())
       .subscribe(event => {
         console.log("recieved OnCallChangeEvent, fetching active overwrite")
         this._update.set(new Date())

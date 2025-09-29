@@ -1,7 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit, TemplateRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { Subscription } from 'rxjs';
 import { HeaderTitleService, PageHeader } from './header.service';
 
 @Component({
@@ -48,11 +48,11 @@ import { HeaderTitleService, PageHeader } from './header.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
 })
-export class HeaderTitleOutletComponent implements OnInit, OnDestroy {
+export class HeaderTitleOutletComponent implements OnInit {
   header?: PageHeader = {title: '', description: ''};
   headerTemplate?: TemplateRef<any>;
 
-  private subscription = Subscription.EMPTY;
+  private destroyRef = inject(DestroyRef)
 
   constructor(
     private headerService: HeaderTitleService,
@@ -60,21 +60,18 @@ export class HeaderTitleOutletComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.subscription = this.headerService.change.subscribe(header => {
+    this.headerService.change
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(header => {
+        if (header instanceof TemplateRef) {
+          this.header = null;
+          this.headerTemplate = header
+        } else {
+          this.header = header;
+          this.headerTemplate = null
+        }
 
-      if (header instanceof TemplateRef) {
-        this.header = null;
-        this.headerTemplate = header
-      } else {
-        this.header = header;
-        this.headerTemplate = null
-      }
-
-      this.changeDetectorRef.markForCheck();
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+        this.changeDetectorRef.markForCheck();
+      });
   }
 }

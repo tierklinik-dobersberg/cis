@@ -18,7 +18,8 @@ export class ActiveCallerToastService {
   constructor() {
     const activeCallerToastMap = new Map<string, any>();
 
-    this.eventsService.subscribe(new CallRecordReceived())
+    this.eventsService
+      .subscribe(new CallRecordReceived())
       .subscribe(evt => {
       const caller = evt.callEntry.caller;
 

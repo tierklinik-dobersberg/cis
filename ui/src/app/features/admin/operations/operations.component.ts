@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ConnectError } from '@connectrpc/connect';
 import { HlmBadgeDirective } from '@tierklinik-dobersberg/angular/badge';
 import { injectUserProfiles } from '@tierklinik-dobersberg/angular/behaviors';
@@ -29,6 +30,7 @@ export class OperationsComponent implements OnInit {
     private readonly longRunning = injectLongRunning();
     private readonly headerService = inject(HeaderTitleService);
     private readonly events = inject(EventService)
+    private readonly destroyRef = inject(DestroyRef)
     protected readonly operations = signal<Operation[]>([]);
     protected readonly profiles = injectUserProfiles();
 
@@ -43,6 +45,7 @@ export class OperationsComponent implements OnInit {
             this.events.listen([new Operation]),
         ])
             .pipe(
+                takeUntilDestroyed(this.destroyRef),
                 startWith(0),
                 switchMap(() => {
                     return this.longRunning

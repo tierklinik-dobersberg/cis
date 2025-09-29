@@ -105,6 +105,7 @@ export class AppNavigationComponent {
       interval(60 * 1000 * 5).pipe(startWith(0)),
     )
     .pipe(
+      takeUntilDestroyed(),
       filter((a) => {
         if (!this.profile()) {
           console.log("not loading boards, profile not ready")
