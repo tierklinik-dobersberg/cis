@@ -20,7 +20,7 @@
     <hlm-td>
       @if (edit() && availableCalendars().length) {
         <brn-select [(ngModel)]="calendarId" required class="w-full">
-          <hlm-select-trigger class="w-full flex-1">
+          <hlm-select-trigger class="flex-1 w-full">
             <hlm-select-value />
           </hlm-select-trigger>
 
@@ -62,7 +62,7 @@
           (ngModelChange)="searchCustomer($event)"
           #trigger="matAutocompleteTrigger"
           [matAutocomplete]="isNew() ? auto : null"
-          class="w-full flex-1" />
+          class="flex-1 w-full" />
 
         <mat-autocomplete
           [displayWith]="customerName"
@@ -82,7 +82,7 @@
                   [value]="customer"
                   class="!h-auto !min-h-[unset] !p-2 !font-sans !text-sm !font-medium [&>span]:!w-full">
                   <div
-                    class="flex w-full flex-row items-center justify-between">
+                    class="flex flex-row items-center justify-between w-full">
                     <span class="font-bold">
                       {{ customer.lastName }} {{ customer.firstName }}
                     </span>
@@ -113,7 +113,7 @@
                     [value]="customer"
                     class="!h-auto !min-h-[unset] !p-2 !font-sans !text-sm !font-medium [&>span]:!w-full">
                     <div
-                      class="flex w-full flex-row items-center justify-between">
+                      class="flex flex-row items-center justify-between w-full">
                       <span class="font-bold">
                         {{ customer.lastName }} {{ customer.firstName }}
                       </span>
@@ -175,7 +175,7 @@
     <hlm-trow>
       <hlm-th class="w-48 overflow-hidden text-ellipsis">Benötigt</hlm-th>
       <hlm-td class="flex flex-col items-start justify-start gap-1">
-        <ul class="flex w-full flex-row justify-between gap-2">
+        <ul class="flex flex-row justify-between w-full gap-2">
           @for (res of availableResources(); track res.name) {
             <li>
               <label hlmLabel class="flex items-center">
@@ -248,7 +248,7 @@
 <div class="flex-grow"></div>
 
 <hlm-dialog-footer
-  class="mt-4 flex flex-row flex-wrap items-center justify-between gap-2 p-1">
+  class="flex flex-row flex-wrap items-center justify-between gap-2 p-1 mt-4">
   @if (isNew()) {
     <button
       variant="outline"
@@ -268,10 +268,20 @@
     @if (edit()) {
       <button hlmBtn (click)="isNew() ? create() : save()">Speichern</button>
     } @else {
-      <button hlmBtn (click)="edit.set(true)">Bearbeiten</button>
+      <button hlmBtn variant="outline" (click)="edit.set(true)">Bearbeiten</button>
     }
 
     @if (!isNew()) {
+      @if(completed()) {
+        <button hlmBtn variant="outline" (click)="completeEvent(false)">
+          Öffnen
+        </button>
+      } @else {
+        <button hlmBtn variant="outline" (click)="completeEvent(true)">
+          Abschließen
+        </button>
+      }
+      
       <hlm-alert-dialog #deleteDialog>
         <button hlmBtn variant="destructive" brnAlertDialogTrigger>
           Löschen

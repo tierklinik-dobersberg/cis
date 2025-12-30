@@ -88,7 +88,7 @@ export class UpcomingEventsCardComponent {
   protected readonly calendarDate = signal(new Date());
   protected readonly profiles = injectUserProfiles();
 
-  protected readonly eventsToShow = model<'all' | 'upcoming' | 'breaks'>('upcoming');
+  protected readonly eventsToShow = model<'all' | 'upcoming' | 'breaks' | 'completed'>('upcoming');
 
   public readonly displayedCalendars = input<string[]>([]);
 
@@ -102,6 +102,9 @@ export class UpcomingEventsCardComponent {
         switch (eventsToShow) {
           case 'all':
             break;
+
+          case 'completed':
+            return e.completed
 
           case 'breaks':
             if (e.isFree) {

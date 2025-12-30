@@ -236,6 +236,7 @@ export class AppEventDetailsDialogComponent
   protected readonly availableResources = signal<ResourceCalendar[]>([]);
   protected readonly selectedResources = signal<string[]>([]);
   protected readonly customer = signal<CustomerResponse | null>(null);
+  protected readonly completed = signal(false);
 
   protected readonly matchingCustomers = signal<Customer[]>([]);
   protected readonly matchingTreatments = signal<Treatment[]>([]);
@@ -305,6 +306,7 @@ export class AppEventDetailsDialogComponent
       this.description.set(this.event.description);
       this.startTime.set(this.event.startTime.toDate());
       this.selectedResources.set(this.event.resources || []);
+      this.completed.set(this.event.completed);
       this.duration.set(
         Duration.seconds(
           getSeconds(this.event.endTime) - getSeconds(this.event.startTime)
@@ -350,6 +352,7 @@ export class AppEventDetailsDialogComponent
       this.edit.set(true);
       this.isNew.set(true);
       this.createTime.set(null);
+      this.completed.set(false)
 
       const now = new Date();
       const before = addMinutes(now, -5);
@@ -612,6 +615,33 @@ export class AppEventDetailsDialogComponent
         description: ConnectError.from(err).message,
       });
     }
+  }
+
+  protected async completeEvent(completed: boolean) {
+    const req = new UpdateEventRequest({
+      calendarId: this.event.calendarId,
+      eventId: this.event.id,
+      completed,
+      updateMask: {
+        paths: ['completed']
+      }
+    })
+
+      const response = await this.calendarService
+        .updateEvent(req)
+        .catch(err => {
+          toast.error('Termin konnte nicht gespeichert werden', {
+            description: ConnectError.from(err).message,
+          });
+
+          return null;
+        });
+
+      if (response) {
+        this.event = response.event;
+      } else {
+        return;
+      }
   }
 
   protected async save() {

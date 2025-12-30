@@ -344,6 +344,7 @@ export class CalendarViewService {
             duration: duration,
             fullDay: false,
             isFree: false,
+            completed: false,
             isOnCall: rosterTypes.some(type =>
               type.onCallTags.some(tag => def.tags.includes(tag))
             ),

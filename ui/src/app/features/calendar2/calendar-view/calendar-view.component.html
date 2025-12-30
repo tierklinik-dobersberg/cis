@@ -2,7 +2,7 @@
   <header
     class="z-10 flex flex-row items-center gap-2 pb-4 xl:max-h-full xl:min-w-[390px] xl:flex-col xl:border-l xl:border-r xl:border-t xl:border-border xl:bg-white xl:pb-8">
     <!-- Date controls -->
-    <div class="flex flex-row flex-nowrap gap-1 xl:p-4">
+    <div class="flex flex-row gap-1 flex-nowrap xl:p-4">
       <tkd-date-picker
         [ngModel]="currentDate()"
         (ngModelChange)="setDate($event)"
@@ -28,7 +28,7 @@
     <div class="flex-grow xl:hidden"></div>
 
     <ng-template #calendarTabs>
-      <div class="w-full flex-grow overflow-auto xl:p-4">
+      <div class="flex-grow w-full overflow-auto xl:p-4">
         <hlm-tabs tab="calendars" class="w-full">
           <hlm-tabs-list
             class="grid w-full grid-cols-2"
@@ -46,7 +46,7 @@
           </div>
 
           <div hlmTabsContent="calendars">
-            <ol class="flex h-full w-full list-none flex-col gap-4">
+            <ol class="flex flex-col w-full h-full gap-4 list-none">
               @for (cal of viewState().calendars; track cal.id) {
                 <li>
                   <label
@@ -72,12 +72,12 @@
     <ng-template #zoomControls>
       <!-- Zoom Controls -->
       <div
-        class="flex flex-row flex-nowrap items-center gap-0 xl:w-full xl:border-t xl:border-gray-100 xl:p-2">
+        class="flex flex-row items-center gap-0 flex-nowrap xl:w-full xl:border-t xl:border-gray-100 xl:p-2">
         <button
           hlmBtn
           variant="outline"
           size="sm"
-          class="rounded-r-none border-r-0"
+          class="border-r-0 rounded-r-none"
           (click)="dayView.zoomIn()">
           <hlm-icon name="lucideZoomIn" size="sm" />
         </button>
@@ -126,8 +126,8 @@
         </button>
 
         <hlm-sheet-content *brnSheetContent="let ctx">
-          <div class="mt-4 flex h-full flex-col gap-3">
-            <div class="flex flex-grow flex-col">
+          <div class="flex flex-col h-full gap-3 mt-4">
+            <div class="flex flex-col flex-grow">
               <ng-container *ngTemplateOutlet="calendarTabs" />
             </div>
 
@@ -189,8 +189,9 @@
         </div>
       </brn-popover>
 
+
       <div
-        class="event-container h-full w-full transform overflow-hidden drop-shadow hover:bg-blend-difference hover:shadow-lg">
+        class="w-full h-full overflow-hidden transform event-container drop-shadow hover:bg-blend-difference hover:shadow-lg">
         <div
           [appPopoverTrigger]="event"
           [appPopoverTriggerMode]="'shared-side'"
@@ -200,16 +201,23 @@
           [userColorVars]="calendar.id | byCalendarId: profiles()"
           [style.--user-color]="event.colorOverwrite || null"
           [style.--user-contrast]="event.colorOverwrite || null | contrast"
+          [class.opacity-50]="event.completed"
           class="event-details h-full w-full overflow-hidden border border-[var(--user-contrast)] bg-[var(--user-color,white)] p-2 text-xs text-[var(--user-contrast)]">
           <div
-            class="event-summary relative flex w-full flex-row flex-wrap justify-between gap-1 overflow-hidden">
+            class="relative flex flex-row flex-wrap justify-between w-full gap-1 overflow-hidden event-summary">
             <span
-              class="event-summary flex-shrink-0 overflow-hidden text-ellipsis font-semibold">
+              class="flex-shrink-0 overflow-hidden font-semibold event-summary text-ellipsis">
+              @if(event.completed) {
+                <span class="font-extrabold">
+                ✓
+                </span>
+              }
+              
               {{ event.summary }}
             </span>
 
             <span
-              class="event-start-time flex flex-shrink flex-row gap-2 overflow-hidden text-opacity-25"
+              class="flex flex-row flex-shrink gap-2 overflow-hidden text-opacity-25 event-start-time"
               [class.pr-4]="!!event.customerId">
               <span> {{ event.startTime | toDate | date: 'HH:mm' }} - </span>
               <span>

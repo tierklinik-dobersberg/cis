@@ -1,11 +1,11 @@
 <section
   hlmCard
-  class="flex h-full flex-grow flex-col overflow-hidden"
+  class="flex flex-col flex-grow h-full overflow-hidden"
   #containerSize="containerSize"
   containerSize>
-  <div hlmCardHeader class="flex-shrink-0 flex-grow-0">
+  <div hlmCardHeader class="flex-grow-0 flex-shrink-0">
     <div
-      class="flex w-full flex-col items-center justify-between gap-4"
+      class="flex flex-col items-center justify-between w-full gap-4"
       sizeClass.sm="!flex-row">
       <div class="max-w-80 space-y-1.5">
         <h3 hlmCardTitle class="text-left">Termin Übersicht</h3>
@@ -17,15 +17,16 @@
 
       <div
         class="grid max-w-[30rem] flex-grow grid-cols-[1fr_2fr] items-stretch gap-4">
-        <brn-select [(ngModel)]="eventsToShow">
+        <brn-select [(ngModel)]="eventsToShow" class="w-56">
           <hlm-select-trigger class="w-full">
             <hlm-select-value />
           </hlm-select-trigger>
 
-          <hlm-select-content>
+          <hlm-select-content class="w-56">
             <hlm-option value="all">Alle Termine</hlm-option>
             <hlm-option value="upcoming">Nur bevorstehende</hlm-option>
             <hlm-option value="breaks">Freie Slots</hlm-option>
+            <hlm-option value="completed">Abgeschlossen</hlm-option>
           </hlm-select-content>
         </brn-select>
 

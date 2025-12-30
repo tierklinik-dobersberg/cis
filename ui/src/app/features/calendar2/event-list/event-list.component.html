@@ -1,37 +1,37 @@
-<ol class="flex h-full flex-col">
+<ol class="flex flex-col h-full">
   @if (loading()) {
     <li
-      class="relative flex cursor-pointer flex-row items-center gap-2 overflow-hidden border-b border-border p-2 text-gray-900 hover:bg-gray-50">
+      class="relative flex flex-row items-center gap-2 p-2 overflow-hidden text-gray-900 border-b cursor-pointer border-border hover:bg-gray-50">
       <div class="flex w-0 flex-[0_0_2.5rem] flex-col gap-1 text-sm">
-        <hlm-skeleton class="h-3 w-10" />
-        <hlm-skeleton class="h-3 w-10" />
+        <hlm-skeleton class="w-10 h-3" />
+        <hlm-skeleton class="w-10 h-3" />
       </div>
 
-      <hlm-skeleton class="h-3 w-32" />
+      <hlm-skeleton class="w-32 h-3" />
     </li>
     <li
-      class="relative flex cursor-pointer flex-row items-center gap-2 overflow-hidden border-b border-border p-2 text-gray-900 hover:bg-gray-50">
+      class="relative flex flex-row items-center gap-2 p-2 overflow-hidden text-gray-900 border-b cursor-pointer border-border hover:bg-gray-50">
       <div class="flex w-0 flex-[0_0_2.5rem] flex-col gap-1 text-sm">
-        <hlm-skeleton class="h-3 w-10" />
-        <hlm-skeleton class="h-3 w-10" />
+        <hlm-skeleton class="w-10 h-3" />
+        <hlm-skeleton class="w-10 h-3" />
       </div>
 
       <hlm-skeleton class="h-3 w-52" />
     </li>
     <li
-      class="relative flex cursor-pointer flex-row items-center gap-2 overflow-hidden border-b border-border p-2 text-gray-900 hover:bg-gray-50">
+      class="relative flex flex-row items-center gap-2 p-2 overflow-hidden text-gray-900 border-b cursor-pointer border-border hover:bg-gray-50">
       <div class="flex w-0 flex-[0_0_2.5rem] flex-col gap-1 text-sm">
-        <hlm-skeleton class="h-3 w-10" />
-        <hlm-skeleton class="h-3 w-10" />
+        <hlm-skeleton class="w-10 h-3" />
+        <hlm-skeleton class="w-10 h-3" />
       </div>
 
-      <hlm-skeleton class="h-3 w-40" />
+      <hlm-skeleton class="w-40 h-3" />
     </li>
   } @else {
     @for (event of _computedEvents(); track event.uniqueId) {
       <li
         [userColorVars]="event.profile"
-        class="relative flex flex-shrink-0 cursor-pointer flex-row items-center gap-2 overflow-hidden border-b border-border p-2 text-gray-900 hover:bg-gray-50"
+        class="relative flex flex-row items-center flex-shrink-0 gap-2 p-2 overflow-hidden text-gray-900 border-b cursor-pointer border-border hover:bg-gray-50"
         [ngClass]="{
           'bg-blue-50 opacity-75': event.isFree,
           'bg-yellow-50': event.isNow && !event.fullDay,
@@ -75,7 +75,13 @@
         }
 
         <span
-          class="flex-grow text-ellipsis whitespace-normal text-sm font-medium">
+          class="flex-grow text-sm font-medium whitespace-normal text-ellipsis">
+            @if(event.completed) {
+              <span class="font-extrabold">
+              ✓
+              </span>
+            }
+              
           {{ event.summary }}
         </span>
 
@@ -92,7 +98,7 @@
       </li>
     } @empty {
       <li
-        class="flex h-full flex-col items-center justify-center gap-4 self-stretch py-4">
+        class="flex flex-col items-center self-stretch justify-center h-full gap-4 py-4">
         @if (onlyUpcoming()) {
           <hlm-icon name="lucideCircleCheck" size="xl" class="text-green-500" />
           Keine Termine mehr

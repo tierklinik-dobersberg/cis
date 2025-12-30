@@ -109,6 +109,8 @@ import {
 } from '../event-details-dialog';
 import { SearchEventsDialogComponent } from '../search-events-dialog/search-events-dialog.component';
 import { CalendarViewService } from './calendar-view.service';
+import { BrnCommandModule } from '@spartan-ng/ui-command-brain';
+import { HlmCommandModule } from '@tierklinik-dobersberg/angular/command';
 
 export type CalEvent = Timed &
   PlainMessage<CalendarEvent> & {
@@ -152,6 +154,8 @@ export type CalEvent = Timed &
     BrnPopoverModule,
     HlmPopoverModule,
     AppPopoverTriggerDirective,
+    BrnCommandModule,
+    HlmCommandModule, 
   ],
   providers: [
     ...provideIcons({
